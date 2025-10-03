@@ -12,6 +12,7 @@ import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
+import useIsOnboardingTaskParentReportArchived from '@hooks/useIsOnboardingTaskParentReportArchived';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -67,6 +68,7 @@ function CategorySettingsPage({
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [policyCategory]);
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS;
+    const isSetupCategoryTaskParentReportArchived = useIsOnboardingTaskParentReportArchived(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
 
     const navigateBack = () => {
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
@@ -129,7 +131,14 @@ function CategorySettingsPage({
             setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
             return;
         }
-        setWorkspaceCategoryEnabled(policyID, {[policyCategory.name]: {name: policyCategory.name, enabled: value}}, policyTagLists, allTransactionViolations);
+        setWorkspaceCategoryEnabled(
+            policyID,
+            {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
+            isSetupCategoryTaskParentReportArchived,
+            policyCategories,
+            policyTagLists,
+            allTransactionViolations,
+        );
     };
 
     const navigateToEditCategory = () => {
@@ -139,7 +148,7 @@ function CategorySettingsPage({
     };
 
     const deleteCategory = () => {
-        deleteWorkspaceCategories(policyID, [categoryName], policyTagLists, allTransactionViolations);
+        deleteWorkspaceCategories(policyID, [categoryName], isSetupCategoryTaskParentReportArchived, policyTagLists, policyCategories, allTransactionViolations);
         setDeleteCategoryConfirmModalVisible(false);
         navigateBack();
     };
@@ -190,7 +199,7 @@ function CategorySettingsPage({
                         errors={getLatestErrorMessageField(policyCategory)}
                         pendingAction={policyCategory?.pendingFields?.enabled}
                         errorRowStyles={styles.mh5}
-                        onClose={() => clearCategoryErrors(policyID, categoryName)}
+                        onClose={() => clearCategoryErrors(policyID, categoryName, policyCategories)}
                     >
                         <View style={[styles.mt2, styles.mh5]}>
                             <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -277,9 +286,9 @@ function CategorySettingsPage({
                                             accessibilityLabel={translate('workspace.rules.categoryRules.requireDescription')}
                                             onToggle={() => {
                                                 if (policyCategory.commentHint && areCommentsRequired) {
-                                                    setWorkspaceCategoryDescriptionHint(policyID, categoryName, '');
+                                                    setWorkspaceCategoryDescriptionHint(policyID, categoryName, '', policyCategories);
                                                 }
-                                                setPolicyCategoryDescriptionRequired(policyID, categoryName, !areCommentsRequired);
+                                                setPolicyCategoryDescriptionRequired(policyID, categoryName, !areCommentsRequired, policyCategories);
                                             }}
                                         />
                                     </View>
