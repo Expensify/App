@@ -11,12 +11,20 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionListWithSections';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
 import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
+import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addSplitExpenseField, clearSplitTransactionDraftErrors, initDraftSplitExpenseDataForEdit, saveSplitTransactions, updateSplitExpenseAmountField} from '@libs/actions/IOU';
+import {
+    addSplitExpenseField,
+    clearSplitTransactionDraftErrors,
+    getIOUActionForTransactions,
+    initDraftSplitExpenseDataForEdit,
+    saveSplitTransactions,
+    updateSplitExpenseAmountField,
+} from '@libs/actions/IOU';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -70,6 +78,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isPerDiem = isPerDiemRequest(transaction);
     const isCard = isCardTransaction(transaction);
 
+    const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+    const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
+    const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(iouActions.at(0));
+
     useEffect(() => {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});
 
@@ -109,7 +121,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        saveSplitTransactions(draftTransaction, currentSearchHash, policyCategories, expenseReportPolicy);
+        saveSplitTransactions(draftTransaction, currentSearchHash, policyCategories, expenseReportPolicy, iouReport, chatReport, isChatIOUReportArchived);
     }, [
         draftTransaction,
         sumOfSplitExpenses,
@@ -122,6 +134,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         transactionID,
         translate,
         transactionDetails?.currency,
+        isChatIOUReportArchived,
+        iouReport,
+        chatReport,
     ]);
 
     const onSplitExpenseAmountChange = useCallback(
