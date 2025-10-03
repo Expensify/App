@@ -96,11 +96,24 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     reportNextStep,
                 );
                 clearSelectedTransactions();
+                if (isRHPOnReportInSearch) {
+                    Navigation.dismissModal();
+                }
                 return;
             }
             navigateToNewReport(optimisticReportID);
         },
-        [allReportNextSteps, clearSelectedTransactions, currentUserPersonalDetails, isASAPSubmitBetaEnabled, isMovingExpenses, navigateToNewReport, policies, selectedTransactions],
+        [
+            allReportNextSteps,
+            clearSelectedTransactions,
+            currentUserPersonalDetails,
+            isASAPSubmitBetaEnabled,
+            isMovingExpenses,
+            isRHPOnReportInSearch,
+            navigateToNewReport,
+            policies,
+            selectedTransactions,
+        ],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {
