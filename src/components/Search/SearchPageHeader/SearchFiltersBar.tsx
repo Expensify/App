@@ -73,7 +73,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
 
     // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
     const {hash, type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, flatFilters} = queryJSON;
-    console.log('over here', {queryJSON});
 
     const theme = useTheme();
     const styles = useThemeStyles();
