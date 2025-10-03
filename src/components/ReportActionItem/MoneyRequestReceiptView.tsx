@@ -313,7 +313,7 @@ function MoneyRequestReceiptView({
                             />
                         </View>
                     )}
-                    {!!shouldShowAuditMessage && hasReceipt && (
+                    {!!shouldShowAuditMessage && hasReceipt && !isLoading && (
                         <View style={[styles.mt3, isEmptyObject(errors) && isDisplayedInWideRHP && styles.mb3]}>
                             <ReceiptAuditMessages notes={receiptImageViolations} />
                         </View>
