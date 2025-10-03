@@ -841,7 +841,7 @@ describe('PolicyUtils', () => {
             expect(result).toBe(false);
         });
 
-        it('returns true if policy is paid group policy and the manger is the payer', async () => {
+        it('returns true if policy is paid group policy and the manager is the payer', async () => {
             const currentUserLogin = employeeEmail;
 
             const newPolicy = {
