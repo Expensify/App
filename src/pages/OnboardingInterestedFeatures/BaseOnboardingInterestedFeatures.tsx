@@ -6,13 +6,14 @@ import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndB
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -44,6 +45,16 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
+    const {asset: FolderOpenIcon} = useMemoizedLazyAsset(() => loadIllustration('FolderOpen'));
+    const {asset: AccountingIcon} = useMemoizedLazyAsset(() => loadIllustration('Accounting'));
+    const {asset: CompanyCardIcon} = useMemoizedLazyAsset(() => loadIllustration('CompanyCard'));
+    const {asset: WorkflowsIcon} = useMemoizedLazyAsset(() => loadIllustration('Workflows'));
+    const {asset: InvoiceBlueIcon} = useMemoizedLazyAsset(() => loadIllustration('InvoiceBlue'));
+    const {asset: RulesIcon} = useMemoizedLazyAsset(() => loadIllustration('Rules'));
+    const {asset: CarIcon} = useMemoizedLazyAsset(() => loadIllustration('Car'));
+    const {asset: TagIcon} = useMemoizedLazyAsset(() => loadIllustration('Tag'));
+    const {asset: PerDiemIcon} = useMemoizedLazyAsset(() => loadIllustration('PerDiem'));
+    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadIllustration('HandCard'));
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -71,71 +82,71 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             {
                 id: FEATURE_IDS.CATEGORIES,
                 title: translate('workspace.moreFeatures.categories.title'),
-                icon: Illustrations.FolderOpen,
+                icon: FolderOpenIcon,
                 enabledByDefault: true,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES,
             },
             {
                 id: FEATURE_IDS.ACCOUNTING,
                 title: translate('workspace.moreFeatures.connections.title'),
-                icon: Illustrations.Accounting,
+                icon: AccountingIcon,
                 enabledByDefault: !!userReportedIntegration,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
             },
             {
                 id: FEATURE_IDS.COMPANY_CARDS,
                 title: translate('workspace.moreFeatures.companyCards.title'),
-                icon: Illustrations.CompanyCard,
+                icon: CompanyCardIcon,
                 enabledByDefault: true,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
             },
             {
                 id: FEATURE_IDS.WORKFLOWS,
                 title: translate('workspace.moreFeatures.workflows.title'),
-                icon: Illustrations.Workflows,
+                icon: WorkflowsIcon,
                 enabledByDefault: true,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS,
             },
             {
                 id: FEATURE_IDS.INVOICES,
                 title: translate('workspace.moreFeatures.invoices.title'),
-                icon: Illustrations.InvoiceBlue,
+                icon: InvoiceBlueIcon,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
             },
             {
                 id: FEATURE_IDS.RULES,
                 title: translate('workspace.moreFeatures.rules.title'),
-                icon: Illustrations.Rules,
+                icon: RulesIcon,
                 apiEndpoint: WRITE_COMMANDS.SET_POLICY_RULES_ENABLED,
                 requiresUpdate: true,
             },
             {
                 id: FEATURE_IDS.DISTANCE_RATES,
                 title: translate('workspace.moreFeatures.distanceRates.title'),
-                icon: Illustrations.Car,
+                icon: CarIcon,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES,
             },
             {
                 id: FEATURE_IDS.EXPENSIFY_CARD,
                 title: translate('workspace.moreFeatures.expensifyCard.title'),
-                icon: Illustrations.HandCard,
+                icon: HandCardIcon,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS,
             },
             {
                 id: FEATURE_IDS.TAGS,
                 title: translate('workspace.moreFeatures.tags.title'),
-                icon: Illustrations.Tag,
+                icon: TagIcon,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_TAGS,
             },
             {
                 id: FEATURE_IDS.PER_DIEM,
                 title: translate('workspace.moreFeatures.perDiem.title'),
-                icon: Illustrations.PerDiem,
+                icon: PerDiemIcon,
                 apiEndpoint: WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM,
                 requiresUpdate: true,
             },
         ];
-    }, [translate, userReportedIntegration]);
+    }, [AccountingIcon, CarIcon, CompanyCardIcon, FolderOpenIcon, HandCardIcon, InvoiceBlueIcon, PerDiemIcon, RulesIcon, TagIcon, WorkflowsIcon, translate, userReportedIntegration]);
 
     const [selectedFeatures, setSelectedFeatures] = useState<string[]>(() => features.filter((feature) => feature.enabledByDefault).map((feature) => feature.id));
 

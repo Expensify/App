@@ -1,8 +1,8 @@
 import React, {useState} from 'react';
-import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
@@ -10,6 +10,7 @@ import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
@@ -59,6 +60,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {asset: ExpensifyCardImage} = useMemoizedLazyAsset(() => loadIllustration('ExpensifyCardImage'));
     const illustrations = useThemeIllustrations();
     const [cardFeeds] = useCardFeeds(policyID);
     const [selectedFeed, setSelectedFeed] = useState('');

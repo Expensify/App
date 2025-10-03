@@ -1,10 +1,11 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import {TeleScope} from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuitePayableAcct, updateNetSuiteReimbursablePayableAccount} from '@libs/actions/connections/NetSuiteCommands';
@@ -26,6 +27,7 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
     const {translate} = useLocalize();
 
     const policyID = policy?.id;
+    const {asset: TeleScope} = useMemoizedLazyAsset(() => loadIllustration('Telescope'));
 
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT>>();
     const params = route.params;
@@ -68,7 +70,7 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [translate, styles.pb10, TeleScope],
     );
 
     return (

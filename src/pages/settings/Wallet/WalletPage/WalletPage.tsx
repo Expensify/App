@@ -10,6 +10,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {loadExpensifyIcon} from '@components/Icon/ExpensifyIconLoader';
 import * as Illustrations from '@components/Icon/Illustrations';
 import KYCWall from '@components/KYCWall';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
@@ -23,6 +24,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -76,6 +78,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const {isBetaEnabled} = usePermissions();
+    const {asset: MoneySearch} = useMemoizedLazyAsset(() => loadExpensifyIcon('MoneySearch'));
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -681,7 +684,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         />
                     )}
                     <MenuItem
-                        icon={Expensicons.MoneySearch}
+                        icon={MoneySearch}
                         title={translate('workspace.common.viewTransactions')}
                         onPress={() => {
                             hideCardMenu();

@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
@@ -7,7 +8,7 @@ import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Icon from './Icon';
-import * as Illustrations from './Icon/Illustrations';
+import {loadIllustration} from './Icon/IllustrationLoader';
 import RenderHTML from './RenderHTML';
 
 type ChangeWorkspaceMenuSection = {
@@ -18,20 +19,22 @@ type ChangeWorkspaceMenuSection = {
     titleTranslationKey: TranslationPaths;
 };
 
-const changeWorkspaceMenuSections: ChangeWorkspaceMenuSection[] = [
-    {
-        icon: Illustrations.FolderOpen,
-        titleTranslationKey: 'iou.changePolicyEducational.reCategorize',
-    },
-    {
-        icon: Illustrations.Workflows,
-        titleTranslationKey: 'iou.changePolicyEducational.workflows',
-    },
-];
-
 function ChangeWorkspaceMenuSectionList() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {asset: FolderOpenIcon} = useMemoizedLazyAsset(() => loadIllustration('FolderOpen'));
+    const {asset: WorkflowsIcon} = useMemoizedLazyAsset(() => loadIllustration('Workflows'));
+
+    const changeWorkspaceMenuSections: ChangeWorkspaceMenuSection[] = [
+        {
+            icon: FolderOpenIcon,
+            titleTranslationKey: 'iou.changePolicyEducational.reCategorize',
+        },
+        {
+            icon: WorkflowsIcon,
+            titleTranslationKey: 'iou.changePolicyEducational.workflows',
+        },
+    ];
 
     return (
         <>

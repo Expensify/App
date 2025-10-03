@@ -7,8 +7,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Plus} from '@components/Icon/Expensicons';
-import {ReportReceipt} from '@components/Icon/Illustrations';
-import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -18,6 +17,9 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -65,6 +67,7 @@ function WorkspaceReportFieldsPage({
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const policy = usePolicy(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, {canBeMissing: true});
+    const {environmentURL} = useEnvironment();
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
@@ -79,6 +82,8 @@ function WorkspaceReportFieldsPage({
         return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title'));
     }, [policy]);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
+
+    const {asset: ReportReceipt} = useMemoizedLazyAsset(() => loadIllustration('ReportReceipt'));
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
         if (!hasAccountingConnections) {
@@ -121,14 +126,16 @@ function WorkspaceReportFieldsPage({
     );
 
     const getHeaderText = () =>
-        !hasSyncError && isConnectionVerified && currentConnectionName ? (
+        !hasSyncError && isConnectionVerified ? (
             <Text style={[styles.mr5, styles.mt1]}>
-                <ImportedFromAccountingSoftware
-                    policyID={policyID}
-                    currentConnectionName={currentConnectionName}
-                    connectedIntegration={connectedIntegration}
-                    translatedText={translate('workspace.reportFields.importedFromAccountingSoftware')}
-                />
+                <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.reportFields.importedFromAccountingSoftware')} `}</Text>
+                <TextLink
+                    style={[styles.textNormal, styles.link]}
+                    href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                >
+                    {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
+                </TextLink>
+                <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
             </Text>
         ) : (
             <Text style={[styles.textNormal, styles.colorMuted, styles.mr5, styles.mt1]}>{translate('workspace.reportFields.subtitle')}</Text>
