@@ -87,15 +87,6 @@ Onyx.connect({
     },
 });
 
-let allNextSteps: OnyxCollection<ReportNextStep> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.NEXT_STEP,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allNextSteps = value ?? {};
-    },
-});
-
 const allTransactionViolation: OnyxCollection<TransactionViolation[]> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
@@ -623,6 +614,7 @@ function changeTransactionsReport(
     policy?: OnyxEntry<Policy>,
     reportNextStep?: OnyxEntry<ReportNextStep>,
     policyCategories?: OnyxEntry<PolicyCategories>,
+    nextStepsCollection?: OnyxCollection<ReportNextStep>,
 ) {
     const newReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
@@ -1183,7 +1175,8 @@ function changeTransactionsReport(
             } as Report;
         }
 
-        const oldNextStepEntry = affectedReportID === reportID && reportNextStep !== undefined ? reportNextStep : allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${affectedReportID}`];
+        const oldNextStepEntry =
+            affectedReportID === reportID && reportNextStep !== undefined ? reportNextStep : nextStepsCollection?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${affectedReportID}`];
         const oldNextStepValue = oldNextStepEntry ? {...oldNextStepEntry} : null;
 
         const updatedReport = {

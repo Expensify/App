@@ -49,6 +49,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {reportID, backToReport} = route.params;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
+    const [nextStepsCollection] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
     const [hasMoreUnreportedTransactionsResults] = useOnyx(ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS, {canBeMissing: true});
@@ -230,6 +231,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                                 policy,
                                 reportNextStep,
                                 policyCategories,
+                                nextStepsCollection,
                             );
                         }
                     });
