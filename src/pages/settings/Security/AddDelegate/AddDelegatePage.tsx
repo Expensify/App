@@ -36,7 +36,7 @@ function AddDelegatePage() {
         [account?.delegatedAccess?.delegates],
     );
 
-    const {searchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         includeUserToInvite: true,
@@ -90,8 +90,8 @@ function AddDelegatePage() {
     }, []);
 
     useEffect(() => {
-        searchInServer(searchTerm);
-    }, [searchTerm]);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     return (
         <ScreenWrapper

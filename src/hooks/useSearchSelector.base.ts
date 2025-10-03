@@ -78,6 +78,9 @@ type UseSearchSelectorReturn = {
     /** Current search term */
     searchTerm: string;
 
+    /** Debounced search term */
+    debouncedSearchTerm: string;
+
     /** Function to update search term */
     setSearchTerm: (value: string) => void;
 
@@ -275,6 +278,7 @@ function useSearchSelectorBase({
 
     return {
         searchTerm,
+        debouncedSearchTerm,
         setSearchTerm,
         searchOptions,
         availableOptions,
