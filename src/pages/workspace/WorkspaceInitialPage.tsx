@@ -124,7 +124,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         .filter((domainID): domainID is number => !!domainID);
     const {login, accountID} = useCurrentUserPersonalDetails();
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
-    const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData({policyID: policy?.id});
+    const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData(policy?.id);
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
@@ -506,6 +506,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                         errorRowStyles={[styles.ph5, styles.pv2]}
                         shouldDisableStrikeThrough={false}
                         shouldHideOnDelete={false}
+                        shouldShowErrorMessages={false}
                     >
                         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                             {/*
@@ -533,7 +534,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     {isPolicyExpenseChatEnabled && !!currentUserPolicyExpenseChatReportID && (
                         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                             <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph2]}>{translate('workspace.common.submitExpense')}</Text>
-                            <OfflineWithFeedback pendingAction={reportPendingAction}>
+                            <OfflineWithFeedback
+                                pendingAction={reportPendingAction}
+                                shouldShowErrorMessages={false}
+                            >
                                 <MenuItem
                                     title={getReportName(currentUserPolicyExpenseChat)}
                                     description={translate('workspace.common.workspace')}

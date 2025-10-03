@@ -27,6 +27,7 @@ import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurn
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import useIsOnboardingTaskParentReportArchived from '@hooks/useIsOnboardingTaskParentReportArchived';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -93,6 +94,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
     const {asset: FolderOpenIcon} = useMemoizedLazyAsset(() => loadIllustration('FolderOpen'));
 
+    const isSetupCategoryTaskParentReportArchived = useIsOnboardingTaskParentReportArchived(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
+
     const fetchCategories = useCallback(() => {
         openPolicyCategoriesPage(policyId);
     }, [policyId]);
@@ -143,9 +146,16 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean, categoryName: string) => {
-            setWorkspaceCategoryEnabled(policyId, {[categoryName]: {name: categoryName, enabled: value}}, policyTagLists, allTransactionViolations);
+            setWorkspaceCategoryEnabled(
+                policyId,
+                {[categoryName]: {name: categoryName, enabled: value}},
+                isSetupCategoryTaskParentReportArchived,
+                policyCategories,
+                policyTagLists,
+                allTransactionViolations,
+            );
         },
-        [policyId, policyTagLists, allTransactionViolations],
+        [policyId, isSetupCategoryTaskParentReportArchived, policyCategories, policyTagLists, allTransactionViolations],
     );
 
     const categoryList = useMemo<PolicyOption[]>(() => {
@@ -252,11 +262,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const dismissError = (item: PolicyOption) => {
-        clearCategoryErrors(policyId, item.keyForList);
+        clearCategoryErrors(policyId, item.keyForList, policyCategories);
     };
 
     const handleDeleteCategories = () => {
-        deleteWorkspaceCategories(policyId, selectedCategories, policyTagLists, allTransactionViolations);
+        deleteWorkspaceCategories(policyId, selectedCategories, isSetupCategoryTaskParentReportArchived, policyTagLists, policyCategories, allTransactionViolations);
         setDeleteCategoriesConfirmModalVisible(false);
 
         // eslint-disable-next-line deprecation/deprecation
@@ -361,7 +371,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             return;
                         }
                         setSelectedCategories([]);
-                        setWorkspaceCategoryEnabled(policyId, categoriesToDisable, policyTagLists, allTransactionViolations);
+                        setWorkspaceCategoryEnabled(policyId, categoriesToDisable, isSetupCategoryTaskParentReportArchived, policyCategories, policyTagLists, allTransactionViolations);
                     },
                 });
             }
@@ -383,7 +393,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedCategories([]);
-                        setWorkspaceCategoryEnabled(policyId, categoriesToEnable, policyTagLists, allTransactionViolations);
+                        setWorkspaceCategoryEnabled(policyId, categoriesToEnable, isSetupCategoryTaskParentReportArchived, policyCategories, policyTagLists, allTransactionViolations);
                     },
                 });
             }
