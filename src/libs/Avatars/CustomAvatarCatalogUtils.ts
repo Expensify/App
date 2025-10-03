@@ -19,6 +19,8 @@ type SeasonF1AvatarIDs =
   | 'stopwatch-ice600' | 'tire-green400' | 'trophy-yellow600' | 'wrenches-pink600';
 
 
+
+  
 const CDN_BASE = `${CONST.CLOUDFRONT_URL}/images/avatars`;
 const CDN_SEASON_F1 = `${CDN_BASE}/custom-avatars/season-f1`;
 
