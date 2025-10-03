@@ -12,6 +12,7 @@ import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {updatePersonalDetailsAndShipExpensifyCards} from '@libs/actions/PersonalDetails';
+import {getCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,7 +42,18 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
 
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
-    const values = useMemo(() => getSubstepValues(privatePersonalDetails, draftValues), [privatePersonalDetails, draftValues]);
+    const values = useMemo(() => {
+        const substepValues = getSubstepValues(privatePersonalDetails, draftValues);
+
+        if (substepValues.country) {
+            const normalizedCountry = getCountryCode(substepValues.country) || substepValues.country;
+            return {
+                ...substepValues,
+                country: normalizedCountry,
+            };
+        }
+        return substepValues;
+    }, [privatePersonalDetails, draftValues]);
 
     const startFrom = useMemo(() => getInitialSubstep(values), [values]);
 
