@@ -1,7 +1,6 @@
 import {activePolicySelector} from '@selectors/Policy';
 import {useSession} from '@components/OnyxListItemProvider';
-import {isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
-import CONST from '@src/CONST';
+import {isPaidGroupPolicy, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
@@ -14,7 +13,7 @@ function usePolicyForMovingExpenses() {
     });
 
     const session = useSession();
-    const userPolicies = Object.values(allPolicies ?? {}).filter((policy) => isPolicyMemberWithoutPendingDelete(session?.email, policy) && policy?.type !== CONST.POLICY.TYPE.PERSONAL);
+    const userPolicies = Object.values(allPolicies ?? {}).filter((policy) => isPolicyMemberWithoutPendingDelete(session?.email, policy) && isPaidGroupPolicy(policy));
     const isMemberOfMoreThanOnePolicy = userPolicies.length > 1;
 
     if (activePolicy) {

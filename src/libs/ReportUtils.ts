@@ -4293,7 +4293,7 @@ function canEditFieldOfMoneyRequest(
     isDeleteAction?: boolean,
     isChatReportArchived = false,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    // temporary check for Search Page only
+    // TODO: [Unreported Expense project] temporary check for Search Page only, remove it when no longer necessary
     isSearchPageOption?: boolean,
 ): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
