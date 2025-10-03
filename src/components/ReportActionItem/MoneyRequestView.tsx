@@ -417,7 +417,6 @@ function MoneyRequestView({
             return '';
         },
         [
-            transactionAmount,
             isSettled,
             isCancelled,
             isPolicyExpenseChat,
@@ -428,7 +427,6 @@ function MoneyRequestView({
             hasViolations,
             translate,
             getViolationsForField,
-            canEditAmount,
             canEditDate,
             canEditMerchant,
             canEdit,
