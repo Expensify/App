@@ -299,6 +299,7 @@ describe('actions/Policy', () => {
 
     describe('CreatePolicyTag', () => {
         it('create new policy tag', async () => {
+            // Given a policy with existing tags
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.areTagsEnabled = true;
 
@@ -306,13 +307,14 @@ describe('actions/Policy', () => {
             const newTagName = 'new tag';
             const fakePolicyTags = createRandomPolicyTags(tagListName);
 
-            mockFetch?.pause?.();
-
+            mockFetch.pause();
             await waitForBatchedUpdates();
+
+            // When creating a new tag
             createPolicyTag(fakePolicy.id, newTagName, fakePolicyTags);
             await waitForBatchedUpdates();
 
-            // Verify optimistic data
+            // Then the tag should appear optimistically with pending state so the user sees immediate feedback
             const policyTagsOptimistic = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
             const newTagOptimistic = policyTagsOptimistic?.[tagListName]?.tags?.[newTagName];
             expect(newTagOptimistic?.name).toBe(newTagName);
@@ -320,10 +322,10 @@ describe('actions/Policy', () => {
             expect(newTagOptimistic?.errors).toBeFalsy();
             expect(newTagOptimistic?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
-            mockFetch?.resume?.();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
-            // Verify success data
+            // Then the pending state should be cleared after API success
             const policyTagsSuccess = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
             const newTagSuccess = policyTagsSuccess?.[tagListName]?.tags?.[newTagName];
             expect(newTagSuccess?.errors).toBeFalsy();
@@ -331,6 +333,7 @@ describe('actions/Policy', () => {
         });
 
         it('reset new policy tag when api returns error', async () => {
+            // Given a policy with existing tags
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.areTagsEnabled = true;
 
@@ -338,35 +341,37 @@ describe('actions/Policy', () => {
             const newTagName = 'new tag';
             const fakePolicyTags = createRandomPolicyTags(tagListName);
 
-            mockFetch?.pause?.();
-
+            mockFetch.pause();
             await waitForBatchedUpdates();
-            mockFetch?.fail?.();
+            mockFetch.fail();
+
+            // When the API fails
             createPolicyTag(fakePolicy.id, newTagName, fakePolicyTags);
             await waitForBatchedUpdates();
-
-            mockFetch?.resume?.();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
-            // Verify error state
+            // Then the tag should have errors
             const policyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
             const newTag = policyTags?.[tagListName]?.tags?.[newTagName];
             expect(newTag?.errors).toBeTruthy();
         });
 
         it('should handle empty policy tags object', async () => {
+            // Given a policy with no existing tags
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.areTagsEnabled = true;
 
             const newTagName = 'new tag';
 
-            mockFetch?.pause?.();
-
+            mockFetch.pause();
             await waitForBatchedUpdates();
+
+            // When adding the first tag
             createPolicyTag(fakePolicy.id, newTagName, {});
             await waitForBatchedUpdates();
 
-            // Verify optimistic data
+            // Then the tag should be created in a new list with pending state so the user sees immediate feedback
             const policyTagsOptimistic = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
             const tagListKeys = Object.keys(policyTagsOptimistic ?? {});
             const firstTagList = tagListKeys.at(0);
@@ -378,10 +383,10 @@ describe('actions/Policy', () => {
                 expect(newTagOptimistic?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
             }
 
-            mockFetch?.resume?.();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
-            // Verify success data
+            // Then the pending state should be cleared after API success
             const policyTagsSuccess = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
             const tagListKeysSuccess = Object.keys(policyTagsSuccess ?? {});
             const firstTagListSuccess = tagListKeysSuccess.at(0);
@@ -393,6 +398,7 @@ describe('actions/Policy', () => {
         });
 
         it('should work with data from useOnyx hook', async () => {
+            // Given a policy with tags loaded via useOnyx
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.areTagsEnabled = true;
 
@@ -400,7 +406,7 @@ describe('actions/Policy', () => {
             const newTagName = 'useOnyx tag';
             const fakePolicyTags = createRandomPolicyTags(tagListName);
 
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
             await waitForBatchedUpdates();
@@ -411,11 +417,11 @@ describe('actions/Policy', () => {
                 expect(result.current[0]).toBeDefined();
             });
 
+            // When using data from useOnyx hook
             createPolicyTag(fakePolicy.id, newTagName, result.current[0] ?? {});
-
             await waitForBatchedUpdates();
 
-            // Verify optimistic data
+            // Then the tag should appear optimistically with pending state so the user sees immediate feedback
             const policyTagsOptimistic = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
             const newTagOptimistic = policyTagsOptimistic?.[tagListName]?.tags?.[newTagName];
             expect(newTagOptimistic?.name).toBe(newTagName);
@@ -423,10 +429,10 @@ describe('actions/Policy', () => {
             expect(newTagOptimistic?.errors).toBeFalsy();
             expect(newTagOptimistic?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
-            mockFetch?.resume?.();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
-            // Verify success data
+            // Then the pending state should be cleared after API success
             const policyTagsSuccess = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
             const newTagSuccess = policyTagsSuccess?.[tagListName]?.tags?.[newTagName];
             expect(newTagSuccess?.errors).toBeFalsy();
