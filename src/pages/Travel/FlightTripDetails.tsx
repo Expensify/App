@@ -122,7 +122,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                     </View>
                 )}
                 {!!reservation.confirmations?.at(0)?.value && (
-                    <View style={styles.w50}>
+                    <View style={styles.w100}>
                         <MenuItemWithTopDescription
                             description={translate('travel.flightDetails.recordLocator')}
                             title={reservation.confirmations?.at(0)?.value}
@@ -142,6 +142,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                     description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
                     interactive={false}
                     wrapperStyle={styles.pb3}
+                    labelStyle={styles.mb2}
                 />
             )}
         </>
