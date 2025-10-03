@@ -84,7 +84,14 @@ import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getMemberAccountIDsForWorkspace, goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage, navigateToReceiptPartnersPage} from '@libs/PolicyUtils';
+import {
+    getCustomUnitsForDuplication,
+    getMemberAccountIDsForWorkspace,
+    goBackWhenEnableFeature,
+    isControlPolicy,
+    navigateToExpensifyCardPage,
+    navigateToReceiptPartnersPage,
+} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
@@ -119,7 +126,7 @@ import type {
     TransactionViolations,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate, UberReceiptPartner} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {NotificationPreference} from '@src/types/onyx/Report';
@@ -2576,7 +2583,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
                 name: policyName,
                 fieldList: isReportsOptionSelected ? policy?.fieldList : undefined,
                 connections: isConnectionsOptionSelected ? policy?.connections : undefined,
-                customUnits: isCustomUnitsOptionSelected ? policy?.customUnits : undefined,
+                customUnits: getCustomUnitsForDuplication(policy, isCustomUnitsOptionSelected, isPerDiemOptionSelected),
                 taxRates: isTaxesOptionSelected ? policy?.taxRates : undefined,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 pendingFields: {
@@ -2983,15 +2990,28 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
         emailList: emails.join(','),
     };
 
-    // Build optimistic employees mapping: mark invited emails as invited
-    const invitedEmployees = emails.reduce<Record<string, {status: string}>>((acc, email) => {
-        acc[email] = {status: CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED};
+    // Build optimistic employees mapping: mark invited emails as invited with pending action
+    const invitedEmployees = emails.reduce<Record<string, {status: string; pendingAction: PendingAction}>>((acc, email) => {
+        acc[email] = {
+            status: CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        };
         return acc;
     }, {});
 
-    // Build map for resetting employees on failure
-    const resetEmployeesOnFailure = emails.reduce<Record<string, null>>((acc, email) => {
-        acc[email] = null;
+    // Build map for clearing pending actions on success
+    const successEmployees = emails.reduce<Record<string, {pendingAction: PendingAction}>>((acc, email) => {
+        acc[email] = {
+            pendingAction: null,
+        };
+        return acc;
+    }, {});
+
+    // Build map for resetting employees on failure with individual errors
+    const resetEmployeesOnFailure = emails.reduce<Record<string, {status?: string; errors: Errors}>>((acc, email) => {
+        acc[email] = {
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.receiptPartners.uber.invitationFailure'),
+        };
         return acc;
     }, {});
 
@@ -3003,7 +3023,6 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
                 receiptPartners: {
                     uber: {
                         employees: invitedEmployees,
-                        pendingFields: {employees: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     },
                 },
             },
@@ -3016,7 +3035,7 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
             value: {
                 receiptPartners: {
                     uber: {
-                        pendingFields: {employees: null},
+                        employees: successEmployees,
                     },
                 },
             },
@@ -3029,9 +3048,7 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
             value: {
                 receiptPartners: {
                     uber: {
-                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.receiptPartners.uber.invitationFailure'),
                         employees: resetEmployeesOnFailure,
-                        pendingFields: {employees: null},
                     },
                 },
             },
@@ -3039,6 +3056,21 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
     ];
 
     API.write(WRITE_COMMANDS.INVITE_WORKSPACE_EMPLOYEES_TO_UBER, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears an error for a specific Uber employee
+ */
+function clearUberEmployeeError(policyID: string, email: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        receiptPartners: {
+            uber: {
+                employees: {
+                    [email]: {errors: null, pendingAction: null},
+                },
+            },
+        },
+    });
 }
 
 /**
@@ -6321,6 +6353,7 @@ export {
     removeWorkspace,
     createWorkspaceFromIOUPayment,
     clearErrors,
+    clearUberEmployeeError,
     dismissAddedWithPrimaryLoginMessages,
     openDraftWorkspaceRequest,
     createDraftInitialWorkspace,

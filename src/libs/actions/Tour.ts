@@ -10,7 +10,9 @@ function startTestDrive(
     shouldUpdateSelfTourViewedOnlyLocally: boolean,
     hasUserBeenAddedToNudgeMigration: boolean,
     isUserPaidPolicyMember: boolean,
+    isViewTourTaskParentReportArchived: boolean,
 ) {
+    // eslint-disable-next-line deprecation/deprecation
     InteractionManager.runAfterInteractions(() => {
         if (
             hasUserBeenAddedToNudgeMigration ||
@@ -20,7 +22,7 @@ function startTestDrive(
             introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ||
             (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE)
         ) {
-            completeTestDriveTask(shouldUpdateSelfTourViewedOnlyLocally);
+            completeTestDriveTask(isViewTourTaskParentReportArchived, shouldUpdateSelfTourViewedOnlyLocally);
             Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
         } else {
             Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
