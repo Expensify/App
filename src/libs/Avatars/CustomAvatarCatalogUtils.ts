@@ -5,30 +5,30 @@ import * as DefaultAvatars from '@components/Icon/DefaultAvatars';
 import CONST from '@src/CONST';
 
 type DefaultAvatarIDs =
-    | 'default-1'
-    | 'default-2'
-    | 'default-3'
-    | 'default-4'
-    | 'default-5'
-    | 'default-6'
-    | 'default-7'
-    | 'default-8'
-    | 'default-9'
-    | 'default-10'
-    | 'default-11'
-    | 'default-12'
-    | 'default-13'
-    | 'default-14'
-    | 'default-15'
-    | 'default-16'
-    | 'default-17'
-    | 'default-18'
-    | 'default-19'
-    | 'default-20'
-    | 'default-21'
-    | 'default-22'
-    | 'default-23'
-    | 'default-24';
+    | 'default-avatar_1'
+    | 'default-avatar_2'
+    | 'default-avatar_3'
+    | 'default-avatar_4'
+    | 'default-avatar_5'
+    | 'default-avatar_6'
+    | 'default-avatar_7'
+    | 'default-avatar_8'
+    | 'default-avatar_9'
+    | 'default-avatar_10'
+    | 'default-avatar_11'
+    | 'default-avatar_12'
+    | 'default-avatar_13'
+    | 'default-avatar_14'
+    | 'default-avatar_15'
+    | 'default-avatar_16'
+    | 'default-avatar_17'
+    | 'default-avatar_18'
+    | 'default-avatar_19'
+    | 'default-avatar_20'
+    | 'default-avatar_21'
+    | 'default-avatar_22'
+    | 'default-avatar_23'
+    | 'default-avatar_24';
 
 type SeasonF1AvatarIDs =
     | 'car-blue100'
@@ -63,30 +63,30 @@ type AvatarEntry = {local: React.FC<SvgProps>; url: string};
 type CustomAvatarID = DefaultAvatarIDs | SeasonF1AvatarIDs;
 
 const DEFAULTS: Record<DefaultAvatarIDs, AvatarEntry> = {
-    'default-1': {local: DefaultAvatars.Avatar1, url: `${CDN_BASE}/default-avatar_1.png`},
-    'default-2': {local: DefaultAvatars.Avatar2, url: `${CDN_BASE}/default-avatar_2.png`},
-    'default-3': {local: DefaultAvatars.Avatar3, url: `${CDN_BASE}/default-avatar_3.png`},
-    'default-4': {local: DefaultAvatars.Avatar4, url: `${CDN_BASE}/default-avatar_4.png`},
-    'default-5': {local: DefaultAvatars.Avatar5, url: `${CDN_BASE}/default-avatar_5.png`},
-    'default-6': {local: DefaultAvatars.Avatar6, url: `${CDN_BASE}/default-avatar_6.png`},
-    'default-7': {local: DefaultAvatars.Avatar7, url: `${CDN_BASE}/default-avatar_7.png`},
-    'default-8': {local: DefaultAvatars.Avatar8, url: `${CDN_BASE}/default-avatar_8.png`},
-    'default-9': {local: DefaultAvatars.Avatar9, url: `${CDN_BASE}/default-avatar_9.png`},
-    'default-10': {local: DefaultAvatars.Avatar10, url: `${CDN_BASE}/default-avatar_10.png`},
-    'default-11': {local: DefaultAvatars.Avatar11, url: `${CDN_BASE}/default-avatar_11.png`},
-    'default-12': {local: DefaultAvatars.Avatar12, url: `${CDN_BASE}/default-avatar_12.png`},
-    'default-13': {local: DefaultAvatars.Avatar13, url: `${CDN_BASE}/default-avatar_13.png`},
-    'default-14': {local: DefaultAvatars.Avatar14, url: `${CDN_BASE}/default-avatar_14.png`},
-    'default-15': {local: DefaultAvatars.Avatar15, url: `${CDN_BASE}/default-avatar_15.png`},
-    'default-16': {local: DefaultAvatars.Avatar16, url: `${CDN_BASE}/default-avatar_16.png`},
-    'default-17': {local: DefaultAvatars.Avatar17, url: `${CDN_BASE}/default-avatar_17.png`},
-    'default-18': {local: DefaultAvatars.Avatar18, url: `${CDN_BASE}/default-avatar_18.png`},
-    'default-19': {local: DefaultAvatars.Avatar19, url: `${CDN_BASE}/default-avatar_19.png`},
-    'default-20': {local: DefaultAvatars.Avatar20, url: `${CDN_BASE}/default-avatar_20.png`},
-    'default-21': {local: DefaultAvatars.Avatar21, url: `${CDN_BASE}/default-avatar_21.png`},
-    'default-22': {local: DefaultAvatars.Avatar22, url: `${CDN_BASE}/default-avatar_22.png`},
-    'default-23': {local: DefaultAvatars.Avatar23, url: `${CDN_BASE}/default-avatar_23.png`},
-    'default-24': {local: DefaultAvatars.Avatar24, url: `${CDN_BASE}/default-avatar_24.png`},
+    'default-avatar_1': {local: DefaultAvatars.Avatar1, url: `${CDN_BASE}/default-avatar_1.png`},
+    'default-avatar_2': {local: DefaultAvatars.Avatar2, url: `${CDN_BASE}/default-avatar_2.png`},
+    'default-avatar_3': {local: DefaultAvatars.Avatar3, url: `${CDN_BASE}/default-avatar_3.png`},
+    'default-avatar_4': {local: DefaultAvatars.Avatar4, url: `${CDN_BASE}/default-avatar_4.png`},
+    'default-avatar_5': {local: DefaultAvatars.Avatar5, url: `${CDN_BASE}/default-avatar_5.png`},
+    'default-avatar_6': {local: DefaultAvatars.Avatar6, url: `${CDN_BASE}/default-avatar_6.png`},
+    'default-avatar_7': {local: DefaultAvatars.Avatar7, url: `${CDN_BASE}/default-avatar_7.png`},
+    'default-avatar_8': {local: DefaultAvatars.Avatar8, url: `${CDN_BASE}/default-avatar_8.png`},
+    'default-avatar_9': {local: DefaultAvatars.Avatar9, url: `${CDN_BASE}/default-avatar_9.png`},
+    'default-avatar_10': {local: DefaultAvatars.Avatar10, url: `${CDN_BASE}/default-avatar_10.png`},
+    'default-avatar_11': {local: DefaultAvatars.Avatar11, url: `${CDN_BASE}/default-avatar_11.png`},
+    'default-avatar_12': {local: DefaultAvatars.Avatar12, url: `${CDN_BASE}/default-avatar_12.png`},
+    'default-avatar_13': {local: DefaultAvatars.Avatar13, url: `${CDN_BASE}/default-avatar_13.png`},
+    'default-avatar_14': {local: DefaultAvatars.Avatar14, url: `${CDN_BASE}/default-avatar_14.png`},
+    'default-avatar_15': {local: DefaultAvatars.Avatar15, url: `${CDN_BASE}/default-avatar_15.png`},
+    'default-avatar_16': {local: DefaultAvatars.Avatar16, url: `${CDN_BASE}/default-avatar_16.png`},
+    'default-avatar_17': {local: DefaultAvatars.Avatar17, url: `${CDN_BASE}/default-avatar_17.png`},
+    'default-avatar_18': {local: DefaultAvatars.Avatar18, url: `${CDN_BASE}/default-avatar_18.png`},
+    'default-avatar_19': {local: DefaultAvatars.Avatar19, url: `${CDN_BASE}/default-avatar_19.png`},
+    'default-avatar_20': {local: DefaultAvatars.Avatar20, url: `${CDN_BASE}/default-avatar_20.png`},
+    'default-avatar_21': {local: DefaultAvatars.Avatar21, url: `${CDN_BASE}/default-avatar_21.png`},
+    'default-avatar_22': {local: DefaultAvatars.Avatar22, url: `${CDN_BASE}/default-avatar_22.png`},
+    'default-avatar_23': {local: DefaultAvatars.Avatar23, url: `${CDN_BASE}/default-avatar_23.png`},
+    'default-avatar_24': {local: DefaultAvatars.Avatar24, url: `${CDN_BASE}/default-avatar_24.png`},
 };
 
 const SEASON_F1: Record<SeasonF1AvatarIDs, AvatarEntry> = {
