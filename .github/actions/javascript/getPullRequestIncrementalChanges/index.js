@@ -12528,14 +12528,26 @@ function isEmptyObject(obj) {
 /***/ }),
 
 /***/ 7037:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GIT_ERRORS = void 0;
+const github_1 = __nccwpck_require__(5438);
 const child_process_1 = __nccwpck_require__(2081);
 const util_1 = __nccwpck_require__(3837);
+const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const Logger_1 = __nccwpck_require__(8891);
 const exec = (0, util_1.promisify)(child_process_1.exec);
+const IS_CI = process.env.CI === 'true';
+const GIT_ERRORS = {
+    FAILED_TO_FETCH_FROM_REMOTE: 'Failed to fetch from remote',
+};
+exports.GIT_ERRORS = GIT_ERRORS;
 /**
  * Utility class for git operations.
  */
@@ -12548,7 +12560,7 @@ class Git {
      */
     static isValidRef(ref) {
         try {
-            (0, child_process_1.execSync)(`git rev-parse --verify "${ref}"`, {
+            (0, child_process_1.execSync)(`git rev-parse --verify "${ref}^{object}"`, {
                 encoding: 'utf8',
                 cwd: process.cwd(),
                 stdio: 'pipe', // Suppress output
@@ -12673,6 +12685,10 @@ class Git {
                         content,
                     });
                 }
+                else if (firstChar === ' ') {
+                    // Context line - skip it (we only care about added/removed lines)
+                    continue;
+                }
                 else {
                     throw new Error(`Unknown line type! First character of line is ${firstChar}`);
                 }
@@ -12774,8 +12790,144 @@ class Git {
             throw new Error(`Failed to fetch git reference ${ref}: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
+    static getMainBaseCommitHash(remote) {
+        // Fetch the main branch from the specified remote to ensure it's available
+        try {
+            (0, child_process_1.execSync)(`git fetch ${remote} main --no-tags --depth=1 -q`, { encoding: 'utf8' });
+        }
+        catch (error) {
+            throw new Error(GIT_ERRORS.FAILED_TO_FETCH_FROM_REMOTE);
+        }
+        // In CI, use a simpler approach - just use the remote main branch directly
+        // This avoids issues with shallow clones and merge-base calculations
+        if (IS_CI) {
+            try {
+                const mergeBaseHash = (0, child_process_1.execSync)(`git rev-parse ${remote}/main`, { encoding: 'utf8' }).trim();
+                // Validate the output is a proper SHA hash
+                if (!mergeBaseHash || !/^[a-fA-F0-9]{40}$/.test(mergeBaseHash)) {
+                    throw new Error(`git rev-parse returned unexpected output: ${mergeBaseHash}`);
+                }
+                return mergeBaseHash;
+            }
+            catch (error) {
+                (0, Logger_1.error)(`Failed to get commit hash for ${remote}/main:`, error);
+                throw new Error(`Could not get commit hash for ${remote}/main`);
+            }
+        }
+        // For local development, try to find the actual merge base
+        let mergeBaseHash;
+        try {
+            mergeBaseHash = (0, child_process_1.execSync)(`git merge-base ${remote}/main HEAD`, { encoding: 'utf8' }).trim();
+        }
+        catch (error) {
+            // If merge-base fails locally, fall back to using the remote main branch
+            try {
+                mergeBaseHash = (0, child_process_1.execSync)(`git rev-parse ${remote}/main`, { encoding: 'utf8' }).trim();
+                (0, Logger_1.error)(`Warning: Could not find merge base between ${remote}/main and HEAD. Using ${remote}/main as base.`);
+            }
+            catch (fallbackError) {
+                (0, Logger_1.error)(`Failed to find merge base with ${remote}/main:`, error);
+                (0, Logger_1.error)(`Fallback also failed:`, fallbackError);
+                throw new Error(`Could not determine merge base with ${remote}/main`);
+            }
+        }
+        // Validate the output is a proper SHA hash
+        if (!mergeBaseHash || !/^[a-fA-F0-9]{40}$/.test(mergeBaseHash)) {
+            throw new Error(`git merge-base returned unexpected output: ${mergeBaseHash}`);
+        }
+        return mergeBaseHash;
+    }
+    static async getChangedFiles(remote) {
+        if (IS_CI) {
+            const { data: changedFiles } = await GithubUtils_1.default.octokit.pulls.listFiles({
+                owner: 'Expensify',
+                repo: 'App',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                pull_number: github_1.context.payload.pull_request?.number ?? 0,
+            });
+            return changedFiles.map((file) => file.filename);
+        }
+        try {
+            // Get files changed in the current branch/commit
+            const mainBaseCommitHash = this.getMainBaseCommitHash(remote);
+            // Get the diff output and check status
+            const gitDiffOutput = (0, child_process_1.execSync)(`git diff --diff-filter=AMR --name-only ${mainBaseCommitHash} HEAD`, {
+                encoding: 'utf8',
+            });
+            const files = gitDiffOutput.trim().split('\n');
+            return files;
+        }
+        catch (error) {
+            if (error instanceof Error && error.message === GIT_ERRORS.FAILED_TO_FETCH_FROM_REMOTE) {
+                throw error;
+            }
+            (0, Logger_1.error)('Could not determine changed files:', error);
+            throw error;
+        }
+    }
 }
 exports["default"] = Git;
+
+
+/***/ }),
+
+/***/ 8891:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.bold = exports.formatLink = exports.success = exports.error = exports.note = exports.warn = exports.info = exports.log = void 0;
+const COLOR_DIM = '\x1b[2m';
+const COLOR_RESET = '\x1b[0m';
+const COLOR_YELLOW = '\x1b[33m';
+const COLOR_RED = '\x1b[31m';
+const COLOR_GREEN = '\x1b[32m';
+const COLOR_BOLD = '\x1b[1m';
+const EMOJIS = {
+    // One column emojis need to be rendered with an extra space after to align with two column emojis
+    INFO: '▶️ ',
+    // Two column emojis can be rendered as-is
+    SUCCESS: '✅',
+    WARN: '⚠️',
+    ERROR: '🔴',
+};
+const log = (...args) => {
+    console.debug(...args);
+};
+exports.log = log;
+const info = (...args) => {
+    const lines = [EMOJIS.INFO, ...args];
+    log(...lines);
+};
+exports.info = info;
+const bold = (...args) => {
+    const lines = [COLOR_BOLD, ...args, COLOR_RESET];
+    log(...lines);
+};
+exports.bold = bold;
+const success = (...args) => {
+    const lines = [`${EMOJIS.SUCCESS}${COLOR_GREEN}`, ...args, COLOR_RESET];
+    log(...lines);
+};
+exports.success = success;
+const warn = (...args) => {
+    const lines = [`${EMOJIS.WARN}${COLOR_YELLOW}`, ...args, COLOR_RESET];
+    log(...lines);
+};
+exports.warn = warn;
+const note = (...args) => {
+    const lines = [COLOR_DIM, ...args, COLOR_RESET];
+    log(...lines);
+};
+exports.note = note;
+const error = (...args) => {
+    const lines = [`${EMOJIS.ERROR}${COLOR_RED}`, ...args, COLOR_RESET];
+    log(...lines);
+};
+exports.error = error;
+const formatLink = (name, url) => `\x1b]8;;${url}\x1b\\${name}\x1b]8;;\x1b\\`;
+exports.formatLink = formatLink;
 
 
 /***/ }),
