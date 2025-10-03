@@ -535,6 +535,7 @@ function getSuggestedSearchesVisibility(
     currentUserEmail: string | undefined,
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
     policies: OnyxCollection<OnyxTypes.Policy>,
+    defaultExpensifyCard: CardFeedForDisplay | undefined,
     reports?: OnyxCollection<OnyxTypes.Report>,
     currentUserAccountID?: number,
 ): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean> {
@@ -580,7 +581,7 @@ function getSuggestedSearchesVisibility(
         const isEligibleForExportSuggestion = isExporter && !hasExportError;
         const isEligibleForStatementsSuggestion = isPaidPolicy && !!policy.areCompanyCardsEnabled && hasCardFeed;
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && isPaymentEnabled;
-        const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && (hasCardFeed || isECardEnabled);
+        const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForReconciliationSuggestion = isPaidPolicy && isAdmin && ((isPaymentEnabled && hasVBBA && hasReimburser) || isECardEnabled);
 
         shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
@@ -1787,7 +1788,10 @@ function getSortedReportActionData(data: ReportActionListItemType[], localeCompa
 /**
  * Checks if the search results contain any data, useful for determining if the search results are empty.
  */
-function isSearchResultsEmpty(searchResults: SearchResults) {
+function isSearchResultsEmpty(searchResults: SearchResults, groupBy?: SearchGroupBy) {
+    if (groupBy && groupBy !== CONST.SEARCH.GROUP_BY.REPORTS) {
+        return !Object.keys(searchResults?.data).some((key) => isGroupEntry(key));
+    }
     return !Object.keys(searchResults?.data).some(
         (key) =>
             key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) &&
@@ -1863,12 +1867,13 @@ function createTypeMenuSections(
     activePolicyID: string | undefined,
     savedSearches: OnyxEntry<OnyxTypes.SaveSearch>,
     isOffline: boolean,
+    defaultExpensifyCard: CardFeedForDisplay | undefined,
     reports?: OnyxCollection<OnyxTypes.Report>,
 ): SearchTypeMenuSection[] {
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
     const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id);
-    const suggestedSearchesVisibility = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, reports, currentUserAccountID);
+    const suggestedSearchesVisibility = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, reports, currentUserAccountID);
 
     // Todo section
     {
