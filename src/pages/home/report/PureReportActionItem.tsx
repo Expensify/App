@@ -766,7 +766,7 @@ function PureReportActionItem({
             }));
         }
 
-        if (!isActionableWhisper && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
+        if (!isActionableWhisper && !isActionableCardFraudAlert(action) && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
             return [];
         }
 
@@ -818,7 +818,7 @@ function PureReportActionItem({
         }
 
         if (isActionableCardFraudAlert(action)) {
-            if (action.originalMessage?.resolution) {
+            if (getOriginalMessage(action)?.resolution) {
                 return [];
             }
 
