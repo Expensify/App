@@ -6,9 +6,11 @@ import type {ListItem, TransactionMemberGroupListItemType} from '@components/Sel
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import TotalCell from './TotalCell';
 
 type MemberListItemHeaderProps<TItem extends ListItem> = {
@@ -41,9 +43,10 @@ function MemberListItemHeader<TItem extends ListItem>({
 }: MemberListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false, canBeMissing: true});
     const [formattedDisplayName, formattedLogin] = useMemo(
-        () => [formatPhoneNumber(getDisplayNameOrDefault(memberItem)), formatPhoneNumber(memberItem.login ?? '')],
-        [memberItem, formatPhoneNumber],
+        () => [formatPhoneNumber(getDisplayNameOrDefault(memberItem, undefined, undefined, undefined, areTranslationsLoading)), formatPhoneNumber(memberItem.login ?? '')],
+        [formatPhoneNumber, memberItem, areTranslationsLoading],
     );
 
     return (
