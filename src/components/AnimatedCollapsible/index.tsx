@@ -41,9 +41,24 @@ type AnimatedCollapsibleProps = {
 
     /** Callback for when the toggle button is pressed */
     onPress: () => void;
+
+    /** Whether to show the toggle button */
+    shouldShowToggleButton?: boolean;
 };
 
-function AnimatedCollapsible({isExpanded, children, header, duration = 300, style, headerStyle, contentStyle, expandButtonStyle, onPress, disabled = false}: AnimatedCollapsibleProps) {
+function AnimatedCollapsible({
+    isExpanded,
+    children,
+    header,
+    duration = 300,
+    style,
+    headerStyle,
+    contentStyle,
+    expandButtonStyle,
+    onPress,
+    disabled = false,
+    shouldShowToggleButton = true,
+}: AnimatedCollapsibleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const contentHeight = useSharedValue(0);
@@ -109,21 +124,23 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
         <View style={style}>
             <View style={[headerStyle, styles.flexRow, styles.alignItemsCenter]}>
                 <View style={[styles.flex1]}>{header}</View>
-                <PressableWithFeedback
-                    onPress={onPress}
-                    disabled={disabled}
-                    style={[styles.p3, styles.justifyContentCenter, styles.alignItemsCenter, expandButtonStyle]}
-                    accessibilityRole={CONST.ROLE.BUTTON}
-                    accessibilityLabel={isExpanded ? 'Collapse' : 'Expand'}
-                >
-                    {({hovered}) => (
-                        <Icon
-                            src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
-                            fill={hovered ? theme.textSupporting : theme.icon}
-                            small
-                        />
-                    )}
-                </PressableWithFeedback>
+                {shouldShowToggleButton && (
+                    <PressableWithFeedback
+                        onPress={onPress}
+                        disabled={disabled}
+                        style={[styles.p3, styles.justifyContentCenter, styles.alignItemsCenter, expandButtonStyle]}
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        accessibilityLabel={isExpanded ? 'Collapse' : 'Expand'}
+                    >
+                        {({hovered}) => (
+                            <Icon
+                                src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
+                                fill={hovered ? theme.textSupporting : theme.icon}
+                                small
+                            />
+                        )}
+                    </PressableWithFeedback>
+                )}
             </View>
             <Animated.View style={[contentAnimatedStyle, contentStyle]}>
                 <View

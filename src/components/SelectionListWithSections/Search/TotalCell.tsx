@@ -15,7 +15,7 @@ function TotalCell({total, currency}: TotalCellProps) {
         <TextWithTooltip
             shouldShowTooltip
             text={convertToDisplayString(total, currency)}
-            style={[styles.optionDisplayName, styles.pre, styles.justifyContentCenter, styles.textBold, styles.textAlignRight]}
+            style={[styles.optionDisplayName, styles.pre, styles.justifyContentCenter, styles.textBold, styles.textAlignRight, styles.fontWeightNormal]}
         />
     );
 }

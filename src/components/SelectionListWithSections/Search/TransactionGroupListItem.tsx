@@ -256,6 +256,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
+                    onDownArrowClick={onExpandIconPress}
+                    isExpanded={isExpanded}
                 />
             ),
             [CONST.SEARCH.GROUP_BY.FROM]: (
@@ -266,6 +268,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
+                    onDownArrowClick={onExpandIconPress}
+                    isExpanded={isExpanded}
                 />
             ),
             [CONST.SEARCH.GROUP_BY.CARD]: (
@@ -277,6 +281,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
+                    onDownArrowClick={onExpandIconPress}
+                    isExpanded={isExpanded}
                 />
             ),
             [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: (
@@ -287,6 +293,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
+                    onDownArrowClick={onExpandIconPress}
+                    isExpanded={isExpanded}
                 />
             ),
         };
@@ -296,7 +304,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         return headers[groupBy];
-    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, groupBy]);
+    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, groupBy, isExpanded, onExpandIconPress]);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
@@ -332,6 +340,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         header={getHeader}
                         onPress={onExpandIconPress}
                         expandButtonStyle={[styles.pv4Half]}
+                        shouldShowToggleButton={isLargeScreenWidth}
                     >
                         {shouldDisplayEmptyView ? (
                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
@@ -351,7 +360,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                             styles.groupSearchListTableContainerStyle,
                                             styles.bgTransparent,
                                             styles.pl9,
-                                            isGroupByReports ? styles.pr10 : styles.pr3,
+                                            isGroupByReports && isLargeScreenWidth ? styles.pr10 : styles.pr3,
                                         ]}
                                     >
                                         <SearchTableHeader
@@ -391,7 +400,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                             onButtonPress={() => {
                                                 openReportInRHP(transaction);
                                             }}
-                                            style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half], isGroupByReports && styles.pr10]}
+                                            style={[
+                                                styles.noBorderRadius,
+                                                shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half],
+                                                isGroupByReports && isLargeScreenWidth && styles.pr10,
+                                            ]}
                                             isReportItemChild
                                             isInSingleTransactionReport={groupItem.transactions.length === 1}
                                             areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}

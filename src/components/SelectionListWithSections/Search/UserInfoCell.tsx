@@ -41,7 +41,7 @@ function UserInfoCell({avatar, accountID, displayName, avatarSize, containerStyl
             />
             <Text
                 numberOfLines={1}
-                style={[isLargeScreenWidth ? styles.themeTextColor : styles.textMicroBold, styles.flexShrink1, textStyle]}
+                style={[isLargeScreenWidth ? styles.themeTextColor : styles.textMicroSupporting, styles.flexShrink1, textStyle]}
             >
                 {displayName}
             </Text>

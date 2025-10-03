@@ -783,6 +783,10 @@ export default {
         minHeight: 20,
     },
 
+    minHeight6: {
+        minHeight: 24,
+    },
+
     minHeight22: {
         minHeight: 88,
     },
