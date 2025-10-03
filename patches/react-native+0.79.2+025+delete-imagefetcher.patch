@@ -1,0 +1,14 @@
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/imagemanager/platform/android/react/renderer/imagemanager/ImageManager.cpp b/node_modules/react-native/ReactCommon/react/renderer/imagemanager/platform/android/react/renderer/imagemanager/ImageManager.cpp
+index dc2f9ba..9c34731 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/imagemanager/platform/android/react/renderer/imagemanager/ImageManager.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/imagemanager/platform/android/react/renderer/imagemanager/ImageManager.cpp
+@@ -16,8 +16,7 @@ ImageManager::ImageManager(const ContextContainer::Shared& contextContainer)
+     : self_(new ImageFetcher(contextContainer)) {}
+ 
+ ImageManager::~ImageManager() {
+-  // @lint-ignore CLANGTIDY cppcoreguidelines-no-malloc
+-  free(self_);
++  delete reinterpret_cast<ImageFetcher *>(self_);
+ }
+ 
+ ImageRequest ImageManager::requestImage(
