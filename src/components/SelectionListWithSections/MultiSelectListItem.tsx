@@ -27,6 +27,8 @@ function MultiSelectListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const isSelected = item.isSelected;
 
+    const dynamicWrapperStyle = isAlternateTextMultilineSupported ? [wrapperStyle, styles.optionRow, {minHeight: undefined}] : [wrapperStyle, styles.optionRowCompact];
+
     const checkboxComponent = useCallback(() => {
         return (
             <Checkbox
@@ -53,7 +55,7 @@ function MultiSelectListItem<TItem extends ListItem>({
             alternateTextNumberOfLines={alternateTextNumberOfLines}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            wrapperStyle={[wrapperStyle, styles.optionRowCompact]}
+            wrapperStyle={dynamicWrapperStyle}
             titleStyles={titleStyles}
         />
     );
