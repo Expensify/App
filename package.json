@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.2.22-4",
+  "version": "9.2.22-5",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -309,7 +309,7 @@
     "csv-writer": "^1.6.0",
     "diff-so-fancy": "^1.3.0",
     "dotenv": "^16.0.3",
-    "electron": "^37.2.4",
+    "electron": "^37.6.0",
     "electron-builder": "25.0.0",
     "eslint": "^8.57.0",
     "eslint-config-airbnb-typescript": "^18.0.0",
