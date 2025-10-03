@@ -153,11 +153,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 isSetupCategoryTaskParentReportArchived,
                 taskReport,
                 taskParentReport,
+                policyCategories,
                 policyTagLists,
                 allTransactionViolations,
             );
         },
-        [policyId, isSetupCategoryTaskParentReportArchived, taskReport, taskParentReport, policyTagLists, allTransactionViolations],
+        [policyId, isSetupCategoryTaskParentReportArchived, taskReport, taskParentReport, policyCategories, policyTagLists, allTransactionViolations],
     );
 
     const categoryList = useMemo<PolicyOption[]>(() => {
@@ -264,11 +265,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const dismissError = (item: PolicyOption) => {
-        clearCategoryErrors(policyId, item.keyForList);
+        clearCategoryErrors(policyId, item.keyForList, policyCategories);
     };
 
     const handleDeleteCategories = () => {
-        deleteWorkspaceCategories(policyId, selectedCategories, isSetupCategoryTaskParentReportArchived, taskReport, taskParentReport, policyTagLists, allTransactionViolations);
+        deleteWorkspaceCategories(policyId, selectedCategories, isSetupCategoryTaskParentReportArchived, taskReport, taskParentReport, policyTagLists, policyCategories, allTransactionViolations);
         setDeleteCategoriesConfirmModalVisible(false);
 
         // eslint-disable-next-line deprecation/deprecation
@@ -379,6 +380,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             isSetupCategoryTaskParentReportArchived,
                             taskReport,
                             taskParentReport,
+                            policyCategories,
                             policyTagLists,
                             allTransactionViolations,
                         );
@@ -409,6 +411,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             isSetupCategoryTaskParentReportArchived,
                             taskReport,
                             taskParentReport,
+                            policyCategories,
                             policyTagLists,
                             allTransactionViolations,
                         );

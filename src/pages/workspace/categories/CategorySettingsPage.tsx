@@ -141,6 +141,7 @@ function CategorySettingsPage({
             isSetupCategoryTaskParentReportArchived,
             taskReport,
             taskParentReport,
+            policyCategories,
             policyTagLists,
             allTransactionViolations,
         );
@@ -153,7 +154,7 @@ function CategorySettingsPage({
     };
 
     const deleteCategory = () => {
-        deleteWorkspaceCategories(policyID, [categoryName], isSetupCategoryTaskParentReportArchived, taskReport, taskParentReport, policyTagLists, allTransactionViolations);
+        deleteWorkspaceCategories(policyID, [categoryName], isSetupCategoryTaskParentReportArchived, taskReport, taskParentReport, policyTagLists, policyCategories, allTransactionViolations);
         setDeleteCategoryConfirmModalVisible(false);
         navigateBack();
     };
@@ -204,7 +205,7 @@ function CategorySettingsPage({
                         errors={getLatestErrorMessageField(policyCategory)}
                         pendingAction={policyCategory?.pendingFields?.enabled}
                         errorRowStyles={styles.mh5}
-                        onClose={() => clearCategoryErrors(policyID, categoryName)}
+                        onClose={() => clearCategoryErrors(policyID, categoryName, policyCategories)}
                     >
                         <View style={[styles.mt2, styles.mh5]}>
                             <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -291,9 +292,9 @@ function CategorySettingsPage({
                                             accessibilityLabel={translate('workspace.rules.categoryRules.requireDescription')}
                                             onToggle={() => {
                                                 if (policyCategory.commentHint && areCommentsRequired) {
-                                                    setWorkspaceCategoryDescriptionHint(policyID, categoryName, '');
+                                                    setWorkspaceCategoryDescriptionHint(policyID, categoryName, '', policyCategories);
                                                 }
-                                                setPolicyCategoryDescriptionRequired(policyID, categoryName, !areCommentsRequired);
+                                                setPolicyCategoryDescriptionRequired(policyID, categoryName, !areCommentsRequired, policyCategories);
                                             }}
                                         />
                                     </View>
