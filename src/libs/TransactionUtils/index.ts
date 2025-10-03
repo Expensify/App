@@ -262,12 +262,6 @@ function isManualRequest(transaction: Transaction): boolean {
 }
 
 function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    const merchant = getMerchant(transaction);
-
-    if (!merchant || isPartialMerchant(merchant)) {
-        return true;
-    }
-
     if (isAmountMissing(transaction) && isScanRequest(transaction)) {
         return true;
     }
@@ -277,6 +271,10 @@ function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
 
 function isPendingCardOrScanningTransaction(transaction: OnyxEntry<Transaction>): boolean {
     return (isExpensifyCardTransaction(transaction) && isPending(transaction)) || isPartialTransaction(transaction) || (isScanRequest(transaction) && isScanning(transaction));
+}
+
+function isPendingCardOrIncompleteTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return (isExpensifyCardTransaction(transaction) && isPending(transaction)) || (isAmountMissing(transaction) && isMerchantMissing(transaction));
 }
 
 /**
@@ -2067,6 +2065,7 @@ export {
     isDemoTransaction,
     shouldShowViolation,
     isUnreportedAndHasInvalidDistanceRateTransaction,
+    isPendingCardOrIncompleteTransaction,
     getTransactionViolationsOfTransaction,
     isExpenseSplit,
     isCorporateCardTransaction,
