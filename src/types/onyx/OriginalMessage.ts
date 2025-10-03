@@ -160,9 +160,6 @@ type OriginalMessageCardFraudAlert = {
     /** Merchant name */
     triggerMerchant: string;
 
-    /** Timestamp */
-    date: string;
-
     /** Resolution: 'recognized' or 'fraud' */
     resolution?: string;
 };

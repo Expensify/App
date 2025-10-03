@@ -51,6 +51,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
@@ -453,7 +454,7 @@ function PureReportActionItem({
     currentUserAccountID,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
-    const {translate, formatPhoneNumber, localeCompare, formatTravelDate} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare, formatTravelDate, datetimeToCalendarTime} = useLocalize();
     const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
@@ -1334,12 +1335,13 @@ function PureReportActionItem({
             const formattedAmount = CurrencyUtils.convertToDisplayString(fraudMessage?.triggerAmount ?? 0, 'USD');
             const merchant = fraudMessage?.triggerMerchant ?? '';
             const resolution = fraudMessage?.resolution;
+            const formattedDate = action.created ? datetimeToCalendarTime(action.created, false, false) : '';
 
             const message = resolution
                 ? (resolution === 'recognized'
                     ? 'cleared the earlier suspicious activity. The card is reactivated. You\'re all set to keep on expensin\'!'
                     : 'the card has been deactivated.')
-                : `I identified suspicious Expensify Card activity for your Expensify Card ending in ${cardLastFour}. Do you recognize these charges?\n\n${formattedAmount} at ${merchant}`;
+                : `I identified suspicious Expensify Card activity for your Expensify Card ending in ${cardLastFour}. Do you recognize these charges?\n\n${formattedDate} for ${formattedAmount} at ${merchant}`;
 
             children = (
                 <View>
