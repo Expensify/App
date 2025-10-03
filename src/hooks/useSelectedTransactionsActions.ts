@@ -122,6 +122,7 @@ function useSelectedTransactionsActions({
             }),
         }));
         const deletedTransactionIDs: string[] = [];
+        const deletedTransactionThreadReportIDs = new Set<string>();
         transactionsWithActions.forEach(({transactionID, action}) => {
             if (!action) {
                 return;
@@ -132,9 +133,13 @@ function useSelectedTransactionsActions({
             const isChatIOUReportArchived = !!chatIOUReportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatIOUReportID}`);
             deleteMoneyRequest(transactionID, action, duplicateTransactions, duplicateTransactionViolations, false, deletedTransactionIDs, selectedTransactionIDs, isChatIOUReportArchived);
             deletedTransactionIDs.push(transactionID);
+            if (action.childReportID) {
+                deletedTransactionThreadReportIDs.add(action.childReportID);
+            }
         });
         clearSelectedTransactions(true);
         setIsDeleteModalVisible(false);
+        Navigation.removeReportScreen(deletedTransactionThreadReportIDs);
     }, [duplicateTransactions, duplicateTransactionViolations, reportActions, selectedTransactionIDs, clearSelectedTransactions, archivedReportsIdSet]);
 
     const showDeleteModal = useCallback(() => {
