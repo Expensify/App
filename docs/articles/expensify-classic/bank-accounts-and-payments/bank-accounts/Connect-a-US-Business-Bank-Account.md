@@ -1,5 +1,5 @@
 ---
-title: Connect U.S. business bank account
+title: Connect a U.S. business bank account
 description: Learn how to connect a deposit-only or verified business bank account to Expensify for payments and reimbursements.
 keywords: [Expensify Classic, business bank account, verified business bank account, send reimbursement, disconnect bank account, invoice payment, micro transactions, test deposits, verification amounts, bank verification]
 ---
