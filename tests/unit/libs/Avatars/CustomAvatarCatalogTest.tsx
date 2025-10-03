@@ -1,12 +1,12 @@
 import {render} from '@testing-library/react-native';
 import React from 'react';
 import Icon from '@components/Icon';
-import {ALL_CUSTOM_AVATARS, getAvatarLocal, getAvatarURL} from '@libs/Avatars/CustomAvatarCatalogUtils';
+import {ALL_CUSTOM_AVATARS, getAvatarLocal, getAvatarURL} from '@libs/Avatars/CustomAvatarCatalog';
 
 const SAMPLE_DEFAULT_ID = 'default-avatar_1';
 const SAMPLE_SEASON_ID = 'car-blue100';
 
-describe('CustomAvatarCatalogUtils', () => {
+describe('CustomAvatarCatalog', () => {
     it('resolves a local component for a default avatar ID', () => {
         const AvatarComponent = getAvatarLocal(SAMPLE_DEFAULT_ID);
         expect(AvatarComponent).toBeDefined();
