@@ -327,6 +327,7 @@ const ViolationsUtils = {
         const categoryName = updatedTransaction.category;
         const categoryMaxAmountNoReceipt = policyCategories[categoryName ?? '']?.maxAmountNoReceipt;
         const maxAmountNoReceipt = policy.maxExpenseAmountNoReceipt;
+        // We need to negate the amount because the amount is stored with opposite sign
         const negatedAmount = -amount;
 
         // The category maxExpenseAmountNoReceipt and maxExpenseAmount settings override the respective policy settings.

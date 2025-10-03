@@ -203,14 +203,14 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('should add receiptRequired violation if the transaction has no receipt', () => {
-            transaction.amount = 1000000;
+            transaction.amount = -1000000;
             policy.maxExpenseAmountNoReceipt = 2500;
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual(expect.arrayContaining([receiptRequiredViolation, ...transactionViolations]));
         });
 
         it('should not add receiptRequired violation if the transaction has different currency than the workspace currency', () => {
-            transaction.amount = 1000000;
+            transaction.amount = -1000000;
             transaction.modifiedCurrency = CONST.CURRENCY.CAD;
             policy.maxExpenseAmountNoReceipt = 2500;
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
@@ -218,14 +218,14 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('should add overLimit violation if the transaction amount is over the policy limit', () => {
-            transaction.amount = 1000000;
+            transaction.amount = -1000000;
             policy.maxExpenseAmount = 200000;
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual(expect.arrayContaining([overLimitViolation, ...transactionViolations]));
         });
 
         it('should not add overLimit violation if the transaction currency is different from the workspace currency', () => {
-            transaction.amount = 1000000;
+            transaction.amount = -1000000;
             transaction.modifiedCurrency = CONST.CURRENCY.NZD;
             policy.maxExpenseAmount = 200000;
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
@@ -247,7 +247,7 @@ describe('getViolationsOnyxData', () => {
                 },
             };
             transaction.category = 'Food';
-            transaction.amount = CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT + 1;
+            transaction.amount = -CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT - 1;
             transaction.comment = {comment: ''};
         });
 
