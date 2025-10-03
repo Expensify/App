@@ -126,6 +126,7 @@ function createIOUReportActionForTest({
     overrides?: IOUReportActionOverrides;
 }): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     const base = createRandomReportAction(parseIndex(transactionID));
+    // eslint-disable-next-line deprecation/deprecation
     const {originalMessage, pendingAction, ...restOverrides} = overrides ?? {};
 
     return {
@@ -146,10 +147,12 @@ function createIOUReportActionForTest({
             type,
             ...(base.originalMessage ?? {}),
             ...originalMessageOverrides,
+            // eslint-disable-next-line deprecation/deprecation
             ...originalMessage,
         },
         person: restOverrides.person ?? base.person ?? [],
         reportActionID: reportActionID ?? restOverrides.reportActionID ?? rand64(),
+        // eslint-disable-next-line deprecation/deprecation
         sequenceNumber: restOverrides.sequenceNumber ?? 0,
         shouldShow: restOverrides.shouldShow ?? true,
         pendingAction: pendingAction ?? null,
