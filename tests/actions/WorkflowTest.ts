@@ -20,7 +20,7 @@ jest.mock('@src/libs/WorkflowUtils', () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         ...actual,
         calculateApprovers: jest.fn(),
-    }
+    };
 });
 
 const calculateApproversMock = calculateApprovers as jest.Mock;
@@ -136,83 +136,80 @@ describe('actions/Workflow', () => {
             mockFetch.pause();
 
             const policy = {
-                "id": "123456789",
-                "name": "Mkzie2+bnmsn@gmail.com's Workspace",
-                "role": "admin",
-                "type": "corporate",
-                "owner": ownerEmail,
-                "employeeList": {
+                id: '123456789',
+                name: "Mkzie2+bnmsn@gmail.com's Workspace",
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                employeeList: {
                     [ownerEmail]: {
-                        "email": ownerEmail,
-                        "forwardsTo": "",
-                        "role": "admin",
-                        "submitsTo": ownerEmail,
+                        email: ownerEmail,
+                        forwardsTo: '',
+                        role: 'admin',
+                        submitsTo: ownerEmail,
                     },
                     [employee1Email]: {
-                        "email": employee1Email,
-                        "forwardsTo": "",
-                        "role": "user",
-                        "submitsTo": ownerEmail,
+                        email: employee1Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: ownerEmail,
                     },
                     [employee2Email]: {
-                        "email": employee2Email,
-                        "role": "user",
-                        "submitsTo": ownerEmail,
-                        "forwardsTo": "",
+                        email: employee2Email,
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                        forwardsTo: '',
                     },
                     [employee3Email]: {
-                        "email": employee3Email,
-                        "role": "user",
-                        "submitsTo": ownerEmail,
-                        "forwardsTo": ""
-                    }
+                        email: employee3Email,
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                        forwardsTo: '',
+                    },
                 },
-
             } as unknown as Policy;
 
             const approvalWorkflow = {
-                "members": [
+                members: [
                     {
-                        "displayName": employee1Email,
-                        "email": employee1Email
-                    }
+                        displayName: employee1Email,
+                        email: employee1Email,
+                    },
                 ],
-                "approvers": [
+                approvers: [
                     {
-                        "email": employee1Email,
-                        "displayName": employee1Email,
-                        "isCircularReference": false
+                        email: employee1Email,
+                        displayName: employee1Email,
+                        isCircularReference: false,
                     },
                     {
-                        "email": employee2Email,
-                        "displayName": employee2Email,
-                        "isCircularReference": false
-                    }
+                        email: employee2Email,
+                        displayName: employee2Email,
+                        isCircularReference: false,
+                    },
                 ],
-                "availableMembers": [
+                availableMembers: [
                     {
-                        "email": ownerEmail,
-                        "displayName": ownerEmail,
+                        email: ownerEmail,
+                        displayName: ownerEmail,
                     },
                     {
-                        "email": employee1Email,
-                        "displayName": employee1Email,
+                        email: employee1Email,
+                        displayName: employee1Email,
                     },
                     {
-                        "email": employee2Email,
-                        "displayName": employee2Email,
+                        email: employee2Email,
+                        displayName: employee2Email,
                     },
                     {
-                        "email": employee3Email,
-                        "displayName": employee3Email,
-                    }
+                        email: employee3Email,
+                        displayName: employee3Email,
+                    },
                 ],
-                "usedApproverEmails": [
-                    ownerEmail
-                ],
-                "isDefault": false,
-                "action": "create",
-                "originalApprovers": [],
+                usedApproverEmails: [ownerEmail],
+                isDefault: false,
+                action: 'create',
+                originalApprovers: [],
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
@@ -226,13 +223,10 @@ describe('actions/Workflow', () => {
             await getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                 callback: (val) => (updatedPolicy = val),
-            })
-
+            });
 
             expect(updatedPolicy?.employeeList?.[employee1Email]?.pendingFields).toBeUndefined();
             expect(updatedPolicy?.employeeList?.[employee2Email]?.pendingFields).toBeUndefined();
-        })
-
-        
-    })
+        });
+    });
 });
