@@ -270,6 +270,7 @@ describe('useSidebarOrderedReports', () => {
 
         // When the priority mode is changed
         await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
+        currentReportIDForTestsValue = '2';
 
         rerender({});
 
