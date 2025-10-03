@@ -38,9 +38,6 @@ type ReanimatedModalProps = ViewProps &
         /** Style applied to the modal container */
         style?: StyleProp<ViewStyle>;
 
-        /** Callback when the modal is dismissed */
-        onDismiss?: () => void;
-
         /** Callback when the modal is shown */
         onShow?: () => void;
 
