@@ -11,11 +11,10 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionListWithSections';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
 import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
-import useGetChatIOUReportIDFromReportAction from '@hooks/useGetChatIOUReportIDFromReportAction';
+import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
@@ -81,8 +80,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
-    const chatIOUReportID = useGetChatIOUReportIDFromReportAction(iouActions.at(0));
-    const isChatReportArchived = useReportIsArchived(chatIOUReportID);
+    const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(iouActions.at(0));
 
     useEffect(() => {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});
@@ -123,7 +121,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        saveSplitTransactions(draftTransaction, currentSearchHash, policyCategories, expenseReportPolicy, isChatReportArchived);
+        saveSplitTransactions(draftTransaction, currentSearchHash, policyCategories, expenseReportPolicy, iouReport, chatReport, isChatIOUReportArchived);
     }, [
         draftTransaction,
         sumOfSplitExpenses,
@@ -136,7 +134,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         transactionID,
         translate,
         transactionDetails?.currency,
-        isChatReportArchived,
+        isChatIOUReportArchived,
+        iouReport,
+        chatReport,
     ]);
 
     const onSplitExpenseAmountChange = useCallback(

@@ -6,7 +6,7 @@ import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
-import useGetChatIOUReportIDFromReportAction from '@hooks/useGetChatIOUReportIDFromReportAction';
+import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -203,8 +203,7 @@ function MoneyReportHeader({
         }
         return reportActions.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport.parentReportActionID);
     }, [reportActions, transactionThreadReport?.parentReportActionID]);
-    const chatIOUReportID = useGetChatIOUReportIDFromReportAction(requestParentReportAction);
-    const isChatIOUReportArchived = useReportIsArchived(chatIOUReportID);
+    const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
 
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 
@@ -1309,10 +1308,21 @@ function MoneyReportHeader({
                         // Money request should be deleted when interactions are done, to not show the not found page before navigating to goBackRoute
                         // eslint-disable-next-line deprecation/deprecation
                         InteractionManager.runAfterInteractions(() => {
-                            deleteMoneyRequest(transaction?.transactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations, isChatIOUReportArchived);
+                            deleteMoneyRequest(
+                                transaction?.transactionID,
+                                requestParentReportAction,
+                                duplicateTransactions,
+                                duplicateTransactionViolations,
+                                iouReport,
+                                chatIOUReport,
+                                false,
+                                undefined,
+                                undefined,
+                                isChatIOUReportArchived,
+                            );
                             removeTransaction(transaction.transactionID);
                         });
-                        goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, false, isChatIOUReportArchived);
+                        goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, iouReport, chatIOUReport, false, isChatIOUReportArchived);
                     }
 
                     if (goBackRoute) {
