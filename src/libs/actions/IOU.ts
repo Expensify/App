@@ -12665,7 +12665,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, isOpenC
                 },
                 {
                     transactionID: NumberUtils.rand64(),
-                    amount: calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? CONST.CURRENCY.USD, true),
+                    amount: calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', true),
                     description: transactionDetails?.comment,
                     category: transactionDetails?.category,
                     tags: transaction?.tag ? [transaction?.tag] : [],
