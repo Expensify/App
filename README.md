@@ -230,7 +230,7 @@ We use Reassure for monitoring performance regression. More detailed information
 
 [CodeCov](https://about.codecov.io/) is the service we use to measure and track [code coverage](https://about.codecov.io/resource/what-is-code-coverage/). It comments on PRs with metrics that authors and reviewers can use to judge the relative safety of the code. It's one metric and shouldn't be used in isolation, but it can provide valuable insight into how risky a PR might be. 
 
-The comment will provide you with a table of infomation similar to the one below:
+The comment will provide you with a table of information similar to the one below:
 | [Files with missing lines](https://app.codecov.io/gh/blimpich/App/pull/3?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=Ben+Limpich) | Coverage Δ | |
 |---|---|---|
 | [src/libs/file_a.ts](https://app.codecov.io/gh/Expensify/App) | `50.58% <0.00%> (-1.20%)` | :arrow_down: | 
