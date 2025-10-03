@@ -43,7 +43,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
     const rawValues = useMemo(() => getSubstepValues(privatePersonalDetails, draftValues), [privatePersonalDetails, draftValues]);
-    const values = useNormalizedCountry(rawValues)!;
+    const values = useNormalizedCountry(rawValues) as PersonalDetailsForm;
 
     const startFrom = useMemo(() => getInitialSubstep(values), [values]);
 
