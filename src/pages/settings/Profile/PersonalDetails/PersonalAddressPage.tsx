@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {getCountryCode} from '@libs/CountryUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import AddressPage from '@pages/AddressPage';
 import type {FormOnyxValues} from '@src/components/Form/types';
@@ -33,7 +34,17 @@ function PersonalAddressPage() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [defaultCountry, defaultCountryStatus] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: true});
     const isLoading = isLoadingOnyxValue(defaultCountryStatus);
-    const address = useMemo(() => getCurrentAddress(privatePersonalDetails), [privatePersonalDetails]);
+    const address = useMemo(() => {
+        const currentAddress = getCurrentAddress(privatePersonalDetails);
+        if (currentAddress?.country) {
+            const normalizedCountry = getCountryCode(currentAddress.country) || currentAddress.country;
+            return {
+                ...currentAddress,
+                country: normalizedCountry,
+            };
+        }
+        return currentAddress;
+    }, [privatePersonalDetails]);
     if (isLoading) {
         return <FullScreenLoadingIndicator />;
     }

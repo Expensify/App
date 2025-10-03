@@ -7,7 +7,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
 import type {FormOnyxValues} from '@src/components/Form/types';
@@ -37,7 +36,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
     // Check if country is valid
     const {street} = address ?? {};
     const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
-    const [currentCountry, setCurrentCountry] = useState(() => getCountryCode(address?.country ?? defaultCountry));
+    const [currentCountry, setCurrentCountry] = useState(address?.country ?? defaultCountry);
     const [state, setState] = useState(address?.state);
     const [city, setCity] = useState(address?.city);
     const [zipcode, setZipcode] = useState(address?.zip);
@@ -47,7 +46,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
             return;
         }
         setState(address.state);
-        setCurrentCountry(getCountryCode(address.country));
+        setCurrentCountry(address.country);
         setCity(address.city);
         setZipcode(address.zip);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
