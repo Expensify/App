@@ -8179,6 +8179,33 @@ function isEmptyReport(report: OnyxEntry<Report>, isReportArchived = false): boo
 }
 
 /**
+ * Checks if there are any empty (no money) open expense reports for a specific policy and user.
+ * An empty report is defined as having total === 0 and nonReimbursableTotal === 0.
+ * This excludes reports that are being deleted or have errors.
+ */
+function hasEmptyReportsForPolicy(reports: OnyxCollection<Report>, policyID: string | undefined, accountID: number): boolean {
+    if (!policyID || !Number.isFinite(accountID)) {
+        return false;
+    }
+
+    return Object.values(reports ?? {}).some((report) => {
+        if (!report) {
+            return false;
+        }
+
+        // Exclude reports that are being deleted or have errors
+        if (report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errors) {
+            return false;
+        }
+
+        // A report is "empty" if it has no money, regardless of system messages like "created this report"
+        const hasNoMoney = (report.total ?? 0) === 0 && (report.nonReimbursableTotal ?? 0) === 0;
+
+        return isOpenExpenseReport(report) && report.policyID === policyID && report.ownerAccountID === accountID && hasNoMoney;
+    });
+}
+
+/**
  * Check if the report is empty, meaning it has no visible messages (i.e. only a "created" report action).
  * No cache implementation which bypasses derived value check.
  */
@@ -11971,6 +11998,7 @@ export {
     getPayeeName,
     hasActionWithErrorsForTransaction,
     hasAutomatedExpensifyAccountIDs,
+    hasEmptyReportsForPolicy,
     hasExpensifyGuidesEmails,
     hasHeldExpenses,
     hasIOUWaitingOnCurrentUserBankAccount,

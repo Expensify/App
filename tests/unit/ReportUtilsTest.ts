@@ -2,7 +2,7 @@
 import {beforeAll} from '@jest/globals';
 import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
@@ -59,6 +59,7 @@ import {
     getSearchReportName,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
+    hasEmptyReportsForPolicy,
     hasReceiptError,
     isAllowedToApproveExpenseReport,
     isArchivedNonExpenseReport,
@@ -7473,6 +7474,83 @@ describe('ReportUtils', () => {
             };
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toEqual(123);
+        });
+    });
+
+    describe('hasEmptyReportsForPolicy', () => {
+        const policyID = 'workspace-001';
+        const otherPolicyID = 'workspace-002';
+        const accountID = 987654;
+        const otherAccountID = 123456;
+
+        const buildReport = (overrides: Partial<Report> = {}): Report => ({
+            reportID: overrides.reportID ?? 'report-1',
+            policyID,
+            ownerAccountID: accountID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 0,
+            nonReimbursableTotal: 0,
+            pendingAction: null,
+            errors: undefined,
+            ...overrides,
+        });
+
+        const toCollection = (...reports: Report[]): OnyxCollection<Report> =>
+            reports.reduce<Record<string, Report>>((acc, report, index) => {
+                acc[report.reportID ?? String(index)] = report;
+                return acc;
+            }, {});
+
+        it('returns false when policyID is missing or accountID invalid', () => {
+            const reports = toCollection(buildReport());
+
+            expect(hasEmptyReportsForPolicy(reports, undefined, accountID)).toBe(false);
+            expect(hasEmptyReportsForPolicy(reports, policyID, Number.NaN)).toBe(false);
+        });
+
+        it('returns true when an owned open expense report has no money', () => {
+            const reports = toCollection(buildReport({reportID: 'empty-report'}));
+
+            expect(hasEmptyReportsForPolicy(reports, policyID, accountID)).toBe(true);
+        });
+
+        it('ignores reports owned by other users or policies', () => {
+            const reports = toCollection(buildReport({reportID: 'other-owner', ownerAccountID: otherAccountID}), buildReport({reportID: 'other-policy', policyID: otherPolicyID}));
+
+            expect(hasEmptyReportsForPolicy(reports, policyID, accountID)).toBe(false);
+        });
+
+        it('ignores reports that contain money or are not open expense reports', () => {
+            const reports = toCollection(
+                buildReport({reportID: 'with-total', total: 500}),
+                buildReport({reportID: 'with-non-reimbursable', nonReimbursableTotal: 250}),
+                buildReport({reportID: 'closed', statusNum: CONST.REPORT.STATUS_NUM.CLOSED}),
+                buildReport({reportID: 'approved', stateNum: CONST.REPORT.STATE_NUM.APPROVED}),
+                buildReport({reportID: 'chat', type: CONST.REPORT.TYPE.CHAT}),
+            );
+
+            expect(hasEmptyReportsForPolicy(reports, policyID, accountID)).toBe(false);
+        });
+
+        it('ignores reports flagged for deletion or with errors', () => {
+            const reports = toCollection(
+                buildReport({reportID: 'pending-delete', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+                buildReport({reportID: 'with-errors', errors: {test: 'error'}}),
+            );
+
+            expect(hasEmptyReportsForPolicy(reports, policyID, accountID)).toBe(false);
+        });
+
+        it('returns true when at least one qualifying report exists among mixed data', () => {
+            const reports = toCollection(
+                buildReport({reportID: 'valid-empty'}),
+                buildReport({reportID: 'with-total', total: 1000}),
+                buildReport({reportID: 'other', policyID: otherPolicyID}),
+            );
+
+            expect(hasEmptyReportsForPolicy(reports, policyID, accountID)).toBe(true);
         });
     });
 });
