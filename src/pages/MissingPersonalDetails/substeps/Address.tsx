@@ -12,7 +12,6 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCountryCode} from '@libs/CountryUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import type {CountryZipRegex, CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
