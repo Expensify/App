@@ -40,6 +40,9 @@ type ImageWithSizeCalculationProps = {
 
     /** The size of the loading indicator */
     loadingIconSize?: FullScreenLoadingIndicatorIconSize;
+
+    /** The style of the loading indicator */
+    loadingIndicatorStyles?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -57,6 +60,7 @@ function ImageWithSizeCalculation({
     isAuthTokenRequired,
     objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
     loadingIconSize,
+    loadingIndicatorStyles,
 }: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
 
@@ -84,6 +88,7 @@ function ImageWithSizeCalculation({
             }}
             objectPosition={objectPosition}
             loadingIconSize={loadingIconSize}
+            loadingIndicatorStyles={loadingIndicatorStyles}
         />
     );
 }

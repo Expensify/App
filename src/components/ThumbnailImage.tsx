@@ -43,6 +43,9 @@ type ThumbnailImageProps = {
     /** The size of the loading indicator */
     loadingIconSize?: FullScreenLoadingIndicatorIconSize;
 
+    /** The style of the loading indicator */
+    loadingIndicatorStyles?: StyleProp<ViewStyle>;
+
     /** If the image fails to load – show the provided fallback icon */
     fallbackIcon?: IconAsset;
 
@@ -93,6 +96,7 @@ function ThumbnailImage({
     isDeleted,
     onLoadFailure,
     onMeasure,
+    loadingIndicatorStyles,
 }: ThumbnailImageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -167,6 +171,7 @@ function ThumbnailImage({
                     isAuthTokenRequired={isAuthTokenRequired}
                     objectPosition={objectPosition}
                     loadingIconSize={loadingIconSize}
+                    loadingIndicatorStyles={loadingIndicatorStyles}
                 />
             </View>
         </View>

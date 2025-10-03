@@ -188,6 +188,7 @@ function ReceiptImage({
                 isAuthTokenRequired={isAuthTokenRequired ?? false}
                 shouldDynamicallyResize={false}
                 loadingIconSize={loadingIconSize}
+                loadingIndicatorStyles={loadingIndicatorStyles}
                 fallbackIcon={fallbackIcon}
                 fallbackIconSize={fallbackIconSize}
                 fallbackIconColor={fallbackIconColor}
