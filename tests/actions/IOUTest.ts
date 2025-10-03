@@ -2531,6 +2531,9 @@ describe('actions/IOU', () => {
                 merchant: 'test',
                 created: '',
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                splitShares: {
+                    [workspaceReportID]: {amount: 100},
+                },
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {reportID: workspaceReportID, isOwnPolicyExpenseChat: true});
