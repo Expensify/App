@@ -1,7 +1,7 @@
 import {render} from '@testing-library/react-native';
 import React from 'react';
 import Icon from '@components/Icon';
-import {ALL_CUSTOM_AVATARS, getAvatarLocal, getAvatarUrl} from '@libs/Avatars/CustomAvatarCatalogUtils';
+import {ALL_CUSTOM_AVATARS, getAvatarLocal, getAvatarURL} from '@libs/Avatars/CustomAvatarCatalogUtils';
 
 const SAMPLE_DEFAULT_ID = 'default-avatar_1';
 const SAMPLE_SEASON_ID = 'car-blue100';
@@ -14,7 +14,7 @@ describe('CustomAvatarCatalogUtils', () => {
     });
 
     it('resolves a CDN URL for a default avatar ID', () => {
-        const avatarUrl = getAvatarUrl(SAMPLE_DEFAULT_ID);
+        const avatarUrl = getAvatarURL(SAMPLE_DEFAULT_ID);
         expect(avatarUrl).toContain(`/images/avatars/${SAMPLE_DEFAULT_ID}`);
     });
 
@@ -37,7 +37,7 @@ describe('CustomAvatarCatalogUtils', () => {
     });
 
     it('resolves a CDN URL for a seasonal avatar ID', () => {
-        const avatarUrl = getAvatarUrl(SAMPLE_SEASON_ID);
+        const avatarUrl = getAvatarURL(SAMPLE_SEASON_ID);
         expect(avatarUrl).toContain(`/images/avatars/custom-avatars/season-f1/${SAMPLE_SEASON_ID}`);
     });
 

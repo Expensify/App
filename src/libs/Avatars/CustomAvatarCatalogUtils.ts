@@ -122,7 +122,7 @@ const ALL_CUSTOM_AVATARS: Record<CustomAvatarID, AvatarEntry> = {
 };
 
 const getAvatarLocal = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].local;
-const getAvatarUrl = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].url;
+const getAvatarURL = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].url;
 
-export {ALL_CUSTOM_AVATARS, getAvatarLocal, getAvatarUrl};
+export {ALL_CUSTOM_AVATARS, getAvatarLocal, getAvatarURL};
 export type {DefaultAvatarIDs, SeasonF1AvatarIDs, CustomAvatarID};
