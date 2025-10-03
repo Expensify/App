@@ -75,12 +75,13 @@ function useLazyAsset<T>(importFn: () => Promise<{default: T}>, fallback?: T): L
  * This prevents the need for callers to manually use useCallback
  * Returns guaranteed non-null assets for existing components compatibility
  */
-function useMemoizedLazyAsset<T extends IconAsset>(importFn: () => Promise<{default: T}>, fallback?: T): {asset: T | undefined} {
+function useMemoizedLazyAsset<T extends IconAsset>(importFn: () => Promise<{default: T}>, fallback?: T): {asset: T} {
     const stableImportFn = useCallback(() => importFn(), [importFn]);
     const {asset, isLoaded} = useLazyAsset(stableImportFn, fallback);
 
     return {
-        asset: isLoaded ? asset : undefined,
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        asset: (isLoaded ? asset : undefined) as T,
     };
 }
 
