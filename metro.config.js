@@ -5,6 +5,8 @@ const {mergeConfig} = require('@react-native/metro-config');
 const defaultAssetExts = require('metro-config/src/defaults/defaults').assetExts;
 const {sourceExts: defaultSourceExts, additionalExts} = require('metro-config/src/defaults/defaults');
 const {wrapWithReanimatedMetroConfig} = require('react-native-reanimated/metro-config');
+const {withSentryConfig} = require('@sentry/react-native/metro');
+const {createSentryMetroSerializer} = require('@sentry/react-native/dist/js/tools/sentryMetroSerializer');
 require('dotenv').config();
 
 const defaultConfig = getReactNativeDefaultConfig(__dirname);
@@ -34,6 +36,9 @@ const config = {
             },
         }),
     },
+    serializer: {
+        customSerializer: createSentryMetroSerializer(),
+    },
 };
 
-module.exports = wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, expoConfig, config));
+module.exports = withSentryConfig(wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, expoConfig, config)));
