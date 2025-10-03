@@ -173,6 +173,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
         const createdReportID = createNewReport(currentUserPersonalDetails, policyForMovingExpensesID);
         handleRegularReportSelection({value: createdReportID});
+        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID}));
     };
 
     return (
