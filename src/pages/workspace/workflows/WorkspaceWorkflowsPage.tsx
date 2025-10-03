@@ -112,7 +112,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const fetchData = useCallback(() => {
         openPolicyWorkflowsPage(route.params.policyID);
-        getPaymentMethods();
+        getPaymentMethods(true);
     }, [route.params.policyID]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
@@ -181,12 +181,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {bankAccountID} = policy?.achAccount ?? {};
-        const bankAccount = bankAccountList?.[bankAccountID ?? CONST.DEFAULT_NUMBER_ID];
+        const bankAccount = bankAccountID
+            ? bankAccountList?.[bankAccountID ?? CONST.DEFAULT_NUMBER_ID]
+            : Object.values(bankAccountList ?? {}).find((account) => account?.accountData?.additionalData?.policyID === policy?.id);
+
         const bankName = policy?.achAccount?.bankName ?? bankAccount?.accountData?.additionalData?.bankName ?? '';
         const addressName = policy?.achAccount?.addressName ?? bankAccount?.accountData?.addressName ?? '';
         const accountData = bankAccount?.accountData ?? policy?.achAccount ?? {};
-        const state = policy?.achAccount?.state ?? bankAccount?.accountData?.state ?? ''
-        const shouldShowBankAccount = !!bankAccountID && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+        const state = policy?.achAccount?.state ?? bankAccount?.accountData?.state ?? '';
+        const shouldShowBankAccount = !!bankAccount && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+
         const isAccountInSetupState = state === CONST.BANK_ACCOUNT.STATE.SETUP;
         const bankIcon = getBankIcon({bankName: bankName as BankName, isCard: false, styles});
 

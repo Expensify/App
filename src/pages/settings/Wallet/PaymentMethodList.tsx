@@ -507,7 +507,6 @@ function PaymentMethodList({
                                 />
                             ) : undefined
                         }
-                        badgeStyle={styles.badgeBordered}
                         shouldShowSelectedState={shouldShowSelectedState}
                         isSelected={selectedMethodID.toString() === item.methodID?.toString()}
                         interactive={item.interactive}
