@@ -2076,6 +2076,37 @@ describe('OptionsListUtils', () => {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(result.at(1)!.reportID).toBe('3');
         });
+
+        it('handles negative limit by returning empty array', () => {
+            const options: OptionData[] = [
+                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z'} as OptionData,
+                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
+                {reportID: '3', lastVisibleActionCreated: '2022-01-01T09:00:00Z'} as OptionData,
+            ];
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+            const result = optionsOrderBy(options, comparator, -1);
+            expect(result).toEqual([]);
+        });
+
+        it('handles negative limit with large absolute value', () => {
+            const options: OptionData[] = [
+                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z'} as OptionData,
+                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
+            ];
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+            const result = optionsOrderBy(options, comparator, -100);
+            expect(result).toEqual([]);
+        });
+
+        it('handles limit equal to zero', () => {
+            const options: OptionData[] = [
+                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z'} as OptionData,
+                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
+            ];
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+            const result = optionsOrderBy(options, comparator, 0);
+            expect(result).toEqual([]);
+        });
     });
 
     describe('sortAlphabetically', () => {
