@@ -137,7 +137,14 @@ function MoneyRequestParticipantsSelector({
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
-    const canShowManagerMcTest = useMemo(() => !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT, [hasBeenAddedToNudgeMigration, action]);
+    const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: (items) => Object.values(items ?? {}),
+        canBeMissing: true,
+    });
+
+    // This is necessary to prevent showing the Manager McTest when there are multiple transactions being created
+    const hasMultipleTransactions = (optimisticTransactions ?? []).length > 1;
+    const canShowManagerMcTest = useMemo(() => !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT, [hasBeenAddedToNudgeMigration, action]) && !hasMultipleTransactions;
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -470,6 +477,7 @@ function MoneyRequestParticipantsSelector({
 
     const initiateContactImportAndSetState = useCallback(() => {
         setContactPermissionState(RESULTS.GRANTED);
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(importAndSaveContacts);
     }, [importAndSaveContacts, setContactPermissionState]);
 
@@ -598,7 +606,6 @@ function MoneyRequestParticipantsSelector({
                 onDeny={setContactPermissionState}
                 onFocusTextInput={() => {
                     setTextInputAutoFocus(true);
-                    selectionListRef.current?.focusTextInput?.();
                 }}
             />
             <SelectionList
@@ -628,7 +635,7 @@ function MoneyRequestParticipantsSelector({
                 canSelectMultiple={isIOUSplit && isAllowedToSplit}
                 isLoadingNewOptions={!!isSearchingForReports}
                 shouldShowListEmptyContent={shouldShowListEmptyContent}
-                textInputAutoFocus={!isNative}
+                textInputAutoFocus={textInputAutoFocus}
                 ref={selectionListRef}
             />
         </>
