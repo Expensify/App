@@ -29,9 +29,9 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
@@ -91,11 +91,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const taskReportID = introSelected?.[CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES];
-    const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, {canBeMissing: true}, [taskReportID]);
-    const [taskParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReport?.parentReportID}`, {canBeMissing: true});
-    const isSetupCategoryTaskParentReportArchived = useReportIsArchived(taskParentReport?.reportID);
+    const {
+        taskReport: setupCategoryTaskReport,
+        taskParentReport: setupCategoryTaskParentReport,
+        isOnboardingTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
 
     const fetchCategories = useCallback(() => {
         openPolicyCategoriesPage(policyId);
@@ -151,14 +151,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 policyId,
                 {[categoryName]: {name: categoryName, enabled: value}},
                 isSetupCategoryTaskParentReportArchived,
-                taskReport,
-                taskParentReport,
+                setupCategoryTaskReport,
+                setupCategoryTaskParentReport,
                 policyCategories,
                 policyTagLists,
                 allTransactionViolations,
             );
         },
-        [policyId, isSetupCategoryTaskParentReportArchived, taskReport, taskParentReport, policyCategories, policyTagLists, allTransactionViolations],
+        [policyId, isSetupCategoryTaskParentReportArchived, setupCategoryTaskReport, setupCategoryTaskParentReport, policyCategories, policyTagLists, allTransactionViolations],
     );
 
     const categoryList = useMemo<PolicyOption[]>(() => {
@@ -269,7 +269,16 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const handleDeleteCategories = () => {
-        deleteWorkspaceCategories(policyId, selectedCategories, isSetupCategoryTaskParentReportArchived, taskReport, taskParentReport, policyTagLists, policyCategories, allTransactionViolations);
+        deleteWorkspaceCategories(
+            policyId,
+            selectedCategories,
+            isSetupCategoryTaskParentReportArchived,
+            setupCategoryTaskReport,
+            setupCategoryTaskParentReport,
+            policyTagLists,
+            policyCategories,
+            allTransactionViolations,
+        );
         setDeleteCategoriesConfirmModalVisible(false);
 
         // eslint-disable-next-line deprecation/deprecation
@@ -378,8 +387,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             policyId,
                             categoriesToDisable,
                             isSetupCategoryTaskParentReportArchived,
-                            taskReport,
-                            taskParentReport,
+                            setupCategoryTaskReport,
+                            setupCategoryTaskParentReport,
                             policyCategories,
                             policyTagLists,
                             allTransactionViolations,
@@ -409,8 +418,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             policyId,
                             categoriesToEnable,
                             isSetupCategoryTaskParentReportArchived,
-                            taskReport,
-                            taskParentReport,
+                            setupCategoryTaskReport,
+                            setupCategoryTaskParentReport,
                             policyCategories,
                             policyTagLists,
                             allTransactionViolations,

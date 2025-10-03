@@ -1306,13 +1306,13 @@ function getFinishOnboardingTaskOnyxData(taskReport: OnyxEntry<OnyxTypes.Report>
     return {};
 }
 function completeTestDriveTask(
-    taskReport: OnyxEntry<OnyxTypes.Report>,
-    taskParentReport: OnyxEntry<OnyxTypes.Report>,
-    isTaskParentReportArchived: boolean,
+    viewTourTaskReport: OnyxEntry<OnyxTypes.Report>,
+    viewTourTaskParentReport: OnyxEntry<OnyxTypes.Report>,
+    isViewTourTaskParentReportArchived: boolean,
     shouldUpdateSelfTourViewedOnlyLocally = false,
 ) {
     setSelfTourViewed(shouldUpdateSelfTourViewedOnlyLocally);
-    getFinishOnboardingTaskOnyxData(taskReport, taskParentReport, isTaskParentReportArchived);
+    getFinishOnboardingTaskOnyxData(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived);
 }
 
 export {
