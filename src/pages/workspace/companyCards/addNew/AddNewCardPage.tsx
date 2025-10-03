@@ -8,6 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import DirectStatementCloseDateStep from '@pages/workspace/companyCards/addNew/DirectStatementCloseDatePage';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -101,6 +102,9 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             break;
         case CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE:
             CurrentStep = <StatementCloseDateStep policyID={policyID} />;
+            break;
+        case CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE:
+            CurrentStep = <DirectStatementCloseDateStep policyID={policyID} />;
             break;
         default:
             CurrentStep = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? <SelectCountryStep policyID={policyID} /> : <SelectBankStep />;
