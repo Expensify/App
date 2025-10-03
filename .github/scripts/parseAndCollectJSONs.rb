@@ -1,28 +1,27 @@
 #!/usr/bin/env ruby
 require 'json'
 
+# Extracts valid JSON objects from text, ignoring any characters between them.
 def extract_json_objects(text)
   objects = []
   buf = ''
   depth = 0
 
   text.each_char do |ch|
-    if ch == '{'
+    buf << ch if depth > 0 || ch == '{' || ch == '}'
+
+    case ch
+    when '{'
       depth += 1
-      buf << ch
-    elsif ch == '}'
+    when '}'
       depth -= 1
-      buf << ch
       if depth == 0
         begin
-          obj = JSON.parse(buf)
-          objects << obj
+          objects << JSON.parse(buf)
         rescue JSON::ParserError
         end
         buf = ''
       end
-    else
-      buf << ch if depth > 0
     end
   end
 
@@ -30,11 +29,6 @@ def extract_json_objects(text)
 end
 
 if __FILE__ == $0
-  if ARGV.length != 1
-    exit 1
-  end
-
-  input = ARGV[0]
-  result = extract_json_objects(input)
-  puts JSON.dump(result)
+  input = ARGV.fetch(0) { exit 1 }
+  puts JSON.dump(extract_json_objects(input))
 end
