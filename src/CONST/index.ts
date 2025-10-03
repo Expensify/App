@@ -2661,10 +2661,6 @@ const CONST = {
             PAY_SOMEONE: 'start/pay/manual',
             SPLIT_EXPENSE: 'start/split/manual',
         },
-        ADD_TO_WALLET_BUTTON: {
-            WIDTH: 150,
-            HEIGHT: 48,
-        },
     },
 
     PLAID: {

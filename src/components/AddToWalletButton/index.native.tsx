@@ -100,7 +100,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
     // The system provides control over the correct appearance and language
     return (
         <RNAddToWalletButton
-            style={[styles.addToWalletButtonSize, style]}
+            style={[styles.addToWalletButtonStyles, style]}
             buttonType="badge"
             buttonStyle="blackOutline"
             onPress={handleOnPress}
