@@ -145,6 +145,7 @@ function createIOUReportActionForTest({
             amount,
             currency,
             type,
+            // eslint-disable-next-line deprecation/deprecation
             ...(base.originalMessage ?? {}),
             ...originalMessageOverrides,
             // eslint-disable-next-line deprecation/deprecation
