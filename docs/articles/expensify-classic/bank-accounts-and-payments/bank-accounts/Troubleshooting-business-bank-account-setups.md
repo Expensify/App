@@ -5,7 +5,7 @@ keywords: [bank account troubleshooting, verified business account, Onfido error
 ---
 <div id="expensify-classic" markdown="1">
 
-If you're having trouble connecting, verifying, or validating your **verified business bank account** in Expensify, this guide covers the most common issues and how to fix them.
+If you're having trouble connecting or verifying your business bank account in Expensify, this guide covers the most common issues and how to fix them.
 
 ---
 
@@ -13,11 +13,7 @@ If you're having trouble connecting, verifying, or validating your **verified bu
 
 ## Why is Expensify asking for additional documents?
 
-If automatic verification fails, Concierge may request:
-- Proof of business address
-- A bank letter confirming account ownership
-
-Concierge will message you directly with next steps.
+If automatic verification fails, Concierge may request additional documentation or a letter from your bank. Concierge will message you directly with next steps.
 
 ---
 
