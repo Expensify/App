@@ -7,7 +7,7 @@ keywords: [Expensify Travel, travel booking, automatic expense creation, flight 
 
 Expensify Travel lets you book business trips and manage expenses in one place—automatically and without the need for manual entry or external tools.
 
-# Connect Expensify Travel with your account
+# Connect Expensify Travel with your account ✈️
 Expensify Travel allows you to book flights, hotels, rail, and car rentals directly from your Expensify account. Travel expenses are automatically created, attached to receipts, and added to the correct report—no extra steps required.
 
 ---
