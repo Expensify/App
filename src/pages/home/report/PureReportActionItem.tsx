@@ -1341,7 +1341,7 @@ function PureReportActionItem({
                 ? (resolution === 'recognized'
                     ? 'cleared the earlier suspicious activity. The card is reactivated. You\'re all set to keep on expensin\'!'
                     : 'the card has been deactivated.')
-                : `I identified suspicious Expensify Card activity for your Expensify Card ending in ${cardLastFour}. Do you recognize these charges?\n\n${formattedDate} for ${formattedAmount} at ${merchant}`;
+                : `I identified suspicious activity for your Expensify Card ending in ${cardLastFour}. Do you recognize these charges?\n\n${formattedDate} for ${formattedAmount} at ${merchant}`;
 
             children = (
                 <View>
