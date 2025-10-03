@@ -510,14 +510,7 @@ function IOURequestStepScan({
                         if (isTrackExpense) {
                             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, initialTransactionID, selfDMReportID));
                         } else {
-                            navigateToConfirmationPage(
-                                iouType,
-                                initialTransactionID,
-                                reportID,
-                                backToReport,
-                                iouType === CONST.IOU.TYPE.CREATE,
-                                initialTransaction?.reportID
-                            );
+                            navigateToConfirmationPage(iouType, initialTransactionID, reportID, backToReport, iouType === CONST.IOU.TYPE.CREATE, initialTransaction?.reportID);
                         }
                     });
                     return;

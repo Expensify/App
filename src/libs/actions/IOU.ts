@@ -13222,8 +13222,8 @@ function navigateToConfirmationPage(
     transactionID: string,
     reportID: string,
     backToReport: string | undefined,
-    shouldNavigateToSubmit: boolean = false,
-    reportIDParam: string | undefined = undefined
+    shouldNavigateToSubmit = false,
+    reportIDParam: string | undefined = undefined,
 ) {
     switch (iouType) {
         case CONST.IOU.TYPE.REQUEST:
@@ -13365,7 +13365,7 @@ export {
     addReportApprover,
     hasOutstandingChildRequest,
     getReportPreviewAction,
-    navigateToConfirmationPage
+    navigateToConfirmationPage,
 };
 export type {
     GPSPoint as GpsPoint,
