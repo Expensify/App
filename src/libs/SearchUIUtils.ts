@@ -1788,7 +1788,10 @@ function getSortedReportActionData(data: ReportActionListItemType[], localeCompa
 /**
  * Checks if the search results contain any data, useful for determining if the search results are empty.
  */
-function isSearchResultsEmpty(searchResults: SearchResults) {
+function isSearchResultsEmpty(searchResults: SearchResults, groupBy?: SearchGroupBy) {
+    if (groupBy && groupBy !== CONST.SEARCH.GROUP_BY.REPORTS) {
+        return !Object.keys(searchResults?.data).some((key) => isGroupEntry(key));
+    }
     return !Object.keys(searchResults?.data).some(
         (key) =>
             key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) &&

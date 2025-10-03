@@ -10,6 +10,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import {buildNextStepNew} from '@libs/NextStepUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -72,6 +73,12 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     default: () => ({
         didScreenTransitionEnd: true,
     }),
+}));
+
+jest.mock('@libs/Sound', () => ({
+    __esModule: true,
+    default: jest.fn(),
+    SOUNDS: {DONE: 'DONE'},
 }));
 
 const originalXHR = HttpUtils.xhr;
@@ -1078,7 +1085,7 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
         const file = new File([''], 'test.txt', {type: 'text/plain'});
-        Report.addAttachment(REPORT_ID, REPORT_ID, file, CONST.DEFAULT_TIME_ZONE);
+        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, file);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1147,7 +1154,7 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addAttachment(REPORT_ID, REPORT_ID, file, CONST.DEFAULT_TIME_ZONE, 'Attachment with comment');
+        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, file, 'Attachment with comment');
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1203,6 +1210,103 @@ describe('actions/Report', () => {
         // Checking no requests were or will be made
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT, 0);
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
+    });
+
+    it('should post text + attachment as first action then attachment only for remaining attachments when adding multiple attachments with a comment', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+        const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        await waitForBatchedUpdates();
+
+        const relevantPromise = new Promise((resolve) => {
+            const conn = Onyx.connect({
+                key: ONYXKEYS.PERSISTED_REQUESTS,
+                callback: (persisted) => {
+                    const relevant = (persisted ?? []).filter((r) => r?.command === WRITE_COMMANDS.ADD_ATTACHMENT || r?.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
+                    if (relevant.length >= 3) {
+                        Onyx.disconnect(conn);
+                        resolve(relevant);
+                    }
+                },
+            });
+        });
+
+        const REPORT_ID = '1';
+        const shouldPlaySound = true;
+        const fileA = new File(['a'], 'a.txt', {type: 'text/plain'});
+        const fileB = new File(['b'], 'b.txt', {type: 'text/plain'});
+        const fileC = new File(['c'], 'c.txt', {type: 'text/plain'});
+
+        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, [fileA, fileB, fileC], 'Hello world', CONST.DEFAULT_TIME_ZONE, shouldPlaySound);
+        const relevant = (await relevantPromise) as OnyxTypes.Request[];
+
+        expect(playSoundMock).toHaveBeenCalledTimes(1);
+        expect(playSoundMock).toHaveBeenCalledWith(SOUNDS.DONE);
+        expect(relevant.at(0)?.command).toBe(WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
+        expect(relevant.slice(1).every((r) => r.command === WRITE_COMMANDS.ADD_ATTACHMENT)).toBe(true);
+    });
+
+    it('should create attachment only actions when adding multiple attachments without a comment', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+        const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        await waitForBatchedUpdates();
+
+        const relevantPromise = new Promise((resolve) => {
+            const conn = Onyx.connect({
+                key: ONYXKEYS.PERSISTED_REQUESTS,
+                callback: (persisted) => {
+                    const relevant = (persisted ?? []).filter((r) => r?.command === WRITE_COMMANDS.ADD_ATTACHMENT || r?.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
+                    if (relevant.length >= 2) {
+                        Onyx.disconnect(conn);
+                        resolve(relevant);
+                    }
+                },
+            });
+        });
+
+        const REPORT_ID = '1';
+        const shouldPlaySound = true;
+        const fileA = new File(['a'], 'a.txt', {type: 'text/plain'});
+        const fileB = new File(['b'], 'b.txt', {type: 'text/plain'});
+
+        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, [fileA, fileB], undefined, CONST.DEFAULT_TIME_ZONE, shouldPlaySound);
+        const relevant = (await relevantPromise) as OnyxTypes.Request[];
+
+        expect(playSoundMock).toHaveBeenCalledTimes(1);
+        expect(playSoundMock).toHaveBeenCalledWith(SOUNDS.DONE);
+        expect(relevant.at(0)?.command).toBe(WRITE_COMMANDS.ADD_ATTACHMENT);
+        expect(relevant.slice(1).every((r) => r.command === WRITE_COMMANDS.ADD_ATTACHMENT)).toBe(true);
+        expect(relevant.some((r) => r.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT)).toBe(false);
+    });
+
+    it('should create attachment only action & not play sound when adding attachment without a comment & shouldPlaySound not passed', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+        const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        await waitForBatchedUpdates();
+
+        const relevantPromise = new Promise((resolve) => {
+            const conn = Onyx.connect({
+                key: ONYXKEYS.PERSISTED_REQUESTS,
+                callback: (persisted) => {
+                    const relevant = (persisted ?? []).filter((r) => r?.command === WRITE_COMMANDS.ADD_ATTACHMENT);
+                    if (relevant.length >= 1) {
+                        Onyx.disconnect(conn);
+                        resolve(relevant);
+                    }
+                },
+            });
+        });
+
+        const REPORT_ID = '1';
+        const file = new File(['a'], 'a.txt', {type: 'text/plain'});
+
+        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, file);
+        const relevant = (await relevantPromise) as OnyxTypes.Request[];
+
+        expect(playSoundMock).toHaveBeenCalledTimes(0);
+        expect(relevant.at(0)?.command).toBe(WRITE_COMMANDS.ADD_ATTACHMENT);
     });
 
     it('should not send DeleteComment request and remove any Reactions accordingly', async () => {
@@ -2148,7 +2252,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace
-            Report.moveIOUReportToPolicy(iouReport.reportID, policy.id);
+            Report.moveIOUReportToPolicy(iouReport.reportID, policy);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -2185,7 +2289,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace and invite the submitter
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy.id, (phone: string) => phone);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy, (phone: string) => phone);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -2252,7 +2356,7 @@ describe('actions/Report', () => {
 
             // Call moveIOUReportToPolicyAndInviteSubmitter
             const formatPhoneNumber = (phoneNumber: string) => phoneNumber;
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy.id, formatPhoneNumber);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy, formatPhoneNumber);
             await waitForBatchedUpdates();
 
             // Simulate network failure
