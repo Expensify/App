@@ -150,24 +150,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState<boolean>(shouldShowContinueSetupButtonValue);
     const [shouldShowConnectedVerifiedBankAccount, setShouldShowConnectedVerifiedBankAccount] = useState<boolean>(false);
 
-    useEffect(() => {
-        if (policyIDParam ?? !bankAccountList) {
-            return;
-        }
-
-        const achDataFromBankAccount = mapBankAccountToACHData(bankAccountList);
-        const step = getCurrentStepFromBankAccount(bankAccountList);
-        if (achDataFromBankAccount) {
-            updateReimbursementAccount({...achDataFromBankAccount, currentStep: step});
-            setHasACHDataBeenLoaded(true);
-        }
-
-        const draftDataFromBankAccount = mapBankAccountToReimbursementAccountDraft(bankAccountList);
-        if (draftDataFromBankAccount) {
-            updateReimbursementAccountDraft(draftDataFromBankAccount);
-        }
-    }, [policyIDParam, bankAccountList]);
-
     /**
      * Retrieve verified business bank account currently being set up.
      */

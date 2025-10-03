@@ -45,6 +45,7 @@ import variables from '@styles/variables';
 import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {close as closeModal} from '@userActions/Modal';
 import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMethods, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods} from '@userActions/PaymentMethods';
+import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -164,6 +165,18 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                 formattedSelectedPaymentMethod,
                 methodID: methodID ?? CONST.DEFAULT_NUMBER_ID,
             });
+        }
+    };
+
+    const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
+        const accountPolicyID = accountData?.additionalData?.policyID;
+
+        if (accountPolicyID) {
+            if (isAccountLocked) {
+                showLockedAccountModal();
+                return;
+            }
+            navigateToBankAccountRoute(accountPolicyID, ROUTES.SETTINGS_WALLET);
         }
     };
 
@@ -429,8 +442,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                             illustrationBackgroundColor="#411103"
                         >
                             <PaymentMethodList
-                                onPress={paymentMethodPressed}
+                                onPress={onBankAccountRowPressed}
                                 onAddBankAccountPress={addBankAccountPressed}
+                                onThreeDotsMenuPress={paymentMethodPressed}
                                 style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                 shouldShowBankAccountSections

@@ -101,6 +101,9 @@ type PaymentMethodListProps = {
 
     /** Optional array of menu items to be displayed in the three dots menu */
     threeDotsMenuItems?: PopoverMenuItem[];
+
+    /** Callback for when the three dots menu is pressed */
+    onThreeDotsMenuPress?: PaymentMethodPressHandler | CardPressHandler;
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -119,6 +122,7 @@ type PaymentMethodItem = PaymentMethod & {
     isMethodActive?: boolean;
     cardID?: number;
     plaidUrl?: string;
+    onThreeDotsMenuPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
 } & BankIcon;
 
 function dismissError(item: PaymentMethodItem) {
@@ -195,6 +199,7 @@ function PaymentMethodList({
     filterType,
     shouldHideDefaultBadge = false,
     threeDotsMenuItems,
+    onThreeDotsMenuPress,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -337,24 +342,34 @@ function PaymentMethodList({
         combinedPaymentMethods = combinedPaymentMethods.map((paymentMethod) => {
             const pressHandler = onPress as PaymentMethodPressHandler;
             const isMethodActive = isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, paymentMethod);
+            const paymentMethodData = {
+                accountType: paymentMethod.accountType,
+                accountData: paymentMethod.accountData,
+                icon: {
+                    icon: paymentMethod.icon,
+                    iconHeight: paymentMethod?.iconHeight,
+                    iconWidth: paymentMethod?.iconWidth,
+                    iconStyles: paymentMethod?.iconStyles,
+                    iconSize: paymentMethod?.iconSize,
+                },
+                isDefault: paymentMethod.isDefault,
+                methodID: paymentMethod.methodID,
+                description: paymentMethod.description,
+            };
             return {
                 ...paymentMethod,
                 onPress: (e: GestureResponderEvent) =>
                     pressHandler({
                         event: e,
-                        accountType: paymentMethod.accountType,
-                        accountData: paymentMethod.accountData,
-                        icon: {
-                            icon: paymentMethod.icon,
-                            iconHeight: paymentMethod?.iconHeight,
-                            iconWidth: paymentMethod?.iconWidth,
-                            iconStyles: paymentMethod?.iconStyles,
-                            iconSize: paymentMethod?.iconSize,
-                        },
-                        isDefault: paymentMethod.isDefault,
-                        methodID: paymentMethod.methodID,
-                        description: paymentMethod.description,
+                        ...paymentMethodData,
                     }),
+                onThreeDotsMenuPress: onThreeDotsMenuPress
+                    ? (e: GestureResponderEvent) =>
+                          onThreeDotsMenuPress({
+                              event: e,
+                              ...paymentMethodData,
+                          })
+                    : undefined,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
                 iconRight: itemIconRight ?? Expensicons.ThreeDots,
@@ -362,7 +377,24 @@ function PaymentMethodList({
             };
         });
         return combinedPaymentMethods;
-    }, [shouldShowAssignedCards, isLoadingBankAccountList, bankAccountList, styles, isOffline, filterType, isLoadingCardList, cardList, illustrations, translate, onPress, shouldShowRightIcon, itemIconRight, activePaymentMethodID, actionPaymentMethodType]);
+    }, [
+        shouldShowAssignedCards,
+        isLoadingBankAccountList,
+        bankAccountList,
+        styles,
+        isOffline,
+        filterType,
+        isLoadingCardList,
+        cardList,
+        illustrations,
+        translate,
+        onPress,
+        shouldShowRightIcon,
+        itemIconRight,
+        activePaymentMethodID,
+        actionPaymentMethodType,
+        onThreeDotsMenuPress,
+    ]);
 
     const onPressItem = useCallback(() => {
         if (!isUserValidated) {
@@ -464,10 +496,10 @@ function PaymentMethodList({
                         shouldShowRightIcon={!threeDotsMenuItems && item.shouldShowRightIcon}
                         shouldShowRightComponent={!!threeDotsMenuItems}
                         rightComponent={
-                            threeDotsMenuItems ? (
+                            threeDotsMenuItems && onThreeDotsMenuPress ? (
                                 <ThreeDotsMenu
                                     shouldSelfPosition
-                                    onIconPress={item.onPress}
+                                    onIconPress={item.onThreeDotsMenuPress}
                                     menuItems={threeDotsMenuItems}
                                     anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                                     shouldOverlay
@@ -485,7 +517,21 @@ function PaymentMethodList({
                 </OfflineWithFeedback>
             );
         },
-        [styles.ph6, styles.paymentMethod, styles.badgeBordered, styles.mt4, styles.mt6, styles.mb1, styles.textLabel, styles.colorMuted, getBadgeText, listItemStyle, threeDotsMenuItems, shouldShowSelectedState, selectedMethodID],
+        [
+            styles.ph6,
+            styles.paymentMethod,
+            styles.badgeBordered,
+            styles.mt4,
+            styles.mt6,
+            styles.mb1,
+            styles.textLabel,
+            styles.colorMuted,
+            getBadgeText,
+            listItemStyle,
+            threeDotsMenuItems,
+            shouldShowSelectedState,
+            selectedMethodID,
+        ],
     );
 
     return (
