@@ -1,4 +1,5 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import PlaceholderIcon from '@components/Icon/PlaceholderIcon';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type LazyAssetResult<T> = {
@@ -81,7 +82,7 @@ function useMemoizedLazyAsset<T extends IconAsset>(importFn: () => Promise<{defa
 
     return {
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        asset: (isLoaded ? asset : undefined) as T,
+        asset: (isLoaded ? asset : PlaceholderIcon) as T,
     };
 }
 

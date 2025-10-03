@@ -4,6 +4,17 @@ import type {SvgProps} from 'react-native-svg/lib/typescript';
 import useLazyAsset, {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+jest.mock('@components/Icon/PlaceholderIcon', () => {
+    // eslint-disable-next-line @typescript-eslint/no-shadow, @typescript-eslint/no-unsafe-assignment
+    const React = require('react');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
+    return React.memo(() =>
+        React.createElement('svg', {
+            dataTestId: 'placeholder-icon',
+        }),
+    );
+});
+
 jest.mock('@hooks/useLazyAsset', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@hooks/useLazyAsset');
@@ -180,8 +191,9 @@ describe('useMemoizedLazyAsset', () => {
         // Test that the hook returns the expected structure
         expect(result.current).toHaveProperty('asset');
 
-        // Initially should be undefined
-        expect(result.current.asset).toBeUndefined();
+        // Initially should return PlaceholderIcon while loading
+        expect(result.current.asset).toBeDefined();
+        expect(typeof result.current.asset).toBe('object');
     });
 
     it('should handle successful asset loading', async () => {
@@ -189,8 +201,9 @@ describe('useMemoizedLazyAsset', () => {
 
         const {result} = renderHook(() => useMemoizedLazyAsset(importFn));
 
-        // Initially should be undefined
-        expect(result.current.asset).toBeUndefined();
+        // Initially should return PlaceholderIcon while loading
+        expect(result.current.asset).toBeDefined();
+        expect(result.current.asset).not.toBe(mockAsset);
 
         // Wait for asset to load
         await waitFor(() => {
@@ -205,8 +218,9 @@ describe('useMemoizedLazyAsset', () => {
 
         const {result} = renderHook(() => useMemoizedLazyAsset(importFn, mockFallbackAsset));
 
-        // Initially should be undefined
-        expect(result.current.asset).toBeUndefined();
+        // Initially should return PlaceholderIcon while loading
+        expect(result.current.asset).toBeDefined();
+        expect(result.current.asset).not.toBe(mockFallbackAsset);
 
         await waitFor(() => {
             expect(result.current.asset).toBe(mockFallbackAsset);
@@ -221,13 +235,13 @@ describe('useMemoizedLazyAsset', () => {
 
         const {result} = renderHook(() => useMemoizedLazyAsset(importFn));
 
-        // Initially should be undefined
-        expect(result.current.asset).toBeUndefined();
+        // Initially should return PlaceholderIcon while loading
+        expect(result.current.asset).toBeDefined();
 
         // Wait a bit to ensure error handling completes
         await waitFor(() => {
-            // Without fallback, asset should remain undefined on error
-            expect(result.current.asset).toBeUndefined();
+            // Without fallback, asset should remain PlaceholderIcon on error
+            expect(result.current.asset).toBeDefined();
         });
     });
 
@@ -239,8 +253,9 @@ describe('useMemoizedLazyAsset', () => {
             initialProps: {importFn: importFn1},
         });
 
-        // Initially should be undefined
-        expect(result.current.asset).toBeUndefined();
+        // Initially should return PlaceholderIcon while loading
+        expect(result.current.asset).toBeDefined();
+        expect(result.current.asset).not.toBe(mockAsset);
 
         // Wait for first asset to load
         await waitFor(() => {
