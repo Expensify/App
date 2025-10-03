@@ -181,7 +181,7 @@ function useSearchSelectorBase({
                     searchString: computedSearchTerm,
                     maxElements: maxResults,
                     includeUserToInvite,
-                    loginsToExclude: excludeLogins,
+                    excludeLogins,
                 });
             default:
                 return getEmptyOptions();
