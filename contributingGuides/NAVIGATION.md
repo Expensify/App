@@ -16,7 +16,9 @@ The navigation in the app is built on top of the `react-navigation` library. To 
   - [Debugging](#debugging)
     - [Reading state when it changes](#reading-state-when-it-changes)
     - [Finding the code that calls the navigation function](#finding-the-code-that-calls-the-navigation-function)
-  - [Using `backTo` route param](#using-backto-route-param)
+  - [How to remove backTo from URL](#how-to-remove-backto-from-url)
+    - [Separate routes for each screen instance](#separate-routes-for-each-screen-instance)
+    - [Maintaining the order of screens in forms](#maintaining-the-order-of-screens-in-forms)
   - [Generating state from a path](#generating-state-from-a-path)
   - [Setting the correct screen underneath RHP](#setting-the-correct-screen-underneath-rhp)
   - [Performance solutions](#performance-solutions)
@@ -71,7 +73,7 @@ Navigation.navigate(
 );
 
 // Navigation with forceReplace - replaces current screen instead of pushing a new one
-Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true});
+Navigation.navigate(ROUTES.SETTINGS_WALLET, {forceReplace: true});
 
 // Navigation with a callback to handle anonymous users
 interceptAnonymousUser(() => {
@@ -434,10 +436,13 @@ const handleStateChange = (state: NavigationState | undefined) => {
 
 The easiest way to find the piece of code from which the navigation method was called is to use a debugger and breakpoints. You should attach a breakpoint in the navigation method and check the call stack, this way you can easily find the navigation method that caused the problem.
 
-## Using `backTo` route param
+## How to remove backTo from URL
 
 > [!WARNING]
-> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team.
+> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team. Old documentation on how to use `backTo` can be found below. 
+
+<details>
+<summary>Using `backTo` route param</summary>
 
 When a particular screen can be opened from two or more different pages, we can use `backTo` route parameter to handle such case.
 
@@ -495,6 +500,98 @@ function NewSettingsScreen({route}: NewSettingsScreenNavigationProps) {
     );
 }
 ```
+</details>
+
+### Separate routes for each screen instance
+
+Often, you will need to reuse a single screen across multiple navigation flows. For example, the `ReportScreen` can be viewed in full screen width in the Inbox tab and in the Reports tab in the RHP. The proper approach to implementing such a mechanism is to create a new route for each screen instance within a single flow.
+
+Considerations when removing `backTo` from a URL:
+- For RHP screens, check if the correct central screen is under the overlay after refreshing the page. More information on how to set the default screen underneath RHP can be found (here)[#setting-the-correct-screen-underneath-rhp].
+- Ensure that after refreshing the page and pressing the back button in the application, you return to the page from which you initially accessed the currently displayed screen.
+
+An example of a screen that is reused in two flows is `ReportScreen` (`src/pages/home/ReportScreen.tsx`):
+1. Sharing types
+
+```ts
+type ReportScreenNavigationProps =
+    | PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
+    | PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>;
+```
+
+2. Binding one component to multiple screens
+
+`src/libs/Navigation/AppNavigator/Navigators/ReportsSplitNavigator.tsx`
+```ts
+const loadReportScreen = () => require<ReactComponentModule>('@pages/home/ReportScreen').default;
+
+return (
+        <FreezeWrapper>
+            <Split.Navigator
+                persistentScreens={[SCREENS.HOME]}
+                sidebarScreen={SCREENS.HOME}
+                defaultCentralScreen={SCREENS.REPORT}
+                parentRoute={route}
+                screenOptions={splitNavigatorScreenOptions.centralScreen}
+            >
+                // ...
+                <Split.Screen
+                    name={SCREENS.REPORT}
+                    initialParams={{reportID: initialReportID, openOnAdminRoom: shouldOpenOnAdminRoom() ? true : undefined}}
+                    getComponent={loadReportScreen}
+                />
+            </Split.Navigator>
+        </FreezeWrapper>
+    );
+```
+
+3. Custom component behavior depending on the current route
+
+If we want the component's behavior to change based on the current route, we can implement this using the `route` property. We can use it to specify the correct return route after a refresh.
+
+```ts
+import SCREENS from '@src/SCREENS';
+import type {ReportsSplitNavigatorParamList, SearchReportParamList} from '@navigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
+type ReportScreenNavigationProps =
+    | PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
+    | PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>;
+
+function ReportScreen({route, navigation}: ReportScreenProps) {
+
+    const customAction = () => {
+        if(route.name === SCREENS.SEARCH.REPORT_RHP) {
+            // do something when screen is SCREENS.SEARCH.REPORT_RHP
+        }else {
+            // do something when screen is SCREENS.REPORT
+        }
+    }
+}
+```
+
+### Maintaining the order of screens in forms
+Another case where maintaining the screen order after a refresh is important is in forms. There are several methods to achieve this:
+1. For multi-step forms, append the values from each screen to the URL. This approach makes it easy to recreate the screen order with the appropriate values.
+
+We have a three-stage form where each screen is responsible for entering another value.
+
+Form fields:
+- First name
+- Last name
+- Date of birth
+
+We should use the following url pattern:
+- FirstNamePage: `/example-form/:firstName`
+- LastNamePage: `/example-form/:firstName/:lastName`
+- DateOfBirthPage: `/example-form/:firstName:/:lastName/:dateOfBirth`
+
+Thanks to this structure, we are able to easily recreate the order of screens with the appropriate values ​​in the form.
+
+2. Store form data in Onyx.
+3. Reset the form to the first screen after a refresh.
+If we do not want to preserve the form's values after a refresh, we should reset the form. To handle this properly, we can perform a replace on the current screen (replace it with the first screen in the form's sequence).
+
 
 ## Generating state from a path
 
@@ -507,7 +604,7 @@ In Expensify, we use an extended implementation of this function because:
 -   When opening a link leading to an onboarding screen, all previous screens in this flow have to be present in the navigation state.
 -   In case of opening the RHP, appropriate screens should be pushed to the navigation to be displayed below the overlay. A guide on how to set up a good screen for RHP can be found [here](#how-to-set-a-correct-screen-below-the-rhp).
 -   When opening the settings of a specific workspace, the workspace list needs to be pushed to the state.
--   When the `backTo` parameter is in the URL, we need to build a state also for the screen we want to return to.
+-   When the `backTo` parameter is in the URL, we need to build a state also for the screen we want to return to. (`backTo` parameter is deprecated, more information can be found [here](#how-to-properly-remove-backto-from-url))
 
 Here are examples how the state is generated based on route:
 
@@ -623,7 +720,7 @@ In the above example, we can see that when building a state from a link leading 
 
 ## Setting the correct screen underneath RHP
 
-RHP screens can usually be opened from a specific central screen. Of course there are cases where one RHP screen can be used in different tabs (then using `backTo` parameter comes in handy). However, most often one RHP screen has a specific central screen assigned underneath.
+RHP screens can usually be opened from a specific central screen. Of course there are cases where one RHP screen can be used in different tabs. However, most often one RHP screen has a specific central screen assigned underneath.
 
 > [!WARNING]
 > **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team.

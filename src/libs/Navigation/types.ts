@@ -1292,6 +1292,7 @@ type TwoFactorAuthNavigatorParamList = {
         forwardTo?: string;
     };
     [SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT]: {
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
         forwardTo?: Routes;
     };
@@ -1335,6 +1336,7 @@ type ProfileNavigatorParamList = {
 type NewReportWorkspaceSelectionNavigatorParamList = {
     [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: {
         isMovingExpenses?: boolean;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
 };
@@ -1804,6 +1806,7 @@ type WorkspaceConfirmationNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.CURRENCY.SELECTION]: {
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
 };
