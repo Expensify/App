@@ -51,6 +51,7 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
                 isEReceipt={isEReceipt}
                 transactionID={transactionItem.transactionID}
                 shouldUseThumbnailImage
+                thumbnailContainerStyles={styles.bgTransparent}
                 isAuthTokenRequired
                 fallbackIcon={Receipt}
                 fallbackIconSize={20}
