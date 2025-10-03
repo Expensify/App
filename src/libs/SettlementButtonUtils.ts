@@ -11,6 +11,13 @@ type RouteMapping = {
     navigate: () => void;
 };
 
+/**
+ * Retrieves an array of available RouteMappings for an unvalidated user.
+ * Each mapping contains a `check` function that determines whether the activeRoute matches the given mapping and a `navigate` function that executes navigation to the corresponding route.
+ * @param chatReportID - The chat or workspace ID from which the unvalidated user makes a payment via SettlementButton
+ * @param reportID - The expense report ID that the user pays using SettlementButton (optional)
+ * @return An array of available RouteMappings suitable for an unvalidated user
+ */
 const getRouteMappings = (chatReportID: string, reportID?: string): RouteMapping[] => {
     const nonReportIdRouteMappings = [
         {
@@ -59,6 +66,9 @@ const getRouteMappings = (chatReportID: string, reportID?: string): RouteMapping
     return [...nonReportIdRouteMappings, ...reportIdRouteMappings];
 };
 
+/**
+ * Handles SettlementButton navigation for unvalidated users based on the active route and current chatID, reportID (optional).
+ */
 const handleUnvalidatedUserNavigation = (chatReportID: string, reportID?: string) => {
     const activeRoute = Navigation.getActiveRoute();
     const matchedRoute = getRouteMappings(chatReportID, reportID).find((mapping) => mapping.check(activeRoute));
