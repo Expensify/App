@@ -28,6 +28,15 @@ type MergeTransactionParams = {
 
     /** The receiptID we want to keep */
     receiptID: number | undefined;
+
+    /** Tax percentage value we're keeping */
+    taxValue: string;
+
+    /** Tax amount we're keeping */
+    taxAmount: number;
+
+    /** Tax code we're keeping */
+    taxCode: string;
 };
 
 export default MergeTransactionParams;
