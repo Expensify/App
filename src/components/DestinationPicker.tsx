@@ -12,6 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SelectionList from './SelectionListWithSections';
 import RadioListItem from './SelectionListWithSections/RadioListItem';
 import type {ListItem} from './SelectionListWithSections/types';
+
 type DestinationPickerProps = {
     policyID: string;
     selectedDestination?: string;
