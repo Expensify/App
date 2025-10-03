@@ -246,6 +246,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && fundID) {
             deletePaymentCard(fundID);
         }
+        setShowConfirmDeleteModal(false);
         resetSelectedPaymentMethodData();
     }, [
         paymentMethod.selectedPaymentMethod.bankAccountID,
@@ -657,6 +658,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             <ConfirmModal
                 isVisible={showConfirmDeleteModal}
                 onConfirm={deletePaymentMethod}
+                onCancel={() => setShowConfirmDeleteModal(false)}
                 title={translate('walletPage.deleteAccount')}
                 prompt={translate('walletPage.deleteConfirmation')}
                 confirmText={translate('common.delete')}
