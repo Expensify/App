@@ -1,8 +1,6 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 import useLazyAsset, {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 
-jest.mock('@components/Icon/PlaceholderIcon', () => 'PlaceholderIcon');
-
 jest.mock('@hooks/useLazyAsset', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@hooks/useLazyAsset');
@@ -43,8 +41,10 @@ describe('useLazyAsset', () => {
         expect(typeof result.current.isLoaded).toBe('boolean');
         expect(typeof result.current.hasError).toBe('boolean');
 
-        // Test that asset is defined
-        expect(result.current.asset).toBeDefined();
+        // Initially, asset should be undefined (not loaded yet)
+        expect(result.current.asset).toBeUndefined();
+        expect(result.current.isLoaded).toBe(false);
+        expect(result.current.isLoading).toBe(true);
         expect(result.current.hasError).toBe(false);
     });
 
@@ -53,14 +53,19 @@ describe('useLazyAsset', () => {
 
         const {result} = renderHook(() => useLazyAsset(importFn));
 
-        // Wait for any async operations to complete
+        // Initially should be undefined
+        expect(result.current.asset).toBeUndefined();
+        expect(result.current.isLoading).toBe(true);
+
+        // Wait for asset to load
         await waitFor(() => {
-            expect(result.current.asset).toBeDefined();
+            expect(result.current.isLoaded).toBe(true);
         });
 
-        // Should not have errors after successful load
+        // Should have loaded the asset successfully
         expect(result.current.hasError).toBe(false);
-        expect(result.current.asset).toBeDefined();
+        expect(result.current.asset).toEqual(mockAsset);
+        expect(result.current.isLoading).toBe(false);
     });
 
     it('should handle loading errors gracefully', async () => {
@@ -68,16 +73,19 @@ describe('useLazyAsset', () => {
 
         const {result} = renderHook(() => useLazyAsset(importFn));
 
+        // Initially should be undefined
+        expect(result.current.asset).toBeUndefined();
+
         // Wait for error to be processed
         await waitFor(() => {
-            expect(result.current.asset).toBeDefined();
+            expect(result.current.hasError).toBe(true);
         });
 
-        // Should still have an asset (placeholder) even on error
-        expect(result.current.asset).toBeDefined();
-        // State should be consistent
-        expect(typeof result.current.hasError).toBe('boolean');
-        expect(typeof result.current.isLoaded).toBe('boolean');
+        // Should remain undefined on error without fallback
+        expect(result.current.asset).toBeUndefined();
+        expect(result.current.hasError).toBe(true);
+        expect(result.current.isLoaded).toBe(false);
+        expect(result.current.isLoading).toBe(false);
     });
 
     it('should handle fallback assets on error', async () => {
@@ -85,16 +93,19 @@ describe('useLazyAsset', () => {
 
         const {result} = renderHook(() => useLazyAsset(importFn, mockFallbackAsset));
 
+        // Initially should be undefined
+        expect(result.current.asset).toBeUndefined();
+
         // Wait for fallback to be applied
         await waitFor(() => {
-            expect(result.current.asset).toBeDefined();
+            expect(result.current.isLoaded).toBe(true);
         });
 
-        // Should have some asset defined
-        expect(result.current.asset).toBeDefined();
-        // State should be consistent
-        expect(typeof result.current.hasError).toBe('boolean');
-        expect(typeof result.current.isLoaded).toBe('boolean');
+        // Should use fallback asset on error
+        expect(result.current.asset).toEqual(mockFallbackAsset);
+        expect(result.current.hasError).toBe(true);
+        expect(result.current.isLoaded).toBe(true);
+        expect(result.current.isLoading).toBe(false);
     });
 
     it('should handle component unmounting safely', () => {
@@ -102,7 +113,8 @@ describe('useLazyAsset', () => {
 
         const {result, unmount} = renderHook(() => useLazyAsset(importFn));
 
-        expect(result.current.asset).toBeDefined();
+        // Initially should be undefined
+        expect(result.current.asset).toBeUndefined();
 
         // Should not throw when unmounting
         expect(() => unmount()).not.toThrow();
@@ -116,16 +128,25 @@ describe('useLazyAsset', () => {
             initialProps: {importFn: importFn1},
         });
 
-        expect(result.current.asset).toBeDefined();
+        // Initially should be undefined
+        expect(result.current.asset).toBeUndefined();
+
+        // Wait for first asset to load
+        await waitFor(() => {
+            expect(result.current.isLoaded).toBe(true);
+        });
+        expect(result.current.asset).toEqual(mockAsset);
 
         // Change import function
         rerender({importFn: importFn2});
 
+        // Wait for new asset to load
         await waitFor(() => {
-            expect(result.current.asset).toBeDefined();
+            expect(result.current.asset).toEqual(mockFallbackAsset);
         });
 
-        expect(result.current.asset).toBeDefined();
+        expect(result.current.asset).toEqual(mockFallbackAsset);
+        expect(result.current.isLoaded).toBe(true);
     });
 });
 
@@ -145,7 +166,10 @@ describe('useMemoizedLazyAsset', () => {
         expect(result.current).toHaveProperty('hasError');
         expect(result.current).toHaveProperty('asset');
 
-        expect(result.current.asset).toBeDefined();
+        // Initially should be undefined
+        expect(result.current.asset).toBeUndefined();
+        expect(result.current.isLoaded).toBe(false);
+        expect(result.current.isLoading).toBe(true);
         expect(result.current.hasError).toBe(false);
     });
 
@@ -154,13 +178,18 @@ describe('useMemoizedLazyAsset', () => {
 
         const {result} = renderHook(() => useMemoizedLazyAsset(importFn, mockFallbackAsset));
 
+        // Initially should be undefined
+        expect(result.current.asset).toBeUndefined();
+
         await waitFor(() => {
-            expect(result.current.asset).toBeDefined();
+            expect(result.current.isLoaded).toBe(true);
         });
 
-        expect(result.current.asset).toBeDefined();
-        expect(typeof result.current.hasError).toBe('boolean');
-        expect(typeof result.current.isLoaded).toBe('boolean');
+        // Should use fallback on error
+        expect(result.current.asset).toEqual(mockFallbackAsset);
+        expect(result.current.hasError).toBe(true);
+        expect(result.current.isLoaded).toBe(true);
+        expect(result.current.isLoading).toBe(false);
     });
 
     it('should handle function reference changes', async () => {
@@ -171,15 +200,23 @@ describe('useMemoizedLazyAsset', () => {
             initialProps: {importFn: importFn1},
         });
 
-        expect(result.current.asset).toBeDefined();
+        // Initially should be undefined
+        expect(result.current.asset).toBeUndefined();
+
+        // Wait for first asset to load
+        await waitFor(() => {
+            expect(result.current.isLoaded).toBe(true);
+        });
+        expect(result.current.asset).toEqual(mockAsset);
 
         // Change to different function
         rerender({importFn: importFn2});
 
         await waitFor(() => {
-            expect(result.current.asset).toBeDefined();
+            expect(result.current.asset).toEqual(mockFallbackAsset);
         });
 
-        expect(result.current.asset).toBeDefined();
+        expect(result.current.asset).toEqual(mockFallbackAsset);
+        expect(result.current.isLoaded).toBe(true);
     });
 });

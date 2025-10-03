@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 type LazyAssetResult<T> = {
-    asset: T | null;
+    asset: T | undefined;
     isLoaded?: boolean;
     isLoading?: boolean;
     hasError?: boolean;
@@ -11,7 +11,7 @@ type LazyAssetResult<T> = {
  * Hook for lazy loading any type of asset
  */
 function useLazyAsset<T>(importFn: () => Promise<{default: T}>, fallback?: T): LazyAssetResult<T> {
-    const assetRef = useRef<T | null>(null);
+    const assetRef = useRef<T | undefined>(undefined);
     const versionRef = useRef(0);
 
     const [isLoaded, setIsLoaded] = useState(false);
@@ -62,7 +62,7 @@ function useLazyAsset<T>(importFn: () => Promise<{default: T}>, fallback?: T): L
     }, [memoizedImportFn, fallback]);
 
     return {
-        asset: isLoaded ? assetRef?.current : null,
+        asset: isLoaded ? assetRef?.current : undefined,
         isLoaded,
         isLoading,
         hasError,

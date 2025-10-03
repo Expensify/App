@@ -16,7 +16,7 @@ import IconWrapperStyles from './IconWrapperStyles';
 
 type IconProps = {
     /** The asset to render. */
-    src: IconAsset | null;
+    src: IconAsset | undefined;
 
     /** The width of the icon. */
     width?: number;
