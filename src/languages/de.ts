@@ -142,6 +142,7 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeAccountIntoParams,
     MergeFailureDescriptionGenericParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
@@ -1721,13 +1722,14 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: 'Konten zusammenführen',
         accountDetails: {
-            accountToMergeInto: 'Geben Sie das Konto ein, in das Sie zusammenführen möchten.',
+            accountToMergeInto: ({login}: MergeAccountIntoParams) => `Geben Sie das Konto ein, das Sie in <strong>${login}</strong> zusammenführen möchten`,
             notReversibleConsent: 'Ich verstehe, dass dies nicht umkehrbar ist.',
         },
         accountValidate: {
             confirmMerge: 'Möchten Sie die Konten wirklich zusammenführen?',
-            lossOfUnsubmittedData: `Das Zusammenführen Ihrer Konten ist unwiderruflich und führt zum Verlust aller nicht eingereichten Ausgaben für`,
-            enterMagicCode: `Um fortzufahren, geben Sie bitte den magischen Code ein, der an  gesendet wurde.`,
+            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) =>
+                `Die Zusammenlegung Ihrer Konten ist unumkehrbar und führt zum Verlust aller nicht eingereichten Ausgaben für <strong>${login}</strong>.`,
+            enterMagicCode: ({login}: MergeAccountIntoParams) => `Um fortzufahren, geben Sie bitte den magischen Code ein, der an <strong>${login}</strong> gesendet wurde.`,
             errors: {
                 incorrectMagicCode: 'Falscher oder ungültiger Magic-Code. Bitte versuche es erneut oder fordere einen neuen Code an.',
                 fallback: 'Etwas ist schiefgelaufen. Bitte versuchen Sie es später noch einmal.',
@@ -2611,13 +2613,10 @@ const translations = {
     emailDeliveryFailurePage: {
         ourEmailProvider: ({login}: OurEmailProviderParams) =>
             `Unser E-Mail-Anbieter hat E-Mails an ${login} vorübergehend aufgrund von Zustellungsproblemen gesperrt. Um Ihr Login zu entsperren, befolgen Sie bitte diese Schritte:`,
-        confirmThat: ({login}: ConfirmThatParams) => `Bestätigen Sie, dass ${login} korrekt geschrieben ist und es sich um eine echte, zustellbare E-Mail-Adresse handelt.`,
-        emailAliases: 'E-Mail-Aliasse wie "expenses@domain.com" müssen Zugriff auf ihren eigenen E-Mail-Posteingang haben, damit sie ein gültiger Expensify-Login sind.',
-        ensureYourEmailClient: 'Stellen Sie sicher, dass Ihr E-Mail-Client E-Mails von expensify.com zulässt.',
-        youCanFindDirections: 'Sie finden Anweisungen, wie Sie diesen Schritt abschließen können.',
-        helpConfigure: 'aber möglicherweise benötigen Sie die Hilfe Ihrer IT-Abteilung, um Ihre E-Mail-Einstellungen zu konfigurieren.',
-        onceTheAbove: 'Sobald die oben genannten Schritte abgeschlossen sind, wenden Sie sich bitte an',
-        toUnblock: 'um Ihre Anmeldung zu entsperren.',
+        confirmThat: ({login}: ConfirmThatParams) =>
+            `<strong>Bestätigen Sie, dass ${login} korrekt geschrieben ist und es sich um eine echte, zustellbare E-Mail-Adresse handelt.</strong> E-Mail-Aliasse wie "expenses@domain.com" müssen Zugriff auf ihren eigenen E-Mail-Posteingang haben, damit sie ein gültiger Expensify-Login sind.`,
+        ensureYourEmailClient: `<strong>Stellen Sie sicher, dass Ihr E-Mail-Client E-Mails von expensify.com zulässt.</strong> Eine Anleitung für diesen Schritt finden Sie <a href="${CONST.SET_NOTIFICATION_LINK}">hier</a>. Möglicherweise muss Ihnen Ihre IT-Abteilung bei der Konfiguration Ihrer E-Mail-Einstellungen helfen.`,
+        onceTheAbove: `Sobald die oben genannten Schritte abgeschlossen sind, wenden Sie sich bitte an <a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a>, um Ihre Anmeldung zu entsperren.`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
@@ -3272,6 +3271,9 @@ const translations = {
         thisStep: 'Dieser Schritt wurde abgeschlossen',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `verbindet ein Geschäftskonto in ${currency} mit der Endung ${bankAccountLastFour} mit Expensify, um Mitarbeitende in ${currency} zu bezahlen. Der nächste Schritt erfordert Informationen einer unterschriftsberechtigten Person wie einem Geschäftsführer oder einer Führungskraft.`,
+        error: {
+            emailsMustBeDifferent: 'E-Mail-Adressen müssen unterschiedlich sein',
+        },
     },
     agreementsStep: {
         agreements: 'Vereinbarungen',
@@ -3609,19 +3611,19 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'Ausstehend',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Gesperrt',
                 },
-                invitationFailure: 'Mitglieder konnten nicht zu Uber for Business eingeladen werden',
+                invitationFailure: 'Der Teilnehmer konnte nicht zu Uber for Business eingeladen werden.',
                 autoInvite: 'Neue Workspace-Mitglieder zu Uber for Business einladen',
                 autoRemove: 'Entfernte Workspace-Mitglieder von Uber for Business deaktivieren',
                 bannerTitle: 'Expensify + Uber ren pekin angang',
                 bannerDescription: 'Kopwe riri ngeni Uber ren Business pwe epwe otot ren monien sai me mongo non unusen om mwicheich.',
                 emptyContent: {
-                    title: 'Keine Mitglieder zur Anzeige',
-                    subtitle: 'Wir haben überall gesucht und nichts gefunden.',
+                    title: 'Keine ausstehenden Einladungen',
+                    subtitle: 'Hurra! Wir haben hoch und niedrig gesucht und keine ausstehenden Einladungen gefunden.',
                 },
             },
         },
         perDiem: {
-            subtitle: 'Setzen Sie Tagespauschalen, um die täglichen Ausgaben der Mitarbeiter zu kontrollieren.',
+            subtitle: `<muted-text>Setzen Sie Tagespauschalen, um die täglichen Ausgaben der Mitarbeiter zu kontrollieren. <a href="${CONST.DEEP_DIVE_PER_DIEM}">Mehr erfahren</a>.</muted-text>`,
             amount: 'Betrag',
             deleteRates: () => ({
                 one: 'Löschrate',
@@ -5559,6 +5561,12 @@ const translations = {
                     'Expensify Travel ist eine neue Plattform für die Buchung und Verwaltung von Geschäftsreisen, die es Mitgliedern ermöglicht, Unterkünfte, Flüge, Transportmittel und mehr zu buchen.',
                 onlyAvailableOnPlan: 'Reisen ist im Collect-Plan verfügbar, beginnend bei',
             },
+            reports: {
+                title: 'Berichte',
+                description:
+                    'Erstellen Sie organisierte Spesenabrechnungen, um Ihre Geschäftsausgaben zu verfolgen, zur Genehmigung einzureichen und Ihren Erstattungsprozess zu optimieren.',
+                onlyAvailableOnPlan: 'Berichte sind im Collect-Plan verfügbar, beginnend bei ',
+            },
             multiLevelTags: {
                 title: 'Mehrstufige Tags',
                 description:
@@ -6211,7 +6219,8 @@ const translations = {
         groupBy: 'Gruppe nach',
         moneyRequestReport: {
             emptyStateTitle: 'Dieser Bericht enthält keine Ausgaben.',
-            emptyStateSubtitle: 'Sie können Ausgaben zu diesem Bericht hinzufügen, indem Sie die Schaltfläche oben verwenden.',
+            emptyStateSubtitle:
+                'Sie können diesem Bericht Ausgaben hinzufügen,\n indem Sie auf die Schaltfläche unten klicken oder die Option „Ausgabe hinzufügen“ im Menü „Mehr“ oben verwenden.',
         },
         noCategory: 'Keine Kategorie',
         noTag: 'Kein Tag',
