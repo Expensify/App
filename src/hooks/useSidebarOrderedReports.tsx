@@ -180,7 +180,7 @@ function SidebarOrderedReportsContextProvider({
         return reportsToDisplay;
         // Rule disabled intentionally — triggering a re-render on currentReportsToDisplay would cause an infinite loop
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, policies, transactionViolations, reportNameValuePairs, reportAttributes]);
+    }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, policies, transactionViolations, reportNameValuePairs, reportAttributes, reportsDrafts]);
 
     const deepComparedReportsToDisplayInLHN = useDeepCompareRef(reportsToDisplayInLHN);
 

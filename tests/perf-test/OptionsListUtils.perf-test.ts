@@ -141,7 +141,7 @@ describe('OptionsListUtils', () => {
     /* Testing getMemberInviteOptions */
     test('[OptionsListUtils] getMemberInviteOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getMemberInviteOptions(options.personalDetails, {}, mockedBetas));
+        await measureFunction(() => getMemberInviteOptions(options.personalDetails, mockedBetas));
     });
 
     test('[OptionsListUtils] worst case scenario with a search term that matches a subset of selectedOptions, filteredRecentReports, and filteredPersonalDetails', async () => {

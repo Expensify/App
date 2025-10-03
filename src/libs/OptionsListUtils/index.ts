@@ -2138,23 +2138,18 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
  */
 function getMemberInviteOptions(
     personalDetails: Array<SearchOption<PersonalDetails>>,
-    draftComments: OnyxCollection<string>,
     betas: Beta[] = [],
     excludeLogins: Record<string, boolean> = {},
     includeSelectedOptions = false,
-    reports: Array<SearchOption<Report>> = [],
-    includeRecentReports = false,
-    searchString = '',
-    maxElements?: number,
 ): Options {
-    return getValidOptions({reports, personalDetails}, draftComments, {
+    return getValidOptions({personalDetails, reports: []}, undefined, {
         betas,
         includeP2P: true,
         excludeLogins,
         includeSelectedOptions,
-        includeRecentReports,
-        searchString,
-        maxElements,
+        includeRecentReports: false,
+        searchString: '',
+        maxElements: undefined,
     });
 }
 

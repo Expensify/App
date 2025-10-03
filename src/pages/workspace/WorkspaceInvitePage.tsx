@@ -59,7 +59,6 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const firstRenderRef = useRef(true);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
@@ -93,10 +92,10 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = getMemberInviteOptions(options.personalDetails, draftComments, betas ?? [], excludedUsers, true);
+        const inviteOptions = getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, true);
 
         return {...inviteOptions, recentReports: [], currentUserOption: null};
-    }, [areOptionsInitialized, betas, draftComments, excludedUsers, options.personalDetails]);
+    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
 
     const inviteOptions = useMemo(
         () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {excludeLogins: excludedUsers}),
