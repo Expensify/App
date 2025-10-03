@@ -1,8 +1,9 @@
 ---
 title: Connect a Business Bank Account
 description: How to connect a business bank account to New Expensify in supported currencies (USD, CAD, GBP, EUR, AUD).
-keywords: [New Expensify, business bank account]
----
+keywords: [New Expensify, business bank account, verified business bank account, send reimbursement, micro transactions, test deposits, verification amounts, bank verification]
+--
+
 <div id="new-expensify" markdown="1">
 
 You can connect a business bank account in **New Expensify** using the following supported currencies: **USD, CAD, GBP, EUR, and AUD**. 
@@ -10,8 +11,9 @@ You can connect a business bank account in **New Expensify** using the following
 Follow the steps below to connect your business bank account and enable payment features.
 
 ---
+# How to connect and verify a business bank account
 
-# Step 1: Enable Make or Track Payments
+## Step 1: Enable Make or Track Payments
 
 1. Click **Workspaces** in the left-hand menu
 2. Navigate to **[Workspace Name] > More Features**.
@@ -25,7 +27,7 @@ Follow the steps below to connect your business bank account and enable payment 
 
 ---
 
-# Step 2: Connect a Bank Account
+## Step 2: Connect a Bank Account
 
 1. Click **Connect Bank Account**.
 2. Select either **Connect online with Plaid (preferred)** or **Connect manually**.
@@ -33,7 +35,7 @@ Follow the steps below to connect your business bank account and enable payment 
 
 ---
 
-# Step 3: Upload ID 
+## Step 3: Upload ID 
 
 After entering your personal details, you’ll be prompted to complete identity verification:
 1. Upload a photo of the **front and back** of your ID (**cannot be a photo of an existing image**).
@@ -45,7 +47,7 @@ After entering your personal details, you’ll be prompted to complete identity 
 
 ---
 
-# Step 4: Enter Company Information
+## Step 4: Enter Company Information
 
 Add your company details, including:
 - **Company Address:** Must be a **physical** US location (**PO Boxes or mail drop addresses will be flagged for review and may delay verification**).
@@ -55,13 +57,21 @@ Add your company details, including:
 
 ---
 
-# Step 5: Additional Information
+## Step 5: Additional Information
 1. Check the appropriate box under **Beneficial Owner**:
    - A **Beneficial Owner** is an **individual** who owns **25% or more** of the business.
    - If no individual owns **25% or more**, leave both boxes **unchecked**.
 2. Accept the agreement terms and verify that all details are **true and accurate**.
 
-If additional verification is required, the Concierge will notify you of the next steps. Otherwise, your bank account will be connected automatically.
+## Step 6: Wait for documentation review**
+
+In some cases, Concierge may request additional documents (e.g., business address verification or a bank letter). If this happens, Concierge will follow up directly.
+
+**Step 7: Watch for the micro-transaction message**
+
+Once your account is nearly ready, you’ll see the message: **“Your bank account is almost set up!”**
+
+This means Expensify has sent **three test transactions** (usually arriving within 1–2 business days). You’ll need these to complete setup.
 
 ---
 
