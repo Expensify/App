@@ -81,11 +81,13 @@ function AddDelegatePage() {
                 isDisabled: option.isDisabled ?? undefined,
                 login: option.login ?? undefined,
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
+                isSelected: option.login === selectedOption,
             })),
         }));
     }, [availableOptions, translate]);
 
     const onSelectRow = useCallback((option: Participant) => {
+        setSelectedOption(option?.login);
         Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(option?.login ?? ''));
     }, []);
 
