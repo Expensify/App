@@ -4379,9 +4379,7 @@ function canEditFieldOfMoneyRequest(
         // Unreported transaction from OldDot can have the reportID as an empty string
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
-        const isUserWorkspaceMember = Object.values(allPolicies ?? {}).find(
-            (policyItem) => policyItem?.employeeList?.[currentUserEmail ?? ''] && policyItem?.type !== CONST.POLICY.TYPE.PERSONAL,
-        );
+        const isUserWorkspaceMember = getActivePolicies(allPolicies ?? {}, currentUserEmail).length;
 
         if (isUnreportedExpense && isSearchPageOption && isUserWorkspaceMember) {
             return true;
