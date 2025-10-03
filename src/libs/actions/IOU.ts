@@ -11756,8 +11756,8 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
         );
 
         if (iouAction?.reportActionID) {
-            // TODO: remove Onyx.merge when batching of onyx updates works correctly.
             // Context: Right now updates provided in one Onyx.update can reach component in different renders.
+            // This is because `Onyx.merge` is batched and `Onyx.set` is not, so it may not be necessary after https://github.com/Expensify/App/issues/71207 is resolved.
             // Setting up the transactions null values (removing of the transactions) happens faster than setting of optimistic childReportID,
             // though both updates come from one optimistic data.
             // To escape unexpected effects we setting the childReportID using Onyx.merge, making sure it will be in place when transactions are cleared out.
