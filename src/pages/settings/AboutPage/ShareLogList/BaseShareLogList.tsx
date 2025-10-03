@@ -27,17 +27,9 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const {translate} = useLocalize();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
 
-    const {searchTerm, setSearchTerm, searchOptions, areOptionsInitialized} = useSearchSelector({
+    const {searchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        getValidOptionsConfig: {
-            includeMultipleParticipantReports: true,
-            forcePolicyNamePreview: true,
-            includeOwnedWorkspaceChats: true,
-            includeSelfDM: true,
-            includeThreads: true,
-            includeReadOnly: false,
-        },
+        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_LOG,
         includeUserToInvite: false,
     });
     const sections = useMemo(() => {
@@ -48,34 +40,34 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
 
         sectionsList.push({
             title: translate('common.recents'),
-            data: searchOptions.recentReports,
-            shouldShow: searchOptions.recentReports.length > 0,
+            data: availableOptions.recentReports,
+            shouldShow: availableOptions.recentReports.length > 0,
         });
 
         sectionsList.push({
             title: translate('common.contacts'),
-            data: searchOptions.personalDetails,
-            shouldShow: searchOptions.personalDetails.length > 0,
+            data: availableOptions.personalDetails,
+            shouldShow: availableOptions.personalDetails.length > 0,
         });
 
-        if (searchOptions.userToInvite) {
+        if (availableOptions.userToInvite) {
             sectionsList.push({
                 title: undefined,
-                data: [searchOptions.userToInvite],
+                data: [availableOptions.userToInvite],
                 shouldShow: true,
             });
         }
 
         return sectionsList;
-    }, [areOptionsInitialized, translate, searchOptions.recentReports, searchOptions.personalDetails, searchOptions.userToInvite]);
+    }, [areOptionsInitialized, translate, availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite]);
 
     const headerMessage = useMemo(() => {
         if (!areOptionsInitialized) {
             return '';
         }
 
-        return getHeaderMessage((searchOptions.recentReports?.length || 0) + (searchOptions.personalDetails?.length || 0) !== 0, !!searchOptions.userToInvite, searchTerm.trim());
-    }, [areOptionsInitialized, searchOptions.personalDetails?.length, searchOptions.recentReports?.length, searchOptions.userToInvite, searchTerm]);
+        return getHeaderMessage((availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0, !!availableOptions.userToInvite, searchTerm.trim());
+    }, [areOptionsInitialized, availableOptions.personalDetails?.length, availableOptions.recentReports?.length, availableOptions.userToInvite, searchTerm]);
     const attachLogToReport = (option: Report) => {
         if (!option.reportID) {
             return;
