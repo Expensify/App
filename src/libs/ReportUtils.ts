@@ -8315,25 +8315,30 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
         return false;
     }
 
-    if (isLHNReport(report)) {
-        const allPolicyReports = getAllPolicyReports(report.policyID);
+if (isLHNReport(report)) {
+    const isAdmin = isPolicyAdminByID(report.policyID);
 
-        const isAdmin = isPolicyAdminByID(report.policyID);
-
-        const expenseReportsForThisChat = allPolicyReports.filter(
-            (policyReport) => policyReport?.type === 'expense' && policyReport?.chatReportID === report.reportID && isCurrentUserSubmitter(policyReport),
+    if (!isAdmin) {
+        const policyReports = Object.values(reportsByPolicyID[report.policyID] ?? {});
+        
+        const expenseReportsForThisChat = policyReports.filter(
+            (policyReport) => policyReport?.type === 'expense' &&
+                             policyReport?.chatReportID === report.reportID &&
+                             isCurrentUserSubmitter(policyReport)
         );
 
         if (expenseReportsForThisChat.length > 0) {
-            const isOpenReports = expenseReportsForThisChat.some(
-                (reportItem) => (reportItem?.stateNum ?? 0) === CONST.REPORT.STATE_NUM.OPEN && (reportItem?.statusNum ?? 0) === CONST.REPORT.STATUS_NUM.OPEN,
+            const hasOpenExpenseReport = expenseReportsForThisChat.some(
+                (policyReport) => (policyReport?.stateNum ?? 0) === CONST.REPORT.STATE_NUM.OPEN &&
+                                 (policyReport?.statusNum ?? 0) === CONST.REPORT.STATUS_NUM.OPEN
             );
 
-            if (!isOpenReports && !isAdmin) {
+            if (!hasOpenExpenseReport) {
                 return false;
             }
         }
     }
+}
 
     // If any report has a violation, then it should have a RBR
     const potentialReports = Object.values(reportsByPolicyID[report.policyID] ?? {}) ?? [];
