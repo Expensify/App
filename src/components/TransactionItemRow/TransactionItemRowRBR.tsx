@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {isSettled} from '@libs/ReportUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,7 +33,7 @@ type TransactionItemRowRBRProps = {
     missingFieldError?: string;
 };
 
-function TransactionItemRowRBRWithOnyx({transaction, violations, report, containerStyles, missingFieldError}: TransactionItemRowRBRProps) {
+function TransactionItemRowRBR({transaction, violations, report, containerStyles, missingFieldError}: TransactionItemRowRBRProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -45,13 +46,20 @@ function TransactionItemRowRBRWithOnyx({transaction, violations, report, contain
         canBeMissing: true,
     });
 
-    const RBRMessages = ViolationsUtils.getRBRMessages(transaction, violations ?? [], translate, missingFieldError, Object.values(transactionThreadActions ?? {}), policyTags);
+    const RBRMessages = ViolationsUtils.getRBRMessages(
+        transaction,
+        isSettled(report) ? [] : (violations ?? []),
+        translate,
+        missingFieldError,
+        Object.values(transactionThreadActions ?? {}),
+        policyTags,
+    );
 
     return (
         RBRMessages.length > 0 && (
             <View
                 style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, containerStyles]}
-                testID="TransactionItemRowRBRWithOnyx"
+                testID="TransactionItemRowRBR"
             >
                 <Icon
                     src={DotIndicator}
@@ -67,5 +75,5 @@ function TransactionItemRowRBRWithOnyx({transaction, violations, report, contain
     );
 }
 
-TransactionItemRowRBRWithOnyx.displayName = 'TransactionItemRowRBRWithOnyx';
-export default TransactionItemRowRBRWithOnyx;
+TransactionItemRowRBR.displayName = 'TransactionItemRowRBR';
+export default TransactionItemRowRBR;
