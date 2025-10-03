@@ -228,6 +228,7 @@ import {
     removeTransactionFromDuplicateTransactionViolation,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -716,6 +717,22 @@ type GetSearchOnyxUpdateParams = {
     isFromOneTransactionReport?: boolean;
     isInvoice?: boolean;
     transactionThreadReportID: string | undefined;
+};
+
+type CreateTransactionParams = {
+    transactions: OnyxTypes.Transaction[];
+    iouType: string;
+    report: OnyxEntry<OnyxTypes.Report>;
+    payeeAccountID: number;
+    payeeEmail?: string;
+    backToReport?: string;
+    shouldGenerateTransactionThreadReport: boolean;
+    files: ReceiptFile[];
+    participant: Participant;
+    gpsPoints?: GPSPoint;
+    policyParams?: {policy: OnyxEntry<OnyxTypes.Policy>};
+    billable?: boolean;
+    reimbursable?: boolean;
 };
 
 let allBetas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -13246,6 +13263,75 @@ function navigateToConfirmationPage(
     }
 }
 
+function createTransaction({
+    transactions,
+    iouType,
+    report,
+    payeeAccountID,
+    payeeEmail,
+    backToReport,
+    shouldGenerateTransactionThreadReport,
+    files,
+    participant,
+    gpsPoints,
+    policyParams,
+    billable,
+    reimbursable = true,
+}: CreateTransactionParams) {
+    files.forEach((receiptFile, index) => {
+        const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
+        const receipt: Receipt = receiptFile.file ?? {};
+        receipt.source = receiptFile.source;
+        receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
+        if (iouType === CONST.IOU.TYPE.TRACK && report) {
+            trackExpense({
+                report,
+                isDraftPolicy: false,
+                participantParams: {
+                    payeeEmail,
+                    payeeAccountID,
+                    participant,
+                },
+                transactionParams: {
+                    amount: 0,
+                    currency: transaction?.currency ?? 'USD',
+                    created: transaction?.created,
+                    receipt,
+                    billable,
+                    reimbursable,
+                    ...(gpsPoints ?? {}),
+                },
+                ...(policyParams ?? {}),
+                shouldHandleNavigation: index === files.length - 1,
+            });
+        } else {
+            requestMoney({
+                report,
+                participantParams: {
+                    payeeEmail,
+                    payeeAccountID,
+                    participant,
+                },
+                ...(policyParams ?? {}),
+                ...(gpsPoints ?? {}),
+                transactionParams: {
+                    amount: 0,
+                    attendees: transaction?.comment?.attendees,
+                    currency: transaction?.currency ?? 'USD',
+                    created: transaction?.created ?? '',
+                    merchant: '',
+                    receipt,
+                    billable,
+                    reimbursable,
+                },
+                shouldHandleNavigation: index === files.length - 1,
+                backToReport,
+                shouldGenerateTransactionThreadReport,
+            });
+        }
+    });
+}
+
 export {
     adjustRemainingSplitShares,
     approveMoneyRequest,
@@ -13366,6 +13452,7 @@ export {
     hasOutstandingChildRequest,
     getReportPreviewAction,
     navigateToConfirmationPage,
+    createTransaction,
 };
 export type {
     GPSPoint as GpsPoint,

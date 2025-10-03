@@ -61,16 +61,15 @@ import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {GpsPoint} from '@userActions/IOU';
 import {
     checkIfScanFileCanBeRead,
+    createTransaction,
     getMoneyRequestParticipantsFromReport,
     navigateToConfirmationPage,
     replaceReceipt,
-    requestMoney,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestReceipt,
     setMultipleMoneyRequestParticipantsFromReport,
     startSplitBill,
-    trackExpense,
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
@@ -328,7 +327,7 @@ function IOURequestStepScan({
         Navigation.goBack(backTo);
     }, [backTo]);
 
-    const createTransaction = useCallback(
+    const createTransactionHandler = useCallback(
         (
             files: ReceiptFile[],
             participant: Participant,
@@ -339,57 +338,20 @@ function IOURequestStepScan({
             billable?: boolean,
             reimbursable = true,
         ) => {
-            files.forEach((receiptFile: ReceiptFile, index) => {
-                const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
-                const receipt: Receipt = receiptFile.file ?? {};
-                receipt.source = receiptFile.source;
-                receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
-                if (iouType === CONST.IOU.TYPE.TRACK && report) {
-                    trackExpense({
-                        report,
-                        isDraftPolicy: false,
-                        participantParams: {
-                            payeeEmail: currentUserPersonalDetails.login,
-                            payeeAccountID: currentUserPersonalDetails.accountID,
-                            participant,
-                        },
-                        transactionParams: {
-                            amount: 0,
-                            currency: transaction?.currency ?? 'USD',
-                            created: transaction?.created,
-                            receipt,
-                            billable,
-                            reimbursable,
-                            ...(gpsPoints ?? {}),
-                        },
-                        ...(policyParams ?? {}),
-                        shouldHandleNavigation: index === files.length - 1,
-                    });
-                } else {
-                    requestMoney({
-                        report,
-                        participantParams: {
-                            payeeEmail: currentUserPersonalDetails.login,
-                            payeeAccountID: currentUserPersonalDetails.accountID,
-                            participant,
-                        },
-                        ...(policyParams ?? {}),
-                        ...(gpsPoints ?? {}),
-                        transactionParams: {
-                            amount: 0,
-                            attendees: transaction?.comment?.attendees,
-                            currency: transaction?.currency ?? 'USD',
-                            created: transaction?.created ?? '',
-                            merchant: '',
-                            receipt,
-                            billable,
-                            reimbursable,
-                        },
-                        shouldHandleNavigation: index === files.length - 1,
-                        backToReport,
-                        shouldGenerateTransactionThreadReport,
-                    });
-                }
+            createTransaction({
+                transactions,
+                iouType,
+                report,
+                payeeAccountID: currentUserPersonalDetails.accountID,
+                payeeEmail: currentUserPersonalDetails.login,
+                backToReport,
+                shouldGenerateTransactionThreadReport,
+                files,
+                participant,
+                gpsPoints,
+                policyParams,
+                billable,
+                reimbursable,
             });
         },
         [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions, shouldGenerateTransactionThreadReport],
@@ -469,12 +431,12 @@ function IOURequestStepScan({
                                     lat: successData.coords.latitude,
                                     long: successData.coords.longitude,
                                 };
-                                createTransaction(files, participant, gpsPoints, policyParams, false, true);
+                                createTransactionHandler(files, participant, gpsPoints, policyParams, false, true);
                             },
                             (errorData) => {
                                 Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
                                 // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                                createTransaction(files, participant);
+                                createTransactionHandler(files, participant);
                             },
                             {
                                 maximumAge: CONST.GPS.MAX_AGE,
@@ -483,7 +445,7 @@ function IOURequestStepScan({
                         );
                         return;
                     }
-                    createTransaction(files, participant);
+                    createTransactionHandler(files, participant);
                     return;
                 }
                 const transactionIDs = files.map((receiptFile) => receiptFile.transactionID);
@@ -545,7 +507,7 @@ function IOURequestStepScan({
             shouldSkipConfirmation,
             personalDetails,
             reportAttributesDerived,
-            createTransaction,
+            createTransactionHandler,
             currentUserPersonalDetails?.login,
             currentUserPersonalDetails.accountID,
             reportID,
