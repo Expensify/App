@@ -19,7 +19,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
@@ -28,6 +27,7 @@ import RenderHTML from './RenderHTML';
 
 type BookTravelButtonProps = {
     text: string;
+    activePolicyID?: string;
 
     /** Whether to render the error message below the button */
     shouldRenderErrorMessageBelowButton?: boolean;
@@ -46,17 +46,15 @@ const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
     Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain));
 };
 
-function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, setShouldScrollToBottom}: BookTravelButtonProps) {
+function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, activePolicyID, setShouldScrollToBottom}: BookTravelButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const phoneErrorMethodsRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute())}`;
-    const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isUserValidated = account?.validated ?? false;
     const primaryLogin = account?.primaryLogin ?? '';
-    const isLoading = isLoadingOnyxValue(activePolicyIDMetadata);
 
     const policy = usePolicy(activePolicyID);
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
@@ -130,12 +128,12 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
             const domain = adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN;
             if (isEmptyObject(policy?.address)) {
                 // Spotnana requires an address anytime an entity is created for a policy
-                Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()));
+                Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, activePolicyID, Navigation.getActiveRoute()));
             } else {
                 navigateToAcceptTerms(domain, !!isUserValidated);
             }
         } else {
-            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR.getRoute(Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR.getRoute(activePolicyID, Navigation.getActiveRoute()));
         }
     }, [
         primaryContactMethod,
@@ -147,6 +145,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         translate,
         isUserValidated,
         phoneErrorMethodsRoute,
+        activePolicyID,
     ]);
 
     return (
@@ -163,8 +162,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
                 onPress={bookATrip}
                 accessibilityLabel={translate('travel.bookTravel')}
                 style={styles.w100}
-                isLoading={isLoading}
-                isDisabled={!isLoading && !activePolicyID}
+                isDisabled={!activePolicyID}
                 success
                 large
             />

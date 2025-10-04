@@ -6,7 +6,7 @@ const openTravelDotLink = (activePolicyID?: string) => {
     openTravelDotLinkWeb(activePolicyID)
         ?.then(() => {})
         ?.catch(() => {
-            Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
+            Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(activePolicyID));
         });
 };
 
