@@ -57,16 +57,16 @@ describe('DateUtils', () => {
     });
 
     it('formatToLongDateWithWeekday should return a long date with a weekday', () => {
-        const formattedDate = DateUtils.formatToLongDateWithWeekday(datetime);
+        const formattedDate = DateUtils.formatToLongDateWithWeekday(datetime, LOCALE);
         expect(formattedDate).toBe('Monday, November 7, 2022');
     });
 
     it('formatToDayOfWeek should return a weekday', () => {
-        const weekDay = DateUtils.formatToDayOfWeek(new Date(datetime));
+        const weekDay = DateUtils.formatToDayOfWeek(new Date(datetime), LOCALE);
         expect(weekDay).toBe('Monday');
     });
     it('formatToLocalTime should return a date in a local format', () => {
-        const localTime = DateUtils.formatToLocalTime(datetime);
+        const localTime = DateUtils.formatToLocalTime(datetime, LOCALE);
         expect(localTime).toBe('12:00 AM');
     });
 
