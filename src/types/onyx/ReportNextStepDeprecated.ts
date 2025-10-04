@@ -54,7 +54,7 @@ type Button = {
 };
 
 /** Model for next step of a report */
-type ReportNextStep = {
+type ReportNextStepDeprecated = {
     /** The message parts of the next step */
     message?: Message[];
 
@@ -90,6 +90,6 @@ type ReportNextStep = {
     buttons?: Record<string, Button>;
 };
 
-export default ReportNextStep;
+export default ReportNextStepDeprecated;
 
 export type {Message};
