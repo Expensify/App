@@ -3,7 +3,7 @@ import {buildNextStep} from '@libs/NextStepUtils';
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -33,7 +33,7 @@ describe('libs/NextStepUtils', () => {
             isPolicyExpenseChatEnabled: true,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
         };
-        const optimisticNextStep: ReportNextStep = {
+        const optimisticNextStep: ReportNextStepDeprecated = {
             type: 'neutral',
             icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
             message: [],

@@ -36,7 +36,7 @@ import type {
     RecentWaypoint,
     Report,
     ReportAction,
-    ReportNextStep,
+    ReportNextStepDeprecated,
     ReviewDuplicates,
     Transaction,
     TransactionViolation,
@@ -612,7 +612,7 @@ function changeTransactionsReport(
     accountID: number,
     email: string,
     policy?: OnyxEntry<Policy>,
-    reportNextStep?: OnyxEntry<ReportNextStep>,
+    reportNextStep?: OnyxEntry<ReportNextStepDeprecated>,
     policyCategories?: OnyxEntry<PolicyCategories>,
 ) {
     const newReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];

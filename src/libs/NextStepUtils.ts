@@ -5,8 +5,8 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, Report, ReportNextStep, TransactionViolations} from '@src/types/onyx';
-import type {Message} from '@src/types/onyx/ReportNextStep';
+import type {Beta, Policy, Report, ReportNextStepDeprecated, TransactionViolations} from '@src/types/onyx';
+import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import EmailUtils from './EmailUtils';
 import Permissions from './Permissions';
@@ -97,7 +97,7 @@ function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove?: boo
 }
 
 function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
-    const optimisticNextStep: ReportNextStep = {
+    const optimisticNextStep: ReportNextStepDeprecated = {
         type: 'alert',
         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
         message: [
@@ -140,7 +140,7 @@ function buildNextStep(
     shouldFixViolations?: boolean,
     isUnapprove?: boolean,
     isReopen?: boolean,
-): ReportNextStep | null {
+): ReportNextStepDeprecated | null {
     if (!isExpenseReport(report)) {
         return null;
     }
@@ -173,8 +173,8 @@ function buildNextStep(
 
     const reimburserAccountID = getReimburserAccountID(policy);
     const hasValidAccount = !!policy?.achAccount?.accountNumber || policy.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-    const type: ReportNextStep['type'] = 'neutral';
-    let optimisticNextStep: ReportNextStep | null;
+    const type: ReportNextStepDeprecated['type'] = 'neutral';
+    let optimisticNextStep: ReportNextStepDeprecated | null;
 
     const nextStepPayExpense = {
         type,
@@ -513,7 +513,7 @@ function buildNextStepNew(
     shouldFixViolations?: boolean,
     isUnapprove?: boolean,
     isReopen?: boolean,
-): ReportNextStep | null {
+): ReportNextStepDeprecated | null {
     if (!isExpenseReport(report)) {
         return null;
     }
@@ -541,8 +541,8 @@ function buildNextStepNew(
 
     const reimburserAccountID = getReimburserAccountID(policy);
     const hasValidAccount = !!policy?.achAccount?.accountNumber || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-    const type: ReportNextStep['type'] = 'neutral';
-    let optimisticNextStep: ReportNextStep | null;
+    const type: ReportNextStepDeprecated['type'] = 'neutral';
+    let optimisticNextStep: ReportNextStepDeprecated | null;
 
     const nextStepPayExpense = {
         type,
