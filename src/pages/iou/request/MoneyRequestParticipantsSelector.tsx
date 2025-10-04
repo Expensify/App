@@ -197,25 +197,26 @@ function MoneyRequestParticipantsSelector({
             },
         );
 
-        const orderedOptions = orderOptions(optionList);
+        const orderedOptions = orderOptions(optionList, activePolicyID);
 
         return {
             ...optionList,
             ...orderedOptions,
         };
     }, [
-        action,
-        contacts,
         areOptionsInitialized,
-        betas,
         didScreenTransitionEnd,
-        iouType,
-        isCategorizeOrShareAction,
-        options.personalDetails,
         options.reports,
+        options.personalDetails,
+        contacts,
+        betas,
         participants,
+        iouType,
+        action,
+        isCategorizeOrShareAction,
         isPerDiemRequest,
         canShowManagerMcTest,
+        activePolicyID,
         isCorporateCardTransaction,
     ]);
 
@@ -232,7 +233,7 @@ function MoneyRequestParticipantsSelector({
             };
         }
 
-        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, activePolicyID, {
             canInviteUser: !isCategorizeOrShareAction && !isPerDiemRequest,
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -241,7 +242,7 @@ function MoneyRequestParticipantsSelector({
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action, isPerDiemRequest, countryCode]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, countryCode, activePolicyID, isCategorizeOrShareAction, isPerDiemRequest, participants, isPaidGroupPolicy, action]);
 
     const inputHelperText = useMemo(
         () =>

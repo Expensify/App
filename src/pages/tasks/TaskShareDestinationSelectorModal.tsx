@@ -71,6 +71,8 @@ function TaskShareDestinationSelectorModal() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const {options: optionList, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
@@ -109,13 +111,13 @@ function TaskShareDestinationSelectorModal() {
         if (debouncedSearchValue.trim() === '') {
             return defaultOptions;
         }
-        const filteredReports = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), countryCode, {
+        const filteredReports = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), countryCode, activePolicyID, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             canInviteUser: false,
         });
         const header = getHeaderMessage(filteredReports.recentReports && filteredReports.recentReports.length !== 0, false, debouncedSearchValue);
         return {...filteredReports, header};
-    }, [debouncedSearchValue, defaultOptions, countryCode]);
+    }, [debouncedSearchValue, defaultOptions, countryCode, activePolicyID]);
 
     const sections = useMemo(
         () =>

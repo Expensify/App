@@ -52,6 +52,7 @@ function ShareTab({ref}: ShareTabProps) {
     const {options, areOptionsInitialized} = useOptionsList();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
@@ -67,7 +68,7 @@ function ShareTab({ref}: ShareTabProps) {
         if (textInputValue.trim() === '') {
             return optionsOrderBy(searchOptions.recentReports, recentReportComparator, 20);
         }
-        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, textInputValue, {
+        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, textInputValue, activePolicyID, {
             sortByReportTypeInSearch: true,
             preferChatRoomsOverThreads: true,
         });
@@ -77,7 +78,7 @@ function ShareTab({ref}: ShareTabProps) {
             reportOptions.push(searchOptions.userToInvite);
         }
         return reportOptions.slice(0, 20);
-    }, [searchOptions, textInputValue]);
+    }, [activePolicyID, searchOptions, textInputValue]);
 
     useEffect(() => {
         searchInServer(debouncedTextInputValue.trim());
