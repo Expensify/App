@@ -1347,6 +1347,7 @@ function getUserToInviteOption({
     showChatPreviewLine = false,
     shouldAcceptName = false,
 }: GetUserToInviteConfig): SearchOptionData | null {
+    debugger;
     if (!searchValue) {
         return null;
     }
@@ -1765,6 +1766,7 @@ function getValidOptions(
         ...excludeLogins,
         ...restrictedLogins,
     };
+
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
     // This prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
@@ -2381,6 +2383,7 @@ function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue:
         [CONST.EMAIL.NOTIFICATIONS]: true,
         ...excludeLogins,
     };
+
     return getUserToInviteOption({
         searchValue,
         loginsToExclude,
