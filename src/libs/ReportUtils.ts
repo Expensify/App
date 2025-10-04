@@ -2676,7 +2676,7 @@ function canDeleteReportAction(
     }
 
     if (isMoneyRequestAction(reportAction)) {
-        const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
+        const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
         // For now, users cannot delete split actions
         const isSplitAction = getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 
@@ -2686,10 +2686,10 @@ function canDeleteReportAction(
 
         if (isActionOwner) {
             if (!isEmptyObject(report) && (isMoneyRequestReport(report) || isInvoiceReport(report))) {
-                return canDeleteTransaction(report) && isCardTransactionCanBeDeleted;
+                return canDeleteTransaction(report) && canCardTransactionBeDeleted;
             }
             if (isTrackExpenseAction(reportAction)) {
-                return isCardTransactionCanBeDeleted;
+                return canCardTransactionBeDeleted;
             }
             return true;
         }
