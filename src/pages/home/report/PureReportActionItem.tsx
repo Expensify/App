@@ -1336,7 +1336,7 @@ function PureReportActionItem({
             const formattedAmount = CurrencyUtils.convertToDisplayString(fraudMessage?.triggerAmount ?? 0, 'USD');
             const merchant = fraudMessage?.triggerMerchant ?? '';
             const resolution = fraudMessage?.resolution;
-            const formattedDate = action.created ? format(getLocalDateFromDatetime(action.created), 'MMM do - h:mma') : '';
+            const formattedDate = action.created ? format(getLocalDateFromDatetime(action.created), 'MMM. d - h:mma').replace(/am|pm/i, (match) => match.toUpperCase()) : '';
 
             const message = resolution
                 ? (resolution === 'recognized'
