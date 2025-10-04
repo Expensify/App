@@ -17,6 +17,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     importMultiLevelTags,
+    setImportedSpreadsheetIsEnabledAdjacent,
     setImportedSpreadsheetIsFirstLineHeader,
     setImportedSpreadsheetIsGLAdjacent,
     setImportedSpreadsheetIsImportingIndependentMultiLevelTags,
@@ -56,6 +57,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
         setImportedSpreadsheetIsFirstLineHeader(true);
         setImportedSpreadsheetIsImportingIndependentMultiLevelTags(true);
         setImportedSpreadsheetIsGLAdjacent(false);
+        setImportedSpreadsheetIsEnabledAdjacent(false);
     }, []);
 
     if (hasAccountingConnections) {
@@ -123,6 +125,17 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}
                             onToggle={(value) => {
                                 setImportedSpreadsheetIsGLAdjacent(value);
+                            }}
+                        />
+                    </View>
+
+                    <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <Text style={[styles.textNormal, styles.flex1, styles.mr2]}>{translate('workspace.tags.importMultiLevelTags.enabledAdjacentColumn')}</Text>
+                        <Switch
+                            isOn={spreadsheet?.isEnabledAdjacent ?? false}
+                            accessibilityLabel={translate('workspace.tags.importMultiLevelTags.enabledAdjacentColumn')}
+                            onToggle={(value) => {
+                                setImportedSpreadsheetIsEnabledAdjacent(value);
                             }}
                         />
                     </View>

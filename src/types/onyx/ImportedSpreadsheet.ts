@@ -30,6 +30,9 @@ type ImportedSpreadsheet = {
     /** Whether the GL code is in the adjacent column */
     isGLAdjacent: boolean;
 
+    /** Whether the Enabled state is in the adjacent column */
+    isEnabledAdjacent: boolean;
+
     /** The imported file URI */
     fileURI?: string;
 

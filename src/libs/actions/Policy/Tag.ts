@@ -772,6 +772,10 @@ function setImportedSpreadsheetIsGLAdjacent(isGLAdjacent: boolean) {
     Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isGLAdjacent});
 }
 
+function setImportedSpreadsheetIsEnabledAdjacent(isEnabledAdjacent: boolean) {
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isEnabledAdjacent});
+}
+
 function setImportedSpreadsheetFileURI(fileURI: string) {
     Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {fileURI});
 }
@@ -827,6 +831,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                 isFirstLineHeader: spreadsheet?.containsHeader,
                 isIndependent: spreadsheet?.isImportingIndependentMultiLevelTags,
                 isGLAdjacent: spreadsheet?.isGLAdjacent,
+                isEnabledAdjacent: spreadsheet?.isEnabledAdjacent,
                 file,
             };
 
@@ -1224,6 +1229,7 @@ export {
     setImportedSpreadsheetIsImportingIndependentMultiLevelTags,
     setImportedSpreadsheetIsFirstLineHeader,
     setImportedSpreadsheetIsGLAdjacent,
+    setImportedSpreadsheetIsEnabledAdjacent,
     setImportedSpreadsheetFileURI,
     importMultiLevelTags,
 };

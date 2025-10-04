@@ -3,6 +3,7 @@ type ImportMultiLevelTagsParams = {
     isFirstLineHeader: boolean;
     isIndependent: boolean;
     isGLAdjacent: boolean;
+    isEnabledAdjacent: boolean;
     file: File;
 };
 
