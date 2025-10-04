@@ -61,11 +61,8 @@ function getLimitTypeTranslationKeys(limitType: ValueOf<typeof CONST.EXPENSIFY_C
     }
 }
 
-function ExpensifyCardPage({
-    route: {
-        params: {cardID = ''},
-    },
-}: ExpensifyCardPageProps) {
+function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
+    const {cardID} = route.params;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
@@ -198,6 +195,8 @@ function ExpensifyCardPage({
                                         expiration={formatCardExpiration(cardsDetails[card.cardID]?.expiration ?? '')}
                                         cvv={cardsDetails[card.cardID]?.cvv}
                                         domain={domain}
+                                        cardID={card.cardID}
+                                        route={route}
                                     />
                                 ) : (
                                     <>
@@ -255,6 +254,8 @@ function ExpensifyCardPage({
                                         <CardDetails
                                             cvv={cardsDetails[card.cardID]?.cvv}
                                             domain={domain}
+                                            cardID={card.cardID}
+                                            route={route}
                                         />
                                     ) : (
                                         <>
