@@ -30,6 +30,7 @@ import {
     isInvoiceReport as isInvoiceReportUtil,
     isIOUReport,
 } from '@libs/ReportUtils';
+import handleUnvalidatedUserNavigation from '@libs/SettlementButtonUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {approveMoneyRequest} from '@userActions/IOU';
@@ -375,7 +376,7 @@ function SettlementButton({
 
     const selectPaymentMethod = (event: KYCFlowEvent, triggerKYCFlow: TriggerKYCFlow, paymentMethod?: PaymentMethod, selectedPolicy?: Policy) => {
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
+            handleUnvalidatedUserNavigation(chatReportID, reportID);
             return;
         }
 
