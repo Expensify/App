@@ -10614,14 +10614,14 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
         shouldSkipTestDriveModal: true,
     });
 }
-function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, paymentPolicyID?: string, full = true) {
+function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, introSelected: OnyxEntry<OnyxTypes.IntroSelected>, paymentPolicyID?: string, full = true) {
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
     }
 
     const paymentSelected = paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected);
+    completePaymentOnboarding(paymentSelected, introSelected);
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType, full, undefined, undefined, paymentPolicyID);
@@ -10639,6 +10639,7 @@ function payInvoice(
     paymentMethodType: PaymentMethodType,
     chatReport: OnyxTypes.Report,
     invoiceReport: OnyxEntry<OnyxTypes.Report>,
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     payAsBusiness = false,
     existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>,
     methodID?: number,
@@ -10664,7 +10665,7 @@ function payInvoice(
     } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, payAsBusiness, methodID, undefined, undefined, existingB2BInvoiceReport);
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected);
+    completePaymentOnboarding(paymentSelected, introSelected);
 
     let params: PayInvoiceParams = {
         reportID: invoiceReport?.reportID,
