@@ -129,7 +129,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                                 iouType={CONST.IOU.TYPE.SPLIT}
                                 isReadOnly={!isEditingSplitBill}
                                 shouldShowSmartScanFields
-                                receiptPath={transaction?.receipt?.source}
+                                receiptPath={transaction?.receipt?.source?.toString()}
                                 receiptFilename={getReceiptFilenameFromTransaction(transaction)}
                                 isDistanceRequest={isDistanceRequest}
                                 isManualDistanceRequest={isManualDistanceRequest}

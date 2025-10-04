@@ -54,7 +54,7 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
     }
 
     if (isReceiptImage) {
-        return {thumbnail: `${path}.1024.jpg`, image: path, filename};
+        return {thumbnail: `${path}.1024.jpg`, image: path.toString(), filename};
     }
 
     if (isReceiptPDF && typeof path === 'string') {
@@ -63,7 +63,7 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
 
     const isLocalFile = isLocalFileUtils(path);
     const {fileExtension} = splitExtensionFromFileName(filename);
-    return {isThumbnail: true, fileExtension: Object.values(CONST.IOU.FILE_TYPES).find((type) => type === fileExtension), image: path, isLocalFile, filename};
+    return {isThumbnail: true, fileExtension: Object.values(CONST.IOU.FILE_TYPES).find((type) => type === fileExtension), image: path.toString(), isLocalFile, filename};
 }
 
 const shouldValidateFile = (file: ShareTempFile | undefined) => {

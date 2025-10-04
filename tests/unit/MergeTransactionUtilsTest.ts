@@ -5,6 +5,7 @@ import {
     getMergeableDataAndConflictFields,
     getMergeFieldTranslationKey,
     getMergeFieldValue,
+    getReceiptFileName,
     getSourceTransactionFromMergeTransaction,
     isEmptyMergeValue,
     selectTargetAndSourceTransactionsForMerge,
@@ -507,6 +508,30 @@ describe('MergeTransactionUtils', () => {
                 targetTransaction: cashTransaction1,
                 sourceTransaction: cashTransaction2,
             });
+        });
+    });
+
+    describe('getReceiptFileName', () => {
+        it('should return filename from source when source is a string', () => {
+            const receipt = {
+                source: 'https://example.com/receipts/receipt123.jpg',
+                filename: 'backup-filename.jpg',
+            };
+
+            const result = getReceiptFileName(receipt);
+
+            expect(result).toBe('receipt123.jpg');
+        });
+
+        it('should return filename when source is not a string', () => {
+            const receipt = {
+                source: 12345,
+                filename: 'receipt-from-filename.jpg',
+            };
+
+            const result = getReceiptFileName(receipt);
+
+            expect(result).toBe('receipt-from-filename.jpg');
         });
     });
 
