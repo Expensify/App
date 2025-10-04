@@ -19,7 +19,7 @@ jobs:
   build:
     runs-on: ${{ github.repository_owner == 'Expensify' && 'macos-15-xlarge' || 'macos-15' }}
     env:
-      DEVELOPER_DIR: /Applications/Xcode_16.4.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.0.0.app/Contents/Developer
     strategy:
       fail-fast: false
       matrix:
