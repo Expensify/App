@@ -30,7 +30,7 @@ function CategoryDescriptionHintPage({
 }: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -56,7 +56,7 @@ function CategoryDescriptionHintPage({
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_DESCRIPTION_HINT_FORM}
                     onSubmit={({commentHint}) => {
-                        setWorkspaceCategoryDescriptionHint(policyID, categoryName, commentHint);
+                        setWorkspaceCategoryDescriptionHint(policyID, categoryName, commentHint, policyCategories);
                         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
                     }}
                     submitButtonText={translate('common.save')}

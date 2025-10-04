@@ -103,12 +103,14 @@ function mapTransactionItemToSelectedEntry(
                 undefined,
                 undefined,
                 outstandingReportsByPolicyID,
+                true,
             ),
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
             amount: item.modifiedAmount ?? item.amount,
             convertedAmount: item.convertedAmount,
+            isFromOneTransactionReport: item.isFromOneTransactionReport,
             convertedCurrency: item.convertedCurrency,
         },
     ];
@@ -182,6 +184,7 @@ function prepareTransactionsList(
                 undefined,
                 undefined,
                 outstandingReportsByPolicyID,
+                true,
             ),
             action: item.action,
             reportID: item.reportID,
@@ -189,6 +192,7 @@ function prepareTransactionsList(
             amount: Math.abs(item.modifiedAmount || item.amount),
             convertedAmount: item.convertedAmount,
             convertedCurrency: item.convertedCurrency,
+            isFromOneTransactionReport: item.isFromOneTransactionReport,
         },
     };
 }
@@ -342,7 +346,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
+    const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, groupBy);
 
     useEffect(() => {
         if (!isFocused) {
@@ -470,6 +474,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                             undefined,
                             undefined,
                             outstandingReportsByPolicyID,
+                            true,
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
@@ -501,6 +506,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         undefined,
                         undefined,
                         outstandingReportsByPolicyID,
+                        true,
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
