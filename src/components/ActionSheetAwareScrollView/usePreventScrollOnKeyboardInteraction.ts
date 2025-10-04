@@ -1,18 +1,12 @@
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
-import type {AnimatedRef, ScrollHandlerProcessed} from 'react-native-reanimated';
-import {scrollTo, useAnimatedScrollHandler, useComposedEventHandler, useSharedValue} from 'react-native-reanimated';
+import type {AnimatedRef} from 'react-native-reanimated';
+import {scrollTo, useAnimatedScrollHandler, useSharedValue} from 'react-native-reanimated';
 import type Reanimated from 'react-native-reanimated';
 
-function usePreventScrollOnKeyboardInteraction({
-    scrollViewRef,
-    onScroll: onScrollProp,
-}: {
-    scrollViewRef: AnimatedRef<Reanimated.ScrollView>;
-    onScroll?: ScrollHandlerProcessed<Record<string, unknown>>;
-}) {
+function usePreventScrollOnKeyboardInteraction({scrollViewRef}: {scrollViewRef: AnimatedRef<Reanimated.ScrollView>}) {
     // Receive the latest scroll position whenever the content is scrolled
     const scroll = useSharedValue(0);
-    const onScrollInternal = useAnimatedScrollHandler({
+    const onScroll = useAnimatedScrollHandler({
         onScroll: (e) => {
             scroll.set(e.contentOffset.y);
         },
@@ -25,8 +19,6 @@ function usePreventScrollOnKeyboardInteraction({
             scrollTo(scrollViewRef, 0, scroll.get(), false);
         },
     });
-
-    const onScroll = useComposedEventHandler([onScrollInternal, onScrollProp ?? null]);
 
     return {onScroll};
 }

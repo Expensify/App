@@ -1,6 +1,6 @@
 import React, {forwardRef, useCallback} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import Reanimated, {useAnimatedRef, useAnimatedStyle} from 'react-native-reanimated';
+import Reanimated, {useAnimatedRef, useAnimatedStyle, useComposedEventHandler} from 'react-native-reanimated';
 import type {AnimatedScrollView} from 'react-native-reanimated/lib/typescript/component/ScrollView';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
 import type {ActionSheetAwareScrollViewProps} from './types';
@@ -29,7 +29,8 @@ const ActionSheetAwareScrollView = forwardRef<AnimatedScrollView, ActionSheetAwa
         paddingTop: spacing.get(),
     }));
 
-    const {onScroll} = usePreventScrollOnKeyboardInteraction({scrollViewRef: scrollViewAnimatedRef, onScroll: onScrollProp});
+    const {onScroll: onScrollInternal} = usePreventScrollOnKeyboardInteraction({scrollViewRef: scrollViewAnimatedRef});
+    const onScroll = useComposedEventHandler([onScrollInternal, onScrollProp ?? null]);
 
     return (
         <Reanimated.ScrollView

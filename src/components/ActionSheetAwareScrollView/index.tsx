@@ -1,23 +1,24 @@
 import React, {forwardRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {AnimatedRef} from 'react-native-reanimated';
-import Reanimated, {useAnimatedRef} from 'react-native-reanimated';
+import Reanimated, {useAnimatedRef, useComposedEventHandler} from 'react-native-reanimated';
 import type {AnimatedScrollView} from 'react-native-reanimated/lib/typescript/component/ScrollView';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
 import type {ActionSheetAwareScrollViewProps} from './types';
 import usePreventScrollOnKeyboardInteraction from './usePreventScrollOnKeyboardInteraction';
 
-const ActionSheetAwareScrollView = forwardRef<AnimatedScrollView, ActionSheetAwareScrollViewProps>(({onScroll: onScrollProp, ...props}, ref) => {
+const ActionSheetAwareScrollView = forwardRef<AnimatedScrollView, ActionSheetAwareScrollViewProps>(({onScroll: onScrollProp, ...props}, forwardedRef) => {
     const fallbackRef = useAnimatedRef<Reanimated.ScrollView>();
-    const combinedRef = ref ?? fallbackRef;
+    const scrollViewRef = forwardedRef ?? fallbackRef;
 
-    const {onScroll} = usePreventScrollOnKeyboardInteraction({scrollViewRef: combinedRef as AnimatedRef<Reanimated.ScrollView>, onScroll: onScrollProp});
+    const {onScroll: onScrollInternal} = usePreventScrollOnKeyboardInteraction({scrollViewRef: scrollViewRef as AnimatedRef<Reanimated.ScrollView>});
+    const onScroll = useComposedEventHandler([onScrollInternal, onScrollProp ?? null]);
 
     return (
         <Reanimated.ScrollView
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            ref={combinedRef}
+            ref={scrollViewRef}
             onScroll={onScroll}
         >
             {props.children}
