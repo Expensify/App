@@ -36,8 +36,13 @@ const escapeLinkText = (text: string): string => {
  * We won't alter semantics otherwise.
  */
 const sanitizeUrlForMarkdown = (url: string): string => {
+    if (!isStandaloneURL(url)) {
+        return url;
+    }
+
     const trimmed = (url || '').trim();
     const unwrapped = trimmed.replace(/^<|>$/g, '');
+
     try {
         return encodeURI(unwrapped);
     } catch {
