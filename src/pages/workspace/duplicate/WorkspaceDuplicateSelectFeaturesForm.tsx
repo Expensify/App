@@ -193,6 +193,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 keyForList: option.value,
                 isSelected: selectedItems.includes(option.value),
                 alternateText,
+                isIndeterminate: option.value === DEFAULT_SELECT_ALL && selectedItems.length !== items.length && selectedItems.length > 0,
             };
         });
     }, [items, selectedItems]);
