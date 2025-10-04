@@ -59,6 +59,8 @@ function AddPaymentMethodMenu({
     const {translate} = useLocalize();
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [introSelected, introSelectedStatus] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+
 
     // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
     // which then starts a bottom up flow and creates a Collect workspace where the payer is an admin and payee is an employee.
@@ -71,13 +73,13 @@ function AddPaymentMethodMenu({
 
     // We temporarily disabled P2P debit cards so we will automatically select the personal bank account option if there is no other option to select.
     useEffect(() => {
-        if (!isVisible || !isPersonalOnlyOption) {
+        if (!isVisible || !isPersonalOnlyOption || introSelectedStatus.status === 'loading') {
             return;
         }
 
-        completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA);
+        completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected);
         onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
-    }, [isPersonalOnlyOption, isVisible, onItemSelected]);
+    }, [introSelected, introSelectedStatus.status, isPersonalOnlyOption, isVisible, onItemSelected]);
 
     if (isPersonalOnlyOption) {
         return null;
@@ -104,7 +106,7 @@ function AddPaymentMethodMenu({
                               text: translate('common.personalBankAccount'),
                               icon: Expensicons.Bank,
                               onSelected: () => {
-                                  completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA);
+                                  completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected);
                                   onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                               },
                           },
