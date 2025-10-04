@@ -883,6 +883,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         hasOlderActions={hasOlderActions}
                                         parentReportAction={parentReportAction}
                                         transactionThreadReportID={transactionThreadReportID}
+                                        isReportTransactionThread={isTransactionThreadView}
                                     />
                                 ) : null}
                                 {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
