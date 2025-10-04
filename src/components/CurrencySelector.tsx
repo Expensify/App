@@ -1,4 +1,4 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useRef} from 'react';
 import type {View} from 'react-native';
@@ -6,11 +6,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {WorkspaceConfirmationNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type CurrencySelectorProps = {
@@ -60,9 +57,6 @@ function CurrencySelector(
     const didOpenCurrencySelector = useRef(false);
     const isFocused = useIsFocused();
 
-    const route = useRoute<PlatformStackRouteProp<WorkspaceConfirmationNavigatorParamList, typeof SCREENS.CURRENCY.SELECTION>>();
-    const backTo = route.params?.backTo;
-
     useEffect(() => {
         if (!isFocused || !didOpenCurrencySelector.current) {
             return;
@@ -89,7 +83,7 @@ function CurrencySelector(
             onPress={() => {
                 didOpenCurrencySelector.current = true;
                 if (currencySelectorRoute === ROUTES.CURRENCY_SELECTION) {
-                    Navigation.navigate(currencySelectorRoute.getRoute(backTo));
+                    Navigation.navigate(currencySelectorRoute.getRoute(Navigation.getActiveRoute()));
                 } else {
                     Navigation.navigate(currencySelectorRoute as typeof ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY | typeof ROUTES.SETTINGS_CHANGE_CURRENCY);
                 }

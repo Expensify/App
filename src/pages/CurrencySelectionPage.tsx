@@ -13,7 +13,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
 
 type CurrencySelectionPageProps = {
     route: {
@@ -33,9 +32,8 @@ function CurrencySelectionPage({route}: CurrencySelectionPageProps) {
     const value = workspaceConfirmationFormDraft?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
 
     const goBack = useCallback(() => {
-        // Go back to workspace confirmation page, preserving the original backTo parameter
         const backTo = route?.params?.backTo;
-        Navigation.goBack(ROUTES.WORKSPACE_CONFIRMATION.getRoute(backTo));
+        Navigation.goBack(backTo);
     }, [route?.params?.backTo]);
 
     const onSelect = useCallback(
