@@ -600,6 +600,8 @@ const SCREENS = {
         REPORT_FIELDS_VALUE_SETTINGS: 'Workspace_ReportFields_ValueSettings',
         REPORT_FIELDS_EDIT_VALUE: 'Workspace_ReportFields_EditValue',
         REPORT_FIELDS_EDIT_INITIAL_VALUE: 'Workspace_ReportFields_EditInitialValue',
+        REPORT_FIELDS_EDIT_NAME: 'Workspace_ReportFields_EditName',
+        REPORT_FIELDS_EDIT_TYPE: 'Workspace_ReportFields_EditType',
         TAX_EDIT: 'Workspace_Tax_Edit',
         TAX_NAME: 'Workspace_Tax_Name',
         TAX_VALUE: 'Workspace_Tax_Value',
