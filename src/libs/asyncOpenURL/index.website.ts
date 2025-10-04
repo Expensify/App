@@ -30,6 +30,7 @@ const asyncOpenURL: AsyncOpenURL = (promise, url, shouldSkipCustomSafariLogic, s
         promise
             .then((params) => {
                 if (!windowRef) {
+                    (Linking.openURL as LinkingWeb['openURL'])(typeof url === 'string' ? url : url(params), '_self');
                     return;
                 }
                 windowRef.location = typeof url === 'string' ? url : url(params);

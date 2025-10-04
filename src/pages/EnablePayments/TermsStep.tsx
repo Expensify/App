@@ -3,14 +3,13 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {acceptWalletTerms} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {UserWallet} from '@src/types/onyx';
@@ -24,26 +23,19 @@ type TermsStepProps = {
 
 function HaveReadAndAgreeLabel() {
     const {translate} = useLocalize();
-
-    return (
-        <Text>
-            {`${translate('termsStep.haveReadAndAgree')}`}
-            <TextLink href={CONST.ELECTRONIC_DISCLOSURES_URL}>{`${translate('termsStep.electronicDisclosures')}.`}</TextLink>
-        </Text>
-    );
+    return <RenderHTML html={`${translate('termsStep.haveReadAndAgree')}`} />;
 }
 
 function AgreeToTheLabel() {
     const {translate} = useLocalize();
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
 
-    return (
-        <Text>
-            {`${translate('termsStep.agreeToThe')} `}
-            <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>{`${translate('common.privacy')} `}</TextLink>
-            {`${translate('common.and')} `}
-            <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.WALLET_AGREEMENT_URL}>{`${translate('termsStep.walletAgreement')}.`}</TextLink>
-        </Text>
-    );
+    const walletAgreementUrl =
+        userWallet?.walletProgramID && userWallet?.walletProgramID === CONST.WALLET.BANCORP_WALLET_PROGRAM_ID
+            ? CONST.OLD_DOT_PUBLIC_URLS.BANCORP_WALLET_AGREEMENT_URL
+            : CONST.OLD_DOT_PUBLIC_URLS.WALLET_AGREEMENT_URL;
+
+    return <RenderHTML html={`${translate('termsStep.agreeToThe', {walletAgreementUrl})}`} />;
 }
 
 function TermsStep(props: TermsStepProps) {
@@ -52,8 +44,8 @@ function TermsStep(props: TermsStepProps) {
     const [hasAcceptedPrivacyPolicyAndWalletAgreement, setHasAcceptedPrivacyPolicyAndWalletAgreement] = useState(false);
     const [error, setError] = useState(false);
     const {translate} = useLocalize();
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const errorMessage = error ? translate('common.error.acceptTerms') : (ErrorUtils.getLatestErrorMessage(walletTerms ?? {}) ?? '');
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
+    const errorMessage = error ? translate('common.error.acceptTerms') : (getLatestErrorMessage(walletTerms ?? {}) ?? '');
 
     const toggleDisclosure = () => {
         setHasAcceptedDisclosure(!hasAcceptedDisclosure);
@@ -83,13 +75,13 @@ function TermsStep(props: TermsStepProps) {
                 <ShortTermsForm userWallet={props.userWallet} />
                 <LongTermsForm />
                 <CheckboxWithLabel
-                    accessibilityLabel={translate('termsStep.haveReadAndAgree')}
+                    accessibilityLabel={translate('termsStep.haveReadAndAgreePlain')}
                     style={[styles.mb4, styles.mt4]}
                     onInputChange={toggleDisclosure}
                     LabelComponent={HaveReadAndAgreeLabel}
                 />
                 <CheckboxWithLabel
-                    accessibilityLabel={translate('termsStep.agreeToThe')}
+                    accessibilityLabel={translate('termsStep.agreeToThePlain')}
                     onInputChange={togglePrivacyPolicy}
                     LabelComponent={AgreeToTheLabel}
                 />
@@ -102,9 +94,10 @@ function TermsStep(props: TermsStepProps) {
                         }
 
                         setError(false);
-                        BankAccounts.acceptWalletTerms({
+                        acceptWalletTerms({
                             hasAcceptedTerms: hasAcceptedDisclosure && hasAcceptedPrivacyPolicyAndWalletAgreement,
-                            reportID: walletTerms?.chatReportID ?? '-1',
+                            // eslint-disable-next-line rulesdir/no-default-id-values
+                            reportID: walletTerms?.chatReportID ?? '',
                         });
                     }}
                     message={errorMessage}
