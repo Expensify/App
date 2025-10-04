@@ -4,7 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import {getDefaultGroupAvatar, getPolicyName, getReportName, getWorkspaceIcon, isGroupChat, isThread} from '@libs/ReportUtils';
+import {getDefaultGroupAvatar, getPolicyName, getReportName, getWorkspaceIcon, isGroupChat, isThread, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -22,6 +22,13 @@ function ReportAvatar({route}: ReportAvatarProps) {
         if (isGroupChat(report) && !isThread(report)) {
             return {
                 source: report?.avatarUrl ? getFullSizeAvatar(report.avatarUrl, 0) : getDefaultGroupAvatar(report?.reportID),
+                headerTitle: getReportName(report),
+                isWorkspaceAvatar: false,
+            };
+        }
+        if (isUserCreatedPolicyRoom(report)) {
+            return {
+                source: report?.avatarUrl ? getFullSizeAvatar(report.avatarUrl, 0) : undefined,
                 headerTitle: getReportName(report),
                 isWorkspaceAvatar: false,
             };
