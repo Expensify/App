@@ -143,6 +143,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     addOfflineIndicatorBottomSafeAreaPadding,
     fixedNumItemsForLoader,
     loaderSpeed,
+    textInputIcon,
     errorText,
     shouldUseDefaultRightHandSideCheckmark,
     selectedItems = getEmptyArray<string>(),
@@ -741,6 +742,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     inputMode={inputMode}
                     selectTextOnFocus
                     spellCheck={false}
+                    icon={textInputIcon}
                     iconLeft={textInputIconLeft}
                     onSubmitEditing={selectFocusedOption}
                     blurOnSubmit={!!flattenedSections.allOptions.length}
