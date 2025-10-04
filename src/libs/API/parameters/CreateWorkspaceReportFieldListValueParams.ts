@@ -1,5 +1,5 @@
 type CreateWorkspaceReportFieldListValueParams = {
-    policyID: string;
+    policyID: string | undefined;
     /**
      * Stringified JSON object with type of following structure:
      * Array<string>
