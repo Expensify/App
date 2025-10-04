@@ -279,6 +279,7 @@ function ReportActionItemMessageEdit({
         if (isActive()) {
             ReportActionComposeFocusManager.clear(true);
             // Wait for report action compose re-mounting on mWeb
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => ReportActionComposeFocusManager.focus());
         }
 
@@ -509,6 +510,7 @@ function ReportActionItemMessageEdit({
                                     ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
                                 }
                                 startScrollBlock();
+                                // eslint-disable-next-line deprecation/deprecation
                                 InteractionManager.runAfterInteractions(() => {
                                     requestAnimationFrame(() => {
                                         reportScrollManager.scrollToIndex(index, true);
