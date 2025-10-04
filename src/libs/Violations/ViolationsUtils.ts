@@ -327,6 +327,8 @@ const ViolationsUtils = {
         const categoryName = updatedTransaction.category;
         const categoryMaxAmountNoReceipt = policyCategories[categoryName ?? '']?.maxAmountNoReceipt;
         const maxAmountNoReceipt = policy.maxExpenseAmountNoReceipt;
+        // We need to negate the amount because the amount is stored with opposite sign
+        const negatedAmount = -amount;
 
         // The category maxExpenseAmountNoReceipt and maxExpenseAmount settings override the respective policy settings.
         const shouldShowReceiptRequiredViolation =
@@ -335,6 +337,7 @@ const ViolationsUtils = {
             typeof categoryMaxAmountNoReceipt !== 'number' &&
             typeof maxAmountNoReceipt === 'number' &&
             Math.abs(amount) > maxAmountNoReceipt &&
+            negatedAmount > 0 &&
             !TransactionUtils.hasReceipt(updatedTransaction) &&
             isControlPolicy;
         const shouldShowCategoryReceiptRequiredViolation =
@@ -342,6 +345,7 @@ const ViolationsUtils = {
             !isInvoiceTransaction &&
             typeof categoryMaxAmountNoReceipt === 'number' &&
             Math.abs(amount) > categoryMaxAmountNoReceipt &&
+            negatedAmount > 0 &&
             !TransactionUtils.hasReceipt(updatedTransaction) &&
             isControlPolicy;
 
@@ -353,6 +357,7 @@ const ViolationsUtils = {
             typeof categoryOverLimit !== 'number' &&
             typeof overLimitAmount === 'number' &&
             Math.abs(amount) > overLimitAmount &&
+            negatedAmount > 0 &&
             isControlPolicy;
         const shouldCategoryShowOverLimitViolation =
             canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && Math.abs(amount) > categoryOverLimit && isControlPolicy;

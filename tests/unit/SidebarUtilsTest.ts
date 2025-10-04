@@ -1118,7 +1118,7 @@ describe('SidebarUtils', () => {
                     currency: 'ETB',
                     ownerAccountID: 20232605,
                     total: -500,
-                    nonReimbursableTotal: 0,
+                    nonReimbursableTotal: -500,
                     parentReportID: policyExpenseChat.reportID,
                     parentReportActionID: lastReportPreviewAction.reportActionID,
                     chatReportID: policyExpenseChat.reportID,

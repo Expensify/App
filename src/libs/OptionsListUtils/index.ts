@@ -107,6 +107,7 @@ import {
     getReportSubtitlePrefix,
     getUpgradeWorkspaceMessage,
     hasIOUWaitingOnCurrentUserBankAccount,
+    hasNonReimbursableTransactions,
     isArchivedNonExpenseReport,
     isChatThread,
     isDM,
@@ -607,16 +608,22 @@ function getLastMessageTextForReport({
                       isMoneyRequestAction(reportAction),
               )
             : undefined;
-        const reportPreviewMessage = getReportPreviewMessage(
-            !isEmptyObject(iouReport) ? iouReport : null,
-            lastIOUMoneyReportAction ?? lastReportAction,
-            true,
-            reportUtilsIsChatReport(report),
-            null,
-            true,
-            lastReportAction,
-        );
-        lastMessageTextFromReport = formatReportLastMessageText(reportPreviewMessage);
+        // For workspace chats, use the report title instead of "X owes $y" message, except for non-reimbursable transactions
+        const containsNonReimbursable = hasNonReimbursableTransactions(iouReport?.reportID);
+        if (reportUtilsIsPolicyExpenseChat(report) && !isEmptyObject(iouReport) && !containsNonReimbursable) {
+            lastMessageTextFromReport = formatReportLastMessageText(getReportName(iouReport));
+        } else {
+            const reportPreviewMessage = getReportPreviewMessage(
+                !isEmptyObject(iouReport) ? iouReport : null,
+                lastIOUMoneyReportAction ?? lastReportAction,
+                true,
+                reportUtilsIsChatReport(report),
+                null,
+                true,
+                lastReportAction,
+            );
+            lastMessageTextFromReport = formatReportLastMessageText(reportPreviewMessage);
+        }
     } else if (isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, reportOrID: report});
     } else if (isReimbursementDeQueuedOrCanceledAction(lastReportAction)) {
