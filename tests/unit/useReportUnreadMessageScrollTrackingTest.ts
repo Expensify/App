@@ -29,6 +29,26 @@ describe('useReportUnreadMessageScrollTracking', () => {
     describe('on init and without any scrolling', () => {
         const onTrackScrollingMockFn = jest.fn();
 
+        it('returns initial floatingMessage visibility and sets no state', () => {
+            // Given
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    readActionSkippedRef: readActionRefFalse,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    isInverted: true,
+                }),
+            );
+
+            // Then
+            expect(result.current.isFloatingMessageCounterVisible).toBe(false);
+            expect(onTrackScrollingMockFn).not.toHaveBeenCalled();
+        });
+
         it('returns floatingMessage visibility that was set to a new value', () => {
             // Given
             const offsetRef = {current: 0};
@@ -39,6 +59,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     readActionSkippedRef: readActionRefFalse,
                     unreadMarkerReportActionIndex: -1,
                     isInverted: true,
+                    hasNewerActions: false,
                     onTrackScrolling: onTrackScrollingMockFn,
                 }),
             );
@@ -69,6 +90,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     isInverted: true,
                     unreadMarkerReportActionIndex: -1,
                     onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
                 }),
             );
 
@@ -95,6 +117,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     isInverted: true,
                     unreadMarkerReportActionIndex: 1,
                     onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
                 }),
             );
 
@@ -125,6 +148,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     readActionSkippedRef: readActionRefFalse,
                     unreadMarkerReportActionIndex: -1,
                     isInverted: true,
+                    hasNewerActions: false,
                     onTrackScrolling: onTrackScrollingMockFn,
                 }),
             );
@@ -151,6 +175,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     unreadMarkerReportActionIndex: 1,
                     isInverted: true,
                     onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
                 }),
             );
 
@@ -180,6 +205,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     unreadMarkerReportActionIndex: 1,
                     isInverted: true,
                     onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
                 }),
             );
 
