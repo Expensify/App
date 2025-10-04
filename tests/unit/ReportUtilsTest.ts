@@ -4424,6 +4424,52 @@ describe('ReportUtils', () => {
             expect(canDeleteReportAction(moneyRequestAction, '1', transaction, undefined, undefined)).toBe(true);
         });
 
+        it('should return false for unreported card expense imported with deleting disabled', async () => {
+            // Given the unreported card expense import with deleting disabled
+            const selfDMReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                managedCard: true,
+                comment: {
+                    liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT,
+                },
+            };
+
+            const trackExpenseAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    IOUTransactionID: transaction.transactionID,
+                    IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: '$1.00 expense',
+                        text: '$1.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                    },
+                ],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // Then it should return false since the unreported card expense is imported with deleting disabled
+            expect(canDeleteReportAction(trackExpenseAction, selfDMReport.reportID, transaction, undefined, undefined)).toBe(false);
+        });
+
         it("should return false for ADD_COMMENT report action the current user (admin of the personal policy) didn't comment", async () => {
             const adminPolicy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.PERSONAL};
 
