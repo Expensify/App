@@ -1,4 +1,5 @@
 import {AppRegistry} from 'react-native';
+import CacheAPI from '@libs/CacheAPI';
 import checkForUpdates from '@libs/checkForUpdates';
 import DateUtils from '@libs/DateUtils';
 import Visibility from '@libs/Visibility';
@@ -51,6 +52,9 @@ const webUpdater = (): PlatformSpecificUpdater => ({
 });
 
 export default function () {
+    // Initialize Cache API (web only)
+    CacheAPI.init();
+
     AppRegistry.runApplication(Config.APP_NAME, {
         rootTag: document.getElementById('root'),
     });
