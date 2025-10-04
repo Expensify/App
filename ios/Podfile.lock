@@ -32,7 +32,7 @@ PODS:
   - EXAV (15.1.5):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
-  - EXConstants (17.1.5):
+  - EXConstants (17.1.7):
     - ExpoModulesCore
   - EXImageLoader (5.1.0):
     - ExpoModulesCore
@@ -86,7 +86,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - Expo (53.0.7):
+  - Expo (53.0.11):
     - DoubleConversion
     - ExpoModulesCore
     - glog
@@ -117,7 +117,7 @@ PODS:
     - ExpoModulesCore
   - ExpoFont (13.3.1):
     - ExpoModulesCore
-  - ExpoImage (2.1.6):
+  - ExpoImage (3.0.8):
     - ExpoModulesCore
     - libavif/libdav1d
     - SDWebImage (~> 5.21.0)
@@ -128,7 +128,7 @@ PODS:
     - EXImageLoader
     - ExpoModulesCore
     - SDWebImageWebPCoder
-  - ExpoModulesCore (2.3.12):
+  - ExpoModulesCore (2.4.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -490,6 +490,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -508,6 +509,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -525,6 +527,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -544,6 +547,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -562,6 +566,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -580,6 +585,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -598,6 +604,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -616,6 +623,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -634,6 +642,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -652,6 +661,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -670,6 +680,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -688,6 +699,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -706,6 +718,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -724,6 +737,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -3727,19 +3741,19 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
-  boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
+  boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXAV: 13d43af15268a3f448a6b994e91574c939f065e6
-  EXConstants: 26f334022fc0b454b7ecdc7c12d36ffa68c7c397
+  EXConstants: 9d62a46a36eae6d28cb978efcbc68aef354d1704
   EXImageLoader: ab4fcf9240cf3636a83c00e3fc5229d692899428
   expensify-react-native-background-task: 33f3c3977ee1bcfb75b5466735d467cacda86746
   ExpensifyNitroUtils: e23437311e907914fc58da92569b5f9805b724f3
-  Expo: a02b1eb4c08689dc866eabf48e2eefee712ded6b
+  Expo: 63b9951a116c03a63215ae0a116e52b50107cecd
   ExpoAsset: 3ea3275cca6a7793b3d36fbf1075c590f803fbcb
   ExpoFont: 312c73403bbd4f98e1d6a5330641a56292583cd2
-  ExpoImage: a5b427e52ee7a04921081e59aac5eef7a8134ba0
+  ExpoImage: 306dd755c842dba9f3ee654c51834a9cc657e6ca
   ExpoImageManipulator: 7096d6bf874c0a0a649f60733fef8a99c4ad0fe2
-  ExpoModulesCore: 5411340438617e068df45f70127ff34640f3f337
+  ExpoModulesCore: 4f1efd2360fd016b3ab7f13c9983320412208976
   ExpoSecureStore: 833b24a0d7feffef4505184910c058221066011e
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: 84b955f7b4da8b895faf5946f73748267347c975
@@ -3796,7 +3810,7 @@ SPEC CHECKSUMS:
   React: c2d3aa44c49bb34e4dfd49d3ee92da5ebacc1c1c
   React-callinvoker: 1bdfb7549b5af266d85757193b5069f60659ef9d
   React-Codegen: 4b8b4817cea7a54b83851d4c1f91f79aa73de30a
-  React-Core: 7150cf9b6a5af063b37003062689f1691e79c020
+  React-Core: 7e3642ef83e1032df3d25ebc840868c0c54381ca
   React-CoreModules: 15a85e6665d61678942da6ae485b351f4c699049
   React-cxxreact: 74f9de59259ac951923f5726aa14f0398f167af9
   React-debug: a9861ea2196e886642887e29fd1d86c6eee93454
@@ -3846,7 +3860,7 @@ SPEC CHECKSUMS:
   react-native-webview: 9cf95bd9b16cde5d9bbae452a9cf55631b62028d
   React-NativeModulesApple: 1b5e6bf9164371771e553f744da801f5d9f5c7e5
   React-oscompat: ef5df1c734f19b8003e149317d041b8ce1f7d29c
-  React-perflogger: 6fd2f6811533e9c19a61e855c3033eecbf4ad2a0
+  React-perflogger: 005c6dfd4aa335fd527c94cc4591ed9b509f0486
   React-performancetimeline: df331d0764cc54204a73960408371111efbd34b7
   React-RCTActionSheet: a499b0d6d9793886b67ba3e16046a3fef2cdbbc3
   React-RCTAnimation: 2595dcb10a82216a511b54742f8c28d793852ac6
@@ -3861,7 +3875,7 @@ SPEC CHECKSUMS:
   React-RCTSettings: a060c7e381a3896104761b8eed7e284d95e37df3
   React-RCTText: 4f272b72dbb61f390d8c8274528f9fdbff983806
   React-RCTVibration: 0e5326220719aca12473d703aa46693e3b4ce67a
-  React-rendererconsistency: 68db5a64f0c42b0337e25ba7b0e9513caae1389d
+  React-rendererconsistency: 4e8e3fd5e90ec9594a4bd5950496eb8006c72f7e
   React-renderercss: eeb482d2790028a9b47ce9c214397ae2f4e2a7c5
   React-rendererdebug: c6e3b7583c2f0802cb3b4cf19f714853fa9ac670
   React-rncore: 0f64cacb1becc6f89c99018ca920d012f9044ebd
