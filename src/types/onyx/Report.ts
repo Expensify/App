@@ -59,7 +59,7 @@ type InvoiceReceiverType = InvoiceReceiver['type'];
 /** Record of report participants, indexed by their accountID */
 type Participants = Record<number, Participant>;
 
-/** Report NextStep */
+/** Report next step */
 type ReportNextStep = {
     messageKey: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY>;
     icon: ValueOf<typeof CONST.NEXT_STEP.ICONS>;
@@ -253,7 +253,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The report's welcome message */
         welcomeMessage?: string;
 
-        /** The report nextStep */
+        /** The report's next step */
         nextStep?: ReportNextStep;
     },
     'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview' | 'createReport'
