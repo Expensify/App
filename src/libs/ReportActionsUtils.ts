@@ -149,7 +149,7 @@ function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean 
 }
 
 function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): boolean {
-    if (isInviteOrRemovedAction(reportAction) || isActionableMentionWhisper(reportAction)) {
+    if (isInviteOrRemovedAction(reportAction) || isActionableMentionWhisper(reportAction) || isActionableCardFraudAlert(reportAction)) {
         return false;
     }
 
@@ -878,7 +878,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     }
 
     if (
-        (isActionableReportMentionWhisper(reportAction) || isActionableJoinRequestPendingReportAction(reportAction) || isActionableMentionWhisper(reportAction)) &&
+        (isActionableReportMentionWhisper(reportAction) || isActionableJoinRequestPendingReportAction(reportAction) || isActionableMentionWhisper(reportAction) || isActionableCardFraudAlert(reportAction)) &&
         !canUserPerformWriteAction
     ) {
         return false;
@@ -2058,6 +2058,10 @@ function isActionableAddPaymentCard(reportAction: OnyxEntry<ReportAction>): repo
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD;
 }
 
+function isActionableCardFraudAlert(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT> {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT;
+}
+
 function getExportIntegrationLastMessageText(reportAction: OnyxEntry<ReportAction>): string {
     const fragments = getExportIntegrationActionFragments(reportAction);
     return fragments.reduce((acc, fragment) => `${acc} ${fragment.text}`, '');
@@ -3183,6 +3187,7 @@ export {
     wasActionTakenByCurrentUser,
     isInviteOrRemovedAction,
     isActionableAddPaymentCard,
+    isActionableCardFraudAlert,
     getExportIntegrationActionFragments,
     getExportIntegrationLastMessageText,
     getExportIntegrationMessageHTML,

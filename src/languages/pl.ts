@@ -1998,6 +1998,26 @@ const translations = {
         validateCardTitle: 'Upewnijmy się, że to Ty',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Proszę wprowadzić magiczny kod wysłany na ${contactMethod}, aby zobaczyć szczegóły swojej karty. Powinien dotrzeć w ciągu minuty lub dwóch.`,
+        cardFraudAlert: {
+            confirmButtonText: 'Tak, robię',
+            reportFraudButtonText: 'Nie, to nie byłem ja.',
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) =>
+                `usunięto podejrzaną aktywność i ponownie aktywowano kartę x${cardLastFour}. Wszystko gotowe do dalszego rozliczania wydatków!`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `dezaktywował kartę kończącą się na ${cardLastFour}`,
+            alertMessage: ({
+                cardLastFour,
+                amount,
+                merchant,
+                date,
+            }: {
+                cardLastFour: string;
+                amount: string;
+                merchant: string;
+                date: string;
+            }) => `zidentyfikowano podejrzaną aktywność na karcie kończącej się na ${cardLastFour}. Czy rozpoznajesz tę transakcję?
+
+${amount} dla ${merchant} - ${date}`,
+        },
     },
     workflowsPage: {
         workflowTitle: 'Wydatki',

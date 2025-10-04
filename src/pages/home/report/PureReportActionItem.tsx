@@ -1,3 +1,4 @@
+import {format} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {memo, use, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
@@ -50,6 +51,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
@@ -105,6 +108,7 @@ import {
     getWorkspaceTagUpdateMessage,
     getWorkspaceUpdateFieldMessage,
     isActionableAddPaymentCard,
+    isActionableCardFraudAlert,
     isActionableJoinRequest,
     isActionableMentionInviteToSubmitExpenseConfirmWhisper,
     isActionableMentionWhisper,
@@ -164,6 +168,7 @@ import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
+import {resolveFraudAlert} from '@userActions/Card';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
 import {expandURLPreview, resolveActionableMentionConfirmWhisper, resolveConciergeCategoryOptions} from '@userActions/Report';
@@ -452,7 +457,7 @@ function PureReportActionItem({
     reportActions,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
-    const {translate, formatPhoneNumber, localeCompare, formatTravelDate} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime} = useLocalize();
     const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
@@ -765,7 +770,7 @@ function PureReportActionItem({
             }));
         }
 
-        if (!isActionableWhisper && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
+        if (!isActionableWhisper && !isActionableCardFraudAlert(action) && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
             return [];
         }
 
@@ -814,6 +819,31 @@ function PureReportActionItem({
                 },
             });
             return options;
+        }
+
+        if (isActionableCardFraudAlert(action)) {
+            if (getOriginalMessage(action)?.resolution) {
+                return [];
+            }
+
+            const cardID = getOriginalMessage(action)?.cardID ?? 0;
+            return [
+                {
+                    text: translate('cardPage.cardFraudAlert.confirmButtonText'),
+                    key: `${action.reportActionID}-cardFraudAlert-confirm`,
+                    onPress: () => {
+                        resolveFraudAlert(cardID, false, reportID ?? '', action.reportActionID);
+                    },
+                    isPrimary: true,
+                },
+                {
+                    text: translate('cardPage.cardFraudAlert.reportFraudButtonText'),
+                    key: `${action.reportActionID}-cardFraudAlert-reportFraud`,
+                    onPress: () => {
+                        resolveFraudAlert(cardID, true, reportID ?? '', action.reportActionID);
+                    },
+                },
+            ];
         }
 
         if (isActionableJoinRequest(action)) {
@@ -1307,6 +1337,36 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getUpdatedApprovalRuleMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
             children = <ReportActionItemBasicMessage message={getRemovedFromApprovalChainMessage(action)} />;
+        } else if (isActionableCardFraudAlert(action)) {
+            const fraudMessage = getOriginalMessage(action);
+            const cardLastFour = fraudMessage?.maskedCardNumber?.slice(-4) ?? '';
+            const formattedAmount = CurrencyUtils.convertToDisplayString(fraudMessage?.triggerAmount ?? 0, 'USD');
+            const merchant = fraudMessage?.triggerMerchant ?? '';
+            const resolution = fraudMessage?.resolution;
+            const formattedDate = action.created ? format(getLocalDateFromDatetime(action.created), 'MMM. d - h:mma').replace(/am|pm/i, (match) => match.toUpperCase()) : '';
+
+            const message = resolution
+                ? (resolution === 'recognized'
+                    ? translate('cardPage.cardFraudAlert.clearedMessage', {cardLastFour})
+                    : translate('cardPage.cardFraudAlert.deactivatedMessage', {cardLastFour}))
+                : translate('cardPage.cardFraudAlert.alertMessage', {
+                      cardLastFour,
+                      amount: formattedAmount,
+                      merchant,
+                      date: formattedDate,
+                  });
+
+            children = (
+                <View>
+                    <ReportActionItemBasicMessage message={message} />
+                    {actionableItemButtons.length > 0 && (
+                        <ActionableItemButtons
+                            items={actionableItemButtons}
+                            layout="horizontal"
+                        />
+                    )}
+                </View>
+            );
         } else if (isActionableJoinRequest(action)) {
             children = (
                 <View>

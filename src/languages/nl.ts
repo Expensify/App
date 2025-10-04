@@ -2001,6 +2001,26 @@ const translations = {
         validateCardTitle: 'Laten we ervoor zorgen dat jij het bent',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Voer de magische code in die naar ${contactMethod} is gestuurd om uw kaartgegevens te bekijken. Het zou binnen een minuut of twee moeten aankomen.`,
+        cardFraudAlert: {
+            confirmButtonText: 'Ja, dat doe ik.',
+            reportFraudButtonText: 'Nee, ik was het niet.',
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) =>
+                `heeft de verdachte activiteit gewist en kaart x${cardLastFour} opnieuw geactiveerd. Alles klaar om door te gaan met uitgaven!`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `deactiveerde de kaart eindigend op ${cardLastFour}`,
+            alertMessage: ({
+                cardLastFour,
+                amount,
+                merchant,
+                date,
+            }: {
+                cardLastFour: string;
+                amount: string;
+                merchant: string;
+                date: string;
+            }) => `verdachte activiteit geïdentificeerd op kaart eindigend op ${cardLastFour}. Herken je deze transactie?
+
+${amount} voor ${merchant} - ${date}`,
+        },
     },
     workflowsPage: {
         workflowTitle: 'Uitgaven',
