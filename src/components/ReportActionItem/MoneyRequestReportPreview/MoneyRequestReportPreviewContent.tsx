@@ -4,6 +4,7 @@ import type {ListRenderItemInfo, ViewToken} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
+import {getApprovalDropdownOptions} from '@components/ApprovalButton';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -518,13 +519,52 @@ function MoneyRequestReportPreviewContent({
                 onAnimationFinish={stopAnimation}
             />
         ),
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: (
-            <Button
-                text={translate('iou.approve')}
-                success
-                onPress={() => confirmApproval()}
-            />
-        ),
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: (() => {
+            // Check if we should show dropdown (only when there are held expenses and user has proper access)
+            const shouldShowDropdown = hasHeldExpensesReportUtils(iouReport?.reportID) && !isDelegateAccessRestricted;
+
+            if (shouldShowDropdown) {
+                const approvalOptions = getApprovalDropdownOptions(
+                    !hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
+                    fullAmount,
+                    hasValidNonHeldAmount,
+                    hasOnlyHeldExpenses,
+                    () => {
+                        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
+                        startApprovedAnimation();
+                        approveMoneyRequest(iouReport, false);
+                    },
+                    () => {
+                        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
+                        startApprovedAnimation();
+                        approveMoneyRequest(iouReport, true);
+                    },
+                    translate,
+                );
+
+                if (approvalOptions.shouldShowDropdown) {
+                    return (
+                        <ButtonWithDropdownMenu
+                            success
+                            options={approvalOptions.options}
+                            menuHeaderText={approvalOptions.menuHeaderText}
+                            onPress={() => {}}
+                            customText={translate('iou.approve')}
+                            shouldAlwaysShowDropdownMenu
+                            isSplitButton={false}
+                        />
+                    );
+                }
+            }
+
+            return (
+                <Button
+                    text={translate('iou.approve')}
+                    success
+                    onPress={() => confirmApproval()}
+                />
+            );
+        })(),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY]: (
             <AnimatedSettlementButton
                 onlyShowPayElsewhere={shouldShowOnlyPayElsewhere}
