@@ -1,10 +1,10 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
 import {getCurrencySymbol} from './CurrencyUtils';
 import {getAllReportActions} from './ReportActionsUtils';
-import {getReportTransactions} from './ReportUtils';
+import {getPersonalDetailsForAccountID, getReportTransactions} from './ReportUtils';
 import {getCreated, isPartialTransaction} from './TransactionUtils';
 
 type FormulaPart = {
@@ -25,6 +25,7 @@ type FormulaContext = {
     report: Report;
     policy: OnyxEntry<Policy>;
     transaction?: Transaction;
+    personalDetails?: Record<string, PersonalDetails>;
 };
 
 const FORMULA_PART_TYPES = {
@@ -233,15 +234,149 @@ function compute(formula?: string, context?: FormulaContext): string {
 }
 
 /**
+ * Get the date when a report was submitted by finding the SUBMITTED action
+ */
+function getReportSubmissionDate(reportID: string): string | undefined {
+    if (!reportID) {
+        return undefined;
+    }
+
+    const reportActions = getAllReportActions(reportID);
+    if (!reportActions || Object.keys(reportActions).length === 0) {
+        return undefined;
+    }
+
+    // Find the action with type SUBMITTED
+    const submissionAction = Object.values(reportActions).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED);
+
+    return submissionAction?.created;
+}
+
+/**
+ * Get custom field value from policy employee list
+ */
+function getCustomFieldValue(policy: OnyxEntry<Policy>, accountID: number, fieldName: string, userDetails: Partial<PersonalDetails>): string {
+    if (!policy?.employeeList || !userDetails?.login) {
+        return '';
+    }
+
+    const employee = policy.employeeList[userDetails.login];
+    if (!employee) {
+        return '';
+    }
+
+    switch (fieldName.toLowerCase()) {
+        case 'customfield1':
+            return employee.employeeUserID ? employee.employeeUserID : '';
+        case 'customfield2':
+            return employee.employeePayrollID ? employee.employeePayrollID : '';
+        default:
+            return '';
+    }
+}
+
+/**
+ * Compute user info field for submission formula parts
+ */
+function computeUserInfoField(
+    userDetails: Partial<PersonalDetails> | undefined,
+    userField: string | undefined,
+    accountID: number,
+    policy: OnyxEntry<Policy>,
+    part: FormulaPart,
+    isFromField: boolean,
+): string {
+    if (!userDetails) {
+        return part.definition;
+    }
+
+    // If no specific field requested, return default based on field type
+    if (!userField) {
+        if (isFromField) {
+            return userDetails.displayName ?? userDetails.login ?? '';
+        }
+        // For 'to' field, return email as fallback
+        return userDetails.login ?? userDetails.displayName ?? '';
+    }
+
+    switch (userField.toLowerCase()) {
+        case 'firstname':
+            return userDetails.firstName ?? '';
+        case 'lastname':
+            return userDetails.lastName ?? '';
+        case 'fullname':
+            return userDetails.displayName ?? `${userDetails.firstName ?? ''} ${userDetails.lastName ?? ''}`.trim();
+        case 'email':
+            return userDetails.login ?? '';
+        case 'userid':
+            return accountID.toString();
+        case 'customfield1':
+        case 'customfield2':
+            return getCustomFieldValue(policy, accountID, userField, userDetails) || part.definition;
+        default:
+            return part.definition;
+    }
+}
+
+/**
+ * Compute submission info for a report formula part
+ */
+function computeSubmissionInfo(part: FormulaPart, context: FormulaContext, additionalPath: string[]): string {
+    const {report, policy, personalDetails} = context;
+    const [direction, userField] = additionalPath;
+
+    if (!direction) {
+        return part.definition;
+    }
+
+    switch (direction.toLowerCase()) {
+        case 'date': {
+            const submissionDate = getReportSubmissionDate(report.reportID);
+            if (!submissionDate) {
+                return part.definition;
+            }
+            return formatDate(submissionDate, userField); // userField is the format in this case
+        }
+        case 'from': {
+            const accountID = report.ownerAccountID;
+            if (!accountID) {
+                return part.definition;
+            }
+
+            const userDetails = getPersonalDetailsForAccountID(accountID, personalDetails);
+            return computeUserInfoField(userDetails, userField, accountID, policy, part, true);
+        }
+        case 'to': {
+            // Try to get the manager first, fall back to report owner if no manager is set
+            let accountID = report.managerID;
+            if (!accountID) {
+                accountID = report.ownerAccountID;
+            }
+
+            if (!accountID) {
+                return part.definition;
+            }
+
+            const userDetails = getPersonalDetailsForAccountID(accountID, personalDetails);
+            return computeUserInfoField(userDetails, userField, accountID, policy, part, false);
+        }
+        default:
+            return part.definition;
+    }
+}
+
+/**
  * Compute the value of a report formula part
  */
 function computeReportPart(part: FormulaPart, context: FormulaContext): string {
     const {report, policy} = context;
-    const [field, format] = part.fieldPath;
+    const [field, ...additionalPath] = part.fieldPath;
 
     if (!field) {
         return part.definition;
     }
+
+    const format = additionalPath.at(0);
 
     switch (field.toLowerCase()) {
         case 'type':
@@ -259,6 +394,8 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
             // Backend will always return at least one report action (of type created) and its date is equal to report's creation date
             // We can make it slightly more efficient in the future by ensuring report.created is always present in backend's responses
             return formatDate(getOldestReportActionDate(report.reportID), format);
+        case 'submit':
+            return computeSubmissionInfo(part, context, additionalPath);
         default:
             return part.definition;
     }
