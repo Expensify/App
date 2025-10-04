@@ -420,7 +420,7 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
     Object.entries(allCardFeeds ?? {}).forEach(([domainKey, cardFeeds]) => {
         // sharedNVP_private_domain_member_123456 -> 123456
         const fundID = domainKey.split('_').at(-1);
-        if (!fundID) {
+        if (!fundID || fundID === CONST.EXPENSIFY_CARD.PENDING_EXPENSIFY_CARD) {
             return;
         }
 
@@ -442,7 +442,7 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
     });
 
     Object.values(allCards).forEach((card) => {
-        if (card.bank !== CONST.EXPENSIFY_CARD.BANK || !card.fundID) {
+        if (card.bank !== CONST.EXPENSIFY_CARD.BANK || !card.fundID || card.fundID === CONST.EXPENSIFY_CARD.PENDING_EXPENSIFY_CARD) {
             return;
         }
 
