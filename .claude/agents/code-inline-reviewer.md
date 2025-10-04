@@ -180,7 +180,7 @@ mcp__github_inline_comment__create_inline_comment:
 ## Comment Format
 
 ```
-### ❌ **<Rule ID>**
+### ❌ <Rule ID> [(docs)](https://github.com/Expensify/App/blob/main/.claude/agents/code-inline-reviewer.md#<Rule ID transformed into a URL hash parameter>)
 
 <Reasoning>
 

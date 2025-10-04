@@ -57,7 +57,7 @@ Yes. Most rail bookings include a digital ticket or QR code in your confirmation
 Yes. Seat selection is available on supported routes. This option will appear during checkout if eligible.  
 
 ## How do I view my rail itinerary on mobile?  
-When a traveler books a trip in Expensify Travel, a trip itinerary is automatically created in New Expensify. To view your trip:
+When a traveler books a trip in Expensify Travel, a trip itinerary is automatically created in New Expensify.
 
 To view it:  
 1. Open the Expensify mobile app.  

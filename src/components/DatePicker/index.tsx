@@ -1,5 +1,6 @@
 import {format, setYear} from 'date-fns';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import TextInput from '@components/TextInput';
@@ -15,24 +16,26 @@ import type {DateInputWithPickerProps} from './types';
 
 const PADDING_MODAL_DATE_PICKER = 8;
 
-function DatePicker({
-    defaultValue,
-    disabled,
-    errorText,
-    inputID,
-    label,
-    minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
-    maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
-    onInputChange,
-    onTouched = () => {},
-    placeholder,
-    value,
-    shouldSaveDraft = false,
-    formID,
-    autoFocus = false,
-    shouldHideClearButton = false,
-    ref,
-}: DateInputWithPickerProps) {
+function DatePicker(
+    {
+        defaultValue,
+        disabled,
+        errorText,
+        inputID,
+        label,
+        minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
+        maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
+        onInputChange,
+        onTouched = () => {},
+        placeholder,
+        value,
+        shouldSaveDraft = false,
+        formID,
+        autoFocus = false,
+        shouldHideClearButton = false,
+    }: DateInputWithPickerProps,
+    ref: ForwardedRef<BaseTextInputRef>,
+) {
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
@@ -162,4 +165,4 @@ function DatePicker({
 
 DatePicker.displayName = 'DatePicker';
 
-export default DatePicker;
+export default forwardRef(DatePicker);
