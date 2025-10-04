@@ -7,6 +7,7 @@ import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useNormalizedCountry from '@hooks/useNormalizedCountry';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,7 +42,8 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
 
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
-    const values = useMemo(() => getSubstepValues(privatePersonalDetails, draftValues), [privatePersonalDetails, draftValues]);
+    const rawValues = useMemo(() => getSubstepValues(privatePersonalDetails, draftValues), [privatePersonalDetails, draftValues]);
+    const values = useNormalizedCountry(rawValues);
 
     const startFrom = useMemo(() => getInitialSubstep(values), [values]);
 
