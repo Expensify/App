@@ -68,7 +68,6 @@ import type {
 } from '@libs/API/parameters';
 import type SetPolicyCashExpenseModeParams from '@libs/API/parameters/SetPolicyCashExpenseModeParams';
 import type UpdatePolicyMembersCustomFieldsParams from '@libs/API/parameters/UpdatePolicyMembersCustomFieldsParams';
-import type {ApiRequestCommandParameters} from '@libs/API/types';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -97,7 +96,6 @@ import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPo
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
-import type {EnablePolicyFeatureCommand} from '@userActions/RequestConflictUtils';
 import {buildTaskData} from '@userActions/Task';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
@@ -2321,6 +2319,11 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     // We need to clone the file to prevent non-indexable errors.
     const clonedFile = file ? (createFile(file) as File) : undefined;
 
+    const selectedFeaturesMap = featuresMap?.reduce<Record<string, boolean>>((acc, feature) => {
+        acc[feature.id] = !!feature.enabled;
+        return acc;
+    }, {});
+
     const params: CreateWorkspaceParams = {
         policyID,
         adminsChatReportID,
@@ -2339,6 +2342,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         companySize,
         userReportedIntegration: userReportedIntegration ?? undefined,
         areDistanceRatesEnabled,
+        selectedFeatures: selectedFeaturesMap ? JSON.stringify(selectedFeaturesMap) : undefined,
     };
 
     if (
@@ -6253,69 +6257,6 @@ function setIsComingFromGlobalReimbursementsFlow(value: boolean) {
     Onyx.set(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW, value);
 }
 
-function updateFeature(
-    request: {
-        endpoint: EnablePolicyFeatureCommand | typeof WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM;
-        parameters: ApiRequestCommandParameters[EnablePolicyFeatureCommand | typeof WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM];
-    },
-    policyID: string,
-) {
-    if (request.endpoint === WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM) {
-        API.write(WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM, {
-            policyID,
-            enabled: request.parameters.enabled,
-            customUnitID: generateCustomUnitID(),
-        });
-        return;
-    }
-    // eslint-disable-next-line rulesdir/no-multiple-api-calls
-    API.writeWithNoDuplicatesEnableFeatureConflicts(request.endpoint, request.parameters);
-}
-
-function updateInterestedFeatures(features: Feature[], policyID: string, type: string | undefined) {
-    let shouldUpgradeToCorporate = false;
-
-    const requests: Array<{
-        endpoint: EnablePolicyFeatureCommand | typeof WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM;
-        parameters: ApiRequestCommandParameters[EnablePolicyFeatureCommand | typeof WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM];
-    }> = [];
-
-    features.forEach((feature) => {
-        // If the feature is not enabled by default but it's enabled now, we need to enable it
-        if (!feature.enabledByDefault && feature.enabled) {
-            if (feature.requiresUpdate && !shouldUpgradeToCorporate) {
-                shouldUpgradeToCorporate = true;
-            }
-            requests.push({
-                endpoint: feature.apiEndpoint,
-                parameters: {
-                    policyID,
-                    enabled: true,
-                },
-            });
-        }
-        // If the feature is enabled by default but it's not enabled now, we need to disable it
-        if (feature.enabledByDefault && !feature.enabled) {
-            requests.push({
-                endpoint: feature.apiEndpoint,
-                parameters: {
-                    policyID,
-                    enabled: false,
-                },
-            });
-        }
-    });
-
-    const isCorporate = type === CONST.POLICY.TYPE.CORPORATE;
-    if (shouldUpgradeToCorporate && !isCorporate) {
-        API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, {policyID});
-    }
-
-    requests.forEach((request) => {
-        updateFeature(request, policyID);
-    });
-}
-
 function clearPolicyTitleFieldError(policyID: string) {
     if (!policyID) {
         return;
@@ -6448,7 +6389,6 @@ export {
     setPolicyAttendeeTrackingEnabled,
     setPolicyReimbursableMode,
     getCashExpenseReimbursableMode,
-    updateInterestedFeatures,
     clearPolicyTitleFieldError,
     inviteWorkspaceEmployeesToUber,
 };
