@@ -2040,6 +2040,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 areExpensifyCardsEnabled: false,
+                eReceipts: true,
                 employeeList: {
                     [sessionEmail]: {
                         submitsTo: sessionEmail,
