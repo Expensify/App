@@ -262,6 +262,7 @@ function IOURequestStartPage({
                                                 }}
                                                 isMultiScanEnabled={isMultiScanEnabled}
                                                 setIsMultiScanEnabled={setIsMultiScanEnabled}
+                                                isStartingScan
                                             />
                                         </TabScreenWithFocusTrapWrapper>
                                     )}

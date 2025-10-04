@@ -3,13 +3,18 @@ import type {IntroSelectedTask} from '@src/types/onyx/IntroSelected';
 import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
 
-function useIsOnboardingTaskParentReportArchived(taskName: IntroSelectedTask) {
+function useOnboardingTaskInformation(taskName: IntroSelectedTask) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const taskReportID = introSelected?.[taskName];
     const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, {canBeMissing: true}, [taskReportID]);
     const [taskParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReport?.parentReportID}`, {canBeMissing: true});
 
-    return useReportIsArchived(taskParentReport?.reportID);
+    const isOnboardingTaskParentReportArchived = useReportIsArchived(taskParentReport?.reportID);
+    return {
+        taskReport,
+        taskParentReport,
+        isOnboardingTaskParentReportArchived,
+    };
 }
 
-export default useIsOnboardingTaskParentReportArchived;
+export default useOnboardingTaskInformation;
