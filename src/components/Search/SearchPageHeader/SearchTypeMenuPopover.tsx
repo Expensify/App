@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useRef} from 'react';
 import Button from '@components/Button';
 import PopoverMenu from '@components/PopoverMenu';
@@ -13,6 +14,7 @@ type SearchTypeMenuNarrowProps = {
 
 function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     const styles = useThemeStyles();
+    const isFocused = useIsFocused();
     const {isPopoverVisible, delayPopoverMenuFirstRender, openMenu, closeMenu, allMenuItems, DeleteConfirmModal, windowHeight} = useSearchTypeMenu(queryJSON);
 
     const buttonRef = useRef<HTMLDivElement>(null);
@@ -27,7 +29,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
             {!delayPopoverMenuFirstRender && (
                 <PopoverMenu
                     menuItems={allMenuItems}
-                    isVisible={isPopoverVisible}
+                    isVisible={isFocused && isPopoverVisible}
                     anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                     onClose={closeMenu}
                     onItemSelected={closeMenu}
