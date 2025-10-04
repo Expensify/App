@@ -310,7 +310,7 @@
     "diff-so-fancy": "^1.3.0",
     "dotenv": "^16.0.3",
     "electron": "^37.6.0",
-    "electron-builder": "25.0.0",
+    "electron-builder": "26.0.19",
     "eslint": "^8.57.0",
     "eslint-config-airbnb-typescript": "^18.0.0",
     "eslint-config-expensify": "2.0.88",
