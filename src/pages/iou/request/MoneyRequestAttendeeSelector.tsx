@@ -288,12 +288,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         reportAttributesDerived,
     ]);
 
-    console.log('data', {
-        sections,
-        orderedAvailableOptions,
-        availableOptions,
-    });
-
     const optionLength = useMemo(() => {
         if (!areOptionsInitialized) {
             return 0;
@@ -302,7 +296,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     }, [areOptionsInitialized, sections]);
 
     const shouldShowListEmptyContent = useMemo(() => optionLength === 0 && !showLoadingPlaceholder, [optionLength, showLoadingPlaceholder]);
-    console.log('empty content', optionLength, showLoadingPlaceholder);
 
     return (
         <SelectionList
