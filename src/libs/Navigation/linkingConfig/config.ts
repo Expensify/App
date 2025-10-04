@@ -948,6 +948,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELDS_EDIT_VALUE.route,
                         },
+                        [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_NAME]: {
+                            path: ROUTES.WORKSPACE_REPORT_FIELDS_EDIT_NAME.route,
+                        },
+                        [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_TYPE]: {
+                            path: ROUTES.WORKSPACE_REPORT_FIELDS_EDIT_TYPE.route,
+                        },
                         [SCREENS.WORKSPACE.REPORT_FIELDS_SETTINGS]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.route,
                         },

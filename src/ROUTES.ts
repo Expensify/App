@@ -1978,6 +1978,14 @@ const ROUTES = {
         route: 'workspaces/:policyID/reports/newReportField/:valueIndex/edit',
         getRoute: (policyID: string, valueIndex: number) => `workspaces/${policyID}/reports/newReportField/${valueIndex}/edit` as const,
     },
+    WORKSPACE_REPORT_FIELDS_EDIT_NAME: {
+        route: 'workspaces/:policyID/reports/:reportFieldID/editName',
+        getRoute: (policyID: string, reportFieldID: string) => `workspaces/${policyID}/reports/${encodeURIComponent(reportFieldID)}/editName` as const,
+    },
+    WORKSPACE_REPORT_FIELDS_EDIT_TYPE: {
+        route: 'workspaces/:policyID/reports/:reportFieldID/editType',
+        getRoute: (policyID: string, reportFieldID: string) => `workspaces/${policyID}/reports/${encodeURIComponent(reportFieldID)}/editType` as const,
+    },
     WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE: {
         route: 'workspaces/:policyID/reports/:reportFieldID/edit/initialValue',
         getRoute: (policyID: string, reportFieldID: string) => `workspaces/${policyID}/reports/${encodeURIComponent(reportFieldID)}/edit/initialValue` as const,

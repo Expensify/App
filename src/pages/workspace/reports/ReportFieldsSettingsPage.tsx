@@ -87,14 +87,18 @@ function ReportFieldsSettingsPage({
                         titleStyle={styles.flex1}
                         title={reportField.name}
                         description={translate('common.name')}
-                        interactive={false}
+                        shouldShowRightIcon={!hasAccountingConnections}
+                        interactive={!hasAccountingConnections}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_EDIT_NAME.getRoute(policyID, reportFieldID))}
                     />
                     <MenuItemWithTopDescription
                         style={[styles.moneyRequestMenuItem]}
                         titleStyle={styles.flex1}
                         title={Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type)))}
                         description={translate('common.type')}
-                        interactive={false}
+                        shouldShowRightIcon={!hasAccountingConnections}
+                        interactive={!hasAccountingConnections}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_EDIT_TYPE.getRoute(policyID, reportFieldID))}
                     />
                     {isListFieldType && (
                         <MenuItemWithTopDescription

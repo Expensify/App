@@ -10,8 +10,10 @@ import type {
     OpenPolicyReportFieldsPageParams,
     RemoveWorkspaceReportFieldListValueParams,
     UpdateWorkspaceReportFieldInitialValueParams,
+    UpdateWorkspaceReportFieldParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -22,6 +24,7 @@ import type {WorkspaceReportFieldForm} from '@src/types/form/WorkspaceReportFiel
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
+import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 let allReports: OnyxCollection<Report>;
@@ -390,6 +393,77 @@ function updateReportFieldInitialValue(policyID: string, reportFieldID: string, 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_REPORT_FIELD_INITIAL_VALUE, parameters, onyxData);
 }
 
+/**
+ * Updates the name and type of a report field.
+ */
+function updateReportField(policyID: string, reportFieldID: string, updates: {name?: string; type?: PolicyReportFieldType}) {
+    const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
+    const fieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+
+    let newDefaultValue: string | undefined;
+    if (updates.type && updates.type !== previousFieldList[fieldKey]?.type) {
+        if (updates.type === CONST.REPORT_FIELD_TYPES.DATE) {
+            newDefaultValue = DateUtils.extractDate(new Date().toString());
+        } else if (updates.type === CONST.REPORT_FIELD_TYPES.FORMULA) {
+            newDefaultValue = '{report:id}';
+        } else {
+            newDefaultValue = '';
+        }
+    }
+
+    const updatedReportField: PolicyReportField = {
+        ...previousFieldList[fieldKey],
+        ...updates,
+        ...(newDefaultValue !== undefined && {defaultValue: newDefaultValue}),
+    };
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    fieldList: {
+                        [fieldKey]: {...updatedReportField, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    },
+                    errorFields: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    fieldList: {
+                        [fieldKey]: {pendingAction: null},
+                    },
+                    errorFields: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    fieldList: {
+                        [fieldKey]: {...previousFieldList[fieldKey], pendingAction: null},
+                    },
+                    errorFields: {
+                        [fieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
+                    },
+                },
+            },
+        ],
+    };
+    const parameters: UpdateWorkspaceReportFieldParams = {
+        policyID,
+        reportFields: JSON.stringify([updatedReportField]),
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_REPORT_FIELD, parameters, onyxData);
+}
+
 function updateReportFieldListValueEnabled(policyID: string, reportFieldID: string, valueIndexes: number[], enabled: boolean) {
     const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
     const fieldKey = ReportUtils.getReportFieldKey(reportFieldID);
@@ -520,6 +594,7 @@ export {
     createReportField,
     deleteReportFields,
     updateReportFieldInitialValue,
+    updateReportField,
     updateReportFieldListValueEnabled,
     openPolicyReportFieldsPage,
     addReportFieldListValue,

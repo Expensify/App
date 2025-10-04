@@ -290,6 +290,7 @@ export type {default as DeletePolicyReportField} from './DeletePolicyReportField
 export type {default as ConnectPolicyToNetSuiteParams} from './ConnectPolicyToNetSuiteParams';
 export type {default as CreateWorkspaceReportFieldParams} from './CreateWorkspaceReportFieldParams';
 export type {default as UpdateWorkspaceReportFieldInitialValueParams} from './UpdateWorkspaceReportFieldInitialValueParams';
+export type {default as UpdateWorkspaceReportFieldParams} from './UpdateWorkspaceReportFieldParams';
 export type {default as EnableWorkspaceReportFieldListValueParams} from './EnableWorkspaceReportFieldListValueParams';
 export type {default as EnablePolicyInvoicingParams} from './EnablePolicyInvoicingParams';
 export type {default as CreateWorkspaceReportFieldListValueParams} from './CreateWorkspaceReportFieldListValueParams';
