@@ -832,7 +832,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 <EmptySearchView
                     similarSearchHash={similarSearchHash}
                     type={type}
-                    groupBy={groupBy}
                     hasResults={searchResults?.search?.hasResults}
                 />
             </View>
@@ -849,7 +848,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowSorting = !groupBy;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat && !groupBy;
-    const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!groupBy || groupBy === CONST.SEARCH.GROUP_BY.REPORTS);
+    const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
 
     return (
         <SearchScopeProvider>

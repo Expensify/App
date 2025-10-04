@@ -212,6 +212,9 @@ function SearchAutocompleteList({
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
                 suggestedStatuses = Object.values(CONST.SEARCH.STATUS.EXPENSE);
                 break;
+            case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+                suggestedStatuses = Object.values(CONST.SEARCH.STATUS.EXPENSE_REPORT);
+                break;
             case CONST.SEARCH.DATA_TYPES.INVOICE:
                 suggestedStatuses = Object.values(CONST.SEARCH.STATUS.INVOICE);
                 break;
