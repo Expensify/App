@@ -1,5 +1,3 @@
-import type {ForwardedRef} from 'react';
-import type {View} from 'react-native';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import type {NumberWithSymbolFormProps} from '@components/NumberWithSymbolForm';
 
@@ -39,9 +37,6 @@ type AmountPickerProps = {
 
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
-
-    /** Reference to the outer element */
-    ref?: ForwardedRef<View>;
 } & Pick<MenuItemBaseProps, 'rightLabel' | 'description'> &
     Pick<
         NumberWithSymbolFormProps,

@@ -15,6 +15,7 @@ import {hideEmojiPicker, isEmojiPickerVisible, resetEmojiPopoverAnchor, showEmoj
 import type {OnModalHideValue} from '@libs/actions/EmojiPickerAction';
 import getButtonState from '@libs/getButtonState';
 import CONST from '@src/CONST';
+import KeyboardUtils from '@src/utils/keyboard';
 
 type EmojiPickerButtonDropdownProps = {
     /** Flag to disable the emoji picker button */
@@ -46,21 +47,22 @@ function EmojiPickerButtonDropdown(
             hideEmojiPicker();
             return;
         }
-
-        showEmojiPicker(
-            onModalHide,
-            (emoji) => onInputChange(emoji),
-            emojiPopoverAnchor,
-            {
-                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                shiftVertical: 4,
-            },
-            () => {},
-            undefined,
-            value,
-            withoutOverlay,
-        );
+        KeyboardUtils.dismissKeyboardAndExecute(() => {
+            showEmojiPicker(
+                onModalHide,
+                (emoji) => onInputChange(emoji),
+                emojiPopoverAnchor,
+                {
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                    shiftVertical: 4,
+                },
+                () => {},
+                undefined,
+                value,
+                withoutOverlay,
+            );
+        });
     };
 
     return (

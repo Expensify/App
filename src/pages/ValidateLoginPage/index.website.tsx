@@ -36,6 +36,7 @@ function ValidateLoginPage({
     const isUserClickedSignIn = !login && isSignedIn && (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
     const shouldStartSignInWithValidateCode = !isUserClickedSignIn && !isSignedIn && (!!login || !!exitTo) && isValidValidateCode(validateCode);
     const isNavigatingToExitTo = isSignedIn && !!exitTo;
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
 
     useEffect(() => {
         if (isUserClickedSignIn) {
@@ -55,7 +56,7 @@ function ValidateLoginPage({
         }
 
         // The user has initiated the sign in process on the same browser, in another tab.
-        signInWithValidateCode(Number(accountID), validateCode);
+        signInWithValidateCode(Number(accountID), validateCode, preferredLocale);
 
         // Since on Desktop we don't have multi-tab functionality to handle the login flow,
         // we need to `popToTop` the stack after `signInWithValidateCode` in order to
