@@ -1,4 +1,5 @@
-import React from 'react';
+import React, {useImperativeHandle, useRef} from 'react';
+import type {ForwardedRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -7,7 +8,7 @@ import DestinationPicker from '@components/DestinationPicker';
 import FixedFooter from '@components/FixedFooter';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import type {ListItem, SelectionListHandle} from '@components/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -40,10 +41,15 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
+type IOURequestStepDestinationRef = {
+    focus?: () => void;
+};
+
 type IOURequestStepDestinationProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION | typeof SCREENS.MONEY_REQUEST.CREATE> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         openedFromStartPage?: boolean;
         explicitPolicyID?: string;
+        ref: ForwardedRef<IOURequestStepDestinationRef>;
     };
 
 function IOURequestStepDestination({
@@ -54,6 +60,7 @@ function IOURequestStepDestination({
     transaction,
     openedFromStartPage = false,
     explicitPolicyID,
+    ref,
 }: IOURequestStepDestinationProps) {
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
     const {accountID} = useCurrentUserPersonalDetails();
@@ -72,6 +79,12 @@ function IOURequestStepDestination({
     const isLoading = !isOffline && isLoadingOnyxValue(policyMetadata);
     const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline;
     const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
+
+    const destinationSelectionListRef = useRef<SelectionListHandle | null>(null);
+
+    useImperativeHandle(ref, () => ({
+        focus: destinationSelectionListRef.current?.focusTextInput,
+    }));
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -166,6 +179,7 @@ function IOURequestStepDestination({
                         selectedDestination={selectedDestination}
                         policyID={policy.id}
                         onSubmit={updateDestination}
+                        ref={destinationSelectionListRef}
                     />
                 )}
             </StepScreenWrapper>
