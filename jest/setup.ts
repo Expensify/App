@@ -40,16 +40,38 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
     },
 }));
 
-// Turn off the console logs for timing events. They are not relevant for unit tests and create a lot of noise
-jest.spyOn(console, 'debug').mockImplementation((...params: string[]) => {
-    if (params.at(0)?.startsWith('Timing:')) {
-        return;
-    }
+const isVerbose = process.env.JEST_VERBOSE === 'true';
 
-    // Send the message to console.log but don't re-used console.debug or else this mock method is called in an infinite loop. Instead, just prefix the output with the word "DEBUG"
-    // eslint-disable-next-line no-console
-    console.log('DEBUG', ...params);
-});
+if (!isVerbose) {
+    jest.mock('@actions/core', () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const originalCore = jest.requireActual('@actions/core'); // this is giving lint error
+
+        const createMockFn = () => {
+            const mockFn = jest.fn(() => {});
+            return mockFn;
+        };
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return {
+            ...originalCore,
+            startGroup: createMockFn(),
+            endGroup: createMockFn(),
+            group: jest.fn((_title: unknown, fn: unknown) => fn),
+            info: createMockFn(),
+            setOutput: createMockFn(),
+        };
+    });
+
+    // Make them global to override module-level console calls
+    global.console = {
+        ...console,
+        log: jest.fn(),
+        info: jest.fn(),
+        debug: jest.fn(),
+        warn: jest.fn(),
+    } as Console;
+}
 
 // This mock is required for mocking file systems when running tests
 jest.mock('react-native-fs', () => ({
