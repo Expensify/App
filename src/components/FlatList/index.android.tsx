@@ -58,5 +58,5 @@ function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMome
     );
 }
 
-CustomFlatList.displayName = 'CustomFlatListWithRef';
+CustomFlatList.displayName = 'CustomFlatList';
 export default CustomFlatList;
