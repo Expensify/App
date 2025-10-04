@@ -7,21 +7,21 @@ import type {ActionSheetAwareScrollViewProps} from './types';
 import useActionSheetKeyboardSpacing from './useActionSheetKeyboardSpacing';
 import usePreventScrollOnKeyboardInteraction from './usePreventScrollOnKeyboardInteraction';
 
-const ActionSheetAwareScrollView = forwardRef<AnimatedScrollView, ActionSheetAwareScrollViewProps>(({style, children, onScroll: onScrollProp, ...props}, ref) => {
+const ActionSheetAwareScrollView = forwardRef<AnimatedScrollView, ActionSheetAwareScrollViewProps>(({style, children, onScroll: onScrollProp, ...props}, forwardedRef) => {
     const scrollViewAnimatedRef = useAnimatedRef<Reanimated.ScrollView>();
 
     const onRef = useCallback(
         (assignedRef: Reanimated.ScrollView) => {
-            if (typeof ref === 'function') {
-                ref(assignedRef);
-            } else if (ref) {
+            if (typeof forwardedRef === 'function') {
+                forwardedRef(assignedRef);
+            } else if (forwardedRef) {
                 // eslint-disable-next-line no-param-reassign
-                ref.current = assignedRef;
+                forwardedRef.current = assignedRef;
             }
 
             scrollViewAnimatedRef(assignedRef);
         },
-        [ref, scrollViewAnimatedRef],
+        [forwardedRef, scrollViewAnimatedRef],
     );
 
     const spacing = useActionSheetKeyboardSpacing(scrollViewAnimatedRef);
