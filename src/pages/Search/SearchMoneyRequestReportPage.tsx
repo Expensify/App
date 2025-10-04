@@ -11,6 +11,7 @@ import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,6 +32,7 @@ import {ActionListContext} from '@src/pages/home/ReportScreenContext';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type SearchMoneyRequestPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>;
 
@@ -49,8 +51,10 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {isOffline} = useNetwork();
 
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
-    const shouldWaitForReportSync = report?.reportID !== reportIDFromRoute;
+    const prevReportIDFromRoute = usePrevious(reportIDFromRoute);
+    const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
+    const isLoadingReportFromOnyx = isLoadingOnyxValue(reportResult);
+    const shouldWaitForReportSync = !isLoadingReportFromOnyx && !report?.reportID;
 
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
@@ -58,7 +62,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const isReportArchived = useReportIsArchived(report?.reportID);
 
-    const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
+    const {isEditingDisabled} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
     const flatListRef = useRef<FlatList>(null);
@@ -110,6 +114,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         [reportID, reportMetadata?.isLoadingInitialReportActions],
     );
 
+    const shouldResetSkipFirstTransactionsChange = !!reportIDFromRoute && !!prevReportIDFromRoute && reportIDFromRoute !== prevReportIDFromRoute;
+
     if (shouldUseNarrowLayout) {
         return (
             <ActionListContext.Provider value={actionListValue}>
@@ -133,10 +139,10 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     report={report}
                                     reportMetadata={reportMetadata}
                                     policy={policy}
-                                    shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
+                                    shouldDisplayReportFooter={!shouldWaitForReportSync}
                                     shouldWaitForReportSync={shouldWaitForReportSync}
-                                    key={report?.reportID}
                                     backToRoute={route.params.backTo}
+                                    shouldResetSkipFirstTransactionsChange={shouldResetSkipFirstTransactionsChange}
                                 />
                             </DragAndDropProvider>
                         </FullPageNotFoundView>
@@ -170,10 +176,10 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                         report={report}
                                         reportMetadata={reportMetadata}
                                         policy={policy}
-                                        shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
+                                        shouldDisplayReportFooter={!shouldWaitForReportSync}
                                         shouldWaitForReportSync={shouldWaitForReportSync}
-                                        key={report?.reportID}
                                         backToRoute={route.params.backTo}
+                                        shouldResetSkipFirstTransactionsChange={shouldResetSkipFirstTransactionsChange}
                                     />
                                 </View>
                                 <PortalHost name="suggestions" />
