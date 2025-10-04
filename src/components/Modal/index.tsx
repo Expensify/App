@@ -28,6 +28,16 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
         rest.onClose?.();
     });
 
+    // This useEffect is needed so that when the onClose function changes, the ref contains the current value of this function.
+    // More information can be found here: https://github.com/Expensify/App/issues/69781
+    useEffect(() => {
+        handlePopStateRef.current = () => {
+            rest.onClose?.();
+        };
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [rest.onClose]);
+
     const showModal = () => {
         if (shouldHandleNavigationBack) {
             window.history.pushState({shouldGoBack: true}, '', null);
