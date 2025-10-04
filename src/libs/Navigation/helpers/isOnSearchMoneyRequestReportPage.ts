@@ -1,9 +1,15 @@
-import {navigationRef} from '@libs/Navigation/Navigation';
-import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
+import Log from '@libs/Log';
+import navigationRef from '@libs/Navigation/navigationRef';
 import SCREENS from '@src/SCREENS';
 
 const isOnSearchMoneyRequestReportPage = (): boolean => {
-    const rootState = navigationRef.getRootState() as State<RootNavigatorParamList> | undefined;
+    if (!navigationRef.isReady()) {
+        Log.warn('[src/libs/Navigation/helpers/isOnSearchMoneyRequestReportPage.ts] NavigationRef is not ready. Returning false.');
+        return false;
+    }
+
+    const rootState = navigationRef.getRootState();
+
     if (!rootState) {
         return false;
     }

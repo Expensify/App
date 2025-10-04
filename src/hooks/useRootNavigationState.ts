@@ -1,8 +1,18 @@
 import type {NavigationState} from '@react-navigation/routers';
 import {useEffect, useRef, useState} from 'react';
+import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
 
 type Selector<T> = (state: NavigationState) => T;
+
+const EMPTY_ROOT_STATE: NavigationState = {
+    stale: false,
+    type: 'stack',
+    key: 'key',
+    index: 0,
+    routeNames: [],
+    routes: [],
+};
 
 /**
  * Hook to get a value from the current root navigation state using a selector.
@@ -10,7 +20,13 @@ type Selector<T> = (state: NavigationState) => T;
  * @param selector Selector function to get a value from the state.
  */
 function useRootNavigationState<T>(selector: Selector<T>): T {
-    const [result, setResult] = useState(() => selector(navigationRef.getRootState()));
+    const [result, setResult] = useState<T>(() => {
+        if (!navigationRef.isReady()) {
+            Log.warn('[src/hooks/useRootNavigationState.ts] NavigationRef is not ready. Returning selector value with empty root state.');
+            return selector(EMPTY_ROOT_STATE);
+        }
+        return selector(navigationRef.getRootState());
+    });
 
     // We store the selector in a ref to avoid re-subscribing listeners every render
     const selectorRef = useRef(selector);
