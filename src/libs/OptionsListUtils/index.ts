@@ -1347,6 +1347,7 @@ function getUserToInviteOption({
     showChatPreviewLine = false,
     shouldAcceptName = false,
 }: GetUserToInviteConfig): SearchOptionData | null {
+    debugger;
     if (!searchValue) {
         return null;
     }
@@ -1765,6 +1766,14 @@ function getValidOptions(
         ...excludeLogins,
         ...restrictedLogins,
     };
+
+    console.log('get valid options data', {
+        includeUserToInvite,
+        excludeLogins,
+        restrictedLogins,
+        loginsToExclude,
+        options,
+    });
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
     // This prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
@@ -1878,6 +1887,8 @@ function getValidOptions(
 
         personalDetailsOptions = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxElements, filteringFunction, true);
 
+        console.log('personalDetailsOptions', personalDetailsOptions);
+
         for (let i = 0; i < personalDetailsOptions.length; i++) {
             const personalDetail = personalDetailsOptions.at(i);
             if (!personalDetail) {
@@ -1898,6 +1909,11 @@ function getValidOptions(
     }
 
     let userToInvite: SearchOptionData | null = null;
+    console.log(
+        'get valid options',
+        includeUserToInvite,
+        filterUserToInvite({currentUserOption: currentUserRef.current, recentReports: recentReportOptions, personalDetails: personalDetailsOptions}, searchString ?? ''),
+    );
     if (includeUserToInvite) {
         userToInvite = filterUserToInvite({currentUserOption: currentUserRef.current, recentReports: recentReportOptions, personalDetails: personalDetailsOptions}, searchString ?? '');
     }
@@ -2363,6 +2379,7 @@ function filterCurrentUserOption(currentUserOption: SearchOptionData | null | un
 function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue: string, config?: FilterUserToInviteConfig): SearchOptionData | null {
     const {canInviteUser = true, excludeLogins = {}} = config ?? {};
     if (!canInviteUser) {
+        console.log('trueee');
         return null;
     }
 
@@ -2374,6 +2391,7 @@ function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue:
     });
 
     if (!canCreateOptimisticDetail) {
+        console.log('cannot createOptimisticDetail');
         return null;
     }
 
@@ -2381,6 +2399,8 @@ function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue:
         [CONST.EMAIL.NOTIFICATIONS]: true,
         ...excludeLogins,
     };
+
+    console.log('create invite option', loginsToExclude);
     return getUserToInviteOption({
         searchValue,
         loginsToExclude,
@@ -2503,6 +2523,11 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, count
         }
         uniqueLogins.add(login);
         return true;
+    });
+
+    console.log('filterr', {
+        filterResult,
+        orderedOptions,
     });
 
     return {

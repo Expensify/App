@@ -10,7 +10,10 @@ import type {PersonalDetails} from '@src/types/onyx';
 import useDebouncedState from './useDebouncedState';
 import useOnyx from './useOnyx';
 
-type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<typeof CONST.SEARCH_SELECTOR, 'SEARCH_CONTEXT_GENERAL' | 'SEARCH_CONTEXT_SEARCH' | 'SEARCH_CONTEXT_MEMBER_INVITE'>];
+type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<
+    typeof CONST.SEARCH_SELECTOR,
+    'SEARCH_CONTEXT_GENERAL' | 'SEARCH_CONTEXT_SEARCH' | 'SEARCH_CONTEXT_MEMBER_INVITE' | 'SEARCH_CONTEXT_ATTENDEES'
+>];
 type SearchSelectorSelectionMode = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<typeof CONST.SEARCH_SELECTOR, 'SELECTION_MODE_SINGLE' | 'SELECTION_MODE_MULTI'>];
 
 type UseSearchSelectorConfig = {
@@ -155,6 +158,7 @@ function useSearchSelectorBase({
         return getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
     }, [debouncedSearchTerm, countryCode]);
 
+    console.log('useSearchSotr hook', searchContext, areOptionsInitialized);
     const baseOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return getEmptyOptions();
@@ -164,6 +168,17 @@ function useSearchSelectorBase({
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SEARCH:
                 return getSearchOptions(optionsWithContacts, betas ?? [], true, true, computedSearchTerm, maxResults, includeUserToInvite);
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
+                return getValidOptions(optionsWithContacts, {
+                    betas: betas ?? [],
+                    includeP2P: true,
+                    includeSelectedOptions: false,
+                    excludeLogins,
+                    includeRecentReports,
+                    maxElements: maxResults,
+                    searchString: computedSearchTerm,
+                    includeUserToInvite,
+                });
+            case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
                 return getValidOptions(optionsWithContacts, {
                     betas: betas ?? [],
                     includeP2P: true,
