@@ -8,6 +8,7 @@ import type {CustomFlatListProps} from './types';
 function CustomFlatList<T>({
     ref,
     maintainVisibleContentPosition: maintainVisibleContentPositionProp,
+    shouldDisableVisibleContentPosition,
     enableAnimatedKeyboardDismissal = false,
     onMomentumScrollBegin,
     onMomentumScrollEnd,
@@ -31,7 +32,7 @@ function CustomFlatList<T>({
         [onMomentumScrollEnd],
     );
 
-    const maintainVisibleContentPosition = isScrolling ? undefined : maintainVisibleContentPositionProp;
+    const maintainVisibleContentPosition = isScrolling || shouldDisableVisibleContentPosition ? undefined : maintainVisibleContentPositionProp;
 
     if (enableAnimatedKeyboardDismissal) {
         return (

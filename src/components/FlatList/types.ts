@@ -3,6 +3,11 @@ import type {CellRendererProps, FlatList, FlatListProps} from 'react-native';
 
 type CustomFlatListProps<T> = Omit<FlatListProps<T>, 'CellRendererComponent'> & {
     /**
+     * Whether to disable the visible content position
+     */
+    shouldDisableVisibleContentPosition?: boolean;
+
+    /**
      * Whether to use the animated keyboard handler capabilities on native (iOS and Android)
      * Allows for interactive keyboard dismissal when the user drags the keyboard down
      */
