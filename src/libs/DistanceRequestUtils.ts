@@ -18,6 +18,14 @@ type MileageRate = {
     enabled?: boolean;
 };
 
+/**
+ * @private
+ * This is a custom collator for sorting distance rate names.
+ * The reason for this is that the sorting of rate names should not depend on the locale.
+ * This is used to ensure that rate names sort consistently.
+ */
+const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
+
 const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
 const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
 
@@ -33,7 +41,8 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
         return mileageRates;
     }
 
-    Object.entries(distanceUnit.rates).forEach(([rateID, rate]) => {
+    const sortedRateEntries = Object.entries(distanceUnit.rates).sort(([, a], [, b]) => customCollator.compare(a.name ?? '', b.name ?? ''));
+    sortedRateEntries.forEach(([rateID, rate]) => {
         if (!includeDisabledRates && rate.enabled === false && (!selectedRateID || rateID !== selectedRateID)) {
             return;
         }
