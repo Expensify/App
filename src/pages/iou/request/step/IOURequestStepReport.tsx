@@ -38,6 +38,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const selectedReportID = shouldUseTransactionReport ? transactionReport?.reportID : outstandingReportID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
+    const [nextStepsCollection] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const {removeTransaction} = useSearchContext();
     const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -114,6 +115,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                     allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                     undefined,
                     allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                    nextStepsCollection,
                 );
                 removeTransaction(transaction.transactionID);
             }
@@ -155,6 +157,10 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 isASAPSubmitBetaEnabled,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 session?.email ?? '',
+                undefined,
+                undefined,
+                undefined,
+                nextStepsCollection,
             );
             removeTransaction(transaction.transactionID);
         });
