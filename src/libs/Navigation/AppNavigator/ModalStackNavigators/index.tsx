@@ -105,7 +105,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
 
         return (
             // This container is necessary to hide card translation during transition. Without it the user would see un-clipped cards.
-            <View style={styles.modalStackNavigatorContainer(isSmallScreenWidth)}>
+            <View style={[styles.modalStackNavigatorContainer, styles.modalStackNavigatorContainerWidth(isSmallScreenWidth)]}>
                 <ModalStackNavigator.Navigator>
                     {Object.keys(screens as Required<Screens>).map((name) => (
                         <ModalStackNavigator.Screen
@@ -281,7 +281,7 @@ const ExpensifyCardModalStackNavigator = createModalStackNavigator({
 });
 
 const DomainCardModalStackNavigator = createModalStackNavigator({
-    [SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage').default,
+    [SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/index').default,
     [SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default,
 });
 
@@ -351,8 +351,12 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.SHARE_LOG]: () => require<ReactComponentModule>('../../../../pages/settings/AboutPage/ShareLogPage').default,
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PersonalAddressPage').default,
     [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/VerifyAccountPage').default,
-    [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage').default,
+    [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/index').default,
+    [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: () =>
+        require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardVerifyAccountPage').default,
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default,
+    [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_MAGIC_CODE]: () =>
+        require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudVerifyAccountPage').default,
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudConfirmationPage').default,
     [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ActivatePhysicalCardPage').default,
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TransferBalancePage').default,
