@@ -22,8 +22,25 @@
 
     <% if (htmlWebpackPlugin.options.isWeb) { %>
         <!-- begin Convert Experiences code-->
-        <script type="text/javascript" src="//cdn-4.convertexperiments.com/v1/js/10042537-100413459.js">
-        </script>
+        <script async type="text/javascript" src="//cdn-4.convertexperiments.com/v1/js/10042537-100413459.js"></script>
+
+        <!-- As we are loading Convert async, we need to hide the body to prevent page flashes. If it loads too slowly, we manually remove the style after defined timeout -->
+         <!-- See: https://support.convert.com/hc/en-us/articles/360028491292-loading-the-convert-tracking-code-async-while-preventing-flashing -->
+        <script>
+            (function () {
+              var style = document.createElement("style");
+              style.id = "convert-hide-body";
+              style.setAttribute('data-convert', '');
+              style.textContent =
+                'body{position:relative;overflow:hidden}body::after{position:absolute;top:0;bottom:0;left:0;right:0;content:"";background:#fff;z-index:2147483647}';
+              document.head.appendChild(style);
+              var hideTimeout = 500;
+              setTimeout(function () {
+                if (document.getElementById("convert-hide-body"))
+                  document.getElementById("convert-hide-body").remove();
+              }, hideTimeout);
+            })();
+          </script>
         <!-- end Convert Experiences code -->
     <% } %>
 
