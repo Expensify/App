@@ -78,6 +78,9 @@ type UseSearchSelectorReturn = {
     /** Current search term */
     searchTerm: string;
 
+    /** Debounced search term */
+    debouncedSearchTerm: string;
+
     /** Function to update search term */
     setSearchTerm: (value: string) => void;
 
@@ -181,7 +184,7 @@ function useSearchSelectorBase({
                     searchString: computedSearchTerm,
                     maxElements: maxResults,
                     includeUserToInvite,
-                    loginsToExclude: excludeLogins,
+                    excludeLogins,
                 });
             default:
                 return getEmptyOptions();
@@ -275,6 +278,7 @@ function useSearchSelectorBase({
 
     return {
         searchTerm,
+        debouncedSearchTerm,
         setSearchTerm,
         searchOptions,
         availableOptions,
