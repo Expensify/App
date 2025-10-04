@@ -51,6 +51,7 @@ export default {
     fabBottom: 25,
     breadcrumbsFontSize: getValueUsingPixelRatio(19, 32),
     fontSizeXXSmall: 7,
+    fontSizeXSmall: getValueUsingPixelRatio(8, 12),
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
     fontSizeExtraSmall: 9,
     fontSizeLabel: getValueUsingPixelRatio(13, 19),

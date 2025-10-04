@@ -48,6 +48,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
     getPolicyName,
+    getReportStatusColorStyle,
     getReportStatusTranslation,
     getTransactionsWithReceipts,
     hasHeldExpenses as hasHeldExpensesReportUtils,
@@ -310,6 +311,11 @@ function MoneyRequestReportPreviewContent({
     const reportStatus = useMemo(
         () => getReportStatusTranslation(iouReport?.stateNum ?? action?.childStateNum, iouReport?.statusNum ?? action?.childStatusNum),
         [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum],
+    );
+
+    const reportStatusColorStyle = useMemo(
+        () => getReportStatusColorStyle(theme, iouReport?.stateNum ?? action?.childStateNum, iouReport?.statusNum ?? action?.childStatusNum),
+        [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, theme],
     );
 
     const totalAmountStyle = shouldUseNarrowLayout ? [styles.flexColumnReverse, styles.alignItemsStretch] : [styles.flexRow, styles.alignItemsCenter];
@@ -680,7 +686,20 @@ function MoneyRequestReportPreviewContent({
                                                     !shouldShowEmptyPlaceholder && (
                                                         <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
                                                             {isIconNeeded && <View style={[styles.alignItemsCenter, styles.lh16, styles.mr1]}>{approvedOrSettledIcon}</View>}
-                                                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}</Text>
+                                                            {!!reportStatus && (
+                                                                <View
+                                                                    style={[
+                                                                        styles.reportStatusContainer,
+                                                                        styles.mr1,
+                                                                        {
+                                                                            backgroundColor: reportStatusColorStyle?.backgroundColor,
+                                                                        },
+                                                                    ]}
+                                                                >
+                                                                    <Text style={[styles.reportStatusText, {color: reportStatusColorStyle?.textColor}]}>{reportStatus}</Text>
+                                                                </View>
+                                                            )}
+                                                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>
                                                         </View>
                                                     )
                                                 )}

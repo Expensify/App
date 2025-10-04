@@ -158,6 +158,29 @@ const lightTheme = {
         },
     },
 
+    reportStatusBadge: {
+        draft: {
+            backgroundColor: colors.blue200,
+            textColor: colors.blue700,
+        },
+        outstanding: {
+            backgroundColor: colors.tangerine200,
+            textColor: colors.tangerine700,
+        },
+        approved: {
+            backgroundColor: colors.ice200,
+            textColor: colors.ice700,
+        },
+        paid: {
+            backgroundColor: colors.green200,
+            textColor: colors.green700,
+        },
+        closed: {
+            backgroundColor: colors.pink200,
+            textColor: colors.pink700,
+        },
+    },
+
     statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
     navigationBarButtonsStyle: CONST.NAVIGATION_BAR_BUTTONS_STYLE.DARK,
     translucentNavigationBarBackgroundColor: `${colors.productLight100}CD`, // CD is 80% opacity (80% of 0xFF)
