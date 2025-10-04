@@ -94,6 +94,7 @@ import type {
     DemotedFromWorkspaceParams,
     DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
+    DisconnectYourBankAccountParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
@@ -106,6 +107,7 @@ import type {
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -293,6 +295,7 @@ import type {
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
+    WalletAgreementParams,
     WalletProgramParams,
     WelcomeEnterMagicCodeParams,
     WelcomeToRoomParams,
@@ -610,7 +613,7 @@ const translations = {
         disabled: 'Wyłączony',
         import: 'Importuj',
         offlinePrompt: 'Nie możesz teraz podjąć tej akcji.',
-        outstanding: 'Zaległe',
+        outstanding: 'Zaległy',
         chats: 'Czaty',
         tasks: 'Zadania',
         unread: 'Nieprzeczytane',
@@ -635,7 +638,7 @@ const translations = {
         downloadAsCSV: 'Pobierz jako CSV',
         help: 'Pomoc',
         expenseReports: 'Raporty wydatków',
-        rateOutOfPolicy: 'Oceń poza polityką',
+        rateOutOfPolicy: 'Stawka poza polityką',
         reimbursable: 'Podlegające zwrotowi',
         editYourProfile: 'Edytuj swój profil',
         comments: 'Komentarze',
@@ -672,7 +675,12 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
-        description: 'Nie masz uprawnień do wykonania tej akcji, gdy wsparcie jest zalogowane.',
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) =>
+            `Nie masz uprawnień do wykonania tej akcji, gdy wsparcie jest zalogowane (komenda: ${command ?? ''}). Jeśli uważasz, że Success powinien mieć możliwość wykonania tej akcji, rozpocznij rozmowę na Slacku.`,
     },
     lockedAccount: {
         title: 'Zablokowane konto',
@@ -2219,7 +2227,7 @@ const translations = {
         enterAuthenticatorCode: 'Proszę wprowadzić kod uwierzytelniający',
         enterRecoveryCode: 'Proszę wprowadzić swój kod odzyskiwania',
         requiredWhen2FAEnabled: 'Wymagane, gdy 2FA jest włączone',
-        requestNewCode: 'Poproś o nowy kod w',
+        requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Poproś o nowy kod za <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Poproś o nowy kod',
         error: {
             pleaseFillMagicCode: 'Proszę wprowadzić swój magiczny kod',
@@ -2883,10 +2891,11 @@ const translations = {
     termsStep: {
         headerTitle: 'Warunki i opłaty',
         headerTitleRefactor: 'Opłaty i warunki',
-        haveReadAndAgree: 'Przeczytałem i zgadzam się na otrzymywanie',
-        electronicDisclosures: 'elektroniczne ujawnienia',
-        agreeToThe: 'Zgadzam się na',
-        walletAgreement: 'Umowa portfela',
+        haveReadAndAgreePlain: 'Zapoznałem się i wyrażam zgodę na otrzymywanie ujawnień drogą elektroniczną.',
+        haveReadAndAgree: `Zapoznałem się i wyrażam zgodę na otrzymywanie <a href="${CONST.ELECTRONIC_DISCLOSURES_URL}">ujawnień drogą elektroniczną</a>.`,
+        agreeToThePlain: 'Zgadzam się z umową dotyczącą prywatności i portfela.',
+        agreeToThe: ({walletAgreementUrl}: WalletAgreementParams) =>
+            `Zgadzam się z umową dotyczącą <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Prywatności</a> i <a href="${walletAgreementUrl}">Portfela</a>.`,
         enablePayments: 'Włącz płatności',
         monthlyFee: 'Miesięczna opłata',
         inactivity: 'Nieaktywność',
@@ -2903,17 +2912,14 @@ const translations = {
             cashReload: 'Doładowanie gotówką',
             inNetwork: 'w sieci',
             outOfNetwork: 'poza siecią',
-            atmBalanceInquiry: 'Zapytanie o saldo bankomatu',
-            inOrOutOfNetwork: '(w sieci lub poza siecią)',
-            customerService: 'Obsługa klienta',
-            automatedOrLive: '(automated or live agent)',
-            afterTwelveMonths: '(po 12 miesiącach bez transakcji)',
+            atmBalanceInquiry: 'Zapytanie o saldo bankomatu (w sieci lub poza siecią)',
+            customerService: 'Obsługa klienta (agent automatyczny lub na żywo)',
+            inactivityAfterTwelveMonths: 'Nieaktywność (po 12 miesiącach bez transakcji)',
             weChargeOneFee: 'Pobieramy jeszcze jedną opłatę. Jest to:',
             fdicInsurance: 'Twoje środki kwalifikują się do ubezpieczenia FDIC.',
-            generalInfo: 'Aby uzyskać ogólne informacje na temat kont przedpłaconych, odwiedź',
-            conditionsDetails: 'Aby uzyskać szczegóły i warunki dotyczące wszystkich opłat i usług, odwiedź',
-            conditionsPhone: 'lub dzwoniąc pod numer +1 833-400-0904.',
-            instant: '(instant)',
+            generalInfo: `Ogólne informacje na temat kont przedpłaconych można znaleźć na stronie <a href="${CONST.CFPB_PREPAID_URL}">${CONST.TERMS.CFPB_PREPAID}</a>.`,
+            conditionsDetails: `Szczegółowe informacje i warunki dotyczące wszystkich opłat i usług można znaleźć na stronie <a href="${CONST.FEES_URL}">${CONST.FEES_URL}</a> lub dzwoniąc pod numer +1 833-400-0904.`,
+            electronicFundsWithdrawalInstant: 'Elektroniczne wycofanie środków (natychmiastowy)',
             electronicFundsInstantFeeMin: ({amount}: TermsParams) => `(min ${amount})`,
         },
         longTermsForm: {
@@ -2930,23 +2936,16 @@ const translations = {
             sendingFundsTitle: 'Wysyłanie środków do innego posiadacza konta',
             sendingFundsDetails: 'Nie ma opłaty za wysyłanie środków do innego posiadacza konta przy użyciu salda, konta bankowego lub karty debetowej.',
             electronicFundsStandardDetails:
-                "There's no fee to transfer funds from your Expensify Wallet " +
-                'to your bank account using the standard option. This transfer usually completes within 1-3 business' +
-                ' days.',
+                'Przelew środków z portfela Expensify na konto bankowe przy użyciu opcji standardowej nie wiąże się z żadnymi opłatami. Przelew ten jest zazwyczaj realizowany w ciągu 1-3 dni roboczych.',
             electronicFundsInstantDetails: ({percentage, amount}: ElectronicFundsParams) =>
-                "There's a fee to transfer funds from your Expensify Wallet to " +
-                'your linked debit card using the instant transfer option. This transfer usually completes within ' +
-                `several minutes. The fee is ${percentage}% of the transfer amount (with a minimum fee of ${amount}).`,
+                'Przelew środków z portfela Expensify na połączoną kartę debetową przy użyciu opcji natychmiastowego przelewu jest płatny.' +
+                ` Transfer ten zwykle kończy się w ciągu kilku minut. Opłata wynosi ${percentage}% kwoty przelewu (przy minimalnej opłacie w wysokości ${amount}).`,
             fdicInsuranceBancorp: ({amount}: TermsParams) =>
-                'Your funds are eligible for FDIC insurance. Your funds will be held at or ' +
-                `transferred to ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, an FDIC-insured institution. Once there, your funds are insured up ` +
-                `to ${amount} by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails, if specific deposit insurance requirements ` +
-                `are met and your card is registered. See`,
-            fdicInsuranceBancorp2: 'szczegóły.',
-            contactExpensifyPayments: `Skontaktuj się z ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}, dzwoniąc pod numer +1 833-400-0904, lub e-mailem na adres`,
-            contactExpensifyPayments2: 'lub zaloguj się na',
-            generalInformation: 'Aby uzyskać ogólne informacje na temat kont przedpłaconych, odwiedź',
-            generalInformation2: 'Jeśli masz skargę dotyczącą konta przedpłaconego, zadzwoń do Biura Ochrony Konsumentów pod numer 1-855-411-2372 lub odwiedź',
+                `Środki użytkownika są objęte ubezpieczeniem FDIC. Środki będą przechowywane lub przekazywane do ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, instytucji ubezpieczonej przez FDIC.` +
+                ` W przypadku upadłości ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} środki użytkownika są ubezpieczone do kwoty ${amount} by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} przez FDIC, o ile spełnione są określone wymagania dotyczące ubezpieczenia depozytów, a karta użytkownika jest zarejestrowana.` +
+                ` Aby uzyskać szczegółowe informacje, zobacz ${CONST.TERMS.FDIC_PREPAID}.`,
+            contactExpensifyPayments: `Skontaktuj się z ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} dzwoniąc pod numer +1 833-400-0904, wysyłając e-mail na adres ${CONST.EMAIL.CONCIERGE} lub zaloguj się na stronie ${CONST.NEW_EXPENSIFY_URL}.`,
+            generalInformation: `Ogólne informacje na temat kont przedpłaconych można znaleźć na stronie ${CONST.TERMS.CFPB_PREPAID}. Jeśli masz skargę dotyczącą konta przedpłaconego, zadzwoń do Consumer Financial Protection Bureau pod numer 1-855-411-2372 lub odwiedź stronę ${CONST.TERMS.CFPB_COMPLAINT}.`,
             printerFriendlyView: 'Wyświetl wersję przyjazną dla drukarki',
             automated: 'Zautomatyzowany',
             liveAgent: 'Agent na żywo',
@@ -4399,10 +4398,7 @@ const translations = {
                 whoIsYourBankAccount: 'Kim jest Twój bank?',
                 whereIsYourBankLocated: 'Gdzie znajduje się Twój bank?',
                 howDoYouWantToConnect: 'Jak chcesz połączyć się ze swoim bankiem?',
-                learnMoreAboutOptions: {
-                    text: 'Dowiedz się więcej na ten temat',
-                    linkText: 'opcje.',
-                },
+                learnMoreAboutOptions: `<muted-text>Dowiedz się więcej o tych <a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">opcjach</a>.</muted-text>`,
                 commercialFeedDetails: 'Wymaga konfiguracji z Twoim bankiem. Zazwyczaj jest używane przez większe firmy i często jest najlepszą opcją, jeśli się kwalifikujesz.',
                 commercialFeedPlaidDetails: `Wymaga konfiguracji z Twoim bankiem, ale poprowadzimy Cię. Zazwyczaj jest to ograniczone do większych firm.`,
                 directFeedDetails: 'Najprostsze podejście. Połącz się od razu, używając swoich głównych poświadczeń. Ta metoda jest najczęściej stosowana.',
@@ -4808,9 +4804,11 @@ const translations = {
             textType: 'Tekst',
             dateType: 'Data',
             dropdownType: 'Lista',
+            formulaType: 'Formuła',
             textAlternateText: 'Dodaj pole do swobodnego wprowadzania tekstu.',
             dateAlternateText: 'Dodaj kalendarz do wyboru daty.',
             dropdownAlternateText: 'Dodaj listę opcji do wyboru.',
+            formulaAlternateText: 'Dodaj pole formuły.',
             nameInputSubtitle: 'Wybierz nazwę dla pola raportu.',
             typeInputSubtitle: 'Wybierz, jakiego typu pola raportu chcesz użyć.',
             initialValueInputSubtitle: 'Wprowadź wartość początkową do wyświetlenia w polu raportu.',
@@ -5098,8 +5096,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Wystąpił błąd z połączeniem skonfigurowanym w Expensify Classic.',
-            goToODToFix: 'Przejdź do Expensify Classic, aby rozwiązać ten problem.',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Wystąpił błąd z połączeniem skonfigurowanym w Expensify Classic. [Przejdź do Expensify Classic, aby rozwiązać ten problem.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Przejdź do Expensify Classic, aby zarządzać swoimi ustawieniami.',
             setup: 'Połącz',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Ostatnia synchronizacja ${relativeDate}`,
@@ -5427,8 +5425,8 @@ const translations = {
             updateDetails: 'Zaktualizuj szczegóły',
             yesDisconnectMyBankAccount: 'Tak, odłącz moje konto bankowe',
             yesStartOver: 'Tak, zacznij od nowa.',
-            disconnectYour: 'Odłącz swoje',
-            bankAccountAnyTransactions: 'konto bankowe. Wszelkie nierozliczone transakcje dla tego konta zostaną nadal zrealizowane.',
+            disconnectYourBankAccount: ({bankName}: DisconnectYourBankAccountParams) =>
+                `Odłącz konto bankowe <strong>${bankName}</strong>. Wszelkie nierozliczone transakcje dla tego konta zostaną nadal zrealizowane.`,
             clearProgress: 'Rozpoczęcie od nowa spowoduje usunięcie postępów, które dotychczas osiągnąłeś.',
             areYouSure: 'Czy jesteś pewien?',
             workspaceCurrency: 'Waluta przestrzeni roboczej',
@@ -5549,11 +5547,6 @@ const translations = {
                 description:
                     'Expensify Travel to nowa platforma do rezerwacji i zarządzania podróżami służbowymi, która umożliwia członkom rezerwację zakwaterowania, lotów, transportu i nie tylko.',
                 onlyAvailableOnPlan: 'Podróże są dostępne w planie Collect, zaczynając od',
-            },
-            reports: {
-                title: 'Raporty',
-                description: 'Twórz uporządkowane raporty wydatków, aby śledzić swoje wydatki biznesowe, przesyłać je do zatwierdzenia i usprawniać proces zwrotu kosztów.',
-                onlyAvailableOnPlan: 'Raporty są dostępne w planie Collect, zaczynając od ',
             },
             multiLevelTags: {
                 title: 'Wielopoziomowe tagi',
@@ -5687,8 +5680,7 @@ const translations = {
                 nonBillable: 'Niepodlegające fakturowaniu',
                 nonBillableDescription: 'Wydatki są czasami ponownie fakturowane klientom.',
                 eReceipts: 'eReceipts',
-                eReceiptsHint: 'eParagony są tworzone automatycznie',
-                eReceiptsHintLink: 'dla większości transakcji kredytowych w USD',
+                eReceiptsHint: `ePokwitowania są tworzone automatycznie [dla większości transakcji kredytowych w USD](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Śledzenie uczestników',
                 attendeeTrackingHint: 'Śledź koszt na osobę dla każdego wydatku.',
                 prohibitedDefaultDescription:
