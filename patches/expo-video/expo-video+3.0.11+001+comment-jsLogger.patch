@@ -1,0 +1,73 @@
+diff --git a/node_modules/expo-video/android/src/main/java/expo/modules/video/playbackService/ExpoVideoPlaybackService.kt b/node_modules/expo-video/android/src/main/java/expo/modules/video/playbackService/ExpoVideoPlaybackService.kt
+index 8761f9c..53e1f3e 100644
+--- a/node_modules/expo-video/android/src/main/java/expo/modules/video/playbackService/ExpoVideoPlaybackService.kt
++++ b/node_modules/expo-video/android/src/main/java/expo/modules/video/playbackService/ExpoVideoPlaybackService.kt
+@@ -193,7 +193,9 @@ class ExpoVideoPlaybackService : MediaSessionService() {
+         startForeground(notificationId, notificationCompat)
+         isForeground = true
+       } catch (e: Exception) {
++        /*
+         appContext.jsLogger?.error(getPlaybackServiceErrorMessage("Failed to start the expo-video foreground service"), e)
++        */
+       }
+     } else {
+       notificationManager.notify(notificationId, notificationCompat)
+diff --git a/node_modules/expo-video/android/src/main/java/expo/modules/video/playbackService/PlaybackServiceConnection.kt b/node_modules/expo-video/android/src/main/java/expo/modules/video/playbackService/PlaybackServiceConnection.kt
+index d09db80..062070d 100644
+--- a/node_modules/expo-video/android/src/main/java/expo/modules/video/playbackService/PlaybackServiceConnection.kt
++++ b/node_modules/expo-video/android/src/main/java/expo/modules/video/playbackService/PlaybackServiceConnection.kt
+@@ -24,9 +24,11 @@ class PlaybackServiceConnection(val player: WeakReference<VideoPlayer>, appConte
+   override fun onServiceConnected(componentName: ComponentName, binder: IBinder) {
+     val player = player.get() ?: return
+     val serviceBinder: PlaybackServiceBinder = binder as? PlaybackServiceBinder ?: run {
++      /*
+       appContext.jsLogger?.error(
+         getPlaybackServiceErrorMessage("Expo-video could not bind to the playback service")
+       )
++      */
+       return
+     }
+ 
+@@ -43,20 +45,24 @@ class PlaybackServiceConnection(val player: WeakReference<VideoPlayer>, appConte
+ 
+   override fun onBindingDied(name: ComponentName?) {
+     isConnected = false
++    /*
+     appContext.jsLogger?.error(
+       getPlaybackServiceErrorMessage(
+         "Expo-video has lost connection to the playback service binder",
+         "This will cause issues with now playing notification and sustaining background playback."
+       )
+     )
++    */
+     super.onBindingDied(name)
+   }
+ 
+   override fun onNullBinding(componentName: ComponentName) {
+     isConnected = false
++    /*
+     appContext.jsLogger?.error(
+       getPlaybackServiceErrorMessage("Expo Video could not bind to the playback service")
+     )
++    */
+     super.onNullBinding(componentName)
+   }
+ }
+diff --git a/node_modules/expo-video/android/src/main/java/expo/modules/video/player/VideoPlayer.kt b/node_modules/expo-video/android/src/main/java/expo/modules/video/player/VideoPlayer.kt
+index 96e087f..5641acb 100644
+--- a/node_modules/expo-video/android/src/main/java/expo/modules/video/player/VideoPlayer.kt
++++ b/node_modules/expo-video/android/src/main/java/expo/modules/video/player/VideoPlayer.kt
+@@ -415,11 +415,13 @@ class VideoPlayer(val context: Context, appContext: AppContext, source: VideoSou
+     val appContext = appContext ?: throw Exceptions.AppContextLost()
+     val serviceStarted = ExpoVideoPlaybackService.startService(appContext, context, serviceConnection)
+ 
++  /*
+     if (!serviceStarted) {
+       appContext.jsLogger?.error(
+         getPlaybackServiceErrorMessage("Expo-video has failed to bind with the playback service binder")
+       )
+     }
++  */
+     return serviceStarted
+   }
+ 
