@@ -61,11 +61,21 @@ type Participants = Record<number, Participant>;
 
 /** Report next step */
 type ReportNextStep = {
+    /** The meesage key */
     messageKey: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY>;
+
+    /** The icon */
     icon: ValueOf<typeof CONST.NEXT_STEP.ICONS>;
+
+    /** The account ID of the user who is required to take action. This could be -1 which translates to "an admin" */
     actorAccountID: number;
+
+    /** The ETA (if applicable, e.g. expected reimbursement date) */
     eta?: {
+        /** The ETA key */
         etaKey?: ValueOf<typeof CONST.NEXT_STEP.ETA_KEY>;
+
+        /** The ETA date time */
         dateTime?: string;
     };
 };
