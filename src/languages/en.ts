@@ -5988,14 +5988,15 @@ const translations = {
             `changed the rate of reports randomly routed for manual approval to ${Math.round(newAuditRate * 100)}% (previously ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `changed the manual approval limit for all expenses to ${newLimit} (previously ${oldLimit})`,
-        addBudget: ({frequency, entityName, entityType, shared, individual}: AddBudgetParams) => {
+        addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
+            const notificationThresholdText = notificationThreshold ? ` Notification threshold is set to ${notificationThreshold}%.` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
-                return `added a ${frequency} individual budget of ${individual} and shared budget of ${shared} to the ${entityType} "${entityName}".`;
+                return `added a ${frequency} individual budget of ${individual} and shared budget of ${shared} to the ${entityType} "${entityName}".${notificationThresholdText}`;
             }
             if (typeof individual !== 'undefined') {
-                return `added a ${frequency} individual budget of ${individual} to the ${entityType} "${entityName}".`;
+                return `added a ${frequency} individual budget of ${individual} to the ${entityType} "${entityName}".${notificationThresholdText}`;
             }
-            return `added a ${frequency} shared budget of ${shared} to the ${entityType} "${entityName}".`;
+            return `added a ${frequency} shared budget of ${shared} to the ${entityType} "${entityName}".${notificationThresholdText}`;
         },
     },
     roomMembersPage: {

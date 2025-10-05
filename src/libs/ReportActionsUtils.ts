@@ -2885,13 +2885,13 @@ function getAddedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: On
         const sharedAmount = convertToShortDisplayString(value?.shared, policy?.outputCurrency ?? CONST.CURRENCY.USD);
         const individualAmount = convertToShortDisplayString(value?.individual, policy?.outputCurrency ?? CONST.CURRENCY.USD);
         const frequency = translateLocal(`workspace.common.budgetFrequency.${value.frequency}` as TranslationPaths);
-
         return translateLocal('workspaceActions.addBudget', {
             frequency,
             entityName: categoryName,
             entityType,
             shared: value.shared ? sharedAmount : undefined,
             individual: value.individual ? individualAmount : undefined,
+            notificationThreshold: value.notificationThreshold,
         });
     }
     return getReportActionText(reportAction);

@@ -313,6 +313,9 @@ type PolicyBudgetFrequency = {
 
     /** Individual value of the entity budget */
     individual?: number;
+
+    /** Notification threshold */
+    notificationThreshold: number;
 };
 
 /** Model of change log */

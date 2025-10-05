@@ -424,7 +424,7 @@ type AccountOwnerParams = {accountOwnerEmail: string};
 
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
 
-type AddBudgetParams = {frequency: string; entityType: string; entityName: string; shared?: string; individual?: string};
+type AddBudgetParams = {frequency: string; entityType: string; entityName: string; shared?: string; individual?: string; notificationThreshold?: number};
 
 type IntegrationsMessageParams = {
     label: string;
