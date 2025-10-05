@@ -1,11 +1,13 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {ReportNextStep} from '@src/types/onyx/Report';
 import type ReportNextStepDeprecated from '@src/types/onyx/ReportNextStepDeprecated';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Icon from './Icon';
@@ -13,8 +15,11 @@ import * as Expensicons from './Icon/Expensicons';
 import RenderHTML from './RenderHTML';
 
 type MoneyReportHeaderStatusBarProps = {
+    /** The next step for the report (deprecated old format) */
+    nextStepDeprecated: ReportNextStepDeprecated;
+
     /** The next step for the report */
-    nextStep: ReportNextStepDeprecated;
+    nextStep: ReportNextStep | undefined;
 };
 
 type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS>;
@@ -25,26 +30,36 @@ const iconMap: IconMap = {
     [CONST.NEXT_STEP.ICONS.STOPWATCH]: Expensicons.Stopwatch,
 };
 
-function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
+function MoneyReportHeaderStatusBar({nextStep, nextStepDeprecated}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const messageContent = useMemo(() => {
-        const messageArray = nextStep.message;
-        return NextStepUtils.parseMessage(messageArray);
-    }, [nextStep.message]);
+    const {translate} = useLocalize();
+    const {message, icon} = useMemo(() => {
+        if (!nextStep) {
+            return {
+                message: NextStepUtils.parseMessage(nextStepDeprecated.message),
+                icon: iconMap[nextStepDeprecated.icon] || Expensicons.Hourglass,
+            };
+        }
+
+        return {
+            message: NextStepUtils.buildMessage(nextStep, translate),
+            icon: iconMap[nextStep.icon],
+        };
+    }, [nextStep, nextStepDeprecated, translate]);
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
             <View style={[styles.mr3]}>
                 <Icon
-                    src={iconMap[nextStep.icon] || Expensicons.Hourglass}
+                    src={icon}
                     height={variables.iconSizeSmall}
                     width={variables.iconSizeSmall}
                     fill={theme.icon}
                 />
             </View>
             <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1]}>
-                <RenderHTML html={messageContent} />
+                <RenderHTML html={message} />
             </View>
         </View>
     );
