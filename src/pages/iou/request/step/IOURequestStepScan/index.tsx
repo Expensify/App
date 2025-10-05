@@ -98,6 +98,7 @@ function IOURequestStepScan({
     currentUserPersonalDetails,
     onLayout,
     isMultiScanEnabled = false,
+    isStartingScan = false,
     setIsMultiScanEnabled,
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const theme = useTheme();
@@ -128,7 +129,7 @@ function IOURequestStepScan({
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const canUseMultiScan = !isEditing && iouType !== CONST.IOU.TYPE.SPLIT && !backTo && !backToReport;
+    const canUseMultiScan = isStartingScan && iouType !== CONST.IOU.TYPE.SPLIT;
     const isReplacingReceipt = (isEditing && hasReceipt(initialTransaction)) || (!!initialTransaction?.receipt && !!backTo);
     const {shouldStartLocationPermissionFlow} = useIOUUtils();
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS) || !account?.shouldBlockTransactionThreadReportCreation;
@@ -816,6 +817,7 @@ function IOURequestStepScan({
     );
 
     const dismissMultiScanEducationalPopup = () => {
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL);
             setShouldShowMultiScanEducationalPopup(false);
@@ -1005,7 +1007,8 @@ function IOURequestStepScan({
     const [desktopUploadViewHeight, setDesktopUploadViewHeight] = useState(0);
     const [downloadAppBannerHeight, setDownloadAppBannerHeight] = useState(0);
     /*  We use isMobile() here to explicitly hide DownloadAppBanner component on both mobile web and native apps */
-    const shouldHideDownloadAppBanner = isMobile() || downloadAppBannerHeight + desktopUploadViewHeight + styles.uploadFileView(isSmallScreenWidth).paddingVertical * 2 > containerHeight;
+    const shouldHideDownloadAppBanner = isMobile() || downloadAppBannerHeight + desktopUploadViewHeight + styles.uploadFileView.paddingVertical * 2 > containerHeight;
+    const uploadFileViewStyles = !isMobile() && {...styles.uploadFileView, ...styles.uploadFileViewBorderWidth(isSmallScreenWidth)};
 
     const desktopUploadView = () => (
         <View
@@ -1071,7 +1074,7 @@ function IOURequestStepScan({
                         }
                         onLayout(setTestReceiptAndNavigate);
                     }}
-                    style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth)]}
+                    style={[styles.flex1, uploadFileViewStyles]}
                 >
                     <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
                         {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
@@ -1082,7 +1085,7 @@ function IOURequestStepScan({
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTitle={isReplacingReceipt ? translate('dropzone.replaceReceipt') : translate(shouldAcceptMultipleFiles ? 'dropzone.scanReceipts' : 'quickAction.scanReceipt')}
                             dropTextStyles={styles.receiptDropText}
-                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
+                            dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
                         />
                     </DragAndDropConsumer>
                     {!shouldHideDownloadAppBanner && <DownloadAppBanner onLayout={(e) => setDownloadAppBannerHeight(e.nativeEvent.layout.height)} />}

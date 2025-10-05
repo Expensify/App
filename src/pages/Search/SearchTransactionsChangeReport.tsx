@@ -5,6 +5,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
@@ -12,6 +13,7 @@ import Permissions from '@libs/Permissions';
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -23,7 +25,9 @@ function SearchTransactionsChangeReport() {
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
 
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     const session = useSession();
@@ -36,11 +40,12 @@ function SearchTransactionsChangeReport() {
             ? firstTransactionReportID
             : undefined;
 
-    // Get the policy ID from the first transaction
-    const activePolicyID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.policyID : undefined;
-
     const createReport = () => {
-        const createdReportID = createNewReport(currentUserPersonalDetails, activePolicyID);
+        if (shouldSelectPolicy) {
+            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true));
+            return;
+        }
+        const createdReportID = createNewReport(currentUserPersonalDetails, policyForMovingExpensesID);
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${createdReportID}`];
         changeTransactionsReport(
             selectedTransactionsKeys,
@@ -48,7 +53,7 @@ function SearchTransactionsChangeReport() {
             isASAPSubmitBetaEnabled,
             session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             session?.email ?? '',
-            activePolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`] : undefined,
+            policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined,
             reportNextStep,
         );
         clearSelectedTransactions();
@@ -69,7 +74,9 @@ function SearchTransactionsChangeReport() {
             session?.email ?? '',
             allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
             reportNextStep,
+            allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
         );
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
         });
