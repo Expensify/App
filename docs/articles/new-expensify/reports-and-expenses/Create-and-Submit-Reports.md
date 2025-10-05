@@ -6,7 +6,7 @@ keywords: [New Expensify, create report, submit report, retract report, undo sub
 
 Easily manage your business expenses in New Expensify with our streamlined report-first workflow. This guide walks you through creating, editing, submitting, and even retracting expense reports when needed.
 
-Note: Report actions like creating, submitting, or retracting can only be done in your own account. If you need to help a teammate, consider asking them to add you as a CoPilot. 
+**Note:** Report actions like creating, submitting, or retracting can only be done in your own account. If you need to help a teammate, consider asking them to add you as a CoPilot. 
 
 # How to create and submit reports in New Expensify
 
