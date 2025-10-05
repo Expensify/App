@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import {PersonalDetailsForm} from '@src/types/form';
-import {Address} from '@src/types/onyx/PrivatePersonalDetails';
+import type {PersonalDetailsForm} from '@src/types/form';
+import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 type AddressType = PersonalDetailsForm | Address | undefined;
 
@@ -30,5 +30,5 @@ function getCountryCode(countryValue: string | undefined): Country | undefined {
 
     return countryValue as Country | undefined;
 }
-/* eslint-disable import/prefer-default-export */
-export {normalizeCountryCode};
+
+export {normalizeCountryCode, getCountryCode};
