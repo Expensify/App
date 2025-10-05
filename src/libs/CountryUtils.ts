@@ -15,9 +15,14 @@ function normalizeCountryCode(data: AddressType): AddressType {
     }
 
     const normalizedCountry = getCountryCode(data.country);
+
+    if (!normalizedCountry) {
+        return data;
+    }
+
     return {
         ...data,
-        country: normalizedCountry ?? '',
+        country: normalizedCountry,
     };
 }
 
