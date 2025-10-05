@@ -44,32 +44,56 @@ describe('AddUnreportedExpense Search Functionality', () => {
     beforeEach(() => {
         // Setup mocks
         mockGetMerchant.mockImplementation((transaction) => {
-            if (transaction?.transactionID === '1') return 'Starbucks';
-            if (transaction?.transactionID === '2') return 'Uber';
-            if (transaction?.transactionID === '3') return 'Hotel California';
+            if (transaction?.transactionID === '1') {
+                return 'Starbucks';
+            }
+            if (transaction?.transactionID === '2') {
+                return 'Uber';
+            }
+            if (transaction?.transactionID === '3') {
+                return 'Hotel California';
+            }
             return '';
         });
 
         mockGetDescription.mockImplementation((transaction) => {
-            if (transaction?.transactionID === '1') return 'Coffee meeting';
-            if (transaction?.transactionID === '2') return 'Taxi to airport';
-            if (transaction?.transactionID === '3') return 'Business trip accommodation';
+            if (transaction?.transactionID === '1') {
+                return 'Coffee meeting';
+            }
+            if (transaction?.transactionID === '2') {
+                return 'Taxi to airport';
+            }
+            if (transaction?.transactionID === '3') {
+                return 'Business trip accommodation';
+            }
             return '';
         });
 
         mockGetAmount.mockImplementation((transaction) => {
-            if (transaction?.transactionID === '1') return 500;
-            if (transaction?.transactionID === '2') return 2500;
-            if (transaction?.transactionID === '3') return 15000;
+            if (transaction?.transactionID === '1') {
+                return 500;
+            }
+            if (transaction?.transactionID === '2') {
+                return 2500;
+            }
+            if (transaction?.transactionID === '3') {
+                return 15000;
+            }
             return 0;
         });
 
         mockGetCurrency.mockImplementation(() => 'USD');
 
         mockConvertToDisplayString.mockImplementation((amount) => {
-            if (amount === 500) return '$5.00';
-            if (amount === 2500) return '$25.00';
-            if (amount === 15000) return '$150.00';
+            if (amount === 500) {
+                return '$5.00';
+            }
+            if (amount === 2500) {
+                return '$25.00';
+            }
+            if (amount === 15000) {
+                return '$150.00';
+            }
             return '$0.00';
         });
     });
@@ -107,7 +131,7 @@ describe('AddUnreportedExpense Search Functionality', () => {
         const result = tokenizedSearch(transactions, searchTerm, getSearchableFields);
 
         expect(result).toHaveLength(1);
-        expect(result[0].transactionID).toBe('1');
+        expect(result.at(0)?.transactionID).toBe('1');
     });
 
     it('should search by description', () => {
@@ -115,7 +139,7 @@ describe('AddUnreportedExpense Search Functionality', () => {
         const result = tokenizedSearch(transactions, searchTerm, getSearchableFields);
 
         expect(result).toHaveLength(1);
-        expect(result[0].transactionID).toBe('1');
+        expect(result.at(0)?.transactionID).toBe('1');
     });
 
     it('should search by amount', () => {
@@ -123,7 +147,7 @@ describe('AddUnreportedExpense Search Functionality', () => {
         const result = tokenizedSearch(transactions, searchTerm, getSearchableFields);
 
         expect(result).toHaveLength(1);
-        expect(result[0].transactionID).toBe('2');
+        expect(result.at(0)?.transactionID).toBe('2');
     });
 
     it('should search by partial terms', () => {
@@ -131,7 +155,7 @@ describe('AddUnreportedExpense Search Functionality', () => {
         const result = tokenizedSearch(transactions, searchTerm, getSearchableFields);
 
         expect(result).toHaveLength(1);
-        expect(result[0].transactionID).toBe('3');
+        expect(result.at(0)?.transactionID).toBe('3');
     });
 
     it('should search across multiple fields', () => {
@@ -139,7 +163,7 @@ describe('AddUnreportedExpense Search Functionality', () => {
         const result = tokenizedSearch(transactions, searchTerm, getSearchableFields);
 
         expect(result).toHaveLength(1);
-        expect(result[0].transactionID).toBe('3');
+        expect(result.at(0)?.transactionID).toBe('3');
     });
 
     it('should return all transactions when search term is empty', () => {
@@ -161,6 +185,6 @@ describe('AddUnreportedExpense Search Functionality', () => {
         const result = tokenizedSearch(transactions, searchTerm, getSearchableFields);
 
         expect(result).toHaveLength(1);
-        expect(result[0].transactionID).toBe('1');
+        expect(result.at(0)?.transactionID).toBe('1');
     });
 });
