@@ -23,7 +23,7 @@ import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail, getUserToInviteOption} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
@@ -126,11 +126,23 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         if (firstRenderRef.current) {
             // We only want to add the saved selected user on first render
             firstRenderRef.current = false;
-            Object.keys(invitedEmailsToAccountIDsDraft ?? {}).forEach((login) => {
-                if (!(login in detailsMap)) {
-                    return;
+            Object.entries(invitedEmailsToAccountIDsDraft ?? {}).forEach(([login, accountID]) => {
+                if (login in detailsMap) {
+                    newSelectedOptions.push({...detailsMap[login], isSelected: true});
+                } else {
+                    const optimisticOption = getUserToInviteOption({
+                        searchValue: login,
+                    });
+                    if (optimisticOption) {
+                        optimisticOption.accountID = Number(accountID);
+                        const memberOption = formatMemberForList({
+                            ...optimisticOption,
+                            accountID: Number(accountID),
+                            isSelected: true,
+                        });
+                        newSelectedOptions.push(memberOption);
+                    }
                 }
-                newSelectedOptions.push({...detailsMap[login], isSelected: true});
             });
         }
         selectedOptions.forEach((option) => {
