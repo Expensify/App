@@ -34,7 +34,7 @@ function PersonalAddressPage() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [defaultCountry, defaultCountryStatus] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: true});
     const isLoading = isLoadingOnyxValue(defaultCountryStatus);
-    const address = useMemo(() => normalizeCountryCode(getCurrentAddress(privatePersonalDetails)), [privatePersonalDetails]);
+    const address = useMemo(() => normalizeCountryCode(getCurrentAddress(privatePersonalDetails)) as Address, [privatePersonalDetails]);
     if (isLoading) {
         return <FullScreenLoadingIndicator />;
     }
