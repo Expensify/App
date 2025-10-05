@@ -144,6 +144,7 @@ import type {
     MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
+    NextStepParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -1504,6 +1505,80 @@ const translations = {
     },
     modal: {
         backdropLabel: 'Modal Backdrop',
+    },
+    nextStep: {
+        [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
+            switch (actorType) {
+                case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                    return `Waiting for <strong>you</strong> to add expenses.`;
+                case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                    return `Waiting for <strong>${actor}</strong> to add expenses.`;
+                case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                    return `Waiting for an admin to add expenses.`;
+            }
+        },
+        [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: ({}: NextStepParams) => `No further action required!`,
+        [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+            switch (actorType) {
+                case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                    return `Waiting for <strong>you</strong> to add a bank account.`;
+                case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                    return `Waiting for <strong>${actor}</strong> to add a bank account.`;
+                case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                    return `Waiting for an admin to add a bank account.`;
+            }
+        },
+        [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta}: NextStepParams) => {
+            switch (actorType) {
+                case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                    return `Waiting for <strong>your</strong> expenses to automatically submit${eta ? ' ' + eta : ''}.`;
+                case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                    return `Waiting for <strong>${actor}'s</strong> expenses to automatically submit${eta ? ' ' + eta : ''}.`;
+                case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                    return `Waiting for an admin's expenses to automatically submit${eta ? ' ' + eta : ''}.`;
+            }
+        },
+        [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
+            switch (actorType) {
+                case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                    return `Waiting for <strong>you</strong> to fix the issue(s).`;
+                case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                    return `Waiting for <strong>${actor}</strong> to fix the issue(s).`;
+                case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                    return `Waiting for an admin to fix the issue(s).`;
+            }
+        },
+        [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
+            switch (actorType) {
+                case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                    return `Waiting for <strong>you</strong> to approve expenses.`;
+                case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                    return `Waiting for <strong>${actor}</strong> to approve expenses.`;
+                case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                    return `Waiting for an admin to approve expenses.`;
+            }
+        },
+        [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
+            switch (actorType) {
+                case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                    return `Waiting for <strong>you</strong> to pay expenses.`;
+                case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                    return `Waiting for <strong>${actor}</strong> to pay expenses.`;
+                case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                    return `Waiting for an admin to pay expenses.`;
+            }
+        },
+        [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+            switch (actorType) {
+                case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                    return `Waiting for <strong>you</strong> to finish setting up a business bank account.`;
+                case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                    return `Waiting for <strong>${actor}</strong> to finish setting up a business bank account.`;
+                case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                    return `Waiting for an admin to finish setting up a business bank account.`;
+            }
+        },
+        [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta}: NextStepParams) => `Waiting for payment to complete${eta ? ' ' + eta : ''}.`,
     },
     profilePage: {
         profile: 'Profile',
