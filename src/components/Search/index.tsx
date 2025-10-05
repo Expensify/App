@@ -450,6 +450,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
                 if (transactionGroup.transactions.length === 0 && isTransactionReportGroupListItemType(transactionGroup)) {
                     const reportKey = transactionGroup.keyForList;
+                    if (transactionGroup.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                        return;
+                    }
                     if (reportKey && (Object.keys(selectedTransactions).includes(reportKey) || areAllMatchingItemsSelected)) {
                         const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(transactionGroup);
                         newTransactionList[reportKey] = {
@@ -566,6 +569,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             ? (data as TransactionGroupListItemType[]).reduce((count, item) => {
                   // For empty reports, count the report itself as a selectable item
                   if (item.transactions.length === 0 && isTransactionReportGroupListItemType(item)) {
+                      if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                          return count;
+                      }
                       return count + 1;
                   }
                   // For regular reports, count all transactions
@@ -607,6 +613,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             if (currentTransactions.length === 0 && isTransactionReportGroupListItemType(item)) {
                 const reportKey = item.keyForList;
                 if (!reportKey) {
+                    return;
+                }
+
+                if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                     return;
                 }
 
@@ -842,6 +852,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             const allSelections: Array<[string, SelectedTransactionInfo]> = (data as TransactionGroupListItemType[]).flatMap((item) => {
                 // Handle empty reports - select the report itself
                 if (item.transactions.length === 0 && isTransactionReportGroupListItemType(item) && item.keyForList) {
+                    if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                        return [];
+                    }
                     return [mapEmptyReportToSelectedEntry(item)];
                 }
 
