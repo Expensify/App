@@ -1347,7 +1347,6 @@ function getUserToInviteOption({
     showChatPreviewLine = false,
     shouldAcceptName = false,
 }: GetUserToInviteConfig): SearchOptionData | null {
-    debugger;
     if (!searchValue) {
         return null;
     }

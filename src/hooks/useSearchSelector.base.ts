@@ -81,6 +81,9 @@ type UseSearchSelectorReturn = {
     /** Current search term */
     searchTerm: string;
 
+    /** Debounced search term */
+    debouncedSearchTerm: string;
+
     /** Function to update search term */
     setSearchTerm: (value: string) => void;
 
@@ -158,7 +161,6 @@ function useSearchSelectorBase({
         return getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
     }, [debouncedSearchTerm, countryCode]);
 
-    console.log('useSearchSotr hook', searchContext, areOptionsInitialized);
     const baseOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return getEmptyOptions();
@@ -290,6 +292,7 @@ function useSearchSelectorBase({
 
     return {
         searchTerm,
+        debouncedSearchTerm,
         setSearchTerm,
         searchOptions,
         availableOptions,

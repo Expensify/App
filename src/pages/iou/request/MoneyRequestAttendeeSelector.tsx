@@ -68,7 +68,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
     const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyFn(policy), [policy]);
 
-    // Convert attendees to OptionData format for useSearchSelector
     const initialSelectedOptions = useMemo(
         () =>
             attendees.map((attendee) => ({
@@ -83,7 +82,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         [attendees],
     );
 
-    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES,
         includeUserToInvite: true,
@@ -105,10 +104,9 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     });
 
     useEffect(() => {
-        searchInServer(searchTerm.trim());
-    }, [searchTerm]);
+        searchInServer(debouncedSearchTerm.trim());
+    }, [debouncedSearchTerm]);
 
-    // Apply ordering for paid group policies (preserving original behavior)
     const orderedAvailableOptions = useMemo(() => {
         if (!isPaidGroupPolicy || !areOptionsInitialized) {
             return availableOptions;
@@ -136,7 +134,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         };
     }, [availableOptions, isPaidGroupPolicy, areOptionsInitialized, searchTerm, action]);
 
-    // Convert selectedOptions back to Attendee format for the parent component
     const handleSelectionChange = useCallback(
         (newSelectedOptions: OptionData[]) => {
             const newAttendees: Attendee[] = newSelectedOptions.map((option) => ({
@@ -154,7 +151,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         [iouType, onAttendeesAdded],
     );
 
-    // Update parent component when selection changes
     useEffect(() => {
         handleSelectionChange(selectedOptions);
     }, [selectedOptions, handleSelectionChange]);
@@ -230,12 +226,11 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             undefined,
             reportAttributesDerived,
         );
-        // if (formatResults.section.data && formatResults.section.data.length > 0) {
+
         newSections.push({
             ...formatResults.section,
             data: formatResults.section.data as OptionData[],
         });
-        // }
 
         newSections.push({
             title: translate('common.recents'),
