@@ -1129,7 +1129,7 @@ const translations = {
         canceled: 'Cancelado',
         posted: 'Publicado',
         deleteReceipt: 'Excluir recibo',
-        findMerchant: 'Encontrar comerciante',
+        findExpense: 'Encontrar despesa',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `excluiu uma despesa (${amount} para ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `moveu uma despesa${reportName ? `de ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `para <a href="${reportUrl}">${reportName}</a>` : ''}`,

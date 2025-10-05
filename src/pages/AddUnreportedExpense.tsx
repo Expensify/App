@@ -4,7 +4,6 @@ import type {OnyxCollection} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -18,6 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
@@ -26,7 +26,7 @@ import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/
 import {isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {createUnreportedExpenseSections, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
+import {createUnreportedExpenseSections, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {convertBulkTrackedExpensesToIOU, startMoneyRequest} from '@userActions/IOU';
@@ -116,12 +116,24 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         }
 
         return tokenizedSearch(transactions, debouncedSearchValue, (transaction) => {
+            const searchableFields: string[] = [];
+
             const merchant = getMerchant(transaction);
-            // Don't include transactions with placeholder merchant value in search
-            if (merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
-                return [];
+            if (merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
+                searchableFields.push(merchant);
             }
-            return [merchant];
+
+            const description = getDescription(transaction);
+            if (description.trim()) {
+                searchableFields.push(description);
+            }
+
+            const amount = getAmount(transaction);
+            const currency = getCurrency(transaction);
+            const formattedAmount = convertToDisplayString(amount, currency);
+            searchableFields.push(formattedAmount);
+
+            return searchableFields;
         });
     }, [transactions, debouncedSearchValue]);
 
@@ -237,10 +249,9 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 isSelected={(item) => selectedIds.has(item.transactionID)}
                 shouldShowTextInput={shouldShowTextInput}
                 textInputValue={searchValue}
-                textInputLabel={shouldShowTextInput ? translate('iou.findMerchant') : undefined}
+                textInputLabel={shouldShowTextInput ? translate('iou.findExpense') : undefined}
                 onChangeText={setSearchValue}
                 headerMessage={headerMessage}
-                textInputIcon={Expensicons.MagnifyingGlass}
                 canSelectMultiple
                 sections={sections}
                 ListItem={UnreportedExpenseListItem}

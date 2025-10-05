@@ -908,9 +908,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListHandle>;
 
-    /** Icon to display on the left side of TextInput */
-    textInputIcon?: IconAsset;
-
     /** Custom scroll component to use instead of the default ScrollView */
     renderScrollComponent?: (props: ScrollViewProps) => ReactElement<ScrollViewProps, string | JSXElementConstructor<unknown>>;
 } & TRightHandSideComponent<TItem>;
