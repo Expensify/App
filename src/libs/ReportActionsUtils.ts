@@ -2881,10 +2881,18 @@ function getAddedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: On
     const {newValue, categoryName, entityType} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET>) ?? {};
     const value = newValue as PolicyBudgetFrequency;
 
-    if (newValue && value?.frequency && value?.shared !== undefined && categoryName && entityType) {
-        const amount = convertToShortDisplayString(value?.shared, policy?.outputCurrency ?? CONST.CURRENCY.USD);
+    if (newValue && value?.frequency && categoryName && entityType) {
+        const sharedAmount = convertToShortDisplayString(value?.shared, policy?.outputCurrency ?? CONST.CURRENCY.USD);
+        const individualAmount = convertToShortDisplayString(value?.individual, policy?.outputCurrency ?? CONST.CURRENCY.USD);
         const frequency = translateLocal(`workspace.common.budgetFrequency.${value.frequency}` as TranslationPaths);
-        return translateLocal('workspaceActions.addBudget', {frequency, amount, categoryName, entityType});
+
+        return translateLocal('workspaceActions.addBudget', {
+            frequency,
+            entityName: categoryName,
+            entityType,
+            shared: value.shared ? sharedAmount : undefined,
+            individual: value.individual ? individualAmount : undefined,
+        });
     }
     return getReportActionText(reportAction);
 }

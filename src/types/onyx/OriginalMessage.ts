@@ -308,8 +308,11 @@ type PolicyBudgetFrequency = {
     /** Values of policy budget frequency */
     frequency: PolicyBudgetFrequencyValues;
 
-    /** Shared value policy budget */
-    shared: number;
+    /** Shared value of the entity budget */
+    shared?: number;
+
+    /** Individual value of the entity budget */
+    individual?: number;
 };
 
 /** Model of change log */

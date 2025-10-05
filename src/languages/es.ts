@@ -6004,7 +6004,6 @@ const translations = {
             `cambió la tasa de informes enviados aleatoriamente para aprobación manual a ${Math.round(newAuditRate * 100)}% (previamente ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `cambió el límite de aprobación manual para todos los gastos a ${newLimit} (previamente ${oldLimit})`,
-        addBudget: ({amount, frequency, categoryName, entityType}: AddBudgetParams) => `añadió un presupuesto compartido ${frequency} de ${amount} al/la ${entityType} "${categoryName}".`,
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',

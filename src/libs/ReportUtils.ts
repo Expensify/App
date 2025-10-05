@@ -154,6 +154,7 @@ import {
 import {
     formatLastMessageText,
     getActionableJoinRequestPendingReportAction,
+    getAddedBudgetMessage,
     getAllReportActions,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
@@ -5353,6 +5354,10 @@ function getReportName(
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
         return getChangedApproverActionMessage(parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET) && policy && 'outputCurrency' in policy) {
+        return getAddedBudgetMessage(parentReportAction, policy);
     }
 
     if (parentReportAction?.actionName && isTagModificationAction(parentReportAction?.actionName)) {
