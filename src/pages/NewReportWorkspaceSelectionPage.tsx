@@ -13,7 +13,6 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createNewReport} from '@libs/actions/Report';
@@ -59,8 +58,6 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {isBetaEnabled} = usePermissions();
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
@@ -108,7 +105,17 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             }
             navigateToNewReport(optimisticReportID);
         },
-        [allReportNextSteps, clearSelectedTransactions, currentUserPersonalDetails, isASAPSubmitBetaEnabled, isMovingExpenses, navigateToNewReport, policies, selectedTransactions, hasViolations],
+        [
+            allReportNextSteps,
+            clearSelectedTransactions,
+            currentUserPersonalDetails,
+            isASAPSubmitBetaEnabled,
+            isMovingExpenses,
+            navigateToNewReport,
+            policies,
+            selectedTransactions,
+            hasViolations,
+        ],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {
