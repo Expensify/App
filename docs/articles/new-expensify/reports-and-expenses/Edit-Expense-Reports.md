@@ -7,6 +7,8 @@ keywords: [New Expensify, retract report, undo submit, undo close, edit submitte
 
 If you submitted a report too early or need to make changes, you can easily update it by retracting the report using **Undo submit** or **Undo close**. This returns the report to an editable state.
 
+**Note:** Report actions like creating, submitting, or retracting can only be done in your own account. If you need to help a teammate, consider asking them to add you as a [CoPilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access). 
+
 # When to Retract a Report
 
 This option is helpful when:
@@ -23,28 +25,29 @@ You can retract reports with the following statuses:
 
 ---
 
-# Retract a Processing Report
+## How to retract a Processing report
 
 1. Open the report.
 2. Tap the **More** menu (three dots in the top-right corner).
 3. Tap **Undo submit**.
 4. The report will change to **Open** and display a **Retracted** system message.
+   - You can only retract reports you submitted from your own account. Reports submitted by other members can’t be retracted unless you’re acting as their CoPilot.
 
 **Note:** Submitters won’t receive a notification when retracting their own report.
 
 ---
 
-# Retract a Closed Report
+## How to use Undo Close on a Closed Report
 
 1. Open the closed report.
 2. Tap **More** > **Undo close**.
 3. A system message confirms the report is reopened and editable.
 
-**Note:** Only Workspace Admins can retract closed reports.
+**Note:** Only Workspace Admins can retract their own closed reports. Admins can’t retract other members’ reports unless they’ve been added as a [CoPilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access)
 
 ---
 
-# Editing Expense Reports After Exporting to an Accounting System
+## Editing Expense Reports After Exporting to an Accounting System
 
 Admins can still retract closed reports even if they’ve already been exported to an accounting system such as QuickBooks or NetSuite.
 
@@ -73,5 +76,9 @@ You can't retract a report that’s already been **approved** or **paid**.
 ## What happens if I retract and edit a report after it’s exported to our accounting system?
 
 You’ll see a warning modal before reopening. Any edits won’t sync to the external system. If you make changes to the report, those will need to be manually reconciled in the accounting system.
+
+## Can I edit or retract someone else’s report?
+
+No. You can only manage reports you submitted from your own account. If you need to take these actions for another employee, ask them to add you as a [CoPilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access).
 
 
