@@ -180,32 +180,31 @@ function MoneyRequestParticipantsSelector({
         [participants, iouType, action, isCategorizeOrShareAction, isPerDiemRequest, isCorporateCardTransaction, canShowManagerMcTest, isPaidGroupPolicy],
     );
 
-    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, onListEndReached, contactState} =
-        useSearchSelector({
-            selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
-            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-            includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest,
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            includeRecentReports: true,
-            getValidOptionsConfig,
-            shouldInitialize: didScreenTransitionEnd,
-            enablePhoneContacts: isNative,
-            contactOptions: contacts,
-            initialSelected: participants as OptionData[],
-            onSelectionChange: (options: OptionData[]) => {
-                if (!isIOUSplit) {
-                    return;
-                }
-                const sanitizedParticipants: Participant[] = options.map((option) => sanitizedSelectedParticipant(option, iouType));
-                onParticipantsAdded(sanitizedParticipants);
-            },
-            onSingleSelect: (option: OptionData) => {
-                if (isIOUSplit) {
-                    return;
-                }
-                addSingleParticipant(option);
-            },
-        });
+    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
+        selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
+        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest,
+        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+        includeRecentReports: true,
+        getValidOptionsConfig,
+        shouldInitialize: didScreenTransitionEnd,
+        enablePhoneContacts: isNative,
+        contactOptions: contacts,
+        initialSelected: participants as OptionData[],
+        onSelectionChange: (options: OptionData[]) => {
+            if (!isIOUSplit) {
+                return;
+            }
+            const sanitizedParticipants: Participant[] = options.map((option) => sanitizedSelectedParticipant(option, iouType));
+            onParticipantsAdded(sanitizedParticipants);
+        },
+        onSingleSelect: (option: OptionData) => {
+            if (isIOUSplit) {
+                return;
+            }
+            addSingleParticipant(option);
+        },
+    });
 
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
 
@@ -222,12 +221,14 @@ function MoneyRequestParticipantsSelector({
                 searchTerm.trim(),
                 selectedOptions.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
             ),
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [
-            availableOptions.personalDetails,
-            availableOptions.recentReports,
+            availableOptions.personalDetails?.length,
+            availableOptions.recentReports?.length,
             availableOptions.selfDMChat,
             availableOptions?.userToInvite,
-            availableOptions.workspaceChats,
+            availableOptions.workspaceChats?.length,
             cleanSearchTerm,
             searchTerm,
             selectedOptions,
@@ -239,15 +240,21 @@ function MoneyRequestParticipantsSelector({
      */
     const [sections, header] = useMemo(() => {
         const newSections: Section[] = [];
-        if (!areOptionsInitialized) {
+        if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, ''];
         }
 
-        // Selected options section (for multi-select mode)
-        if (isIOUSplit && selectedOptionsForDisplay.length > 0) {
-            const formatResults = formatSectionsFromSearchTerm(searchTerm, selectedOptionsForDisplay, [], [], personalDetails, true, undefined, reportAttributesDerived);
-            newSections.push(formatResults.section);
-        }
+        const formatResults = formatSectionsFromSearchTerm(
+            searchTerm,
+            participants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
+            [],
+            [],
+            personalDetails,
+            true,
+            undefined,
+            reportAttributesDerived,
+        );
+        newSections.push(formatResults.section);
 
         newSections.push({
             title: translate('workspace.common.workspace'),
@@ -300,20 +307,20 @@ function MoneyRequestParticipantsSelector({
         return [newSections, headerMessage];
     }, [
         areOptionsInitialized,
-        searchTerm,
-        selectedOptionsForDisplay,
-        availableOptions.recentReports,
-        availableOptions.personalDetails,
+        didScreenTransitionEnd,
+        translate,
         availableOptions.workspaceChats,
         availableOptions.selfDMChat,
+        availableOptions.recentReports,
+        availableOptions.personalDetails,
         availableOptions.userToInvite,
-        personalDetails,
-        translate,
         isPerDiemRequest,
         showImportContacts,
+        searchTerm,
+        participants,
+        personalDetails,
         reportAttributesDerived,
         inputHelperText,
-        isIOUSplit,
     ]);
 
     /**
