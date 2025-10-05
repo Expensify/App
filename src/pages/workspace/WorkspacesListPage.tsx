@@ -44,7 +44,7 @@ import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePre
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import {getDefaultApprover, getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getDefaultApprover, getPolicy, getPolicyBrickRoadIndicatorStatus, getUberConnectionErrorDirectlyFromPolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
@@ -113,7 +113,7 @@ function WorkspacesListPage() {
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
-    const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: false});
+    const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: true});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
 
@@ -356,6 +356,8 @@ function WorkspacesListPage() {
         return Object.values(policies)
             .filter((policy): policy is PolicyType => shouldShowPolicy(policy, isOffline, session?.email))
             .map((policy): WorkspaceItem => {
+                const receiptUberBrickRoadIndicator = getUberConnectionErrorDirectlyFromPolicy(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+
                 if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
                     const policyInfo = Object.values(policy.policyDetailsForNonMembers).at(0) as PolicyDetailsForNonMembers;
                     const id = Object.keys(policy.policyDetailsForNonMembers).at(0);
@@ -383,6 +385,7 @@ function WorkspacesListPage() {
                     brickRoadIndicator: !isPolicyAdmin(policy)
                         ? undefined
                         : (reimbursementAccountBrickRoadIndicator ??
+                          receiptUberBrickRoadIndicator ??
                           getPolicyBrickRoadIndicatorStatus(
                               policy,
                               isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),

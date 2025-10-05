@@ -107,6 +107,7 @@ import type {
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -294,6 +295,7 @@ import type {
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
+    WalletAgreementParams,
     WalletProgramParams,
     WelcomeEnterMagicCodeParams,
     WelcomeToRoomParams,
@@ -583,7 +585,7 @@ const translations = {
         tax: '税金',
         shared: '共有',
         drafts: '下書き',
-        draft: 'ドラフト',
+        draft: '下書き',
         finished: '完了',
         upgrade: 'アップグレード',
         downgradeWorkspace: 'ワークスペースをダウングレードする',
@@ -611,7 +613,7 @@ const translations = {
         disabled: '無効',
         import: 'インポート',
         offlinePrompt: '現在、この操作を行うことはできません。',
-        outstanding: '未払い',
+        outstanding: '未処理',
         chats: 'チャット',
         tasks: 'タスク',
         unread: '未読',
@@ -636,7 +638,7 @@ const translations = {
         downloadAsCSV: 'CSVとしてダウンロード',
         help: '助けて',
         expenseReports: '経費報告書',
-        rateOutOfPolicy: 'ポリシー外の評価',
+        rateOutOfPolicy: 'ポリシー外のレート',
         reimbursable: '払い戻し可能',
         editYourProfile: 'プロフィールを編集',
         comments: 'コメント',
@@ -1476,7 +1478,6 @@ const translations = {
             pageTitle: '保存する詳細を選んでください：',
             noDifferences: 'トランザクション間に差異はありません',
             pleaseSelectError: ({field}: {field: string}) => `${field} を選択してください`,
-            pleaseSelectAttendees: '参加者を選択してください',
             selectAllDetailsError: '続行する前にすべての詳細を選択してください。',
         },
         confirmationPage: {
@@ -2883,10 +2884,11 @@ const translations = {
     termsStep: {
         headerTitle: '利用規約と手数料',
         headerTitleRefactor: '手数料と条件',
-        haveReadAndAgree: '私は、受け取ることに同意します',
-        electronicDisclosures: '電子開示',
-        agreeToThe: '同意する',
-        walletAgreement: 'ウォレット契約',
+        haveReadAndAgreePlain: '私は、電子情報開示を読み、その受領に同意します。',
+        haveReadAndAgree: `私は、<a href="${CONST.ELECTRONIC_DISCLOSURES_URL}">電子情報開示</a>を読み、その受領に同意します。`,
+        agreeToThePlain: 'プライバシーとウォレットの規約に同意します。',
+        agreeToThe: ({walletAgreementUrl}: WalletAgreementParams) =>
+            `<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシー</a>と<a href="${walletAgreementUrl}">ウォレット</a>の規約に同意します。`,
         enablePayments: '支払いを有効にする',
         monthlyFee: '月額料金',
         inactivity: '非アクティブ',
@@ -2903,17 +2905,14 @@ const translations = {
             cashReload: '現金リロード',
             inNetwork: 'ネットワーク内',
             outOfNetwork: 'ネットワーク外',
-            atmBalanceInquiry: 'ATM残高照会',
-            inOrOutOfNetwork: '（ネットワーク内またはネットワーク外）',
-            customerService: 'カスタマーサービス',
-            automatedOrLive: '（自動またはライブエージェント）',
-            afterTwelveMonths: '（12か月間取引がない場合）',
+            atmBalanceInquiry: 'ATM残高照会（ネットワーク内またはネットワーク外）',
+            customerService: 'カスタマーサービス（自動またはライブエージェント）',
+            inactivityAfterTwelveMonths: '非アクティブ（12か月間取引がない場合）',
             weChargeOneFee: '私たちは他に1種類の手数料を請求します。それは:',
             fdicInsurance: 'あなたの資金はFDIC保険の対象です。',
-            generalInfo: 'プリペイドアカウントに関する一般情報については、こちらをご覧ください。',
-            conditionsDetails: 'すべての料金およびサービスの詳細と条件については、こちらをご覧ください',
-            conditionsPhone: 'または +1 833-400-0904 にお電話ください。',
-            instant: '（即座）',
+            generalInfo: `プリペイド口座に関する一般情報については、<a href="${CONST.CFPB_PREPAID_URL}">${CONST.TERMS.CFPB_PREPAID}</a> を参照。`,
+            conditionsDetails: `すべての料金およびサービスの詳細と条件については、<a href="${CONST.FEES_URL}">${CONST.FEES_URL}</a> をご覧いただくか、+1 833-400-0904までお電話ください。`,
+            electronicFundsWithdrawalInstant: '電子資金引き出し（インスタント）',
             electronicFundsInstantFeeMin: ({amount}: TermsParams) => `（最小${amount}）`,
         },
         longTermsForm: {
@@ -2929,25 +2928,16 @@ const translations = {
             inactivityDetails: '非アクティブ料金はありません。',
             sendingFundsTitle: '別のアカウント保有者に資金を送信する',
             sendingFundsDetails: '残高、銀行口座、またはデビットカードを使用して他のアカウント保有者に資金を送る際の手数料はありません。',
-            electronicFundsStandardDetails:
-                "There's no fee to transfer funds from your Expensify Wallet " +
-                'to your bank account using the standard option. This transfer usually completes within 1-3 business' +
-                ' days.',
+            electronicFundsStandardDetails: 'Expensify Walletからお客様の銀行口座への送金は、標準オプションで手数料はかかりません。この送金は通常1～3営業日以内に完了します。',
             electronicFundsInstantDetails: ({percentage, amount}: ElectronicFundsParams) =>
-                "There's a fee to transfer funds from your Expensify Wallet to " +
-                'your linked debit card using the instant transfer option. This transfer usually completes within ' +
-                `several minutes. The fee is ${percentage}% of the transfer amount (with a minimum fee of ${amount}).`,
+                'Expensifyウォレットからリンクされたデビットカードに即時送金オプションを使用して資金を送金するには手数料がかかります。' +
+                `この送金は通常数分で完了します。手数料は送金額の${percentage}%（最低手数料は${amount}）です。`,
             fdicInsuranceBancorp: ({amount}: TermsParams) =>
-                'Your funds are eligible for FDIC insurance. Your funds will be held at or ' +
-                `transferred to ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, an FDIC-insured institution. Once there, your funds are insured up ` +
-                `to ${amount} by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails, if specific deposit insurance requirements ` +
-                `are met and your card is registered. See`,
-            fdicInsuranceBancorp2: '詳細については。',
-            contactExpensifyPayments: `${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} に連絡するには、+1 833-400-0904 に電話するか、メールでお問い合わせください。`,
-            contactExpensifyPayments2: 'またはサインイン',
-            generalInformation: 'プリペイドアカウントに関する一般情報については、こちらをご覧ください。',
-            generalInformation2:
-                'プリペイドアカウントに関する苦情がある場合は、消費者金融保護局（Consumer Financial Protection Bureau）に1-855-411-2372までお電話いただくか、次のウェブサイトをご覧ください。',
+                `お客様の資金はFDIC保険の対象となります。お客様の資金は、FDIC保険に加入している${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}保管されるか、${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}に送金されます。` +
+                `${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}が破綻した場合、特定の預金保険要件を満たし、お客様のカードが登録されていれば、お客様の資金はFDICにより最高${amount}まで保証されます。` +
+                `詳細は${CONST.TERMS.FDIC_PREPAID}を参照してください。`,
+            contactExpensifyPayments: `${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}へのお問い合わせは、電話（+1 833-400-0904）、Eメール（${CONST.EMAIL.CONCIERGE}）またはサインイン（${CONST.NEW_EXPENSIFY_URL}）してください。`,
+            generalInformation: `プリペイド口座に関する一般情報については、${CONST.TERMS.CFPB_PREPAID}をご覧ください。プリペイド口座について苦情がある場合は、消費者金融保護局（Consumer Financial Protection Bureau）に電話(1-855-411-2372)するか、${CONST.TERMS.CFPB_COMPLAINT}をご覧ください。`,
             printerFriendlyView: '印刷用バージョンを表示',
             automated: '自動化',
             liveAgent: 'ライブエージェント',
@@ -4789,9 +4779,11 @@ const translations = {
             textType: 'テキスト',
             dateType: '日付',
             dropdownType: 'リスト',
+            formulaType: 'Formula',
             textAlternateText: '自由入力フィールドを追加してください。',
             dateAlternateText: '日付選択用のカレンダーを追加します。',
             dropdownAlternateText: '選択肢のリストを追加してください。',
+            formulaAlternateText: '数式フィールドを追加します。',
             nameInputSubtitle: 'レポートフィールドの名前を選択してください。',
             typeInputSubtitle: '使用するレポートフィールドのタイプを選択してください。',
             initialValueInputSubtitle: 'レポートフィールドに表示する開始値を入力してください。',
@@ -5079,8 +5071,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Expensify Classicで設定された接続にエラーがあります。',
-            goToODToFix: 'この問題を解決するには、Expensify Classicに移動してください。',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Expensify Classicで設定された接続にエラーがあります。[この問題を解決するには、Expensify Classicに移動してください。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '設定を管理するには、Expensify Classicに移動してください。',
             setup: '接続する',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `最終同期日時: ${relativeDate}`,
