@@ -14,19 +14,14 @@ import {canActionTask, canModifyTask, completeTestDriveTask, createTaskAndNaviga
 import * as API from '@libs/API';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import DateUtils from '@libs/DateUtils';
-import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
-import Parser from '@libs/Parser';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ReportUtils from '@libs/ReportUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {Report, ReportAction} from '@src/types/onyx';
-import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
-import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
+import type {Report} from '@src/types/onyx';
 import {getFakeReport, getFakeReportAction} from '../utils/LHNTestUtils';
 import {getGlobalFetchMock} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -238,71 +233,25 @@ describe('actions/Task', () => {
         const accountID = 2;
         const conciergeChatReport: Report = getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
         const testDriveTaskReport: Report = {...getFakeReport(), ownerAccountID: accountID};
-        const testDriveTaskAction: ReportAction = {
-            ...getFakeReportAction(),
-            childType: CONST.REPORT.TYPE.TASK,
-            childReportName: Parser.replace(translateLocal('onboarding.testDrive.name', {testDriveURL: `${CONST.STAGING_NEW_EXPENSIFY_URL}/${ROUTES.TEST_DRIVE_DEMO_ROOT}`})),
-            childReportID: testDriveTaskReport.reportID,
-        };
-
-        const reportCollectionDataSet: ReportCollectionDataSet = {
-            [`${ONYXKEYS.COLLECTION.REPORT}${testDriveTaskReport.reportID}`]: testDriveTaskReport,
-            [`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReport.reportID}`]: conciergeChatReport,
-        };
-
-        const reportActionsCollectionDataSet: ReportActionsCollectionDataSet = {
-            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReport.reportID}`]: {
-                [testDriveTaskAction.reportActionID]: testDriveTaskAction,
-            },
-        };
-
-        beforeEach(async () => {
-            await Onyx.clear();
-            await Onyx.multiSet({
-                ...reportCollectionDataSet,
-                ...reportActionsCollectionDataSet,
-                [ONYXKEYS.NVP_INTRO_SELECTED]: {
-                    viewTour: testDriveTaskReport.reportID,
-                },
-                [ONYXKEYS.SESSION]: {
-                    accountID,
-                },
-            });
-            await waitForBatchedUpdates();
-        });
-
         it('Completes test drive task', () => {
-            completeTestDriveTask();
-            expect(Object.values(getFinishOnboardingTaskOnyxData(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR)).length).toBe(0);
+            completeTestDriveTask(testDriveTaskReport, conciergeChatReport, false);
+            expect(Object.values(getFinishOnboardingTaskOnyxData(testDriveTaskReport, conciergeChatReport, false)).length).toBe(0);
         });
     });
 
     describe('getFinishOnboardingTaskOnyxData', () => {
         const parentReport: Report = getFakeReport();
         const taskReport: Report = {...getFakeReport(), type: CONST.REPORT.TYPE.TASK, ownerAccountID: 1, managerID: 2, parentReportID: parentReport.reportID};
-        const reportCollectionDataSet: ReportCollectionDataSet = {
-            [`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`]: taskReport,
-            [`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`]: parentReport,
-        };
         beforeEach(async () => {
             await Onyx.clear();
-            await Onyx.multiSet({
-                ...reportCollectionDataSet,
-            });
             await Onyx.set(ONYXKEYS.SESSION, {email: 'user1@gmail.com', accountID: 2});
-            await Onyx.set(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM, setupCategories: taskReport.reportID});
             await waitForBatchedUpdates();
         });
         it('Return not empty object', () => {
-            expect(Object.values(getFinishOnboardingTaskOnyxData('setupCategories')).length).toBeGreaterThan(0);
+            expect(Object.values(getFinishOnboardingTaskOnyxData(taskReport, parentReport, false)).length).toBeGreaterThan(0);
         });
-        it('Return empty object', async () => {
-            const reportNameValuePairs = {
-                private_isArchived: DateUtils.getDBTime(),
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport.reportID}`, reportNameValuePairs);
-            await waitForBatchedUpdates();
-            expect(Object.values(getFinishOnboardingTaskOnyxData('setupCategories')).length).toBe(0);
+        it('Return empty object', () => {
+            expect(Object.values(getFinishOnboardingTaskOnyxData(taskReport, parentReport, true)).length).toBe(0);
         });
     });
 
