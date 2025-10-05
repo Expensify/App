@@ -11,9 +11,7 @@ const useScrollEventEmitter = () => {
 
     const triggerScrollEvent = useCallback(() => {
         const emitScrolling = (isScrolling: boolean) => {
-            DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, {
-                isScrolling,
-            });
+            DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, isScrolling);
         };
 
         // Start emitting the scrolling event when the scroll begins
