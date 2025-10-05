@@ -9,10 +9,6 @@ type AddressLineParams = {
     lineNumber: number;
 };
 
-type EmployeesSeeTagsAsParams = {
-    customTagName: string;
-};
-
 type CharacterLimitParams = {
     limit: number | string;
 };
@@ -936,6 +932,14 @@ type PayAndDowngradeDescriptionParams = {
     formattedAmount: string;
 };
 
+type WalletAgreementParams = {
+    walletAgreementUrl: string;
+};
+
+type ErrorODIntegrationParams = {
+    oldDotPolicyConnectionsURL: string;
+};
+
 type DisconnectYourBankAccountParams = {
     bankName: string;
 };
@@ -1254,7 +1258,8 @@ export type {
     BusinessRegistrationNumberParams,
     DependentMultiLevelTagsSubtitleParams,
     PayAndDowngradeDescriptionParams,
-    EmployeesSeeTagsAsParams,
+    WalletAgreementParams,
+    ErrorODIntegrationParams,
     DisconnectYourBankAccountParams,
     MergeAccountIntoParams,
 };

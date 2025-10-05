@@ -85,6 +85,10 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             linkStyle = [styles.textMicroSupporting, styles.link];
         }
 
+        if (HTMLEngineUtils.isChildOfAlertText(tnode)) {
+            linkStyle = [styles.formError, styles.mb0, styles.link];
+        }
+
         if (tnode.classes.includes('no-style-link')) {
             // If the link has a class of a no-style-link, we don't apply any styles
             linkStyle = {...(style as TextStyle)};
