@@ -3,11 +3,14 @@ import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, Report, ReportNextStepDeprecated, TransactionViolations} from '@src/types/onyx';
+import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
 import Permissions from './Permissions';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
@@ -58,6 +61,28 @@ Onyx.connect({
         transactionViolations = value;
     },
 });
+
+function buildMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate']) {
+    const actor = getDisplayNameForParticipant({accountID: nextStep.actorAccountID});
+
+    let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
+    if (nextStep.actorAccountID === currentUserAccountID) {
+        actorType = CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER;
+    } else if (nextStep.actorAccountID === -1) {
+        actorType = CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN;
+    } else {
+        actorType = CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER;
+    }
+
+    let eta: string | undefined;
+    if (nextStep.eta?.etaKey) {
+        eta = translate(`nextStep.eta.${nextStep.eta.etaKey}`);
+    } else if (nextStep.eta?.dateTime) {
+        eta = translate(`nextStep.eta.dateTime`, {date: DateUtils.formatToLongDateWithWeekday(nextStep.eta.dateTime)});
+    }
+
+    return `<next-step>${translate(`nextStep.message.${nextStep.messageKey}`, {actor, actorType, eta})}</next-step>`;
+}
 
 function parseMessage(messages: Message[] | undefined) {
     let nextStepHTML = '';
@@ -865,4 +890,4 @@ function buildNextStepNew(
     return optimisticNextStep;
 }
 
-export {parseMessage, buildNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled, buildNextStepNew};
+export {buildMessage, parseMessage, buildNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled, buildNextStepNew};
