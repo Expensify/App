@@ -188,10 +188,10 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
 
     const toggleApprover = useCallback(
         (approver: SelectionListApprover) => {
-            // For single-select approver lists, immediately perform the action instead of just updating selection
-            const newSelectedEmail = selectedApproverEmail === approver.login ? undefined : approver.login;
-
-            if (newSelectedEmail) {
+            if (selectedApproverEmail === approver.login) {
+                clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow});
+            } else {
+                const newSelectedEmail = approver.login;
                 const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
                 const accountID = Number(policyMemberEmailsToAccountIDs[newSelectedEmail] ?? '');
                 const {avatar, displayName = newSelectedEmail} = personalDetails?.[accountID] ?? {};
@@ -205,8 +205,6 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     currentApprovalWorkflow,
                     policyID: route.params.policyID,
                 });
-            } else {
-                clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow});
             }
 
             if (isInitialCreationFlow) {
