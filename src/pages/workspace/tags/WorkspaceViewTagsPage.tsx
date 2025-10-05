@@ -282,10 +282,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         return;
                     }
                     setSelectedTags([]);
-                    if (policy === undefined) {
-                        return;
-                    }
-
                     // Disable the selected tags
                     setWorkspaceTagEnabled(policyData, tagsToDisable, orderWeight);
                 },
@@ -299,11 +295,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     setSelectedTags([]);
-                    if (policy === undefined) {
-                        return;
-                    }
-
-                    // Enable the selected tags
                     setWorkspaceTagEnabled(policyData, tagsToEnable, orderWeight);
                 },
             });

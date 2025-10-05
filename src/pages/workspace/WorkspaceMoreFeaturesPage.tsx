@@ -258,6 +258,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabledAction: onDisabledOrganizeSwitchPress,
             pendingAction: policy?.pendingFields?.areCategoriesEnabled,
             action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
                 enablePolicyCategories(policyData, isEnabled, true);
             },
         },

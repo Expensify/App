@@ -1,4 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
+import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
@@ -408,8 +408,8 @@ describe('actions/Policy', () => {
         });
     });
 
-    describe('SetPolicyTagsEnabled', () => {
-        it('set policy tag enable', () => {
+    describe('SetWorkspaceTagEnabled', () => {
+        it('set policy tag enable', async () => {
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.areTagsEnabled = true;
 
@@ -425,63 +425,48 @@ describe('actions/Policy', () => {
 
             mockFetch?.pause?.();
 
-            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
-                .then(() => {
-                    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
-                })
-                .then(() => {
-                    const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-                    setWorkspaceTagEnabled(policyData.current, tagsToUpdate, 0);
-                    return waitForBatchedUpdates();
-                })
-                .then(
-                    () =>
-                        new Promise<void>((resolve) => {
-                            const connection = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
-                                callback: (policyTags) => {
-                                    Onyx.disconnect(connection);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
 
-                                    Object.keys(tagsToUpdate).forEach((key) => {
-                                        const updatedTag = policyTags?.[tagListName]?.tags[key];
-                                        expect(updatedTag?.enabled).toBeFalsy();
-                                        expect(updatedTag?.errors).toBeFalsy();
-                                        expect(updatedTag?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-                                        expect(updatedTag?.pendingFields?.enabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-                                    });
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
+            setWorkspaceTagEnabled(policyData.current, tagsToUpdate, 0);
+            await waitForBatchedUpdates();
 
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(mockFetch?.resume)
-                .then(waitForBatchedUpdates)
-                .then(
-                    () =>
-                        new Promise<void>((resolve) => {
-                            const connection = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
-                                callback: (policyTags) => {
-                                    Onyx.disconnect(connection);
+            // Check optimistic updates
+            let optimisticPolicyTags: PolicyTagLists | undefined;
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                callback: (val) => (optimisticPolicyTags = val),
+            });
 
-                                    Object.keys(tagsToUpdate).forEach((key) => {
-                                        const updatedTag = policyTags?.[tagListName]?.tags[key];
-                                        expect(updatedTag?.errors).toBeFalsy();
-                                        expect(updatedTag?.pendingAction).toBeFalsy();
-                                        expect(updatedTag?.pendingFields?.enabled).toBeFalsy();
-                                    });
+            Object.keys(tagsToUpdate).forEach((key) => {
+                const updatedTag = optimisticPolicyTags?.[tagListName]?.tags[key];
+                expect(updatedTag?.enabled).toBeFalsy();
+                expect(updatedTag?.errors).toBeFalsy();
+                expect(updatedTag?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                expect(updatedTag?.pendingFields?.enabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            });
 
-                                    resolve();
-                                },
-                            });
-                        }),
-                );
+            mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Check success updates
+            let successPolicyTags: PolicyTagLists | undefined;
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                callback: (val) => (successPolicyTags = val),
+            });
+
+            Object.keys(tagsToUpdate).forEach((key) => {
+                const updatedTag = successPolicyTags?.[tagListName]?.tags[key];
+                expect(updatedTag?.errors).toBeFalsy();
+                expect(updatedTag?.pendingAction).toBeFalsy();
+                expect(updatedTag?.pendingFields?.enabled).toBeFalsy();
+            });
         });
 
-        it('reset policy tag enable when api returns error', () => {
+        it('reset policy tag enable when api returns error', async () => {
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.areTagsEnabled = true;
 
@@ -497,40 +482,79 @@ describe('actions/Policy', () => {
 
             mockFetch?.pause?.();
 
-            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
-                .then(() => {
-                    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
-                })
-                .then(() => {
-                    mockFetch?.fail?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
 
-                    const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-                    setWorkspaceTagEnabled(policyData.current, tagsToUpdate, 0);
-                    return waitForBatchedUpdates();
-                })
-                .then(mockFetch?.resume)
-                .then(waitForBatchedUpdates)
-                .then(
-                    () =>
-                        new Promise<void>((resolve) => {
-                            const connection = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
-                                callback: (policyTags) => {
-                                    Onyx.disconnect(connection);
+            mockFetch?.fail?.();
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+            setWorkspaceTagEnabled(policyData.current, tagsToUpdate, 0);
+            await waitForBatchedUpdates();
 
-                                    Object.keys(tagsToUpdate).forEach((key) => {
-                                        const updatedTag = policyTags?.[tagListName]?.tags[key];
-                                        expect(updatedTag?.errors).toBeTruthy();
-                                        expect(updatedTag?.pendingAction).toBeFalsy();
-                                        expect(updatedTag?.pendingFields?.enabled).toBeFalsy();
-                                    });
+            mockFetch?.resume?.();
+            await waitForBatchedUpdates();
 
-                                    resolve();
-                                },
-                            });
-                        }),
-                );
+            // Check failure updates
+            let failurePolicyTags: PolicyTagLists | undefined;
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                callback: (val) => (failurePolicyTags = val),
+            });
+
+            Object.keys(tagsToUpdate).forEach((key) => {
+                const updatedTag = failurePolicyTags?.[tagListName]?.tags[key];
+                expect(updatedTag?.errors).toBeTruthy();
+                expect(updatedTag?.pendingAction).toBeFalsy();
+                expect(updatedTag?.pendingFields?.enabled).toBeFalsy();
+            });
+        });
+
+        it('should work with data from useOnyx hook', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const tagListName = 'Test tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 1);
+            const tagName = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {}).at(0) ?? '';
+
+            mockFetch?.pause?.();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            const {result} = renderHook(() => useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`));
+
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
+
+            await waitFor(() => {
+                expect(result.current[0]).toBeDefined();
+            });
+
+            setWorkspaceTagEnabled(policyData.current, {[tagName]: {name: tagName, enabled: false}}, 0);
+
+            await waitForBatchedUpdates();
+
+            // Check optimistic updates
+            let optimisticPolicyTags: PolicyTagLists | undefined;
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                callback: (val) => (optimisticPolicyTags = val),
+            });
+
+            const optimisticTag = optimisticPolicyTags?.[tagListName]?.tags[tagName];
+            expect(optimisticTag?.enabled).toBe(false);
+            expect(optimisticTag?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // Check success updates
+            mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            let successPolicyTags: PolicyTagLists | undefined;
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                callback: (val) => (successPolicyTags = val),
+            });
+
+            const successTag = successPolicyTags?.[tagListName]?.tags[tagName];
+            expect(successTag?.enabled).toBe(false);
+            expect(successTag?.pendingAction).toBeFalsy();
         });
     });
 
