@@ -242,6 +242,7 @@ function MoneyReportHeader({
     const [isReopenWarningModalVisible, setIsReopenWarningModalVisible] = useState(false);
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
 
     const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
 
@@ -403,31 +404,34 @@ function MoneyReportHeader({
                 }
             } else if (isInvoiceReport) {
                 startAnimation();
-                payInvoice(type, chatReport, moneyRequestReport, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod);
+                payInvoice(type, chatReport, moneyRequestReport, introSelected, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod);
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, undefined, true);
+                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true);
                 if (currentSearchQueryJSON) {
                     search({
                         searchKey: currentSearchKey,
                         shouldCalculateTotals: true,
                         offset: 0,
                         queryJSON: currentSearchQueryJSON,
+                        isOffline,
                     });
                 }
             }
         },
         [
             chatReport,
-            isAnyTransactionOnHold,
             isDelegateAccessRestricted,
-            showDelegateNoAccessModal,
+            isAnyTransactionOnHold,
             isInvoiceReport,
-            moneyRequestReport,
+            showDelegateNoAccessModal,
             startAnimation,
+            moneyRequestReport,
+            introSelected,
             existingB2BInvoiceReport,
             currentSearchQueryJSON,
             currentSearchKey,
+            isOffline,
         ],
     );
 
@@ -440,6 +444,15 @@ function MoneyReportHeader({
         } else {
             startApprovedAnimation();
             approveMoneyRequest(moneyRequestReport, true);
+            if (currentSearchQueryJSON) {
+                search({
+                    searchKey: currentSearchKey,
+                    shouldCalculateTotals: true,
+                    offset: 0,
+                    queryJSON: currentSearchQueryJSON,
+                    isOffline,
+                });
+            }
         }
     };
 
@@ -709,6 +722,7 @@ function MoneyReportHeader({
                             shouldCalculateTotals: true,
                             offset: 0,
                             queryJSON: currentSearchQueryJSON,
+                            isOffline,
                         });
                     }
                 }}
