@@ -12,23 +12,23 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
+import {resetValidateActionCodeSent} from '@libs/actions/User';
 import {formatCardExpiration, getDomainCards, maskCard, maskPin} from '@libs/CardUtils';
 import {convertToDisplayString, getCurrencyKeyByCountryCode} from '@libs/CurrencyUtils';
-import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import {clearActivatedCardPin, revealVirtualCardDetails} from '@userActions/Card';
+import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
+import CardDetails from '@pages/settings/Wallet/WalletPage/CardDetails';
+import {clearActivatedCardPin} from '@userActions/Card';
 import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -36,11 +36,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CurrencyList} from '@src/types/onyx';
-import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import RedDotCardSection from './RedDotCardSection';
-import CardDetails from './WalletPage/CardDetails';
+import useExpensifyCardContext from './useExpensifyCardContext';
 
 type ExpensifyCardPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD>;
 
@@ -76,8 +73,6 @@ function ExpensifyCardPage({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
-    const [currentCardID, setCurrentCardID] = useState<number>(-1);
     const isTravelCard = cardList?.[cardID]?.nameValuePairs?.isTravelCard;
     const shouldDisplayCardDomain = !isTravelCard && (!cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual);
     const domain = cardList?.[cardID]?.domainName ?? '';
@@ -92,8 +87,6 @@ function ExpensifyCardPage({
         }
         return [cardList?.[cardID]];
     }, [shouldDisplayCardDomain, cardList, cardID, domain]);
-
-    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
     useEffect(() => {
         return () => {
@@ -118,52 +111,15 @@ function ExpensifyCardPage({
     const cardToAdd = useMemo(() => {
         return virtualCards?.at(0);
     }, [virtualCards]);
-    const [cardsDetails, setCardsDetails] = useState<Record<number, ExpensifyCardDetails | null>>({});
-    const [isCardDetailsLoading, setIsCardDetailsLoading] = useState<Record<number, boolean>>({});
-    const [cardsDetailsErrors, setCardsDetailsErrors] = useState<Record<number, string>>({});
-    const [validateError, setValidateError] = useState<Errors>({});
+
+    const {cardsDetails, setCardsDetails, isCardDetailsLoading, cardsDetailsErrors} = useExpensifyCardContext();
+
+    // This resets card details when we exit the page.
+    useBeforeRemove(() => {
+        setCardsDetails((oldCardDetails) => ({...oldCardDetails, [cardID]: null}));
+    });
+
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
-
-    const openValidateCodeModal = (revealedCardID: number) => {
-        setCurrentCardID(revealedCardID);
-        setIsValidateCodeActionModalVisible(true);
-    };
-
-    const handleRevealDetails = (validateCode: string) => {
-        setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({
-            ...prevState,
-            [currentCardID]: true,
-        }));
-        // We can't store the response in Onyx for security reasons.
-        // That is why this action is handled manually and the response is stored in a local state
-        // Hence eslint disable here.
-        // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-        revealVirtualCardDetails(currentCardID, validateCode)
-            .then((value) => {
-                setCardsDetails((prevState: Record<number, ExpensifyCardDetails | null>) => ({...prevState, [currentCardID]: value}));
-                setCardsDetailsErrors((prevState) => ({
-                    ...prevState,
-                    [currentCardID]: '',
-                }));
-                setIsValidateCodeActionModalVisible(false);
-            })
-            .catch((error: string) => {
-                // Displaying magic code errors is handled in the modal, no need to set it on the card
-                // TODO: remove setValidateError once backend deploys https://github.com/Expensify/Web-Expensify/pull/46007
-                if (error === 'validateCodeForm.error.incorrectMagicCode') {
-                    setValidateError(() => getMicroSecondOnyxErrorWithTranslationKey('validateCodeForm.error.incorrectMagicCode'));
-                    return;
-                }
-                setCardsDetailsErrors((prevState) => ({
-                    ...prevState,
-                    [currentCardID]: error,
-                }));
-                setIsValidateCodeActionModalVisible(false);
-            })
-            .finally(() => {
-                setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({...prevState, [currentCardID]: false}));
-            });
-    };
 
     const hasDetectedDomainFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
     const hasDetectedIndividualFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
@@ -176,7 +132,6 @@ function ExpensifyCardPage({
     const formattedAvailableSpendAmount = convertToDisplayString(cardsToShow?.at(0)?.availableSpend, currency);
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(cardsToShow?.at(0)?.nameValuePairs?.limitType);
 
-    const primaryLogin = account?.primaryLogin ?? '';
     const isSignedInAsDelegate = !!account?.delegatedAccess?.delegate || false;
 
     if (isNotFound) {
@@ -261,7 +216,7 @@ function ExpensifyCardPage({
                                                                 showLockedAccountModal();
                                                                 return;
                                                             }
-                                                            openValidateCodeModal(card.cardID);
+                                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(cardID));
                                                         }}
                                                         isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
                                                         isLoading={isCardDetailsLoading[card.cardID]}
@@ -313,7 +268,7 @@ function ExpensifyCardPage({
                                                     !isSignedInAsDelegate ? (
                                                         <Button
                                                             text={translate('cardPage.cardDetails.revealCvv')}
-                                                            onPress={() => openValidateCodeModal(card.cardID)}
+                                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(cardID))}
                                                             isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
                                                             isLoading={isCardDetailsLoading[card.cardID]}
                                                         />
@@ -408,20 +363,6 @@ function ExpensifyCardPage({
                     style={[styles.mh5, styles.mb5]}
                 />
             )}
-            <ValidateCodeActionModal
-                handleSubmitForm={handleRevealDetails}
-                clearError={() => setValidateError({})}
-                validateError={validateError}
-                validateCodeActionErrorField="revealExpensifyCardDetails"
-                sendValidateCode={() => requestValidateCodeAction()}
-                onClose={() => {
-                    setIsValidateCodeActionModalVisible(false);
-                    resetValidateActionCodeSent();
-                }}
-                isVisible={isValidateCodeActionModalVisible}
-                title={translate('cardPage.validateCardTitle')}
-                descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
-            />
         </ScreenWrapper>
     );
 }
