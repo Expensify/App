@@ -51,7 +51,7 @@ function EmptyCardView({isBankAccountVerified, policyID, buttons}: EmptyCardView
                                       overflow: 'hidden',
                                       backgroundColor: colors.green700,
                                   },
-                                  shouldUseNarrowLayout && {maxHeight: 250},
+                                  shouldUseNarrowLayout && {maxHeight: 280},
                               ]
                             : [styles.emptyStateCardIllustrationContainer, {backgroundColor: colors.ice800}]
                     }
