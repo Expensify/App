@@ -1,7 +1,7 @@
+import type {ForwardedRef} from 'react';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
-import type { ForwardedRef } from 'react';
 
 type DatePickerBaseProps = {
     /**

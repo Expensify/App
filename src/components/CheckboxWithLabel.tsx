@@ -63,9 +63,18 @@ type CheckboxWithLabelProps = RequiredLabelProps & {
     ref?: ForwardedRef<View>;
 };
 
-function CheckboxWithLabel(
-    {errorText = '', isChecked: isCheckedProp = false, defaultValue = false, onInputChange = () => {}, LabelComponent, label, accessibilityLabel, style, value, ref}: CheckboxWithLabelProps,
-) {
+function CheckboxWithLabel({
+    errorText = '',
+    isChecked: isCheckedProp = false,
+    defaultValue = false,
+    onInputChange = () => {},
+    LabelComponent,
+    label,
+    accessibilityLabel,
+    style,
+    value,
+    ref,
+}: CheckboxWithLabelProps) {
     const styles = useThemeStyles();
     // We need to pick the first value that is strictly a boolean
     // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065

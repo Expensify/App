@@ -1,4 +1,4 @@
-import type { Ref } from 'react';
+import type {Ref} from 'react';
 import React from 'react';
 import {saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';

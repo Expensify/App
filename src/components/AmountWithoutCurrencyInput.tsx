@@ -16,9 +16,19 @@ type AmountFormProps = {
     shouldAllowNegative?: boolean;
 } & Partial<BaseTextInputProps>;
 
-function AmountWithoutCurrencyInput(
-    {value: amount, shouldAllowNegative = false, inputID, name, defaultValue, accessibilityLabel, role, label, onInputChange, ref, ...rest}: AmountFormProps,
-) {
+function AmountWithoutCurrencyInput({
+    value: amount,
+    shouldAllowNegative = false,
+    inputID,
+    name,
+    defaultValue,
+    accessibilityLabel,
+    role,
+    label,
+    onInputChange,
+    ref,
+    ...rest
+}: AmountFormProps) {
     const {toLocaleDigit} = useLocalize();
     const separator = useMemo(
         () =>

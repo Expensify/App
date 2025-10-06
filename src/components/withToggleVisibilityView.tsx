@@ -9,8 +9,7 @@ type WithToggleVisibilityViewProps = {
     isVisible?: boolean;
 };
 
-export default function withToggleVisibilityView<TProps>(WrappedComponent: ComponentType<TProps>): 
-(props: TProps & WithToggleVisibilityViewProps) => ReactElement | null {
+export default function withToggleVisibilityView<TProps>(WrappedComponent: ComponentType<TProps>): (props: TProps & WithToggleVisibilityViewProps) => ReactElement | null {
     function WithToggleVisibilityView({isVisible = false, ...rest}: WithToggleVisibilityViewProps) {
         const styles = useThemeStyles();
         return (
