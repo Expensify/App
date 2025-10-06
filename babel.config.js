@@ -7,7 +7,6 @@ const ReactCompilerConfig = {
     environment: {
         enableTreatRefLikeIdentifiersAsRefs: true,
     },
-    // We exclude 'tests' directory from compilation, but still compile components imported in test files.
     sources: (filename) => !filename.includes('tests/') && !filename.includes('node_modules/'),
 };
 
@@ -46,6 +45,7 @@ const defaultPluginsForWebpack = [
     '@babel/plugin-proposal-export-namespace-from',
     // Keep it last
     'react-native-worklets/plugin',
+    '@babel/plugin-transform-export-namespace-from',
 ];
 
 // The Fullstory annotate plugin generated a few errors when executed in Electron. Let's
@@ -131,6 +131,7 @@ const metro = {
                 },
             },
         ],
+        '@babel/plugin-transform-export-namespace-from',
         // The worklets babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/
         'react-native-worklets/plugin',
     ],

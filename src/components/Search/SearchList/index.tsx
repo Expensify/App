@@ -1,7 +1,8 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
+import {isUserValidatedSelector} from '@selectors/Account';
 import {accountIDSelector} from '@selectors/Session';
 import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
-import React, {forwardRef, useCallback, useContext, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -14,10 +15,10 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
-import type ChatListItem from '@components/SelectionList/ChatListItem';
-import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
-import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
-import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
+import type ChatListItem from '@components/SelectionListWithSections/ChatListItem';
+import type TaskListItem from '@components/SelectionListWithSections/Search/TaskListItem';
+import type TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
+import type TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
 import type {
     ExtendedTargetedEvent,
     ReportActionListItemType,
@@ -25,7 +26,7 @@ import type {
     TransactionCardGroupListItemType,
     TransactionGroupListItemType,
     TransactionListItemType,
-} from '@components/SelectionList/types';
+} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
@@ -111,6 +112,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Violations indexed by transaction ID */
     violations?: Record<string, TransactionViolations | undefined> | undefined;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<SearchListHandle>;
 };
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
@@ -133,36 +137,34 @@ function isTransactionMatchWithGroupItem(transaction: Transaction, groupItem: Se
     return false;
 }
 
-function SearchList(
-    {
-        data,
-        ListItem,
-        SearchTableHeader,
-        onSelectRow,
-        onCheckboxPress,
-        canSelectMultiple,
-        onScroll = () => {},
-        onAllCheckboxPress,
-        contentContainerStyle,
-        onEndReachedThreshold,
-        onEndReached,
-        containerStyle,
-        ListFooterComponent,
-        shouldPreventDefaultFocusOnSelectRow,
-        shouldPreventLongPressRow,
-        queryJSON,
-        columns,
-        isFocused,
-        onViewableItemsChanged,
-        onLayout,
-        shouldAnimate,
-        isMobileSelectionModeEnabled,
-        areAllOptionalColumnsHidden,
-        newTransactions = [],
-        violations,
-    }: SearchListProps,
-    ref: ForwardedRef<SearchListHandle>,
-) {
+function SearchList({
+    data,
+    ListItem,
+    SearchTableHeader,
+    onSelectRow,
+    onCheckboxPress,
+    canSelectMultiple,
+    onScroll = () => {},
+    onAllCheckboxPress,
+    contentContainerStyle,
+    onEndReachedThreshold,
+    onEndReached,
+    containerStyle,
+    ListFooterComponent,
+    shouldPreventDefaultFocusOnSelectRow,
+    shouldPreventLongPressRow,
+    queryJSON,
+    columns,
+    isFocused,
+    onViewableItemsChanged,
+    onLayout,
+    shouldAnimate,
+    isMobileSelectionModeEnabled,
+    areAllOptionalColumnsHidden,
+    newTransactions = [],
+    violations,
+    ref,
+}: SearchListProps) {
     const styles = useThemeStyles();
 
     const {hash, groupBy} = queryJSON;
@@ -210,7 +212,7 @@ function SearchList(
     const personalDetails = usePersonalDetails();
 
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
 
     const route = useRoute();
@@ -429,4 +431,4 @@ function SearchList(
     );
 }
 
-export default forwardRef(SearchList);
+export default SearchList;

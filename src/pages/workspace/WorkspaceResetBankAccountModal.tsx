@@ -1,7 +1,8 @@
-import React from 'react';
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
-import Text from '@components/Text';
+import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,10 +49,18 @@ function WorkspaceResetBankAccountModal({
     const bankAccountID = achData?.bankAccountID;
     const bankShortName = `${achData?.addressName ?? ''} ${(achData?.accountNumber ?? '').slice(-4)}`;
 
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
-        canBeMissing: true,
-        selector: (paymentMethods) => (policyID ? (paymentMethods?.[policyID] as OnyxTypes.LastPaymentMethodType) : undefined),
-    });
+    const lastPaymentMethodSelector = useCallback(
+        (paymentMethods: OnyxEntry<OnyxTypes.LastPaymentMethod>) => (policyID ? (paymentMethods?.[policyID] as OnyxTypes.LastPaymentMethodType) : undefined),
+        [policyID],
+    );
+    const [lastPaymentMethod] = useOnyx(
+        ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+        {
+            canBeMissing: true,
+            selector: lastPaymentMethodSelector,
+        },
+        [lastPaymentMethodSelector],
+    );
 
     const handleConfirm = () => {
         if (isNonUSDWorkspace) {
@@ -92,11 +101,9 @@ function WorkspaceResetBankAccountModal({
             cancelText={translate('common.cancel')}
             prompt={
                 isInOpenState ? (
-                    <Text>
-                        <Text>{translate('workspace.bankAccount.disconnectYour')}</Text>
-                        <Text style={styles.textStrong}>{bankShortName}</Text>
-                        <Text>{translate('workspace.bankAccount.bankAccountAnyTransactions')}</Text>
-                    </Text>
+                    <View style={[styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML html={translate('workspace.bankAccount.disconnectYourBankAccount', {bankName: bankShortName})} />
+                    </View>
                 ) : (
                     translate('workspace.bankAccount.clearProgress')
                 )

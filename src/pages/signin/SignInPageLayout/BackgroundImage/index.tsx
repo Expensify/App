@@ -3,6 +3,7 @@ import {InteractionManager} from 'react-native';
 import Animated, {FadeIn} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isAnonymousUser} from '@libs/actions/Session';
+import CONST from '@src/CONST';
 import type BackgroundImageProps from './types';
 
 const BackgroundMobile = lazy(() =>
@@ -16,7 +17,7 @@ const BackgroundDesktop = lazy(() =>
     })),
 );
 
-function BackgroundImage({width, transitionDuration, isSmallScreen = false}: BackgroundImageProps) {
+function BackgroundImage({width, isSmallScreen = false}: BackgroundImageProps) {
     const styles = useThemeStyles();
     const [isInteractionComplete, setIsInteractionComplete] = useState(false);
     const isAnonymous = isAnonymousUser();
@@ -33,6 +34,7 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
             return;
         }
 
+        // eslint-disable-next-line deprecation/deprecation
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             setIsInteractionComplete(true);
         });
@@ -51,7 +53,7 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
         <Suspense fallback={null}>
             <Animated.View
                 style={styles.signInBackground}
-                entering={FadeIn.duration(transitionDuration)}
+                entering={FadeIn.duration(CONST.BACKGROUND_IMAGE_TRANSITION_DURATION)}
             >
                 <BackgroundComponent width={width} />
             </Animated.View>

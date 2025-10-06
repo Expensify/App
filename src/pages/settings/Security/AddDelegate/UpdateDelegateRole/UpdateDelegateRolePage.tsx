@@ -1,38 +1,25 @@
-import React, {useEffect, useState} from 'react';
-import type {ValueOf} from 'type-fest';
+import React from 'react';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import UpdateDelegateMagicCodeModal from './UpdateDelegateMagicCodeModal';
 
 type UpdateDelegateRolePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE>;
 
 function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     const {translate} = useLocalize();
-    const login = route.params.login;
-    const currentRole = route.params.currentRole;
-    const showValidateActionModalFromURL = route.params.showValidateActionModal === 'true';
-    const newRoleFromURL = route.params.newRole;
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(showValidateActionModalFromURL ?? false);
-    const [newRole, setNewRole] = useState<ValueOf<typeof CONST.DELEGATE_ROLE> | undefined>(newRoleFromURL);
-    const [shouldShowLoading, setShouldShowLoading] = useState(showValidateActionModalFromURL ?? false);
-
-    useEffect(() => {
-        Navigation.setParams({showValidateActionModal: isValidateCodeActionModalVisible, newRole});
-    }, [isValidateCodeActionModalVisible, newRole]);
+    const {currentRole, login} = route.params;
 
     const styles = useThemeStyles();
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
@@ -43,7 +30,6 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
         isSelected: role === currentRole,
     }));
 
-    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -74,29 +60,16 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                         </Text>
                     }
                     onSelectRow={(option) => {
-                        if (option.isSelected) {
+                        if (!option.value || option.isSelected) {
                             Navigation.dismissModal();
                             return;
                         }
-                        setNewRole(option?.value);
-                        setIsValidateCodeActionModalVisible(true);
+                        Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE.getRoute(login, option?.value));
                     }}
                     sections={[{data: roleOptions}]}
                     ListItem={RadioListItem}
                 />
-                {!!newRole && (
-                    <UpdateDelegateMagicCodeModal
-                        login={login}
-                        role={newRole}
-                        isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
-                        onClose={() => {
-                            setShouldShowLoading(false);
-                            setIsValidateCodeActionModalVisible(false);
-                        }}
-                    />
-                )}
             </DelegateNoAccessWrapper>
-            {shouldShowLoading && <FullScreenLoadingIndicator />}
         </ScreenWrapper>
     );
 }
