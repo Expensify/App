@@ -121,6 +121,7 @@ function ReportActionItemParentAction({
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         {
             canBeMissing: true,
+            waitForCollectionCallback: true,
             selector: (allReportNameValuePairs) => {
                 if (!allReportNameValuePairs) {
                     return {};
