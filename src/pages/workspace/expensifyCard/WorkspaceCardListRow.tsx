@@ -119,6 +119,8 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                     src={Expensicons.ArrowRight}
                     fill={theme.icon}
                     additionalStyles={[styles.alignSelfCenter]}
+                    medium
+                    isButtonIcon
                 />
             </View>
         </View>

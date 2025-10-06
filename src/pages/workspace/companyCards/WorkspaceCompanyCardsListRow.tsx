@@ -63,6 +63,8 @@ function WorkspaceCompanyCardsListRow({cardholder, name, cardNumber}: WorkspaceC
                     src={Expensicons.ArrowRight}
                     fill={theme.icon}
                     additionalStyles={[styles.alignSelfCenter]}
+                    medium
+                    isButtonIcon
                 />
             </View>
         </View>
