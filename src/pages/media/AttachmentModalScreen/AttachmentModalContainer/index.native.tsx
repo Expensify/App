@@ -3,6 +3,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import Navigation from '@libs/Navigation/Navigation';
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
+import AttachmentStateContextProvider from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/AttachmentStateContextProvider';
 import type {AttachmentModalOnCloseOptions} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type {AttachmentModalScreenType} from '@pages/media/AttachmentModalScreen/types';
@@ -41,11 +42,13 @@ function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({con
             testID={`attachment-modal-${testID}`}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <AttachmentModalBaseContent
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...contentProps}
-                onClose={closeScreen}
-            />
+            <AttachmentStateContextProvider>
+                <AttachmentModalBaseContent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...contentProps}
+                    onClose={closeScreen}
+                />
+            </AttachmentStateContextProvider>
         </ScreenWrapper>
     );
 }

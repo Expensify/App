@@ -1,7 +1,9 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {memo, useContext, useEffect, useMemo, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -104,6 +106,31 @@ function initializePusher() {
         User.subscribeToUserEvents();
     });
 }
+let lastUpdateIDAppliedToClient: OnyxEntry<number>;
+let isLoadingApp = false;
+
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    callback: (value) => {
+        lastUpdateIDAppliedToClient = value;
+    },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_APP,
+    callback: (value) => {
+        isLoadingApp = !!value;
+    },
+});
+
+function handleNetworkReconnect() {
+    if (isLoadingApp) {
+        App.openApp();
+    } else {
+        Log.info('[handleNetworkReconnect] Sending ReconnectApp');
+        App.reconnectApp(lastUpdateIDAppliedToClient);
+    }
+}
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
@@ -151,8 +178,7 @@ function AuthScreens() {
     const {toggleSearch} = useSearchRouterContext();
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
-    const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
         canBeMissing: true,
     });
@@ -177,15 +203,6 @@ function AuthScreens() {
     const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {
         return CONFIG.IS_HYBRID_APP && Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route) && isOnboardingCompleted === true;
     }, [isOnboardingCompleted]);
-
-    const handleNetworkReconnect = useCallback(() => {
-        if (isLoadingApp) {
-            App.openApp();
-        } else {
-            Log.info('[handleNetworkReconnect] Sending ReconnectApp');
-            App.reconnectApp(lastUpdateIDAppliedToClient);
-        }
-    }, [isLoadingApp, lastUpdateIDAppliedToClient]);
 
     const shouldRenderOnboardingExclusively = useMemo(() => {
         return (
