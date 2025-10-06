@@ -12,6 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
 import type {Report} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import * as Expensicons from './Icon/Expensicons';
 import type {PaymentMethod} from './KYCWall/types';
 import type BaseModalProps from './Modal/types';
@@ -61,7 +62,6 @@ function AddPaymentMethodMenu({
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [introSelected, introSelectedStatus] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
 
-
     // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
     // which then starts a bottom up flow and creates a Collect workspace where the payer is an admin and payee is an employee.
     const isIOU = isIOUReport(iouReport);
@@ -79,7 +79,7 @@ function AddPaymentMethodMenu({
 
         completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected);
         onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
-    }, [introSelected, introSelectedStatus.status, isPersonalOnlyOption, isVisible, onItemSelected]);
+    }, [introSelected, introSelectedStatus, introSelectedStatus.status, isPersonalOnlyOption, isVisible, onItemSelected]);
 
     if (isPersonalOnlyOption) {
         return null;
