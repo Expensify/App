@@ -208,6 +208,7 @@ import {
     buildOptimisticTransaction,
     getAmount,
     getCategoryTaxCodeAndAmount,
+    getClearedPendingFields,
     getCurrency,
     getDistanceInMeters,
     getMerchant,
@@ -4535,7 +4536,7 @@ function getUpdateTrackExpenseParams(
 
     // Step 1: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
     const pendingFields = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
-    const clearedPendingFields = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, null]));
+    const clearedPendingFields = getClearedPendingFields(transactionChanges);
     const errorFields = Object.fromEntries(Object.keys(pendingFields).map((key) => [key, {[DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage')}]));
 
     // Step 2: Get all the collections being updated
