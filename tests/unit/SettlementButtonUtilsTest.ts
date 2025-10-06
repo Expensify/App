@@ -1,5 +1,5 @@
 import Navigation from '@libs/Navigation/Navigation';
-import handleUnvalidatedUserNavigation from '@libs/SettlementButtonUtils';
+import {handleUnvalidatedUserNavigation} from '@libs/SettlementButtonUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 

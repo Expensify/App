@@ -1,3 +1,5 @@
+import * as Expensicons from '@components/Icon/Expensicons';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import Log from './Log';
@@ -80,4 +82,27 @@ const handleUnvalidatedUserNavigation = (chatReportID: string, reportID?: string
     Log.warn('Failed to navigate to the correct path');
 };
 
-export default handleUnvalidatedUserNavigation;
+const getSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translate: LocaleContextProps['translate']) => {
+    return {
+        [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
+            text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
+            icon: Expensicons.User,
+            value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+            shouldUpdateSelectedIndex: false,
+        },
+        [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
+            text: translate('iou.settleBusiness', {formattedAmount: ''}),
+            icon: Expensicons.Building,
+            value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+            shouldUpdateSelectedIndex: false,
+        },
+        [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
+            text: translate('iou.payElsewhere', {formattedAmount: ''}),
+            icon: Expensicons.CheckCircle,
+            value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            shouldUpdateSelectedIndex: false,
+        },
+    };
+};
+
+export {handleUnvalidatedUserNavigation, getSettlementButtonPaymentMethods};
