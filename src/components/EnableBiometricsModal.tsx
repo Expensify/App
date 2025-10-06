@@ -15,7 +15,10 @@ type EnableBiometricsVerificationProps = {
 function EnableBiometricsModal({isVisible, onClose = () => {}}: EnableBiometricsVerificationProps) {
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
-    const navigateToFallbackPage = singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.ENABLE_BIOMETRICS_FALLBACK)));
+    const navigateToFallbackPage = singleExecution(waitForNavigate(() => {
+        onClose();
+        Navigation.navigate(ROUTES.ENABLE_BIOMETRICS_FALLBACK);
+    }));
 
     if (isVisible) {
         navigateToFallbackPage();

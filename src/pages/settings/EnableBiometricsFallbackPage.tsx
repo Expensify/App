@@ -1,4 +1,4 @@
-import React, {useState, useMemo, useCallback, useRef} from 'react';
+import React, {useState, useMemo, useCallback, useRef, useEffect} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,19 +13,19 @@ import BigNumberPad from '@components/BigNumberPad';
 import CONST from '@src/CONST';
 import { isValidValidateCode, isValidTwoFactorCode} from '@libs/ValidationUtils';
 
-function EnableBiometricsErrorPage() {
+function EnableBiometricsFallbackPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const onGoBackPress = () => Navigation.goBack();
     const [hasSuccesfullyVerifiedMagicCode, setHasSuccesfullyVerifiedMagicCode] = useState(false);
-    const has2FAEnabled = false; // TODO: Replace with actual 2FA status from user account
+    const has2FAEnabled = true; // TODO: Replace with actual 2FA status from user account
     const hasPhoneNumber = false; // TODO: Replace with actual phone number status from user account
     const [inputCode, setInputCode] = useState('');
     const [lastPressedDigit, setLastPressedDigit] = useState('');
     const [formError, setFormError] = useState<{inputCode?: string}>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const inputRef = useRef<MagicCodeInputHandle>(null);
-    const bottomButtonText = useMemo(() => hasSuccesfullyVerifiedMagicCode ? `common.continue` : `common.verify`, [hasSuccesfullyVerifiedMagicCode]);
+    const bottomButtonText = useMemo(() => hasSuccesfullyVerifiedMagicCode ? `common.verify` : `common.continue`, [hasSuccesfullyVerifiedMagicCode]);
 
     const [verified2FA, setVerified2FA] = useState(false); // TODO: Replace with actual 2FA verification status
     const [verifiedSmsOtp, setVerifiedSmsOtp] = useState(false); // TODO: Replace with actual SMS OTP verification status
@@ -92,31 +92,36 @@ function EnableBiometricsErrorPage() {
 
         if (!hasSuccesfullyVerifiedMagicCode) {
             setHasSuccesfullyVerifiedMagicCode(true);
-            setInputCode('');
-            setCanShowError(false);
-            setFormError({});
         } else if (has2FAEnabled) {
             setVerified2FA(true);
-            setInputCode('');
-            setCanShowError(false);
-            setFormError({});
         } else {
             setVerifiedSmsOtp(true);
-            setInputCode('');
-            setCanShowError(false);
-            setFormError({});
         }
+        setInputCode('');
+        setCanShowError(false);
+        setFormError({});
 
     }, [inputCode, translate]);
 
+    useEffect(() => {
+        if (!(verified2FA || verifiedSmsOtp)) {
+            return;
+        }
+        onGoBackPress();
+    }, [verified2FA, verifiedSmsOtp]);
+
+    if (!has2FAEnabled && !hasPhoneNumber) {
+        onGoBackPress();
+    }
+
     return (
-        <ScreenWrapper testID={EnableBiometricsErrorPage.displayName}>
+        <ScreenWrapper testID={EnableBiometricsFallbackPage.displayName}>
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.troubleshoot.biometrics.fallbackPageTitle')}
                 onBackButtonPress={onGoBackPress}
                 shouldShowBackButton
             />
-            <View style={[styles.flex1]}>
+            <View style={[styles.mv1]}>
                 <MagicCodeInput
                     isDisableKeyboard
                     autoComplete={hasSuccesfullyVerifiedMagicCode && !has2FAEnabled ? "sms-otp" : "one-time-code"}
@@ -142,6 +147,6 @@ function EnableBiometricsErrorPage() {
     );
 }
 
-EnableBiometricsErrorPage.displayName = 'EnableBiometricsErrorPage';
+EnableBiometricsFallbackPage.displayName = 'EnableBiometricsFallbackPage';
 
-export default EnableBiometricsErrorPage;
+export default EnableBiometricsFallbackPage;

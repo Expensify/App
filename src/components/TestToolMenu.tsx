@@ -117,6 +117,7 @@ function TestToolMenu() {
                     </TestToolRow>
                     <EnableBiometricsModal
                         isVisible={showBiometricsModal}
+                        onClose={() => setShowBiometricsModal(false)}
                     />
                 </>
             )}
