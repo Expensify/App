@@ -25,7 +25,17 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
-import {canCreateTaskInReport, getPayeeName, hasEmptyReportsForPolicy, isPaidGroupPolicy, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
+import Permissions from '@libs/Permissions';
+import {
+    canCreateTaskInReport,
+    getPayeeName,
+    hasEmptyReportsForPolicy,
+    hasViolations as hasViolationsReportUtils,
+    isPaidGroupPolicy,
+    isPolicyExpenseChat,
+    isReportOwner,
+    temporary_getMoneyRequestOptions,
+} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU';
@@ -135,6 +145,10 @@ function AttachmentPickerWithMenuItems({
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const {setIsLoaderVisible} = useFullScreenLoader();
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
@@ -153,7 +167,7 @@ function AttachmentPickerWithMenuItems({
     const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
         policyID: report?.policyID,
         policyName: policy?.name ?? '',
-        onConfirm: () => selectOption(() => createNewReport(currentUserPersonalDetails, report?.policyID, true), true),
+        onConfirm: () => selectOption(() => createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, report?.policyID, true), true),
     });
 
     const openCreateReportConfirmationRef = useRef(openCreateReportConfirmation);
@@ -165,7 +179,7 @@ function AttachmentPickerWithMenuItems({
         if (hasEmptyReport) {
             openCreateReportConfirmationRef.current();
         } else {
-            createNewReport(currentUserPersonalDetails, report?.policyID, true);
+            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, report?.policyID, true);
         }
     }, [allReports, session?.accountID, report?.policyID, currentUserPersonalDetails]);
 
@@ -271,7 +285,7 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => selectOption(() => handleCreateReport(), true),
             },
         ];
-    }, [handleCreateReport, report, selectOption, translate]);
+    }, [handleCreateReport, report, selectOption, translate, isASAPSubmitBetaEnabled, hasViolations]);
 
     /**
      * Determines if we can show the task option

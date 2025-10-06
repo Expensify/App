@@ -35,8 +35,9 @@ import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
+import Permissions from '@libs/Permissions';
 import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, getInferredWorkspacePolicy, isPaidGroupPolicy, isPolicyMember} from '@libs/PolicyUtils';
-import {generateReportID, hasEmptyReportsForPolicy} from '@libs/ReportUtils';
+import {generateReportID, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -168,6 +169,10 @@ function EmptySearchViewContent({
         setContextMenuAnchor(node);
     }, []);
     const [modalVisible, setModalVisible] = useState(false);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
 
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         canBeMissing: true,
@@ -494,6 +499,11 @@ function EmptySearchViewContent({
         defaultViewItemHeader,
         hasSeenTour,
         groupPoliciesWithChatEnabled,
+        activePolicy,
+        activePolicyID,
+        currentUserPersonalDetails,
+        isASAPSubmitBetaEnabled,
+        hasViolations,
         tripViewChildren,
         hasTransactions,
         shouldRedirectToExpensifyClassic,

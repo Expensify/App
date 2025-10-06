@@ -14,15 +14,15 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createNewReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
 import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar, hasEmptyReportsForPolicy} from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isRHPOnSearchMoneyRequestReportPage from '@navigation/helpers/isRHPOnSearchMoneyRequestReportPage';
@@ -52,11 +52,13 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {isBetaEnabled} = usePermissions();
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
@@ -82,7 +84,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
 
     const createReport = useCallback(
         (policyID: string) => {
-            const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
+            const optimisticReportID = createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policyID);
             const selectedTransactionsKeys = Object.keys(selectedTransactions);
             if (isMovingExpenses && !!selectedTransactionsKeys.length) {
                 const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReportID}`];
@@ -102,7 +104,17 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             }
             navigateToNewReport(optimisticReportID);
         },
-        [allReportNextSteps, clearSelectedTransactions, currentUserPersonalDetails, isASAPSubmitBetaEnabled, isMovingExpenses, navigateToNewReport, policies, selectedTransactions],
+        [
+            allReportNextSteps,
+            clearSelectedTransactions,
+            currentUserPersonalDetails,
+            isASAPSubmitBetaEnabled,
+            isMovingExpenses,
+            navigateToNewReport,
+            policies,
+            selectedTransactions,
+            hasViolations,
+        ],
     );
 
     const handleConfirmCreateReport = useCallback(() => {

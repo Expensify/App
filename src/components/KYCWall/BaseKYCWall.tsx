@@ -55,7 +55,7 @@ function KYCWall({
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const {formatPhoneNumber} = useLocalize();
 
     const anchorRef = useRef<HTMLDivElement | View>(null);
@@ -143,7 +143,7 @@ function KYCWall({
                     if (policyID && iouReport?.policyID) {
                         savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);
                     }
-                    completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, adminsChatReportID, policyID);
+                    completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, adminsChatReportID, policyID);
                     if (workspaceChatReportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReportID, reportPreviewReportActionID));
                     }
@@ -156,7 +156,7 @@ function KYCWall({
                 Navigation.navigate(bankAccountRoute);
             }
         },
-        [addBankAccountRoute, addDebitCardRoute, chatReport, iouReport, onSelectPaymentMethod, formatPhoneNumber, lastPaymentMethod, policies],
+        [onSelectPaymentMethod, iouReport, addDebitCardRoute, addBankAccountRoute, chatReport, policies, introSelected, formatPhoneNumber, lastPaymentMethod],
     );
 
     /**
