@@ -92,9 +92,6 @@ function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProp
             testID={IOURequestStepSendFrom.displayName}
             includeSafeAreaPaddingBottom
         >
-            <View style={[styles.optionsListSectionHeader]}>
-                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.workspaces')}</Text>
-            </View>
             <SelectionList
                 data={workspaceOptions}
                 onSelectRow={selectWorkspace}
