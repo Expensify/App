@@ -10,6 +10,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import AttachmentDeletedIndicator from './AttachmentDeletedIndicator';
+import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import type {ImageObjectPosition} from './Image/types';
@@ -38,6 +39,12 @@ type ThumbnailImageProps = {
 
     /** Height of the thumbnail image */
     imageHeight?: number;
+
+    /** The size of the loading indicator */
+    loadingIconSize?: FullScreenLoadingIndicatorIconSize;
+
+    /** The style of the loading indicator */
+    loadingIndicatorStyles?: StyleProp<ViewStyle>;
 
     /** If the image fails to load – show the provided fallback icon */
     fallbackIcon?: IconAsset;
@@ -80,6 +87,7 @@ function ThumbnailImage({
     imageWidth = 200,
     imageHeight = 200,
     shouldDynamicallyResize = true,
+    loadingIconSize,
     fallbackIcon = Expensicons.Gallery,
     fallbackIconSize = variables.iconSizeSuperLarge,
     fallbackIconColor,
@@ -88,6 +96,7 @@ function ThumbnailImage({
     isDeleted,
     onLoadFailure,
     onMeasure,
+    loadingIndicatorStyles,
 }: ThumbnailImageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -161,6 +170,8 @@ function ThumbnailImage({
                     }}
                     isAuthTokenRequired={isAuthTokenRequired}
                     objectPosition={objectPosition}
+                    loadingIconSize={loadingIconSize}
+                    loadingIndicatorStyles={loadingIndicatorStyles}
                 />
             </View>
         </View>

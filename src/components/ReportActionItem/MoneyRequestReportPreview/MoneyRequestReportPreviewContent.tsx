@@ -148,6 +148,7 @@ function MoneyRequestReportPreviewContent({
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const isIouReportArchived = useReportIsArchived(iouReportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
 
     const getCanIOUBePaid = useCallback(
         (shouldShowOnlyPayElsewhere = false, shouldCheckApprovedState = true) =>
@@ -219,13 +220,13 @@ function MoneyRequestReportPreviewContent({
             } else if (chatReport && iouReport) {
                 startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
-                    payInvoice(type, chatReport, iouReport, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod);
+                    payInvoice(type, chatReport, iouReport, introSelected, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod);
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport);
+                    payMoneyRequest(type, chatReport, iouReport, introSelected);
                 }
             }
         },
-        [chatReport, iouReport, isDelegateAccessRestricted, showDelegateNoAccessModal, startAnimation, existingB2BInvoiceReport],
+        [isDelegateAccessRestricted, iouReport, chatReport, showDelegateNoAccessModal, startAnimation, introSelected, existingB2BInvoiceReport],
     );
 
     const confirmApproval = () => {
