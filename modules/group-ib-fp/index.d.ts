@@ -38,13 +38,13 @@ declare module 'group-ib-fp' {
     export class FP {
       static getInstance(): FP;
       enableDebugLogs(): void;
-      enableCapability(capability: Capability, callback?: (e: string, isRun: boolean) => void): void;
-      enableAndroidCapability(capability: AndroidCapability, callback?: (e: string, isRun: boolean) => void): void;
-      setCustomerId(iOSCustomerId: string, androidCustomerId: string, errorCallback?: (e: string) => void): void;
-      setTargetURL(url: string, errorCallback?: (e: string) => void): void;
-      setGlobalIdURL(url: string, errorCallback?: (e: string) => void): void;
-      setSessionId(id: string, errorCallback?: (e: string) => void): void;
-      setAttributeTitle(key: string, value: string, format: FPAttributeFormat, errorCallback?: (e: string) => void): void;
+      enableCapability(capability: Capability, callback: (e: string, isRun: boolean) => void): void;
+      enableAndroidCapability(capability: AndroidCapability, callback: (e: string, isRun: boolean) => void): void;
+      setCustomerId(iOSCustomerId: string, androidCustomerId: string, errorCallback: (e: string) => void): void;
+      setTargetURL(url: string, errorCallback: (e: string) => void): void;
+      setGlobalIdURL(url: string, errorCallback: (e: string) => void): void;
+      setSessionId(id: string, errorCallback: (e: string) => void): void;
+      setAttributeTitle(key: string, value: string, format: FPAttributeFormat, errorCallback: (e: string) => void): void;
       run(errorCallback?: (e: string) => void): void;
     }
   }
