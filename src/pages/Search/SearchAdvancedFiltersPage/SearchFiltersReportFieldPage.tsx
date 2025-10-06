@@ -1,11 +1,22 @@
 import React from 'react';
-import SearchFiltersAmountBase from '@components/Search/SearchFiltersAmountBase';
+import Button from '@components/Button';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import {ScrollView} from '@components/ScrollView';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {PolicyReportField} from '@src/types/onyx';
 
 function SearchFiltersReportFieldPage() {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
     const [fieldList] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: false,
         selector: (policies) => {
@@ -14,23 +25,42 @@ function SearchFiltersReportFieldPage() {
                 return acc;
             }, {});
 
-            const nonFormulaReportFields = Object.fromEntries(
-                Object.entries(allPolicyReportFields).filter((entry) => {
-                    const value = entry[1];
-                    return value.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
-                }),
-            );
-
-            return nonFormulaReportFields;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const nonFormulaReportFields = Object.entries(allPolicyReportFields).filter(([_, value]) => value.type !== CONST.REPORT_FIELD_TYPES.FORMULA);
+            return Object.fromEntries(nonFormulaReportFields);
         },
     });
 
     return (
-        <SearchFiltersAmountBase
-            filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL}
-            title="common.total"
+        <ScreenWrapper
             testID={SearchFiltersReportFieldPage.displayName}
-        />
+            shouldShowOfflineIndicatorInWideScreen
+            offlineIndicatorStyle={styles.mtAuto}
+            includeSafeAreaPaddingBottom
+            shouldEnableMaxHeight
+        >
+            <HeaderWithBackButton
+                title={translate('workspace.common.reportField')}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+                }}
+            />
+            <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                <></>
+            </ScrollView>
+            <Button
+                text={translate('common.reset')}
+                onPress={() => {}}
+                style={[styles.mh4, styles.mt4]}
+                large
+            />
+            <FormAlertWithSubmitButton
+                buttonText={translate('common.save')}
+                containerStyles={[styles.m4, styles.mt3, styles.mb5]}
+                onSubmit={() => {}}
+                enabledWhenOffline
+            />
+        </ScreenWrapper>
     );
 }
 
