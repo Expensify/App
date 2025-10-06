@@ -65,7 +65,7 @@ function EditTagPage({route}: EditTagPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             try {
                 if (!policy) {
-                    throw Error('');
+                    throw Error('Policy is required to rename tag');
                 }
                 renamePolicyTag({
                     policyTag: {oldName: route.params.tagName, newName: values.tagName},
@@ -74,7 +74,7 @@ function EditTagPage({route}: EditTagPageProps) {
                     policy,
                 });
             } catch (e) {
-                Log.alert();
+                Log.alert('[EditTagPage] Error renaming policy tag', {error: String(e)});
             } finally {
                 Keyboard.dismiss();
                 Navigation.goBack(
