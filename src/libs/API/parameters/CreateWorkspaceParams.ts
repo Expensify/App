@@ -18,7 +18,7 @@ type CreateWorkspaceParams = {
     userReportedIntegration?: string;
     areDistanceRatesEnabled?: boolean;
     memberData?: string;
-    selectedFeatures?: string;
+    features?: string;
 };
 
 export default CreateWorkspaceParams;

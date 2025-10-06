@@ -2319,7 +2319,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     // We need to clone the file to prevent non-indexable errors.
     const clonedFile = file ? (createFile(file) as File) : undefined;
 
-    const selectedFeaturesMap = featuresMap?.reduce<Record<string, boolean>>((acc, feature) => {
+    const features = featuresMap?.reduce<Record<string, boolean>>((acc, feature) => {
         acc[feature.id] = !!feature.enabled;
         return acc;
     }, {});
@@ -2342,7 +2342,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         companySize,
         userReportedIntegration: userReportedIntegration ?? undefined,
         areDistanceRatesEnabled,
-        selectedFeatures: selectedFeaturesMap ? JSON.stringify(selectedFeaturesMap) : undefined,
+        features: features ? JSON.stringify(features) : undefined,
     };
 
     if (
