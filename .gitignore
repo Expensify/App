@@ -157,6 +157,3 @@ modules/*/lib/
 
 # Claude local settings
 .claude/settings.local.json
-
-# Claude prompt testing output
-.claude/utils/review-output

@@ -23,21 +23,21 @@ Each rule includes:
 
 ### [PERF-1] No spread in list item's renderItem
 
-**Conditions**: Flag ONLY when ALL of these are true:
+- **Condition**: Flag ONLY when ALL of these are true:
 
-- Code is inside a renderItem function (function passed to FlatList, SectionList, etc.)
-- A spread operator (...) is used on an object
-- That object is being passed as a prop to a component
-- The spread creates a NEW object literal inline
+  - Code is inside a renderItem function (function passed to FlatList, SectionList, etc.)
+  - A spread operator (...) is used on an object
+  - That object is being passed as a prop to a component
+  - The spread creates a NEW object literal inline
 
-**DO NOT flag if:**
+  **DO NOT flag if:**
 
-- Spread is used outside renderItem
-- Spread is on an array
-- Object is created once outside renderItem and reused
-- Spread is used to clone for local manipulation (not passed as prop)
+  - Spread is used outside renderItem
+  - Spread is on an array
+  - Object is created once outside renderItem and reused
+  - Spread is used to clone for local manipulation (not passed as prop)
 
-**Reasoning**: `renderItem` functions execute for every visible list item on each render. Creating new objects with spread operators forces React to treat each item as changed, preventing reconciliation optimizations and causing unnecessary re-renders of child components.
+- **Reasoning**: `renderItem` functions execute for every visible list item on each render. Creating new objects with spread operators forces React to treat each item as changed, preventing reconciliation optimizations and causing unnecessary re-renders of child components.
 
 Good:
 
@@ -65,34 +65,34 @@ Bad:
 
 ### [PERF-2] Use early returns in array iteration methods
 
-**Conditions**: Flag ONLY when ALL of these are true:
+- **Condition**: Flag ONLY when ALL of these are true:
 
-- Using .every(), .some(), .find(), .filter() or similar function
-- Function contains an "expensive operation" (defined below)
-- There exists a simple property check that could eliminate items earlier
-- The simple check is performed AFTER the expensive operation
+  - Using .every(), .some(), .find(), .filter() or similar function
+  - Function contains an "expensive operation" (defined below)
+  - There exists a simple property check that could eliminate items earlier
+  - The simple check is performed AFTER the expensive operation
 
-**Expensive operations are**:
+  **Expensive operations are**:
 
-- Function calls (except simple getters/property access)
-- Regular expressions
-- Object/array iterations
-- Math calculations beyond basic arithmetic
+  - Function calls (except simple getters/property access)
+  - Regular expressions
+  - Object/array iterations
+  - Math calculations beyond basic arithmetic
 
-**Simple checks are**:
+  **Simple checks are**:
 
-- Property existence (!obj.prop, obj.prop === undefined)
-- Boolean checks (obj.isActive)
-- Primitive comparisons (obj.id === 5)
-- Type checks (typeof, Array.isArray)
+  - Property existence (!obj.prop, obj.prop === undefined)
+  - Boolean checks (obj.isActive)
+  - Primitive comparisons (obj.id === 5)
+  - Type checks (typeof, Array.isArray)
 
-**DO NOT flag if**:
+  **DO NOT flag if**:
 
-- No expensive operations exist
-- Simple checks are already done first
-- The expensive operation MUST run for all items (e.g., for side effects)
+  - No expensive operations exist
+  - Simple checks are already done first
+  - The expensive operation MUST run for all items (e.g., for side effects)
 
-**Reasoning**: Expensive operations can be any long-running synchronous tasks (like complex calculations) and should be avoided when simple property checks can eliminate items early. This reduces unnecessary computation and improves iteration performance, especially on large datasets.
+- **Reasoning**: Expensive operations can be any long-running synchronous tasks (like complex calculations) and should be avoided when simple property checks can eliminate items early. This reduces unnecessary computation and improves iteration performance, especially on large datasets.
 
 Good:
 
