@@ -283,9 +283,9 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
          */
         const areOptionsEqual = shallowOptionsListCompare(prevOptions.current, optionsList);
         prevOptions.current = optionsList;
-        const areInitializedIsEqual = prevIsInitialized === areOptionsInitialized;
+        const hasInitializedChanged = prevIsInitialized !== areOptionsInitialized;
         if (areOptionsEqual) {
-            if (!areInitializedIsEqual) {
+            if (hasInitializedChanged) {
                 setAreInternalOptionsInitialized(areOptionsInitialized);
             }
 
