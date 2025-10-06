@@ -77,9 +77,8 @@ export default function useCreateEmptyReportConfirmation({policyName, onConfirm,
     const prompt = useMemo(
         () => (
             <Text>
-                {translate('report.newReport.emptyReportWarningPrompt', {workspaceName: workspaceDisplayName})}{' '}
-                <TextLink onPress={handleReportsLinkPress}>{translate('report.newReport.emptyReportWarningPromptLink')}</TextLink>
-                {translate('report.newReport.emptyReportWarningPromptSuffix')}
+                {translate('report.newReport.emptyReportConfirmationPrompt', {workspaceName: workspaceDisplayName})}{' '}
+                <TextLink onPress={handleReportsLinkPress}>{translate('report.newReport.emptyReportConfirmationPromptLink')}.</TextLink>
             </Text>
         ),
         [handleReportsLinkPress, translate, workspaceDisplayName],
@@ -88,13 +87,13 @@ export default function useCreateEmptyReportConfirmation({policyName, onConfirm,
     const CreateReportConfirmationModal = useMemo(
         () => (
             <ConfirmModal
-                confirmText={translate('report.newReport.warningConfirm')}
-                cancelText={translate('report.newReport.warningCancel')}
+                confirmText={translate('report.newReport.createReport')}
+                cancelText={translate('common.cancel')}
                 isVisible={isVisible}
                 onConfirm={handleConfirm}
                 onCancel={handleCancel}
                 prompt={prompt}
-                title={translate('report.newReport.emptyReportWarningTitle')}
+                title={translate('report.newReport.emptyReportConfirmationTitle')}
             />
         ),
         [handleCancel, handleConfirm, isVisible, prompt, translate],

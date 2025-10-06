@@ -6336,6 +6336,11 @@ const translations = {
         newReport: {
             createReport: 'Créer un rapport',
             chooseWorkspace: 'Choisissez un espace de travail pour ce rapport.',
+            emptyReportConfirmationTitle: 'Vous avez déjà un rapport vide',
+            emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
+                `Êtes-vous sûr de vouloir créer un autre rapport dans ${workspaceName} ? Vous pouvez accéder à vos rapports vides dans`,
+            emptyReportConfirmationPromptLink: 'Rapports',
+            genericWorkspaceName: 'cet espace de travail',
         },
         genericCreateReportFailureMessage: 'Erreur inattendue lors de la création de ce chat. Veuillez réessayer plus tard.',
         genericAddCommentFailureMessage: 'Erreur inattendue lors de la publication du commentaire. Veuillez réessayer plus tard.',

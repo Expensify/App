@@ -6277,6 +6277,10 @@ const translations = {
         newReport: {
             createReport: 'レポートを作成',
             chooseWorkspace: 'このレポートのワークスペースを選択してください。',
+            emptyReportConfirmationTitle: '空のレポートがすでにあります',
+            emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) => `${workspaceName} で別のレポートを作成しますか？ 空のレポートには次からアクセスできます`,
+            emptyReportConfirmationPromptLink: 'レポート',
+            genericWorkspaceName: 'このワークスペース',
         },
         genericCreateReportFailureMessage: 'このチャットの作成中に予期しないエラーが発生しました。後でもう一度お試しください。',
         genericAddCommentFailureMessage: 'コメントの投稿中に予期しないエラーが発生しました。後でもう一度お試しください。',

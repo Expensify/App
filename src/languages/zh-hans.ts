@@ -6194,6 +6194,11 @@ const translations = {
         newReport: {
             createReport: '创建报告',
             chooseWorkspace: '为此报告选择一个工作区。',
+            emptyReportConfirmationTitle: '你已经有一个空报告',
+            emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
+                `确定要在 ${workspaceName} 中再创建一个报告吗？你可以在以下位置访问你的空报告`,
+            emptyReportConfirmationPromptLink: '报告',
+            genericWorkspaceName: '此工作区',
         },
         genericCreateReportFailureMessage: '创建此聊天时出现意外错误。请稍后再试。',
         genericAddCommentFailureMessage: '发表评论时出现意外错误。请稍后再试。',
