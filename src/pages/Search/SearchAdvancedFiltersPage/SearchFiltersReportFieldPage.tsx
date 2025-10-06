@@ -16,7 +16,7 @@ import type {PolicyReportField} from '@src/types/onyx';
 
 function SearchFiltersReportFieldPage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
     const [fieldList] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: false,
@@ -26,8 +26,11 @@ function SearchFiltersReportFieldPage() {
                 return acc;
             }, {});
 
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const nonFormulaReportFields = Object.entries(allPolicyReportFields).filter(([_, value]) => value.type !== CONST.REPORT_FIELD_TYPES.FORMULA);
+            const nonFormulaReportFields = Object.entries(allPolicyReportFields)
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                .filter(([_, value]) => value.type !== CONST.REPORT_FIELD_TYPES.FORMULA)
+                .sort(([aKey], [bKey]) => localeCompare(aKey, bKey));
+
             return Object.fromEntries(nonFormulaReportFields);
         },
     });
@@ -47,13 +50,13 @@ function SearchFiltersReportFieldPage() {
                 }}
             />
             <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                {Object.entries(fieldList ?? {}).map(([key, value]) => (
+                {Object.values(fieldList ?? {}).map((value) => (
                     <MenuItem
-                        key={key}
+                        key={value.fieldID}
                         shouldShowRightIcon
                         viewMode={CONST.OPTION_MODE.COMPACT}
-                        title={translate('common.on')}
-                        description={'hello'}
+                        title={value.name}
+                        description={undefined}
                         onPress={() => {}}
                     />
                 ))}
