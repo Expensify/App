@@ -877,12 +877,6 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    // Ignore markedAsReimbursed action here since we're already display message that explains the expense was paid
-    // elsewhere in the IOU reportAction
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) {
-        return false;
-    }
-
     if (isWhisperActionTargetedToOthers(reportAction)) {
         return false;
     }
