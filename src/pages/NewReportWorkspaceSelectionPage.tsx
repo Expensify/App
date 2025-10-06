@@ -42,7 +42,7 @@ type WorkspaceListItem = {
 type NewReportWorkspaceSelectionPageProps = PlatformStackScreenProps<NewReportWorkspaceSelectionNavigatorParamList, typeof SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT>;
 
 function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPageProps) {
-    const {isMovingExpenses} = route.params ?? {};
+    const {isMovingExpenses, backTo} = route.params ?? {};
     const {isOffline} = useNetwork();
     const {selectedTransactions, selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const styles = useThemeStyles();
@@ -99,7 +99,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 );
                 clearSelectedTransactions();
                 Navigation.dismissModal();
-                Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+                Navigation.goBack(backTo ?? ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
                 return;
             }
             navigateToNewReport(optimisticReportID);
