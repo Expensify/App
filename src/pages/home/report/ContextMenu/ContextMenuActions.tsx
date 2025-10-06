@@ -203,6 +203,7 @@ type ContextMenuActionPayload = {
     policyTags?: PolicyTagLists;
     originalReport: OnyxEntry<ReportType>;
     isTryNewDotNVPDismissed?: boolean;
+    childReport?: OnyxEntry<ReportType>;
     movedFromReport?: OnyxEntry<ReportType>;
     movedToReport?: OnyxEntry<ReportType>;
 };
@@ -301,6 +302,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             const originalReportID = getOriginalReportID(reportID, reportAction);
+
             if (closePopover) {
                 hideContextMenu(false, () => {
                     KeyboardUtils.dismiss().then(() => {
@@ -502,7 +504,10 @@ const ContextMenuActions: ContextMenuAction[] = [
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fall back to
         // the `text` and `icon`
-        onPress: (closePopover, {reportAction, transaction, selection, report, reportID, card, originalReport, isTryNewDotNVPDismissed, movedFromReport, movedToReport, policyTags}) => {
+        onPress: (
+            closePopover,
+            {reportAction, transaction, selection, report, reportID, card, originalReport, isTryNewDotNVPDismissed, movedFromReport, movedToReport, childReport, policyTags},
+        ) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
             const messageHtml = getActionHtml(reportAction);
             const messageText = getReportActionMessageText(reportAction);
@@ -538,7 +543,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         setClipboardMessage(displayMessage);
                     }
                 } else if (isCreatedTaskReportAction(reportAction)) {
-                    const taskPreviewMessage = getTaskCreatedMessage(reportAction, true);
+                    const taskPreviewMessage = getTaskCreatedMessage(reportAction, childReport, true);
                     Clipboard.setString(taskPreviewMessage);
                 } else if (isMemberChangeAction(reportAction)) {
                     const logMessage = getMemberChangeMessageFragment(reportAction, getReportName).html ?? '';
@@ -588,6 +593,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getPolicyChangeLogDefaultReimbursableMessage(reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
                     Clipboard.setString(getPolicyChangeLogDefaultTitleEnforcedMessage(reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+                    Clipboard.setString(translateLocal('iou.paidElsewhere'));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
                     setClipboardMessage(getUnreportedTransactionMessage());
                 } else if (isReimbursementQueuedAction(reportAction)) {

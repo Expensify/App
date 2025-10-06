@@ -1796,7 +1796,7 @@ function getSortedReportActionData(data: ReportActionListItemType[], localeCompa
  * Checks if the search results contain any data, useful for determining if the search results are empty.
  */
 function isSearchResultsEmpty(searchResults: SearchResults, groupBy?: SearchGroupBy) {
-    if (groupBy !== CONST.SEARCH.GROUP_BY.REPORTS) {
+    if (groupBy && groupBy !== CONST.SEARCH.GROUP_BY.REPORTS) {
         return !Object.keys(searchResults?.data).some((key) => isGroupEntry(key));
     }
     return !Object.keys(searchResults?.data).some(
@@ -1926,7 +1926,7 @@ function createTypeMenuSections(
                                               }
 
                                               // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
-                                              Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
+                                              Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
                                           });
                                       },
                                   },
