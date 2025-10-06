@@ -25,6 +25,7 @@ function SearchTransactionsChangeReport() {
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
 
@@ -73,6 +74,7 @@ function SearchTransactionsChangeReport() {
             session?.email ?? '',
             allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
             reportNextStep,
+            allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
         );
         // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {

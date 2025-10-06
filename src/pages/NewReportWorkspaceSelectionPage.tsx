@@ -22,6 +22,7 @@ import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigati
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isRHPOnSearchMoneyRequestReportPage from '@navigation/helpers/isRHPOnSearchMoneyRequestReportPage';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -97,6 +98,9 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     reportNextStep,
                 );
                 clearSelectedTransactions();
+                Navigation.dismissModal();
+                Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+                return;
             }
             navigateToNewReport(optimisticReportID);
         },

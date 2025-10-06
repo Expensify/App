@@ -170,7 +170,7 @@ function IOURequestStepCategory({
                                     }
 
                                     if (!policy.areCategoriesEnabled) {
-                                        enablePolicyCategories(policy.id, true, policyTagLists, allTransactionViolations, false);
+                                        enablePolicyCategories(policy.id, true, policyTagLists, policyCategories, allTransactionViolations, false);
                                     }
                                     // eslint-disable-next-line deprecation/deprecation
                                     InteractionManager.runAfterInteractions(() => {

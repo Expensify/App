@@ -40,6 +40,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const outstandingReportID = isPolicyExpenseChat(participantReport) ? participantReport?.iouReportID : participantReportID;
     const selectedReportID = shouldUseTransactionReport ? transactionReport?.reportID : outstandingReportID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
     const {removeTransaction, setSelectedTransactions} = useSearchContext();
     const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -116,6 +117,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                     session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     session?.email ?? '',
                     allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                    undefined,
+                    allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                 );
                 removeTransaction(transaction.transactionID);
             }
