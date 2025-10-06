@@ -10,7 +10,6 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import ImageSVG from '@components/ImageSVG';
 import MoneyReportHeaderStatusBarSkeleton from '@components/MoneyReportHeaderStatusBarSkeleton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -425,21 +424,6 @@ function MoneyRequestReportPreviewContent({
             ? {maxWidth: reportPreviewStyles.transactionPreviewCarouselStyle.width}
             : {};
 
-    // We also show icons in case of Approved or Paid report for easier identification at glance
-    const isIconNeeded = useMemo(() => {
-        return iouSettled || isApproved;
-    }, [iouSettled, isApproved]);
-
-    const approvedOrSettledIcon = isIconNeeded && (
-        <ImageSVG
-            src={isApproved ? Expensicons.ThumbsUp : Expensicons.Checkmark}
-            fill={isApproved ? theme.icon : theme.iconSuccessFill}
-            width={variables.iconSizeExtraSmall}
-            height={variables.iconSizeExtraSmall}
-            contentFit="cover"
-        />
-    );
-
     useEffect(() => {
         if (
             optimisticIndex === undefined ||
@@ -686,7 +670,6 @@ function MoneyRequestReportPreviewContent({
                                                 ) : (
                                                     !shouldShowEmptyPlaceholder && (
                                                         <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
-                                                            {isIconNeeded && <View style={[styles.alignItemsCenter, styles.lh16, styles.mr1]}>{approvedOrSettledIcon}</View>}
                                                             {!!reportStatus && (
                                                                 <View
                                                                     style={[
