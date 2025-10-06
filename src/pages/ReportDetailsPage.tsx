@@ -799,6 +799,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 duplicateTransactions,
                 duplicateTransactionViolations,
                 isSingleTransactionView,
+                isMoneyRequestReportArchived,
                 isChatIOUReportArchived,
             );
         } else {
@@ -888,17 +889,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
             navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
         }
-    }, [
-        iouTransactionID,
-        requestParentReportAction,
-        isSingleTransactionView,
-        isTransactionDeleted,
-        moneyRequestReport?.reportID,
-        isChatIOUReportArchived,
-        isMoneyRequestReportArchived,
-        iouReport,
-        chatIOUReport,
-    ]);
+    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport?.reportID, isChatIOUReportArchived, iouReport, chatIOUReport]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 

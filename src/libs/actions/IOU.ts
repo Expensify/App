@@ -8548,16 +8548,17 @@ function deleteTrackExpense(
     violations: OnyxCollection<OnyxTypes.TransactionViolations>,
     isSingleTransactionView = false,
     isChatReportArchived = false,
+    isChatIOUReportArchived = false,
 ) {
     if (!chatReportID || !transactionID) {
         return;
     }
 
-    const urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(chatReportID, transactionID, reportAction, iouReport, chatReport, isSingleTransactionView, isChatReportArchived);
+    const urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(chatReportID, transactionID, reportAction, iouReport, chatReport, isSingleTransactionView, isChatIOUReportArchived);
 
     // STEP 1: Get all collections we're updating
     if (!isSelfDM(chatReport)) {
-        deleteMoneyRequest(transactionID, reportAction, transactions, violations, iouReport, chatReport, isSingleTransactionView);
+        deleteMoneyRequest(transactionID, reportAction, transactions, violations, iouReport, chatReport, isSingleTransactionView, undefined, undefined, isChatIOUReportArchived);
         return urlToNavigateBack;
     }
 
@@ -12879,6 +12880,7 @@ function saveSplitTransactions(
     policy: OnyxTypes.Policy | undefined,
     iouReport: OnyxEntry<OnyxTypes.Report>,
     chatReport: OnyxEntry<OnyxTypes.Report>,
+    firstIOU: OnyxEntry<OnyxTypes.ReportAction> | undefined,
     isChatReportArchived = false,
 ) {
     const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
@@ -12887,7 +12889,6 @@ function saveSplitTransactions(
 
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
-    const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
 
     const policyTags = getPolicyTagsData(expenseReport?.policyID);
     const participants = getMoneyRequestParticipantsFromReport(expenseReport);
@@ -13001,7 +13002,6 @@ function saveSplitTransactions(
         },
     });
 
-    const firstIOU = iouActions.at(0);
     if (firstIOU) {
         const {updatedReportAction, transactionThread} = prepareToCleanUpMoneyRequest(
             originalTransactionID,
@@ -13088,7 +13088,7 @@ function saveSplitTransactions(
     InteractionManager.runAfterInteractions(() => removeDraftSplitTransaction(originalTransactionID));
 
     const isSearchPageTopmostFullScreenRoute = isSearchTopmostFullScreenRoute();
-    const transactionThreadReportID = iouActions.at(0)?.childReportID;
+    const transactionThreadReportID = firstIOU?.childReportID;
     const transactionThreadReportScreen = Navigation.getReportRouteByID(transactionThreadReportID);
 
     if (isSearchPageTopmostFullScreenRoute || !transactionReport?.parentReportID) {

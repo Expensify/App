@@ -121,7 +121,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        saveSplitTransactions(draftTransaction, currentSearchHash, policyCategories, expenseReportPolicy, iouReport, chatReport, isChatIOUReportArchived);
+        saveSplitTransactions(draftTransaction, currentSearchHash, policyCategories, expenseReportPolicy, iouReport, chatReport, iouActions.at(0), isChatIOUReportArchived);
     }, [
         draftTransaction,
         sumOfSplitExpenses,
@@ -136,6 +136,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         transactionDetails?.currency,
         isChatIOUReportArchived,
         iouReport,
+        iouActions,
         chatReport,
     ]);
 
