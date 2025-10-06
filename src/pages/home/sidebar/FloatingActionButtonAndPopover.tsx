@@ -43,6 +43,7 @@ import {
     areAllGroupPoliciesExpenseChatDisabled,
     canSendInvoice as canSendInvoicePolicyUtils,
     getGroupPaidPoliciesWithExpenseChatEnabled,
+    getInferredWorkspacePolicy,
     isPaidGroupPolicy,
     isPolicyMember,
     shouldShowPolicy,
@@ -172,17 +173,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     }, [allPolicies]);
     const shouldShowCreateReportOption = shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0;
 
-    const inferredWorkspacePolicy = useMemo(() => {
-        if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-            return activePolicy;
-        }
-
-        if (groupPoliciesWithChatEnabled.length === 1) {
-            return groupPoliciesWithChatEnabled.at(0);
-        }
-
-        return undefined;
-    }, [activePolicy, groupPoliciesWithChatEnabled]);
+    const inferredWorkspacePolicy = useMemo(
+        () => getInferredWorkspacePolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy),
+        [activePolicy, groupPoliciesWithChatEnabled],
+    );
 
     const inferredWorkspaceID = inferredWorkspacePolicy?.id;
 
@@ -527,8 +521,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
                               if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
                                   // Check if empty report confirmation should be shown
-                                  const currentAccountID = typeof session?.accountID === 'number' ? session.accountID : Number(session?.accountID);
-                                  const hasEmptyReports = hasEmptyReportsForPolicy(allReports, workspaceIDForReportCreation, currentAccountID);
+                                  const hasEmptyReports = hasEmptyReportsForPolicy(allReports, workspaceIDForReportCreation, session?.accountID);
 
                                   if (hasEmptyReports) {
                                       openFabCreateReportConfirmation();

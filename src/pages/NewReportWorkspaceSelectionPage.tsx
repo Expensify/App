@@ -1,10 +1,10 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem, SectionListDataType} from '@components/SelectionListWithSections/types';
+import type { ListItem, SectionListDataType } from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
@@ -15,17 +15,18 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {createNewReport} from '@libs/actions/Report';
+import { createNewReport } from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
-import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar, hasEmptyReportsForPolicy} from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import { getHeaderMessageForNonUserList } from '@libs/OptionsListUtils';
+import { isPolicyAdmin, shouldShowPolicy } from '@libs/PolicyUtils';
+import { getDefaultWorkspaceAvatar, hasEmptyReportsForPolicy } from '@libs/ReportUtils';
+import { shouldRestrictUserBillableActions } from '@libs/SubscriptionUtils';
 import isRHPOnSearchMoneyRequestReportPage from '@navigation/helpers/isRHPOnSearchMoneyRequestReportPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
+
 
 type WorkspaceListItem = {
     text: string;
@@ -49,7 +50,6 @@ function NewReportWorkspaceSelectionPage() {
     // Get all reports once to check for empty reports
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const accountID = typeof session?.accountID === 'number' ? session.accountID : Number(session?.accountID);
 
     const navigateToNewReport = useCallback(
         (optimisticReportID: string) => {
@@ -130,14 +130,14 @@ function NewReportWorkspaceSelectionPage() {
             }
 
             // Capture the decision about whether to show empty report confirmation
-            const hasEmptyReport = hasEmptyReportsForPolicy(reports, policy.policyID, accountID);
+            const hasEmptyReport = hasEmptyReportsForPolicy(reports, policy.policyID, session?.accountID);
 
             setPendingPolicySelection({
                 policy,
                 shouldShowEmptyReportConfirmation: hasEmptyReport,
             });
         },
-        [accountID, reports],
+        [reports, session?.accountID],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {

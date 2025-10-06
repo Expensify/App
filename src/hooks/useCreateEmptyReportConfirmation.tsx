@@ -15,7 +15,7 @@ type UseCreateEmptyReportConfirmationParams = {
     /** The display name of the policy/workspace */
     policyName?: string;
     /** Callback function to execute when user confirms report creation */
-    onConfirm: () => void | Promise<void>;
+    onConfirm: () => void;
     /** Optional callback function to execute when user cancels the confirmation */
     onCancel?: () => void;
 };
@@ -50,38 +50,18 @@ type UseCreateEmptyReportConfirmationResult = {
 export default function useCreateEmptyReportConfirmation({policyName, onConfirm, onCancel}: UseCreateEmptyReportConfirmationParams): UseCreateEmptyReportConfirmationResult {
     const {translate} = useLocalize();
     const [isVisible, setIsVisible] = useState(false);
-    const [isConfirmLoading, setIsConfirmLoading] = useState(false);
 
     const workspaceDisplayName = useMemo(() => (policyName?.trim().length ? policyName : translate('report.newReport.genericWorkspaceName')), [policyName, translate]);
 
     const handleConfirm = useCallback(() => {
-        if (isConfirmLoading) {
-            return;
-        }
-
-        setIsConfirmLoading(true);
-
-        const result = onConfirm();
-
-        // If the result is not a Promise, convert it to one for consistent handling
-        const resultPromise = result instanceof Promise ? result : Promise.resolve();
-
-        resultPromise
-            .catch(() => {})
-            .finally(() => {
-                setIsConfirmLoading(false);
-                setIsVisible(false);
-            });
-    }, [isConfirmLoading, onConfirm]);
+        onConfirm();
+        setIsVisible(false);
+    }, [onConfirm]);
 
     const handleCancel = useCallback(() => {
-        if (isConfirmLoading) {
-            return;
-        }
-
-        setIsVisible(false);
         onCancel?.();
-    }, [isConfirmLoading, onCancel]);
+        setIsVisible(false);
+    }, [onCancel]);
 
     const handleReportsLinkPress = useCallback(() => {
         setIsVisible(false);
@@ -115,7 +95,6 @@ export default function useCreateEmptyReportConfirmation({policyName, onConfirm,
                 onCancel={handleCancel}
                 prompt={prompt}
                 title={translate('report.newReport.emptyReportWarningTitle')}
-                isConfirmLoading={isConfirmLoading}
             />
         ),
         [handleCancel, handleConfirm, isConfirmLoading, isVisible, prompt, translate],

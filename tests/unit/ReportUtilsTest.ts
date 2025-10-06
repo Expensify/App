@@ -7552,5 +7552,15 @@ describe('ReportUtils', () => {
 
             expect(hasEmptyReportsForPolicy(reports, policyID, accountID)).toBe(true);
         });
+
+        it('returns false when accountID is the default one', () => {
+            const reports = toCollection(
+                buildReport({reportID: 'valid-empty'}),
+                buildReport({reportID: 'with-total', total: 1000}),
+                buildReport({reportID: 'other', policyID: otherPolicyID}),
+            );
+
+            expect(hasEmptyReportsForPolicy(reports, policyID, CONST.DEFAULT_NUMBER_ID)).toBe(false);
+        });
     });
 });

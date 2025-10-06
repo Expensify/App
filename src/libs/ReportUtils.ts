@@ -8183,8 +8183,8 @@ function isEmptyReport(report: OnyxEntry<Report>, isReportArchived = false): boo
  * An empty report is defined as having total === 0 and nonReimbursableTotal === 0.
  * This excludes reports that are being deleted or have errors.
  */
-function hasEmptyReportsForPolicy(reports: OnyxCollection<Report>, policyID: string | undefined, accountID: number): boolean {
-    if (!policyID || !Number.isFinite(accountID)) {
+function hasEmptyReportsForPolicy(reports: OnyxCollection<Report>, policyID: string | undefined, accountID?: number): boolean {
+    if (!policyID || !accountID) {
         return false;
     }
 

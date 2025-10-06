@@ -35,7 +35,7 @@ import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
-import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy, isPolicyMember} from '@libs/PolicyUtils';
+import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, getInferredWorkspacePolicy, isPaidGroupPolicy, isPolicyMember} from '@libs/PolicyUtils';
 import {generateReportID, hasEmptyReportsForPolicy} from '@libs/ReportUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -181,23 +181,15 @@ function EmptySearchViewContent({
         return areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
     }, [allPolicies]);
 
-    const inferredWorkspacePolicy = useMemo(() => {
-        if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-            return activePolicy;
-        }
-
-        if (groupPoliciesWithChatEnabled.length === 1) {
-            return groupPoliciesWithChatEnabled.at(0);
-        }
-
-        return undefined;
-    }, [activePolicy, groupPoliciesWithChatEnabled]);
+    const inferredWorkspacePolicy = useMemo(
+        () => getInferredWorkspacePolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<Policy>>, activePolicy),
+        [activePolicy, groupPoliciesWithChatEnabled],
+    );
 
     const inferredWorkspaceID = inferredWorkspacePolicy?.id;
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const currentAccountID = typeof session?.accountID === 'number' ? session.accountID : Number(session?.accountID);
 
     const handleCreateWorkspaceReport = useCallback(() => {
         if (!inferredWorkspaceID) {
@@ -217,14 +209,14 @@ function EmptySearchViewContent({
     });
 
     const handleCreateReportClick = useCallback(() => {
-        const hasEmptyReport = hasEmptyReportsForPolicy(allReports, inferredWorkspaceID, currentAccountID);
+        const hasEmptyReport = hasEmptyReportsForPolicy(allReports, inferredWorkspaceID, session?.accountID);
 
         if (hasEmptyReport) {
             openCreateReportFromSearch();
         } else {
             handleCreateWorkspaceReport();
         }
-    }, [allReports, currentAccountID, inferredWorkspaceID, handleCreateWorkspaceReport, openCreateReportFromSearch]);
+    }, [allReports, session?.accountID, inferredWorkspaceID, handleCreateWorkspaceReport, openCreateReportFromSearch]);
 
     const typeMenuItems = useMemo(() => {
         return typeMenuSections.map((section) => section.menuItems).flat();

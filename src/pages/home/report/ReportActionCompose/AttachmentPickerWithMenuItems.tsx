@@ -137,7 +137,6 @@ function AttachmentPickerWithMenuItems({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const currentAccountID = typeof session?.accountID === 'number' ? session.accountID : Number(session?.accountID);
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -161,14 +160,14 @@ function AttachmentPickerWithMenuItems({
     openCreateReportConfirmationRef.current = openCreateReportConfirmation;
 
     const handleCreateReport = useCallback(() => {
-        const hasEmptyReport = hasEmptyReportsForPolicy(allReports, report?.policyID, currentAccountID);
+        const hasEmptyReport = hasEmptyReportsForPolicy(allReports, report?.policyID, session?.accountID);
 
         if (hasEmptyReport) {
             openCreateReportConfirmationRef.current();
         } else {
             createNewReport(currentUserPersonalDetails, report?.policyID, true);
         }
-    }, [allReports, currentAccountID, report?.policyID, currentUserPersonalDetails]);
+    }, [allReports, session?.accountID, report?.policyID, currentUserPersonalDetails]);
 
     const teacherUnitePolicyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
     const isTeachersUniteReport = report?.policyID === teacherUnitePolicyID;
