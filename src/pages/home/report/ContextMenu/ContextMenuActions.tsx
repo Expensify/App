@@ -3,7 +3,7 @@ import type {RefObject} from 'react';
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
@@ -162,6 +162,7 @@ function setClipboardMessage(content: string | undefined) {
 type ShouldShow = (args: {
     type: string;
     reportAction: OnyxEntry<ReportAction>;
+    childReportActions: OnyxCollection<ReportAction>;
     isArchivedRoom: boolean;
     betas: OnyxEntry<Beta[]>;
     menuTarget: RefObject<ContextMenuAnchor> | undefined;
@@ -177,6 +178,7 @@ type ShouldShow = (args: {
     areHoldRequirementsMet: boolean;
     isDebugModeEnabled: OnyxEntry<boolean>;
     iouTransaction: OnyxEntry<Transaction>;
+    transactions?: OnyxCollection<Transaction>;
 }) => boolean;
 
 type ContextMenuActionPayload = {
@@ -200,6 +202,7 @@ type ContextMenuActionPayload = {
     card?: Card;
     originalReport: OnyxEntry<ReportType>;
     isTryNewDotNVPDismissed?: boolean;
+    childReport?: OnyxEntry<ReportType>;
     movedFromReport?: OnyxEntry<ReportType>;
     movedToReport?: OnyxEntry<ReportType>;
 };
@@ -298,6 +301,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             const originalReportID = getOriginalReportID(reportID, reportAction);
+
             if (closePopover) {
                 hideContextMenu(false, () => {
                     KeyboardUtils.dismiss().then(() => {
@@ -499,7 +503,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fall back to
         // the `text` and `icon`
-        onPress: (closePopover, {reportAction, transaction, selection, report, reportID, card, originalReport, isTryNewDotNVPDismissed, movedFromReport, movedToReport}) => {
+        onPress: (closePopover, {reportAction, transaction, selection, report, reportID, card, originalReport, isTryNewDotNVPDismissed, movedFromReport, movedToReport, childReport}) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
             const messageHtml = getActionHtml(reportAction);
             const messageText = getReportActionMessageText(reportAction);
@@ -535,7 +539,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         setClipboardMessage(displayMessage);
                     }
                 } else if (isCreatedTaskReportAction(reportAction)) {
-                    const taskPreviewMessage = getTaskCreatedMessage(reportAction, true);
+                    const taskPreviewMessage = getTaskCreatedMessage(reportAction, childReport, true);
                     Clipboard.setString(taskPreviewMessage);
                 } else if (isMemberChangeAction(reportAction)) {
                     const logMessage = getMemberChangeMessageFragment(reportAction, getReportName).html ?? '';
@@ -585,6 +589,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getPolicyChangeLogDefaultReimbursableMessage(reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
                     Clipboard.setString(getPolicyChangeLogDefaultTitleEnforcedMessage(reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+                    Clipboard.setString(translateLocal('iou.paidElsewhere'));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
                     setClipboardMessage(getUnreportedTransactionMessage());
                 } else if (isReimbursementQueuedAction(reportAction)) {
@@ -850,20 +856,26 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
     {
         isAnonymousAction: false,
-        textTranslateKey: 'reportActionContextMenu.deleteAction',
+        textTranslateKey: 'common.delete',
         icon: Expensicons.Trashcan,
-        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID, moneyRequestAction, iouTransaction}) =>
+        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID: reportIDParam, moneyRequestAction, iouTransaction, transactions, childReportActions}) => {
             // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
-            !!reportID &&
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-            canDeleteReportAction(
-                moneyRequestAction ?? reportAction,
-                isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID : reportID,
-                iouTransaction,
-            ) &&
-            !isArchivedRoom &&
-            !isChronosReport &&
-            !isMessageDeleted(reportAction),
+            let reportID = reportIDParam;
+
+            if (isMoneyRequestAction(moneyRequestAction)) {
+                reportID = getOriginalMessage(moneyRequestAction)?.IOUReportID;
+            } else if (isReportPreviewActionReportActionsUtils(reportAction)) {
+                reportID = reportAction?.childReportID;
+            }
+            return (
+                !!reportIDParam &&
+                type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
+                canDeleteReportAction(moneyRequestAction ?? reportAction, reportID, iouTransaction, transactions, childReportActions) &&
+                !isArchivedRoom &&
+                !isChronosReport &&
+                !isMessageDeleted(reportAction)
+            );
+        },
         onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction}) => {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const reportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID || reportIDParam : reportIDParam;
@@ -892,12 +904,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
 ];
 
-const restrictedReadOnlyActions: TranslationPaths[] = [
-    'reportActionContextMenu.replyInThread',
-    'reportActionContextMenu.editAction',
-    'reportActionContextMenu.joinThread',
-    'reportActionContextMenu.deleteAction',
-];
+const restrictedReadOnlyActions: TranslationPaths[] = ['reportActionContextMenu.replyInThread', 'reportActionContextMenu.editAction', 'reportActionContextMenu.joinThread', 'common.delete'];
 
 const RestrictedReadOnlyContextMenuActions: ContextMenuAction[] = ContextMenuActions.filter(
     (action) => 'textTranslateKey' in action && restrictedReadOnlyActions.includes(action.textTranslateKey),

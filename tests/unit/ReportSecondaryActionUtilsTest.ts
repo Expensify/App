@@ -588,7 +588,7 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
 
-    it('includes CHANGE_WORKSPACE option for submitted IOU report and manager being the payer of the new policy', async () => {
+    it('does not include CHANGE_WORKSPACE option for submitted IOU report and manager being the payer of the new policy', async () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.IOU,
@@ -618,7 +618,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
         const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy, policies});
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(false);
     });
 
     it('includes CHANGE_WORKSPACE option for open expense report submitter', async () => {
@@ -660,6 +660,7 @@ describe('getSecondaryAction', () => {
             id: OLD_POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
             approver: MANAGER_EMAIL,
+            role: CONST.POLICY.ROLE.USER,
             employeeList: {
                 [MANAGER_EMAIL]: {email: MANAGER_EMAIL, role: CONST.POLICY.ROLE.USER},
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
@@ -670,6 +671,7 @@ describe('getSecondaryAction', () => {
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
             isPolicyExpenseChatEnabled: true,
+            role: CONST.POLICY.ROLE.USER,
             employeeList: {
                 [MANAGER_EMAIL]: {email: MANAGER_EMAIL, role: CONST.POLICY.ROLE.USER},
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
@@ -714,6 +716,7 @@ describe('getSecondaryAction', () => {
             id: OLD_POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
             approver: APPROVER_EMAIL,
+            role: CONST.POLICY.ROLE.USER,
             employeeList: {
                 [APPROVER_EMAIL]: {email: APPROVER_EMAIL, role: CONST.POLICY.ROLE.USER},
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
@@ -740,6 +743,7 @@ describe('getSecondaryAction', () => {
             type: CONST.POLICY.TYPE.TEAM,
             approver: APPROVER_EMAIL,
             isPolicyExpenseChatEnabled: true,
+            role: CONST.POLICY.ROLE.USER,
             employeeList: {
                 [APPROVER_EMAIL]: {email: APPROVER_EMAIL, role: CONST.POLICY.ROLE.USER},
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
