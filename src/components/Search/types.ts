@@ -160,6 +160,12 @@ type SearchDateFilterKeys =
 
 type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT;
 
+type SearchNonNegatableFilterKeys =
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY;
+
 type SearchCurrencyFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY
@@ -222,6 +228,7 @@ type SearchParams = {
 };
 
 export type {
+    SearchNonNegatableFilterKeys,
     SelectedTransactionInfo,
     SelectedTransactions,
     SearchColumnType,

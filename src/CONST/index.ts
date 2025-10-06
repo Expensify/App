@@ -6701,6 +6701,7 @@ const CONST = {
                 [this.STATUS.EXPENSE.DRAFTS]: 'draft',
             };
         },
+        NOT_MODIFIER: 'Not',
         DATE_MODIFIERS: {
             ON: 'On',
             AFTER: 'After',
