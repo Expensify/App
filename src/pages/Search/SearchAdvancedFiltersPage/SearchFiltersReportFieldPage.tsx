@@ -2,8 +2,9 @@ import React from 'react';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {ScrollView} from '@components/ScrollView';
+import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,7 +47,16 @@ function SearchFiltersReportFieldPage() {
                 }}
             />
             <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                <></>
+                {Object.entries(fieldList ?? {}).map(([key, value]) => (
+                    <MenuItem
+                        key={key}
+                        shouldShowRightIcon
+                        viewMode={CONST.OPTION_MODE.COMPACT}
+                        title={translate('common.on')}
+                        description={'hello'}
+                        onPress={() => {}}
+                    />
+                ))}
             </ScrollView>
             <Button
                 text={translate('common.reset')}
