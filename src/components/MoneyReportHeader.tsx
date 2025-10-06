@@ -95,6 +95,7 @@ import {
     payMoneyRequest,
     reopenReport,
     retractReport,
+    startDistanceRequest,
     startMoneyRequest,
     submitReport,
     unapproveExpenseReport,
@@ -138,6 +139,7 @@ import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import {useSearchContext} from './Search/SearchContext';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
 import Text from './Text';
+import {WideRHPContext} from './WideRHPContextProvider';
 
 type MoneyReportHeaderProps = {
     /** The report currently being looked at */
@@ -194,6 +196,7 @@ function MoneyReportHeader({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const exportTemplates = useMemo(() => getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, policy), [integrationsExportTemplates, csvExportLayouts, policy]);
 
     const requestParentReportAction = useMemo(() => {
@@ -242,6 +245,7 @@ function MoneyReportHeader({
     const [isReopenWarningModalVisible, setIsReopenWarningModalVisible] = useState(false);
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
 
     const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
 
@@ -302,6 +306,9 @@ function MoneyReportHeader({
     const [isRejectEducationalModalVisible, setIsRejectEducationalModalVisible] = useState(false);
 
     const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey} = useSearchContext();
+
+    const {wideRHPRouteKeys} = useContext(WideRHPContext);
+    const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
 
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => {
@@ -396,37 +403,41 @@ function MoneyReportHeader({
                 showDelegateNoAccessModal();
             } else if (isAnyTransactionOnHold) {
                 if (getPlatform() === CONST.PLATFORM.IOS) {
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
                 } else {
                     setIsHoldMenuVisible(true);
                 }
             } else if (isInvoiceReport) {
                 startAnimation();
-                payInvoice(type, chatReport, moneyRequestReport, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod);
+                payInvoice(type, chatReport, moneyRequestReport, introSelected, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod);
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, undefined, true);
+                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true);
                 if (currentSearchQueryJSON) {
                     search({
                         searchKey: currentSearchKey,
                         shouldCalculateTotals: true,
                         offset: 0,
                         queryJSON: currentSearchQueryJSON,
+                        isOffline,
                     });
                 }
             }
         },
         [
             chatReport,
-            isAnyTransactionOnHold,
             isDelegateAccessRestricted,
-            showDelegateNoAccessModal,
+            isAnyTransactionOnHold,
             isInvoiceReport,
-            moneyRequestReport,
+            showDelegateNoAccessModal,
             startAnimation,
+            moneyRequestReport,
+            introSelected,
             existingB2BInvoiceReport,
             currentSearchQueryJSON,
             currentSearchKey,
+            isOffline,
         ],
     );
 
@@ -439,6 +450,15 @@ function MoneyReportHeader({
         } else {
             startApprovedAnimation();
             approveMoneyRequest(moneyRequestReport, true);
+            if (currentSearchQueryJSON) {
+                search({
+                    searchKey: currentSearchKey,
+                    shouldCalculateTotals: true,
+                    offset: 0,
+                    queryJSON: currentSearchQueryJSON,
+                    isOffline,
+                });
+            }
         }
     };
 
@@ -611,6 +631,21 @@ function MoneyReportHeader({
                 },
             },
             {
+                value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
+                text: translate('iou.trackDistance'),
+                icon: Expensicons.Location,
+                onSelected: () => {
+                    if (!moneyRequestReport?.reportID) {
+                        return;
+                    }
+                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                        return;
+                    }
+                    startDistanceRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport.reportID, lastDistanceExpenseType);
+                },
+            },
+            {
                 value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
                 text: translate('iou.addUnreportedExpense'),
                 icon: Expensicons.ReceiptPlus,
@@ -623,7 +658,7 @@ function MoneyReportHeader({
                 },
             },
         ],
-        [moneyRequestReport?.reportID, policy, translate],
+        [moneyRequestReport?.reportID, policy, lastDistanceExpenseType, translate],
     );
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {
@@ -708,6 +743,7 @@ function MoneyReportHeader({
                             shouldCalculateTotals: true,
                             offset: 0,
                             queryJSON: currentSearchQueryJSON,
+                            isOffline,
                         });
                     }
                 }}
@@ -818,15 +854,6 @@ function MoneyReportHeader({
                     }
                     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));
                 }}
-            />
-        ),
-        [CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE]: (
-            <ButtonWithDropdownMenu
-                onPress={() => {}}
-                shouldAlwaysShowDropdownMenu
-                customText={translate('iou.addExpense')}
-                options={addExpenseDropdownOptions}
-                isSplitButton={false}
             />
         ),
     };
@@ -1114,9 +1141,16 @@ function MoneyReportHeader({
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
+    useEffect(() => {
+        return () => {
+            turnOffMobileSelectionMode();
+        };
+    }, []);
+
     if (isMobileSelectionModeEnabled) {
         // If mobile selection mode is enabled but only one or no transactions remain, turn it off
-        if (transactions.length <= 1) {
+        const visibleTransactions = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        if (visibleTransactions.length <= 1) {
             turnOffMobileSelectionMode();
         }
 
@@ -1189,7 +1223,7 @@ function MoneyReportHeader({
                 shouldShowBorderBottom={false}
                 shouldEnableDetailPageNavigation
             >
-                {!shouldDisplayNarrowVersion && (
+                {shouldDisplayNarrowMoreButton && (
                     <View style={[styles.flexRow, styles.gap2]}>
                         {!!primaryAction && !shouldShowSelectedTransactionsButton && primaryActionsImplementation[primaryAction]}
                         {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && KYCMoreDropdown}
@@ -1207,8 +1241,7 @@ function MoneyReportHeader({
                     </View>
                 )}
             </HeaderWithBackButton>
-
-            {shouldDisplayNarrowVersion &&
+            {!shouldDisplayNarrowMoreButton &&
                 (shouldShowSelectedTransactionsButton ? (
                     <View style={[styles.dFlex, styles.w100, styles.ph5]}>
                         <ButtonWithDropdownMenu
@@ -1305,6 +1338,7 @@ function MoneyReportHeader({
                         }
                         // it's deleting transaction but not the report which leads to bug (that is actually also on staging)
                         // Money request should be deleted when interactions are done, to not show the not found page before navigating to goBackRoute
+                        // eslint-disable-next-line deprecation/deprecation
                         InteractionManager.runAfterInteractions(() => {
                             deleteMoneyRequest(transaction?.transactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations);
                             removeTransaction(transaction.transactionID);
@@ -1346,6 +1380,7 @@ function MoneyReportHeader({
                     setIsDeleteReportModalVisible(false);
 
                     Navigation.goBack();
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => {
                         deleteAppReport(moneyRequestReport?.reportID);
                     });
