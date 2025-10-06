@@ -3666,6 +3666,36 @@ describe('ReportUtils', () => {
             ).toBeTruthy();
         });
 
+        it('should return false for empty submitted report if it is not the current focused report', async () => {
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                total: 0,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                reportName: 'Expense Report',
+                participants: {},
+            };
+            const currentReportId = `${report.reportID}1`;
+
+            const isInFocusMode = true;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            const createdReportAction: ReportAction = {...LHNTestUtils.getFakeReportAction(), actionName: CONST.REPORT.ACTIONS.TYPE.CREATED};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[createdReportAction.reportActionID]: createdReportAction});
+
+            expect(
+                shouldReportBeInOptionList({
+                    report,
+                    chatReport: mockedChatReport,
+                    currentReportId,
+                    isInFocusMode,
+                    betas,
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: false,
+                }),
+            ).toBeFalsy();
+        });
+
         it('should return true when the report has outstanding violations', async () => {
             const expenseReport = buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
             const expenseTransaction = buildOptimisticTransaction({
