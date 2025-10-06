@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
@@ -16,6 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
 import Permissions from '@libs/Permissions';
@@ -49,6 +50,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
     const [hasMoreUnreportedTransactionsResults] = useOnyx(ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS, {canBeMissing: true});
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS, {canBeMissing: true});
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
@@ -56,32 +58,39 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const session = useSession();
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
-    function getUnreportedTransactions(transactions: OnyxCollection<Transaction>) {
-        if (!transactions) {
-            return [];
-        }
-        return Object.values(transactions || {}).filter((item) => {
-            const isUnreported = item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '';
-            if (!isUnreported) {
-                return false;
+    const getUnreportedTransactions = useCallback(
+        (transactions: OnyxCollection<Transaction>) => {
+            if (!transactions) {
+                return [];
             }
+            return Object.values(transactions || {}).filter((item) => {
+                const isUnreported = item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '';
+                if (!isUnreported) {
+                    return false;
+                }
 
-            if (isPerDiemRequest(item)) {
-                // Only show per diem expenses if the target workspace has per diem enabled and the per diem expense was created in the same workspace
-                const workspacePerDiemUnit = getPerDiemCustomUnit(policy);
-                const perDiemCustomUnitID = item?.comment?.customUnit?.customUnitID;
+                if (isPerDiemRequest(item)) {
+                    // Only show per diem expenses if the target workspace has per diem enabled and the per diem expense was created in the same workspace
+                    const workspacePerDiemUnit = getPerDiemCustomUnit(policy);
+                    const perDiemCustomUnitID = item?.comment?.customUnit?.customUnitID;
 
-                return canSubmitPerDiemExpenseFromWorkspace(policy) && (!perDiemCustomUnitID || perDiemCustomUnitID === workspacePerDiemUnit?.customUnitID);
-            }
+                    return canSubmitPerDiemExpenseFromWorkspace(policy) && (!perDiemCustomUnitID || perDiemCustomUnitID === workspacePerDiemUnit?.customUnitID);
+                }
 
-            return true;
-        });
-    }
+                return true;
+            });
+        },
+        [policy],
+    );
 
-    const [transactions = getEmptyArray<Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (_transactions) => getUnreportedTransactions(_transactions),
-        canBeMissing: true,
-    });
+    const [transactions = getEmptyArray<Transaction>()] = useOnyx(
+        ONYXKEYS.COLLECTION.TRANSACTION,
+        {
+            selector: getUnreportedTransactions,
+            canBeMissing: true,
+        },
+        [getUnreportedTransactions],
+    );
 
     const fetchMoreUnreportedTransactions = () => {
         if (!hasMoreUnreportedTransactionsResults || isLoadingUnreportedTransactions) {
@@ -207,6 +216,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                         return;
                     }
                     Navigation.dismissModal();
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => {
                         if (report && isIOUReport(report)) {
                             convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID);
@@ -219,6 +229,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                                 session?.email ?? '',
                                 policy,
                                 reportNextStep,
+                                policyCategories,
                             );
                         }
                     });
