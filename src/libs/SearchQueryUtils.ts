@@ -968,23 +968,31 @@ function jacksFormMethod(
                 filtersForm[greaterThanKey] = [];
             }
 
-            // backend amount is an integer and is 2 digits longer than frontend amount
-            filtersForm[equalToKey] =
-                filterList
-                    .find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
-                    ?.value.toString() ?? filtersForm[equalToKey];
-            filtersForm[lessThanKey] =
-                filterList
-                    .find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
-                    ?.value.toString() ?? filtersForm[lessThanKey];
-            filtersForm[greaterThanKey] =
-                filterList
-                    .find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
-                    ?.value.toString() ?? filtersForm[greaterThanKey];
+            // Backend amount is an integer and is 2 digits longer than frontend amount
+            const equalToFilter = filterList.find((filter) => {
+                return filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH);
+            });
+            const lessThanFilter = filterList.find((filter) => {
+                return filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH);
+            });
+            const greaterThanFilter = filterList.find((filter) => {
+                return filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH);
+            });
+
+            if (equalToFilter) {
+                filtersForm[equalToKey].push(equalToFilter);
+            }
+            if (lessThanFilter) {
+                filtersForm[lessThanKey].push(lessThanFilter);
+            }
+            if (greaterThanFilter) {
+                filtersForm[greaterThanKey].push(greaterThanFilter);
+            }
         }
+
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
-            const validBooleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
-            filtersForm[filterKey] = validBooleanTypes.find((value) => filterValues.at(0) === value);
+            const validBooleanTypes = new Set(Object.values(CONST.SEARCH.BOOLEAN));
+            filterData.concat(filterList.filter((filter) => validBooleanTypes.has(filter.value as ValueOf<typeof CONST.SEARCH.BOOLEAN>)));
         }
     }
 
