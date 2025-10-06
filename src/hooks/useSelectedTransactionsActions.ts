@@ -5,6 +5,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
+import {getExportTemplates} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isMergeAction} from '@libs/ReportSecondaryActionUtils';
@@ -25,6 +26,7 @@ import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useLocalize from './useLocalize';
+import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
 
@@ -40,6 +42,7 @@ function useSelectedTransactionsActions({
     allTransactionsLength,
     session,
     onExportFailed,
+    onExportOffline,
     policy,
     beginExportWithTemplate,
 }: {
@@ -48,37 +51,17 @@ function useSelectedTransactionsActions({
     allTransactionsLength: number;
     session?: Session;
     onExportFailed?: () => void;
+    onExportOffline?: () => void;
     policy?: Policy;
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
 }) {
+    const {isOffline} = useNetworkWithOfflineStatus();
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
 
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
-
-    // Collate the list of user-created in-app export templates
-    const customInAppTemplates = useMemo(() => {
-        const policyTemplates = Object.entries(policy?.exportLayouts ?? {}).map(([templateName, layout]) => ({
-            ...layout,
-            templateName,
-            description: policy?.name,
-            policyID: policy?.id,
-        }));
-
-        // Collate a list of the user's account level in-app export templates, excluding the Default CSV template
-        const csvTemplates = Object.entries(csvExportLayouts ?? {})
-            .filter(([, layout]) => layout.name !== CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV)
-            .map(([templateName, layout]) => ({
-                ...layout,
-                templateName,
-                description: '',
-                policyID: undefined,
-            }));
-
-        return [...policyTemplates, ...csvTemplates];
-    }, [csvExportLayouts, policy]);
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -119,16 +102,21 @@ function useSelectedTransactionsActions({
             }),
         }));
         const deletedTransactionIDs: string[] = [];
+        const deletedTransactionThreadReportIDs = new Set<string>();
         transactionsWithActions.forEach(({transactionID, action}) => {
             if (!action) {
                 return;
             }
 
-            deleteMoneyRequest(transactionID, action, duplicateTransactions, duplicateTransactionViolations, false, deletedTransactionIDs);
+            deleteMoneyRequest(transactionID, action, duplicateTransactions, duplicateTransactionViolations, false, deletedTransactionIDs, selectedTransactionIDs);
             deletedTransactionIDs.push(transactionID);
+            if (action.childReportID) {
+                deletedTransactionThreadReportIDs.add(action.childReportID);
+            }
         });
         clearSelectedTransactions(true);
         setIsDeleteModalVisible(false);
+        Navigation.removeReportScreen(deletedTransactionThreadReportIDs);
     }, [duplicateTransactions, duplicateTransactionViolations, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
 
     const showDeleteModal = useCallback(() => {
@@ -209,58 +197,31 @@ function useSelectedTransactionsActions({
                         if (!report) {
                             return;
                         }
+                        if (isOffline) {
+                            onExportOffline?.();
+                            return;
+                        }
                         exportReportToCSV({reportID: report.reportID, transactionIDList: selectedTransactionIDs}, () => {
                             onExportFailed?.();
                         });
                         clearSelectedTransactions(true);
                     },
                 },
-                {
-                    text: translate('export.expenseLevelExport'),
-                    icon: Expensicons.Table,
-                    onSelected: () => {
-                        if (!report) {
-                            return;
-                        }
-                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs);
-                    },
-                },
             ];
 
             // If we've selected all the transactions on the report, we can also provide the report level export option
-            if (allTransactionsLength === selectedTransactionIDs.length) {
-                exportOptions.push({
-                    text: translate('export.reportLevelExport'),
-                    icon: Expensicons.Table,
-                    onSelected: () =>
-                        // The report level export template is not policy specific, so we don't need to pass a policyID
-                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs),
-                });
-            }
+            const includeReportLevelExport = allTransactionsLength === selectedTransactionIDs.length;
 
             // If the user has any custom integration export templates, add them as export options
-            if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
-                for (const template of integrationsExportTemplates) {
-                    exportOptions.push({
-                        text: template.name,
-                        icon: Expensicons.Table,
-                        onSelected: () => beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs),
-                    });
-                }
+            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, policy, includeReportLevelExport);
+            for (const template of exportTemplates) {
+                exportOptions.push({
+                    text: template.name,
+                    icon: Expensicons.Table,
+                    description: template.description,
+                    onSelected: () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.policyID),
+                });
             }
-
-            // If the user has any custom in-app export templates, add them as export options
-            if (customInAppTemplates && customInAppTemplates.length > 0) {
-                for (const template of customInAppTemplates) {
-                    exportOptions.push({
-                        text: template.name,
-                        icon: Expensicons.Table,
-                        description: template.description,
-                        onSelected: () => beginExportWithTemplate(template.templateName, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, selectedTransactionIDs, template.policyID),
-                    });
-                }
-            }
-
             return exportOptions;
         };
 
@@ -353,8 +314,10 @@ function useSelectedTransactionsActions({
         outstandingReportsByPolicyID,
         policy,
         beginExportWithTemplate,
+        isOffline,
+        onExportOffline,
+        csvExportLayouts,
         integrationsExportTemplates,
-        customInAppTemplates,
     ]);
 
     return {

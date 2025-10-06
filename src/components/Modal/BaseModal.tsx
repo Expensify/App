@@ -1,4 +1,4 @@
-import React, {forwardRef, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 // Animated required for side panel navigation
 // eslint-disable-next-line no-restricted-imports
@@ -26,49 +26,47 @@ import ModalContext from './ModalContext';
 import ReanimatedModal from './ReanimatedModal';
 import type BaseModalProps from './types';
 
-function BaseModal(
-    {
-        isVisible,
-        onClose,
-        shouldSetModalVisibility = true,
-        onModalHide = () => {},
-        type,
-        popoverAnchorPosition = {},
-        innerContainerStyle = {},
-        outerStyle,
-        onModalShow = () => {},
-        onModalWillShow,
-        onModalWillHide,
-        animationIn,
-        animationOut,
-        hideModalContentWhileAnimating = false,
-        animationInTiming,
-        animationOutTiming,
-        animationInDelay,
-        statusBarTranslucent = true,
-        navigationBarTranslucent = true,
-        onLayout,
-        avoidKeyboard = false,
-        children,
-        shouldUseCustomBackdrop = false,
-        onBackdropPress,
-        modalId,
-        shouldEnableNewFocusManagement = false,
-        restoreFocusType,
-        shouldUseModalPaddingStyle = true,
-        initialFocus = false,
-        swipeThreshold = 150,
-        swipeDirection,
-        shouldPreventScrollOnFocus = false,
-        enableEdgeToEdgeBottomSafeAreaPadding,
-        shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-        backdropOpacity,
-        shouldDisableBottomSafeAreaPadding = false,
-        shouldIgnoreBackHandlerDuringTransition = false,
-        forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
-    }: BaseModalProps,
-    ref: React.ForwardedRef<View>,
-) {
+function BaseModal({
+    isVisible,
+    onClose,
+    shouldSetModalVisibility = true,
+    onModalHide = () => {},
+    type,
+    popoverAnchorPosition = {},
+    innerContainerStyle = {},
+    outerStyle,
+    onModalShow = () => {},
+    onModalWillShow,
+    onModalWillHide,
+    animationIn,
+    animationOut,
+    hideModalContentWhileAnimating = false,
+    animationInTiming,
+    animationOutTiming,
+    animationInDelay,
+    statusBarTranslucent = true,
+    navigationBarTranslucent = true,
+    onLayout,
+    avoidKeyboard = false,
+    children,
+    shouldUseCustomBackdrop = false,
+    onBackdropPress,
+    modalId,
+    shouldEnableNewFocusManagement = false,
+    restoreFocusType,
+    shouldUseModalPaddingStyle = true,
+    initialFocus = false,
+    swipeThreshold = 150,
+    swipeDirection,
+    shouldPreventScrollOnFocus = false,
+    enableEdgeToEdgeBottomSafeAreaPadding,
+    shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+    backdropOpacity,
+    shouldDisableBottomSafeAreaPadding = false,
+    shouldIgnoreBackHandlerDuringTransition = false,
+    forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
+    ref,
+}: BaseModalProps) {
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
     const theme = useTheme();
@@ -109,7 +107,6 @@ function BaseModal(
         (callHideCallback = true) => {
             shouldCallHideModalOnUnmount.current = false;
             if (areAllModalsHidden()) {
-                willAlertModalBecomeVisible(false);
                 if (shouldSetModalVisibility && !Navigation.isTopmostRouteModalScreen()) {
                     setModalVisibility(false);
                 }
@@ -156,11 +153,6 @@ function BaseModal(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
-
-    const onModalWillShowCallback = useCallback(() => {
-        saveFocusState();
-        onModalWillShow?.();
-    }, [saveFocusState, onModalWillShow]);
 
     const handleShowModal = useCallback(() => {
         if (shouldSetModalVisibility) {
@@ -300,6 +292,20 @@ function BaseModal(
             ? 0
             : backdropOpacity;
 
+    const onModalWillShowCallback = useCallback(() => {
+        saveFocusState();
+        onModalWillShow?.();
+    }, [saveFocusState, onModalWillShow]);
+
+    const onModalWillHideCallback = useCallback(() => {
+        // Reset willAlertModalBecomeVisible when modal is about to hide
+        // This ensures it's cleared before any other components check its value
+        if (areAllModalsHidden()) {
+            willAlertModalBecomeVisible(false);
+        }
+        onModalWillHide?.();
+    }, [onModalWillHide]);
+
     return (
         <ModalContext.Provider value={modalContextValue}>
             <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
@@ -312,6 +318,7 @@ function BaseModal(
                     style={[styles.pAbsolute, {zIndex: 1}]}
                 >
                     <ReanimatedModal
+                        dataSet={{dragArea: false}}
                         // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
                         onClick={(e) => e.stopPropagation()}
                         onBackdropPress={handleBackdropPress}
@@ -320,7 +327,7 @@ function BaseModal(
                         onModalShow={handleShowModal}
                         onModalHide={hideModal}
                         onModalWillShow={onModalWillShowCallback}
-                        onModalWillHide={onModalWillHide}
+                        onModalWillHide={onModalWillHideCallback}
                         onDismiss={handleDismissModal}
                         onSwipeComplete={onClose}
                         swipeDirection={swipeDirection}
@@ -366,4 +373,4 @@ function BaseModal(
 
 BaseModal.displayName = 'BaseModalWithRef';
 
-export default forwardRef(BaseModal);
+export default BaseModal;
