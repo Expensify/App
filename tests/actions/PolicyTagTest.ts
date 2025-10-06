@@ -1,7 +1,7 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyData from '@hooks/usePolicyData';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
