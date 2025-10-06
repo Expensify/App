@@ -148,8 +148,17 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 ? tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (option) => [option.text ?? '', option.login ?? ''])
                 : approvers;
 
-        const currentApprover = approvalWorkflow?.approvers[approverIndex];
         const data = sortAlphabetically(filteredApprovers, 'text', localeCompare);
+        if (data.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
+            return [
+                {
+                    title: undefined,
+                    data,
+                    shouldShow: true,
+                },
+            ];
+        }
+        const currentApprover = approvalWorkflow?.approvers[approverIndex];
         const orderedApprovers = data.reduce<typeof data>((acc, approver) => {
             if (approver.login === currentApprover?.email) {
                 acc.unshift(approver);

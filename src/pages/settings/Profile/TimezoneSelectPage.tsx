@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -57,6 +57,17 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
         );
     };
 
+    const orderedTimezoneOptions = useMemo(() => {
+        return timezoneOptions.reduce<typeof timezoneOptions>((acc, option) => {
+            if (option.isSelected) {
+                acc.unshift(option);
+            } else {
+                acc.push(option);
+            }
+            return acc;
+        }, []);
+    }, [timezoneOptions]);
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -73,8 +84,8 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
                 onChangeText={filterShownTimezones}
                 onSelectRow={saveSelectedTimezone}
                 shouldSingleExecuteRowSelect
-                sections={[{data: timezoneOptions, isDisabled: timezone.automatic}]}
-                initiallyFocusedOptionKey={timezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList}
+                sections={[{data: orderedTimezoneOptions, isDisabled: timezone.automatic}]}
+                initiallyFocusedOptionKey={orderedTimezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList}
                 showScrollIndicator
                 shouldShowTooltips={false}
                 ListItem={RadioListItem}

@@ -149,6 +149,20 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             members.push(...availableMembers);
         }
 
+        if (members.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
+            const filteredMembers =
+                debouncedSearchTerm !== ''
+                    ? tokenizedSearch(members, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (option) => [option.text ?? '', option.login ?? ''])
+                    : members;
+            return [
+                {
+                    title: undefined,
+                    data: sortAlphabetically(filteredMembers, 'text', localeCompare),
+                    shouldShow: true,
+                },
+            ];
+        }
+
         const filteredMembers = sortAlphabetically(
             debouncedSearchTerm !== ''
                 ? tokenizedSearch(members, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (option) => [option.text ?? '', option.login ?? ''])
