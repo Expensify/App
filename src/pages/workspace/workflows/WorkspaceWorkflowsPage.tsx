@@ -338,7 +338,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 displayInDefaultIconColor={shouldShowBankAccount}
                                 brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />
-                            {shouldShowBankAccount && (
+                            {shouldShowBankAccount && !isAccountInSetupState && (
                                 <OfflineWithFeedback
                                     pendingAction={policy?.pendingFields?.reimburser}
                                     shouldDisableOpacity={isOffline && !!policy?.pendingFields?.reimbursementChoice && !!policy?.pendingFields?.reimburser}
