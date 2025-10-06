@@ -75,7 +75,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     const createReport = () => {
         const createdReportID = createNewReport(currentUserPersonalDetails, policyForMovingExpensesID);
-        const backToRoute =  ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID})
+        const backToRoute = ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID});
         if (shouldSelectPolicy) {
             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true, backToRoute));
             return;

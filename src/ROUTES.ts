@@ -440,7 +440,7 @@ const ROUTES = {
         route: 'new-report-workspace-selection',
         getRoute: (isMovingExpenses?: boolean, backTo?: string) => {
             const baseRoute = `new-report-workspace-selection${isMovingExpenses ? '?isMovingExpenses=true' : ''}` as const;
-            
+
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(baseRoute, backTo);
         },
