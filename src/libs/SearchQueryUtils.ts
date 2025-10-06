@@ -619,6 +619,7 @@ function buildFilterFormValuesFromQuery(
     cardList: OnyxTypes.CardList,
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
+    negationsOnly: boolean,
 ) {
     const filters = queryJSON.flatFilters;
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
@@ -627,7 +628,10 @@ function buildFilterFormValuesFromQuery(
     for (const queryFilter of filters) {
         const filterKey = queryFilter.key;
         const filterList = queryFilter.filters;
-        const filterValues = filterList.map((item) => item.value.toString());
+        const filterValues = filterList
+            .filter((filter) => (negationsOnly ? filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO : filter.operator !== CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO))
+            .map((filter) => filter.value.toString());
+
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID) {
             filtersForm[filterKey] = filterValues.join(',');
         }
@@ -796,12 +800,9 @@ function buildFilterFormValuesFromQuery(
 }
 
 /**
- * Generates object with search filter values, in a format that can be consumed by SearchAdvancedFiltersForm.
- * Main usage of this is to generate the initial values for AdvancedFilters from existing query.
- *
- * Reverse operation of buildQueryStringFromFilterFormValues()
+ * TODO: Explain this func
  */
-function jacksFormMethod(
+function buildFiltersFromQuery(
     queryJSON: SearchQueryJSON,
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>,
     policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>,
@@ -1320,6 +1321,7 @@ export {
     isFilterSupported,
     buildSearchQueryJSON,
     buildSearchQueryString,
+    buildFiltersFromQuery,
     buildUserReadableQueryString,
     getFilterDisplayValue,
     buildQueryStringFromFilterFormValues,
