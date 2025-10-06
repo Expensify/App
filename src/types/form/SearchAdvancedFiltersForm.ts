@@ -424,68 +424,146 @@ type SearchAdvancedFiltersForm = Form<
     SearchAdvancedFiltersKey,
     {
         [FILTER_KEYS.GROUP_BY]: SearchGroupBy;
+
         [FILTER_KEYS.TYPE]: SearchDataTypes;
+
         [FILTER_KEYS.STATUS]: string[] | string;
+
         [FILTER_KEYS.DATE_AFTER]: string;
         [FILTER_KEYS.DATE_BEFORE]: string;
+
         [FILTER_KEYS.DATE_ON]: string;
+        [FILTER_KEYS.NOT_DATE_ON]: string;
+
         [FILTER_KEYS.SUBMITTED_ON]: string;
+        [FILTER_KEYS.NOT_SUBMITTED_ON]: string;
         [FILTER_KEYS.SUBMITTED_AFTER]: string;
         [FILTER_KEYS.SUBMITTED_BEFORE]: string;
+
         [FILTER_KEYS.APPROVED_ON]: string;
+        [FILTER_KEYS.NOT_APPROVED_ON]: string;
         [FILTER_KEYS.APPROVED_AFTER]: string;
         [FILTER_KEYS.APPROVED_BEFORE]: string;
+
         [FILTER_KEYS.PAID_ON]: string;
+        [FILTER_KEYS.NOT_PAID_ON]: string;
         [FILTER_KEYS.PAID_AFTER]: string;
         [FILTER_KEYS.PAID_BEFORE]: string;
+
         [FILTER_KEYS.EXPORTED_ON]: string;
+        [FILTER_KEYS.NOT_EXPORTED_ON]: string;
         [FILTER_KEYS.EXPORTED_AFTER]: string;
         [FILTER_KEYS.EXPORTED_BEFORE]: string;
+
         [FILTER_KEYS.POSTED_ON]: string;
+        [FILTER_KEYS.NOT_POSTED_ON]: string;
         [FILTER_KEYS.POSTED_AFTER]: string;
         [FILTER_KEYS.POSTED_BEFORE]: string;
+
         [FILTER_KEYS.WITHDRAWAL_TYPE]: SearchWithdrawalType;
+        [FILTER_KEYS.NOT_WITHDRAWAL_TYPE]: SearchWithdrawalType;
+
         [FILTER_KEYS.WITHDRAWN_ON]: string;
+        [FILTER_KEYS.NOT_WITHDRAWN_ON]: string;
         [FILTER_KEYS.WITHDRAWN_AFTER]: string;
         [FILTER_KEYS.WITHDRAWN_BEFORE]: string;
+
         [FILTER_KEYS.CURRENCY]: string[];
+        [FILTER_KEYS.NOT_CURRENCY]: string[];
         [FILTER_KEYS.GROUP_CURRENCY]: string;
+
         [FILTER_KEYS.CATEGORY]: string[];
+        [FILTER_KEYS.NOT_CATEGORY]: string[];
+
         [FILTER_KEYS.POLICY_ID]: string[];
+
         [FILTER_KEYS.CARD_ID]: string[];
+        [FILTER_KEYS.NOT_CARD_ID]: string[];
+
         [FILTER_KEYS.FEED]: string[];
+        [FILTER_KEYS.NOT_FEED]: string[];
+
         [FILTER_KEYS.MERCHANT]: string;
+        [FILTER_KEYS.NOT_MERCHANT]: string;
+
         [FILTER_KEYS.DESCRIPTION]: string;
+        [FILTER_KEYS.NOT_DESCRIPTION]: string;
+
         [FILTER_KEYS.REPORT_ID]: string;
+        [FILTER_KEYS.NOT_REPORT_ID]: string;
+
         [FILTER_KEYS.AMOUNT_EQUAL_TO]: string;
+        [FILTER_KEYS.NOT_AMOUNT_EQUAL_TO]: string;
         [FILTER_KEYS.AMOUNT_LESS_THAN]: string;
+        [FILTER_KEYS.NOT_AMOUNT_LESS_THAN]: string;
         [FILTER_KEYS.AMOUNT_GREATER_THAN]: string;
+
         [FILTER_KEYS.TOTAL_EQUAL_TO]: string;
+        [FILTER_KEYS.NOT_TOTAL_EQUAL_TO]: string;
         [FILTER_KEYS.TOTAL_LESS_THAN]: string;
         [FILTER_KEYS.TOTAL_GREATER_THAN]: string;
+
         [FILTER_KEYS.KEYWORD]: string;
+        [FILTER_KEYS.NOT_KEYWORD]: string;
+
         [FILTER_KEYS.TAX_RATE]: string[];
+        [FILTER_KEYS.NOT_TAX_RATE]: string[];
+
         [FILTER_KEYS.EXPENSE_TYPE]: string[];
+        [FILTER_KEYS.NOT_EXPENSE_TYPE]: string[];
+
         [FILTER_KEYS.TAG]: string[];
+        [FILTER_KEYS.NOT_TAG]: string[];
+
         [FILTER_KEYS.FROM]: string[];
+        [FILTER_KEYS.NOT_FROM]: string[];
+
         [FILTER_KEYS.PAYER]: string;
+        [FILTER_KEYS.NOT_PAYER]: string;
+
         [FILTER_KEYS.EXPORTER]: string[];
+        [FILTER_KEYS.NOT_EXPORTER]: string[];
+
         [FILTER_KEYS.TO]: string[];
+        [FILTER_KEYS.NOT_TO]: string[];
+
         [FILTER_KEYS.IN]: string[];
+        [FILTER_KEYS.NOT_IN]: string[];
+
         [FILTER_KEYS.TITLE]: string;
+        [FILTER_KEYS.NOT_TITLE]: string;
+
         [FILTER_KEYS.ASSIGNEE]: string[];
+        [FILTER_KEYS.NOT_ASSIGNEE]: string[];
+
         [FILTER_KEYS.REIMBURSABLE]: string;
+        [FILTER_KEYS.NOT_REIMBURSABLE]: string;
+
         [FILTER_KEYS.BILLABLE]: string;
+        [FILTER_KEYS.NOT_BILLABLE]: string;
+
         [FILTER_KEYS.ACTION]: string;
+        [FILTER_KEYS.NOT_ACTION]: string;
+
         [FILTER_KEYS.HAS]: string[];
+        [FILTER_KEYS.NOT_HAS]: string[];
+
+        [FILTER_KEYS.IS]: string[];
+        [FILTER_KEYS.NOT_IS]: string[];
+
         [FILTER_KEYS.PURCHASE_AMOUNT_EQUAL_TO]: string;
+        [FILTER_KEYS.NOT_PURCHASE_AMOUNT_EQUAL_TO]: string;
         [FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN]: string;
         [FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN]: string;
+
         [FILTER_KEYS.PURCHASE_CURRENCY]: string[];
+        [FILTER_KEYS.NOT_PURCHASE_CURRENCY]: string[];
+
         [FILTER_KEYS.WITHDRAWAL_ID]: string;
+        [FILTER_KEYS.NOT_WITHDRAWAL_ID]: string;
+
         [FILTER_KEYS.ATTENDEE]: string[];
-        [FILTER_KEYS.IS]: string[];
-        [FILTER_KEYS.HAS]: string[];
+        [FILTER_KEYS.NOT_ATTENDEE]: string[];
     }
 >;
 
