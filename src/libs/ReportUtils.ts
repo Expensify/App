@@ -11,7 +11,7 @@ import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
+import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense, OriginalMessagePolicyChangeLog} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import {FallbackAvatar, IntacctSquare, NetSuiteExport, NetSuiteSquare, QBDSquare, QBOExport, QBOSquare, SageIntacctExport, XeroExport, XeroSquare} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
@@ -185,6 +185,7 @@ import {
     getReportActionText,
     getRetractedMessage,
     getTravelUpdateMessage,
+    getUpdatedBudgetMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReportFieldAddMessage,
@@ -4993,7 +4994,7 @@ function getModifiedExpenseOriginalMessage(
  * Check if original message is an object and can be used as a ChangeLog type
  * @param originalMessage
  */
-function isChangeLogObject(originalMessage?: OriginalMessageChangeLog): OriginalMessageChangeLog | undefined {
+function isChangeLogObject(originalMessage?: OriginalMessageChangeLog | OriginalMessagePolicyChangeLog): (OriginalMessageChangeLog | OriginalMessagePolicyChangeLog) | undefined {
     if (originalMessage && typeof originalMessage === 'object') {
         return originalMessage;
     }
@@ -5358,6 +5359,10 @@ function getReportName(
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET) && policy && 'outputCurrency' in policy) {
         return getAddedBudgetMessage(parentReportAction, policy);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET) && policy && 'outputCurrency' in policy) {
+        return getUpdatedBudgetMessage(parentReportAction, policy);
     }
 
     if (parentReportAction?.actionName && isTagModificationAction(parentReportAction?.actionName)) {

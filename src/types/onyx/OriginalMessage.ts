@@ -1088,6 +1088,7 @@ export type {
     OriginalMessageSource,
     Decision,
     OriginalMessageChangeLog,
+    OriginalMessagePolicyChangeLog,
     JoinWorkspaceResolution,
     OriginalMessageModifiedExpense,
     OriginalMessageExportIntegration,

@@ -2897,6 +2897,41 @@ function getAddedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: On
     return getReportActionText(reportAction);
 }
 
+function getUpdatedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: OnyxEntry<Policy>) {
+    const {newValue, oldValue, categoryName, entityType} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET>) ?? {};
+
+    const updated = newValue as PolicyBudgetFrequency | undefined;
+    const previous = oldValue as PolicyBudgetFrequency | undefined;
+
+    if (!updated || !previous || !categoryName || !entityType) {
+        return getReportActionText(reportAction);
+    }
+
+    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+
+    const oldFrequency = translateLocal(`workspace.common.budgetFrequency.${previous.frequency}` as TranslationPaths);
+    const newFrequency = translateLocal(`workspace.common.budgetFrequency.${updated.frequency}` as TranslationPaths);
+    const oldIndividual = typeof previous.individual === 'number' ? convertToShortDisplayString(previous.individual, currency) : undefined;
+    const newIndividual = typeof updated.individual === 'number' ? convertToShortDisplayString(updated.individual, currency) : undefined;
+    const oldShared = typeof previous.shared === 'number' ? convertToShortDisplayString(previous.shared, currency) : undefined;
+    const newShared = typeof updated.shared === 'number' ? convertToShortDisplayString(updated.shared, currency) : undefined;
+    const oldNotificationThreshold = previous.notificationThreshold;
+    const newNotificationThreshold = updated.notificationThreshold;
+
+    return translateLocal('workspaceActions.updateBudget', {
+        entityType,
+        entityName: categoryName,
+        oldFrequency,
+        newFrequency,
+        oldIndividual,
+        newIndividual,
+        oldShared,
+        newShared,
+        oldNotificationThreshold,
+        newNotificationThreshold,
+    });
+}
+
 function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL | typeof CONST.REPORT.ACTIONS.TYPE.REROUTE>(reportAction: OnyxEntry<ReportAction>) {
     const {mentionedAccountIDs} = getOriginalMessage(reportAction as ReportAction<T>) ?? {};
 
@@ -3260,6 +3295,7 @@ export {
     getWorkspaceReportFieldDeleteMessage,
     getUpdatedAuditRateMessage,
     getUpdatedManualApprovalThresholdMessage,
+    getUpdatedBudgetMessage,
     getAddedBudgetMessage,
     getWorkspaceCustomUnitRateDeletedMessage,
     getAddedConnectionMessage,

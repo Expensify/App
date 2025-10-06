@@ -235,6 +235,7 @@ import type {
     UnapproveWithIntegrationWarningParams,
     UnshareParams,
     UntilTimeParams,
+    UpdatedBudgetParams,
     UpdatedCustomFieldParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyAuditRateParams,
@@ -5997,6 +5998,42 @@ const translations = {
                 return `added a ${frequency} individual budget of ${individual} to the ${entityType} "${entityName}".${notificationThresholdText}`;
             }
             return `added a ${frequency} shared budget of ${shared} to the ${entityType} "${entityName}".${notificationThresholdText}`;
+        },
+        updateBudget: ({
+            entityType,
+            entityName,
+            oldFrequency,
+            newFrequency,
+            oldIndividual,
+            newIndividual,
+            oldShared,
+            newShared,
+            oldNotificationThreshold,
+            newNotificationThreshold,
+        }: UpdatedBudgetParams) => {
+            const changesList: string[] = [];
+
+            if (oldFrequency && newFrequency && oldFrequency !== newFrequency) {
+                changesList.push(`frequency from ${oldFrequency} to ${newFrequency}`);
+            }
+
+            if (oldShared && newShared && oldShared !== newShared) {
+                changesList.push(`total policy budget from ${oldShared} to ${newShared}`);
+            }
+
+            if (oldIndividual && newIndividual && oldIndividual !== newIndividual) {
+                changesList.push(`individual budget from ${oldIndividual} to ${newIndividual}`);
+            }
+
+            if (typeof oldNotificationThreshold === 'number' && typeof newNotificationThreshold === 'number' && oldNotificationThreshold !== newNotificationThreshold) {
+                changesList.push(`notification threshold from ${oldNotificationThreshold}% to ${newNotificationThreshold}%`);
+            }
+
+            const joined = changesList.join(', ');
+            if (!joined) {
+                return `updated the budget for ${entityType} "${entityName}".`;
+            }
+            return `updated the budget for ${entityType} "${entityName}". Budget's updated fields: ${joined}.`;
         },
     },
     roomMembersPage: {

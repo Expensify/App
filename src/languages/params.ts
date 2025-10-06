@@ -426,6 +426,19 @@ type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inP
 
 type AddBudgetParams = {frequency: string; entityType: string; entityName: string; shared?: string; individual?: string; notificationThreshold?: number};
 
+type UpdatedBudgetParams = {
+    entityType: string;
+    entityName: string;
+    oldFrequency?: string;
+    newFrequency?: string;
+    oldIndividual?: string;
+    newIndividual?: string;
+    oldShared?: string;
+    newShared?: string;
+    oldNotificationThreshold?: number;
+    newNotificationThreshold?: number;
+};
+
 type IntegrationsMessageParams = {
     label: string;
     result: {
@@ -1235,6 +1248,7 @@ export type {
     WorkspaceRouteParams,
     BusinessTaxIDParams,
     AddBudgetParams,
+    UpdatedBudgetParams,
     QBDSetupErrorBodyParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,

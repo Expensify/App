@@ -94,6 +94,7 @@ import {
     getTravelUpdateMessage,
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
+    getUpdatedBudgetMessage,
     getUpdatedManualApprovalThresholdMessage,
     getWhisperedTo,
     getWorkspaceCategoryUpdateMessage,
@@ -1367,7 +1368,7 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET)) {
             children = <ReportActionItemBasicMessage message={getAddedBudgetMessage(action, policy)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET)) {
-            children = <ReportActionItemBasicMessage message={getUpdatedManualApprovalThresholdMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getUpdatedBudgetMessage(action, policy)} />;
         } else if (isActionableMentionWhisper(action)) {
             children = (
                 <ReportActionItemBasicMessage>

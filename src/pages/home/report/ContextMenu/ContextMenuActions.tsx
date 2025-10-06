@@ -55,6 +55,7 @@ import {
     getTravelUpdateMessage,
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
+    getUpdatedBudgetMessage,
     getUpdatedManualApprovalThresholdMessage,
     getUpdateRoomDescriptionMessage,
     getWorkspaceCategoryUpdateMessage,
@@ -710,6 +711,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedManualApprovalThresholdMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET)) {
                     setClipboardMessage(getAddedBudgetMessage(reportAction, policy));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET)) {
+                    setClipboardMessage(getUpdatedBudgetMessage(reportAction, policy));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
                     setClipboardMessage(getChangedApproverActionMessage(reportAction));
                 } else if (isMovedAction(reportAction)) {

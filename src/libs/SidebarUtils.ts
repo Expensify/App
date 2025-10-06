@@ -52,6 +52,7 @@ import {
     getTravelUpdateMessage,
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
+    getUpdatedBudgetMessage,
     getUpdatedManualApprovalThresholdMessage,
     getUpdateRoomDescriptionMessage,
     getWorkspaceCategoryUpdateMessage,
@@ -879,6 +880,8 @@ function getOptionData({
             result.alternateText = getUpdatedManualApprovalThresholdMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET) {
             result.alternateText = getAddedBudgetMessage(lastAction, policy);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET) {
+            result.alternateText = getUpdatedBudgetMessage(lastAction, policy);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
             result.alternateText = getRetractedMessage();
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
