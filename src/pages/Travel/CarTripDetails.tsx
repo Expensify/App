@@ -79,6 +79,7 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
                     description={translate('travel.carDetails.confirmation')}
                     title={reservation.confirmations?.at(0)?.value ?? reservation.reservationID}
                     copyValue={reservation.confirmations?.at(0)?.value ?? reservation.reservationID}
+                    copyable
                 />
             )}
             {!!displayName && (

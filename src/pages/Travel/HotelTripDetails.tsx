@@ -46,6 +46,7 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
                 numberOfLinesTitle={2}
                 pressableTestID={CONST.RESERVATION_ADDRESS_TEST_ID}
                 copyValue={reservation.start.address}
+                copyable
             />
             <MenuItemWithTopDescription
                 description={translate('travel.hotelDetails.checkIn')}
@@ -78,6 +79,7 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
                     description={translate('travel.hotelDetails.confirmation')}
                     title={reservation.confirmations?.at(0)?.value}
                     copyValue={reservation.confirmations?.at(0)?.value}
+                    copyable
                 />
             )}
             {!!displayName && (

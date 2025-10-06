@@ -23,8 +23,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
+import useViolations from '@hooks/useViolations';
 import {getCompanyCardDescription} from '@libs/CardUtils';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -34,6 +34,7 @@ import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getLengthOfTag, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import type {TransactionDetails} from '@libs/ReportUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
@@ -49,7 +50,6 @@ import {
     isSettled as isSettledReportUtils,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
-import type {TransactionDetails} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getBillable,
@@ -463,6 +463,7 @@ function MoneyRequestView({
                         );
                     }}
                     copyValue={!canEditDistance ? distanceToDisplay : undefined}
+                    copyable={!canEditDistance && Boolean(distanceToDisplay)}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('customUnitRateID')}>
@@ -483,6 +484,7 @@ function MoneyRequestView({
                     brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={getErrorForField('customUnitRateID')}
                     copyValue={!canEditDistanceRate ? rateToDisplay : undefined}
+                    copyable={!canEditDistanceRate && Boolean(rateToDisplay)}
                 />
             </OfflineWithFeedback>
         </>
@@ -656,6 +658,7 @@ function MoneyRequestView({
                             errorText={getErrorForField('merchant')}
                             numberOfLinesTitle={0}
                             copyValue={!canEditMerchant ? updatedMerchantTitle : undefined}
+                            copyable={!canEditMerchant && Boolean(updatedMerchantTitle)}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -674,6 +677,7 @@ function MoneyRequestView({
                         brickRoadIndicator={getErrorForField('date') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={getErrorForField('date')}
                         copyValue={!canEditDate ? transactionDate : undefined}
+                        copyable={!canEditDate && Boolean(transactionDate)}
                     />
                 </OfflineWithFeedback>
                 {!!shouldShowCategory && (

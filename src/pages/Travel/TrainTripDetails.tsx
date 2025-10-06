@@ -38,6 +38,7 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                 description={`${translate('travel.train')} ${trainDuration ? `${CONST.DOT_SEPARATOR} ${trainDuration}` : ''}`}
                 title={reservation.route?.name}
                 copyValue={reservation.route?.name}
+                copyable
             />
             <MenuItemWithTopDescription
                 description={translate('common.date')}
@@ -87,6 +88,7 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                     description={translate('travel.trainDetails.confirmation')}
                     title={reservation.confirmations?.at(0)?.value}
                     copyValue={reservation.confirmations?.at(0)?.value}
+                    copyable
                 />
             )}
 

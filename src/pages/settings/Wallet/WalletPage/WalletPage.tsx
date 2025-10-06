@@ -470,6 +470,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 interactive={false}
                                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                                                 copyValue={convertToDisplayString(userWallet?.currentBalance ?? 0)}
+                                                copyable
                                             />
                                         </OfflineWithFeedback>
                                     )}
