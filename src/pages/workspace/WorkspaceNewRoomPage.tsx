@@ -131,6 +131,7 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
             description: parsedDescription,
         });
 
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 addPolicyReport(policyReport);
