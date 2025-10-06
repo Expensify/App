@@ -12,7 +12,7 @@ import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndica
 import ImageWithLoading from './ImageWithLoading';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
-import type {TransactionListItemType} from './SelectionList/types';
+import type {TransactionListItemType} from './SelectionListWithSections/types';
 import ThumbnailImage from './ThumbnailImage';
 
 type Style = {height: number; borderRadius: number; margin: number};
@@ -187,6 +187,8 @@ function ReceiptImage({
                 style={[styles.w100, styles.h100, thumbnailContainerStyles]}
                 isAuthTokenRequired={isAuthTokenRequired ?? false}
                 shouldDynamicallyResize={false}
+                loadingIconSize={loadingIconSize}
+                loadingIndicatorStyles={loadingIndicatorStyles}
                 fallbackIcon={fallbackIcon}
                 fallbackIconSize={fallbackIconSize}
                 fallbackIconColor={fallbackIconColor}
