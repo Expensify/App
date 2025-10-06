@@ -45,6 +45,7 @@ import {
     getDisplayNamesWithTooltips,
     getGroupChatName,
     getIconsForParticipants,
+    getIOUReportActionDisplayMessage,
     getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
     getParentNavigationSubtitle,
@@ -339,6 +340,39 @@ describe('ReportUtils', () => {
         return waitForBatchedUpdates();
     });
     beforeEach(() => IntlStore.load(CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
+
+    describe('getIOUReportActionDisplayMessage', () => {
+        const iouReportID = '1234567890';
+        const policyID = 332;
+
+        const reportAction = {
+            ...createRandomReportAction(44),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {IOUReportID: iouReportID, type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
+        };
+
+        const iouReport = {...createExpenseReport(Number(iouReportID)), policyID: policyID.toString()};
+
+        const policy54 = {
+            ...createRandomPolicy(policyID, CONST.POLICY.TYPE.TEAM),
+            achAccount: {
+                accountNumber: 'XXXXXXXXXXXX0000',
+            },
+        };
+
+        it('should return the right message when payment type is ACH', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy54);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {[reportAction.reportActionID]: reportAction});
+
+            const last4Digits = policy54.achAccount?.accountNumber.slice(-4);
+            const translationKey = 'iou.businessBankAccount';
+
+            const paidSystemMessage = translateLocal(translationKey, {amount: '', last4Digits});
+
+            expect(getIOUReportActionDisplayMessage(reportAction, undefined, iouReport)).toBe(paidSystemMessage);
+        });
+    });
 
     describe('prepareOnboardingOnyxData', () => {
         it('provides test drive url to task title', () => {
