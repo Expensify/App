@@ -1,4 +1,3 @@
-import {activePolicySelector} from '@selectors/Policy';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
