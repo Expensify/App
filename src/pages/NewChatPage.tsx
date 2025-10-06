@@ -70,6 +70,7 @@ function useOptions() {
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     const defaultOptions = useMemo(() => {
         const filteredOptions = memoizedGetValidOptions(
@@ -80,10 +81,11 @@ function useOptions() {
             {
                 betas: betas ?? [],
                 includeSelfDM: true,
+                nvpDismissedProductTraining,
             },
         );
         return filteredOptions;
-    }, [betas, listOptions.personalDetails, listOptions.reports, contacts]);
+    }, [betas, listOptions.personalDetails, listOptions.reports, contacts, nvpDismissedProductTraining]);
 
     const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
 

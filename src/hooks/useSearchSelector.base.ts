@@ -142,6 +142,7 @@ function useSearchSelectorBase({
         };
     }, [areOptionsInitialized, defaultOptions, contactOptions]);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected ?? []);
     const [maxResults, setMaxResults] = useState(maxResultsPerPage);
@@ -162,7 +163,7 @@ function useSearchSelectorBase({
 
         switch (searchContext) {
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SEARCH:
-                return getSearchOptions(optionsWithContacts, betas ?? [], true, true, computedSearchTerm, maxResults, includeUserToInvite);
+                return getSearchOptions(optionsWithContacts, nvpDismissedProductTraining, betas ?? [], true, true, computedSearchTerm, maxResults, includeUserToInvite);
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
                 return getValidOptions(optionsWithContacts, {
                     betas: betas ?? [],
@@ -173,6 +174,7 @@ function useSearchSelectorBase({
                     maxElements: maxResults,
                     searchString: computedSearchTerm,
                     includeUserToInvite,
+                    nvpDismissedProductTraining,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(optionsWithContacts, {
@@ -182,11 +184,24 @@ function useSearchSelectorBase({
                     maxElements: maxResults,
                     includeUserToInvite,
                     loginsToExclude: excludeLogins,
+                    nvpDismissedProductTraining,
                 });
             default:
                 return getEmptyOptions();
         }
-    }, [areOptionsInitialized, optionsWithContacts, betas, computedSearchTerm, maxResults, searchContext, includeUserToInvite, excludeLogins, includeRecentReports, getValidOptionsConfig]);
+    }, [
+        areOptionsInitialized,
+        optionsWithContacts,
+        betas,
+        computedSearchTerm,
+        maxResults,
+        searchContext,
+        includeUserToInvite,
+        excludeLogins,
+        includeRecentReports,
+        getValidOptionsConfig,
+        nvpDismissedProductTraining,
+    ]);
 
     const isOptionSelected = useMemo(() => {
         return (option: OptionData) =>

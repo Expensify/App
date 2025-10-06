@@ -26,6 +26,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const betas = useBetas();
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const {options, areOptionsInitialized} = useOptionsList();
 
     const defaultOptions = useMemo(() => {
@@ -38,7 +39,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                 headerMessage: '',
             };
         }
-        const shareLogOptions = getShareLogOptions(options, betas ?? []);
+        const shareLogOptions = getShareLogOptions(options, nvpDismissedProductTraining, betas ?? []);
 
         const header = getHeaderMessage((shareLogOptions.recentReports.length || 0) + (shareLogOptions.personalDetails.length || 0) !== 0, !!shareLogOptions.userToInvite, '');
 
@@ -46,7 +47,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
             ...shareLogOptions,
             headerMessage: header,
         };
-    }, [areOptionsInitialized, options, betas]);
+    }, [areOptionsInitialized, options, betas, nvpDismissedProductTraining]);
 
     const searchOptions = useMemo(() => {
         if (debouncedSearchValue.trim() === '') {

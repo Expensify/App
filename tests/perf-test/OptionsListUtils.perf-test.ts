@@ -1,12 +1,13 @@
 import {rand} from '@ngneat/falso';
 import type * as NativeNavigation from '@react-navigation/native';
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxEntry} from 'react-native-onyx';
 import {measureFunction} from 'reassure';
+import DateUtils from '@libs/DateUtils';
 import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSearchOptions, getShareDestinationOptions, getShareLogOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {DismissedProductTraining, PersonalDetails} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
 import {formatSectionsFromSearchTerm} from '../../src/libs/OptionsListUtils';
 import createCollection from '../utils/collections/createCollection';
@@ -40,6 +41,53 @@ const personalDetails = createCollection<PersonalDetails>(
     (index) => createPersonalDetails(index),
     PERSONAL_DETAILS_LIST_COUNT,
 );
+
+const nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining> = {
+    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER]: {
+        timestamp: DateUtils.getDBTime(new Date().valueOf()),
+        dismissedMethod: 'click',
+    },
+    [CONST.MIGRATED_USER_WELCOME_MODAL]: {
+        timestamp: '',
+        dismissedMethod: 'click',
+    },
+    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCIERGE_LHN_GBR]: {
+        timestamp: '',
+        dismissedMethod: 'click',
+    },
+    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH]: {
+        timestamp: '',
+        dismissedMethod: 'click',
+    },
+    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: {
+        timestamp: '',
+        dismissedMethod: 'click',
+    },
+    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER]: {
+        timestamp: '',
+        dismissedMethod: 'click',
+    },
+    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION]: {
+        timestamp: '',
+        dismissedMethod: 'click',
+    },
+    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.OUTSTANDING_FILTER]: {
+        timestamp: '',
+        dismissedMethod: 'click',
+    },
+    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION]: {
+        timestamp: '',
+        dismissedMethod: 'click',
+    },
+    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]: {
+        timestamp: '',
+        dismissedMethod: 'click',
+    },
+    [CONST.CHANGE_POLICY_TRAINING_MODAL]: {
+        timestamp: '',
+        dismissedMethod: 'click',
+    },
+};
 
 const getMockedReports = (length = 500) =>
     createCollection<Report>(
@@ -85,6 +133,7 @@ const ValidOptionsConfig = {
     includeMultipleParticipantReports: true,
     includeSelfDM: true,
     includeOwnedWorkspaceChats: true,
+    nvpDismissedProductTraining,
 };
 
 /* GetOption is the private function and is never called directly, we are testing the functions which call getOption with different params */
@@ -107,13 +156,14 @@ describe('OptionsListUtils', () => {
     /* Testing getSearchOptions */
     test('[OptionsListUtils] getSearchOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getSearchOptions(options, mockedBetas));
+
+        await measureFunction(() => getSearchOptions(options, nvpDismissedProductTraining, mockedBetas));
     });
 
     /* Testing getShareLogOptions */
     test('[OptionsListUtils] getShareLogOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getShareLogOptions(options, mockedBetas));
+        await measureFunction(() => getShareLogOptions(options, nvpDismissedProductTraining, mockedBetas));
     });
 
     /* Testing getFilteredOptions */
@@ -135,13 +185,13 @@ describe('OptionsListUtils', () => {
     /* Testing getShareDestinationOptions */
     test('[OptionsListUtils] getShareDestinationOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getShareDestinationOptions(options.reports, options.personalDetails, mockedBetas));
+        await measureFunction(() => getShareDestinationOptions(nvpDismissedProductTraining, options.reports, options.personalDetails, mockedBetas));
     });
 
     /* Testing getMemberInviteOptions */
     test('[OptionsListUtils] getMemberInviteOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getMemberInviteOptions(options.personalDetails, mockedBetas));
+        await measureFunction(() => getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, mockedBetas));
     });
 
     test('[OptionsListUtils] worst case scenario with a search term that matches a subset of selectedOptions, filteredRecentReports, and filteredPersonalDetails', async () => {

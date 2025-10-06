@@ -52,7 +52,7 @@ function ShareTab({ref}: ShareTabProps) {
     const {options, areOptionsInitialized} = useOptionsList();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
 
@@ -60,8 +60,8 @@ function ShareTab({ref}: ShareTabProps) {
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, betas ?? [], false, false, textInputValue, 20, true);
-    }, [areOptionsInitialized, betas, options, textInputValue]);
+        return getSearchOptions(options, nvpDismissedProductTraining, betas ?? [], false, false, textInputValue, 20, true);
+    }, [areOptionsInitialized, betas, options, textInputValue, nvpDismissedProductTraining]);
 
     const recentReportsOptions = useMemo(() => {
         if (textInputValue.trim() === '') {

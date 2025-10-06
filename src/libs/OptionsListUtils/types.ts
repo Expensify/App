@@ -189,7 +189,7 @@ type GetOptionsConfig = {
     searchString?: string;
     maxElements?: number;
     includeUserToInvite?: boolean;
-    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
+    nvpDismissedProductTraining?: OnyxEntry<DismissedProductTraining>;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {

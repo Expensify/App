@@ -1917,6 +1917,7 @@ function getValidOptions(
  */
 function getSearchOptions(
     options: OptionList,
+    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
     betas: Beta[] = [],
     isUsedInChatFinder = true,
     includeReadOnly = true,
@@ -1949,6 +1950,7 @@ function getSearchOptions(
         searchString: searchQuery,
         includeUserToInvite,
         shouldShowGBR,
+        nvpDismissedProductTraining,
     });
 
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -1957,7 +1959,14 @@ function getSearchOptions(
     return optionList;
 }
 
-function getShareLogOptions(options: OptionList, betas: Beta[] = [], searchString = '', maxElements?: number, includeUserToInvite = false): Options {
+function getShareLogOptions(
+    options: OptionList,
+    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
+    betas: Beta[] = [],
+    searchString = '',
+    maxElements?: number,
+    includeUserToInvite = false,
+): Options {
     return getValidOptions(options, {
         betas,
         includeMultipleParticipantReports: true,
@@ -1970,6 +1979,7 @@ function getShareLogOptions(options: OptionList, betas: Beta[] = [], searchStrin
         searchString,
         maxElements,
         includeUserToInvite,
+        nvpDismissedProductTraining,
     });
 }
 
@@ -2003,6 +2013,7 @@ function getAttendeeOptions(
     betas: OnyxEntry<Beta[]>,
     attendees: Attendee[],
     recentAttendees: Attendee[],
+    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
     includeOwnedWorkspaceChats = false,
     includeP2P = true,
     includeInvoiceRooms = false,
@@ -2050,6 +2061,7 @@ function getAttendeeOptions(
             includeInvoiceRooms,
             action,
             recentAttendees: filteredRecentAttendees,
+            nvpDismissedProductTraining,
         },
     );
 }
@@ -2059,6 +2071,7 @@ function getAttendeeOptions(
  */
 
 function getShareDestinationOptions(
+    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
     reports: Array<SearchOption<Report>> = [],
     personalDetails: Array<SearchOption<PersonalDetails>> = [],
     betas: OnyxEntry<Beta[]> = [],
@@ -2086,6 +2099,7 @@ function getShareDestinationOptions(
             searchString,
             maxElements,
             includeUserToInvite,
+            nvpDismissedProductTraining,
         },
     );
 }
@@ -2122,6 +2136,7 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
  */
 function getMemberInviteOptions(
     personalDetails: Array<SearchOption<PersonalDetails>>,
+    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
     betas: Beta[] = [],
     excludeLogins: Record<string, boolean> = {},
     includeSelectedOptions = false,
@@ -2140,6 +2155,7 @@ function getMemberInviteOptions(
             includeRecentReports,
             searchString,
             maxElements,
+            nvpDismissedProductTraining,
         },
     );
 }

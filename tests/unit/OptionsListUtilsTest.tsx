@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {render} from '@testing-library/react-native';
 import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -36,7 +36,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {DismissedProductTraining, PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -72,6 +72,53 @@ const renderLocaleContextProvider = () => {
             <View>TEST</View>
         </ComposeProviders>,
     );
+};
+
+const nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining> = {
+    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER]: {
+        timestamp: DateUtils.getDBTime(new Date().valueOf()),
+        dismissedMethod: 'click',
+    },
+    [CONST.MIGRATED_USER_WELCOME_MODAL]: {
+        timestamp: '',
+        dismissedMethod: 'click',
+    },
+    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCIERGE_LHN_GBR]: {
+        timestamp: '',
+        dismissedMethod: 'click',
+    },
+    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH]: {
+        timestamp: '',
+        dismissedMethod: 'click',
+    },
+    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: {
+        timestamp: '',
+        dismissedMethod: 'click',
+    },
+    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER]: {
+        timestamp: '',
+        dismissedMethod: 'click',
+    },
+    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION]: {
+        timestamp: '',
+        dismissedMethod: 'click',
+    },
+    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.OUTSTANDING_FILTER]: {
+        timestamp: '',
+        dismissedMethod: 'click',
+    },
+    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION]: {
+        timestamp: '',
+        dismissedMethod: 'click',
+    },
+    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]: {
+        timestamp: '',
+        dismissedMethod: 'click',
+    },
+    [CONST.CHANGE_POLICY_TRAINING_MODAL]: {
+        timestamp: '',
+        dismissedMethod: 'click',
+    },
 };
 
 describe('OptionsListUtils', () => {
@@ -619,7 +666,7 @@ describe('OptionsListUtils', () => {
         it('should return all options when no search value is provided', () => {
             // Given a set of options
             // When we call getSearchOptions with all betas
-            const results = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
+            const results = getSearchOptions(OPTIONS, nvpDismissedProductTraining, [CONST.BETAS.ALL]);
 
             // Then all personal details (including those that have reports) should be returned
             expect(results.personalDetails.length).toBe(10);
@@ -631,7 +678,7 @@ describe('OptionsListUtils', () => {
         it('should include current user when includeCurrentUser is true for type:chat from suggestions', () => {
             // Given a set of options where the current user is Iron Man (accountID: 2)
             // When we call getSearchOptions with includeCurrentUser set to true
-            const results = getSearchOptions(OPTIONS, [CONST.BETAS.ALL], true, true, '', undefined, false, true, true);
+            const results = getSearchOptions(OPTIONS, nvpDismissedProductTraining, [CONST.BETAS.ALL], true, true, '', undefined, false, true, true);
 
             // Then the current user should be included in personalDetails
             const currentUserOption = results.personalDetails.find((option) => option.login === 'tonystark@expensify.com');
@@ -646,7 +693,7 @@ describe('OptionsListUtils', () => {
         it('should exclude current user when includeCurrentUser is false', () => {
             // Given a set of options where the current user is Iron Man (accountID: 2)
             // When we call getSearchOptions with includeCurrentUser set to false (default behavior)
-            const results = getSearchOptions(OPTIONS, [CONST.BETAS.ALL], true, true, '', undefined, false, true, false);
+            const results = getSearchOptions(OPTIONS, nvpDismissedProductTraining, [CONST.BETAS.ALL], true, true, '', undefined, false, true, false);
 
             // Then the current user should not be included in personalDetails
             const currentUserOption = results.personalDetails.find((option) => option.login === 'tonystark@expensify.com');
@@ -754,6 +801,7 @@ describe('OptionsListUtils', () => {
                 },
                 {
                     excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
+                    nvpDismissedProductTraining,
                 },
             );
 
@@ -766,7 +814,10 @@ describe('OptionsListUtils', () => {
         it('should exclude Chronos when excludedLogins is specified', () => {
             // Given a set of reports and personalDetails that includes Chronos and a config object that excludes Chronos
             // When we call getValidOptions()
-            const results = getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, {excludeLogins: {[CONST.EMAIL.CHRONOS]: true}});
+            const results = getValidOptions(
+                {reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails},
+                {excludeLogins: {[CONST.EMAIL.CHRONOS]: true}, nvpDismissedProductTraining},
+            );
 
             // Then the result should include all personalDetails except the currently logged in user and Chronos
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
@@ -784,6 +835,7 @@ describe('OptionsListUtils', () => {
                 },
                 {
                     excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
+                    nvpDismissedProductTraining,
                 },
             );
 
@@ -798,7 +850,7 @@ describe('OptionsListUtils', () => {
             // When we call getValidOptions()
             const result = getValidOptions(
                 {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
-                {includeP2P: true, canShowManagerMcTest: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
+                {includeP2P: true, canShowManagerMcTest: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST], nvpDismissedProductTraining},
             );
 
             // Then the result should include all personalDetails except the currently logged in user
@@ -812,7 +864,7 @@ describe('OptionsListUtils', () => {
             // When we call getValidOptions()
             const result = getValidOptions(
                 {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
-                {includeP2P: true, canShowManagerMcTest: false, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
+                {includeP2P: true, canShowManagerMcTest: false, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST], nvpDismissedProductTraining},
             );
 
             // Then the result should include all personalDetails except the currently logged in user and Manager McTest
@@ -894,6 +946,7 @@ describe('OptionsListUtils', () => {
                 {reports: [adminRoom], personalDetails: OPTIONS.personalDetails},
                 {
                     includeMultipleParticipantReports: true,
+                    nvpDismissedProductTraining,
                 },
             );
             const adminRoomOption = results.recentReports.find((report) => report.reportID === '1455140530846319');
@@ -943,6 +996,7 @@ describe('OptionsListUtils', () => {
                 {
                     includeMultipleParticipantReports: true,
                     showRBR: true,
+                    nvpDismissedProductTraining,
                 },
             );
             expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
@@ -989,6 +1043,7 @@ describe('OptionsListUtils', () => {
                 {
                     includeMultipleParticipantReports: true,
                     showRBR: false,
+                    nvpDismissedProductTraining,
                 },
             );
             expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(null);
@@ -1004,6 +1059,7 @@ describe('OptionsListUtils', () => {
                 includeMultipleParticipantReports: true,
                 includeP2P: true,
                 includeOwnedWorkspaceChats: true,
+                nvpDismissedProductTraining,
             });
 
             // Then the result should include all reports except the currently logged in user
@@ -1016,7 +1072,7 @@ describe('OptionsListUtils', () => {
         it('should exclude users with recent reports from personalDetails', () => {
             // Given a set of reports and personalDetails
             // When we call getValidOptions with no search value
-            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {nvpDismissedProductTraining});
             const reportLogins = results.recentReports.map((reportOption) => reportOption.login);
             const personalDetailsOverlapWithReports = results.personalDetails.every((personalDetailOption) => reportLogins.includes(personalDetailOption.login));
 
@@ -1029,7 +1085,10 @@ describe('OptionsListUtils', () => {
         it('should exclude selected options', () => {
             // Given a set of reports and personalDetails
             // When we call getValidOptions with excludeLogins param
-            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: {'peterparker@expensify.com': true}});
+            const results = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                {excludeLogins: {'peterparker@expensify.com': true}, nvpDismissedProductTraining},
+            );
 
             // Then the option should not appear anywhere in either list
             expect(results.recentReports.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
@@ -1039,7 +1098,7 @@ describe('OptionsListUtils', () => {
         it('should include Concierge in the results by default', () => {
             // Given a set of report and personalDetails that include Concierge
             // When we call getValidOptions()
-            const results = getValidOptions({reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails});
+            const results = getValidOptions({reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails}, {nvpDismissedProductTraining});
 
             // Then the result should include all personalDetails except the currently logged in user
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 1);
@@ -1057,6 +1116,7 @@ describe('OptionsListUtils', () => {
                 },
                 {
                     excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
+                    nvpDismissedProductTraining,
                 },
             );
 
@@ -1070,7 +1130,10 @@ describe('OptionsListUtils', () => {
         it('should exclude Chronos from the results when it is specified in excludedLogins', () => {
             // given a set of reports and personalDetails that includes Chronos
             // When we call getValidOptions() with excludeLogins param
-            const results = getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, {excludeLogins: {[CONST.EMAIL.CHRONOS]: true}});
+            const results = getValidOptions(
+                {reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails},
+                {excludeLogins: {[CONST.EMAIL.CHRONOS]: true}, nvpDismissedProductTraining},
+            );
 
             // Then the result should include all personalDetails except the currently logged in user and Chronos
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
@@ -1089,6 +1152,7 @@ describe('OptionsListUtils', () => {
                 },
                 {
                     excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
+                    nvpDismissedProductTraining,
                 },
             );
 
@@ -1112,7 +1176,7 @@ describe('OptionsListUtils', () => {
             }, []);
 
             // When we call getShareDestinationOptions with an empty search value
-            const results = getShareDestinationOptions(filteredReports, OPTIONS.personalDetails, []);
+            const results = getShareDestinationOptions(nvpDismissedProductTraining, filteredReports, OPTIONS.personalDetails, []);
 
             // Then all the recent reports should be returned except the archived rooms and the hidden thread
             expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 2);
@@ -1130,7 +1194,7 @@ describe('OptionsListUtils', () => {
             }, []);
 
             // When we call getShareDestinationOptions with an empty search value
-            const results = getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, []);
+            const results = getShareDestinationOptions(nvpDismissedProductTraining, filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, []);
 
             // Then all recent reports should be returned except the archived rooms and the hidden thread
             expect(results.recentReports.length).toBe(Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).length - 2);
@@ -1141,7 +1205,7 @@ describe('OptionsListUtils', () => {
         it('should not include read-only report', () => {
             // Given a list of 11 report options with reportID of 10 is archived
             // When we call getShareLogOptions
-            const results = getShareLogOptions(OPTIONS, []);
+            const results = getShareLogOptions(OPTIONS, nvpDismissedProductTraining, []);
 
             // Then the report with reportID of 10 should not be included on the list
             expect(results.recentReports.length).toBe(10);
@@ -1153,7 +1217,7 @@ describe('OptionsListUtils', () => {
         it('should sort personal details alphabetically', () => {
             // Given a set of personalDetails
             // When we call getMemberInviteOptions
-            const results = getMemberInviteOptions(OPTIONS.personalDetails, []);
+            const results = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, []);
 
             // Then personal details should be sorted alphabetically
             expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
@@ -1201,7 +1265,7 @@ describe('OptionsListUtils', () => {
         it('should return all options when search is empty', () => {
             // Given a set of options
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
+            const options = getSearchOptions(OPTIONS, nvpDismissedProductTraining, [CONST.BETAS.ALL]);
             // When we pass the returned options to filterAndOrderOptions with an empty search value
             const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE);
 
@@ -1213,7 +1277,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'man';
             // Given a set of options
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
+            const options = getSearchOptions(OPTIONS, nvpDismissedProductTraining, [CONST.BETAS.ALL]);
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, {sortByReportTypeInSearch: true});
 
@@ -1232,7 +1296,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'mistersinister@marauders.com';
             // Given a set of options
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
+            const options = getSearchOptions(OPTIONS, nvpDismissedProductTraining, [CONST.BETAS.ALL]);
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE);
 
@@ -1246,7 +1310,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'Archived';
             // Given a set of options
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
+            const options = getSearchOptions(OPTIONS, nvpDismissedProductTraining, [CONST.BETAS.ALL]);
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE);
 
@@ -1262,7 +1326,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options created from PERSONAL_DETAILS_WITH_PERIODS
             const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions(OPTIONS_WITH_PERIODS, [CONST.BETAS.ALL]);
+            const options = getSearchOptions(OPTIONS_WITH_PERIODS, nvpDismissedProductTraining, [CONST.BETAS.ALL]);
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, {sortByReportTypeInSearch: true});
 
@@ -1276,7 +1340,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'avengers';
             // Given a set of options with workspace rooms
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions(OPTIONS_WITH_WORKSPACE_ROOM, [CONST.BETAS.ALL]);
+            const options = getSearchOptions(OPTIONS_WITH_WORKSPACE_ROOM, nvpDismissedProductTraining, [CONST.BETAS.ALL]);
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE);
 
@@ -1289,7 +1353,7 @@ describe('OptionsListUtils', () => {
         it('should put exact match by login on the top of the list', () => {
             const searchText = 'reedrichards@expensify.com';
             // Given a set of options with all betas
-            const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
+            const options = getSearchOptions(OPTIONS, nvpDismissedProductTraining, [CONST.BETAS.ALL]);
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE);
 
@@ -1304,7 +1368,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options with chat rooms
             const OPTIONS_WITH_CHAT_ROOMS = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_CHAT_ROOM);
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions(OPTIONS_WITH_CHAT_ROOMS, [CONST.BETAS.ALL]);
+            const options = getSearchOptions(OPTIONS_WITH_CHAT_ROOMS, nvpDismissedProductTraining, [CONST.BETAS.ALL]);
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filterOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE);
 
@@ -1318,7 +1382,7 @@ describe('OptionsListUtils', () => {
             renderLocaleContextProvider();
             const searchText = 'fantastic';
             // Given a set of options
-            const options = getSearchOptions(OPTIONS);
+            const options = getSearchOptions(OPTIONS, nvpDismissedProductTraining);
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE);
 
@@ -1333,7 +1397,7 @@ describe('OptionsListUtils', () => {
         it('should return the user to invite when the search value is a valid, non-existent email', () => {
             const searchText = 'test@email.com';
             // Given a set of options
-            const options = getSearchOptions(OPTIONS);
+            const options = getSearchOptions(OPTIONS, nvpDismissedProductTraining);
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE);
 
@@ -1344,7 +1408,10 @@ describe('OptionsListUtils', () => {
         it('should not return any results if the search value is on an excluded logins list', () => {
             const searchText = 'admin@expensify.com';
             // Given a set of options with excluded logins list
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
+            const options = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT, nvpDismissedProductTraining},
+            );
             // When we call filterAndOrderOptions with a search value and excluded logins list
             const filterOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
 
@@ -1355,7 +1422,7 @@ describe('OptionsListUtils', () => {
         it('should return the user to invite when the search value is a valid, non-existent email and the user is not excluded', () => {
             const searchText = 'test@email.com';
             // Given a set of options
-            const options = getSearchOptions(OPTIONS);
+            const options = getSearchOptions(OPTIONS, nvpDismissedProductTraining);
             // When we call filterAndOrderOptions with a search value and excludeLogins
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
 
@@ -1366,7 +1433,7 @@ describe('OptionsListUtils', () => {
         it('should return limited amount of recent reports if the limit is set', () => {
             const searchText = '';
             // Given a set of options
-            const options = getSearchOptions(OPTIONS);
+            const options = getSearchOptions(OPTIONS, nvpDismissedProductTraining);
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 2
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, {maxRecentReportsToShow: 2});
 
@@ -1384,7 +1451,7 @@ describe('OptionsListUtils', () => {
         it('should not return any user to invite if email exists on the personal details list', () => {
             const searchText = 'natasharomanoff@expensify.com';
             // Given a set of options with all betas
-            const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
+            const options = getSearchOptions(OPTIONS, nvpDismissedProductTraining, [CONST.BETAS.ALL]);
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE);
 
@@ -1396,7 +1463,7 @@ describe('OptionsListUtils', () => {
 
         it('should not return any options if search value does not match any personal details (getMemberInviteOptions)', () => {
             // Given a set of options
-            const options = getMemberInviteOptions(OPTIONS.personalDetails, []);
+            const options = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, []);
             // When we call filterAndOrderOptions with a search value that does not match any personal details
             const filteredOptions = filterAndOrderOptions(options, 'magneto', COUNTRY_CODE);
 
@@ -1406,7 +1473,7 @@ describe('OptionsListUtils', () => {
 
         it('should return one personal detail if search value matches an email (getMemberInviteOptions)', () => {
             // Given a set of options
-            const options = getMemberInviteOptions(OPTIONS.personalDetails, []);
+            const options = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, []);
             // When we call filterAndOrderOptions with a search value that matches an email
             const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', COUNTRY_CODE);
 
@@ -1426,7 +1493,7 @@ describe('OptionsListUtils', () => {
                 return filtered;
             }, []);
             // When we call getShareDestinationOptions with the filteredReports
-            const options = getShareDestinationOptions(filteredReports, OPTIONS.personalDetails, []);
+            const options = getShareDestinationOptions(nvpDismissedProductTraining, filteredReports, OPTIONS.personalDetails, []);
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
             const filteredOptions = filterAndOrderOptions(options, 'mutants', COUNTRY_CODE);
 
@@ -1446,7 +1513,7 @@ describe('OptionsListUtils', () => {
             }, []);
 
             // When we call getShareDestinationOptions with the filteredReports
-            const options = getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, []);
+            const options = getShareDestinationOptions(nvpDismissedProductTraining, filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, []);
             // When we pass the returned options to filterAndOrderOptions with a search value that matches the group chat name
             const filteredOptions = filterAndOrderOptions(options, 'Avengers Room', COUNTRY_CODE);
 
@@ -1466,7 +1533,7 @@ describe('OptionsListUtils', () => {
             }, []);
 
             // When we call getShareDestinationOptions with the filteredReports
-            const options = getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, []);
+            const options = getShareDestinationOptions(nvpDismissedProductTraining, filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, []);
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
             const filteredOptions = filterAndOrderOptions(options, 'Mutants Lair', COUNTRY_CODE);
 
@@ -1476,7 +1543,7 @@ describe('OptionsListUtils', () => {
 
         it('should show the option from personal details when searching for personal detail with no existing report', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {nvpDismissedProductTraining});
             // When we call filterAndOrderOptions with a search value that matches a personal detail with no existing report
             const filteredOptions = filterAndOrderOptions(options, 'hulk', COUNTRY_CODE);
 
@@ -1490,7 +1557,7 @@ describe('OptionsListUtils', () => {
 
         it('should not return any options or user to invite if there are no search results and the string does not match a potential email or phone', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {nvpDismissedProductTraining});
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
             const filteredOptions = filterAndOrderOptions(options, 'marc@expensify', COUNTRY_CODE);
 
@@ -1637,7 +1704,7 @@ describe('OptionsListUtils', () => {
 
         it('should return matching option when searching (getSearchOptions)', () => {
             // Given a set of options
-            const options = getSearchOptions(OPTIONS);
+            const options = getSearchOptions(OPTIONS, nvpDismissedProductTraining);
             // When we call filterAndOrderOptions with a search value that matches a personal detail
             const filteredOptions = filterAndOrderOptions(options, 'spider', COUNTRY_CODE);
 
@@ -1649,7 +1716,7 @@ describe('OptionsListUtils', () => {
 
         it('should return latest lastVisibleActionCreated item on top when search value matches multiple items (getSearchOptions)', () => {
             // Given a set of options
-            const options = getSearchOptions(OPTIONS);
+            const options = getSearchOptions(OPTIONS, nvpDismissedProductTraining);
             // When we call filterAndOrderOptions with a search value that matches multiple items
             const filteredOptions = filterAndOrderOptions(options, 'fantastic', COUNTRY_CODE);
 
@@ -1666,7 +1733,7 @@ describe('OptionsListUtils', () => {
                     // Given a set of options with periods
                     const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
                     // When we call getSearchOptions
-                    const results = getSearchOptions(OPTIONS_WITH_PERIODS);
+                    const results = getSearchOptions(OPTIONS_WITH_PERIODS, nvpDismissedProductTraining);
                     // When we pass the returned options to filterAndOrderOptions with a search value
                     const filteredResults = filterAndOrderOptions(results, 'barry.allen@expensify.com', COUNTRY_CODE, {sortByReportTypeInSearch: true});
 
@@ -1684,7 +1751,7 @@ describe('OptionsListUtils', () => {
             OPTIONS.personalDetails = OPTIONS.personalDetails.flatMap((obj) => [obj, {...obj}]);
 
             // Given a set of options
-            const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
+            const options = getSearchOptions(OPTIONS, nvpDismissedProductTraining, [CONST.BETAS.ALL]);
             // When we call filterAndOrderOptions with a an empty search value
             const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE);
             const matchingEntries = filteredOptions.personalDetails.filter((detail) => detail.login === login);
@@ -1700,7 +1767,7 @@ describe('OptionsListUtils', () => {
             const OPTIONS_WITH_SELF_DM = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_SELF_DM);
 
             // Given a set of options with self dm and all betas
-            const options = getSearchOptions(OPTIONS_WITH_SELF_DM, [CONST.BETAS.ALL]);
+            const options = getSearchOptions(OPTIONS_WITH_SELF_DM, nvpDismissedProductTraining, [CONST.BETAS.ALL]);
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchTerm, COUNTRY_CODE);
 

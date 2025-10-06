@@ -72,6 +72,7 @@ function TaskShareDestinationSelectorModal() {
     const {isOffline} = useNetwork();
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const {options: optionList, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -94,7 +95,7 @@ function TaskShareDestinationSelectorModal() {
             };
         }
         const filteredReports = reportFilter(optionList.reports, archivedReportsIdSet);
-        const {recentReports} = getShareDestinationOptions(filteredReports, optionList.personalDetails, [], [], {}, true);
+        const {recentReports} = getShareDestinationOptions(nvpDismissedProductTraining, filteredReports, optionList.personalDetails, [], [], {}, true);
         const header = getHeaderMessage(recentReports && recentReports.length !== 0, false, '');
         return {
             recentReports,
@@ -103,7 +104,7 @@ function TaskShareDestinationSelectorModal() {
             currentUserOption: null,
             header,
         };
-    }, [areOptionsInitialized, optionList.personalDetails, optionList.reports, archivedReportsIdSet]);
+    }, [areOptionsInitialized, optionList.personalDetails, optionList.reports, archivedReportsIdSet, nvpDismissedProductTraining]);
 
     const options = useMemo(() => {
         if (debouncedSearchValue.trim() === '') {
