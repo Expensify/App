@@ -53,6 +53,7 @@ import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
+import {getPaymentMethods} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -343,6 +344,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     useEffect(() => {
         openSearch();
+        getPaymentMethods();
     }, []);
 
     const {newSearchResultKey, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
