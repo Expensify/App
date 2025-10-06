@@ -51,6 +51,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const session = useSession();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    console.log(action);
 
     const handleGoBack = () => {
         if (isEditing) {
@@ -176,7 +177,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
         const createdReportID = createNewReport(currentUserPersonalDetails, policyForMovingExpensesID);
         handleRegularReportSelection({value: createdReportID});
-        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID}));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(createdReportID));
     };
 
     return (
@@ -190,7 +191,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             isEditing={isEditing}
             isUnreported={isUnreported}
             shouldShowNotFoundPage={shouldShowNotFoundPage}
-            createReport={createReport}
+            createReport={action === CONST.IOU.ACTION.EDIT ? createReport : undefined}
         />
     );
 }
