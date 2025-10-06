@@ -9707,8 +9707,8 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
 function getReportActionWithSmartscanError(reportActions: ReportAction[]): ReportAction | undefined {
     return reportActions.find((action) => {
         const isReportPreview = isReportPreviewAction(action);
-        const isTransactionThreadParentAction = isTransactionThread(action);
-        if (!isTransactionThreadParentAction && !isReportPreview) {
+        const isIOUAction = isMoneyRequestAction(action);
+        if (!isIOUAction && !isReportPreview) {
             return false;
         }
         const IOUReportID = getIOUReportIDFromReportActionPreview(action);
@@ -9717,9 +9717,9 @@ function getReportActionWithSmartscanError(reportActions: ReportAction[]): Repor
             return true;
         }
 
-        const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
+        const transactionID = isIOUAction ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
-        const isTransactionThreadError = isTransactionThreadParentAction && hasMissingSmartscanFieldsTransactionUtils(transaction as Transaction);
+        const isTransactionThreadError = isIOUAction && hasMissingSmartscanFieldsTransactionUtils(transaction as Transaction);
 
         return isTransactionThreadError;
     });
