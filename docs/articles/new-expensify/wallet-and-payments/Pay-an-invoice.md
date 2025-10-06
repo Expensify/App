@@ -37,7 +37,7 @@ You can also view all unpaid invoices by searching for the sender’s email or p
 
 **Why can't I add a debit or credit card to pay an invoice?**
 
-If the **Add a debit or credit card** option is missing, it means that the recipient has not added a verified bank account to receive payment.
+If the **Add a debit or credit card** option is missing, it means that the invoice sender has not added a verified bank account to receive payment.
 
 **Can someone else pay an invoice besides the person who received it?**
 
