@@ -114,7 +114,7 @@ describe('TransactionPreviewUtils', () => {
             
             const functionArgs = {
                 ...basicProps,
-                transaction: {...basicProps.transaction, merchant: '', amount: 0, receipt: {source: 'test-receipt.jpg', state: 'SCANCOMPLETE'}},
+                transaction: {...basicProps.transaction, merchant: '', amount: 0, receipt: {source: 'test-receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE}},
                 originalTransaction: undefined,
                 shouldShowRBR: true,
                 isReportAPolicyExpenseChat: true,
