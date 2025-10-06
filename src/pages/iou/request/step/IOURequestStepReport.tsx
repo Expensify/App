@@ -2,7 +2,7 @@ import React from 'react';
 import {InteractionManager} from 'react-native';
 import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import useOnyx from '@hooks/useOnyx';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
@@ -37,6 +37,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const outstandingReportID = isPolicyExpenseChat(participantReport) ? participantReport?.iouReportID : participantReportID;
     const selectedReportID = shouldUseTransactionReport ? transactionReport?.reportID : outstandingReportID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
     const {removeTransaction} = useSearchContext();
     const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -93,6 +94,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
 
         handleGoBack();
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             setTransactionReport(
                 transaction.transactionID,
@@ -110,6 +112,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                     session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     session?.email ?? '',
                     allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                    undefined,
+                    allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                 );
                 removeTransaction(transaction.transactionID);
             }
@@ -143,6 +147,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             return;
         }
         Navigation.dismissModal();
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             changeTransactionsReport(
                 [transaction.transactionID],

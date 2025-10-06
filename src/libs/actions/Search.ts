@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
-import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
+import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import * as API from '@libs/API';
 import {waitForWrites} from '@libs/API';
 import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
@@ -171,7 +171,12 @@ function getPayActionCallback(
     goToItem();
 }
 
-function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON, offset?: number): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]; failureData: OnyxUpdate[]} {
+function getOnyxLoadingData(
+    hash: number,
+    queryJSON?: SearchQueryJSON,
+    offset?: number,
+    isOffline?: boolean,
+): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]; failureData: OnyxUpdate[]} {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -209,7 +214,7 @@ function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON, offset?: 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
-                data: [],
+                ...(isOffline ? {} : {data: []}),
                 search: {
                     status: queryJSON?.status,
                     type: queryJSON?.type,
@@ -311,14 +316,16 @@ function search({
     offset,
     shouldCalculateTotals = false,
     prevReportsLength,
+    isOffline = false,
 }: {
     queryJSON: SearchQueryJSON;
     searchKey: SearchKey | undefined;
     offset?: number;
     shouldCalculateTotals?: boolean;
     prevReportsLength?: number;
+    isOffline?: boolean;
 }) {
-    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset);
+    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
     const query = {
         ...queryJSONWithoutFlatFilters,
