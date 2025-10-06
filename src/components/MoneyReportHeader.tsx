@@ -139,6 +139,7 @@ import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import {useSearchContext} from './Search/SearchContext';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
 import Text from './Text';
+import {WideRHPContext} from './WideRHPContextProvider';
 
 type MoneyReportHeaderProps = {
     /** The report currently being looked at */
@@ -305,6 +306,9 @@ function MoneyReportHeader({
     const [isRejectEducationalModalVisible, setIsRejectEducationalModalVisible] = useState(false);
 
     const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey} = useSearchContext();
+
+    const {wideRHPRouteKeys} = useContext(WideRHPContext);
+    const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
 
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => {
@@ -1219,7 +1223,7 @@ function MoneyReportHeader({
                 shouldShowBorderBottom={false}
                 shouldEnableDetailPageNavigation
             >
-                {!shouldDisplayNarrowVersion && (
+                {shouldDisplayNarrowMoreButton && (
                     <View style={[styles.flexRow, styles.gap2]}>
                         {!!primaryAction && !shouldShowSelectedTransactionsButton && primaryActionsImplementation[primaryAction]}
                         {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && KYCMoreDropdown}
@@ -1237,8 +1241,7 @@ function MoneyReportHeader({
                     </View>
                 )}
             </HeaderWithBackButton>
-
-            {shouldDisplayNarrowVersion &&
+            {!shouldDisplayNarrowMoreButton &&
                 (shouldShowSelectedTransactionsButton ? (
                     <View style={[styles.dFlex, styles.w100, styles.ph5]}>
                         <ButtonWithDropdownMenu

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import useEReceipt from '@hooks/useEReceipt';
 import useLocalize from '@hooks/useLocalize';
@@ -29,11 +29,14 @@ type EReceiptProps = {
 
     /** Where it is the preview */
     isThumbnail?: boolean;
+
+    /** Callback to be called when the image loads */
+    onLoad?: () => void;
 };
 
 const receiptMCCSize: number = variables.eReceiptMCCHeightWidthMedium;
 const backgroundImageMinWidth: number = variables.eReceiptBackgroundImageMinWidth;
-function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceiptProps) {
+function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}: EReceiptProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -42,6 +45,8 @@ function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceip
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
     const {primaryColor, secondaryColor, titleColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transactionItem ?? transaction);
+
+    const isLoadedRef = useRef(false);
 
     const {
         amount: transactionAmount,
@@ -58,6 +63,14 @@ function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceip
     const secondaryBgcolorStyle = secondaryColor ? StyleUtils.getBackgroundColorStyle(secondaryColor) : undefined;
     const primaryTextColorStyle = primaryColor ? StyleUtils.getColorStyle(primaryColor) : undefined;
     const titleTextColorStyle = titleColor ? StyleUtils.getColorStyle(titleColor) : undefined;
+
+    useEffect(() => {
+        if (isLoadedRef.current) {
+            return;
+        }
+        isLoadedRef.current = true;
+        onLoad?.();
+    }, [onLoad]);
 
     return (
         <View
