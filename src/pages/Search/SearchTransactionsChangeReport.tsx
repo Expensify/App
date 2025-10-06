@@ -48,7 +48,7 @@ function SearchTransactionsChangeReport() {
             session?.email ?? '',
             allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
             reportNextStep,
-            allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+            allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
         );
         // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
