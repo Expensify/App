@@ -56,8 +56,8 @@ let bankAccountList: OnyxEntry<BankAccountList>;
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.BANK_ACCOUNT_LIST,
-    callback: (value) => bankAccountList = value,
-})
+    callback: (value) => (bankAccountList = value),
+});
 
 type AccountFormValues = typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM;
 
