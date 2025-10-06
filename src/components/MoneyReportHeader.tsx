@@ -182,7 +182,7 @@ function MoneyReportHeader({
         | PlatformStackRouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>
         | PlatformStackRouteProp<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>
     >();
-    const {login} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
@@ -537,7 +537,7 @@ function MoneyReportHeader({
 
     const primaryAction = useMemo(() => {
         return getReportPrimaryAction({
-            currentUserEmail: login ?? '',
+            currentUserEmail: currentUserLogin ?? '',
             report: moneyRequestReport,
             chatReport,
             reportTransactions: transactions,
@@ -562,7 +562,7 @@ function MoneyReportHeader({
         reportActions,
         isChatReportArchived,
         invoiceReceiverPolicy,
-        login,
+        currentUserLogin,
     ]);
 
     const confirmExport = useCallback(() => {
@@ -835,7 +835,7 @@ function MoneyReportHeader({
             return [];
         }
         return getSecondaryReportActions({
-            currentUserEmail: login ?? '',
+            currentUserEmail: currentUserLogin ?? '',
             report: moneyRequestReport,
             chatReport,
             reportTransactions: transactions,
@@ -846,7 +846,7 @@ function MoneyReportHeader({
             policies,
             isChatReportArchived,
         });
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, chatReport, isChatReportArchived, login]);
+    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, chatReport, isChatReportArchived, currentUserLogin]);
 
     const secondaryExportActions = useMemo(() => {
         if (!moneyRequestReport) {
