@@ -111,7 +111,7 @@ describe('TransactionPreviewUtils', () => {
                 type: 'expense',
             });
             await waitForBatchedUpdates();
-            
+
             const functionArgs = {
                 ...basicProps,
                 transaction: {...basicProps.transaction, merchant: '', amount: 0, receipt: {source: 'test-receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE}},
