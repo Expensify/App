@@ -29,7 +29,7 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -531,19 +531,29 @@ function clearPolicyTagListErrors(policyID: string, tagListIndex: number) {
     });
 }
 
-function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}, tagListIndex: number) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
-    const policy = PolicyUtils.getPolicy(policyID);
-    const tagList = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.at(tagListIndex);
+type RenamePolicyTagProps = {
+    policyTag: {oldName: string; newName: string};
+    tagListIndex: number;
+    policyTags: OnyxEntry<PolicyTagLists>;
+    policy: Policy;
+};
+
+function renamePolicyTag({policyTag, tagListIndex, policyTags, policy}: RenamePolicyTagProps) {
+    const policyID = policy.id;
+
+    const tagList = PolicyUtils.getTagLists(policyTags ?? {})?.at(tagListIndex);
     if (!tagList) {
         return;
     }
     const tag = tagList.tags?.[policyTag.oldName];
     const oldTagName = policyTag.oldName;
-    const newTagName = PolicyUtils.escapeTagName(policyTag.newName);
+    const newTagName = PolicyUtils.escapeTagName(policyTag.newName).trim();
 
-    const policyTagRule = PolicyUtils.getTagApproverRule(policyID, oldTagName);
+    if (oldTagName === newTagName) {
+        return;
+    }
+
+    const policyTagRule = PolicyUtils.getTagApproverRule(policy, oldTagName);
     const approvalRules = policy?.rules?.approvalRules ?? [];
     const updatedApprovalRules: ApprovalRule[] = lodashCloneDeep(approvalRules);
 
