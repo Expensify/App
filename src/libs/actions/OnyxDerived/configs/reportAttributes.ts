@@ -1,11 +1,13 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import {generateIsEmptyReport, generateReportAttributes, getReportName, isArchivedReport, isValidReport} from '@libs/ReportUtils';
+import type { OnyxEntry } from 'react-native-onyx';
+import { computeReportName, getAffectedReportIDs } from '@libs/OptimisticReportNames';
+import { generateIsEmptyReport, generateReportAttributes, getReportName, isArchivedReport, isValidReport } from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
-import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
+import { hasKeyTriggeredCompute } from '@userActions/OnyxDerived/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type { PersonalDetailsList, ReportAttributesDerivedValue } from '@src/types/onyx';
+
 
 let isFullyComputed = false;
 let previousDisplayNames: Record<string, string | undefined> = {};
@@ -70,7 +72,7 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
-    compute: ([reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails], {currentValue, sourceValues, areAllConnectionsSet}) => {
+    compute: ([reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, policies], {currentValue, sourceValues, areAllConnectionsSet}) => {
         if (!areAllConnectionsSet) {
             return {
                 reports: {},
@@ -165,6 +167,7 @@ export default createOnyxDerivedValueConfig({
                 return currentValue ?? {reports: {}, locale: null};
             }
         }
+
         const reportAttributes = dataToIterate.reduce<ReportAttributesDerivedValue['reports']>((acc, key) => {
             // source value sends partial data, so we need an entire report object to do computations
             const report = reports[key];
@@ -209,6 +212,40 @@ export default createOnyxDerivedValueConfig({
 
             return acc;
         }, currentValue?.reports ?? {});
+
+        // Get reports that need formula-based name computation
+        let affectedReportIDs: Set<string> = new Set(); // todo: type safety
+        if (sourceValues) {
+            affectedReportIDs = getAffectedReportIDs(
+                sourceValues,
+                reports ?? {},
+                reportNameValuePairs ?? {},
+            );
+
+        }
+
+        for (const affectedReportId of affectedReportIDs) {
+            const reportId = `${ONYXKEYS.COLLECTION.REPORT}${affectedReportId}`
+            const report = reports[reportId];
+            if (!report) {
+                continue;
+            }
+            const name = computeReportName(report, {
+                betas: [],
+                betaConfiguration: {},
+                policies,
+                transactions,
+                reportNameValuePairs
+            })
+            if (!name) {
+                continue;
+            }
+
+            reportAttributes[report.reportID] = {
+                ...reportAttributes[report.reportID],
+                reportName: name
+            };
+        }
         // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputation on all objects
         if (!Object.keys(reportUpdates).length && Object.keys(reports ?? {}).length > 0 && !isFullyComputed) {
             isFullyComputed = true;

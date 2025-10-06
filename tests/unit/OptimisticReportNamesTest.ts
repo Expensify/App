@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {UpdateContext} from '@libs/OptimisticReportNames';
-import {computeReportNameIfNeeded, shouldComputeReportName, updateOptimisticReportNamesFromUpdates} from '@libs/OptimisticReportNames';
+import {computeReportName, shouldComputeReportName, computeReportNames} from '@libs/OptimisticReportNames';
 import type {WorkingUpdates} from '@libs/OptimisticReportNamesCache';
 import {applyUpdateToCache} from '@libs/OptimisticReportNamesCache';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
@@ -112,7 +112,7 @@ describe('OptimisticReportNames', () => {
 
             const workingUpdates = applyUpdateToCache({}, update, mockContext);
 
-            const result = computeReportNameIfNeeded('123', mockContext, update, workingUpdates);
+            const result = computeReportName('123', mockContext, update, workingUpdates);
             expect(result).toEqual('Expense Report - $200.00');
         });
 
@@ -132,7 +132,7 @@ describe('OptimisticReportNames', () => {
             };
             const workingUpdates = applyUpdateToCache({}, update, context);
 
-            const result = computeReportNameIfNeeded('456', context, update, workingUpdates);
+            const result = computeReportName('456', context, update, workingUpdates);
             expect(result).toBeNull();
         });
     });
@@ -163,7 +163,7 @@ describe('OptimisticReportNames', () => {
                 },
             ];
 
-            const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
+            const result = computeReportNames(updates, mockContext);
             expect(result).toHaveLength(3); // Original updates + name update
             expect(result.at(2)).toEqual({
                 key: 'report_456',
@@ -181,7 +181,7 @@ describe('OptimisticReportNames', () => {
                 },
             ];
 
-            const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
+            const result = computeReportNames(updates, mockContext);
             expect(result).toHaveLength(2); // Original + name update
             expect(result.at(1)?.value).toEqual({reportName: 'Expense Report - $250.00'});
         });
@@ -215,7 +215,7 @@ describe('OptimisticReportNames', () => {
                 },
             ];
 
-            const result = updateOptimisticReportNamesFromUpdates(updates, contextWithMultipleReports);
+            const result = computeReportNames(updates, contextWithMultipleReports);
 
             expect(result).toHaveLength(4);
 
@@ -255,7 +255,7 @@ describe('OptimisticReportNames', () => {
                 },
             ];
 
-            const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
+            const result = computeReportNames(updates, mockContext);
             expect(result).toEqual(updates); // Unchanged
         });
     });
@@ -268,7 +268,7 @@ describe('OptimisticReportNames', () => {
                 value: {total: -10000},
             };
 
-            const result = computeReportNameIfNeeded('NO_EXIST', mockContext, update, {} as WorkingUpdates);
+            const result = computeReportName('NO_EXIST', mockContext, update, {} as WorkingUpdates);
             expect(result).toBeNull();
         });
     });
@@ -299,7 +299,7 @@ describe('OptimisticReportNames', () => {
                 },
             };
 
-            const result = updateOptimisticReportNamesFromUpdates([update], contextWithTransaction);
+            const result = computeReportNames([update], contextWithTransaction);
 
             // Should include original update + new report name update
             expect(result).toHaveLength(2);
@@ -333,7 +333,7 @@ describe('OptimisticReportNames', () => {
                 },
             };
 
-            const result = updateOptimisticReportNamesFromUpdates([update], contextWithTransaction);
+            const result = computeReportNames([update], contextWithTransaction);
 
             // Should still find the report through context lookup and generate update
             expect(result).toHaveLength(2);
@@ -379,7 +379,7 @@ describe('OptimisticReportNames', () => {
                 },
             };
 
-            const result = updateOptimisticReportNamesFromUpdates([update], contextWithTransaction);
+            const result = computeReportNames([update], contextWithTransaction);
 
             expect(result).toHaveLength(2);
 
