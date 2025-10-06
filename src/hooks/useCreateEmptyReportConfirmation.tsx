@@ -97,7 +97,7 @@ export default function useCreateEmptyReportConfirmation({policyName, onConfirm,
                 title={translate('report.newReport.emptyReportWarningTitle')}
             />
         ),
-        [handleCancel, handleConfirm, isConfirmLoading, isVisible, prompt, translate],
+        [handleCancel, handleConfirm, isVisible, prompt, translate],
     );
 
     return {

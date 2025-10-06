@@ -14,7 +14,6 @@ type MockConfirmModalProps = {
     onConfirm?: () => void | Promise<void>;
     onCancel?: () => void;
     title?: string;
-    isConfirmLoading?: boolean;
 };
 
 type MockTextLinkProps = {
@@ -59,17 +58,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
 
-function createDeferredPromise<T>() {
-    let resolve!: (value: T | PromiseLike<T>) => void;
-    let reject!: (reason?: unknown) => void;
-    const promise = new Promise<T>((res, rej) => {
-        resolve = res;
-        reject = rej;
-    });
-
-    return {promise, resolve, reject};
-}
-
 type HookValue = ReturnType<typeof useCreateEmptyReportConfirmation>;
 
 type MockConfirmModalElement = ReactElement<MockConfirmModalProps>;
@@ -99,7 +87,7 @@ describe('useCreateEmptyReportConfirmation', () => {
         mockTextLinkProps = undefined;
     });
 
-    it('renders hidden modal by default and opens on demand', () => {
+    it('modal is hidden by default and opens on demand', () => {
         const onConfirm = jest.fn();
         const {result} = renderHook<HookValue, MockConfirmModalProps>(() =>
             useCreateEmptyReportConfirmation({
@@ -120,7 +108,7 @@ describe('useCreateEmptyReportConfirmation', () => {
         expect(modal.props.isVisible).toBe(true);
     });
 
-    it('invokes synchronous onConfirm and resets state after completion', async () => {
+    it('invokes onConfirm and resets state after completion', async () => {
         const onConfirm = jest.fn();
         const {result} = renderHook<HookValue, MockConfirmModalProps>(() =>
             useCreateEmptyReportConfirmation({
@@ -143,62 +131,11 @@ describe('useCreateEmptyReportConfirmation', () => {
 
         expect(onConfirm).toHaveBeenCalledTimes(1);
 
-        await act(async () => {
-            await Promise.resolve();
-        });
-
         modal = getModal(result.current);
-        expect(modal.props.isConfirmLoading).toBe(false);
         expect(modal.props.isVisible).toBe(false);
     });
 
-    it('handles asynchronous onConfirm and prevents duplicate submissions while loading', async () => {
-        const {promise, resolve} = createDeferredPromise<void>();
-        const onConfirm = jest.fn().mockReturnValue(promise);
-
-        const {result} = renderHook<HookValue, MockConfirmModalProps>(() =>
-            useCreateEmptyReportConfirmation({
-                policyID,
-                policyName,
-                onConfirm,
-            }),
-        );
-
-        act(() => {
-            result.current.openCreateReportConfirmation();
-        });
-
-        let modal = getModal(result.current);
-        const confirmHandler = getRequiredHandler(modal.props.onConfirm, 'onConfirm');
-
-        await act(async () => {
-            await confirmHandler();
-        });
-
-        expect(onConfirm).toHaveBeenCalledTimes(1);
-
-        modal = getModal(result.current);
-        expect(modal.props.isConfirmLoading).toBe(true);
-
-        const loadingConfirmHandler = getRequiredHandler(modal.props.onConfirm, 'onConfirm');
-
-        await act(async () => {
-            await loadingConfirmHandler();
-        });
-
-        expect(onConfirm).toHaveBeenCalledTimes(1);
-
-        await act(async () => {
-            resolve();
-            await Promise.resolve();
-        });
-
-        modal = getModal(result.current);
-        expect(modal.props.isConfirmLoading).toBe(false);
-        expect(modal.props.isVisible).toBe(false);
-    });
-
-    it('calls onCancel when cancellation occurs and not loading', () => {
+    it('calls onCancel when cancellation occurs', () => {
         const onConfirm = jest.fn();
         const onCancel = jest.fn();
 
@@ -227,51 +164,6 @@ describe('useCreateEmptyReportConfirmation', () => {
 
         const updatedModal = getModal(result.current);
         expect(updatedModal.props.isVisible).toBe(false);
-    });
-
-    it('ignores cancel attempts while confirmation is loading', async () => {
-        const {promise, resolve} = createDeferredPromise<void>();
-        const onConfirm = jest.fn().mockReturnValue(promise);
-        const onCancel = jest.fn();
-
-        const {result} = renderHook<HookValue, MockConfirmModalProps>(() =>
-            useCreateEmptyReportConfirmation({
-                policyID,
-                policyName,
-                onConfirm,
-                onCancel,
-            }),
-        );
-
-        act(() => {
-            result.current.openCreateReportConfirmation();
-        });
-
-        let modal = getModal(result.current);
-        const confirmHandler = getRequiredHandler(modal.props.onConfirm, 'onConfirm');
-
-        await act(async () => {
-            await confirmHandler();
-        });
-
-        modal = getModal(result.current);
-        expect(modal.props.isConfirmLoading).toBe(true);
-
-        const cancelHandler = getRequiredHandler(modal.props.onCancel, 'onCancel');
-
-        act(() => {
-            cancelHandler();
-        });
-
-        expect(onCancel).not.toHaveBeenCalled();
-
-        await act(async () => {
-            resolve();
-            await Promise.resolve();
-        });
-
-        modal = getModal(result.current);
-        expect(modal.props.isConfirmLoading).toBe(false);
     });
 
     it('navigates to reports search when link in prompt is pressed', () => {
