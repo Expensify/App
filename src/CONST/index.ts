@@ -1163,6 +1163,7 @@ const CONST = {
         ADD_EXPENSE_OPTIONS: {
             CREATE_NEW_EXPENSE: 'createNewExpense',
             ADD_UNREPORTED_EXPENSE: 'addUnreportedExpense',
+            TRACK_DISTANCE_EXPENSE: 'trackDistanceExpense',
         },
         ACTIONS: {
             LIMIT: 50,
