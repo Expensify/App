@@ -463,7 +463,7 @@ function MoneyRequestView({
                         );
                     }}
                     copyValue={!canEditDistance ? distanceToDisplay : undefined}
-                    copyable={!canEditDistance && Boolean(distanceToDisplay)}
+                    copyable={!canEditDistance && !!distanceToDisplay}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('customUnitRateID')}>
@@ -484,7 +484,7 @@ function MoneyRequestView({
                     brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={getErrorForField('customUnitRateID')}
                     copyValue={!canEditDistanceRate ? rateToDisplay : undefined}
-                    copyable={!canEditDistanceRate && Boolean(rateToDisplay)}
+                    copyable={!canEditDistanceRate && !!rateToDisplay}
                 />
             </OfflineWithFeedback>
         </>
@@ -658,7 +658,7 @@ function MoneyRequestView({
                             errorText={getErrorForField('merchant')}
                             numberOfLinesTitle={0}
                             copyValue={!canEditMerchant ? updatedMerchantTitle : undefined}
-                            copyable={!canEditMerchant && Boolean(updatedMerchantTitle)}
+                            copyable={!canEditMerchant && !!updatedMerchantTitle}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -677,7 +677,7 @@ function MoneyRequestView({
                         brickRoadIndicator={getErrorForField('date') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={getErrorForField('date')}
                         copyValue={!canEditDate ? transactionDate : undefined}
-                        copyable={!canEditDate && Boolean(transactionDate)}
+                        copyable={!canEditDate && !!transactionDate}
                     />
                 </OfflineWithFeedback>
                 {!!shouldShowCategory && (
