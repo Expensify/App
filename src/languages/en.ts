@@ -79,6 +79,7 @@ import type {
     DelegateRoleParams,
     DelegatorParams,
     DeleteActionParams,
+    DeleteBudgetParams,
     DeleteConfirmationParams,
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
@@ -6034,6 +6035,23 @@ const translations = {
                 return `updated the budget for ${entityType} "${entityName}".`;
             }
             return `updated the budget for ${entityType} "${entityName}". Budget's updated fields: ${joined}.`;
+        },
+        deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}: DeleteBudgetParams) => {
+            const details: string[] = [];
+            if (frequency) {
+                details.push(`frequency: ${frequency}`);
+            }
+            if (individual) {
+                details.push(`individual budget: ${individual}`);
+            }
+            if (typeof notificationThreshold === 'number') {
+                details.push(`notification threshold: ${notificationThreshold}%`);
+            }
+            if (shared) {
+                details.push(`shared budget: ${shared}`);
+            }
+            const suffix = details.length ? ` Previous budget details: ${details.join(', ')}.` : '';
+            return `deleted the budget for the ${entityType} "${entityName}".${suffix}`;
         },
     },
     roomMembersPage: {

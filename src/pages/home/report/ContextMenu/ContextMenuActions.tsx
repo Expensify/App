@@ -713,6 +713,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getAddedBudgetMessage(reportAction, policy));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET)) {
                     setClipboardMessage(getUpdatedBudgetMessage(reportAction, policy));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_BUDGET)) {
+                    setClipboardMessage(getDeletedBudgetMessage(reportAction, policy));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
                     setClipboardMessage(getChangedApproverActionMessage(reportAction));
                 } else if (isMovedAction(reportAction)) {

@@ -26,6 +26,7 @@ import {
     getCardIssuedMessage,
     getChangedApproverActionMessage,
     getDeletedApprovalRuleMessage,
+    getDeletedBudgetMessage,
     getIntegrationSyncFailedMessage,
     getLastVisibleMessage,
     getMessageOfOldDotReportAction,
@@ -882,6 +883,8 @@ function getOptionData({
             result.alternateText = getAddedBudgetMessage(lastAction, policy);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET) {
             result.alternateText = getUpdatedBudgetMessage(lastAction, policy);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_BUDGET) {
+            result.alternateText = getDeletedBudgetMessage(lastAction, policy);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
             result.alternateText = getRetractedMessage();
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {

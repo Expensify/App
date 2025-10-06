@@ -2882,8 +2882,8 @@ function getAddedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: On
     const value = newValue as PolicyBudgetFrequency;
 
     if (newValue && value?.frequency && categoryName && entityType) {
-        const sharedAmount = convertToShortDisplayString(value?.shared, policy?.outputCurrency ?? CONST.CURRENCY.USD);
-        const individualAmount = convertToShortDisplayString(value?.individual, policy?.outputCurrency ?? CONST.CURRENCY.USD);
+        const sharedAmount = convertAmountToDisplayString(value?.shared, policy?.outputCurrency ?? CONST.CURRENCY.USD);
+        const individualAmount = convertAmountToDisplayString(value?.individual, policy?.outputCurrency ?? CONST.CURRENCY.USD);
         const frequency = translateLocal(`workspace.common.budgetFrequency.${value.frequency}` as TranslationPaths);
         return translateLocal('workspaceActions.addBudget', {
             frequency,
@@ -2911,10 +2911,10 @@ function getUpdatedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: 
 
     const oldFrequency = translateLocal(`workspace.common.budgetFrequency.${previous.frequency}` as TranslationPaths);
     const newFrequency = translateLocal(`workspace.common.budgetFrequency.${updated.frequency}` as TranslationPaths);
-    const oldIndividual = typeof previous.individual === 'number' ? convertToShortDisplayString(previous.individual, currency) : undefined;
-    const newIndividual = typeof updated.individual === 'number' ? convertToShortDisplayString(updated.individual, currency) : undefined;
-    const oldShared = typeof previous.shared === 'number' ? convertToShortDisplayString(previous.shared, currency) : undefined;
-    const newShared = typeof updated.shared === 'number' ? convertToShortDisplayString(updated.shared, currency) : undefined;
+    const oldIndividual = typeof previous.individual === 'number' ? convertAmountToDisplayString(previous.individual, currency) : undefined;
+    const newIndividual = typeof updated.individual === 'number' ? convertAmountToDisplayString(updated.individual, currency) : undefined;
+    const oldShared = typeof previous.shared === 'number' ? convertAmountToDisplayString(previous.shared, currency) : undefined;
+    const newShared = typeof updated.shared === 'number' ? convertAmountToDisplayString(updated.shared, currency) : undefined;
     const oldNotificationThreshold = previous.notificationThreshold;
     const newNotificationThreshold = updated.notificationThreshold;
 
@@ -2929,6 +2929,31 @@ function getUpdatedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: 
         newShared,
         oldNotificationThreshold,
         newNotificationThreshold,
+    });
+}
+
+function getDeletedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: OnyxEntry<Policy>) {
+    const {oldValue, categoryName, entityType} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_BUDGET>) ?? {};
+
+    const previous = oldValue as PolicyBudgetFrequency | undefined;
+
+    if (!previous || !categoryName || !entityType) {
+        return getReportActionText(reportAction);
+    }
+
+    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+    const frequency = previous.frequency ? translateLocal(`workspace.common.budgetFrequency.${previous.frequency}` as TranslationPaths) : undefined;
+    const individual = typeof previous.individual === 'number' ? convertAmountToDisplayString(previous.individual, currency) : undefined;
+    const shared = typeof previous.shared === 'number' ? convertAmountToDisplayString(previous.shared, currency) : undefined;
+    const notificationThreshold = previous.notificationThreshold;
+
+    return translateLocal('workspaceActions.deleteBudget', {
+        entityType,
+        entityName: categoryName,
+        frequency,
+        individual,
+        shared,
+        notificationThreshold,
     });
 }
 
@@ -3295,6 +3320,7 @@ export {
     getWorkspaceReportFieldDeleteMessage,
     getUpdatedAuditRateMessage,
     getUpdatedManualApprovalThresholdMessage,
+    getDeletedBudgetMessage,
     getUpdatedBudgetMessage,
     getAddedBudgetMessage,
     getWorkspaceCustomUnitRateDeletedMessage,

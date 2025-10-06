@@ -439,6 +439,15 @@ type UpdatedBudgetParams = {
     newNotificationThreshold?: number;
 };
 
+type DeleteBudgetParams = {
+    entityType: string;
+    entityName: string;
+    frequency?: string;
+    individual?: string;
+    shared?: string;
+    notificationThreshold?: number;
+};
+
 type IntegrationsMessageParams = {
     label: string;
     result: {
@@ -1249,6 +1258,7 @@ export type {
     BusinessTaxIDParams,
     AddBudgetParams,
     UpdatedBudgetParams,
+    DeleteBudgetParams,
     QBDSetupErrorBodyParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,

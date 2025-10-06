@@ -158,6 +158,7 @@ import {
     getAllReportActions,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
+    getDeletedBudgetMessage,
     getDismissedViolationMessageText,
     getExportIntegrationLastMessageText,
     getIntegrationSyncFailedMessage,
@@ -5363,6 +5364,10 @@ function getReportName(
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET) && policy && 'outputCurrency' in policy) {
         return getUpdatedBudgetMessage(parentReportAction, policy);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_BUDGET) && policy && 'outputCurrency' in policy) {
+        return getDeletedBudgetMessage(parentReportAction, policy);
     }
 
     if (parentReportAction?.actionName && isTagModificationAction(parentReportAction?.actionName)) {

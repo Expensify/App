@@ -67,6 +67,7 @@ import {
     getAddedConnectionMessage,
     getChangedApproverActionMessage,
     getDeletedApprovalRuleMessage,
+    getDeletedBudgetMessage,
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
     getIntegrationSyncFailedMessage,
@@ -1369,6 +1370,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getAddedBudgetMessage(action, policy)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET)) {
             children = <ReportActionItemBasicMessage message={getUpdatedBudgetMessage(action, policy)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_BUDGET)) {
+            children = <ReportActionItemBasicMessage message={getDeletedBudgetMessage(action, policy)} />;
         } else if (isActionableMentionWhisper(action)) {
             children = (
                 <ReportActionItemBasicMessage>
