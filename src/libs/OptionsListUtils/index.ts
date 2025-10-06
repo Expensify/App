@@ -607,7 +607,7 @@ function getLastMessageTextForReport({
                       isMoneyRequestAction(reportAction),
               )
             : undefined;
-        // For workspace chats, use the report title instead of "X owes $y" message
+        // For workspace chats, use the report title
         if (reportUtilsIsPolicyExpenseChat(report) && !isEmptyObject(iouReport)) {
             lastMessageTextFromReport = formatReportLastMessageText(getReportName(iouReport));
         } else {

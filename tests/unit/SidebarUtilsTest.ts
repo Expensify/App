@@ -1059,7 +1059,7 @@ describe('SidebarUtils', () => {
                 expect(optionData?.alternateText).toBe(`test message`);
             });
 
-            it("For policy expense chat whose last action is a report preview linked to an expense report with non-reimbursable transaction the LHN text should be in the format 'spent $total'", async () => {
+            it('For policy expense chat whose last action is a report preview linked to an expense report with non-reimbursable transaction the LHN text should be the report name', async () => {
                 const policy: Policy = {
                     ...createRandomPolicy(1),
                     role: CONST.POLICY.ROLE.ADMIN,
@@ -1178,14 +1178,8 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                 });
-                const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(iouReport);
-                const formattedAmount = convertToDisplayString(totalDisplaySpend, iouReport.currency);
 
-                expect(optionData?.alternateText).toBe(
-                    formatReportLastMessageText(
-                        translateLocal('iou.payerSpentAmount', {payer: getDisplayNameForParticipant({accountID: iouReport.ownerAccountID}) ?? '', amount: formattedAmount}),
-                    ),
-                );
+                expect(optionData?.alternateText).toBe(formatReportLastMessageText(iouReport.reportName));
             });
 
             it('The text should contain the policy name at prefix if we have multiple workspace and the report is related to a workspace', async () => {
