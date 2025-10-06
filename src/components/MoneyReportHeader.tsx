@@ -416,6 +416,7 @@ function MoneyReportHeader({
                         shouldCalculateTotals: true,
                         offset: 0,
                         queryJSON: currentSearchQueryJSON,
+                        isOffline,
                     });
                 }
             }
@@ -431,6 +432,7 @@ function MoneyReportHeader({
             existingB2BInvoiceReport,
             currentSearchQueryJSON,
             currentSearchKey,
+            isOffline,
         ],
     );
 
@@ -443,6 +445,15 @@ function MoneyReportHeader({
         } else {
             startApprovedAnimation();
             approveMoneyRequest(moneyRequestReport, true);
+            if (currentSearchQueryJSON) {
+                search({
+                    searchKey: currentSearchKey,
+                    shouldCalculateTotals: true,
+                    offset: 0,
+                    queryJSON: currentSearchQueryJSON,
+                    isOffline,
+                });
+            }
         }
     };
 
@@ -712,6 +723,7 @@ function MoneyReportHeader({
                             shouldCalculateTotals: true,
                             offset: 0,
                             queryJSON: currentSearchQueryJSON,
+                            isOffline,
                         });
                     }
                 }}
