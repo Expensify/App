@@ -622,19 +622,14 @@ function buildFilterFormValuesFromQuery(
 ) {
     const filters = queryJSON.flatFilters;
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
-    const negatedFiltersForm = {} as Partial<SearchAdvancedFiltersForm>;
     const policyID = queryJSON.policyID;
 
     for (const queryFilter of filters) {
+        const filterKey = queryFilter.key;
         const filterList = queryFilter.filters;
-        const filterKey = queryFilter.key as SearchAdvancedFiltersKey;
-        const filterValues = filterList.map((filter) => filter.value.toString());
-        const isNegated = filterList.some((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
-
-        const form = isNegated ? negatedFiltersForm : filtersForm;
-
+        const filterValues = filterList.map((item) => item.value.toString());
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID) {
-            form[filterKey] = filterValues.join(',');
+            filtersForm[filterKey] = filterValues.join(',');
         }
         if (
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
@@ -642,38 +637,38 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION
         ) {
-            form[filterKey] = filterValues.at(0);
+            filtersForm[filterKey] = filterValues.at(0);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
             const validExpenseTypes = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
-            form[filterKey] = filterValues.filter((expenseType) => validExpenseTypes.has(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
+            filtersForm[filterKey] = filterValues.filter((expenseType) => validExpenseTypes.has(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
             const validHasTypes = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
-            form[filterKey] = filterValues.filter((hasType) => validHasTypes.has(hasType as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
+            filtersForm[filterKey] = filterValues.filter((hasType) => validHasTypes.has(hasType as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
             const validIsTypes = new Set(Object.values(CONST.SEARCH.IS_VALUES));
-            form[filterKey] = filterValues.filter((isType) => validIsTypes.has(isType as ValueOf<typeof CONST.SEARCH.IS_VALUES>));
+            filtersForm[filterKey] = filterValues.filter((isType) => validIsTypes.has(isType as ValueOf<typeof CONST.SEARCH.IS_VALUES>));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
             const validWithdrawalTypes = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
-            form[filterKey] = filterValues
+            filtersForm[filterKey] = filterValues
                 .filter((withdrawalType): withdrawalType is SearchWithdrawalType => validWithdrawalTypes.has(withdrawalType as ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>))
                 .at(0);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-            form[filterKey] = filterValues.filter((card) => cardList[card]);
+            filtersForm[filterKey] = filterValues.filter((card) => cardList[card]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
-            form[filterKey] = filterValues.filter((feed) => feed);
+            filtersForm[filterKey] = filterValues.filter((feed) => feed);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
             const allTaxRates = new Set(Object.values(taxRates).flat());
-            form[filterKey] = filterValues.filter((tax) => allTaxRates.has(tax));
+            filtersForm[filterKey] = filterValues.filter((tax) => allTaxRates.has(tax));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-            form[filterKey] = filterValues.filter((id) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]?.reportID);
+            filtersForm[filterKey] = filterValues.filter((id) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]?.reportID);
         }
         if (
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
@@ -682,19 +677,19 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
         ) {
-            form[filterKey] = filterValues.filter((id) => personalDetails && personalDetails[id]);
+            filtersForm[filterKey] = filterValues.filter((id) => personalDetails && personalDetails[id]);
         }
 
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER) {
-            form[filterKey] = filterValues.find((id) => personalDetails && personalDetails[id]);
+            filtersForm[filterKey] = filterValues.find((id) => personalDetails && personalDetails[id]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY) {
             const validCurrency = new Set(Object.keys(currencyList));
-            form[filterKey] = filterValues.filter((currency) => validCurrency.has(currency));
+            filtersForm[filterKey] = filterValues.filter((currency) => validCurrency.has(currency));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY) {
             const validCurrency = new Set(Object.keys(currencyList));
-            form[filterKey] = filterValues.filter((currency) => validCurrency.has(currency)).at(0);
+            filtersForm[filterKey] = filterValues.filter((currency) => validCurrency.has(currency)).at(0);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
             const tags = policyID
@@ -707,7 +702,7 @@ function buildFilterFormValuesFromQuery(
                       .flat();
             const uniqueTags = new Set(tags);
             uniqueTags.add(CONST.SEARCH.TAG_EMPTY_VALUE);
-            form[filterKey] = filterValues.filter((name) => uniqueTags.has(name));
+            filtersForm[filterKey] = filterValues.filter((name) => uniqueTags.has(name));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
             const categories = policyID
@@ -722,10 +717,10 @@ function buildFilterFormValuesFromQuery(
             const hasEmptyCategoriesInFilter = emptyCategories.every((category) => filterValues.includes(category));
             // We split CATEGORY_EMPTY_VALUE into individual values to detect both are present in filterValues.
             // If empty categories are found, append the CATEGORY_EMPTY_VALUE to filtersForm.
-            form[filterKey] = filterValues.filter((name) => uniqueCategories.has(name)).concat(hasEmptyCategoriesInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);
+            filtersForm[filterKey] = filterValues.filter((name) => uniqueCategories.has(name)).concat(hasEmptyCategoriesInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
-            form[filterKey] = filterValues
+            filtersForm[filterKey] = filterValues
                 ?.map((filter) => {
                     if (filter.includes(' ')) {
                         return `"${filter}"`;
@@ -745,9 +740,9 @@ function buildFilterFormValuesFromQuery(
             // The `On` filter could be either a date or a date preset (e.g. Last month)
             const onFilter = filterList.find((filter) => filter.operator === 'eq' && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString())));
 
-            form[beforeKey] = beforeFilter?.value.toString() ?? form[beforeKey];
-            form[afterKey] = afterFilter?.value.toString() ?? form[afterKey];
-            form[onKey] = onFilter?.value.toString() ?? form[onKey];
+            filtersForm[beforeKey] = beforeFilter?.value.toString() ?? filtersForm[beforeKey];
+            filtersForm[afterKey] = afterFilter?.value.toString() ?? filtersForm[afterKey];
+            filtersForm[onKey] = onFilter?.value.toString() ?? filtersForm[onKey];
         }
 
         if (AMOUNT_FILTER_KEYS.includes(filterKey as SearchAmountFilterKeys)) {
@@ -756,17 +751,19 @@ function buildFilterFormValuesFromQuery(
             const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
 
             // backend amount is an integer and is 2 digits longer than frontend amount
-            form[equalToKey] =
-                filterList.find((filter) => filter.operator === 'eq' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ?? form[equalToKey];
-            form[lessThanKey] =
-                filterList.find((filter) => filter.operator === 'lt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ?? form[lessThanKey];
+            filtersForm[equalToKey] =
+                filterList.find((filter) => filter.operator === 'eq' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
+                filtersForm[equalToKey];
+            filtersForm[lessThanKey] =
+                filterList.find((filter) => filter.operator === 'lt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
+                filtersForm[lessThanKey];
             filtersForm[greaterThanKey] =
                 filterList.find((filter) => filter.operator === 'gt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
-                form[greaterThanKey];
+                filtersForm[greaterThanKey];
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
             const validBooleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
-            form[filterKey] = validBooleanTypes.find((value) => filterValues.at(0) === value);
+            filtersForm[filterKey] = validBooleanTypes.find((value) => filterValues.at(0) === value);
         }
     }
 
@@ -793,207 +790,6 @@ function buildFilterFormValuesFromQuery(
 
     if (queryJSON.groupBy) {
         filtersForm[FILTER_KEYS.GROUP_BY] = queryJSON.groupBy;
-    }
-
-    return {filtersForm, negatedFiltersForm};
-}
-
-/**
- * TODO: Explain this func
- */
-function buildFiltersFromQuery(
-    queryJSON: SearchQueryJSON,
-    policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>,
-    policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>,
-    currencyList: OnyxTypes.CurrencyList,
-    personalDetails: OnyxTypes.PersonalDetailsList | undefined,
-    cardList: OnyxTypes.CardList,
-    reports: OnyxCollection<OnyxTypes.Report>,
-    taxRates: Record<string, string[]>,
-) {
-    const filters = queryJSON.flatFilters;
-    const filtersForm = {} as Record<SearchAdvancedFiltersKey, QueryFilter[]>;
-    const policyID = queryJSON.policyID;
-
-    for (const queryFilter of filters) {
-        const filterList = queryFilter.filters;
-        const filterKey = queryFilter.key as SearchAdvancedFiltersKey;
-        const filterValues = queryFilter.filters.map((filter) => filter.value);
-
-        if (!filtersForm[filterKey]) {
-            filtersForm[filterKey] = [];
-        }
-
-        const filterData = filtersForm[filterKey];
-
-        if (
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION
-        ) {
-            filterData.concat(filterList);
-        }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
-            const validExpenseTypes = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
-            filterData.concat(filterList.filter((filter) => validExpenseTypes.has(filter.value as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>)));
-        }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
-            const validHasTypes = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
-            filterData.concat(filterList.filter((filter) => validHasTypes.has(filter.value as ValueOf<typeof CONST.SEARCH.HAS_VALUES>)));
-        }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
-            const validIsTypes = new Set(Object.values(CONST.SEARCH.IS_VALUES));
-            filterData.concat(filterList.filter((filter) => validIsTypes.has(filter.value as ValueOf<typeof CONST.SEARCH.IS_VALUES>)));
-        }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
-            const validWithdrawalTypes = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
-            filterData.concat(filterList.filter((filter) => validWithdrawalTypes.has(filter.value as ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>)));
-        }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-            filterData.concat(filterList.filter((filter) => cardList[filter.value]));
-        }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
-            filterData.concat(filterList.filter((filter) => filter.value));
-        }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-            const allTaxRates = new Set(Object.values(taxRates).flat());
-            filterData.concat(filterList.filter((filter) => allTaxRates.has(filter.value as string)));
-        }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-            filterData.concat(filterList.filter((filter) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filter.value}`]?.reportID));
-        }
-        if (
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER
-        ) {
-            filterData.concat(filterList.filter((filter) => personalDetails && personalDetails[filter.value]));
-        }
-        if (
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY
-        ) {
-            const validCurrency = new Set(Object.keys(currencyList));
-            filterData.concat(filterList.filter((filter) => validCurrency.has(filter.value as string)));
-        }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
-            const individualPolicyTags = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, policyTags)
-                .map((tagList) => getTagNamesFromTagsLists(tagList ?? {}))
-                .flat();
-
-            const allPolicyTags = Object.values(policyTags ?? {})
-                .filter((item) => !!item)
-                .map((tagList) => getTagNamesFromTagsLists(tagList ?? {}))
-                .flat();
-
-            const tags = policyID ? individualPolicyTags : allPolicyTags;
-            const uniqueTags = new Set([...tags, CONST.SEARCH.TAG_EMPTY_VALUE]);
-            filterData.concat(filterList.filter((filter) => uniqueTags.has(filter.value as string)));
-        }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
-            const individualPolicyCategories = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, policyCategories)
-                .map((categories) => Object.values(categories ?? {}).map((category) => category.name))
-                .flat();
-
-            const allPolicyCategories = Object.values(policyCategories ?? {})
-                .filter((item) => !!item)
-                .map((categories) => Object.values(categories ?? {}).map((category) => category.name))
-                .flat();
-
-            const categories = policyID ? individualPolicyCategories : allPolicyCategories;
-
-            const uniqueCategories = new Set(categories);
-            const emptyCategories = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
-            const emptyCategoryValue: QueryFilter = {value: CONST.SEARCH.CATEGORY_EMPTY_VALUE, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO};
-            const hasEmptyCategoriesInFilter = emptyCategories.every((category) => filterValues.includes(category));
-            // We split CATEGORY_EMPTY_VALUE into individual values to detect both are present in filterValues.
-            // If empty categories are found, append the CATEGORY_EMPTY_VALUE to filtersForm.
-            filterData.concat(filterList.filter((filter) => uniqueCategories.has(filter.value as string)).concat(hasEmptyCategoriesInFilter ? [emptyCategoryValue] : []));
-        }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
-            filterData.concat(filterList.filter((filter) => filter.value));
-        }
-
-        if (DATE_FILTER_KEYS.includes(filterKey as SearchDateFilterKeys)) {
-            const beforeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
-            const afterKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
-            const onKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.ON}`;
-
-            const beforeFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && isValidDate(filter.value.toString()));
-            const afterFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && isValidDate(filter.value.toString()));
-
-            // The `On` filter could be either a date or a date preset (e.g. Last month)
-            const onFilter = filterList.find((filter) => {
-                return filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString()));
-            });
-
-            if (!filtersForm[onKey]) {
-                filtersForm[onKey] = [];
-            }
-
-            if (!filtersForm[beforeKey]) {
-                filtersForm[beforeKey] = [];
-            }
-
-            if (!filtersForm[afterKey]) {
-                filtersForm[afterKey] = [];
-            }
-
-            filtersForm[onKey].concat(onFilter ? [onFilter] : []);
-            filtersForm[afterKey].concat(afterFilter ? [afterFilter] : []);
-            filtersForm[beforeKey].concat(beforeFilter ? [beforeFilter] : []);
-        }
-
-        if (AMOUNT_FILTER_KEYS.includes(filterKey as SearchAmountFilterKeys)) {
-            const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`;
-            const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
-            const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
-
-            if (!filtersForm[equalToKey]) {
-                filtersForm[equalToKey] = [];
-            }
-
-            if (!filtersForm[lessThanKey]) {
-                filtersForm[lessThanKey] = [];
-            }
-
-            if (!filtersForm[greaterThanKey]) {
-                filtersForm[greaterThanKey] = [];
-            }
-
-            // Backend amount is an integer and is 2 digits longer than frontend amount
-            const equalToFilter = filterList.find((filter) => {
-                return filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH);
-            });
-            const lessThanFilter = filterList.find((filter) => {
-                return filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH);
-            });
-            const greaterThanFilter = filterList.find((filter) => {
-                return filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH);
-            });
-
-            if (equalToFilter) {
-                filtersForm[equalToKey].push(equalToFilter);
-            }
-            if (lessThanFilter) {
-                filtersForm[lessThanKey].push(lessThanFilter);
-            }
-            if (greaterThanFilter) {
-                filtersForm[greaterThanKey].push(greaterThanFilter);
-            }
-        }
-
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
-            const validBooleanTypes = new Set(Object.values(CONST.SEARCH.BOOLEAN));
-            filterData.concat(filterList.filter((filter) => validBooleanTypes.has(filter.value as ValueOf<typeof CONST.SEARCH.BOOLEAN>)));
-        }
     }
 
     return filtersForm;
@@ -1320,7 +1116,6 @@ export {
     isFilterSupported,
     buildSearchQueryJSON,
     buildSearchQueryString,
-    buildFiltersFromQuery,
     buildUserReadableQueryString,
     getFilterDisplayValue,
     buildQueryStringFromFilterFormValues,

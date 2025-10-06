@@ -518,6 +518,7 @@ function AdvancedSearchFilters() {
 
     const {currentType, typeFiltersKeys} = useAdvancedSearchFilters();
 
+    // JACK
     const queryString = useMemo(() => buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);
     const queryJSON = useMemo(() => buildSearchQueryJSON(queryString || buildCannedSearchQuery()), [queryString]);
 
