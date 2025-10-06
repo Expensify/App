@@ -1,11 +1,14 @@
 import {emailSelector} from '@selectors/Session';
 import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoiceFromWorkspace, getActiveAdminWorkspaces, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
@@ -27,6 +30,7 @@ type IOURequestStepSendFromProps = WithWritableReportOrNotFoundProps<typeof SCRE
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM>;
 
 function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProps) {
+    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {transactionID, backTo} = route.params;
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
@@ -88,6 +92,9 @@ function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProp
             testID={IOURequestStepSendFrom.displayName}
             includeSafeAreaPaddingBottom
         >
+            <View style={[styles.optionsListSectionHeader]}>
+                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.workspaces')}</Text>
+            </View>
             <SelectionList
                 data={workspaceOptions}
                 onSelectRow={selectWorkspace}
