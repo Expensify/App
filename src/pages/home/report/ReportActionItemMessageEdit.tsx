@@ -84,7 +84,7 @@ type ReportActionItemMessageEditProps = {
 
     /** Whether the flatlist is reverted */
     isReverted?: boolean;
-    
+
     /** Reference to the outer element */
     ref?: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>;
 };
