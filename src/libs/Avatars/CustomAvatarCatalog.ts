@@ -109,7 +109,7 @@ const SEASON_F1: Record<SeasonF1AvatarIDs, AvatarEntry> = {
     'medal-yellow400': {local: SeasonF1.MedalYellow400, url: `${CDN_SEASON_F1}/medal-yellow400.png`},
     'podium-blue400': {local: SeasonF1.PodiumBlue400, url: `${CDN_SEASON_F1}/podium-blue400.png`},
     'speedometer-ice400': {local: SeasonF1.SpeedometerIce400, url: `${CDN_SEASON_F1}/speedometer-ice400.png`},
-    'steeringwheel-pink400': {local: SeasonF1.SteeringwheelPink400, url: `${CDN_SEASON_F1}/steeringwheel-pink400.png`},
+    'steeringwheel-pink400': {local: SeasonF1.SteeringWheelPink400, url: `${CDN_SEASON_F1}/steeringwheel-pink400.png`},
     'stopwatch-ice600': {local: SeasonF1.StopwatchIce600, url: `${CDN_SEASON_F1}/stopwatch-ice600.png`},
     'tire-green400': {local: SeasonF1.TireGreen400, url: `${CDN_SEASON_F1}/tire-green400.png`},
     'trophy-yellow600': {local: SeasonF1.TrophyYellow600, url: `${CDN_SEASON_F1}/trophy-yellow600.png`},

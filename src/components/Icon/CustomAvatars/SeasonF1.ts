@@ -17,7 +17,7 @@ import HelmetYellow400 from '@assets/images/avatars/user/custom-avatars/season-f
 import MedalYellow400 from '@assets/images/avatars/user/custom-avatars/season-f1/medal-yellow400.svg';
 import PodiumBlue400 from '@assets/images/avatars/user/custom-avatars/season-f1/podium-blue400.svg';
 import SpeedometerIce400 from '@assets/images/avatars/user/custom-avatars/season-f1/speedometer-ice400.svg';
-import SteeringwheelPink400 from '@assets/images/avatars/user/custom-avatars/season-f1/steeringwheel-pink400.svg';
+import SteeringWheelPink400 from '@assets/images/avatars/user/custom-avatars/season-f1/steeringwheel-pink400.svg';
 import StopwatchIce600 from '@assets/images/avatars/user/custom-avatars/season-f1/stopwatch-ice600.svg';
 import TireGreen400 from '@assets/images/avatars/user/custom-avatars/season-f1/tire-green400.svg';
 import TrophyYellow600 from '@assets/images/avatars/user/custom-avatars/season-f1/trophy-yellow600.svg';
@@ -43,7 +43,7 @@ export {
     MedalYellow400,
     PodiumBlue400,
     SpeedometerIce400,
-    SteeringwheelPink400,
+    SteeringWheelPink400,
     StopwatchIce600,
     TireGreen400,
     TrophyYellow600,
