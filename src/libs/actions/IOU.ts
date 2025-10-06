@@ -9852,7 +9852,15 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
 
     const hasViolations = hasViolationsReportUtils(expenseReport.reportID, allTransactionViolations);
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
-    const optimisticNextStep = buildNextStepNew(expenseReport, policy, userAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, predictedNextStatus);
+    const optimisticNextStep = buildNextStepNew({
+        report: expenseReport,
+        policy,
+        currentUserAccountIDParam: userAccountID,
+        currentUserEmailParam: currentUserEmail,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        predictedNextStatus,
+    });
     const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
 
     const optimisticReportActionsData: OnyxUpdate = {
