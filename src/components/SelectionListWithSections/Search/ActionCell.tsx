@@ -99,7 +99,7 @@ function ActionCell({
                         StyleUtils.getMinimumHeight(variables.h20),
                         isSelected ? StyleUtils.getBorderColorStyle(theme.buttonHoveredBG) : StyleUtils.getBorderColorStyle(theme.border),
                     ]}
-                    textStyles={StyleUtils.getFontSizeStyle(variables.fontSizeSmall)}
+                    textStyles={StyleUtils.getFontSizeStyle(extraSmall ? variables.fontSizeExtraSmall : variables.fontSizeSmall)}
                     iconStyles={styles.mr0}
                     success
                 />

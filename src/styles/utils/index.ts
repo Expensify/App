@@ -586,7 +586,7 @@ function getButtonStyleWithIcon(
     switch (true) {
         case extraSmall: {
             const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
-            return useDefaultButtonStyles ? styles.buttonExtraSmall : {...(styles as unknown as Record<string, ViewStyle>).buttonExtraSmall, ...(hasText ? verticalStyle : styles.ph0)};
+            return useDefaultButtonStyles ? styles.buttonExtraSmall : {...styles.buttonExtraSmall, ...(hasText ? verticalStyle : styles.ph0)};
         }
         case small: {
             const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
