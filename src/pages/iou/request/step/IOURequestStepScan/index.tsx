@@ -528,9 +528,7 @@ function IOURequestStepScan({
                 !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
             ) {
                 const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
-                // We want to check both policies and fallback to personalPolicy.autoReporting if the former is false
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                const shouldAutoReport = defaultExpensePolicy?.autoReporting || personalPolicy?.autoReporting;
+                const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
                 const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
 
                 // If the initial transaction has different participants selected that means that the user has changed the participant in the confirmation step
