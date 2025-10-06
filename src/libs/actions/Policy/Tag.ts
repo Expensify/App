@@ -557,7 +557,7 @@ function renamePolicyTag({policyTag, tagListIndex, policyTags, policy}: RenamePo
     const approvalRules = policy?.rules?.approvalRules ?? [];
     const updatedApprovalRules: ApprovalRule[] = lodashCloneDeep(approvalRules);
 
-    // Its related by name, so the corresponding rule has to be updated to handle offline scenario
+    // It's related by name, so the corresponding rule has to be updated to handle offline scenario
     if (policyTagRule) {
         const indexToUpdate = updatedApprovalRules.findIndex((rule) => rule.id === policyTagRule.id);
         policyTagRule.applyWhen = policyTagRule.applyWhen.map((ruleCondition) => {

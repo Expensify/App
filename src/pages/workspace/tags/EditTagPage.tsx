@@ -84,7 +84,7 @@ function EditTagPage({route}: EditTagPageProps) {
                 );
             }
         },
-        [currentTagName, route.params.tagName, route.params.orderWeight, policyTags, policy, isQuickSettingsFlow, policyID, backTo],
+        [route.params.tagName, route.params.orderWeight, policyTags, policy, isQuickSettingsFlow, policyID, backTo],
     );
 
     return (

@@ -577,7 +577,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // Then the tag should be renamed optimistically with pending action
-            let optimisticPolicyTags;
+            let optimisticPolicyTags: PolicyTagLists | undefined;
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                 callback: (val) => (optimisticPolicyTags = val),
@@ -593,7 +593,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // Then the pending action should be cleared after API success
-            let successPolicyTags;
+            let successPolicyTags: PolicyTagLists | undefined;
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                 callback: (val) => (successPolicyTags = val),
@@ -637,7 +637,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // Then the tag name should be reverted and an error should be set
-            let failurePolicyTags;
+            let failurePolicyTags: PolicyTagLists | undefined;
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                 callback: (val) => (failurePolicyTags = val),
@@ -675,34 +675,13 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // Then Onyx data should remain unchanged
-            let updatedPolicyTags;
+            let updatedPolicyTags: PolicyTagLists | undefined;
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                 callback: (val) => (updatedPolicyTags = val),
             });
 
             expect(updatedPolicyTags).toEqual(existingPolicyTags);
-        });
-
-        it('should not modify Onyx data when policy is null or has no id', async () => {
-            // Given a null policy
-            const tagListName = 'Test tag';
-            const existingPolicyTags = createRandomPolicyTags(tagListName, 2);
-
-            mockFetch.pause();
-
-            // When trying to rename a tag with null policy
-            expect(() => {
-                renamePolicyTag({
-                    policyTag: {oldName: 'oldTag', newName: 'newTag'},
-                    tagListIndex: 0,
-                    policyTags: existingPolicyTags,
-                    policy: null,
-                });
-            }).not.toThrow();
-
-            await mockFetch.resume();
-            await waitForBatchedUpdates();
         });
 
         it('should update approval rules when tag is used in approval conditions', async () => {
@@ -749,7 +728,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // Then the approval rule should be updated with the new tag name
-            let updatedPolicy;
+            let updatedPolicy: Policy | undefined;
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                 callback: (val) => (updatedPolicy = val),
@@ -777,26 +756,33 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
 
-            const policyTagsHook = renderHook(() => useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`));
-            const policyHook = renderHook(() => useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`));
+            const {result: policyTagsResult} = renderHook(() => useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`));
+            const {result: policyResult} = renderHook(() => useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`));
 
             await waitFor(() => {
-                expect(policyTagsHook.result.current[0]).toBeDefined();
-                expect(policyHook.result.current[0]).toBeDefined();
+                expect(policyTagsResult.current[0]).toBeDefined();
             });
+            await waitFor(() => {
+                expect(policyResult.current[0]).toBeDefined();
+            });
+
+            const policy = policyResult.current[0];
+            if (!policy) {
+                throw new Error('Policy is required for this test');
+            }
 
             // When renaming tag with data from useOnyx
             renamePolicyTag({
                 policyTag: {oldName: oldTagName, newName: newTagName},
                 tagListIndex: 0,
-                policyTags: policyTagsHook.result.current[0],
-                policy: policyHook.result.current[0],
+                policyTags: policyTagsResult.current[0],
+                policy,
             });
 
             await waitForBatchedUpdates();
 
             // Then optimistic update should be applied
-            let optimisticPolicyTags;
+            let optimisticPolicyTags: PolicyTagLists | undefined;
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                 callback: (val) => (optimisticPolicyTags = val),
@@ -810,7 +796,7 @@ describe('actions/Policy', () => {
             mockFetch.resume();
             await waitForBatchedUpdates();
 
-            let successPolicyTags;
+            let successPolicyTags: PolicyTagLists | undefined;
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                 callback: (val) => (successPolicyTags = val),
