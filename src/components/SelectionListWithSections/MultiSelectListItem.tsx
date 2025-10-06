@@ -53,7 +53,7 @@ function MultiSelectListItem<TItem extends ListItem>({
             alternateTextNumberOfLines={alternateTextNumberOfLines}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            wrapperStyle={[wrapperStyle, isAlternateTextMultilineSupported ? styles.optionRowExpanded : styles.optionRowCompact]}
+            wrapperStyle={[wrapperStyle, isAlternateTextMultilineSupported ? styles.optionRowWithPadding : styles.optionRowCompact]}
             titleStyles={titleStyles}
         />
     );
