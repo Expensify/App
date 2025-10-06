@@ -383,6 +383,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         ].some((value) => value === currentStep)
     );
 
+    const shouldShowPolicyName = backTo !== ROUTES.SETTINGS_WALLET;
+    const policyNameToDisplay = shouldShowPolicyName ? policyName : '';
+
     if (isLoadingPolicy) {
         return <FullScreenLoadingIndicator />;
     }
@@ -430,7 +433,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
                 <HeaderWithBackButton
                     title={translate('bankAccount.addBankAccount')}
-                    subtitle={policyName}
+                    subtitle={policyNameToDisplay}
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 <View style={[styles.m5, styles.mv3, styles.flex1]}>{errorText}</View>
@@ -484,7 +487,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
             reimbursementAccount={reimbursementAccount}
             onContinuePress={isNonUSDWorkspace ? continueNonUSDVBBASetup : continueUSDVBBASetup}
-            policyName={policyName}
+            policyName={policyNameToDisplay}
             isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
             toggleValidateCodeActionModal={setIsValidateCodeActionModalVisible}
             onBackButtonPress={Navigation.goBack}
