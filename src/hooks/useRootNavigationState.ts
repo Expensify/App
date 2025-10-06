@@ -8,6 +8,10 @@ type Selector<T> = (state: NavigationState | undefined) => T;
 /**
  * Hook to get a value from the current root navigation state using a selector.
  *
+ * If navigation is not yet initialized, undefined will be passed to the selector function
+ * instead of NavigationState. Therefore, the selector must handle undefined
+ * and return a safe default value.
+ *
  * @param selector Selector function to get a value from the state.
  */
 function useRootNavigationState<T>(selector: Selector<T>): T {
