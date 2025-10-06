@@ -88,7 +88,7 @@ function IOURequestStepDestination({
             if (openedFromStartPage) {
                 // We want to check both policies and fallback to personalPolicy.autoReporting if the former is false
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                const shouldAutoReport = policy?.autoReporting || personalPolicy?.autoReporting;
+                const shouldAutoReport = policy?.autoReporting || personalPolicy?.autoReporting || action !== CONST.IOU.ACTION.CREATE;
                 const transactionReportID = shouldAutoReport ? policyExpenseReport?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport);

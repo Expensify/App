@@ -244,10 +244,14 @@ function IOURequestStepParticipants({
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             selectedReportID.current = firstParticipantReportID || generateReportID();
 
-            // IOUs are always reported
-            shouldAutoReport.current = !isPolicyExpenseChat || !!policy?.autoReporting || !!personalPolicy?.autoReporting;
+            // IOUs are always reported. non-CREATE actions require a report
+            if (!isPolicyExpenseChat || action !== CONST.IOU.ACTION.CREATE) {
+                shouldAutoReport.current = true;
+            } else {
+                shouldAutoReport.current = !!policy?.autoReporting || !!personalPolicy?.autoReporting;
+            }
         },
-        [iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense, allPolicies, personalPolicy, lastSelectedDistanceRates],
+        [action, iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense, allPolicies, personalPolicy, lastSelectedDistanceRates],
     );
 
     const goToNextStep = useCallback(() => {
