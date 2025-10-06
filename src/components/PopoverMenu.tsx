@@ -1,5 +1,4 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
 import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -478,21 +477,5 @@ function BasePopoverMenu({
 
 PopoverMenu.displayName = 'PopoverMenu';
 
-export default React.memo(
-    PopoverMenu,
-    (prevProps, nextProps) =>
-        deepEqual(prevProps.menuItems, nextProps.menuItems) &&
-        prevProps.isVisible === nextProps.isVisible &&
-        deepEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
-        prevProps.anchorRef === nextProps.anchorRef &&
-        prevProps.headerText === nextProps.headerText &&
-        prevProps.fromSidebarMediumScreen === nextProps.fromSidebarMediumScreen &&
-        deepEqual(prevProps.anchorAlignment, nextProps.anchorAlignment) &&
-        prevProps.animationIn === nextProps.animationIn &&
-        prevProps.animationOut === nextProps.animationOut &&
-        prevProps.animationInTiming === nextProps.animationInTiming &&
-        prevProps.disableAnimation === nextProps.disableAnimation &&
-        prevProps.withoutOverlay === nextProps.withoutOverlay &&
-        prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility,
-);
+export default PopoverMenu;
 export type {PopoverMenuItem, PopoverMenuProps};
