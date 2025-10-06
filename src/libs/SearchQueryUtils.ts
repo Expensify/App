@@ -996,31 +996,6 @@ function jacksFormMethod(
         }
     }
 
-    const [typeKey, typeValue] = Object.entries(CONST.SEARCH.DATA_TYPES).find(([, value]) => value === queryJSON.type) ?? [];
-    filtersForm[FILTER_KEYS.TYPE] = typeValue ? queryJSON.type : CONST.SEARCH.DATA_TYPES.EXPENSE;
-
-    if (typeKey) {
-        if (Array.isArray(queryJSON.status)) {
-            const validStatuses = queryJSON.status.filter((status) => Object.values(CONST.SEARCH.STATUS[typeKey as keyof typeof CONST.SEARCH.DATA_TYPES]).includes(status));
-
-            if (validStatuses.length) {
-                filtersForm[FILTER_KEYS.STATUS] = queryJSON.status.join(',');
-            } else {
-                filtersForm[FILTER_KEYS.STATUS] = CONST.SEARCH.STATUS.EXPENSE.ALL;
-            }
-        } else {
-            filtersForm[FILTER_KEYS.STATUS] = queryJSON.status;
-        }
-    }
-
-    if (queryJSON.policyID) {
-        filtersForm[FILTER_KEYS.POLICY_ID] = queryJSON.policyID;
-    }
-
-    if (queryJSON.groupBy) {
-        filtersForm[FILTER_KEYS.GROUP_BY] = queryJSON.groupBy;
-    }
-
     return filtersForm;
 }
 
