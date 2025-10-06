@@ -197,8 +197,15 @@ function importPolicyTags(policyID: string, tags: PolicyTag[]) {
     API.write(WRITE_COMMANDS.IMPORT_TAGS_SPREADSHEET, parameters, onyxData);
 }
 
-function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {name: string; enabled: boolean}>, tagListIndex: number) {
-    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.at(tagListIndex);
+type SetWorkspaceTagEnabledProps = {
+    policyID: string;
+    tagsToUpdate: Record<string, {name: string; enabled: boolean}>;
+    tagListIndex: number;
+    policyTags: OnyxEntry<PolicyTagLists>;
+};
+
+function setWorkspaceTagEnabled({policyID, tagsToUpdate, tagListIndex, policyTags}: SetWorkspaceTagEnabledProps) {
+    const policyTag = PolicyUtils.getTagLists(policyTags ?? {})?.at(tagListIndex);
 
     if (!policyTag || tagListIndex === -1) {
         return;
