@@ -104,12 +104,20 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.text).toEqual('$0.00');
         });
 
-        it('returns merchant missing and amount missing message when appropriate', () => {
+        it('returns violations.reviewRequired when transaction has receipt with missing merchant and amount', async () => {
+            // Set up a proper expense report in Onyx
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+                reportID: '1',
+                type: 'expense',
+            });
+            await waitForBatchedUpdates();
+            
             const functionArgs = {
                 ...basicProps,
-                transaction: {...basicProps.transaction, merchant: '', amount: 0},
+                transaction: {...basicProps.transaction, merchant: '', amount: 0, receipt: {source: 'test-receipt.jpg', state: 'SCANCOMPLETE'}},
                 originalTransaction: undefined,
                 shouldShowRBR: true,
+                isReportAPolicyExpenseChat: true,
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.RBRMessage.translationPath).toEqual('violations.reviewRequired');
