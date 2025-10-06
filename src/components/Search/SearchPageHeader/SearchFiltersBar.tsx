@@ -115,7 +115,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
             const key = filter.key as keyof SearchAdvancedFiltersForm;
             const value = values[key] as ValueOf<SearchAdvancedFiltersForm[keyof SearchAdvancedFiltersForm]>;
             const isNegatedFilter = filter.filters.some((f) => f.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
-            if (!isNegatedFilter && value !== undefined) {
+            if (!isNegatedFilter) {
                 acc[key] = value;
             }
             return acc;
