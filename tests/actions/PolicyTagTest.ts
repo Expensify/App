@@ -958,6 +958,7 @@ describe('actions/Policy', () => {
 
     describe('ClearPolicyTagListErrorField', () => {
         it('should clear specific error field from tag list', async () => {
+            // Given a policy with a tag list that has multiple error fields
             const fakePolicy = createRandomPolicy(0);
             const tagListName = 'Test tag list';
             const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
@@ -973,6 +974,7 @@ describe('actions/Policy', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
 
+            // When clearing only the 'required' error field from the tag list
             clearPolicyTagListErrorField({policyID: fakePolicy.id, tagListIndex: 0, errorField: 'required', policyTags: fakePolicyTags});
             await waitForBatchedUpdates();
 
@@ -982,6 +984,7 @@ describe('actions/Policy', () => {
                 callback: (val) => (updatedPolicyTags = val),
             });
 
+            // Then only the 'required' error field should be cleared while other error fields remain
             expect(updatedPolicyTags?.[tagListName]).toBeDefined();
             expect(updatedPolicyTags?.[tagListName].errorFields?.required).toBeUndefined();
             expect(updatedPolicyTags?.[tagListName].errorFields?.name).toEqual({genericError: 'Name error'});
@@ -989,11 +992,13 @@ describe('actions/Policy', () => {
         });
 
         it('should not modify Onyx data when tag list does not exist', async () => {
+            // Given a policy with no tag lists
             const fakePolicy = createRandomPolicy(0);
             const fakePolicyTags = {};
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
 
+            // When attempting to clear an error field from a non-existent tag list
             expect(() => {
                 clearPolicyTagListErrorField({policyID: fakePolicy.id, tagListIndex: 0, errorField: 'required', policyTags: fakePolicyTags});
             }).not.toThrow();
@@ -1004,10 +1009,12 @@ describe('actions/Policy', () => {
                 callback: (val) => (updatedPolicyTags = val),
             });
 
+            // Then the policy tags should remain unchanged because the tag list does not exist
             expect(updatedPolicyTags).toEqual(fakePolicyTags);
         });
 
         it('should not modify Onyx data when tag list has no name', async () => {
+            // Given a policy with a tag list that has an empty name and error fields
             const fakePolicy = createRandomPolicy(0);
             const tagListName = 'Test tag list';
             const fakePolicyTags = createRandomPolicyTags(tagListName, 1);
@@ -1023,6 +1030,7 @@ describe('actions/Policy', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
 
+            // When attempting to clear an error field from a tag list with no name
             expect(() => {
                 clearPolicyTagListErrorField({policyID: fakePolicy.id, tagListIndex: 0, errorField: 'required', policyTags: fakePolicyTags});
             }).not.toThrow();
@@ -1035,12 +1043,14 @@ describe('actions/Policy', () => {
                 callback: (val) => (updatedPolicyTags = val),
             });
 
+            // Then the error fields should remain unchanged because the tag list name is empty
             expect(updatedPolicyTags?.[tagListName].errorFields?.required).toEqual({genericError: 'This error should not be cleared'});
             expect(updatedPolicyTags?.[tagListName].errorFields?.name).toEqual({genericError: 'This error should also remain'});
             expect(updatedPolicyTags?.[tagListName].name).toBe('');
         });
 
         it('should work with data from useOnyx hook', async () => {
+            // Given a policy with a tag list that has error fields and is accessed via useOnyx hook
             const fakePolicy = createRandomPolicy(0);
             const tagListName = 'Test tag list';
             const fakePolicyTags = createRandomPolicyTags(tagListName, 1);
@@ -1061,6 +1071,7 @@ describe('actions/Policy', () => {
                 expect(result.current[0]).toBeDefined();
             });
 
+            // When clearing the 'name' error field using data from the useOnyx hook
             clearPolicyTagListErrorField({policyID: fakePolicy.id, tagListIndex: 0, errorField: 'name', policyTags: result.current[0]});
             await waitForBatchedUpdates();
 
@@ -1070,6 +1081,7 @@ describe('actions/Policy', () => {
                 callback: (val) => (updatedPolicyTags = val),
             });
 
+            // Then only the 'name' error field should be cleared while the 'required' error field remains
             expect(updatedPolicyTags?.[tagListName].errorFields?.name).toBeUndefined();
             expect(updatedPolicyTags?.[tagListName].errorFields?.required).toEqual({genericError: 'Required field error'});
         });
