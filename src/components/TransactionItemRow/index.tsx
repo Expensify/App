@@ -38,7 +38,7 @@ import TagCell from './DataCells/TagCell';
 import TaxCell from './DataCells/TaxCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
-import TransactionItemRowRBRWithOnyx from './TransactionItemRowRBRWithOnyx';
+import TransactionItemRowRBR from './TransactionItemRowRBR';
 
 type ColumnComponents = {
     [key in ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>]: React.ReactElement;
@@ -176,7 +176,7 @@ function TransactionItemRow({
         }
 
         const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem);
-        const hasFieldErrors = hasMissingSmartscanFields(transactionItem) || isCustomUnitOutOfPolicy;
+        const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report) || isCustomUnitOutOfPolicy;
         if (hasFieldErrors) {
             const amountMissing = isAmountMissing(transactionItem);
             const merchantMissing = isMerchantMissing(transactionItem);
@@ -186,7 +186,7 @@ function TransactionItemRow({
                 error = translate('violations.reviewRequired');
             } else if (amountMissing) {
                 error = translate('iou.missingAmount');
-            } else if (merchantMissing) {
+            } else if (merchantMissing && !isSettled(report)) {
                 error = translate('iou.missingMerchant');
             } else if (isCustomUnitOutOfPolicy) {
                 error = translate('violations.customUnitOutOfPolicy');
@@ -484,7 +484,7 @@ function TransactionItemRow({
                             </View>
                         )}
                         {shouldShowErrors && (
-                            <TransactionItemRowRBRWithOnyx
+                            <TransactionItemRowRBR
                                 transaction={transactionItem}
                                 violations={violations}
                                 report={report}
@@ -534,7 +534,7 @@ function TransactionItemRow({
                 )}
             </View>
             {shouldShowErrors && (
-                <TransactionItemRowRBRWithOnyx
+                <TransactionItemRowRBR
                     transaction={transactionItem}
                     violations={violations}
                     report={report}
