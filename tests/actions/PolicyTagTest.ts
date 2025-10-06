@@ -3,10 +3,19 @@ import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useOnyx from '@hooks/useOnyx';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
-import {clearPolicyTagErrors, createPolicyTag, deletePolicyTags, renamePolicyTag, renamePolicyTagList, setPolicyRequiresTag, setWorkspaceTagEnabled} from '@libs/actions/Policy/Tag';
+import {
+    buildOptimisticPolicyRecentlyUsedTags,
+    clearPolicyTagErrors,
+    createPolicyTag,
+    deletePolicyTags,
+    renamePolicyTag,
+    renamePolicyTagList,
+    setPolicyRequiresTag,
+    setWorkspaceTagEnabled,
+} from '@libs/actions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagLists, PolicyTags} from '@src/types/onyx';
+import type {PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyTags from '../utils/collections/policyTags';
 import * as TestHelper from '../utils/TestHelper';
@@ -1010,6 +1019,235 @@ describe('actions/Policy', () => {
             expect(updatedPolicyTags?.[tagListName]?.tags[tagName].enabled).toBe(true);
             expect(updatedPolicyTags?.[tagListName]?.tags[tagName].errors).toBeUndefined();
             expect(updatedPolicyTags?.[tagListName]?.tags[tagName].pendingAction).toBeUndefined();
+        });
+    });
+
+    describe('buildOptimisticPolicyRecentlyUsedTags', () => {
+        it('should return empty object when transactionTags is undefined', () => {
+            const result = buildOptimisticPolicyRecentlyUsedTags({
+                policyTags: {},
+                policyRecentlyUsedTags: {},
+                transactionTags: undefined,
+            });
+            expect(result).toEqual({});
+        });
+
+        it('should return empty object when transactionTags is empty string', () => {
+            const result = buildOptimisticPolicyRecentlyUsedTags({
+                policyTags: {
+                    Tag: {
+                        name: 'Tag',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                            Marketing: {name: 'Marketing', enabled: true},
+                            Sales: {name: 'Sales', enabled: true},
+                        },
+                    },
+                },
+                policyRecentlyUsedTags: {
+                    Tag: ['Marketing', 'Sales'],
+                },
+                transactionTags: '',
+            });
+            expect(result).toEqual({});
+        });
+
+        it('should build optimistic recently used tags', () => {
+            const result = buildOptimisticPolicyRecentlyUsedTags({
+                policyTags: {
+                    Tag: {
+                        name: 'Tag',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                            Marketing: {name: 'Marketing', enabled: true},
+                            Sales: {name: 'Sales', enabled: true},
+                        },
+                    },
+                },
+                policyRecentlyUsedTags: {
+                    Tag: ['Marketing', 'Sales'],
+                },
+                transactionTags: 'Engineering',
+            });
+
+            expect(result).toEqual({
+                Tag: ['Engineering', 'Marketing', 'Sales'],
+            });
+        });
+
+        it('should handle multi-level tags', () => {
+            const result = buildOptimisticPolicyRecentlyUsedTags({
+                policyTags: {
+                    Tag: {
+                        name: 'Tag',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                            Marketing: {name: 'Marketing', enabled: true},
+                        },
+                    },
+                    Team: {
+                        name: 'Team',
+                        orderWeight: 1,
+                        required: false,
+                        tags: {
+                            Frontend: {name: 'Frontend', enabled: true},
+                            Backend: {name: 'Backend', enabled: true},
+                        },
+                    },
+                },
+                policyRecentlyUsedTags: {
+                    Tag: ['Marketing'],
+                    Team: ['Backend', 'DevOps'],
+                },
+                transactionTags: 'Engineering:Frontend',
+            });
+
+            expect(result).toEqual({
+                Tag: ['Engineering', 'Marketing'],
+                Team: ['Frontend', 'Backend', 'DevOps'],
+            });
+        });
+
+        it('should handle missing recently used tags', () => {
+            const result = buildOptimisticPolicyRecentlyUsedTags({
+                policyTags: {
+                    Tag: {
+                        name: 'Tag',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                        },
+                    },
+                },
+                policyRecentlyUsedTags: {},
+                transactionTags: 'Engineering',
+            });
+
+            expect(result).toEqual({
+                Tag: ['Engineering'],
+            });
+        });
+
+        it('should prevent duplicate tags in recently used array', () => {
+            const result = buildOptimisticPolicyRecentlyUsedTags({
+                policyTags: {
+                    Tag: {
+                        name: 'Tag',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                        },
+                    },
+                },
+                policyRecentlyUsedTags: {
+                    Tag: ['Engineering', 'Marketing', 'Sales'],
+                },
+                transactionTags: 'Engineering',
+            });
+
+            expect(result).toEqual({
+                Tag: ['Engineering', 'Marketing', 'Sales'],
+            });
+        });
+
+        it('should handle mismatched recently used tags keys', () => {
+            const result = buildOptimisticPolicyRecentlyUsedTags({
+                policyTags: {
+                    Tag: {
+                        name: 'Tag',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                        },
+                    },
+                    Team: {
+                        name: 'Team',
+                        orderWeight: 1,
+                        required: false,
+                        tags: {
+                            Frontend: {name: 'Frontend', enabled: true},
+                        },
+                    },
+                },
+                policyRecentlyUsedTags: {
+                    OldTag: ['Marketing'],
+                    Team: ['Backend'],
+                    AnotherOldList: ['SomeTag'],
+                },
+                transactionTags: 'Engineering:Frontend',
+            });
+
+            expect(result).toEqual({
+                Tag: ['Engineering'],
+                Team: ['Frontend', 'Backend'],
+            });
+        });
+
+        it('should handle empty policy tags', () => {
+            const result = buildOptimisticPolicyRecentlyUsedTags({
+                policyTags: {},
+                policyRecentlyUsedTags: {},
+                transactionTags: 'Engineering',
+            });
+
+            expect(result).toEqual({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '': ['Engineering'],
+            });
+        });
+
+        it('should work with useOnyx data integration', async () => {
+            const policyID = 'policy123';
+            const transactionTags = 'Engineering';
+
+            const policyTags: PolicyTagLists = {
+                Tag: {
+                    name: 'Tag',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true},
+                        Marketing: {name: 'Marketing', enabled: true},
+                        Sales: {name: 'Sales', enabled: true},
+                    },
+                },
+            };
+
+            const existingRecentlyUsedTags: RecentlyUsedTags = {
+                Tag: ['Marketing', 'Sales'],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, policyTags);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, existingRecentlyUsedTags);
+            await waitForBatchedUpdates();
+
+            function useTestHook() {
+                const [policyTagsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+                const [policyRecentlyUsedTagsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {canBeMissing: true});
+
+                return buildOptimisticPolicyRecentlyUsedTags({
+                    policyTags: policyTagsFromOnyx ?? {},
+                    policyRecentlyUsedTags: policyRecentlyUsedTagsFromOnyx ?? {},
+                    transactionTags,
+                });
+            }
+
+            const {result} = renderHook(() => useTestHook());
+
+            await waitFor(() => {
+                expect(result.current).toEqual({
+                    Tag: ['Engineering', 'Marketing', 'Sales'],
+                });
+            });
         });
     });
 });

@@ -48,13 +48,6 @@ Onyx.connect({
     },
 });
 
-let allRecentlyUsedTags: OnyxCollection<RecentlyUsedTags> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
-    waitForCollectionCallback: true,
-    callback: (val) => (allRecentlyUsedTags = val),
-});
-
 function openPolicyTagsPage(policyID: string) {
     if (!policyID) {
         Log.warn('openPolicyTagsPage invalid params', {policyID});
@@ -68,14 +61,18 @@ function openPolicyTagsPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_TAGS_PAGE, params);
 }
 
-function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, transactionTags?: string): RecentlyUsedTags {
-    if (!policyID || !transactionTags) {
+type BuildOptimisticPolicyRecentlyUsedTagsProps = {
+    policyTags: PolicyTagLists;
+    policyRecentlyUsedTags: RecentlyUsedTags;
+    transactionTags?: string;
+};
+
+function buildOptimisticPolicyRecentlyUsedTags({policyTags, policyRecentlyUsedTags, transactionTags}: BuildOptimisticPolicyRecentlyUsedTagsProps): RecentlyUsedTags {
+    if (!transactionTags) {
         return {};
     }
 
-    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
     const policyTagKeys = PolicyUtils.getSortedTagKeys(policyTags);
-    const policyRecentlyUsedTags = allRecentlyUsedTags?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`] ?? {};
     const newOptimisticPolicyRecentlyUsedTags: RecentlyUsedTags = {};
 
     getTagArrayFromName(transactionTags).forEach((tag, index) => {
