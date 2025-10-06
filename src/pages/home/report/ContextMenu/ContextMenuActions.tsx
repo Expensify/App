@@ -29,6 +29,7 @@ import {
     getCardIssuedMessage,
     getChangedApproverActionMessage,
     getDeletedApprovalRuleMessage,
+    getDeletedBudgetMessage,
     getExportIntegrationMessageHTML,
     getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
