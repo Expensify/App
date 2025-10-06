@@ -551,14 +551,16 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                   },
               ]
             : []),
-        ...[
-            {
-                icon: Expensicons.Suitcase,
-                text: translate('travel.bookTravel'),
-                rightIcon: isTravelEnabled && shouldOpenTravelDotLinkWeb() ? Expensicons.NewWindow : undefined,
-                onSelected: () => interceptAnonymousUser(() => openTravel()),
-            },
-        ],
+        ...(activePolicy?.isTravelEnabled
+            ? [
+                  {
+                      icon: Expensicons.Suitcase,
+                      text: translate('travel.bookTravel'),
+                      rightIcon: isTravelEnabled && shouldOpenTravelDotLinkWeb() ? Expensicons.NewWindow : undefined,
+                      onSelected: () => interceptAnonymousUser(() => openTravel()),
+                  },
+              ]
+            : []),
         ...(!hasSeenTour
             ? [
                   {

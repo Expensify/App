@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Luggage} from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -11,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,8 +39,16 @@ function WorkspaceTravelPage({
 
     const isPolicyProvisioned = policy?.travelSettings?.spotnanaCompanyID ?? policy?.travelSettings?.associatedTravelDomainAccountID;
     const hasAcceptedTerms = policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned);
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const adminDomains = useMemo(() => getAdminsPrivateEmailDomains(policy), [policy]);
+    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    const groupPaidPolicies = activePolicies.filter((activePolicy) => activePolicy.type !== CONST.POLICY.TYPE.PERSONAL && isPaidGroupPolicy(activePolicy));
 
     const mainContent = useMemo(() => {
+        if (adminDomains.length === 0 || groupPaidPolicies.length < 1 || !isPaidGroupPolicy(policy)) {
+            return <GetStartedTravel policyID={policyID} />;
+        }
         if (hasAcceptedTerms) {
             return <BookOrManageYourTrip policyID={policyID} />;
         }
@@ -46,7 +56,7 @@ function WorkspaceTravelPage({
             return <ReviewingRequest />;
         }
         return <GetStartedTravel policyID={policyID} />;
-    }, [isPolicyProvisioned, hasAcceptedTerms, policyID, isBetaEnabled]);
+    }, [isPolicyProvisioned, hasAcceptedTerms, policyID, adminDomains, isBetaEnabled, groupPaidPolicies, policy]);
 
     return (
         <AccessOrNotFoundWrapper
