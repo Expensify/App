@@ -73,7 +73,7 @@ jobs:
           fi
         env:
           GITHUB_TOKEN: ${{ github.token }}
-    
+
   getMobileExpensifyPR:
     runs-on: ubuntu-latest
     needs: [prep]
@@ -369,7 +369,7 @@ jobs:
     if: ${{ inputs.IOS }}
     needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.0.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.0.app/Contents/Developer
     runs-on: macos-15-xlarge
     outputs:
       IOS_PATH: ${{ steps.export-ios-path.outputs.IOS_PATH }}
