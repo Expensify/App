@@ -107,7 +107,6 @@ import {
     getReportSubtitlePrefix,
     getUpgradeWorkspaceMessage,
     hasIOUWaitingOnCurrentUserBankAccount,
-    hasNonReimbursableTransactions,
     isArchivedNonExpenseReport,
     isChatThread,
     isDM,
@@ -608,9 +607,8 @@ function getLastMessageTextForReport({
                       isMoneyRequestAction(reportAction),
               )
             : undefined;
-        // For workspace chats, use the report title instead of "X owes $y" message, except for non-reimbursable transactions
-        const containsNonReimbursable = hasNonReimbursableTransactions(iouReport?.reportID);
-        if (reportUtilsIsPolicyExpenseChat(report) && !isEmptyObject(iouReport) && !containsNonReimbursable) {
+        // For workspace chats, use the report title instead of "X owes $y" message
+        if (reportUtilsIsPolicyExpenseChat(report) && !isEmptyObject(iouReport)) {
             lastMessageTextFromReport = formatReportLastMessageText(getReportName(iouReport));
         } else {
             const reportPreviewMessage = getReportPreviewMessage(
