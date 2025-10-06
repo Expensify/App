@@ -1534,7 +1534,7 @@ const translations = {
         placeholderText: 'Buscar para ver opciones',
     },
     contacts: {
-        contactMethod: 'Método de contacto',
+        contactMethod: 'Métodos de contacto',
         contactMethods: 'Métodos de contacto',
         featureRequiresValidate: 'Esta función requiere que valides tu cuenta.',
         validateAccount: 'Valida tu cuenta',
