@@ -11406,8 +11406,6 @@ function getBypassApproverIfTakenControl(expenseReport: OnyxEntry<Report>): numb
     // Sort actions by created timestamp to get chronological order
     const sortedActions = getSortedReportActions(Object.values(reportActions ?? {}), true);
 
-    let lastTakeControlActorAccountID: number | null = null;
-
     // Look through actions in reverse chronological order (newest first)
     // If we find a SUBMITTED action, there's no valid take control since any take control would be older
     for (const action of sortedActions) {
@@ -11417,12 +11415,11 @@ function getBypassApproverIfTakenControl(expenseReport: OnyxEntry<Report>): numb
         }
 
         if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
-            lastTakeControlActorAccountID = action.actorAccountID ?? null;
-            break; // Found the most recent take control, no need to continue
+            return action.actorAccountID ?? null;
         }
     }
 
-    return lastTakeControlActorAccountID;
+    return null;
 }
 
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {
