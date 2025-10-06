@@ -6694,6 +6694,7 @@ const CONST = {
             WITHDRAWAL_ID: 'withdrawal-id',
             ATTENDEE: 'attendee',
             IS: 'is',
+            REPORT_FIELD: 'report-field',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
