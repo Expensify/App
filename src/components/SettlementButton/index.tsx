@@ -129,9 +129,9 @@ function SettlementButton({
     const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
     const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles);
-    const hasIntentToPay = ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) || !!policy?.achAccount) && !lastPaymentMethod;
-
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
+    const hasIntentToPay = ((formattedPaymentMethods.length === 1 && (isIOUReport(iouReport) || isInvoiceReport)) || !!policy?.achAccount) && !lastPaymentMethod;
+
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
@@ -380,7 +380,7 @@ function SettlementButton({
                 const currentBankInformation = formattedPaymentMethods.at(0) as BankAccount;
                 onPress(
                     CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-                    currentBankInformation.accountType !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                    currentBankInformation.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS,
                     currentBankInformation.methodID,
                     currentBankInformation.accountType,
                     undefined,
@@ -388,18 +388,12 @@ function SettlementButton({
                 return;
             }
 
-            const isBusinessInvoice = isBusinessInvoiceRoom(iouReport);
+            const isBusinessInvoice = bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS || isBusinessInvoiceRoom(iouReport);
             if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 onPress(iouPaymentType, isBusinessInvoice);
                 return;
             }
-            onPress(
-                iouPaymentType,
-                isBusinessInvoice,
-                lastBankAccountID,
-                isBusinessInvoice ? CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT : CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-                policyIDKey,
-            );
+            onPress(iouPaymentType, isBusinessInvoice, lastBankAccountID, CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT, policyIDKey);
         } else {
             onPress(iouPaymentType, false);
         }
@@ -460,7 +454,14 @@ function SettlementButton({
         }
 
         const bankAccountToDisplay = hasIntentToPay ? (formattedPaymentMethods.at(0) as BankAccount) : bankAccount;
-        if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || (hasIntentToPay && isInvoiceReportUtil(iouReport))) {
+
+        if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || (hasIntentToPay && (isExpenseReport || isInvoiceReport))) {
+            if (isInvoiceReport) {
+                const isBusinessBankAccount = bankAccountToDisplay?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS;
+                return translate(isBusinessBankAccount ? 'iou.invoiceBusinessBank' : 'iou.invoicePersonalBank', {
+                    lastFour: bankAccountToDisplay?.accountData?.accountNumber?.slice(-4) ?? '',
+                });
+            }
             if (!personalBankAccountList.length) {
                 return;
             }
@@ -528,7 +529,7 @@ function SettlementButton({
         return false;
     });
 
-    const shouldUseSplitButton = hasPreferredPaymentMethod || !!lastPaymentPolicy || (isExpenseReportUtil(iouReport) && hasIntentToPay);
+    const shouldUseSplitButton = hasPreferredPaymentMethod || !!lastPaymentPolicy || ((isExpenseReport || isInvoiceReport) && hasIntentToPay);
     const shouldLimitWidth = shouldUseShortForm && shouldUseSplitButton && !paymentButtonOptions.length;
 
     return (
