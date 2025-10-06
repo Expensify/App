@@ -111,9 +111,9 @@ describe('CountryUtils', () => {
         });
 
         it('should handle special characters in country names', () => {
-            const data = {street: 'Zmaja od Bosne', city: 'Sarajevo', country: 'Bosnia & Herzegovina'} as unknown as Address;
+            const data = {street: '123 Main St', city: 'Sarajevo', country: 'Bosnia & Herzegovina'} as unknown as Address;
             const result = normalizeCountryCode(data);
-            expect(result).toEqual({street: 'Zmaja od Bosne', city: 'Sarajevo', country: 'BA'});
+            expect(result).toEqual({street: '123 Main St', city: 'Sarajevo', country: 'BA'});
         });
 
         it('should be case sensitive when normalizing country names', () => {
