@@ -9,10 +9,10 @@ type CustomListHeaderProps = {
     leftHeaderText?: string | undefined;
     rightHeaderText?: string | undefined;
     rightHeaderMinimumWidth?: number;
-    shouldShowRightIcon?: boolean;
+    shouldShowRightCaret?: boolean;
 };
 
-function CustomListHeader({canSelectMultiple, leftHeaderText = '', rightHeaderText = '', rightHeaderMinimumWidth = 60, shouldShowRightIcon = false}: CustomListHeaderProps) {
+function CustomListHeader({canSelectMultiple, leftHeaderText = '', rightHeaderText = '', rightHeaderMinimumWidth = 60, shouldShowRightCaret = false}: CustomListHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -27,7 +27,7 @@ function CustomListHeader({canSelectMultiple, leftHeaderText = '', rightHeaderTe
             ]}
         >
             <Text style={styles.textMicroSupporting}>{leftHeaderText}</Text>
-            <View style={[StyleUtils.getMinimumWidth(rightHeaderMinimumWidth), shouldShowRightIcon && styles.mr6]}>
+            <View style={[StyleUtils.getMinimumWidth(rightHeaderMinimumWidth), shouldShowRightCaret && styles.mr6]}>
                 <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{rightHeaderText}</Text>
             </View>
         </View>

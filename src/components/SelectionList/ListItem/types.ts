@@ -111,7 +111,7 @@ type ListItem<K extends string | number = string> = {
     itemStyle?: StyleProp<ViewStyle>;
 
     /** Boolean whether to display the right icon */
-    shouldShowRightIcon?: boolean;
+    shouldShowRightCaret?: boolean;
 
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
@@ -249,8 +249,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     testID?: string;
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
-    /** Whether to show the right icon */
-    shouldShowRightIcon?: boolean;
+    /** Whether to show the right caret icon */
+    shouldShowRightCaret?: boolean;
 };
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 

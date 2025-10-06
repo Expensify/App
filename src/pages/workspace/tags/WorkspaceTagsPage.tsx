@@ -106,7 +106,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     );
     const hasDependentTags = true;
 
-    console.log('hasDependentTags', hasDependentTags, hasIndependentTags);
     const canSelectMultiple = !hasDependentTags && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
@@ -333,7 +332,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     canSelectMultiple={false}
                     leftHeaderText={translate('common.name')}
                     rightHeaderText={translate('common.count')}
-                    shouldShowRightIcon
+                    shouldShowRightCaret
                 />
             );
         }
@@ -343,7 +342,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={translate(isMultiLevelTags ? 'common.required' : 'common.enabled')}
-                shouldShowRightIcon
+                shouldShowRightCaret
             />
         );
     };
@@ -719,7 +718,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             onDismissError={(item) => !hasDependentTags && clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: 0, policyTags})}
                             showScrollIndicator={false}
                             addBottomSafeAreaPadding
-                            shouldShowRightIcon
+                            shouldShowRightCaret
                         />
                     )}
                     {!hasVisibleTags && !isLoading && (

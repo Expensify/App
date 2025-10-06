@@ -457,7 +457,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         listItemTitleContainerStyles={styles.flex3}
                         showScrollIndicator={false}
-                        shouldShowRightIcon
+                        shouldShowRightCaret
                     />
                 )}
                 {!hasVisibleSubRates && !isLoading && (

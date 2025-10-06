@@ -109,8 +109,8 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem) => void;
 
-    /** Whether to show the right icon */
-    shouldShowRightIcon?: boolean;
+    /** Whether to show the right caret */
+    shouldShowRightCaret?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -914,8 +914,8 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom scroll component to use instead of the default ScrollView */
     renderScrollComponent?: (props: ScrollViewProps) => ReactElement<ScrollViewProps, string | JSXElementConstructor<unknown>>;
 
-    /** Whether to show the right icon */
-    shouldShowRightIcon?: boolean;
+    /** Whether to show the right caret icon */
+    shouldShowRightCaret?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

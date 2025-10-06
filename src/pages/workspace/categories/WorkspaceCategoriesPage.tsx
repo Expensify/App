@@ -240,7 +240,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={translate('common.enabled')}
-                shouldShowRightIcon
+                shouldShowRightCaret
             />
         );
     };
@@ -591,7 +591,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         showScrollIndicator={false}
                         addBottomSafeAreaPadding
-                        shouldShowRightIcon
+                        shouldShowRightCaret
                     />
                 )}
                 {!hasVisibleCategories && !isLoading && inputValue.length === 0 && (

@@ -345,7 +345,7 @@ function PolicyDistanceRatesPage({
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('workspace.distanceRates.rate')}
                 rightHeaderText={translate('common.enabled')}
-                shouldShowRightIcon
+                shouldShowRightCaret
             />
         );
     };
@@ -510,7 +510,7 @@ function PolicyDistanceRatesPage({
                         shouldShowListEmptyContent={false}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         showScrollIndicator={false}
-                        shouldShowRightIcon
+                        shouldShowRightCaret
                     />
                 )}
                 <ConfirmModal
