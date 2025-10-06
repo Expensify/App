@@ -200,13 +200,13 @@ function ReceiptImage({
                 style={[styles.w100, styles.h100, thumbnailContainerStyles]}
                 isAuthTokenRequired={isAuthTokenRequired ?? false}
                 shouldDynamicallyResize={false}
+                loadingIconSize={loadingIconSize}
+                loadingIndicatorStyles={loadingIndicatorStyles}
                 fallbackIcon={fallbackIcon}
                 fallbackIconSize={fallbackIconSize}
                 fallbackIconColor={fallbackIconColor}
                 fallbackIconBackground={fallbackIconBackground}
                 objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
-                loadingIconSize={loadingIconSize}
-                loadingIndicatorStyles={loadingIndicatorStyles}
                 onLoad={onLoad}
             />
         );

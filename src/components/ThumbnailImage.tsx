@@ -40,6 +40,12 @@ type ThumbnailImageProps = {
     /** Height of the thumbnail image */
     imageHeight?: number;
 
+    /** The size of the loading indicator */
+    loadingIconSize?: FullScreenLoadingIndicatorIconSize;
+
+    /** The style of the loading indicator */
+    loadingIndicatorStyles?: StyleProp<ViewStyle>;
+
     /** If the image fails to load – show the provided fallback icon */
     fallbackIcon?: IconAsset;
 
@@ -67,12 +73,6 @@ type ThumbnailImageProps = {
     /** Callback fired when the image has been measured */
     onMeasure?: () => void;
 
-    /** The size of the loading indicator */
-    loadingIconSize?: FullScreenLoadingIndicatorIconSize;
-
-    /** The style of the loading indicator */
-    loadingIndicatorStyles?: StyleProp<ViewStyle>;
-
     /** Callback to be called when the image loads */
     onLoad?: (event: {nativeEvent: {width: number; height: number}}) => void;
 };
@@ -90,6 +90,7 @@ function ThumbnailImage({
     imageWidth = 200,
     imageHeight = 200,
     shouldDynamicallyResize = true,
+    loadingIconSize,
     fallbackIcon = Expensicons.Gallery,
     fallbackIconSize = variables.iconSizeSuperLarge,
     fallbackIconColor,
@@ -98,7 +99,6 @@ function ThumbnailImage({
     isDeleted,
     onLoadFailure,
     onMeasure,
-    loadingIconSize,
     loadingIndicatorStyles,
     onLoad,
 }: ThumbnailImageProps) {
