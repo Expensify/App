@@ -940,7 +940,7 @@ function MenuItem({
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                                         <Icon
                                                             src={Expensicons.DotIndicator}
-                                                            fill={brickRoadIndicator === 'error' ? theme.danger : theme.success}
+                                                            fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
                                                         />
                                                     </View>
                                                 )}

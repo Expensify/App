@@ -116,8 +116,15 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
-    const walletBrickRoadIndicator =
-        hasPaymentMethodError(bankAccountList, fundList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection ? 'error' : undefined;
+    const hasBankAccountInSetupState = Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.SETUP);
+
+    let walletBrickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+
+    if (hasPaymentMethodError(bankAccountList, fundList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection) {
+        walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    } else if (hasBankAccountInSetupState) {
+        walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+    }
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
@@ -176,6 +183,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 brickRoadIndicator: walletBrickRoadIndicator,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
                 badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance) : undefined,
+                badgeStyle: hasBankAccountInSetupState ? styles.badgeSuccess : undefined,
             },
             {
                 translationKey: 'common.preferences',
