@@ -1,52 +1,31 @@
-import {getUnixTime} from 'date-fns';
-import {deepEqual} from 'fast-equals';
+import { getUnixTime } from 'date-fns';
+import { deepEqual } from 'fast-equals';
 import lodashClone from 'lodash/clone';
 import lodashHas from 'lodash/has';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type { OnyxCollection, OnyxEntry, OnyxUpdate } from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {ChangeTransactionsReportParams, DismissViolationParams, GetRouteParams, MarkAsCashParams, TransactionThreadInfo} from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import type { ChangeTransactionsReportParams, DismissViolationParams, GetRouteParams, MarkAsCashParams, TransactionThreadInfo } from '@libs/API/parameters';
+import { READ_COMMANDS, WRITE_COMMANDS } from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
-import {buildNextStepNew} from '@libs/NextStepUtils';
+import { buildNextStepNew } from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
-import {rand64} from '@libs/NumberUtils';
-import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isModifiedExpenseAction} from '@libs/ReportActionsUtils';
-import {
-    buildOptimisticCreatedReportAction,
-    buildOptimisticDismissedViolationReportAction,
-    buildOptimisticMovedTransactionAction,
-    buildOptimisticSelfDMReport,
-    buildOptimisticUnreportedTransactionAction,
-    buildTransactionThread,
-    findSelfDMReportID,
-    getReportTransactions,
-    hasViolations as hasViolationsReportUtils,
-} from '@libs/ReportUtils';
-import {getAmount, isOnHold, waypointHasValidAddress} from '@libs/TransactionUtils';
+import { rand64 } from '@libs/NumberUtils';
+import { hasDependentTags, isPaidGroupPolicy } from '@libs/PolicyUtils';
+import { getAllReportActions, getIOUActionForReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isModifiedExpenseAction } from '@libs/ReportActionsUtils';
+import { buildOptimisticCreatedReportAction, buildOptimisticDismissedViolationReportAction, buildOptimisticMovedTransactionAction, buildOptimisticSelfDMReport, buildOptimisticUnreportedTransactionAction, buildTransactionThread, findSelfDMReportID, getReportTransactions, hasViolations as hasViolationsReportUtils } from '@libs/ReportUtils';
+import { getAmount, isOnHold, waypointHasValidAddress } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    PersonalDetails,
-    Policy,
-    PolicyCategories,
-    RecentWaypoint,
-    Report,
-    ReportAction,
-    ReportNextStep,
-    ReviewDuplicates,
-    Transaction,
-    TransactionViolation,
-    TransactionViolations,
-} from '@src/types/onyx';
-import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
-import type {OnyxData} from '@src/types/onyx/Request';
-import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import type { PersonalDetails, Policy, PolicyCategories, RecentWaypoint, Report, ReportAction, ReportNextStep, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations } from '@src/types/onyx';
+import type { OriginalMessageIOU, OriginalMessageModifiedExpense } from '@src/types/onyx/OriginalMessage';
+import type { OnyxData } from '@src/types/onyx/Request';
+import type { WaypointCollection } from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
-import {getPolicyTagsData} from './Policy/Tag';
+import { getPolicyTagsData } from './Policy/Tag';
+
 
 let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({
@@ -1187,16 +1166,16 @@ function changeTransactionsReport(
 
         const hasViolations = hasViolationsReportUtils(updatedReport.reportID, allTransactionViolation);
         const shouldFixViolationsForReport = affectedReportID === reportID ? shouldFixViolations : false;
-        const optimisticNextStep = buildNextStepNew(
+        const optimisticNextStep = buildNextStepNew({
             updatedReport,
             policy,
-            accountID,
-            email,
+            currentUserAccountIDParam: accountID,
+            currentUserEmailParam: email,
             hasViolations,
             isASAPSubmitBetaEnabled,
-            updatedReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            predictedNextStatus: updatedReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
             shouldFixViolationsForReport,
-        );
+        });
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,

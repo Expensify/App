@@ -114,7 +114,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                     session?.email ?? '',
                     allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                     undefined,
-                    allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                    allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                     nextStepsCollection,
                 );
                 removeTransaction(transaction.transactionID);

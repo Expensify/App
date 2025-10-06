@@ -49,7 +49,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             session?.email ?? '',
             allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
             reportNextStep,
-            allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+            allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
             nextStepsCollection,
         );
         turnOffMobileSelectionMode();
