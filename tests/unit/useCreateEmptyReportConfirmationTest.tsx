@@ -36,8 +36,8 @@ jest.mock('@hooks/useLocalize', () => () => ({
 
 jest.mock('@components/ConfirmModal', () => {
     const mockReact: MockReactModule = jest.requireActual('react');
-    return ({prompt, confirmText, cancelText, isVisible, onConfirm, onCancel, title, isConfirmLoading}: MockConfirmModalProps) =>
-        mockReact.createElement('mock-confirm-modal', {prompt, confirmText, cancelText, isVisible, onConfirm, onCancel, title, isConfirmLoading}, null);
+    return ({prompt, confirmText, cancelText, isVisible, onConfirm, onCancel, title}: MockConfirmModalProps) =>
+        mockReact.createElement('mock-confirm-modal', {prompt, confirmText, cancelText, isVisible, onConfirm, onCancel, title}, null);
 });
 
 jest.mock('@components/Text', () => {
@@ -108,7 +108,7 @@ describe('useCreateEmptyReportConfirmation', () => {
         expect(modal.props.isVisible).toBe(true);
     });
 
-    it('invokes onConfirm and resets state after completion', async () => {
+    it('invokes onConfirm and resets state after completion', () => {
         const onConfirm = jest.fn();
         const {result} = renderHook<HookValue, MockConfirmModalProps>(() =>
             useCreateEmptyReportConfirmation({
