@@ -180,6 +180,11 @@ describe('CustomFormula', () => {
             expect(result).toBe('2025-01-08'); // Should use oldest transaction date (2025-01-08)
         });
 
+        test('should compute enddate formula using transactions', () => {
+            const result = compute('{report:enddate}', mockContext);
+            expect(result).toBe('2025-01-14'); // Should use newest transaction date (2025-01-14)
+        });
+
         test('should compute created formula using report actions', () => {
             const result = compute('{report:created}', mockContext);
             expect(result).toBe('2025-01-10'); // Should use oldest report action date (2025-01-10)
@@ -190,6 +195,11 @@ describe('CustomFormula', () => {
             expect(result).toBe('01/08/2025'); // Should use oldest transaction date with yyyy-MM-dd format
         });
 
+        test('should compute enddate with custom format', () => {
+            const result = compute('{report:enddate:MM/dd/yyyy}', mockContext);
+            expect(result).toBe('01/14/2025'); // Should use newest transaction date with MM/dd/yyyy format
+        });
+
         test('should compute created with custom format', () => {
             const result = compute('{report:created:MMMM dd, yyyy}', mockContext);
             expect(result).toBe('January 10, 2025'); // Should use oldest report action date with MMMM dd, yyyy format
@@ -198,6 +208,11 @@ describe('CustomFormula', () => {
         test('should compute startdate with short month format', () => {
             const result = compute('{report:startdate:dd MMM yyyy}', mockContext);
             expect(result).toBe('08 Jan 2025'); // Should use oldest transaction date with dd MMM yyyy format
+        });
+
+        test('should compute enddate with short month format', () => {
+            const result = compute('{report:enddate:dd MMM yyyy}', mockContext);
+            expect(result).toBe('14 Jan 2025'); // Should use newest transaction date with dd MMM yyyy format
         });
 
         test('should compute policy name', () => {
@@ -366,6 +381,18 @@ describe('CustomFormula', () => {
             expect(result).toBe(expected);
         });
 
+        test('should handle missing transactions for enddate', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+            const context: FormulaContext = {
+                report: {reportID: '123'} as Report,
+                policy: null as unknown as Policy,
+            };
+            const today = new Date();
+            const expected = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            const result = compute('{report:enddate}', context);
+            expect(result).toBe(expected);
+        });
+
         test('should call getReportTransactions with correct reportID for startdate', () => {
             const context: FormulaContext = {
                 report: {reportID: 'test-report-123'} as Report,
@@ -416,6 +443,9 @@ describe('CustomFormula', () => {
 
             const result = compute('{report:startdate}', context);
             expect(result).toBe('2025-01-12');
+
+            const endResult = compute('{report:enddate}', context);
+            expect(endResult).toBe('2025-01-15');
         });
 
         test('should skip partial transactions (zero amount)', () => {
@@ -449,6 +479,9 @@ describe('CustomFormula', () => {
 
             const result = compute('{report:startdate}', context);
             expect(result).toBe('2025-01-12');
+
+            const endResult = compute('{report:enddate}', context);
+            expect(endResult).toBe('2025-01-15');
         });
     });
 });
