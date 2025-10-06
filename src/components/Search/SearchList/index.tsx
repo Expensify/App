@@ -178,28 +178,38 @@ function SearchList({
         }
         return data;
     }, [data, groupBy]);
+
+    const emptyReports = useMemo(() => {
+        if (groupBy && isTransactionGroupListItemArray(data)) {
+            return data.filter((item) => item.transactions.length === 0);
+        }
+        return [];
+    }, [data, groupBy]);
+
     const selectedItemsLength = useMemo(() => {
         if (groupBy && isTransactionGroupListItemArray(data)) {
-            return data.reduce((acc, item) => {
-                if (item.transactions.length === 0) {
-                    return acc + (item.isSelected ? 1 : 0);
-                }
-
-                return (
-                    acc +
-                    item.transactions.reduce((transactionAcc, transaction) => {
-                        return transactionAcc + (transaction.isSelected ? 1 : 0);
-                    }, 0)
-                );
+            const selectedEmptyReports = emptyReports.reduce((acc, item) => {
+                return acc + (item.isSelected ? 1 : 0);
             }, 0);
+
+            const selectedTransactions = flattenedItems.reduce((acc, item) => {
+                return acc + (item?.isSelected ? 1 : 0);
+            }, 0);
+
+            return selectedEmptyReports + selectedTransactions;
         }
 
         return flattenedItems.reduce((acc, item) => {
             return acc + (item?.isSelected ? 1 : 0);
         }, 0);
-    }, [data, flattenedItems, groupBy]);
+    }, [data, flattenedItems, groupBy, emptyReports]);
 
     const totalItems = useMemo(() => {
+        if (groupBy && isTransactionGroupListItemArray(data)) {
+            const nonPendingTransactions = flattenedItems.filter((transaction) => !isTransactionPendingDelete(transaction as TransactionListItemType));
+            return emptyReports.length + nonPendingTransactions.length;
+        }
+
         return data.reduce((acc, item) => {
             if ('transactions' in item && item.transactions?.length) {
                 const transactions = item.transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
@@ -207,7 +217,7 @@ function SearchList({
             }
             return acc + 1;
         }, 0);
-    }, [data]);
+    }, [data, groupBy, flattenedItems, emptyReports]);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
