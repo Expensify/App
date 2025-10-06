@@ -1,3 +1,4 @@
+import {emailSelector} from '@selectors/Session';
 import {useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
@@ -59,6 +60,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
@@ -95,6 +97,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.TRIP]: [
@@ -130,6 +133,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
@@ -139,9 +143,10 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.TASK]: [
@@ -198,7 +203,7 @@ function useAdvancedSearchFilters() {
         .map(getTagNamesFromTagsLists)
         .flat();
 
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.email});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: emailSelector});
 
     const {sections: workspaces} = useWorkspaceList({
         policies,

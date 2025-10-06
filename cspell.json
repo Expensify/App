@@ -324,6 +324,8 @@
         "keyvaluepairs",
         "KHTML",
         "killall",
+        "kilometres",
+        "kilometre",
         "Kowalski",
         "Krasoń",
         "labelledby",
@@ -469,6 +471,7 @@
         "passplus",
         "passwordless",
         "Passwordless",
+        "pathspec",
         "payrollcode",
         "pbxproj",
         "pdfreport",
@@ -612,6 +615,8 @@
         "sublicensees",
         "sublocality",
         "subpremise",
+        "subprocessors",
+        "Subprocessors",
         "subrates",
         "substep",
         "substeps",
@@ -645,6 +650,7 @@
         "tnode",
         "tobe",
         "togglefullscreen",
+        "tosorted",
         "TOTP",
         "touchables",
         "Touchless",
@@ -667,6 +673,7 @@
         "unapproves",
         "unassigning",
         "Unassigning",
+        "unassignment",
         "unassigns",
         "uncategorized",
         "Undelete",
@@ -748,7 +755,10 @@
         "zxldvw",
         "inputmethod",
         "copyable",
-        "مثال"
+        "مثال",
+        "moveElemsAttrsToGroup",
+        "removeHiddenElems",
+        "moveGroupAttrsToElems"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
@@ -782,6 +792,7 @@
         "ios/GoogleService-Info.plist",
         "ios/GoogleService-Info-DEV.plist",
         "ios/AirshipConfig.plist",
+        "src/libs/Avatars/*",
         "Mobile-Expensify",
         "modules/ExpensifyNitroUtils/nitrogen/**",
         "modules/ExpensifyNitroUtils/android/build.gradle",
@@ -796,7 +807,8 @@
         "tests/unit/ValidationUtilsTest.ts",
         "src/CONST/index.ts",
         "src/libs/SearchParser/*",
-        "modules/group-ib-fp"
+        "modules/group-ib-fp",
+        "web/snippets/gib.js"
     ],
     "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true
