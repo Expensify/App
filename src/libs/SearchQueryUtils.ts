@@ -918,16 +918,7 @@ function jacksFormMethod(
             filterData.concat(filterList.filter((filter) => uniqueCategories.has(filter.value as string)).concat(hasEmptyCategoriesInFilter ? [emptyCategoryValue] : []));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
-            filterData.concat(
-                filterList.map((filter) => {
-                    const value = filter.value as string;
-                    if (value.includes(' ')) {
-                        return {value: `"${value}"`, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO};
-                    }
-
-                    return {value, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO};
-                }),
-            );
+            filterData.concat(filterList.filter((filter) => filter.value));
         }
 
         if (DATE_FILTER_KEYS.includes(filterKey as SearchDateFilterKeys)) {
@@ -937,24 +928,45 @@ function jacksFormMethod(
 
             const beforeFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && isValidDate(filter.value.toString()));
             const afterFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && isValidDate(filter.value.toString()));
+
             // The `On` filter could be either a date or a date preset (e.g. Last month)
-            const onFilter = filterList.find(
-                (filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString())),
-            );
+            const onFilter = filterList.find((filter) => {
+                return filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString()));
+            });
 
-            filtersForm[beforeKey] = [];
-            filtersForm[afterKey] = [];
-            filtersForm[onKey] = [];
+            if (!filtersForm[onKey]) {
+                filtersForm[onKey] = [];
+            }
 
-            filtersForm[beforeKey] = beforeFilter?.value.toString() ?? filtersForm[beforeKey];
-            filtersForm[afterKey] = afterFilter?.value.toString() ?? filtersForm[afterKey];
-            filtersForm[onKey] = onFilter?.value.toString() ?? filtersForm[onKey];
+            if (!filtersForm[beforeKey]) {
+                filtersForm[beforeKey] = [];
+            }
+
+            if (!filtersForm[afterKey]) {
+                filtersForm[afterKey] = [];
+            }
+
+            filtersForm[onKey].concat(onFilter ? [onFilter] : []);
+            filtersForm[afterKey].concat(afterFilter ? [afterFilter] : []);
+            filtersForm[beforeKey].concat(beforeFilter ? [beforeFilter] : []);
         }
 
         if (AMOUNT_FILTER_KEYS.includes(filterKey as SearchAmountFilterKeys)) {
             const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`;
             const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
             const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
+
+            if (!filtersForm[equalToKey]) {
+                filtersForm[equalToKey] = [];
+            }
+
+            if (!filtersForm[lessThanKey]) {
+                filtersForm[lessThanKey] = [];
+            }
+
+            if (!filtersForm[greaterThanKey]) {
+                filtersForm[greaterThanKey] = [];
+            }
 
             // backend amount is an integer and is 2 digits longer than frontend amount
             filtersForm[equalToKey] =
