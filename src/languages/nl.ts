@@ -12,8 +12,8 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import CONST from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
@@ -1040,6 +1040,8 @@ const translations = {
     receipt: {
         upload: 'Bonnetje uploaden',
         uploadMultiple: 'Bonnetjes uploaden',
+        desktopSubtitleSingle: `of sleep het hierheen`,
+        desktopSubtitleMultiple: `of sleep ze hierheen`,
         dragReceiptBeforeEmail: 'Sleep een bon naar deze pagina, stuur een bon door naar',
         dragReceiptsBeforeEmail: 'Sleep bonnen naar deze pagina, stuur bonnen door naar',
         dragReceiptAfterEmail: 'of kies hieronder een bestand om te uploaden.',
@@ -1064,6 +1066,12 @@ const translations = {
         shutter: 'sluiter',
         gallery: 'galerij',
         deleteReceipt: 'Verwijder bonnetje',
+        alternativeMethodsTitle: 'Andere manieren om bonnetjes toe te voegen:',
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">Download de app</a> om met je telefoon te scannen</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Stuur bonnetjes door naar <a href="mailto:${email}">${email}</a></label-text>`,
+        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: {phoneNumber: string; contactMethodsUrl: string}) =>
+            `<label-text><a href="${contactMethodsUrl}">Voeg je nummer toe</a> om bonnetjes te sms’en naar ${phoneNumber}</label-text>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Sms bonnetjes naar ${phoneNumber} (alleen VS-nummers)</label-text>`,
         deleteConfirmation: 'Weet je zeker dat je dit bonnetje wilt verwijderen?',
         addReceipt: 'Bon toevoegen',
         scanFailed: 'De bon kon niet worden gescand omdat de handelaar, datum of het bedrag ontbreekt.',

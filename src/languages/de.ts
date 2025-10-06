@@ -1046,6 +1046,8 @@ const translations = {
     receipt: {
         upload: 'Beleg hochladen',
         uploadMultiple: 'Belege hochladen',
+        desktopSubtitleSingle: `oder hierher ziehen und ablegen`,
+        desktopSubtitleMultiple: `oder hierher ziehen und ablegen`,
         dragReceiptBeforeEmail: 'Ziehen Sie eine Quittung auf diese Seite oder leiten Sie eine Quittung weiter an',
         dragReceiptsBeforeEmail: 'Ziehen Sie Quittungen auf diese Seite oder leiten Sie Quittungen weiter an',
         dragReceiptAfterEmail: 'oder wählen Sie unten eine Datei zum Hochladen aus.',
@@ -1070,6 +1072,12 @@ const translations = {
         shutter: 'Verschluss',
         gallery: 'Galerie',
         deleteReceipt: 'Beleg löschen',
+        alternativeMethodsTitle: 'Andere Möglichkeiten, Belege hinzuzufügen:',
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">App herunterladen</a>, um mit Ihrem Telefon zu scannen</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Leiten Sie Belege an <a href="mailto:${email}">${email}</a> weiter</label-text>`,
+        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: {phoneNumber: string; contactMethodsUrl: string}) =>
+            `<label-text><a href="${contactMethodsUrl}">Fügen Sie Ihre Nummer hinzu</a>, um Belege an ${phoneNumber} zu senden</label-text>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Senden Sie Belege per SMS an ${phoneNumber} (nur US-Nummern)</label-text>`,
         deleteConfirmation: 'Möchten Sie diesen Beleg wirklich löschen?',
         addReceipt: 'Beleg hinzufügen',
         scanFailed: 'Der Beleg konnte nicht gescannt werden, da Händler, Datum oder Betrag fehlen.',

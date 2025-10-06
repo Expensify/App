@@ -942,10 +942,6 @@ type MergeAccountIntoParams = {
     login: string;
 };
 
-type ReceiptAlternativeMethodsPhoneNumberParams = {
-    phoneNumber: string;
-};
-
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1257,5 +1253,4 @@ export type {
     ErrorODIntegrationParams,
     DisconnectYourBankAccountParams,
     MergeAccountIntoParams,
-    ReceiptAlternativeMethodsPhoneNumberParams,
 };

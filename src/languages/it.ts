@@ -1042,6 +1042,8 @@ const translations = {
     receipt: {
         upload: 'Carica ricevuta',
         uploadMultiple: 'Carica ricevute',
+        desktopSubtitleSingle: `oppure trascinala qui`,
+        desktopSubtitleMultiple: `oppure trascinale qui`,
         dragReceiptBeforeEmail: 'Trascina una ricevuta su questa pagina, inoltra una ricevuta a',
         dragReceiptsBeforeEmail: 'Trascina ricevute su questa pagina, inoltra ricevute a',
         dragReceiptAfterEmail: 'oppure scegli un file da caricare qui sotto.',
@@ -1066,6 +1068,12 @@ const translations = {
         shutter: 'otturatore',
         gallery: 'galleria',
         deleteReceipt: 'Elimina ricevuta',
+        alternativeMethodsTitle: 'Altri modi per aggiungere ricevute:',
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">Scarica l’app</a> per scansionare dal telefono</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Inoltra le ricevute a <a href="mailto:${email}">${email}</a></label-text>`,
+        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: {phoneNumber: string; contactMethodsUrl: string}) =>
+            `<label-text><a href="${contactMethodsUrl}">Aggiungi il tuo numero</a> per inviare ricevute via SMS a ${phoneNumber}</label-text>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Invia ricevute via SMS a ${phoneNumber} (solo numeri USA)</label-text>`,
         deleteConfirmation: 'Sei sicuro di voler eliminare questa ricevuta?',
         addReceipt: 'Aggiungi ricevuta',
         scanFailed: 'La ricevuta non può essere scansionata perché mancano il commerciante, la data o l’importo.',

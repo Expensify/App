@@ -1032,6 +1032,8 @@ const translations = {
     receipt: {
         upload: '上传收据',
         uploadMultiple: '上传收据',
+        desktopSubtitleSingle: `或将其拖放到此处`,
+        desktopSubtitleMultiple: `或将它们拖放到此处`,
         dragReceiptBeforeEmail: '将收据拖到此页面上，转发收据到',
         dragReceiptsBeforeEmail: '将收据拖到此页面上，转发收据到',
         dragReceiptAfterEmail: '或选择下面的文件上传。',
@@ -1056,6 +1058,12 @@ const translations = {
         shutter: '快门',
         gallery: '画廊',
         deleteReceipt: '删除收据',
+        alternativeMethodsTitle: '添加收据的其他方式：',
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">下载应用</a>以通过手机扫描</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>将收据转发到 <a href="mailto:${email}">${email}</a></label-text>`,
+        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: {phoneNumber: string; contactMethodsUrl: string}) =>
+            `<label-text><a href="${contactMethodsUrl}">添加您的号码</a>以将收据短信发送至 ${phoneNumber}</label-text>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>将收据短信发送至 ${phoneNumber}（仅限美国号码）</label-text>`,
         deleteConfirmation: '您确定要删除此收据吗？',
         addReceipt: '添加收据',
         scanFailed: '无法扫描收据，因为缺少商家、日期或金额。',

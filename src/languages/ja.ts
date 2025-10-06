@@ -1042,6 +1042,8 @@ const translations = {
     receipt: {
         upload: '領収書をアップロード',
         uploadMultiple: '領収書をアップロード',
+        desktopSubtitleSingle: `またはここにドラッグ＆ドロップ`,
+        desktopSubtitleMultiple: `またはここにドラッグ＆ドロップ`,
         dragReceiptBeforeEmail: '領収書をこのページにドラッグするか、領収書を転送する',
         dragReceiptsBeforeEmail: '領収書をこのページにドラッグするか、領収書を転送する',
         dragReceiptAfterEmail: 'または、以下にアップロードするファイルを選択してください。',
@@ -1066,6 +1068,12 @@ const translations = {
         shutter: 'シャッター',
         gallery: 'ギャラリー',
         deleteReceipt: '領収書を削除',
+        alternativeMethodsTitle: '領収書を追加する別の方法:',
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">アプリをダウンロード</a>して携帯からスキャン</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>領収書を <a href="mailto:${email}">${email}</a> に転送</label-text>`,
+        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: {phoneNumber: string; contactMethodsUrl: string}) =>
+            `<label-text><a href="${contactMethodsUrl}">電話番号を追加</a>して ${phoneNumber} にテキスト送信</label-text>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>領収書を ${phoneNumber} にテキスト送信（米国の番号のみ）</label-text>`,
         deleteConfirmation: 'この領収書を削除してもよろしいですか？',
         addReceipt: '領収書を追加',
         scanFailed: '販売者、日付、または金額が不足しているため、レシートをスキャンできませんでした。',

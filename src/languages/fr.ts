@@ -1044,6 +1044,8 @@ const translations = {
     receipt: {
         upload: 'Télécharger le reçu',
         uploadMultiple: 'Télécharger des reçus',
+        desktopSubtitleSingle: `ou faites-le glisser ici`,
+        desktopSubtitleMultiple: `ou faites-les glisser ici`,
         dragReceiptBeforeEmail: 'Faites glisser un reçu sur cette page, transférez un reçu à',
         dragReceiptsBeforeEmail: 'Faites glisser des reçus sur cette page, transférez des reçus à',
         dragReceiptAfterEmail: 'ou choisissez un fichier à télécharger ci-dessous.',
@@ -1068,6 +1070,12 @@ const translations = {
         shutter: 'obturateur',
         gallery: 'galerie',
         deleteReceipt: 'Supprimer le reçu',
+        alternativeMethodsTitle: 'Autres façons d’ajouter des reçus :',
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">Télécharger l’application</a> pour scanner depuis votre téléphone</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Transférez les reçus à <a href="mailto:${email}">${email}</a></label-text>`,
+        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: {phoneNumber: string; contactMethodsUrl: string}) =>
+            `<label-text><a href="${contactMethodsUrl}">Ajoutez votre numéro</a> pour envoyer des reçus par SMS au ${phoneNumber}</label-text>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Envoyez des reçus par SMS au ${phoneNumber} (numéros US uniquement)</label-text>`,
         deleteConfirmation: 'Êtes-vous sûr de vouloir supprimer ce reçu ?',
         addReceipt: 'Ajouter un reçu',
         scanFailed: 'Le reçu n’a pas pu être scanné, car il manque le commerçant, la date ou le montant.',

@@ -1041,6 +1041,8 @@ const translations = {
     receipt: {
         upload: 'Fazer upload de recibo',
         uploadMultiple: 'Fazer upload de recibos',
+        desktopSubtitleSingle: `ou arraste e solte aqui`,
+        desktopSubtitleMultiple: `ou arraste e solte aqui`,
         dragReceiptBeforeEmail: 'Arraste um recibo para esta página, encaminhe um recibo para',
         dragReceiptsBeforeEmail: 'Arraste recibos para esta página, encaminhe recibos para',
         dragReceiptAfterEmail: 'ou escolha um arquivo para enviar abaixo.',
@@ -1065,6 +1067,12 @@ const translations = {
         shutter: 'obturador',
         gallery: 'galeria',
         deleteReceipt: 'Excluir recibo',
+        alternativeMethodsTitle: 'Outras formas de adicionar recibos:',
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">Baixe o app</a> para escanear pelo celular</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Encaminhe recibos para <a href="mailto:${email}">${email}</a></label-text>`,
+        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: {phoneNumber: string; contactMethodsUrl: string}) =>
+            `<label-text><a href="${contactMethodsUrl}">Adicione seu número</a> para enviar recibos por SMS para ${phoneNumber}</label-text>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Envie recibos por SMS para ${phoneNumber} (apenas números dos EUA)</label-text>`,
         deleteConfirmation: 'Tem certeza de que deseja excluir este recibo?',
         addReceipt: 'Adicionar recibo',
         scanFailed: 'O recibo não pôde ser escaneado, pois está faltando o comerciante, a data ou o valor.',

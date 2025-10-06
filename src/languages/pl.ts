@@ -1039,6 +1039,8 @@ const translations = {
     receipt: {
         upload: 'Prześlij paragon',
         uploadMultiple: 'Prześlij paragony',
+        desktopSubtitleSingle: `lub przeciągnij i upuść tutaj`,
+        desktopSubtitleMultiple: `lub przeciągnij i upuść je tutaj`,
         dragReceiptBeforeEmail: 'Przeciągnij paragon na tę stronę, prześlij paragon do',
         dragReceiptsBeforeEmail: 'Przeciągnij paragony na tę stronę, prześlij paragony do',
         dragReceiptAfterEmail: 'lub wybierz plik do przesłania poniżej.',
@@ -1063,6 +1065,12 @@ const translations = {
         shutter: 'migawka',
         gallery: 'galeria',
         deleteReceipt: 'Usuń paragon',
+        alternativeMethodsTitle: 'Inne sposoby dodawania paragonów:',
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">Pobierz aplikację</a>, aby skanować z telefonu</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Przekazuj paragony na <a href="mailto:${email}">${email}</a></label-text>`,
+        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: {phoneNumber: string; contactMethodsUrl: string}) =>
+            `<label-text><a href="${contactMethodsUrl}">Dodaj swój numer</a>, aby wysyłać paragony SMS-em na ${phoneNumber}</label-text>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Wysyłaj paragony SMS-em na ${phoneNumber} (tylko numery w USA)</label-text>`,
         deleteConfirmation: 'Czy na pewno chcesz usunąć ten paragon?',
         addReceipt: 'Dodaj paragon',
         scanFailed: 'Paragon nie może być zeskanowany, ponieważ brakuje sprzedawcy, daty lub kwoty.',
