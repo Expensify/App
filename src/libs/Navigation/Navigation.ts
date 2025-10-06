@@ -632,6 +632,24 @@ function removeScreenByKey(key: string) {
     });
 }
 
+function removeReportScreen(reportIDSet: Set<string>) {
+    isNavigationReady().then(() => {
+        navigationRef.current?.dispatch((state) => {
+            const routes = state?.routes.filter((route) => {
+                if (route.name === SCREENS.REPORT && route.params && 'reportID' in route.params) {
+                    return !reportIDSet.has(route.params?.reportID as string);
+                }
+                return true;
+            });
+            return CommonActions.reset({
+                ...state,
+                routes,
+                index: routes.length < state.routes.length ? state.index - 1 : state.index,
+            });
+        });
+    });
+}
+
 function isOnboardingFlow() {
     const state = navigationRef.getRootState();
     const currentFocusedRoute = findFocusedRoute(state);
@@ -685,6 +703,7 @@ export default {
     pop,
     removeScreenFromNavigationState,
     removeScreenByKey,
+    removeReportScreen,
     getReportRouteByID,
     replaceWithSplitNavigator,
     isTopmostRouteModalScreen,
