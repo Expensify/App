@@ -792,6 +792,7 @@
         "ios/GoogleService-Info.plist",
         "ios/GoogleService-Info-DEV.plist",
         "ios/AirshipConfig.plist",
+        "src/libs/Avatars/*",
         "Mobile-Expensify",
         "modules/ExpensifyNitroUtils/nitrogen/**",
         "modules/ExpensifyNitroUtils/android/build.gradle",
