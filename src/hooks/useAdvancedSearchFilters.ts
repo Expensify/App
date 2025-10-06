@@ -61,6 +61,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD,
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
@@ -234,6 +235,7 @@ function useAdvancedSearchFilters() {
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length !== 0);
     const shouldDisplayGroupByFilter = !!groupBy && groupBy !== CONST.SEARCH.GROUP_BY.REPORTS;
     const shouldDisplayGroupCurrencyFilter = shouldDisplayGroupByFilter;
+    const shouldDisplayReportFieldFilter = Object.values(policies).some((policy): policy is NonNullable<Policy> => Object.keys(policy?.fieldList ?? {}).length > 0);
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
@@ -269,6 +271,9 @@ function useAdvancedSearchFilters() {
                             return;
                         }
                         if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE && !shouldDisplayAttendeeFilter) {
+                            return;
+                        }
+                        if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD && !shouldDisplayReportFieldFilter) {
                             return;
                         }
                         return key;

@@ -6640,6 +6640,7 @@ const CONST = {
             WITHDRAWAL_ID: 'withdrawalID',
             ATTENDEE: 'attendee',
             IS: 'is',
+            REPORT_FIELD: 'reportField',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
