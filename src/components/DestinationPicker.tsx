@@ -1,4 +1,5 @@
-import React, {ForwardedRef, useMemo} from 'react';
+import React, {useMemo} from 'react';
+import type {ForwardedRef} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';

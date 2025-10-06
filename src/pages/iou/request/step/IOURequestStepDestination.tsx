@@ -1,4 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';

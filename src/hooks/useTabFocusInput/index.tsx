@@ -1,23 +1,19 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback} from 'react';
 import {InteractionManager} from 'react-native';
-
-type FocusFunction = () => void;
-
-type UseTabFocusInputParams = {
-    enabled?: boolean;
-    shouldDelay?: boolean;
-    focusDelay?: number;
-};
+import type {UseTabFocusFunction, UseTabFocusInputParams} from './types';
 
 /**
  * Custom hook to focus an input when the tab becomes active
  * Default implementation - no delay (shouldDelay is ignored)
  */
-export default function useTabFocusInput(focusFunction: FocusFunction, {enabled = true, shouldDelay = false, focusDelay = 1000}: UseTabFocusInputParams = {}) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function useTabFocusInput(focusFunction: UseTabFocusFunction, {enabled = true, ...options}: UseTabFocusInputParams = {}) {
     useFocusEffect(
         useCallback(() => {
-            if (!enabled || !focusFunction) return;
+            if (!enabled || !focusFunction) {
+                return;
+            }
 
             InteractionManager.runAfterInteractions(() => {
                 focusFunction();
