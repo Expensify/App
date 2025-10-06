@@ -112,10 +112,7 @@ function KYCWall({
         setPositionAddPaymentMenu(position);
     }, [getAnchorPosition]);
 
-    const canLinkExistingBusinessBankAccount = useCallback(
-        (policy?: Policy) => policy !== undefined && policies !== undefined && getEligibleExistingBusinessBankAccounts(bankAccountList, currency).length > 0,
-        [bankAccountList, currency, policies],
-    );
+    const canLinkExistingBusinessBankAccount = useCallback(() => getEligibleExistingBusinessBankAccounts(bankAccountList, currency).length > 0, [bankAccountList, currency]);
 
     const selectPaymentMethod = useCallback(
         (paymentMethod?: PaymentMethod, policy?: Policy) => {
@@ -170,7 +167,7 @@ function KYCWall({
                     return;
                 }
 
-                if (policy !== undefined && canLinkExistingBusinessBankAccount(policy)) {
+                if (policy !== undefined && canLinkExistingBusinessBankAccount()) {
                     Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policy?.id));
                     return;
                 }
