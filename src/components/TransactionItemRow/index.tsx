@@ -38,7 +38,7 @@ import TagCell from './DataCells/TagCell';
 import TaxCell from './DataCells/TaxCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
-import TransactionItemRowRBR from './TransactionItemRowRBR';
+import TransactionItemRowRBRWithOnyx from './TransactionItemRowRBRWithOnyx';
 
 type ColumnComponents = {
     [key in ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>]: React.ReactElement;
@@ -484,7 +484,7 @@ function TransactionItemRow({
                             </View>
                         )}
                         {shouldShowErrors && (
-                            <TransactionItemRowRBR
+                            <TransactionItemRowRBRWithOnyx
                                 transaction={transactionItem}
                                 violations={violations}
                                 report={report}
@@ -534,7 +534,7 @@ function TransactionItemRow({
                 )}
             </View>
             {shouldShowErrors && (
-                <TransactionItemRowRBR
+                <TransactionItemRowRBRWithOnyx
                     transaction={transactionItem}
                     violations={violations}
                     report={report}
