@@ -10,6 +10,7 @@ import DateUtils from '@libs/DateUtils';
 import type {OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
 import {
     canCreateOptimisticPersonalDetailOption,
+    createOption,
     createOptionList,
     filterAndOrderOptions,
     filterReports,
@@ -31,10 +32,11 @@ import {
 } from '@libs/OptionsListUtils';
 import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -73,10 +75,6 @@ const renderLocaleContextProvider = () => {
 };
 
 describe('OptionsListUtils', () => {
-    beforeAll(() => {
-        IntlStore.load(CONST.LOCALES.EN);
-        return waitForBatchedUpdates();
-    });
     const policyID = 'ABC123';
 
     const POLICY: Policy = {
@@ -576,8 +574,17 @@ describe('OptionsListUtils', () => {
         private_isArchived: DateUtils.getDBTime(),
     };
 
+    let OPTIONS: OptionList;
+    let OPTIONS_WITH_CONCIERGE: OptionList;
+    let OPTIONS_WITH_CHRONOS: OptionList;
+    let OPTIONS_WITH_RECEIPTS: OptionList;
+    let OPTIONS_WITH_WORKSPACE_ROOM: OptionList;
+    let OPTIONS_WITH_MANAGER_MCTEST: OptionList;
+
     // Set the currently logged in user, report data, and personal details
-    beforeAll(() => {
+    beforeAll(async () => {
+        IntlStore.load(CONST.LOCALES.EN);
+        initOnyxDerivedValues();
         Onyx.init({
             keys: ONYXKEYS,
             initialKeyStates: {
@@ -592,19 +599,14 @@ describe('OptionsListUtils', () => {
                 [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: {},
             },
         });
+
         Onyx.registerLogger(() => {});
-        return waitForBatchedUpdates().then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS));
-    });
 
-    let OPTIONS: OptionList;
-    let OPTIONS_WITH_CONCIERGE: OptionList;
-    let OPTIONS_WITH_CHRONOS: OptionList;
-    let OPTIONS_WITH_RECEIPTS: OptionList;
-    let OPTIONS_WITH_WORKSPACE_ROOM: OptionList;
-    let OPTIONS_WITH_MANAGER_MCTEST: OptionList;
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}10`, REPORTS['10'] ?? {});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
+        await waitForBatchedUpdates();
 
-    beforeEach(() => {
-        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
         OPTIONS = createOptionList(PERSONAL_DETAILS, REPORTS);
         OPTIONS_WITH_CONCIERGE = createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, REPORTS_WITH_CONCIERGE);
         OPTIONS_WITH_CHRONOS = createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, REPORTS_WITH_CHRONOS);
@@ -2088,6 +2090,125 @@ describe('OptionsListUtils', () => {
         it('should return empty string for empty input', () => {
             const result = getSearchValueForPhoneOrEmail('', 1);
             expect(result).toBe('');
+        });
+    });
+
+    describe('createOption', () => {
+        it('should return alternative text correctly when the last action is report preview action', async () => {
+            const report = {
+                chatType: '',
+                currency: 'USD',
+                description: '',
+                errorFields: {},
+                hasOutstandingChildRequest: false,
+                hasOutstandingChildTask: false,
+                iouReportID: '456',
+                lastMessageHtml: '',
+                lastMessageText: '',
+                participants: {
+                    '1': {
+                        notificationPreference: 'always',
+                    },
+                    '2': {
+                        notificationPreference: 'always',
+                    },
+                },
+                reportID: '123',
+                type: 'chat',
+                lastActorAccountID: 1,
+            } as unknown as Report;
+
+            const reportPreviewAction = {
+                actionName: 'REPORTPREVIEW',
+                actorAccountID: 1,
+                childManagerAccountID: 2,
+                childOwnerAccountID: 1,
+                childReportID: '456',
+                childReportName: 'IOU',
+                created: '2025-10-02 06:50:36.302',
+                reportActionID: '12345678',
+                shouldShow: true,
+                message: [
+                    {
+                        html: 'Iron Man owes ₫34',
+                        text: 'Iron Man owes ₫34',
+                        type: 'COMMENT',
+                        whisperedTo: [],
+                    },
+                ],
+            } as unknown as ReportAction;
+
+            const iouReport = {
+                chatReportID: '123',
+                currency: 'VND',
+                managerID: 2,
+                ownerAccountID: 1,
+                parentReportActionID: '12345678',
+                parentReportID: '123',
+                participants: {
+                    '19960856': {
+                        notificationPreference: '',
+                    },
+                    '20669492': {
+                        notificationPreference: '',
+                    },
+                },
+                reportID: '456',
+                reportName: 'IOU',
+                total: 3400,
+            } as unknown as Report;
+
+            const iouAction = {
+                actorAccountID: 1,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: '₫34 expense',
+                        text: '₫34 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                        reactions: [],
+                    },
+                ],
+                originalMessage: {
+                    IOUReportID: '456',
+                    IOUTransactionID: '123456',
+                    amount: 3400,
+                    comment: '',
+                    currency: 'VND',
+                    participantAccountIDs: [1, 2],
+                },
+                actionName: 'IOU',
+                reportActionID: '789',
+            } as unknown as ReportAction;
+
+            const transaction = {
+                transactionID: '123456',
+                amount: 3400,
+                currency: 'VND',
+                reportID: '3993091505909230',
+                comment: {
+                    comment: '',
+                },
+                merchant: '(none)',
+                created: '2025-10-02',
+                category: '',
+                taxAmount: 0,
+                reimbursable: true,
+            } as unknown as Transaction;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[reportPreviewAction.reportActionID]: reportPreviewAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {[iouAction.reportActionID]: iouAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            const result = createOption([1, 2], PERSONAL_DETAILS, report, {showChatPreviewLine: true});
+
+            expect(result.alternateText).toBe('Iron Man owes ₫34');
         });
     });
 });

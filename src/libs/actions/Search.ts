@@ -3,19 +3,21 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
-import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
+import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import * as API from '@libs/API';
+import {waitForWrites} from '@libs/API';
 import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import * as Localize from '@libs/Localize';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getPersonalPolicy, getSubmitToAccountID, getValidConnectedIntegration} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
-import {buildOptimisticExportIntegrationAction, hasHeldExpenses, isExpenseReport, isInvoiceReport, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
+import {buildOptimisticExportIntegrationAction, getReportTransactions, hasHeldExpenses, isExpenseReport, isInvoiceReport, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -23,11 +25,20 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {LastPaymentMethod, LastPaymentMethodType, Policy, ReportActions, Transaction} from '@src/types/onyx';
+import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, ReportActions, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
+import {saveLastSearchParams} from './ReportNavigation';
+
+type OnyxSearchResponse = {
+    data: [];
+    search: {
+        offset: number;
+        hasMoreResults: boolean;
+    };
+};
 
 function handleActionButtonPress(
     hash: number,
@@ -160,7 +171,12 @@ function getPayActionCallback(
     goToItem();
 }
 
-function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]; failureData: OnyxUpdate[]} {
+function getOnyxLoadingData(
+    hash: number,
+    queryJSON?: SearchQueryJSON,
+    offset?: number,
+    isOffline?: boolean,
+): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]; failureData: OnyxUpdate[]} {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -168,6 +184,7 @@ function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimis
             value: {
                 search: {
                     isLoading: true,
+                    ...(offset ? {offset} : {}),
                 },
             },
         },
@@ -197,7 +214,7 @@ function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimis
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
-                data: [],
+                ...(isOffline ? {} : {data: []}),
                 search: {
                     status: queryJSON?.status,
                     type: queryJSON?.type,
@@ -298,23 +315,63 @@ function search({
     searchKey,
     offset,
     shouldCalculateTotals = false,
+    prevReportsLength,
+    isOffline = false,
 }: {
     queryJSON: SearchQueryJSON;
     searchKey: SearchKey | undefined;
     offset?: number;
     shouldCalculateTotals?: boolean;
+    prevReportsLength?: number;
+    isOffline?: boolean;
 }) {
-    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON);
+    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
     const query = {
         ...queryJSONWithoutFlatFilters,
         searchKey,
         offset,
+        filters: queryJSONWithoutFlatFilters.filters ?? null,
         shouldCalculateTotals,
     };
     const jsonQuery = JSON.stringify(query);
+    saveLastSearchParams({
+        queryJSON,
+        offset,
+        allowPostSearchRecount: false,
+    });
 
-    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData});
+    waitForWrites(READ_COMMANDS.SEARCH).then(() => {
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
+            const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
+            const reports = Object.keys(response?.data ?? {})
+                .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
+                .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
+            if (response?.search?.offset) {
+                // Indicates that search results are extended from the Report view (with navigation between reports),
+                // using previous results to enable correct counter behavior.
+                if (prevReportsLength) {
+                    saveLastSearchParams({
+                        queryJSON,
+                        offset,
+                        hasMoreResults: !!response?.search?.hasMoreResults,
+                        previousLengthOfResults: prevReportsLength,
+                        allowPostSearchRecount: false,
+                    });
+                }
+            } else {
+                // Applies to all searches from the Search View
+                saveLastSearchParams({
+                    queryJSON,
+                    offset,
+                    hasMoreResults: !!response?.search?.hasMoreResults,
+                    previousLengthOfResults: reports.length,
+                    allowPostSearchRecount: true,
+                });
+            }
+        });
+    });
 }
 
 /**
@@ -518,10 +575,21 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
 function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
+    const reportIDListParams: string[] = [];
+    reportIDList.forEach((reportID) => {
+        const allReportTransactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const allTransactionIDs = allReportTransactions.map((transaction) => transaction.transactionID);
+        if (allTransactionIDs.every((transactionID) => transactionIDList.includes(transactionID))) {
+            if (reportIDListParams.includes(reportID)) {
+                return;
+            }
+            reportIDListParams.push(reportID);
+        }
+    });
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
         query,
         jsonQuery,
-        reportIDList,
+        reportIDList: reportIDListParams,
         transactionIDList,
     }) as Params;
 
@@ -560,6 +628,66 @@ function queueExportSearchWithTemplate({templateName, templateType, jsonQuery, r
 
     API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters);
 }
+
+/**
+ * Collates a list of export templates available to the user from their account, policy, and custom integrations templates
+ * @param integrationsExportTemplates - The user's custom integrations export templates
+ * @param csvExportLayouts - The user's custom account level export templates
+ * @param policy - The user's policy
+ * @param includeReportLevelExport - Whether to include the report level export template
+ * @returns
+ */
+function getExportTemplates(
+    integrationsExportTemplates: ExportTemplate[],
+    csvExportLayouts: Record<string, ExportTemplate>,
+    policy?: Policy,
+    includeReportLevelExport = true,
+): ExportTemplate[] {
+    // Helper function to normalize template data into consistent ExportTemplate format
+    const normalizeTemplate = (templateName: string, template: ExportTemplate, type: ValueOf<typeof CONST.EXPORT_TEMPLATE_TYPES>, description = '', policyID?: string): ExportTemplate => ({
+        ...template,
+        templateName,
+        description,
+        policyID,
+        type,
+    });
+
+    // By default, we always include the expense level export template
+    const exportTemplates: ExportTemplate[] = [
+        normalizeTemplate(
+            CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
+            {name: Localize.translateLocal('export.expenseLevelExport')} as ExportTemplate,
+            CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
+        ),
+    ];
+
+    // Conditionally include the report level export template
+    if (includeReportLevelExport) {
+        exportTemplates.push(
+            normalizeTemplate(
+                CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT,
+                {name: Localize.translateLocal('export.reportLevelExport')} as ExportTemplate,
+                CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
+            ),
+        );
+    }
+
+    // Collate a list of the user's account level in-app export templates, excluding the Default CSV template
+    const accountInAppTemplates = Object.entries(csvExportLayouts ?? {})
+        .filter(([, layout]) => layout.name !== CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV)
+        .map(([templateName, layout]) => normalizeTemplate(templateName, layout, CONST.EXPORT_TEMPLATE_TYPES.IN_APP));
+
+    // If we have a policy, collate a list of the policy-level in-app export templates
+    const policyInAppTemplates = policy
+        ? Object.entries(policy.exportLayouts ?? {}).map(([templateName, layout]) => normalizeTemplate(templateName, layout, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, policy.name, policy.id))
+        : [];
+
+    // Update the integrations export templates to include the name, description, policyID, and type
+    const integrationsTemplates = integrationsExportTemplates.map((template) => normalizeTemplate(template.name, template, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
+
+    return [...exportTemplates, ...integrationsTemplates, ...accountInAppTemplates, ...policyInAppTemplates];
+}
+
 /**
  * Updates the form values for the advanced filters search form.
  */
@@ -621,4 +749,5 @@ export {
     getLastPolicyPaymentMethod,
     getLastPolicyBankAccountID,
     exportToIntegrationOnSearch,
+    getExportTemplates,
 };
