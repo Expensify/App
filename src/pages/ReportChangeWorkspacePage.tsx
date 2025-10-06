@@ -40,6 +40,11 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
+    const [submitterEmail] = useOnyx(
+        ONYXKEYS.PERSONAL_DETAILS_LIST,
+        {canBeMissing: false, selector: (personalDetailsList) => personalDetailsList?.[report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login},
+        [report?.ownerAccountID],
+    );
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
     const selectPolicy = useCallback(
@@ -51,9 +56,9 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             const {backTo} = route.params;
             Navigation.goBack(backTo);
             if (isIOUReport(reportID)) {
-                const invite = moveIOUReportToPolicyAndInviteSubmitter(reportID, policy?.id, formatPhoneNumber);
+                const invite = moveIOUReportToPolicyAndInviteSubmitter(reportID, policy, formatPhoneNumber);
                 if (!invite?.policyExpenseChatReportID) {
-                    moveIOUReportToPolicy(reportID, policy?.id);
+                    moveIOUReportToPolicy(reportID, policy);
                 }
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                 // eslint-disable-next-line deprecation/deprecation
@@ -66,8 +71,6 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         },
         [route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isReportLastVisibleArchived],
     );
-
-    const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
