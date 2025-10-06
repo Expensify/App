@@ -100,10 +100,13 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
-    const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
+    const [policyTagLists, isMultiLevelTags, hasIndependentTags] = useMemo(
         () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
         [policy, policyTags],
     );
+    const hasDependentTags = true;
+
+    console.log('hasDependentTags', hasDependentTags, hasIndependentTags);
     const canSelectMultiple = !hasDependentTags && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
@@ -234,10 +237,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     required: policyTagList.required,
                     isDisabledCheckbox: isSwitchDisabled,
                     rightElement: hasDependentTags ? (
-                        <ListItemRightCaretWithLabel
-                            labelText={translate('workspace.tags.tagCount', {count: Object.keys(policyTagList?.tags ?? {}).length})}
-                            shouldShowCaret
-                        />
+                        <ListItemRightCaretWithLabel labelText={translate('workspace.tags.tagCount', {count: Object.keys(policyTagList?.tags ?? {}).length})} />
                     ) : (
                         <Switch
                             isOn={isSwitchEnabled}
@@ -333,7 +333,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     canSelectMultiple={false}
                     leftHeaderText={translate('common.name')}
                     rightHeaderText={translate('common.count')}
-                    rightHeaderMinimumWidth={120}
                     shouldShowRightIcon
                 />
             );
