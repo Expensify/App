@@ -3672,9 +3672,6 @@ describe('ReportUtils', () => {
                 total: 0,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                reportName: 'Expense Report',
-                participants: {},
             };
             const currentReportId = `${report.reportID}1`;
 
