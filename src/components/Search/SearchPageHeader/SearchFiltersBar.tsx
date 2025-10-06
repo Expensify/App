@@ -5,6 +5,7 @@ import type {ReactNode} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -107,7 +108,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
      * need to be filtered out in order to avoid displaying negated filter values in the filter bar
      */
     const filterFormValues = useMemo(() => {
-        return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates, false);
+        const formValues = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
+        return formValues.filtersForm;
     }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
 
     const hasErrors = Object.keys(searchResultsErrors ?? {}).length > 0 && !isOffline;
@@ -224,8 +226,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
 
     const updateFilterForm = useCallback(
         (values: Partial<SearchAdvancedFiltersForm>) => {
-            const negatedFilterFormValues = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates, true);
-
             const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
                 ...filterFormValues,
                 ...values,
@@ -236,9 +236,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                 updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
             }
 
-            const filterString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
-            const searchQueryJSON = buildSearchQueryJSON(filterString);
-            const queryString = buildSearchQueryString(searchQueryJSON);
+            const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
 
             close(() => {
                 Navigation.setParams({q: queryString});
