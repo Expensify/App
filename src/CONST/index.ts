@@ -445,8 +445,6 @@ const CONST = {
         WEEKDAY_TIME_FORMAT: 'eeee',
         MONTH_DAY_ABBR_FORMAT: 'MMM d',
         SHORT_DATE_FORMAT: 'MM-dd',
-        FNS_DATE_WITH_LOCAL_TIME_FORMAT: 'yyyy-MM-dd h:mm a',
-        SHORT_DATE_WITH_LOCAL_TIME_FORMAT: 'MM-dd h:mm a',
         MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
         MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
         MONTH_DAY_WEEKDAY_ABBR_FORMAT: 'EEEE, MMM d',
@@ -7276,8 +7274,6 @@ const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
 
 const DATE_TIME_FORMAT_OPTIONS: Record<string, Intl.DateTimeFormatOptions> = {
     [CONST.DATE.LOCAL_TIME_FORMAT]: {timeStyle: 'short'},
-    [CONST.DATE.FNS_DATE_WITH_LOCAL_TIME_FORMAT]: {year: 'numeric', month: '2-digit', day: '2-digit', hour: 'numeric', minute: '2-digit'},
-    [CONST.DATE.SHORT_DATE_WITH_LOCAL_TIME_FORMAT]: {month: '2-digit', day: '2-digit', hour: 'numeric', minute: '2-digit'},
     [CONST.DATE.MONTH_FORMAT]: {month: 'long'},
     [CONST.DATE.WEEKDAY_TIME_FORMAT]: {weekday: 'long'},
     [CONST.DATE.MONTH_DAY_WEEKDAY_ABBR_FORMAT]: {weekday: 'long', month: 'short', day: 'numeric'},
@@ -7285,6 +7281,8 @@ const DATE_TIME_FORMAT_OPTIONS: Record<string, Intl.DateTimeFormatOptions> = {
     [CONST.DATE.MONTH_DAY_YEAR_FORMAT]: {dateStyle: 'long'},
     [CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT]: {month: 'short', day: 'numeric', year: 'numeric'},
     [CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY]: {dateStyle: 'full'},
+    FNS_DATE_WITH_LOCAL_TIME_FORMAT: {year: 'numeric', month: '2-digit', day: '2-digit', hour: 'numeric', minute: '2-digit'},
+    SHORT_DATE_WITH_LOCAL_TIME_FORMAT: {month: '2-digit', day: '2-digit', hour: 'numeric', minute: '2-digit'},
 };
 
 const FEATURE_IDS = {

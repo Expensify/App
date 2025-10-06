@@ -520,12 +520,12 @@ function getStatusUntilDate(inputDate: string, locale: Locale = CONST.LOCALES.DE
 
     // If it's further in the future than tomorrow but within the same year
     if (isAfter(input, now) && isSameYear(input, now)) {
-        const formatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.SHORT_DATE_WITH_LOCAL_TIME_FORMAT]);
+        const formatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS.SHORT_DATE_WITH_LOCAL_TIME_FORMAT);
         return translateLocal('statusPage.untilTime', {time: formatter.format(input)});
     }
 
     // If it's in another year
-    const formatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_DATE_WITH_LOCAL_TIME_FORMAT]);
+    const formatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS.FNS_DATE_WITH_LOCAL_TIME_FORMAT);
     return translateLocal('statusPage.untilTime', {time: formatter.format(input)});
 }
 
