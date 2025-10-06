@@ -12,24 +12,37 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import BigNumberPad from '@components/BigNumberPad';
 import CONST from '@src/CONST';
 import { isValidValidateCode, isValidTwoFactorCode} from '@libs/ValidationUtils';
+import Text from '@components/Text';
+import useOnyx from '@hooks/useOnyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {Str} from 'expensify-common';
+import ConfirmationPage from '@components/ConfirmationPage';
+
 
 function EnableBiometricsFallbackPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const onGoBackPress = () => Navigation.goBack();
     const [hasSuccesfullyVerifiedMagicCode, setHasSuccesfullyVerifiedMagicCode] = useState(false);
-    const has2FAEnabled = true; // TODO: Replace with actual 2FA status from user account
-    const hasPhoneNumber = false; // TODO: Replace with actual phone number status from user account
     const [inputCode, setInputCode] = useState('');
     const [lastPressedDigit, setLastPressedDigit] = useState('');
     const [formError, setFormError] = useState<{inputCode?: string}>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const inputRef = useRef<MagicCodeInputHandle>(null);
     const bottomButtonText = useMemo(() => hasSuccesfullyVerifiedMagicCode ? `common.verify` : `common.continue`, [hasSuccesfullyVerifiedMagicCode]);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const contactMethod = account?.primaryLogin ?? '';
+    const hasPhoneNumber = Str.isSMSLogin(contactMethod);
+    const has2FAEnabled = true; // TODO: Replace with actual 2FA status from user account
 
     const [verified2FA, setVerified2FA] = useState(false); // TODO: Replace with actual 2FA verification status
     const [verifiedSmsOtp, setVerifiedSmsOtp] = useState(false); // TODO: Replace with actual SMS OTP verification status
 
+    const [hasSuccesfullyEnabledBiometrics, setHasSuccesfullyEnabledBiometrics] = useState(false);
+
+    if (!has2FAEnabled && !hasPhoneNumber) {
+        onGoBackPress();
+    }
     /**
      * Update lastPressedDigit with value that was pressed on BigNumberPad.
      *
@@ -94,8 +107,10 @@ function EnableBiometricsFallbackPage() {
             setHasSuccesfullyVerifiedMagicCode(true);
         } else if (has2FAEnabled) {
             setVerified2FA(true);
+            setHasSuccesfullyEnabledBiometrics(true)
         } else {
             setVerifiedSmsOtp(true);
+            setHasSuccesfullyEnabledBiometrics(true)
         }
         setInputCode('');
         setCanShowError(false);
@@ -103,16 +118,36 @@ function EnableBiometricsFallbackPage() {
 
     }, [inputCode, translate]);
 
-    useEffect(() => {
-        if (!(verified2FA || verifiedSmsOtp)) {
-            return;
-        }
-        onGoBackPress();
-    }, [verified2FA, verifiedSmsOtp]);
+    // useEffect(() => {
+    //     if (!(verified2FA || verifiedSmsOtp)) {
+    //         return;
+    //     }
+    //     onGoBackPress();
+    // }, [verified2FA, verifiedSmsOtp]);
 
-    if (!has2FAEnabled && !hasPhoneNumber) {
-        onGoBackPress();
-    }
+    const renderMagicCodeContent = () => {
+        if (!hasSuccesfullyVerifiedMagicCode) {
+            return (
+                <Text style={[styles.mh5, styles.mb6, styles.textNormal]}>
+                    {translate('initialSettingsPage.troubleshoot.biometrics.fallbackPageMagicCodeContent')}
+                </Text>
+            );
+        }
+
+        if (has2FAEnabled) {
+            return (
+                <Text style={[styles.mh5, styles.mb6, styles.textNormal]}>
+                    {translate('initialSettingsPage.troubleshoot.biometrics.fallbackPage2FAContent')}
+                </Text>
+            );
+        }
+
+        return (
+            <Text style={[styles.mh5, styles.mb6, styles.textNormal]}>
+                {translate('initialSettingsPage.troubleshoot.biometrics.fallbackPageSMSotpContent', { contactMethod })}
+            </Text>
+        );
+    };
 
     return (
         <ScreenWrapper testID={EnableBiometricsFallbackPage.displayName}>
@@ -121,28 +156,40 @@ function EnableBiometricsFallbackPage() {
                 onBackButtonPress={onGoBackPress}
                 shouldShowBackButton
             />
-            <View style={[styles.mv1]}>
-                <MagicCodeInput
-                    isDisableKeyboard
-                    autoComplete={hasSuccesfullyVerifiedMagicCode && !has2FAEnabled ? "sms-otp" : "one-time-code"}
-                    name="enableBiometricsFallbackCode"
-                    value={inputCode}
-                    lastPressedDigit={lastPressedDigit}
-                    onChangeText={onCodeInput}
-                    onFulfill={validateSubmitAndNavigateToNextStep}
-                    errorText={canShowError ? formError.inputCode : ''}
-                    ref={inputRef}
+            {!hasSuccesfullyEnabledBiometrics ? (
+                <>
+                    {renderMagicCodeContent()} 
+                    <View style={[styles.mh5]}>
+                        <MagicCodeInput
+                            isDisableKeyboard
+                            autoComplete={hasSuccesfullyVerifiedMagicCode && !has2FAEnabled ? "sms-otp" : "one-time-code"}
+                            name="enableBiometricsFallbackCode"
+                            value={inputCode}
+                            lastPressedDigit={lastPressedDigit}
+                            onChangeText={onCodeInput}
+                            onFulfill={validateSubmitAndNavigateToNextStep}
+                            errorText={canShowError ? formError.inputCode : ''}
+                            ref={inputRef}
+                        />
+                    </View>
+                    <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pv0]}>{canUseTouchScreen() && <BigNumberPad numberPressed={updateLastPressedDigit} />}</View>
+                    <Button
+                        success
+                        style={[styles.w100, styles.p5, styles.mtAuto]}
+                        onPress={validateSubmitAndNavigateToNextStep}
+                        text={translate(bottomButtonText)}
+                    />
+                </>
+            ) : (
+                <ConfirmationPage
+                    heading={translate('initialSettingsPage.troubleshoot.biometrics.notificationTitle')}
+                    description={translate('initialSettingsPage.troubleshoot.biometrics.notificationFallbackContent')}
+                    shouldShowButton
+                    buttonText={translate('common.buttonConfirm')}
+                    onButtonPress={() => onGoBackPress()}
+                    containerStyle={styles.flex1}
                 />
-            </View>
-            <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pv0]}>{canUseTouchScreen() && <BigNumberPad numberPressed={updateLastPressedDigit} />}</View>
-            <View style={[styles.flexRow, styles.m5]}>
-                <Button
-                    success
-                    style={[styles.flex1]}
-                    onPress={validateSubmitAndNavigateToNextStep}
-                    text={translate(bottomButtonText)}
-                />
-            </View>
+            )}
         </ScreenWrapper>
     );
 }
