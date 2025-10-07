@@ -43,8 +43,9 @@ Once the report includes at least one expense, the Add Expense option will be un
 ## Step 3: Submit the report
 
 1. Once the report includes at least one expense, the **Submit** button will appear.
-2. Tap **Submit**.
-3. A confirmation message will appear after submission.
+    - If your workspace uses an automatic submission frequency, you’ll see **“Waiting for your expenses to automatically submit”** at the top of the report instead of a Submit button.
+3. Tap **Submit**, or, if automatic submission is enabled, tap **More > Submit** to submit early.
+4. A confirmation message will appear after submission.
 
 **Note:** If your workspace uses **instant submit**, your report may auto-submit once a valid expense is added.
 
