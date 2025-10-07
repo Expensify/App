@@ -4,7 +4,7 @@ import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewPr
 import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
 import useActionSheetKeyboardSpacing from './useActionSheetKeyboardSpacing';
 
-function ActionSheetAwareScrollView({style, children, isInvertedScrollView, ref, ...props}: ActionSheetAwareScrollViewProps) {
+function ActionSheetAwareScrollView({style, children, ref, ...props}: ActionSheetAwareScrollViewProps) {
     const scrollViewAnimatedRef = useAnimatedRef<Reanimated.ScrollView>();
 
     const onRef = useCallback(
