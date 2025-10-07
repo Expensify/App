@@ -10,6 +10,7 @@ import type {
     SearchDateFilterKeys,
     SearchDatePreset,
     SearchFilterKey,
+    SearchNegatableFilterKeys,
     SearchQueryJSON,
     SearchQueryString,
     SearchStatus,
@@ -167,7 +168,33 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
  * @private
  * Returns negated or non-negated filter value for query strings
  */
-function buildNegationFilterQuery(filterKey: SearchNeg);
+function buildNegationFilterQuery(filterKey: SearchNegatableFilterKeys, filterValues: Partial<SearchAdvancedFiltersForm>) {
+    const negatedStrings = [];
+    const negatedValue = filterValues[`${filterKey}${CONST.SEARCH.NOT_MODIFIER}`];
+
+    if (negatedValue) {
+        const value = [negatedValue].flat().join(',');
+        negatedStrings.push(`-${filterKey}:${value}`);
+    }
+
+    const dateFilterKey = filterKey as SearchDateFilterKeys;
+    if (DATE_FILTER_KEYS.includes(dateFilterKey)) {
+        const nonNegatedValue = filterValues[`${dateFilterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`];
+        if (nonNegatedValue) {
+            negatedStrings.push(`${filterKey}:${nonNegatedValue}`);
+        }
+    }
+
+    const amountFilterKey = filterKey as SearchAmountFilterKeys;
+    if (AMOUNT_FILTER_KEYS.includes(amountFilterKey)) {
+        const nonNegatedValue = filterValues[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`];
+        if (nonNegatedValue) {
+            negatedStrings.push(`${filterKey}:${nonNegatedValue}`);
+        }
+    }
+
+    return negatedStrings.join(' ');
+}
 
 /**
  * @private
