@@ -438,7 +438,7 @@ jobs:
 
       - name: Rock Remote Build - iOS
         id: rock-remote-build-ios
-        uses: callstackincubator/ios@0b4a5a6e4d6865d697bd5f277460088501982a5e # v3
+        uses: callstackincubator/ios@a7bfe11072018efa42c5a8c6719c9f09f4268bac # v3
         env:
           GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_APP: true
@@ -449,8 +449,6 @@ jobs:
           scheme: 'Expensify AdHoc'
           configuration: 'DebugAdHoc'
           certificate-file: './Certificates.p12'
-          certificate-password: ${{ secrets.CERTIFICATE_PASSWORD || '' }}
-          keychain-password: ${{ secrets.KEYCHAIN_PASSWORD || '' }}
           provisioning-profiles: |
             [
               {
