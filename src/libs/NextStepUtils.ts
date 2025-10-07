@@ -1,4 +1,4 @@
-import {format, setDate} from 'date-fns';
+import {addMonths, format, isPast, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -184,6 +184,13 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
                             nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH};
                         } else if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
                             nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH};
+                        } else if (policy?.autoReportingOffset !== undefined) {
+                            let etaDateTime = setDate(new Date(), policy?.autoReportingOffset);
+                            if (isPast(etaDateTime)) {
+                                etaDateTime = addMonths(etaDateTime, 1);
+                            }
+
+                            nextStep.eta = {dateTime: format(etaDateTime, 'yyyy-MM-dd')};
                         }
                         break;
                     case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP:
