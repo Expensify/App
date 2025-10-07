@@ -673,10 +673,10 @@ function buildFilterFormValuesFromQuery(
         const filterValues = filterList.map((item) => item.value.toString());
 
         const isNegated = filterList.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
+        const key = isNegated ? (`${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const) : filterKey;
 
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID) {
-            const key = isNegated ? (`${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const) : filterKey;
-            filtersForm[key] = filterValues.join(',');
+            filtersForm[key as typeof filterKey] = filterValues.join(',');
         }
         if (
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
@@ -684,47 +684,38 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION
         ) {
-            const key = isNegated ? (`${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const) : filterKey;
-            filtersForm[key] = filterValues.at(0);
+            filtersForm[key as typeof filterKey] = filterValues.at(0);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
-            const key = isNegated ? (`${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const) : filterKey;
             const validExpenseTypes = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
-            filtersForm[key] = filterValues.filter((expenseType) => validExpenseTypes.has(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
+            filtersForm[key as typeof filterKey] = filterValues.filter((expenseType) => validExpenseTypes.has(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
-            const key = isNegated ? (`${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const) : filterKey;
             const validHasTypes = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
-            filtersForm[key] = filterValues.filter((hasType) => validHasTypes.has(hasType as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
+            filtersForm[key as typeof filterKey] = filterValues.filter((hasType) => validHasTypes.has(hasType as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
-            const key = isNegated ? (`${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const) : filterKey;
             const validIsTypes = new Set(Object.values(CONST.SEARCH.IS_VALUES));
-            filtersForm[key] = filterValues.filter((isType) => validIsTypes.has(isType as ValueOf<typeof CONST.SEARCH.IS_VALUES>));
+            filtersForm[key as typeof filterKey] = filterValues.filter((isType) => validIsTypes.has(isType as ValueOf<typeof CONST.SEARCH.IS_VALUES>));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
-            const key = isNegated ? (`${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const) : filterKey;
             const validWithdrawalTypes = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
-            filtersForm[key] = filterValues
+            filtersForm[key as typeof filterKey] = filterValues
                 .filter((withdrawalType): withdrawalType is SearchWithdrawalType => validWithdrawalTypes.has(withdrawalType as ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>))
                 .at(0);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-            const key = isNegated ? (`${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const) : filterKey;
-            filtersForm[key] = filterValues.filter((card) => cardList[card]);
+            filtersForm[key as typeof filterKey] = filterValues.filter((card) => cardList[card]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
-            const key = isNegated ? (`${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const) : filterKey;
-            filtersForm[key] = filterValues.filter((feed) => feed);
+            filtersForm[key as typeof filterKey] = filterValues.filter((feed) => feed);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-            const key = isNegated ? (`${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const) : filterKey;
             const allTaxRates = new Set(Object.values(taxRates).flat());
-            filtersForm[key] = filterValues.filter((tax) => allTaxRates.has(tax));
+            filtersForm[key as typeof filterKey] = filterValues.filter((tax) => allTaxRates.has(tax));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-            const key = isNegated ? (`${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const) : filterKey;
-            filtersForm[key] = filterValues.filter((id) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]?.reportID);
+            filtersForm[key as typeof filterKey] = filterValues.filter((id) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]?.reportID);
         }
         if (
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
@@ -733,25 +724,21 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
         ) {
-            const key = isNegated ? (`${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const) : filterKey;
-            filtersForm[key] = filterValues.filter((id) => personalDetails && personalDetails[id]);
+            filtersForm[key as typeof filterKey] = filterValues.filter((id) => personalDetails && personalDetails[id]);
         }
 
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER) {
-            const key = isNegated ? (`${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const) : filterKey;
-            filtersForm[key] = filterValues.find((id) => personalDetails && personalDetails[id]);
+            filtersForm[key as typeof filterKey] = filterValues.find((id) => personalDetails && personalDetails[id]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY) {
-            const key = isNegated ? (`${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const) : filterKey;
             const validCurrency = new Set(Object.keys(currencyList));
-            filtersForm[key] = filterValues.filter((currency) => validCurrency.has(currency));
+            filtersForm[key as typeof filterKey] = filterValues.filter((currency) => validCurrency.has(currency));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY) {
             const validCurrency = new Set(Object.keys(currencyList));
             filtersForm[filterKey] = filterValues.filter((currency) => validCurrency.has(currency)).at(0);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
-            const key = isNegated ? (`${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const) : filterKey;
             const tags = policyID
                 ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, policyTags)
                       .map((tagList) => getTagNamesFromTagsLists(tagList ?? {}))
@@ -762,10 +749,9 @@ function buildFilterFormValuesFromQuery(
                       .flat();
             const uniqueTags = new Set(tags);
             uniqueTags.add(CONST.SEARCH.TAG_EMPTY_VALUE);
-            filtersForm[key] = filterValues.filter((name) => uniqueTags.has(name));
+            filtersForm[key as typeof filterKey] = filterValues.filter((name) => uniqueTags.has(name));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
-            const key = isNegated ? (`${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const) : filterKey;
             const categories = policyID
                 ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, policyCategories)
                       .map((item) => Object.values(item ?? {}).map((category) => category.name))
@@ -778,10 +764,10 @@ function buildFilterFormValuesFromQuery(
             const hasEmptyCategoriesInFilter = emptyCategories.every((category) => filterValues.includes(category));
             // We split CATEGORY_EMPTY_VALUE into individual values to detect both are present in filterValues.
             // If empty categories are found, append the CATEGORY_EMPTY_VALUE to filtersForm.
-            filtersForm[key] = filterValues.filter((name) => uniqueCategories.has(name)).concat(hasEmptyCategoriesInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);
+            filtersForm[key as typeof filterKey] = filterValues.filter((name) => uniqueCategories.has(name)).concat(hasEmptyCategoriesInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
-            filtersForm[filterKey] = filterValues
+            filtersForm[key as typeof filterKey] = filterValues
                 ?.map((filter) => {
                     if (filter.includes(' ')) {
                         return `"${filter}"`;
