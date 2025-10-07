@@ -101,7 +101,6 @@ import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './Error
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
-import localeCompareLibs from './LocaleCompare';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Log from './Log';
@@ -122,7 +121,6 @@ import {
     getAccountIDsByLogins,
     getDisplayNameOrDefault,
     getEffectiveDisplayName,
-    getLoginByAccountID,
     getLoginsByAccountIDs,
     getPersonalDetailByEmail,
     getPersonalDetailsByIDs,
@@ -148,7 +146,6 @@ import {
     isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
-    isPolicyMember,
     isPolicyOwner,
     isSubmitAndClose,
     shouldShowPolicy,
@@ -730,6 +727,7 @@ type TransactionDetails = {
     originalAmount: number;
     originalCurrency: string;
     postedDate: string;
+    transactionID: string;
     distance?: number;
 };
 
@@ -3110,6 +3108,14 @@ function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
 }
 
 /**
+ * @private
+ * This is a custom collator only for getGroupChatName function.
+ * The reason for this is that the computation of default group name should not depend on the locale.
+ * This is used to ensure that group name stays consistent across locales.
+ */
+const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
+
+/**
  * Returns the report name if the report is a group chat
  */
 function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit = false, report?: OnyxEntry<Report>, reportMetadataParam?: OnyxEntry<ReportMetadata>): string | undefined {
@@ -3140,7 +3146,7 @@ function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit
                 (participantAccountID, index) =>
                     getDisplayNameForParticipant({accountID: participantAccountID, shouldUseShortForm: isMultipleParticipantReport}) || formatPhoneNumber(participants?.[index]?.login ?? ''),
             )
-            .sort((first, second) => localeCompareLibs(first ?? '', second ?? ''))
+            .sort((first, second) => customCollator.compare(first ?? '', second ?? ''))
             .filter(Boolean)
             .join(', ')
             .slice(0, CONST.REPORT_NAME_LIMIT)
@@ -4136,6 +4142,7 @@ function getTransactionDetails(
         originalAmount: getOriginalAmount(transaction),
         originalCurrency: getOriginalCurrency(transaction),
         postedDate: getFormattedPostedDate(transaction),
+        transactionID: transaction.transactionID,
         ...(isManualDistanceRequest && {distance: transaction.comment?.customUnit?.quantity ?? undefined}),
     };
 }
@@ -4146,27 +4153,6 @@ function getTransactionCommentObject(transaction: OnyxEntry<Transaction>): Comme
         comment: Parser.htmlToMarkdown(transaction?.comment?.comment ?? ''),
         waypoints: getWaypoints(transaction),
     };
-}
-
-function isWorkspacePayer(memberLogin: string, policy: OnyxEntry<Policy>): boolean {
-    const isAdmin = policy?.employeeList?.[memberLogin]?.role === CONST.POLICY.ROLE.ADMIN;
-    if (isPaidGroupPolicyPolicyUtils(policy)) {
-        if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-            // If we get here without a reimburser only admin is the payer.
-            if (!policy?.achAccount?.reimburser) {
-                return isAdmin;
-            }
-
-            // If we are the reimburser then we are the payer.
-            const isReimburser = memberLogin === policy?.achAccount?.reimburser;
-            return isReimburser;
-        }
-        if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
-            return isAdmin;
-        }
-        return false;
-    }
-    return false;
 }
 
 /**
@@ -4316,6 +4302,8 @@ function canEditFieldOfMoneyRequest(
     isDeleteAction?: boolean,
     isChatReportArchived = false,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+    // TODO: [Unreported Expense project] temporary check for Search Page only, remove it when no longer necessary
+    isSearchPageOption?: boolean,
 ): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
@@ -4399,6 +4387,12 @@ function canEditFieldOfMoneyRequest(
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
         // Unreported transaction from OldDot can have the reportID as an empty string
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+        const isUserWorkspaceMember = getActivePolicies(allPolicies ?? {}, currentUserEmail).filter((userPolicy) => isPaidGroupPolicyPolicyUtils(userPolicy)).length;
+
+        if (isUnreportedExpense && isSearchPageOption && isUserWorkspaceMember) {
+            return true;
+        }
 
         if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID) && !isUnreportedExpense) {
             return false;
@@ -4641,7 +4635,7 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
 function hasMissingSmartscanFields(iouReportID: string | undefined, transactions?: Transaction[]): boolean {
     const reportTransactions = transactions ?? getReportTransactions(iouReportID);
 
-    return reportTransactions.some(hasMissingSmartscanFieldsTransactionUtils);
+    return reportTransactions.some((transaction) => hasMissingSmartscanFieldsTransactionUtils(transaction));
 }
 
 /**
@@ -5356,6 +5350,10 @@ function getReportName(
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED)) {
         return getPolicyChangeLogDefaultTitleEnforcedMessage(parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+        return translateLocal('iou.paidElsewhere');
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
@@ -6638,7 +6636,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         automatic: false,
         isAttachmentOnly: false,
         originalMessage,
-        reportActionID: reportActionID ?? rand64(),
+        reportActionID: linkedExpenseReportAction?.reportActionID ?? reportActionID ?? rand64(),
         shouldShow: true,
         created,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -9028,7 +9026,7 @@ function getMoneyRequestOptions(
         return [];
     }
 
-    const otherParticipants = reportParticipants.filter((accountID) => currentUserPersonalDetails?.accountID !== accountID);
+    const otherParticipants = reportParticipants.filter((accountID) => currentUserAccountID !== accountID);
     const hasSingleParticipantInReport = otherParticipants.length === 1;
     let options: IOUType[] = [];
 
@@ -11356,23 +11354,12 @@ function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>
 /**
  * Determines whether the report can be moved to the workspace.
  */
-function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, policies: OnyxCollection<Policy>): boolean {
-    const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
-    const managerLogin = getLoginByAccountID(report?.managerID ?? CONST.DEFAULT_NUMBER_ID);
-    // We can't move the iou report to the workspace if both users from the iou report create the expense
-    if (doesReportContainRequestsFromMultipleUsers(report)) {
+function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, newPolicy: OnyxEntry<Policy>): boolean {
+    if (!submitterEmail || !newPolicy?.isPolicyExpenseChatEnabled) {
         return false;
     }
 
-    if (!newPolicy?.isPolicyExpenseChatEnabled) {
-        return false;
-    }
-
-    // We can only move the iou report to the workspace if the manager is the payer of the new policy
-    if (isIOUReport(report)) {
-        return isPaidGroupPolicyPolicyUtils(newPolicy) && isWorkspacePayer(managerLogin ?? '', newPolicy);
-    }
-    return isPaidGroupPolicyPolicyUtils(newPolicy) && (isPolicyMember(newPolicy, submitterEmail) || isPolicyAdmin(newPolicy?.id, policies));
+    return isPaidGroupPolicyPolicyUtils(newPolicy) && !!newPolicy.role;
 }
 
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {
@@ -11597,12 +11584,12 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
     };
 }
 
-function canRejectReportAction(report: Report, policy?: Policy): boolean {
+function canRejectReportAction(currentUserLogin: string, report: Report, policy?: Policy): boolean {
     if (!Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_REJECT, allBetas)) {
         return false;
     }
 
-    const isReportApprover = isApproverUtils(policy, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    const isReportApprover = isApproverUtils(policy, currentUserLogin);
     const isReportBeingProcessed = isProcessingReport(report);
     const isReportPayer = isPayer(getSession(), report, false, policy);
     const isIOU = isIOUReport(report);
@@ -11660,12 +11647,12 @@ function hasReportBeenRetracted(report: OnyxEntry<Report>, reportActions?: OnyxE
     return reportActionList.some((action) => isRetractedAction(action));
 }
 
-function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Report>, isInvoice?: boolean) {
+function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Report>, isInvoice?: boolean, reportAttributes?: ReportAttributesDerivedValue['reports']) {
     if (isInvoice && isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW)) {
         const originalMessage = getOriginalMessage(action);
         return originalMessage && translateLocal('iou.invoiceReportName', originalMessage);
     }
-    return getReportName(iouReport) || action.childReportName;
+    return getReportName(iouReport, undefined, undefined, undefined, undefined, reportAttributes) || action.childReportName;
 }
 
 function selectArchivedReportsIdSet(all: Record<string, OnyxInputOrEntry<ReportNameValuePairs>> | null | undefined): ArchivedReportsIDSet {
@@ -12229,6 +12216,7 @@ export {
     getMovedActionMessage,
     excludeParticipantsForDisplay,
     getReportName,
+    doesReportContainRequestsFromMultipleUsers,
 };
 export type {
     Ancestor,

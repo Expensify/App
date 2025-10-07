@@ -5,6 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
+import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getConnectedIntegration,
@@ -26,6 +27,7 @@ import {
     canEditReportPolicy,
     canHoldUnholdReportAction,
     canRejectReportAction,
+    doesReportContainRequestsFromMultipleUsers,
     getTransactionDetails,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
@@ -72,7 +74,7 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
     return canAddTransaction(report, isReportArchived);
 }
 
-function isSplitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
+function isSplitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, isNewDotUpdateSplitsBeta = true): boolean {
     if (Number(reportTransactions?.length) !== 1) {
         return false;
     }
@@ -89,8 +91,12 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
         return false;
     }
 
-    const {isExpenseSplit, isBillSplit} = getOriginalTransactionWithSplitInfo(reportTransaction);
-    if (isExpenseSplit || isBillSplit) {
+    const {isBillSplit, isExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction);
+    if (isBillSplit) {
+        return false;
+    }
+
+    if (isExpenseSplit && !isNewDotUpdateSplitsBeta) {
         return false;
     }
 
@@ -98,7 +104,7 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
         return false;
     }
 
-    if (report.stateNum && report.stateNum >= CONST.REPORT.STATE_NUM.APPROVED) {
+    if (report.statusNum && report.statusNum >= CONST.REPORT.STATUS_NUM.CLOSED) {
         return false;
     }
 
@@ -188,7 +194,7 @@ function isSubmitAction(
     return !!isScheduledSubmitEnabled || primaryAction !== CONST.REPORT.SECONDARY_ACTIONS.SUBMIT;
 }
 
-function isApproveAction(report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy): boolean {
+function isApproveAction(currentUserLogin: string, report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy): boolean {
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
 
     if (isAnyReceiptBeingScanned) {
@@ -234,14 +240,14 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
-    const isReportApprover = isApproverUtils(policy, currentUserAccountID);
+    const isReportApprover = isApproverUtils(policy, currentUserLogin);
     const userControlsReport = isReportApprover || isAdmin;
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
 
-function isUnapproveAction(report: Report, policy?: Policy): boolean {
+function isUnapproveAction(currentUserLogin: string, report: Report, policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
+    const isReportApprover = isApproverUtils(policy, currentUserLogin);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportSettled = isSettled(report);
     const isPaymentProcessing = report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
@@ -434,7 +440,13 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
 }
 
 function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>, reportActions?: ReportAction[]): boolean {
-    const availablePolicies = Object.values(policies ?? {}).filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policies));
+    // We can't move the iou report to the workspace if both users from the iou report create the expense
+    if (isIOUReportUtils(report) && doesReportContainRequestsFromMultipleUsers(report)) {
+        return false;
+    }
+
+    const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    const availablePolicies = Object.values(policies ?? {}).filter((newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy));
     let hasAvailablePolicies = availablePolicies.length > 1;
     if (!hasAvailablePolicies && availablePolicies.length === 1) {
         hasAvailablePolicies = !report.policyID || report.policyID !== availablePolicies?.at(0)?.id;
@@ -550,6 +562,7 @@ function isRemoveHoldActionForTransaction(report: Report, reportTransaction: Tra
 }
 
 function getSecondaryReportActions({
+    currentUserEmail,
     report,
     chatReport,
     reportTransactions,
@@ -559,7 +572,9 @@ function getSecondaryReportActions({
     reportActions,
     policies,
     isChatReportArchived = false,
+    isNewDotUpdateSplitsBeta,
 }: {
+    currentUserEmail: string;
     report: Report;
     chatReport: OnyxEntry<Report>;
     reportTransactions: Transaction[];
@@ -570,6 +585,7 @@ function getSecondaryReportActions({
     policies?: OnyxCollection<Policy>;
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
+    isNewDotUpdateSplitsBeta?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -582,6 +598,7 @@ function getSecondaryReportActions({
     }
 
     const primaryAction = getReportPrimaryAction({
+        currentUserEmail,
         report,
         chatReport,
         reportTransactions,
@@ -596,11 +613,11 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
-    if (isApproveAction(report, reportTransactions, violations, policy)) {
+    if (isApproveAction(currentUserEmail, report, reportTransactions, violations, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     }
 
-    if (isUnapproveAction(report, policy)) {
+    if (isUnapproveAction(currentUserEmail, report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE);
     }
 
@@ -624,11 +641,11 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (canRejectReportAction(report, policy)) {
+    if (canRejectReportAction(currentUserEmail, report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 
-    if (isSplitAction(report, reportTransactions, policy)) {
+    if (isSplitAction(report, reportTransactions, policy, isNewDotUpdateSplitsBeta)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
@@ -678,11 +695,13 @@ function getSecondaryExportReportActions(report: Report, policy?: Policy, export
 }
 
 function getSecondaryTransactionThreadActions(
+    currentUserEmail: string,
     parentReport: Report,
     reportTransaction: Transaction,
     reportActions: ReportAction[],
     policy: OnyxEntry<Policy>,
     transactionThreadReport?: OnyxEntry<Report>,
+    isNewDotUpdateSplitsBeta?: boolean,
 ): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -694,11 +713,11 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (canRejectReportAction(parentReport, policy)) {
+    if (canRejectReportAction(currentUserEmail, parentReport, policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
-    if (isSplitAction(parentReport, [reportTransaction], policy)) {
+    if (isSplitAction(parentReport, [reportTransaction], policy, isNewDotUpdateSplitsBeta)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
 
