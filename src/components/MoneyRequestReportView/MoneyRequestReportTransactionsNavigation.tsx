@@ -1,12 +1,13 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo} from 'react';
-import type {GestureResponderEvent} from 'react-native';
+import React, {useContext, useEffect, useMemo} from 'react';
 import PrevNextButtons from '@components/PrevNextButtons';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useOnyx from '@hooks/useOnyx';
 import {clearActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -18,6 +19,8 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
     const [reportIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, {
         canBeMissing: true,
     });
+
+    const {markReportIDAsExpense} = useContext(WideRHPContext);
 
     const {prevReportID, nextReportID} = useMemo(() => {
         if (!reportIDsList || reportIDsList.length < 2) {
@@ -46,17 +49,6 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
         };
     }, []);
 
-    const goToReportId = useCallback((e?: GestureResponderEvent | KeyboardEvent, reportId?: string) => {
-        e?.preventDefault();
-
-        if (!reportId) {
-            return;
-        }
-        Navigation.setParams({
-            reportID: reportId,
-        });
-    }, []);
-
     if (reportIDsList.length < 2) {
         return;
     }
@@ -65,8 +57,22 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
         <PrevNextButtons
             isPrevButtonDisabled={!prevReportID}
             isNextButtonDisabled={!nextReportID}
-            onNext={(e) => goToReportId(e, nextReportID)}
-            onPrevious={(e) => goToReportId(e, prevReportID)}
+            onNext={(e) => {
+                const backTo = Navigation.getActiveRoute();
+                e?.preventDefault();
+                if (nextReportID) {
+                    markReportIDAsExpense(nextReportID);
+                }
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true});
+            }}
+            onPrevious={(e) => {
+                const backTo = Navigation.getActiveRoute();
+                e?.preventDefault();
+                if (prevReportID) {
+                    markReportIDAsExpense(prevReportID);
+                }
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, backTo}), {forceReplace: true});
+            }}
         />
     );
 }
