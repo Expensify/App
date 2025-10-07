@@ -156,3 +156,9 @@ modules/*/lib/
 
 # Claude local settings
 .claude/settings.local.json
+
+# Native addons (secure-store)
+desktop/secure-store/build/
+desktop/secure-store/build_swift/
+desktop/secure-store/node_modules/
+desktop/secure-store/.deps/

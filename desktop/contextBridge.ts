@@ -1,12 +1,19 @@
 import {contextBridge, ipcRenderer} from 'electron';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
 
+type SecureStoreApi = {
+    set: (key: string, value: string) => void;
+    get: (key: string) => string | null;
+    delete: (key: string) => void;
+};
+
 type ContextBridgeApi = {
     send: (channel: string, data?: unknown) => void;
     sendSync: (channel: string, data?: unknown) => unknown;
     invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
     on: (channel: string, func: (...args: unknown[]) => void) => void;
     removeAllListeners: (channel: string) => void;
+    secureStore?: SecureStoreApi;
 };
 
 const WHITELIST_CHANNELS_RENDERER_TO_MAIN = [
@@ -19,6 +26,9 @@ const WHITELIST_CHANNELS_RENDERER_TO_MAIN = [
     ELECTRON_EVENTS.DOWNLOAD,
     ELECTRON_EVENTS.SILENT_UPDATE,
     ELECTRON_EVENTS.OPEN_LOCATION_SETTING,
+    ELECTRON_EVENTS.SECURE_STORE_SET,
+    ELECTRON_EVENTS.SECURE_STORE_GET,
+    ELECTRON_EVENTS.SECURE_STORE_DELETE,
 ] as const;
 
 const WHITELIST_CHANNELS_MAIN_TO_RENDERER = [
@@ -32,6 +42,34 @@ const WHITELIST_CHANNELS_MAIN_TO_RENDERER = [
 ] as const;
 
 const getErrorMessage = (channel: string): string => `Electron context bridge cannot be used with channel '${channel}'`;
+
+// SecureStore API using IPC to communicate with main process
+const secureStore: SecureStoreApi = {
+    set: (key: string, value: string): void => {
+        console.log(`[SecureStore Renderer] Calling SET for key: ${key}`);
+        ipcRenderer.invoke(ELECTRON_EVENTS.SECURE_STORE_SET, key, value).catch((error) => {
+            console.error('[SecureStore Renderer] SET error:', error);
+            throw error;
+        });
+    },
+    get: (key: string): string | null => {
+        console.log(`[SecureStore Renderer] Calling GET for key: ${key}`);
+        // Use sendSync for synchronous operation
+        try {
+            return ipcRenderer.sendSync(ELECTRON_EVENTS.SECURE_STORE_GET, key) as string | null;
+        } catch (error) {
+            console.error('[SecureStore Renderer] GET error:', error);
+            throw error;
+        }
+    },
+    delete: (key: string): void => {
+        console.log(`[SecureStore Renderer] Calling DELETE for key: ${key}`);
+        ipcRenderer.invoke(ELECTRON_EVENTS.SECURE_STORE_DELETE, key).catch((error) => {
+            console.error('[SecureStore Renderer] DELETE error:', error);
+            throw error;
+        });
+    },
+};
 
 /**
  * The following methods will be available in the renderer process under `window.electron`.
@@ -88,6 +126,9 @@ contextBridge.exposeInMainWorld('electron', {
 
         ipcRenderer.removeAllListeners(channel);
     },
+
+    /** SecureStore addon (only available on macOS) */
+    secureStore,
 });
 
 export default ContextBridgeApi;

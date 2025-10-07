@@ -21,6 +21,65 @@ import ELECTRON_EVENTS from './ELECTRON_EVENTS';
 
 const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownloadQueue').default;
 
+// Load SecureStore addon (only available on macOS)
+type SecureStoreAddonNative = {
+    SecureStoreAddon: new () => {
+        set: (key: string, value: string) => void;
+        get: (key: string) => string | null;
+        delete: (key: string) => void;
+    };
+};
+type SecureStoreType = {
+    set: (key: string, value: string) => void;
+    get: (key: string) => string | null;
+    delete: (key: string) => void;
+};
+let secureStore: SecureStoreType | null = null;
+if (process.platform === 'darwin') {
+    try {
+        // Load the native addon using Module._load to bypass webpack
+        log.info('[SecureStore] Attempting to load native addon...');
+        log.info('[SecureStore] app.getAppPath():', app.getAppPath());
+        log.info('[SecureStore] __dirname:', __dirname);
+
+        // In development, __dirname might be different, so we try multiple paths
+        const possiblePaths = [
+            `${__dirname}/secure-store/build/Release/secure_store_addon.node`,
+            `${app.getAppPath()}/desktop/secure-store/build/Release/secure_store_addon.node`,
+            `${app.getAppPath()}/secure-store/build/Release/secure_store_addon.node`,
+            // Try going up from dist directory
+            `${__dirname}/../secure-store/build/Release/secure_store_addon.node`,
+        ];
+
+        let nativeAddon: SecureStoreAddonNative | null = null;
+        for (const addonPath of possiblePaths) {
+            try {
+                log.info('[SecureStore] Trying to load from:', addonPath);
+                // Use Module._load to bypass webpack's require
+                // eslint-disable-next-line @typescript-eslint/no-var-requires
+                const Module = require('module');
+                nativeAddon = Module._load(addonPath, module, false) as SecureStoreAddonNative;
+                log.info('[SecureStore] Successfully loaded from:', addonPath);
+                break;
+            } catch (pathError) {
+                log.warn('[SecureStore] Failed to load from:', addonPath, pathError);
+            }
+        }
+
+        if (!nativeAddon) {
+            throw new Error('Could not find secure_store_addon.node in any of the expected paths');
+        }
+
+        // Create an instance of the addon
+        const addonInstance = new nativeAddon.SecureStoreAddon();
+        secureStore = addonInstance;
+        log.info('[SecureStore] Native addon instance created successfully');
+    } catch (error) {
+        log.error('[SecureStore] Failed to load native addon:', error);
+        log.error('[SecureStore] Make sure the addon is built: cd desktop/secure-store && npm install');
+    }
+}
+
 const port = process.env.PORT ?? 8082;
 const {DESKTOP_SHORTCUT_ACCELERATOR} = CONST;
 
@@ -716,6 +775,75 @@ const mainWindow = (): Promise<void> => {
                     }
                     isSilentUpdating = true;
                     manuallyCheckForUpdates(undefined, browserWindow);
+                });
+
+                // SecureStore IPC handlers
+                ipcMain.handle(ELECTRON_EVENTS.SECURE_STORE_SET, (event, key: string, value: string) => {
+                    log.info(`[SecureStore] SET request - key: ${key}`);
+                    if (!secureStore) {
+                        const error = 'SecureStore is not available (only works on macOS)';
+                        log.error(`[SecureStore] ${error}`);
+                        throw new Error(error);
+                    }
+                    try {
+                        secureStore.set(key, value);
+                        log.info(`[SecureStore] SET success - key: ${key}`);
+                    } catch (error) {
+                        log.error('[SecureStore] SET error:', error);
+                        throw error;
+                    }
+                });
+
+                // Handle both async (invoke) and sync (sendSync) for GET
+                ipcMain.handle(ELECTRON_EVENTS.SECURE_STORE_GET, (event, key: string) => {
+                    log.info(`[SecureStore] GET request (async) - key: ${key}`);
+                    if (!secureStore) {
+                        const error = 'SecureStore is not available (only works on macOS)';
+                        log.error(`[SecureStore] ${error}`);
+                        throw new Error(error);
+                    }
+                    try {
+                        const value = secureStore.get(key);
+                        log.info(`[SecureStore] GET success - key: ${key}, found: ${value !== null}`);
+                        return value;
+                    } catch (error) {
+                        log.error('[SecureStore] GET error:', error);
+                        throw error;
+                    }
+                });
+
+                ipcMain.on(ELECTRON_EVENTS.SECURE_STORE_GET, (event, key: string) => {
+                    log.info(`[SecureStore] GET request (sync) - key: ${key}`);
+                    if (!secureStore) {
+                        const error = 'SecureStore is not available (only works on macOS)';
+                        log.error(`[SecureStore] ${error}`);
+                        event.returnValue = null;
+                        return;
+                    }
+                    try {
+                        const value = secureStore.get(key);
+                        log.info(`[SecureStore] GET success - key: ${key}, found: ${value !== null}`);
+                        event.returnValue = value;
+                    } catch (error) {
+                        log.error('[SecureStore] GET error:', error);
+                        event.returnValue = null;
+                    }
+                });
+
+                ipcMain.handle(ELECTRON_EVENTS.SECURE_STORE_DELETE, (event, key: string) => {
+                    log.info(`[SecureStore] DELETE request - key: ${key}`);
+                    if (!secureStore) {
+                        const error = 'SecureStore is not available (only works on macOS)';
+                        log.error(`[SecureStore] ${error}`);
+                        throw new Error(error);
+                    }
+                    try {
+                        secureStore.delete(key);
+                        log.info(`[SecureStore] DELETE success - key: ${key}`);
+                    } catch (error) {
+                        log.error('[SecureStore] DELETE error:', error);
+                        throw error;
+                    }
                 });
 
                 return browserWindow;

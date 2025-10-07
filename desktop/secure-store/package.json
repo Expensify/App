@@ -1,0 +1,19 @@
+{
+  "name": "@expensify/secure-store",
+  "version": "1.0.0",
+  "description": "Secure storage addon for Electron using macOS Keychain",
+  "main": "ts/index.ts",
+  "scripts": {
+    "clean": "rm -rf build build_swift",
+    "build": "node-gyp configure && node-gyp build",
+    "rebuild": "npm run clean && npm run build"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "bindings": "^1.5.0",
+    "node-addon-api": "^8.3.0"
+  },
+  "devDependencies": {
+    "node-gyp": "^11.1.0"
+  }
+}

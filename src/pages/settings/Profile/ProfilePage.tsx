@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import {View} from 'react-native';
 import AvatarSkeleton from '@components/AvatarSkeleton';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
@@ -14,6 +14,8 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -49,6 +51,12 @@ function ProfilePage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+
+    // SecureStore test state
+    const [testKey, setTestKey] = useState('');
+    const [testValue, setTestValue] = useState('');
+    const [secureStoreResult, setSecureStoreResult] = useState('');
+    const [secureStoreError, setSecureStoreError] = useState('');
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
         return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPaths) : translate('profilePage.selectYourPronouns');
@@ -64,6 +72,105 @@ function ProfilePage() {
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+
+    const handleSetSecureStore = () => {
+        try {
+            setSecureStoreError('');
+            setSecureStoreResult('');
+
+            console.log('[ProfilePage] handleSetSecureStore called');
+            console.log('[ProfilePage] window.electron exists:', !!window.electron);
+            console.log('[ProfilePage] window.electron.secureStore exists:', !!(window.electron as any)?.secureStore);
+
+            if (!testKey || !testValue) {
+                setSecureStoreError('Key and value are required');
+                return;
+            }
+
+            // @ts-expect-error - SecureStore is available only in Electron/desktop
+            if (window.electron?.secureStore) {
+                console.log(`[ProfilePage] Calling secureStore.set(${testKey}, ${testValue})`);
+                // @ts-expect-error - SecureStore typing
+                window.electron.secureStore.set(testKey, testValue);
+                setSecureStoreResult(`✓ Successfully stored: ${testKey} = ${testValue}`);
+                console.log('[ProfilePage] SET completed successfully');
+            } else {
+                const errorMsg = 'SecureStore is only available in Electron desktop app';
+                console.error('[ProfilePage]', errorMsg);
+                setSecureStoreError(errorMsg);
+            }
+        } catch (error) {
+            const errorMsg = `Error: ${error instanceof Error ? error.message : String(error)}`;
+            console.error('[ProfilePage] SET error:', error);
+            setSecureStoreError(errorMsg);
+        }
+    };
+
+    const handleGetSecureStore = () => {
+        try {
+            setSecureStoreError('');
+            setSecureStoreResult('');
+
+            console.log('[ProfilePage] handleGetSecureStore called');
+
+            if (!testKey) {
+                setSecureStoreError('Key is required');
+                return;
+            }
+
+            // @ts-expect-error - SecureStore is available only in Electron/desktop
+            if (window.electron?.secureStore) {
+                console.log(`[ProfilePage] Calling secureStore.get(${testKey})`);
+                // @ts-expect-error - SecureStore typing
+                const value = window.electron.secureStore.get(testKey);
+                console.log(`[ProfilePage] GET returned:`, value);
+                if (value === null) {
+                    setSecureStoreResult(`Key "${testKey}" not found`);
+                } else {
+                    setSecureStoreResult(`✓ Retrieved: ${testKey} = ${value}`);
+                }
+            } else {
+                const errorMsg = 'SecureStore is only available in Electron desktop app';
+                console.error('[ProfilePage]', errorMsg);
+                setSecureStoreError(errorMsg);
+            }
+        } catch (error) {
+            const errorMsg = `Error: ${error instanceof Error ? error.message : String(error)}`;
+            console.error('[ProfilePage] GET error:', error);
+            setSecureStoreError(errorMsg);
+        }
+    };
+
+    const handleDeleteSecureStore = () => {
+        try {
+            setSecureStoreError('');
+            setSecureStoreResult('');
+
+            console.log('[ProfilePage] handleDeleteSecureStore called');
+
+            if (!testKey) {
+                setSecureStoreError('Key is required');
+                return;
+            }
+
+            // @ts-expect-error - SecureStore is available only in Electron/desktop
+            if (window.electron?.secureStore) {
+                console.log(`[ProfilePage] Calling secureStore.delete(${testKey})`);
+                // @ts-expect-error - SecureStore typing
+                window.electron.secureStore.delete(testKey);
+                setSecureStoreResult(`✓ Deleted key: ${testKey}`);
+                console.log('[ProfilePage] DELETE completed successfully');
+            } else {
+                const errorMsg = 'SecureStore is only available in Electron desktop app';
+                console.error('[ProfilePage]', errorMsg);
+                setSecureStoreError(errorMsg);
+            }
+        } catch (error) {
+            const errorMsg = `Error: ${error instanceof Error ? error.message : String(error)}`;
+            console.error('[ProfilePage] DELETE error:', error);
+            setSecureStoreError(errorMsg);
+        }
+    };
     const publicOptions = [
         {
             description: translate('displayNamePage.headerTitle'),
@@ -262,6 +369,62 @@ function ProfilePage() {
                                     ))}
                                 </MenuItemGroup>
                             )}
+                        </Section>
+
+                        <Section
+                            title="SecureStore Test (Desktop Only)"
+                            subtitle="Test native Swift SecureStore addon"
+                            isCentralPane
+                            subtitleMuted
+                            childrenStyles={styles.pt3}
+                            titleStyles={styles.accountSettingsSectionTitle}
+                        >
+                            <View style={[styles.mb4]}>
+                                <TextInput
+                                    label="Key"
+                                    placeholder="Enter key"
+                                    value={testKey}
+                                    onChangeText={setTestKey}
+                                    containerStyles={[styles.mb4]}
+                                />
+                                <TextInput
+                                    label="Value"
+                                    placeholder="Enter value"
+                                    value={testValue}
+                                    onChangeText={setTestValue}
+                                    containerStyles={[styles.mb4]}
+                                />
+                                <View style={[styles.flexRow, styles.gap2, styles.mb4]}>
+                                    <Button
+                                        text="Set"
+                                        onPress={handleSetSecureStore}
+                                        style={[styles.flex1]}
+                                        small
+                                    />
+                                    <Button
+                                        text="Get"
+                                        onPress={handleGetSecureStore}
+                                        style={[styles.flex1]}
+                                        small
+                                    />
+                                    <Button
+                                        text="Delete"
+                                        onPress={handleDeleteSecureStore}
+                                        style={[styles.flex1]}
+                                        small
+                                    />
+                                </View>
+                                {secureStoreResult ? (
+                                    <View style={[styles.p4, styles.mb4, StyleUtils.getBackgroundColorStyle(theme.success)]}>
+                                        <Text style={[styles.textWhite]}>{secureStoreResult}</Text>
+                                    </View>
+                                ) : null}
+                                {secureStoreError ? (
+                                    <View style={[styles.p4, styles.mb4, StyleUtils.getBackgroundColorStyle(theme.danger)]}>
+                                        <Text style={[styles.textWhite]}>{secureStoreError}</Text>
+                                    </View>
+                                ) : null}
+                            </View>
                         </Section>
                     </View>
                 </MenuItemGroup>
