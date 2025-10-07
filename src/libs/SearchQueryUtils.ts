@@ -165,6 +165,12 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
 
 /**
  * @private
+ * Returns negated or non-negated filter value for query strings
+ */
+function buildNegationFilterQuery(filterKey: SearchNeg);
+
+/**
+ * @private
  * Returns string of correctly formatted filter values from QueryFilters object.
  */
 function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]) {
