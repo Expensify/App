@@ -55,7 +55,7 @@ function UserInfoAndActionButtonRow({
                     infoCellsTextStyle={{lineHeight: 14}}
                     infoCellsAvatarStyle={styles.pr1}
                     fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : {}}
-                    shoudlUseArrowIcon={false}
+                    shouldUseArrowIcon={false}
                 />
             )}
             <View style={[{width: shouldUseNarrowLayout ? variables.w72 : variables.w80}, styles.alignItemsEnd]}>

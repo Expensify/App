@@ -24,7 +24,7 @@ function UserInfoCellsWithArrow({
     infoCellsTextStyle,
     infoCellsAvatarStyle,
     fromRecipientStyle,
-    shoudlUseArrowIcon = true,
+    shouldUseArrowIcon = true,
 }: {
     shouldShowToRecipient: boolean;
     participantFrom: SearchPersonalDetails | PersonalDetails;
@@ -36,7 +36,7 @@ function UserInfoCellsWithArrow({
     infoCellsTextStyle?: TextStyle;
     infoCellsAvatarStyle?: ViewStyle;
     fromRecipientStyle?: ViewStyle;
-    shoudlUseArrowIcon?: boolean;
+    shouldUseArrowIcon?: boolean;
 }) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -59,7 +59,7 @@ function UserInfoCellsWithArrow({
             />
             {shouldShowToRecipient && (
                 <>
-                    {shoudlUseArrowIcon ? (
+                    {shouldUseArrowIcon ? (
                         <Icon
                             src={Expensicons.ArrowRightLong}
                             width={variables.iconSizeXXSmall}
