@@ -302,6 +302,11 @@ Onyx.connect({
 });
 
 let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+/**
+ * This connection is exclusively used within the `registerPaginationConfig` function.
+ * Using connectWithoutView() is appropriate here since these values are not directly
+ * bound to any UI components.
+ */
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     waitForCollectionCallback: true,

@@ -121,8 +121,19 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        saveSplitTransactions(draftTransaction, currentSearchHash, policyCategories, expenseReportPolicy, iouReport, chatReport, iouActions.at(0), isChatIOUReportArchived);
+        saveSplitTransactions(
+            originalTransactionID,
+            draftTransaction,
+            currentSearchHash,
+            policyCategories,
+            expenseReportPolicy,
+            iouReport,
+            chatReport,
+            iouActions.at(0),
+            isChatIOUReportArchived,
+        );
     }, [
+        originalTransactionID,
         draftTransaction,
         sumOfSplitExpenses,
         transactionDetailsAmount,
