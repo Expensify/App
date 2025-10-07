@@ -16,7 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
-import {getCardDescription, isCardHiddenFromSearch, isNonCashCard} from '@libs/CardUtils';
+import {getCardDescription, isCardHiddenFromSearch} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import type {Options} from '@libs/OptionsListUtils';
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@libs/OptionsListUtils';
@@ -454,7 +454,7 @@ function SearchAutocompleteList({
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID: {
                 const filteredCards = cardAutocompleteList
-                    .filter((card) => isNonCashCard(card) && !isCardHiddenFromSearch(card))
+                    .filter((card) => !isCardHiddenFromSearch(card))
                     .filter(
                         (card) =>
                             (card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) || card.lastFourPAN?.includes(autocompleteValue)) &&
