@@ -1158,7 +1158,7 @@ function changeTransactionsReport(
 
     // This can be removed after NextStep (simplified format) is fully migrated
     // eslint-disable-next-line deprecation/deprecation
-    const optimisticNextStepDeperecated = buildNextStepNew({
+    const optimisticNextStepDeprecated = buildNextStepNew({
         report: nextStepReport,
         policy,
         currentUserAccountIDParam: accountID,
@@ -1181,7 +1181,7 @@ function changeTransactionsReport(
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-        value: optimisticNextStepDeperecated,
+        value: optimisticNextStepDeprecated,
     });
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,

@@ -384,7 +384,7 @@ function MoneyReportHeader({
     // eslint-disable-next-line deprecation/deprecation
     const optimisticNextStepDeprecated = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStepDeprecated;
 
-    // The NextStep (simplied format) is missing the "submittingToSelf" message key. Will be handled in https://github.com/Expensify/Expensify/issues/555094
+    // The NextStep (simplified format) is missing the "submittingToSelf" message key. Will be handled in https://github.com/Expensify/Expensify/issues/555094
     // For now we need to pass undefined so we fallback to the old format
     const optimisticNextStep = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? undefined : moneyRequestReport?.nextStep;
 

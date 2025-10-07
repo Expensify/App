@@ -2460,7 +2460,7 @@ function updateReportField(
 
     // This can be removed after NextStep (simplified format) is fully migrated
     // eslint-disable-next-line deprecation/deprecation
-    const optimisticNextStepDeperecated = buildNextStepNew({
+    const optimisticNextStepDeprecated = buildNextStepNew({
         report,
         predictedNextStatus,
         shouldFixViolations,
@@ -2499,7 +2499,7 @@ function updateReportField(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: optimisticNextStepDeperecated,
+            value: optimisticNextStepDeprecated,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2857,7 +2857,7 @@ function buildNewReportOptimisticData(
 
     // This can be removed after NextStep (simplified format) is fully migrated
     // eslint-disable-next-line deprecation/deprecation
-    const optimisticNextStepDeperecated = buildNextStepNew({
+    const optimisticNextStepDeprecated = buildNextStepNew({
         report: optimisticReportData,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
         policy,
@@ -2899,7 +2899,7 @@ function buildNewReportOptimisticData(
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: optimisticNextStepDeperecated,
+            value: optimisticNextStepDeprecated,
         },
     ];
 
@@ -5785,7 +5785,7 @@ function buildOptimisticChangePolicyData(
     if (newStatusNum) {
         // This can be removed after NextStep (simplified format) is fully migrated
         // eslint-disable-next-line deprecation/deprecation
-        const optimisticNextStepDeperecated = buildNextStepNew({
+        const optimisticNextStepDeprecated = buildNextStepNew({
             report: {...report, policyID: policy.id},
             predictedNextStatus: newStatusNum,
             policy,
@@ -5807,7 +5807,7 @@ function buildOptimisticChangePolicyData(
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: optimisticNextStepDeperecated,
+            value: optimisticNextStepDeprecated,
         });
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,

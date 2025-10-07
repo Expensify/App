@@ -61,7 +61,7 @@ type Participants = Record<number, Participant>;
 
 /** Report next step */
 type ReportNextStep = {
-    /** The meesage key */
+    /** The message key */
     messageKey: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY>;
 
     /** The icon */
