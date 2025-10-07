@@ -1,6 +1,7 @@
 import mapValues from 'lodash/mapValues';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -65,6 +66,12 @@ type MoneyRequestReceiptViewProps = {
 
     /** Merge transaction ID to show in merge transaction flow */
     mergeTransactionID?: string;
+
+    /** Whether the receipt view should fill the given space */
+    fillSpace?: boolean;
+
+    /** Whether it's displayed in Wide RHP */
+    isDisplayedInWideRHP?: boolean;
 };
 
 const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
@@ -78,7 +85,16 @@ const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
 
 const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
 
-function MoneyRequestReceiptView({allReports, report, readonly = false, updatedTransaction, isFromReviewDuplicates = false, mergeTransactionID}: MoneyRequestReceiptViewProps) {
+function MoneyRequestReceiptView({
+    allReports,
+    report,
+    readonly = false,
+    updatedTransaction,
+    isFromReviewDuplicates = false,
+    fillSpace = false,
+    mergeTransactionID,
+    isDisplayedInWideRHP = false,
+}: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -90,6 +106,8 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
         canEvict: false,
         canBeMissing: true,
     });
+
+    const [isLoading, setIsLoading] = useState(true);
 
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
@@ -142,7 +160,7 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 
     const isReceiptAllowed = !isPaidReport && !isInvoice;
-    const shouldShowReceiptEmptyState = isReceiptAllowed && !hasReceipt;
+    const shouldShowReceiptEmptyState = isReceiptAllowed && !hasReceipt && !!transaction && !transaction.receipt;
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
         const imageViolations = [];
         const allViolations = [];
@@ -175,6 +193,8 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
         ...parentReportAction?.errors,
     };
 
+    const showReceiptErrorWithEmptyState = shouldShowReceiptEmptyState && !hasReceipt && !isEmptyObject(errors);
+
     const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
 
     const dismissReceiptError = useCallback(() => {
@@ -204,10 +224,22 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
         clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
     }, [transaction, chatReport, parentReportAction, isChatIOUReportArchived, linkedTransactionID, report?.reportID, iouReport, chatIOUReport]);
 
-    const receiptStyle = shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage;
+    let receiptStyle: StyleProp<ViewStyle>;
 
+    if (fillSpace && shouldShowReceiptEmptyState) {
+        receiptStyle = styles.h100;
+    } else if (fillSpace) {
+        receiptStyle = styles.flexibleHeight;
+    } else {
+        receiptStyle = shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage;
+    }
+
+    const showBorderlessLoading = isLoading && fillSpace;
+
+    // For empty receipt should be fullHeight
+    // For the rest, expand to match the content
     return (
-        <View style={styles.pRelative}>
+        <View style={fillSpace ? styles.flex1 : styles.pRelative}>
             {shouldShowReceiptAudit && (
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('receipt')}>
                     <ReceiptAudit
@@ -219,7 +251,8 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
             {shouldShowReceiptEmptyState && (
                 <OfflineWithFeedback
                     pendingAction={getPendingFieldAction('receipt')}
-                    style={styles.mv3}
+                    style={[styles.mt3, isEmptyObject(errors) && styles.mb3, styles.flex1]}
+                    contentContainerStyle={styles.flex1}
                 >
                     <ReceiptEmptyState
                         disabled={!canEditReceipt}
@@ -258,11 +291,14 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
                         }
                     }}
                     dismissError={dismissReceiptError}
-                    style={shouldShowReceiptEmptyState ? styles.mb3 : styles.mv3}
+                    style={[shouldShowAuditMessage ? styles.mt3 : styles.mv3, !showReceiptErrorWithEmptyState && styles.flex1]}
+                    contentContainerStyle={styles.flex1}
                 >
                     {hasReceipt && (
-                        <View style={[styles.moneyRequestViewImage, receiptStyle]}>
+                        <View style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.flex1]}>
                             <ReportActionItemImage
+                                shouldUseThumbnailImage={!fillSpace}
+                                shouldUseFullHeight={fillSpace}
                                 thumbnail={receiptURIs?.thumbnail}
                                 fileExtension={receiptURIs?.fileExtension}
                                 isThumbnail={receiptURIs?.isThumbnail}
@@ -274,13 +310,19 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
                                 readonly={readonly || !canEditReceipt}
                                 isFromReviewDuplicates={isFromReviewDuplicates}
                                 mergeTransactionID={mergeTransactionID}
+                                report={report}
+                                onLoad={() => setIsLoading(false)}
                             />
+                        </View>
+                    )}
+                    {!!shouldShowAuditMessage && hasReceipt && !isLoading && (
+                        <View style={[styles.mt3, isEmptyObject(errors) && isDisplayedInWideRHP && styles.mb3]}>
+                            <ReceiptAuditMessages notes={receiptImageViolations} />
                         </View>
                     )}
                 </OfflineWithFeedback>
             )}
             {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
-            {!!shouldShowAuditMessage && <ReceiptAuditMessages notes={receiptImageViolations} />}
             <ConfirmModal
                 isVisible={showConfirmDismissReceiptError}
                 onConfirm={() => {
