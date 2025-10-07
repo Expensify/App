@@ -32,6 +32,7 @@ function useOptions() {
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const currentVacationDelegate = vacationDelegate?.delegate;
     const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate ?? '');
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     const excludeLogins = useMemo(
         () => ({
@@ -50,6 +51,7 @@ function useOptions() {
             {
                 betas,
                 excludeLogins,
+                nvpDismissedProductTraining,
             },
         );
 
@@ -62,7 +64,7 @@ function useOptions() {
             currentUserOption,
             headerMessage,
         };
-    }, [optionsList.reports, optionsList.personalDetails, betas, excludeLogins]);
+    }, [optionsList.reports, optionsList.personalDetails, betas, excludeLogins, nvpDismissedProductTraining]);
 
     const options = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), countryCode, {

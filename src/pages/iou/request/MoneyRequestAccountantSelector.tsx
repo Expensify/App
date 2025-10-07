@@ -62,6 +62,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     });
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -81,6 +82,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 action,
+                nvpDismissedProductTraining,
             },
         );
 
@@ -90,7 +92,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             ...optionList,
             ...orderedOptions,
         };
-    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, options.personalDetails, options.reports]);
+    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, options.personalDetails, options.reports, nvpDismissedProductTraining]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {

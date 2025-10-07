@@ -57,6 +57,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -89,10 +90,10 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, true);
+        const inviteOptions = getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, betas ?? [], excludedUsers, true);
 
         return {...inviteOptions, recentReports: [], currentUserOption: null};
-    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
+    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, nvpDismissedProductTraining]);
 
     const inviteOptions = useMemo(
         () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {excludeLogins: excludedUsers}),

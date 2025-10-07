@@ -311,12 +311,6 @@ Onyx.connect({
     callback: (value) => (activePolicyID = value),
 });
 
-let nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
-    callback: (value) => (nvpDismissedProductTraining = value),
-});
-
 /**
  * Returns the personal details for an array of accountIDs
  * @returns keys of the object are emails, values are PersonalDetails objects.
@@ -1709,7 +1703,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
 /**
  * Whether user submitted already an expense or scanned receipt
  */
-function getIsUserSubmittedExpenseOrScannedReceipt(): boolean {
+function getIsUserSubmittedExpenseOrScannedReceipt(nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>): boolean {
     return !!nvpDismissedProductTraining?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP];
 }
 
@@ -1725,12 +1719,17 @@ function isManagerMcTestReport(report: SearchOption<Report>): boolean {
  * based on dynamic business logic and feature flags.
  * Centralizes restriction logic to avoid scattering conditions across the codebase.
  */
-function getRestrictedLogins(config: GetOptionsConfig, options: OptionList, canShowManagerMcTest: boolean): Record<string, boolean> {
+function getRestrictedLogins(
+    config: GetOptionsConfig,
+    options: OptionList,
+    canShowManagerMcTest: boolean,
+    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
+): Record<string, boolean> {
     const userHasReportWithManagerMcTest = Object.values(options.reports).some((report) => isManagerMcTestReport(report));
     return {
         [CONST.EMAIL.MANAGER_MCTEST]:
             !canShowManagerMcTest ||
-            (getIsUserSubmittedExpenseOrScannedReceipt() && !userHasReportWithManagerMcTest) ||
+            (getIsUserSubmittedExpenseOrScannedReceipt(nvpDismissedProductTraining) && !userHasReportWithManagerMcTest) ||
             !Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST, config.betas) ||
             isCurrentUserMemberOfAnyPolicy(),
     };
@@ -1754,10 +1753,11 @@ function getValidOptions(
         searchString,
         maxElements,
         includeUserToInvite = false,
+        nvpDismissedProductTraining,
         ...config
     }: GetOptionsConfig = {},
 ): Options {
-    const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest);
+    const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest, nvpDismissedProductTraining);
 
     // Gather shared configs:
     const loginsToExclude: Record<string, boolean> = {
@@ -1917,6 +1917,7 @@ function getValidOptions(
  */
 function getSearchOptions(
     options: OptionList,
+    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
     betas: Beta[] = [],
     isUsedInChatFinder = true,
     includeReadOnly = true,
@@ -1949,6 +1950,7 @@ function getSearchOptions(
         searchString: searchQuery,
         includeUserToInvite,
         shouldShowGBR,
+        nvpDismissedProductTraining,
     });
 
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -1957,7 +1959,14 @@ function getSearchOptions(
     return optionList;
 }
 
-function getShareLogOptions(options: OptionList, betas: Beta[] = [], searchString = '', maxElements?: number, includeUserToInvite = false): Options {
+function getShareLogOptions(
+    options: OptionList,
+    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
+    betas: Beta[] = [],
+    searchString = '',
+    maxElements?: number,
+    includeUserToInvite = false,
+): Options {
     return getValidOptions(options, {
         betas,
         includeMultipleParticipantReports: true,
@@ -1970,6 +1979,7 @@ function getShareLogOptions(options: OptionList, betas: Beta[] = [], searchStrin
         searchString,
         maxElements,
         includeUserToInvite,
+        nvpDismissedProductTraining,
     });
 }
 
@@ -2003,6 +2013,7 @@ function getAttendeeOptions(
     betas: OnyxEntry<Beta[]>,
     attendees: Attendee[],
     recentAttendees: Attendee[],
+    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
     includeOwnedWorkspaceChats = false,
     includeP2P = true,
     includeInvoiceRooms = false,
@@ -2050,6 +2061,7 @@ function getAttendeeOptions(
             includeInvoiceRooms,
             action,
             recentAttendees: filteredRecentAttendees,
+            nvpDismissedProductTraining,
         },
     );
 }
@@ -2059,6 +2071,7 @@ function getAttendeeOptions(
  */
 
 function getShareDestinationOptions(
+    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
     reports: Array<SearchOption<Report>> = [],
     personalDetails: Array<SearchOption<PersonalDetails>> = [],
     betas: OnyxEntry<Beta[]> = [],
@@ -2086,6 +2099,7 @@ function getShareDestinationOptions(
             searchString,
             maxElements,
             includeUserToInvite,
+            nvpDismissedProductTraining,
         },
     );
 }
@@ -2122,6 +2136,7 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
  */
 function getMemberInviteOptions(
     personalDetails: Array<SearchOption<PersonalDetails>>,
+    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
     betas: Beta[] = [],
     excludeLogins: Record<string, boolean> = {},
     includeSelectedOptions = false,
@@ -2140,6 +2155,7 @@ function getMemberInviteOptions(
             includeRecentReports,
             searchString,
             maxElements,
+            nvpDismissedProductTraining,
         },
     );
 }

@@ -126,6 +126,7 @@ function MoneyRequestParticipantsSelector({
         shouldInitialize: didScreenTransitionEnd,
     });
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListHandle | null>(null);
@@ -176,7 +177,7 @@ function MoneyRequestParticipantsSelector({
                 betas,
                 selectedOptions: participants as Participant[],
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-
+                nvpDismissedProductTraining,
                 // If we are using this component in the "Submit expense" or the combined submit/track flow then we pass the includeOwnedWorkspaceChats argument so that the current user
                 // sees the option to submit an expense from their admin on their own Expense Chat.
                 includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT,
@@ -217,6 +218,7 @@ function MoneyRequestParticipantsSelector({
         isPerDiemRequest,
         canShowManagerMcTest,
         isCorporateCardTransaction,
+        nvpDismissedProductTraining,
     ]);
 
     const chatOptions = useMemo(() => {

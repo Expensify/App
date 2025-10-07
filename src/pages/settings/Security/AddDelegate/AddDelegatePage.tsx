@@ -29,6 +29,8 @@ function useOptions() {
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+
     const existingDelegates = useMemo(
         () =>
             account?.delegatedAccess?.delegates?.reduce(
@@ -51,6 +53,7 @@ function useOptions() {
             {
                 betas,
                 excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
+                nvpDismissedProductTraining,
             },
         );
 
@@ -68,7 +71,7 @@ function useOptions() {
             currentUserOption,
             headerMessage,
         };
-    }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates, isLoading]);
+    }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates, isLoading, nvpDismissedProductTraining]);
 
     const options = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), countryCode, {

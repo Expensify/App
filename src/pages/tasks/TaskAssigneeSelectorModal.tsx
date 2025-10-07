@@ -44,6 +44,7 @@ function useOptions() {
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
     const session = useSession();
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     const defaultOptions = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = memoizedGetValidOptions(
@@ -55,6 +56,7 @@ function useOptions() {
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
+                nvpDismissedProductTraining,
             },
         );
 
@@ -72,7 +74,7 @@ function useOptions() {
             currentUserOption,
             headerMessage,
         };
-    }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
+    }, [optionsList.reports, optionsList.personalDetails, betas, isLoading, nvpDismissedProductTraining]);
 
     const optionsWithoutCurrentUser = useMemo(() => {
         if (!session?.accountID) {
