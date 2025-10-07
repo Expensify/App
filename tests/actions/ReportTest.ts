@@ -8,8 +8,9 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
-import {buildNextStep} from '@libs/NextStepUtils';
+import {buildNextStepNew} from '@libs/NextStepUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -28,6 +29,7 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
+import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
@@ -35,7 +37,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('@libs/NextStepUtils', () => ({
-    buildNextStep: jest.fn(),
+    buildNextStepNew: jest.fn(),
 }));
 
 jest.mock('@libs/ReportUtils', () => {
@@ -71,6 +73,12 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     default: () => ({
         didScreenTransitionEnd: true,
     }),
+}));
+
+jest.mock('@libs/Sound', () => ({
+    __esModule: true,
+    default: jest.fn(),
+    SOUNDS: {DONE: 'DONE'},
 }));
 
 const originalXHR = HttpUtils.xhr;
@@ -904,7 +912,10 @@ describe('actions/Report', () => {
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const newReportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-        Report.editReportComment(REPORT_ID, newReportAction, 'Testing an edited comment');
+        const originalReport = {
+            reportID: REPORT_ID,
+        };
+        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment');
 
         await waitForBatchedUpdates();
 
@@ -980,7 +991,10 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.editReportComment(REPORT_ID, reportAction, 'Testing an edited comment');
+        const originalReport = {
+            reportID: REPORT_ID,
+        };
+        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment');
 
         await waitForBatchedUpdates();
 
@@ -1071,7 +1085,7 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
         const file = new File([''], 'test.txt', {type: 'text/plain'});
-        Report.addAttachment(REPORT_ID, REPORT_ID, file, CONST.DEFAULT_TIME_ZONE);
+        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, file);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1140,7 +1154,7 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addAttachment(REPORT_ID, REPORT_ID, file, CONST.DEFAULT_TIME_ZONE, 'Attachment with comment');
+        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, file, 'Attachment with comment');
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1196,6 +1210,103 @@ describe('actions/Report', () => {
         // Checking no requests were or will be made
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT, 0);
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
+    });
+
+    it('should post text + attachment as first action then attachment only for remaining attachments when adding multiple attachments with a comment', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+        const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        await waitForBatchedUpdates();
+
+        const relevantPromise = new Promise((resolve) => {
+            const conn = Onyx.connect({
+                key: ONYXKEYS.PERSISTED_REQUESTS,
+                callback: (persisted) => {
+                    const relevant = (persisted ?? []).filter((r) => r?.command === WRITE_COMMANDS.ADD_ATTACHMENT || r?.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
+                    if (relevant.length >= 3) {
+                        Onyx.disconnect(conn);
+                        resolve(relevant);
+                    }
+                },
+            });
+        });
+
+        const REPORT_ID = '1';
+        const shouldPlaySound = true;
+        const fileA = new File(['a'], 'a.txt', {type: 'text/plain'});
+        const fileB = new File(['b'], 'b.txt', {type: 'text/plain'});
+        const fileC = new File(['c'], 'c.txt', {type: 'text/plain'});
+
+        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, [fileA, fileB, fileC], 'Hello world', CONST.DEFAULT_TIME_ZONE, shouldPlaySound);
+        const relevant = (await relevantPromise) as OnyxTypes.Request[];
+
+        expect(playSoundMock).toHaveBeenCalledTimes(1);
+        expect(playSoundMock).toHaveBeenCalledWith(SOUNDS.DONE);
+        expect(relevant.at(0)?.command).toBe(WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
+        expect(relevant.slice(1).every((r) => r.command === WRITE_COMMANDS.ADD_ATTACHMENT)).toBe(true);
+    });
+
+    it('should create attachment only actions when adding multiple attachments without a comment', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+        const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        await waitForBatchedUpdates();
+
+        const relevantPromise = new Promise((resolve) => {
+            const conn = Onyx.connect({
+                key: ONYXKEYS.PERSISTED_REQUESTS,
+                callback: (persisted) => {
+                    const relevant = (persisted ?? []).filter((r) => r?.command === WRITE_COMMANDS.ADD_ATTACHMENT || r?.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
+                    if (relevant.length >= 2) {
+                        Onyx.disconnect(conn);
+                        resolve(relevant);
+                    }
+                },
+            });
+        });
+
+        const REPORT_ID = '1';
+        const shouldPlaySound = true;
+        const fileA = new File(['a'], 'a.txt', {type: 'text/plain'});
+        const fileB = new File(['b'], 'b.txt', {type: 'text/plain'});
+
+        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, [fileA, fileB], undefined, CONST.DEFAULT_TIME_ZONE, shouldPlaySound);
+        const relevant = (await relevantPromise) as OnyxTypes.Request[];
+
+        expect(playSoundMock).toHaveBeenCalledTimes(1);
+        expect(playSoundMock).toHaveBeenCalledWith(SOUNDS.DONE);
+        expect(relevant.at(0)?.command).toBe(WRITE_COMMANDS.ADD_ATTACHMENT);
+        expect(relevant.slice(1).every((r) => r.command === WRITE_COMMANDS.ADD_ATTACHMENT)).toBe(true);
+        expect(relevant.some((r) => r.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT)).toBe(false);
+    });
+
+    it('should create attachment only action & not play sound when adding attachment without a comment & shouldPlaySound not passed', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+        const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        await waitForBatchedUpdates();
+
+        const relevantPromise = new Promise((resolve) => {
+            const conn = Onyx.connect({
+                key: ONYXKEYS.PERSISTED_REQUESTS,
+                callback: (persisted) => {
+                    const relevant = (persisted ?? []).filter((r) => r?.command === WRITE_COMMANDS.ADD_ATTACHMENT);
+                    if (relevant.length >= 1) {
+                        Onyx.disconnect(conn);
+                        resolve(relevant);
+                    }
+                },
+            });
+        });
+
+        const REPORT_ID = '1';
+        const file = new File(['a'], 'a.txt', {type: 'text/plain'});
+
+        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, file);
+        const relevant = (await relevantPromise) as OnyxTypes.Request[];
+
+        expect(playSoundMock).toHaveBeenCalledTimes(0);
+        expect(relevant.at(0)?.command).toBe(WRITE_COMMANDS.ADD_ATTACHMENT);
     });
 
     it('should not send DeleteComment request and remove any Reactions accordingly', async () => {
@@ -1445,7 +1556,10 @@ describe('actions/Report', () => {
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-        Report.editReportComment(REPORT_ID, reportAction, 'Testing an edited comment');
+        const originalReport = {
+            reportID: REPORT_ID,
+        };
+        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment');
 
         await waitForBatchedUpdates();
 
@@ -1486,9 +1600,12 @@ describe('actions/Report', () => {
             created: '2024-10-21 10:37:59.881',
         };
 
-        Report.editReportComment(reportID, action, 'value1');
-        Report.editReportComment(reportID, action, 'value2');
-        Report.editReportComment(reportID, action, 'value3');
+        const originalReport = {
+            reportID,
+        };
+        Report.editReportComment(originalReport, action, 'value1');
+        Report.editReportComment(originalReport, action, 'value2');
+        Report.editReportComment(originalReport, action, 'value3');
 
         const requests = PersistedRequests?.getAll();
 
@@ -1564,7 +1681,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        const reportID = Report.createNewReport({accountID}, policyID);
+        const reportID = Report.createNewReport({accountID}, true, false, policyID);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
@@ -1640,7 +1757,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        Report.createNewReport({accountID}, policyID);
+        Report.createNewReport({accountID}, true, false, policyID);
 
         // Then the parent report's hasOutstandingChildRequest property should remain unchanged
         await new Promise<void>((resolve) => {
@@ -1952,7 +2069,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             // When moving to another workspace
-            Report.changeReportPolicy(expenseReport, newPolicy);
+            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', true, false);
             await waitForBatchedUpdates();
 
             // Then the expense report should not be archived anymore
@@ -2007,6 +2124,10 @@ describe('actions/Report', () => {
             Report.changeReportPolicyAndInviteSubmitter(
                 expenseReport,
                 createRandomPolicy(Number(2)),
+                1,
+                '',
+                true,
+                false,
                 {
                     [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                 },
@@ -2025,6 +2146,84 @@ describe('actions/Report', () => {
                 });
             });
             expect(isArchived).toBe(false);
+        });
+
+        it('correctly implements RedBrickRoad error handling for ChangeReportPolicyAndInviteSubmitter when the request fails to add a new user to workspace', async () => {
+            const ownerAccountID = 999;
+            const ownerEmail = 'submitter@test.com';
+            const adminEmail = 'admin@test.com';
+            const mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
+
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(1),
+                reportID: 'expenseReport123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'oldPolicy123',
+                ownerAccountID,
+                total: 15000,
+                currency: CONST.CURRENCY.USD,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            const newPolicy: OnyxTypes.Policy = {
+                ...createRandomPolicy(2),
+                id: 'newPolicy456',
+                name: 'New Test Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                employeeList: {
+                    [adminEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                    // Note: submitter is NOT in the employee list, which will trigger the invitation
+                },
+            };
+
+            const employeeList = {
+                [adminEmail]: {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                },
+            };
+
+            const submitter = {
+                accountID: ownerAccountID,
+                login: ownerEmail,
+                email: ownerEmail,
+            };
+
+            global.fetch = mockFetch;
+            mockFetch.pause?.();
+
+            // Setup initial data
+            await Promise.all([
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy),
+                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: submitter}),
+            ]);
+            await waitForBatchedUpdates();
+
+            // Call changeReportPolicyAndInviteSubmitter
+            Report.changeReportPolicyAndInviteSubmitter(expenseReport, newPolicy, 1, '', true, false, employeeList, TestHelper.formatPhoneNumber, false);
+            await waitForBatchedUpdates();
+
+            // Simulate network failure
+            mockFetch.fail?.();
+            await (mockFetch.resume?.() as Promise<unknown>);
+
+            // Verify error handling after failure - focus on workspace invitation error
+            const policyData = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`);
+
+            // The submitter should have been added to the employee list with error
+            const submitterEmployee = policyData?.employeeList?.[ownerEmail];
+            expect(submitterEmployee).toBeTruthy();
+            expect(submitterEmployee?.errors).toBeTruthy();
+            expect(Object.values(submitterEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
+
+            // Cleanup
+            mockFetch.succeed?.();
         });
     });
 
@@ -2053,7 +2252,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace
-            Report.moveIOUReportToPolicy(iouReport.reportID, policy.id);
+            Report.moveIOUReportToPolicy(iouReport.reportID, policy);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -2090,7 +2289,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace and invite the submitter
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy.id, (phone: string) => phone);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy, (phone: string) => phone);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -2157,7 +2356,7 @@ describe('actions/Report', () => {
 
             // Call moveIOUReportToPolicyAndInviteSubmitter
             const formatPhoneNumber = (phoneNumber: string) => phoneNumber;
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy.id, formatPhoneNumber);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy, formatPhoneNumber);
             await waitForBatchedUpdates();
 
             // Simulate network failure
@@ -2193,8 +2392,17 @@ describe('actions/Report', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-            Report.buildOptimisticChangePolicyData(report, createRandomPolicy(Number(1)));
-            expect(buildNextStep).toHaveBeenCalledWith(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+            const policy = createRandomPolicy(Number(1));
+            Report.buildOptimisticChangePolicyData(report, policy, 1, '', false, true);
+            expect(buildNextStepNew).toHaveBeenCalledWith({
+                report,
+                policy,
+                currentUserAccountIDParam: 1,
+                currentUserEmailParam: '',
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: true,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            });
         });
     });
 
