@@ -89,7 +89,6 @@ function SearchFiltersBar({
 }: SearchFiltersBarProps) {
     const scrollRef = useRef<RNScrollView>(null);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
-    const [selectedIouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`, {canBeMissing: true});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
     const {hash, type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, flatFilters} = queryJSON;
@@ -654,8 +653,8 @@ function SearchFiltersBar({
             {shouldShowSelectedDropdown ? (
                 <KYCWall
                     chatReportID={currentSelectedReportID}
-                    iouReport={selectedIouReport}
                     enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                    iouReport={selectedIOUReport}
                     addBankAccountRoute={
                         isCurrentSelectedExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(currentSelectedPolicyID, undefined, Navigation.getActiveRoute()) : undefined
                     }
