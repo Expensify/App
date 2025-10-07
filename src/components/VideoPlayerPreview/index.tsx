@@ -13,7 +13,9 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@navigation/Navigation';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
@@ -64,6 +66,29 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
     const isOnSearch = useIsOnSearch();
     const navigation = useNavigation();
+
+    useEffect(() => {
+        if (typeof videoUrl !== 'string' || !videoUrl || getPlatform() !== CONST.PLATFORM.WEB) {
+            return;
+        }
+
+        const video = document.createElement('video');
+        video.onloadedmetadata = () => {
+            if (video.videoWidth === measuredDimensions.width && video.videoHeight === measuredDimensions.height) {
+                return;
+            }
+            setMeasuredDimensions({
+                width: video.videoWidth,
+                height: video.videoHeight,
+            });
+        };
+        video.src = videoUrl;
+        video.load();
+
+        return () => {
+            video.src = '';
+        };
+    }, [videoUrl, measuredDimensions.width, measuredDimensions.height]);
 
     // We want to play the video only when the user is on the page where it was initially rendered
     const doesUserRemainOnFirstRenderRoute = useCheckIfRouteHasRemainedUnchanged(videoUrl);
