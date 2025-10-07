@@ -65,7 +65,8 @@ function ProfilePage() {
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
     // const {isBetaEnabled} = usePermissions();
-    const isBetaEnabled = () => true; // TODO replace it with real beta
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const isBetaEnabled = (beta: string) => true; // TODO replace it with real beta
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);

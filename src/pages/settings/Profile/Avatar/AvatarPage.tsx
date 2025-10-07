@@ -14,10 +14,9 @@ import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {validateAvatarImage} from '@libs/AvatarUtils';
 import {isSafari} from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
-import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
-import getImageResolution from '@libs/fileDownload/getImageResolution';
 import Navigation from '@libs/Navigation/Navigation';
 import {isDefaultAvatar} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
@@ -54,13 +53,6 @@ function ProfileAvatar() {
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const avatarURL = currentUserPersonalDetails?.avatar ?? '';
     const isUsingDefaultAvatar = isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '');
-    /**
-     * Check if the attachment extension is allowed.
-     */
-    const isValidExtension = useCallback((image: FileObject): boolean => {
-        const {fileExtension} = splitExtensionFromFileName(image?.name ?? '');
-        return CONST.AVATAR_ALLOWED_EXTENSIONS.some((extension) => extension === fileExtension.toLowerCase());
-    }, []);
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({
@@ -70,59 +62,28 @@ function ProfileAvatar() {
     };
 
     /**
-     * Check if the attachment size is less than allowed size.
+     * Validates an image and opens avatar crop modal if valid
      */
-    const isValidSize = useCallback((image: FileObject): boolean => (image?.size ?? 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE, []);
+    const showAvatarCropModal = useCallback((image: FileObject) => {
+        validateAvatarImage(image)
+            .then((validationResult) => {
+                if (!validationResult.isValid) {
+                    setError(validationResult.errorKey ?? null, validationResult.errorParams ?? {});
+                    return;
+                }
 
-    /**
-     * Check if the attachment resolution matches constraints.
-     */
-    const isValidResolution = (image: FileObject): Promise<boolean> =>
-        getImageResolution(image).then(
-            ({height, width}) => height >= CONST.AVATAR_MIN_HEIGHT_PX && width >= CONST.AVATAR_MIN_WIDTH_PX && height <= CONST.AVATAR_MAX_HEIGHT_PX && width <= CONST.AVATAR_MAX_WIDTH_PX,
-        );
-
-    /**
-     * Validates if an image has a valid resolution and opens an avatar crop modal
-     */
-    const showAvatarCropModal = useCallback(
-        (image: FileObject) => {
-            if (!isValidExtension(image)) {
-                setError('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS});
-                return;
-            }
-            if (!isValidSize(image)) {
-                setError('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)});
-                return;
-            }
-
-            validateImageForCorruption(image)
-                .then(() => isValidResolution(image))
-                .then((isValid) => {
-                    if (!isValid) {
-                        setError('avatarWithImagePicker.resolutionConstraints', {
-                            minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
-                            minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
-                            maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
-                            maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
-                        });
-                        return;
-                    }
-
-                    setIsAvatarCropModalOpen(true);
-                    setError(null, {});
-                    setImageData({
-                        uri: image.uri ?? '',
-                        name: image.name ?? '',
-                        type: image.type ?? '',
-                    });
-                })
-                .catch(() => {
-                    setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
+                setIsAvatarCropModalOpen(true);
+                setError(null, {});
+                setImageData({
+                    uri: image.uri ?? '',
+                    name: image.name ?? '',
+                    type: image.type ?? '',
                 });
-        },
-        [isValidExtension, isValidSize],
-    );
+            })
+            .catch(() => {
+                setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
+            });
+    }, []);
 
     useEffect(() => {
         if (!isValidAccountRoute(Number(accountID))) {
