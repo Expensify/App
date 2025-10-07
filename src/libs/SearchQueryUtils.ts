@@ -10,7 +10,6 @@ import type {
     SearchDateFilterKeys,
     SearchDatePreset,
     SearchFilterKey,
-    SearchNegatableFilterKeys,
     SearchQueryJSON,
     SearchQueryString,
     SearchStatus,
