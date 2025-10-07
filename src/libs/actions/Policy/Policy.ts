@@ -6329,6 +6329,13 @@ function clearPolicyTitleFieldError(policyID: string) {
     });
 }
 
+/**
+ * Set the workspace currency for the workspace confirmation form
+ */
+function setWorkspaceConfirmationCurrency(currency: string) {
+    Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT, {currency});
+}
+
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -6451,4 +6458,5 @@ export {
     updateInterestedFeatures,
     clearPolicyTitleFieldError,
     inviteWorkspaceEmployeesToUber,
+    setWorkspaceConfirmationCurrency,
 };

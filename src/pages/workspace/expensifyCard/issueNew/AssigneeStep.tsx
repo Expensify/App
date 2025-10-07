@@ -98,6 +98,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
                 alternateText: email,
                 login: email,
                 accountID: personalDetail?.accountID,
+                isSelected: issueNewCard?.data?.assigneeEmail === email,
                 icons: [
                     {
                         source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
@@ -112,7 +113,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, formatPhoneNumber, localeCompare]);
+    }, [policy?.employeeList, localeCompare, isOffline, issueNewCard?.data?.assigneeEmail, formatPhoneNumber]);
 
     const sections = useMemo(() => {
         if (!debouncedSearchTerm) {
@@ -163,6 +164,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
                 ListItem={UserListItem}
                 onSelectRow={submit}
                 addBottomSafeAreaPadding
+                initiallyFocusedOptionKey={sections[0].data.find((mode) => mode.isSelected)?.keyForList}
             />
         </InteractiveStepWrapper>
     );

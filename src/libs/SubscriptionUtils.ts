@@ -175,12 +175,6 @@ Onyx.connect({
     },
 });
 
-let introSelected: OnyxEntry<IntroSelected>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => (introSelected = value),
-});
-
 /**
  * @returns The date when the grace period ends.
  */
@@ -244,7 +238,7 @@ function hasInsufficientFundsError() {
     return billingStatus?.declineReason === 'insufficient_funds' && getAmountOwed() !== 0;
 }
 
-function shouldShowPreTrialBillingBanner(): boolean {
+function shouldShowPreTrialBillingBanner(introSelected: OnyxEntry<IntroSelected>): boolean {
     // We don't want to show the Pre Trial banner if the user was a Test Drive Receiver that created their workspace
     // with the promo code.
     const wasUserTestDriveReceiver = introSelected?.previousChoices?.some((choice) => choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER);
@@ -488,13 +482,13 @@ function calculateRemainingFreeTrialDays(): number {
  * @param policies - The policies collection.
  * @returns The free trial badge text .
  */
-function getFreeTrialText(policies: OnyxCollection<Policy> | null): string | undefined {
+function getFreeTrialText(policies: OnyxCollection<Policy> | null, introSelected: OnyxEntry<IntroSelected>): string | undefined {
     const ownedPaidPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
     if (isEmptyObject(ownedPaidPolicies)) {
         return undefined;
     }
 
-    if (shouldShowPreTrialBillingBanner()) {
+    if (shouldShowPreTrialBillingBanner(introSelected)) {
         return translateLocal('subscription.billingBanner.preTrial.title');
     }
     if (isUserOnFreeTrial()) {
