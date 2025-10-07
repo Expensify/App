@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -17,6 +17,7 @@ import type {PolicyReportField} from '@src/types/onyx';
 function SearchFiltersReportFieldPage() {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const [selectedField, setSelectedField] = useState<PolicyReportField | null>(null);
 
     const [fieldList] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: false,
@@ -35,6 +36,38 @@ function SearchFiltersReportFieldPage() {
             return Object.fromEntries(nonFormulaReportFields);
         },
     });
+
+    if (selectedField) {
+        return (
+            <ScreenWrapper
+                testID={SearchFiltersReportFieldPage.displayName}
+                shouldShowOfflineIndicatorInWideScreen
+                offlineIndicatorStyle={styles.mtAuto}
+                includeSafeAreaPaddingBottom
+                shouldEnableMaxHeight
+            >
+                <HeaderWithBackButton
+                    title={selectedField.name}
+                    onBackButtonPress={() => {
+                        setSelectedField(null);
+                    }}
+                />
+                <ScrollView contentContainerStyle={[styles.flexGrow1]}></ScrollView>
+                <Button
+                    text={translate('common.reset')}
+                    onPress={() => {}}
+                    style={[styles.mh4, styles.mt4]}
+                    large
+                />
+                <FormAlertWithSubmitButton
+                    buttonText={translate('common.save')}
+                    containerStyles={[styles.m4, styles.mt3, styles.mb5]}
+                    onSubmit={() => {}}
+                    enabledWhenOffline
+                />
+            </ScreenWrapper>
+        );
+    }
 
     return (
         <ScreenWrapper
@@ -58,7 +91,7 @@ function SearchFiltersReportFieldPage() {
                         viewMode={CONST.OPTION_MODE.COMPACT}
                         title={value.name}
                         description={undefined}
-                        onPress={() => {}}
+                        onPress={() => setSelectedField(value)}
                     />
                 ))}
             </ScrollView>
