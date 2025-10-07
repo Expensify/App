@@ -1,15 +1,16 @@
-import React, {forwardRef} from 'react';
+// The action sheet is only used on native platforms (iOS and Android)
+// On all other platforms, the action sheet is implemented using the Animated.ScrollView
+import React from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {AnimatedRef} from 'react-native-reanimated';
 import Reanimated, {useAnimatedRef, useComposedEventHandler} from 'react-native-reanimated';
-import type {AnimatedScrollView} from 'react-native-reanimated/lib/typescript/component/ScrollView';
+import type {AnimatedRef} from 'react-native-reanimated';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
 import type {ActionSheetAwareScrollViewProps} from './types';
 import usePreventScrollOnKeyboardInteraction from './usePreventScrollOnKeyboardInteraction';
 
-const ActionSheetAwareScrollView = forwardRef<AnimatedScrollView, ActionSheetAwareScrollViewProps>(({onScroll: onScrollProp, ...props}, forwardedRef) => {
+function ActionSheetAwareScrollView({onScroll: onScrollProp, ref, ...restProps}: ActionSheetAwareScrollViewProps) {
     const fallbackRef = useAnimatedRef<Reanimated.ScrollView>();
-    const scrollViewRef = forwardedRef ?? fallbackRef;
+    const scrollViewRef = ref ?? fallbackRef;
 
     const {onScroll: onScrollInternal} = usePreventScrollOnKeyboardInteraction({scrollViewRef: scrollViewRef as AnimatedRef<Reanimated.ScrollView>});
     const onScroll = useComposedEventHandler([onScrollInternal, onScrollProp ?? null]);
@@ -17,14 +18,14 @@ const ActionSheetAwareScrollView = forwardRef<AnimatedScrollView, ActionSheetAwa
     return (
         <Reanimated.ScrollView
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            {...restProps}
             ref={scrollViewRef}
             onScroll={onScroll}
         >
-            {props.children}
+            {restProps.children}
         </Reanimated.ScrollView>
     );
-});
+}
 
 export default ActionSheetAwareScrollView;
 
