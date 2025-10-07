@@ -656,7 +656,6 @@ function SearchFiltersBar({
                     chatReportID={currentSelectedReportID}
                     iouReport={selectedIouReport}
                     enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                    iouReport={selectedIOUReport}
                     addBankAccountRoute={
                         isCurrentSelectedExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(currentSelectedPolicyID, undefined, Navigation.getActiveRoute()) : undefined
                     }
