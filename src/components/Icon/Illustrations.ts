@@ -29,6 +29,7 @@ import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-secon
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
+import BrokenCompanyCardBankConnection from '@assets/images/product-illustrations/broken-humpty-dumpty.svg';
 import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
 import HoldExpense from '@assets/images/product-illustrations/emptystate__holdexpense.svg';
@@ -133,6 +134,7 @@ export {
     ToddWithPhones,
     ToddInCar,
     ShieldYellow,
+    BrokenCompanyCardBankConnection,
     CreditCardsNewGreen,
     LaptopWithSecondScreenAndHourglass,
     LaptopWithSecondScreenSync,

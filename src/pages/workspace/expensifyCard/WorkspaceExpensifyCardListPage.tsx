@@ -127,13 +127,15 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const getHeaderButtons = () => (
         <View style={[styles.flexRow, styles.gap2, !shouldShowSelector && shouldUseNarrowLayout && styles.mb3, shouldShowSelector && shouldChangeLayout && styles.mt3]}>
-            <Button
-                success
-                onPress={handleIssueCardPress}
-                icon={Plus}
-                text={translate('workspace.expensifyCard.issueCard')}
-                style={shouldChangeLayout && styles.flex1}
-            />
+            {!isEmptyObject(cardsList) && (
+                <Button
+                    success
+                    onPress={handleIssueCardPress}
+                    icon={Plus}
+                    text={translate('workspace.expensifyCard.issueCard')}
+                    style={shouldChangeLayout && styles.flex1}
+                />
+            )}
             <ButtonWithDropdownMenu
                 success={false}
                 onPress={() => {}}
@@ -141,7 +143,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 customText={translate('common.more')}
                 options={secondaryActions}
                 isSplitButton={false}
-                wrapperStyle={styles.flexGrow0}
+                wrapperStyle={isEmptyObject(cardsList) ? styles.flexGrow1 : styles.flexGrow0}
             />
         </View>
     );
@@ -239,6 +241,13 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 <EmptyCardView
                     isBankAccountVerified={isBankAccountVerified}
                     policyID={policyID}
+                    buttons={[
+                        {
+                            buttonText: translate('workspace.expensifyCard.issueCard'),
+                            buttonAction: handleIssueCardPress,
+                            success: true,
+                        },
+                    ]}
                 />
             ) : (
                 <ScrollView
