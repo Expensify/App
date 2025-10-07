@@ -8290,12 +8290,12 @@ function isReportNotFound(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * The <ReportActionsListItemRenderer> does not render some ancestor reports actions in a thread.
- * So we exclude report-preview actions, a transaction-thread actions unless it is not a sent-money action and
- * trip-preview actions if will be the first ancestor (youngest descendent) report action in the hierarchy.
+ * The <ReportActionsListItemRenderer> does not render some ancestor report actions in a thread.
+ * So we exclude report-preview action, transaction-thread action unless it is a sent-money action and
+ * trip-preview action that is the first ancestor report action in the hierarchy.
  *
- * @param ancestorReportAction - The ancestor report action to determine whether it should be excluded
- * @param isFirstAncestor - Whether it will be the first report action in the hierarchy
+ * @param ancestorReportAction - The ancestor report action we determine whether it should be excluded
+ * @param isFirstAncestor - Whether it is the first report action in the hierarchy
  * @returns boolean - true if the ancestor report action should be excluded, false otherwise
  */
 function shouldExcludeAncestorReportAction(ancestorReportAction: ReportAction, isFirstAncestor: boolean): boolean {

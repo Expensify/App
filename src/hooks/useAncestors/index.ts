@@ -26,7 +26,7 @@ function useAncestors(report: OnyxEntry<Report>, shouldExcludeAncestorReportActi
         const ancestors: Ancestor[] = [];
         let currentReport = report;
 
-        // Traverse up the report hierarchy to until the current report does not have a parent
+        // Traverse up the report hierarchy until currentReport has no parent
         while (currentReport?.parentReportID && currentReport?.parentReportActionID) {
             const currentReportAction = reportActionsCollection[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReport.parentReportID}`]?.[`${currentReport.parentReportActionID}`];
 
