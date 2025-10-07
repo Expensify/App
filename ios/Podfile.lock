@@ -4637,7 +4637,7 @@ SPEC CHECKSUMS:
   react-native-keyboard-controller: ef239acc614d5d520b07853be6bfa6e87b7770db
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: 6645bc83721568992c3c981ed057e4048a48006e
-  react-native-pager-view: e9b3e17cf3222a23fedcf72c969bcbe3640667d2
+  react-native-pager-view: 0f1489fdcdfa56677aa1492e342c9216cbf468a0
   react-native-pdf: 182fa857ba09bf5e4010f0fbbeda8e84825850b8
   react-native-performance: f034c3cb6981ee7ca6cd5f5e9a2fda5c91469d32
   react-native-plaid-link-sdk: 270016bf266e89ef8a95280a1696759f516395e9
