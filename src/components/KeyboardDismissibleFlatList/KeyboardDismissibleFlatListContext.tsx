@@ -1,42 +1,24 @@
 import type {PropsWithChildren} from 'react';
-import React, {useMemo, useState} from 'react';
+import React, {createContext, useMemo, useState} from 'react';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
 import {useAnimatedScrollHandler, useSharedValue} from 'react-native-reanimated';
-import type {ScrollHandlerProcessed, SharedValue} from 'react-native-reanimated';
-import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {createDummySharedValue} from '@src/utils/SharedValueUtils';
+import type {KeyboardDismissibleFlatListContextValue, ListBehavior} from './types';
 
-type ListBehavior = ValueOf<typeof CONST.LIST_BEHAVIOR>;
-
-type KeyboardDismissibleFlatListContextValues = {
-    keyboardHeight: SharedValue<number>;
-    keyboardOffset: SharedValue<number>;
-    contentSizeHeight: SharedValue<number>;
-    layoutMeasurementHeight: SharedValue<number>;
-    onScroll: ScrollHandlerProcessed<Record<string, unknown>>;
-    scrollY: SharedValue<number>;
-    setListBehavior: React.Dispatch<React.SetStateAction<ListBehavior>>;
+const defaultValue: KeyboardDismissibleFlatListContextValue = {
+    keyboardHeight: createDummySharedValue(0),
+    keyboardOffset: createDummySharedValue(0),
+    scrollY: createDummySharedValue(0),
+    onScroll: () => {},
+    contentSizeHeight: createDummySharedValue(0),
+    layoutMeasurementHeight: createDummySharedValue(0),
+    setListBehavior: () => {},
 };
 
-const createDummySharedValue = (): SharedValue<number> =>
-    ({
-        value: 0,
-        addListener: () => 0,
-        removeListener: () => {},
-        modify: () => {},
-    }) as unknown as SharedValue<number>;
-
-const KeyboardDismissibleFlatListContext = React.createContext<KeyboardDismissibleFlatListContextValues>({
-    keyboardHeight: createDummySharedValue(),
-    keyboardOffset: createDummySharedValue(),
-    scrollY: createDummySharedValue(),
-    onScroll: () => {},
-    contentSizeHeight: createDummySharedValue(),
-    layoutMeasurementHeight: createDummySharedValue(),
-    setListBehavior: () => {},
-});
+const KeyboardDismissibleFlatListContext = createContext<KeyboardDismissibleFlatListContextValue>(defaultValue);
 
 function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildren) {
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: false});
@@ -131,7 +113,7 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
         },
     });
 
-    const value = useMemo<KeyboardDismissibleFlatListContextValues>(
+    const value = useMemo<KeyboardDismissibleFlatListContextValue>(
         () => ({
             keyboardHeight: height,
             keyboardOffset: offset,
