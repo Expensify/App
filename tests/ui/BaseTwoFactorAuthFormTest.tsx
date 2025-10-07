@@ -33,6 +33,10 @@ jest.mock('@hooks/useLocalize', () =>
                     return 'Please enter your two-factor authentication code';
                 case 'twoFactorAuthForm.error.incorrect2fa':
                     return 'Incorrect two-factor authentication code. Please try again.';
+                case 'twoFactorAuth.explainProcessToRemove':
+                    return 'In order to disable two-factor authentication (2FA), please enter a valid code from your authentication app.';
+                case 'twoFactorAuth.explainProcessToRemoveWithRecovery':
+                    return 'In order to disable two-factor authentication (2FA), please enter a valid recovery code.';
                 default:
                     return key;
             }
@@ -53,6 +57,8 @@ const RECOVERY_TOGGLE_LABEL = 'Use recovery code';
 const RECOVERY_BACK_LABEL = 'Use two-factor authentication code';
 const RECOVERY_ERROR_TEXT = 'Please enter your recovery code';
 const TWO_FACTOR_ERROR_TEXT = 'Please enter your two-factor authentication code';
+const AUTH_HELP_TEXT = 'In order to disable two-factor authentication (2FA), please enter a valid code from your authentication app.';
+const RECOVERY_HELP_TEXT = 'In order to disable two-factor authentication (2FA), please enter a valid recovery code.';
 
 const renderForm = () => {
     const formRef = createRef<BaseTwoFactorAuthFormRef>();
@@ -89,6 +95,7 @@ describe('BaseTwoFactorAuthForm', () => {
 
     it('submits the two-factor authenticator code when provided', () => {
         const {formRef} = renderForm();
+        expect(screen.getByText(AUTH_HELP_TEXT)).toBeTruthy();
         const authenticatorInput = screen.getByTestId('twoFactorAuthCodeInput');
 
         fireEvent.changeText(authenticatorInput, '123456');
@@ -106,6 +113,7 @@ describe('BaseTwoFactorAuthForm', () => {
         fireEvent.press(screen.getByText(RECOVERY_TOGGLE_LABEL));
 
         const recoveryInput = await screen.findByTestId('recoveryCodeInput');
+        expect(screen.getByText(RECOVERY_HELP_TEXT)).toBeTruthy();
 
         fireEvent.changeText(recoveryInput, 'abc12345');
         act(() => {
@@ -128,6 +136,7 @@ describe('BaseTwoFactorAuthForm', () => {
 
         await screen.findByTestId('recoveryCodeInput');
         expect(screen.queryByText(TWO_FACTOR_ERROR_TEXT)).toBeNull();
+        expect(screen.getByText(RECOVERY_HELP_TEXT)).toBeTruthy();
     });
 
     it('shows validation feedback when recovery code is missing', async () => {
@@ -153,5 +162,6 @@ describe('BaseTwoFactorAuthForm', () => {
         expect(screen.queryByTestId('recoveryCodeInput')).toBeNull();
         expect(screen.getByTestId('twoFactorAuthCodeInput')).toBeTruthy();
         expect(screen.queryByText(RECOVERY_ERROR_TEXT)).toBeNull();
+        expect(screen.getByText(AUTH_HELP_TEXT)).toBeTruthy();
     });
 });
