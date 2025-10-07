@@ -3,8 +3,6 @@ import type {PropsWithChildren, Ref} from 'react';
 import type {ScrollView, ScrollViewProps} from 'react-native';
 
 type ActionSheetAwareScrollViewAnimationProps = {
-    /** Whether the child ScrollView is inverted */
-    isInvertedScrollView?: boolean;
     ref?: Ref<ScrollView>;
 };
 type ActionSheetAwareScrollViewProps = PropsWithChildren<ScrollViewProps> & ActionSheetAwareScrollViewAnimationProps;
