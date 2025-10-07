@@ -117,6 +117,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const textInputRef = useRef<AnimatedTextInputRef>(null);
 
     const contextualReportID = useRootNavigationState((state) => {
+        // Safe handling when navigation is not yet initialized
+        if (!state) {
+            return undefined;
+        }
+
         const focusedRoute = findFocusedRoute(state);
         if (focusedRoute?.name === SCREENS.REPORT) {
             // We're guaranteed that the type of params is of SCREENS.REPORT
