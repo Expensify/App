@@ -198,6 +198,7 @@ type SetWorkspaceReimbursementActionParams = {
     reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
     bankAccountID?: number;
     reimburserEmail: string;
+    lastPaymentMethod?: LastPaymentMethodType | string;
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -901,10 +902,11 @@ function clearQuickbooksOnlineAutoSyncErrorField(policyID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {quickbooksOnline: {config: {errorFields: {autoSync: null}}}}});
 }
 
-function setWorkspaceReimbursement({policyID, reimbursementChoice, bankAccountID, reimburserEmail}: SetWorkspaceReimbursementActionParams) {
+function setWorkspaceReimbursement({policyID, reimbursementChoice, bankAccountID, reimburserEmail, lastPaymentMethod}: SetWorkspaceReimbursementActionParams) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
+    const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -932,6 +934,25 @@ function setWorkspaceReimbursement({policyID, reimbursementChoice, bankAccountID
             },
         },
     ];
+
+    if (!lastUsedPaymentMethod) {
+        successData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+            value: {
+                [policyID]: {
+                    expense: {
+                        name: CONST.IOU.PAYMENT_TYPE.VBBA,
+                        bankAccountID,
+                    },
+                    lastUsed: {
+                        name: CONST.IOU.PAYMENT_TYPE.VBBA,
+                        bankAccountID,
+                    },
+                },
+            },
+        });
+    }
 
     const failureData: OnyxUpdate[] = [
         {
