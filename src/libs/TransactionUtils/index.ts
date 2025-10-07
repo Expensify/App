@@ -1950,6 +1950,21 @@ function createUnreportedExpenseSections(transactions: Array<Transaction | undef
     ];
 }
 
+function willFieldBeAutomaticallyFilled(transaction: OnyxEntry<Transaction>, fieldType: 'amount' | 'merchant' | 'date' | 'category'): boolean {
+    if (!transaction?.receipt) {
+        return false;
+    }
+
+    const isSmartScanActive = isScanRequest(transaction);
+
+    if (!isSmartScanActive) {
+        return false;
+    }
+
+    const autoFillableFields = ['amount', 'merchant', 'date', 'category'];
+    return autoFillableFields.includes(fieldType);
+}
+
 // Temporarily only for use in the Unreported Expense project
 function isExpenseUnreported(transaction?: Transaction): transaction is UnreportedTransaction {
     // TODO: added for development purposes, should be removed once the feature are fully implemented
@@ -2022,6 +2037,7 @@ export {
     isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
+    willFieldBeAutomaticallyFilled,
     hasPendingRTERViolation,
     allHavePendingRTERViolation,
     hasPendingUI,

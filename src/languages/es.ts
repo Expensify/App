@@ -543,6 +543,7 @@ const translations = {
         card: 'Tarjeta',
         whyDoWeAskForThis: '¿Por qué pedimos esto?',
         required: 'Obligatorio',
+        automatic: 'Automático',
         showing: 'Mostrando',
         of: 'de',
         default: 'Predeterminado',
@@ -770,6 +771,7 @@ const translations = {
     moneyRequestConfirmationList: {
         paidBy: 'Pagado por',
         whatsItFor: '¿Para qué es?',
+        smartScanExplainer: 'Concierge introducirá automáticamente los detalles del gasto por ti, o puedes añadirlos manualmente.',
     },
     selectionList: {
         nameEmailOrPhoneNumber: 'Nombre, correo electrónico o número de teléfono',

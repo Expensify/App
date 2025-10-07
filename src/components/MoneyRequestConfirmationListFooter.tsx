@@ -2,14 +2,15 @@ import {emailSelector} from '@selectors/Session';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
-import React, {memo, useMemo} from 'react';
-import {View} from 'react-native';
+import React, {memo, useCallback, useMemo} from 'react';
+import {Text, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -39,9 +40,11 @@ import {
     isCreatedMissing,
     isFetchingWaypointsFromServer,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
+    willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,6 +56,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Badge from './Badge';
 import ConfirmedRoute from './ConfirmedRoute';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
+import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
@@ -273,6 +277,7 @@ function MoneyRequestConfirmationListFooter({
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
+    const theme = useTheme();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
@@ -411,6 +416,26 @@ function MoneyRequestConfirmationListFooter({
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: reportID, exactlyMatch: true}), [reportID]);
+
+    const getRightLabelIcon = useCallback(
+        (fieldType: 'amount' | 'merchant' | 'date' | 'category') => {
+            return willFieldBeAutomaticallyFilled(transaction, fieldType) ? Expensicons.Sparkles : undefined;
+        },
+        [transaction],
+    );
+
+    const getRightLabel = useCallback(
+        (fieldType: 'amount' | 'merchant' | 'date' | 'category', isRequiredField = false) => {
+            if (willFieldBeAutomaticallyFilled(transaction, fieldType)) {
+                return translate('common.automatic');
+            }
+            if (isRequiredField) {
+                return translate('common.required');
+            }
+            return '';
+        },
+        [transaction, translate],
+    );
 
     const fields = [
         {
@@ -555,7 +580,8 @@ function MoneyRequestConfirmationListFooter({
                     interactive={!isReadOnly}
                     brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
-                    rightLabel={isMerchantRequired && !shouldDisplayMerchantError ? translate('common.required') : ''}
+                    rightLabel={getRightLabel('merchant', !!isMerchantRequired && !shouldDisplayMerchantError)}
+                    rightLabelIcon={getRightLabelIcon('merchant')}
                     numberOfLinesTitle={2}
                 />
             ),
@@ -580,7 +606,8 @@ function MoneyRequestConfirmationListFooter({
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    rightLabel={isCategoryRequired ? translate('common.required') : ''}
+                    rightLabel={getRightLabel('category', isCategoryRequired)}
+                    rightLabelIcon={getRightLabelIcon('category')}
                 />
             ),
             shouldShow: shouldShowCategories,
@@ -1008,6 +1035,15 @@ function MoneyRequestConfirmationListFooter({
                                   style={styles.expenseViewImageSmall}
                               />
                           )}
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2, styles.mh5, styles.mt5]}>
+                        <Icon
+                            src={Expensicons.Sparkles}
+                            fill={theme.icon}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                        <Text style={[styles.rightLabelMenuItem]}>{translate('iou.automaticallyEnterExpenseDetails')}</Text>
+                    </View>
                 </View>
             )}
             <View style={[styles.mb5]}>{fields.filter((field) => field.shouldShow).map((field) => field.item)}</View>
