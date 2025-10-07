@@ -9,8 +9,6 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import type {MenuItemProps} from '@components/MenuItem';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -21,7 +19,6 @@ import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import WorkspaceRowSkeleton from '@components/Skeletons/WorkspaceRowSkeleton';
-import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
@@ -29,7 +26,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -102,7 +98,6 @@ function WorkspacesListPage() {
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
@@ -125,10 +120,6 @@ function WorkspacesListPage() {
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
 
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
-
-    const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
-
-    const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
     const workspaceAccountID = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -294,7 +285,7 @@ function WorkspacesListPage() {
                                 shouldAnimateInHighlight={shouldAnimateInHighlight}
                                 isJoinRequestPending={item?.isJoinRequestPending}
                                 rowStyles={hovered && styles.hoveredComponentBG}
-                                layoutWidth={isLessThanMediumScreen ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
+                                layoutWidth={CONST.LAYOUT_WIDTH.NARROW}
                                 brickRoadIndicator={item.brickRoadIndicator}
                                 shouldDisableThreeDotsMenu={item.disabled}
                                 style={[item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.offlineFeedback.deleted : {}]}
@@ -324,24 +315,16 @@ function WorkspacesListPage() {
             shouldCalculateBillNewDot,
             setIsDeletingPaidWorkspace,
             startChangeOwnershipFlow,
-            isLessThanMediumScreen,
             isLoadingBill,
             resetLoadingSpinnerIconIndex,
             isRestrictedToPreferredPolicy,
         ],
     );
 
-    const navigateToWorkspace = useCallback(
-        (policyID: string) => {
-            // On the wide layout, we always want to open the Profile page when opening workspace settings from the list
-            if (shouldUseNarrowLayout) {
-                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
-                return;
-            }
-            Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
-        },
-        [shouldUseNarrowLayout],
-    );
+    const navigateToWorkspace = useCallback((policyID: string) => {
+        // On the wide layout, we always want to open the Profile page when opening workspace settings from the list
+        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+    }, []);
 
     /**
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
@@ -425,7 +408,7 @@ function WorkspacesListPage() {
 
     const listHeaderComponent = (
         <>
-            {isLessThanMediumScreen && <View style={styles.mt3} />}
+            <View style={styles.mt3} />
             {workspaces.length > CONST.SEARCH_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.common.findWorkspace')}
@@ -433,35 +416,6 @@ function WorkspacesListPage() {
                     onChangeText={setInputValue}
                     shouldShowEmptyState={filteredWorkspaces.length === 0 && inputValue.length > 0}
                 />
-            )}
-            {!isLessThanMediumScreen && filteredWorkspaces.length > 0 && (
-                <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.pr5, styles.pl10, styles.appBG]}>
-                    <View style={[styles.flexRow, styles.flex2]}>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.flexGrow1, styles.textLabelSupporting]}
-                        >
-                            {translate('workspace.common.workspaceName')}
-                        </Text>
-                    </View>
-                    <View style={[styles.flexRow, styles.flex1, styles.workspaceOwnerSectionTitle, styles.workspaceOwnerSectionMinWidth]}>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.flexGrow1, styles.textLabelSupporting]}
-                        >
-                            {translate('workspace.common.workspaceOwner')}
-                        </Text>
-                    </View>
-                    <View style={[styles.flexRow, styles.flex1, styles.workspaceTypeSectionTitle]}>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.flexGrow1, styles.textLabelSupporting]}
-                        >
-                            {translate('workspace.common.workspaceType')}
-                        </Text>
-                    </View>
-                    <View style={[styles.workspaceRightColumn, styles.mr2]} />
-                </View>
             )}
         </>
     );
@@ -472,7 +426,7 @@ function WorkspacesListPage() {
             text={translate('workspace.new.newWorkspace')}
             onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
             icon={Expensicons.Plus}
-            style={[shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]]}
+            style={[styles.flexGrow1, styles.mb3]}
         />
     );
 
@@ -521,7 +475,6 @@ function WorkspacesListPage() {
                         />
                     </ScrollView>
                 )}
-                {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
             </ScreenWrapper>
         );
     }
@@ -534,8 +487,8 @@ function WorkspacesListPage() {
             enableEdgeToEdgeBottomSafeAreaPadding={false}
         >
             <View style={styles.flex1}>
-                <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
-                {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>}
+                <TopBar breadcrumbLabel={translate('common.workspaces')} />
+                <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>
                 <FlatList
                     ref={flatlistRef}
                     data={filteredWorkspaces}
@@ -560,7 +513,6 @@ function WorkspacesListPage() {
                 cancelText={translate('common.cancel')}
                 danger
             />
-            {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         </ScreenWrapper>
     );
 }
