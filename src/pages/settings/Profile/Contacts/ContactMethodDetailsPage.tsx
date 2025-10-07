@@ -89,6 +89,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         return addSMSDomainIfPhoneNumber(decodeURIComponent(beforeAtSign + afterAtSign));
     }, [route.params.contactMethod]);
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
+
     const isDefaultContactMethod = useMemo(() => session?.email === loginData?.partnerUserID, [session?.email, loginData?.partnerUserID]);
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
     const prevPendingDeletedLogin = usePrevious(loginData?.pendingFields?.deletedLogin);
@@ -154,14 +155,14 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (prevValidatedDate || !loginData?.validatedDate || !loginData) {
+        if (prevValidatedDate || !loginData?.validatedDate) {
             return;
         }
 
         // Navigate to methods page on successful magic code verification
         // validatedDate property is responsible to decide the status of the magic code verification
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
-    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo, loginData]);
+    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo]);
 
     useEffect(() => {
         setIsValidateCodeFormVisible(!loginData?.validatedDate);
