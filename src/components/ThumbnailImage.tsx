@@ -72,9 +72,6 @@ type ThumbnailImageProps = {
 
     /** Callback fired when the image has been measured */
     onMeasure?: () => void;
-
-    /** Callback to be called when the image loads */
-    onLoad?: (event: {nativeEvent: {width: number; height: number}}) => void;
 };
 
 type UpdateImageSizeParams = {
@@ -100,7 +97,6 @@ function ThumbnailImage({
     onLoadFailure,
     onMeasure,
     loadingIndicatorStyles,
-    onLoad,
 }: ThumbnailImageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -176,7 +172,6 @@ function ThumbnailImage({
                     objectPosition={objectPosition}
                     loadingIconSize={loadingIconSize}
                     loadingIndicatorStyles={loadingIndicatorStyles}
-                    onLoad={onLoad}
                 />
             </View>
         </View>
