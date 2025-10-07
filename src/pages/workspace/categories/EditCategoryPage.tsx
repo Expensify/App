@@ -53,7 +53,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
             const newCategoryName = values.categoryName.trim();
             // Do not call the API if the edited category name is the same as the current category name
             if (currentCategoryName !== newCategoryName) {
-                renamePolicyCategory(policyID, {oldName: currentCategoryName, newName: values.categoryName});
+                renamePolicyCategory(policyID, {oldName: currentCategoryName, newName: values.categoryName}, policyCategories);
             }
 
             // Ensure Onyx.update is executed before navigation to prevent UI blinking issues, affecting the category name and rate.
@@ -66,7 +66,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
                 );
             });
         },
-        [isQuickSettingsFlow, currentCategoryName, policyID, backTo],
+        [currentCategoryName, policyID, policyCategories, isQuickSettingsFlow, backTo],
     );
 
     return (
