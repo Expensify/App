@@ -34,7 +34,6 @@ import {getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByI
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {isOnHoldByTransactionID} from './TransactionUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
 
 type LastVisibleMessage = {
@@ -1129,8 +1128,7 @@ function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): NonNu
 /**
  * Find the transaction associated with this reportAction, if one exists.
  */
-function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportAction> | undefined, reportID?: string): string | undefined {
-    const reportAction = typeof reportActionOrID === 'string' ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionOrID] : reportActionOrID;
+function getLinkedTransactionID(reportAction: OnyxEntry<ReportAction> | undefined): string | undefined {
     if (!reportAction || !isMoneyRequestAction(reportAction)) {
         return undefined;
     }
@@ -1982,14 +1980,6 @@ function getDismissedViolationMessageText(originalMessage: ReportAction<typeof C
     const reason = originalMessage?.reason;
     const violationName = originalMessage?.violationName;
     return translateLocal(`violationDismissal.${violationName}.${reason}` as TranslationPaths);
-}
-
-/**
- * Check if the linked transaction is on hold
- */
-function isLinkedTransactionHeld(reportActionID: string | undefined, reportID: string | undefined): boolean {
-    const linkedTransactionID = getLinkedTransactionID(reportActionID, reportID);
-    return linkedTransactionID ? isOnHoldByTransactionID(linkedTransactionID) : false;
 }
 
 function getMentionedAccountIDsFromAction(reportAction: OnyxInputOrEntry<ReportAction>) {
@@ -3133,7 +3123,6 @@ export {
     isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
-    isLinkedTransactionHeld,
     isMemberChangeAction,
     isExportIntegrationAction,
     isIntegrationMessageAction,
