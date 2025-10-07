@@ -19,10 +19,10 @@ type AttachmentModalContentData = {
     file: FileObject | undefined;
 };
 
-type ThreeDotsMenuItemGeneratorProps = AttachmentModalContentData & {
+type ThreeDotsMenuItemFactoryProps = AttachmentModalContentData & {
     isLocalSource: boolean;
 };
-type ThreeDotsMenuItemGenerator = (props: ThreeDotsMenuItemGeneratorProps) => PopoverMenuItem[];
+type ThreeDotsMenuItemFactory = (props: ThreeDotsMenuItemFactoryProps) => PopoverMenuItem[];
 
 type DownloadAttachmentCallback = (props: AttachmentModalContentData) => void;
 
@@ -58,7 +58,7 @@ type AttachmentModalBaseContentProps = {
     headerTitle?: string;
 
     /** The menu items for the three dots button */
-    threeDotsMenuItems?: PopoverMenuItem[] | ThreeDotsMenuItemGenerator;
+    threeDotsMenuItems?: PopoverMenuItem[] | ThreeDotsMenuItemFactory;
 
     /** The report that has this attachment */
     report?: OnyxEntry<OnyxTypes.Report>;
@@ -126,6 +126,6 @@ export type {
     DownloadAttachmentCallback,
     AttachmentContent,
     AttachmentContentProps,
-    ThreeDotsMenuItemGeneratorProps,
-    ThreeDotsMenuItemGenerator,
+    ThreeDotsMenuItemFactoryProps,
+    ThreeDotsMenuItemFactory,
 };
