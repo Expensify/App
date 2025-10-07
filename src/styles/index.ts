@@ -21,6 +21,7 @@ import {defaultTheme} from './theme';
 import colors from './theme/colors';
 import type {ThemeColors} from './theme/types';
 import addOutlineWidth from './utils/addOutlineWidth';
+import addToWalletButtonStyles from './utils/addToWalletButtonStyles';
 import borders from './utils/borders';
 import chatContentScrollViewPlatformStyles from './utils/chatContentScrollViewPlatformStyles';
 import cursor from './utils/cursor';
@@ -252,6 +253,7 @@ const staticStyles = (theme: ThemeColors) =>
         ...textDecorationLine,
         editedLabelStyles,
         emojiDefaultStyles,
+        addToWalletButtonStyles,
         autoCompleteSuggestionsContainer: {
             backgroundColor: theme.appBG,
             borderRadius: 8,
@@ -1160,6 +1162,15 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: 0,
             borderRadius: 8,
             borderColor: theme.border,
+        },
+
+        cannotBeEditedSplitInputContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 4,
+            marginVertical: 15,
+            borderWidth: 1,
+            borderColor: 'transparent',
         },
 
         outlinedButton: {
@@ -5352,6 +5363,12 @@ const dynamicStyles = (theme: ThemeColors) =>
             pointerEvents: shouldDisplayTopLevelNavigationTabBar ? 'auto' : 'none',
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWithLHBWidth,
             paddingBottom: bottomSafeAreaOffset,
+        }),
+
+        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number) => ({
+            marginLeft: inputMarginLeft,
+            width: amountWidth,
+            marginRight: 4,
         }),
 
         uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>

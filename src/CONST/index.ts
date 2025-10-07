@@ -702,10 +702,13 @@ const CONST = {
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         TRACK_FLOWS: 'trackFlows',
+        NEWDOT_REVERT_SPLITS: 'newDotRevertSplits',
+        NEWDOT_UPDATE_SPLITS: 'newDotUpdateSplits',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
+        PAYMENT_BUTTONS: 'paymentButtons',
         CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
     },
     BUTTON_STATES: {
@@ -5133,6 +5136,7 @@ const CONST = {
         DISABLED: 'disabled',
     },
     SPACE_CHARACTER_WIDTH: 4,
+    CHARACTER_WIDTH: 8,
 
     // The attribute used in the SelectionScraper.js helper to query all the DOM elements
     // that should be removed from the copied contents in the getHTMLOfSelection() method
