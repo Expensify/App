@@ -1,4 +1,4 @@
-import {fireEvent, screen, waitFor} from '@testing-library/react-native';
+import {fireEvent, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 import CONST from '@src/CONST';
@@ -6,7 +6,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import wrapInAct from '../utils/wrapInActHelper';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('@libs/Permissions');
@@ -73,10 +72,7 @@ describe('SidebarLinks', () => {
 
     test('[SidebarLinks] should render Sidebar with 500 reports stored', async () => {
         const scenario = async () => {
-            await waitFor(async () => {
-                // Query for the sidebar
-                await screen.findByTestId('lhn-options-list');
-            });
+            await screen.findByTestId('lhn-options-list');
         };
 
         await waitForBatchedUpdates();
@@ -94,20 +90,9 @@ describe('SidebarLinks', () => {
 
     test('[SidebarLinks] should click on list item', async () => {
         const scenario = async () => {
-            // Wait for the sidebar container to be rendered first
-            await waitFor(async () => {
-                await screen.findByTestId('lhn-options-list');
-            });
-
-            // Then wait for the specific list item to be available
-            await waitFor(async () => {
-                const button = await screen.findByTestId('1');
-                await wrapInAct(() => {
-                    fireEvent.press(button);
-                });
-            });
+            await screen.findByTestId('lhn-options-list');
+            fireEvent.press(await screen.findByTestId('1'));
         };
-
         await Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],

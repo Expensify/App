@@ -7,8 +7,22 @@
 /* eslint-disable  no-console, testing-library/no-node-access, testing-library/no-debugging-utils, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
 import type {NewPlugin} from 'pretty-format';
 import prettyFormat, {plugins} from 'pretty-format';
+import type {ElementType} from 'react';
 import ReactIs from 'react-is';
-import type {ReactTestInstance, ReactTestRendererJSON} from 'react-test-renderer';
+
+type ReactTestRendererJSON = {
+    type: string;
+    props: Record<string, unknown>;
+    children: null | ReactTestRendererNode[];
+};
+type ReactTestRendererNode = ReactTestRendererJSON | string;
+type ReactTestInstance = {
+    instance: any;
+    type: ElementType;
+    props: Record<string, unknown>;
+    parent: null | ReactTestInstance;
+    children: Array<ReactTestInstance | string>;
+};
 
 // These are giant objects and cause the serializer to crash because the
 // output becomes too large.
