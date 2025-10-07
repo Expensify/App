@@ -30,6 +30,9 @@ type BaseImageProps = {
 };
 
 type ImageOwnProps = BaseImageProps & {
+    /** By default, when the image width is greater than its height, its aspectRatio is set to 1. If you want the aspectRatio to be calculated instead of set to 1 in these cases, set the value of this prop to true  */
+    shouldCalculateAspectRatioForWideImage?: boolean;
+
     /** Should an auth token be included in the image request */
     isAuthTokenRequired?: boolean;
 
@@ -63,6 +66,9 @@ type ImageOwnProps = BaseImageProps & {
      *  cf https://github.com/Expensify/App/issues/51888
      */
     waitForSession?: () => void;
+
+    /** If you want to calculate the image height dynamically instead of using aspectRatio, pass the width in this property */
+    imageWidthToCalculateHeight?: number;
 };
 
 type ImageProps = ImageOwnProps;
