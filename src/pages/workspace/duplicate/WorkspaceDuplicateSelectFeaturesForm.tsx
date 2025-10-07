@@ -1,7 +1,9 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {PressableWithFeedback} from '@components/Pressable';
 import SelectionList from '@components/SelectionListWithSections';
 import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
@@ -25,7 +27,6 @@ import {getAllValidConnectedIntegration, getWorkflowRules, getWorkspaceRules} fr
 type WorkspaceDuplicateFormProps = {
     policyID?: string;
 };
-const DEFAULT_SELECT_ALL = 'selectAll';
 
 function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateFormProps) {
     const styles = useThemeStyles();
@@ -76,10 +77,6 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         const workflows = getWorkflowRules(policy, translate);
 
         const result = [
-            {
-                translation: translate('workspace.common.selectAll'),
-                value: DEFAULT_SELECT_ALL,
-            },
             {
                 translation: translate('workspace.common.profile'),
                 value: 'overview',
@@ -193,7 +190,6 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 keyForList: option.value,
                 isSelected: selectedItems.includes(option.value),
                 alternateText,
-                isIndeterminate: option.value === DEFAULT_SELECT_ALL && selectedItems.length !== items.length && selectedItems.length > 0,
             };
         });
     }, [items, selectedItems]);
@@ -251,33 +247,25 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         setIsDuplicateModalOpen(true);
     }, [confirmDuplicate, selectedItems, totalMembers]);
 
+    const toggleAllItems = useCallback(() => {
+        if (selectedItems.length === items.length) {
+            setSelectedItems([]);
+        } else {
+            setSelectedItems(items.map((i) => i.value));
+        }
+    }, [items, selectedItems.length]);
+
     const updateSelectedItems = useCallback(
         (listItem: ListItem) => {
             if (listItem.isSelected) {
-                if (listItem.keyForList === DEFAULT_SELECT_ALL) {
-                    setSelectedItems([]);
-                    return;
-                }
-                setSelectedItems(selectedItems.filter((i) => i !== listItem.keyForList && i !== DEFAULT_SELECT_ALL));
-                return;
-            }
-            if (listItem.keyForList === DEFAULT_SELECT_ALL) {
-                setSelectedItems(items.map((i) => i.value));
+                setSelectedItems(selectedItems.filter((i) => i !== listItem.keyForList));
                 return;
             }
 
             const newItem = items.find((i) => i.value === listItem.keyForList)?.value;
 
             if (newItem) {
-                const newSelectedItems = [...selectedItems, newItem];
-                const featuresOptions = items.filter((i) => i.value !== DEFAULT_SELECT_ALL);
-                const allItemsSelected = featuresOptions.length === newSelectedItems.length;
-
-                if (allItemsSelected) {
-                    setSelectedItems([...newSelectedItems, DEFAULT_SELECT_ALL]);
-                } else {
-                    setSelectedItems(newSelectedItems);
-                }
+                setSelectedItems([...selectedItems, newItem]);
             }
         },
         [items, selectedItems],
@@ -317,6 +305,8 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const isSelectAllChecked = selectedItems.length > 0 && selectedItems.length === items.length;
+
     return (
         <>
             <HeaderWithBackButton
@@ -329,6 +319,25 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                     <Text style={[styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.duplicateWorkspace.whichFeatures')}</Text>
                 </View>
                 <View style={[styles.flex1]}>
+                    <View style={[styles.searchListHeaderContainerStyle, styles.pv3, styles.ph5]}>
+                        <Checkbox
+                            accessibilityLabel={translate('workspace.common.selectAll')}
+                            isChecked={isSelectAllChecked}
+                            isIndeterminate={selectedItems.length > 0 && selectedItems.length !== items.length}
+                            onPress={toggleAllItems}
+                            disabled={items.length === 0}
+                        />
+                        <PressableWithFeedback
+                            style={[styles.userSelectNone, styles.alignItemsCenter]}
+                            onPress={toggleAllItems}
+                            accessibilityLabel={translate('workspace.common.selectAll')}
+                            role="button"
+                            accessibilityState={{checked: isSelectAllChecked}}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                        >
+                            <Text style={[styles.textMicroSupporting, styles.ph3]}>{translate('workspace.common.selectAll')}</Text>
+                        </PressableWithFeedback>
+                    </View>
                     <SelectionList
                         shouldSingleExecuteRowSelect
                         sections={[{data: listData}]}
