@@ -37,6 +37,8 @@ function MoneyReportHeaderStatusBar({nextStep, nextStepDeprecated}: MoneyReportH
     const {message, icon} = useMemo(() => {
         if (!nextStep) {
             return {
+                // This can be removed after NextStep (simplified format) is fully migrated
+                // eslint-disable-next-line deprecation/deprecation
                 message: parseMessage(nextStepDeprecated.message),
                 icon: iconMap[nextStepDeprecated.icon] || Expensicons.Hourglass,
             };

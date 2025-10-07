@@ -379,7 +379,14 @@ function MoneyReportHeader({
     // to avoid any flicker during transitions between online/offline states
     const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
     const isSubmitterSameAsNextApprover = isReportOwner(moneyRequestReport) && nextApproverAccountID === moneyRequestReport?.ownerAccountID;
+
+    // This can be removed after NextStep (simplified format) is fully migrated
+    // eslint-disable-next-line deprecation/deprecation
     const optimisticNextStepDeprecated = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStepDeprecated;
+
+    // The NextStep (simplied format) is missing the "submittingToSelf" message key. Will be handled in https://github.com/Expensify/Expensify/issues/555094
+    // For now we need to pass undefined so we fallback to the old format
+    const optimisticNextStep = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? undefined : moneyRequestReport?.nextStep;
 
     const shouldShowNextStep = isFromPaidPolicy && !isInvoiceReport && !shouldShowStatusBar;
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
@@ -1268,7 +1275,7 @@ function MoneyReportHeader({
                     {shouldShowNextStep && !!optimisticNextStepDeprecated?.message?.length && (
                         <MoneyReportHeaderStatusBar
                             nextStepDeprecated={optimisticNextStepDeprecated}
-                            nextStep={moneyRequestReport?.nextStep}
+                            nextStep={optimisticNextStep}
                         />
                     )}
                     {shouldShowNextStep && !optimisticNextStepDeprecated && !!isLoadingInitialReportActions && !isOffline && <MoneyReportHeaderStatusBarSkeleton />}

@@ -121,7 +121,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
     const nextStepFixOrPayExpense: ReportNextStep = {
         messageKey: shouldShowFixMessage ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-        actorAccountID: shouldShowFixMessage ? ownerAccountID : policy?.ownerAccountID || -1,
+        actorAccountID: shouldShowFixMessage ? ownerAccountID : (policy?.ownerAccountID ?? -1),
     };
 
     const nextStepNoActionRequired: ReportNextStep = {
@@ -1082,4 +1082,5 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
     return optimisticNextStep;
 }
 
+// eslint-disable-next-line deprecation/deprecation
 export {buildNextStepMessage, buildOptimisticNextStep, parseMessage, buildNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled, buildNextStepNew};
