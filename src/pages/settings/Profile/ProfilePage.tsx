@@ -1,6 +1,7 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useContext} from 'react';
+import React, {useContext, useRef} from 'react';
 import {View} from 'react-native';
+import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import AvatarSkeleton from '@components/AvatarSkeleton';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
@@ -37,6 +38,8 @@ import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function ProfilePage() {
+    const anchorRef = useRef<View>(null);
+
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -61,6 +64,8 @@ function ProfilePage() {
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
+    // const {isBetaEnabled} = usePermissions();
+    const isBetaEnabled = () => true; // TODO replace it with real beta
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
@@ -182,37 +187,52 @@ function ProfilePage() {
                                     <AvatarSkeleton size={CONST.AVATAR_SIZE.X_LARGE} />
                                 ) : (
                                     <MenuItemGroup shouldUseSingleExecution={false}>
-                                        <AvatarWithImagePicker
-                                            isUsingDefaultAvatar={isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
-                                            source={avatarURL}
-                                            avatarID={accountID}
-                                            onImageSelected={(file) => {
-                                                updateAvatar(file, {
-                                                    avatar: currentUserPersonalDetails?.avatar,
-                                                    avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
-                                                    accountID: currentUserPersonalDetails?.accountID,
-                                                });
-                                            }}
-                                            onImageRemoved={() => {
-                                                deleteAvatar({
-                                                    avatar: currentUserPersonalDetails?.avatar,
-                                                    fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
-                                                    accountID: currentUserPersonalDetails?.accountID,
-                                                });
-                                            }}
-                                            size={CONST.AVATAR_SIZE.X_LARGE}
-                                            avatarStyle={[styles.avatarXLarge, styles.alignSelfStart]}
-                                            pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                                            errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
-                                            errorRowStyles={styles.mt6}
-                                            onErrorClose={() => clearAvatarErrors(currentUserPersonalDetails?.accountID)}
-                                            onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
-                                            previewSource={getFullSizeAvatar(avatarURL, accountID)}
-                                            originalFileName={currentUserPersonalDetails.originalFileName}
-                                            headerTitle={translate('profilePage.profileAvatar')}
-                                            fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                                            editIconStyle={styles.profilePageAvatar}
-                                        />
+                                        {isBetaEnabled(CONST.BETAS.CUSTOM_AVATARS) ? (
+                                            <AvatarButtonWithIcon
+                                                text={translate('avatarWithImagePicker.editImage')}
+                                                source={avatarURL}
+                                                avatarID={accountID}
+                                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
+                                                size={CONST.AVATAR_SIZE.X_LARGE}
+                                                avatarStyle={[styles.avatarXLarge, styles.alignSelfStart]}
+                                                pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
+                                                fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
+                                                editIconStyle={styles.profilePageAvatar}
+                                                anchorRef={anchorRef}
+                                            />
+                                        ) : (
+                                            <AvatarWithImagePicker
+                                                isUsingDefaultAvatar={isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
+                                                source={avatarURL}
+                                                avatarID={accountID}
+                                                onImageSelected={(file) => {
+                                                    updateAvatar(file, {
+                                                        avatar: currentUserPersonalDetails?.avatar,
+                                                        avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
+                                                        accountID: currentUserPersonalDetails?.accountID,
+                                                    });
+                                                }}
+                                                onImageRemoved={() => {
+                                                    deleteAvatar({
+                                                        avatar: currentUserPersonalDetails?.avatar,
+                                                        fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
+                                                        accountID: currentUserPersonalDetails?.accountID,
+                                                    });
+                                                }}
+                                                size={CONST.AVATAR_SIZE.X_LARGE}
+                                                avatarStyle={[styles.avatarXLarge, styles.alignSelfStart]}
+                                                pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
+                                                errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
+                                                errorRowStyles={styles.mt6}
+                                                onErrorClose={() => clearAvatarErrors(currentUserPersonalDetails?.accountID)}
+                                                onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
+                                                previewSource={getFullSizeAvatar(avatarURL, accountID)}
+                                                originalFileName={currentUserPersonalDetails.originalFileName}
+                                                headerTitle={translate('profilePage.profileAvatar')}
+                                                fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
+                                                editIconStyle={styles.profilePageAvatar}
+                                            />
+                                        )}
                                     </MenuItemGroup>
                                 )}
                             </View>

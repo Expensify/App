@@ -124,6 +124,7 @@ const SCREENS = {
             DATE_OF_BIRTH: 'Settings_DateOfBirth',
             PHONE_NUMBER: 'Settings_PhoneNumber',
             ADDRESS: 'Settings_Address',
+            AVATAR: 'Settings_Avatar',
             ADDRESS_COUNTRY: 'Settings_Address_Country',
             ADDRESS_STATE: 'Settings_Address_State',
         },

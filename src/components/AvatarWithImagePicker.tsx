@@ -1,10 +1,9 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import usePopoverPosition from '@hooks/usePopoverPosition';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isSafari} from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
@@ -12,22 +11,18 @@ import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/file
 import getImageResolution from '@libs/fileDownload/getImageResolution';
 import type {AvatarSource} from '@libs/UserUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import AttachmentModal from './AttachmentModal';
 import AttachmentPicker from './AttachmentPicker';
-import Avatar from './Avatar';
+import AvatarButtonWithIcon from './AvatarButtonWithIcon';
 import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
-import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverMenu from './PopoverMenu';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import Tooltip from './Tooltip';
 
 type ErrorData = {
     validationError?: TranslationPaths | null | '';
@@ -156,7 +151,6 @@ function AvatarWithImagePicker({
     shouldDisableViewPhoto = false,
     editIcon = Expensicons.Pencil,
 }: AvatarWithImagePickerProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
@@ -361,46 +355,22 @@ function AvatarWithImagePicker({
                                             errorRowStyles={errorRowStyles}
                                             onClose={onErrorClose}
                                         >
-                                            <Tooltip
-                                                shouldRender={!disabled}
+                                            <AvatarButtonWithIcon
                                                 text={translate('avatarWithImagePicker.editImage')}
-                                            >
-                                                <PressableWithoutFeedback
-                                                    onPress={() => onPressAvatar(openPicker)}
-                                                    accessibilityRole={CONST.ROLE.BUTTON}
-                                                    accessibilityLabel={translate('avatarWithImagePicker.editImage')}
-                                                    disabled={isAvatarCropModalOpen || (disabled && !enablePreview)}
-                                                    disabledStyle={disabledStyle}
-                                                    style={[styles.pRelative, type === CONST.ICON_TYPE_AVATAR && styles.alignSelfCenter, avatarStyle]}
-                                                    ref={anchorRef}
-                                                >
-                                                    <OfflineWithFeedback pendingAction={pendingAction}>
-                                                        {source ? (
-                                                            <Avatar
-                                                                containerStyles={avatarStyle}
-                                                                imageStyles={[styles.alignSelfCenter, avatarStyle]}
-                                                                source={source}
-                                                                avatarID={avatarID}
-                                                                fallbackIcon={fallbackIcon}
-                                                                size={size}
-                                                                type={type}
-                                                            />
-                                                        ) : (
-                                                            <DefaultAvatar />
-                                                        )}
-                                                    </OfflineWithFeedback>
-                                                    {!disabled && (
-                                                        <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
-                                                            <Icon
-                                                                src={editIcon}
-                                                                width={variables.iconSizeSmall}
-                                                                height={variables.iconSizeSmall}
-                                                                fill={theme.icon}
-                                                            />
-                                                        </View>
-                                                    )}
-                                                </PressableWithoutFeedback>
-                                            </Tooltip>
+                                                source={source}
+                                                avatarID={avatarID}
+                                                onPress={() => onPressAvatar(openPicker)}
+                                                avatarStyle={avatarStyle}
+                                                pendingAction={pendingAction}
+                                                fallbackIcon={fallbackIcon}
+                                                anchorRef={anchorRef}
+                                                DefaultAvatar={DefaultAvatar}
+                                                editIcon={editIcon}
+                                                size={size}
+                                                type={type}
+                                                disabledStyle={disabledStyle}
+                                                editIconStyle={editIconStyle}
+                                            />
                                         </OfflineWithFeedback>
                                         <PopoverMenu
                                             anchorPosition={popoverPosition}

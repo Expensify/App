@@ -178,6 +178,7 @@ const ROUTES = {
     SETTINGS_CHANGE_CURRENCY: 'settings/add-payment-card/change-currency',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
     SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
+    SETTINGS_AVATAR: 'settings/profile/avatar',
     SETTINGS_TIMEZONE: 'settings/profile/timezone',
     SETTINGS_TIMEZONE_SELECT: 'settings/profile/timezone/select',
     SETTINGS_PRONOUNS: 'settings/profile/pronouns',
