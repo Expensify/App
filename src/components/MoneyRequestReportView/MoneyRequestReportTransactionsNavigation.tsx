@@ -61,6 +61,9 @@ function MoneyRequestReportTransactionsNavigation({currentReportID, parentReport
         };
     }, [currentReportID, parentReportActionIDs, reportIDsList]);
 
+    const [prevReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${prevReportID}`, {canBeMissing: true});
+    const [nextReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nextReportID}`, {canBeMissing: true});
+
     /**
      * We clear the sibling transactionThreadIDs when unmounting this component
      * only when the mount actually goes to a different SCREEN (and not a different version of the same SCREEN)
@@ -89,7 +92,9 @@ function MoneyRequestReportTransactionsNavigation({currentReportID, parentReport
                 if (nextReportID) {
                     markReportIDAsExpense(nextReportID);
                 }
-                setOptimisticTransactionThread(nextReportID, parentReportID, nextParentReportActionID, policyID);
+                if (!nextReport) {
+                    setOptimisticTransactionThread(nextReportID, parentReportID, nextParentReportActionID, policyID);
+                }
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true});
             }}
             onPrevious={(e) => {
@@ -98,7 +103,9 @@ function MoneyRequestReportTransactionsNavigation({currentReportID, parentReport
                 if (prevReportID) {
                     markReportIDAsExpense(prevReportID);
                 }
-                setOptimisticTransactionThread(prevReportID, parentReportID, prevParentReportActionID, policyID);
+                if (!prevReport) {
+                    setOptimisticTransactionThread(prevReportID, parentReportID, prevParentReportActionID, policyID);
+                }
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, backTo}), {forceReplace: true});
             }}
         />
