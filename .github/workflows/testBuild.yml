@@ -336,7 +336,7 @@ jobs:
 
       - name: Rock Remote Build - Android
         id: rock-remote-build-android
-        uses: callstackincubator/android@8c2cb70c209cc7f832130b6e49bcbcaa7ad62613 # v3
+        uses: callstackincubator/android@e8cf87fb2d45c48986c72ee9761307ac66c162e9 # v3
         env:
           IS_HYBRID_APP: true
           GITHUB_TOKEN: ${{ github.token }}
@@ -348,6 +348,7 @@ jobs:
           keystore-store-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
           keystore-key-alias: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
           keystore-key-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
+          keystore-path: 'tools/buildtools/upload-key.keystore'
           comment-bot: false
           rock-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
 
