@@ -67,6 +67,21 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
     const [workspaceInviteRoleDraft = CONST.POLICY.ROLE.USER] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
     const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
+    const memberNames = Object.values(personalDetailsOfInvitedEmails)
+        .map((personalDetail) => {
+            const displayName = getDisplayNameOrDefault(personalDetail, '', false);
+            if (displayName) {
+                return displayName;
+            }
+
+            // We don't have login details for users who are not in the database yet
+            // So we need to fallback to their login from the invitedEmailsToAccountIDsDraft
+            const accountID = personalDetail.accountID;
+            const loginFromInviteMap = Object.entries(invitedEmailsToAccountIDsDraft ?? {}).find(([, id]) => id === accountID)?.[0];
+
+            return loginFromInviteMap;
+        })
+        .join(', ');
 
     const welcomeNoteSubject = useMemo(
         () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
@@ -197,21 +212,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                     <View style={[styles.mb3]}>
                         <View style={[styles.mhn5, styles.mb3]}>
                             <MenuItemWithTopDescription
-                                title={Object.values(personalDetailsOfInvitedEmails)
-                                    .map((personalDetail) => {
-                                        const displayName = getDisplayNameOrDefault(personalDetail, '', false);
-                                        if (displayName) {
-                                            return displayName;
-                                        }
-
-                                        // We don't have login details for users who are not in the database yet
-                                        // So we need to fallback to their login from the invitedEmailsToAccountIDsDraft
-                                        const accountID = personalDetail.accountID;
-                                        const loginFromInviteMap = Object.entries(invitedEmailsToAccountIDsDraft ?? {}).find(([, id]) => id === accountID)?.[0];
-
-                                        return loginFromInviteMap;
-                                    })
-                                    .join(', ')}
+                                title={memberNames}
                                 description={translate('common.members')}
                                 numberOfLinesTitle={2}
                                 shouldShowRightIcon
