@@ -53,7 +53,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import getWorkspaceMenuItems from './workspaceMenuItems';
+import getWorkspaceMenuItems from './WorkspaceMenuItems';
 
 type WorkspaceTopLevelScreens = keyof typeof WORKSPACE_TO_RHP;
 
