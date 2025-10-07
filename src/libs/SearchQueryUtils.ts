@@ -165,38 +165,6 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
 
 /**
  * @private
- * Returns negated or non-negated filter value for query strings
- */
-function buildNegationFilterQuery(filterKey: SearchNegatableFilterKeys, filterValues: Partial<SearchAdvancedFiltersForm>) {
-    const negatedStrings = [];
-    const negatedValue = filterValues[`${filterKey}${CONST.SEARCH.NOT_MODIFIER}`];
-
-    if (negatedValue) {
-        const value = [negatedValue].flat().join(',');
-        negatedStrings.push(`-${filterKey}:${value}`);
-    }
-
-    const dateFilterKey = filterKey as SearchDateFilterKeys;
-    if (DATE_FILTER_KEYS.includes(dateFilterKey)) {
-        const nonNegatedValue = filterValues[`${dateFilterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`];
-        if (nonNegatedValue) {
-            negatedStrings.push(`${filterKey}:${nonNegatedValue}`);
-        }
-    }
-
-    const amountFilterKey = filterKey as SearchAmountFilterKeys;
-    if (AMOUNT_FILTER_KEYS.includes(amountFilterKey)) {
-        const nonNegatedValue = filterValues[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`];
-        if (nonNegatedValue) {
-            negatedStrings.push(`${filterKey}:${nonNegatedValue}`);
-        }
-    }
-
-    return negatedStrings.join(' ');
-}
-
-/**
- * @private
  * Returns string of correctly formatted filter values from QueryFilters object.
  */
 function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]) {
@@ -778,39 +746,53 @@ function buildFilterFormValuesFromQuery(
         }
 
         if (DATE_FILTER_KEYS.includes(filterKey as SearchDateFilterKeys)) {
+            const negatedKey = `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.NOT_MODIFIER}`;
             const beforeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
             const afterKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
             const onKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.ON}`;
 
-            const beforeFilter = filterList.find((filter) => filter.operator === 'lt' && isValidDate(filter.value.toString()));
-            const afterFilter = filterList.find((filter) => filter.operator === 'gt' && isValidDate(filter.value.toString()));
+            const beforeFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && isValidDate(filter.value.toString()));
+            const afterFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && isValidDate(filter.value.toString()));
+            const negatedFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO && isValidDate(filter.value.toString()));
             // The `On` filter could be either a date or a date preset (e.g. Last month)
-            const onFilter = filterList.find((filter) => filter.operator === 'eq' && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString())));
+            const onFilter = filterList.find(
+                (filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString())),
+            );
 
             filtersForm[beforeKey] = beforeFilter?.value.toString() ?? filtersForm[beforeKey];
             filtersForm[afterKey] = afterFilter?.value.toString() ?? filtersForm[afterKey];
             filtersForm[onKey] = onFilter?.value.toString() ?? filtersForm[onKey];
+            filtersForm[negatedKey] = negatedFilter?.value.toString() ?? filtersForm[negatedKey];
         }
 
         if (AMOUNT_FILTER_KEYS.includes(filterKey as SearchAmountFilterKeys)) {
+            const negatedKey = `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.NOT_MODIFIER}`;
             const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`;
             const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
             const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
 
             // backend amount is an integer and is 2 digits longer than frontend amount
             filtersForm[equalToKey] =
-                filterList.find((filter) => filter.operator === 'eq' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
-                filtersForm[equalToKey];
+                filterList
+                    .find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
+                    ?.value.toString() ?? filtersForm[equalToKey];
             filtersForm[lessThanKey] =
-                filterList.find((filter) => filter.operator === 'lt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
-                filtersForm[lessThanKey];
+                filterList
+                    .find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
+                    ?.value.toString() ?? filtersForm[lessThanKey];
             filtersForm[greaterThanKey] =
-                filterList.find((filter) => filter.operator === 'gt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
-                filtersForm[greaterThanKey];
+                filterList
+                    .find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
+                    ?.value.toString() ?? filtersForm[greaterThanKey];
+            filtersForm[negatedKey] =
+                filterList
+                    .find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
+                    ?.value.toString() ?? filtersForm[negatedKey];
         }
+
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
             const validBooleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
-            filtersForm[filterKey] = validBooleanTypes.find((value) => filterValues.at(0) === value);
+            filtersForm[key as typeof filterKey] = validBooleanTypes.find((value) => filterValues.at(0) === value);
         }
     }
 
