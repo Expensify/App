@@ -5350,10 +5350,6 @@ function getReportName(
         return getPolicyChangeLogDefaultTitleEnforcedMessage(parentReportAction);
     }
 
-    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-        return translateLocal('iou.paidElsewhere');
-    }
-
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
         return getPolicyChangeMessage(parentReportAction);
     }
