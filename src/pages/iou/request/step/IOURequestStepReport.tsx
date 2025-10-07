@@ -171,13 +171,12 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, reportOrDraftReport, transaction);
 
     const createReport = () => {
-        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
-        const backToRoute = ROUTES.REPORT_WITH_ID.getRoute(createdReportID);
         if (shouldSelectPolicy) {
             setSelectedTransactions([transactionID]);
-            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true, backToRoute));
+            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true, backTo));
             return;
         }
+        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
         handleRegularReportSelection({value: createdReportID});
     };
 

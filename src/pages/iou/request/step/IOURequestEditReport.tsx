@@ -77,12 +77,11 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     };
 
     const createReport = () => {
-        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
-        const backToRoute = ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID});
         if (shouldSelectPolicy) {
-            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true, backToRoute));
+            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true, backTo));
             return;
         }
+        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
         selectReport({value: createdReportID});
     };
 
