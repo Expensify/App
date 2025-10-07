@@ -4,7 +4,7 @@ import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as NextStepUtils from '@libs/NextStepUtils';
+import {buildMessage, parseMessage} from '@libs/NextStepUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {ReportNextStep} from '@src/types/onyx/Report';
@@ -37,13 +37,13 @@ function MoneyReportHeaderStatusBar({nextStep, nextStepDeprecated}: MoneyReportH
     const {message, icon} = useMemo(() => {
         if (!nextStep) {
             return {
-                message: NextStepUtils.parseMessage(nextStepDeprecated.message),
+                message: parseMessage(nextStepDeprecated.message),
                 icon: iconMap[nextStepDeprecated.icon] || Expensicons.Hourglass,
             };
         }
 
         return {
-            message: NextStepUtils.buildMessage(nextStep, translate),
+            message: buildMessage(nextStep, translate),
             icon: iconMap[nextStep.icon],
         };
     }, [nextStep, nextStepDeprecated, translate]);
