@@ -185,6 +185,10 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isActive]);
+
+    return {
+        handlePastePlainText,
+    };
 };
 
 export default useHtmlPaste;

@@ -6,6 +6,8 @@ type UseHtmlPaste = (
     preHtmlPasteCallback?: (event: ClipboardEvent) => boolean,
     isActive?: boolean,
     maxLength?: number, // Maximum length of the text input value after pasting
-) => void;
+) => void | {
+    handlePastePlainText: (event: ClipboardEvent) => void;
+};
 
 export default UseHtmlPaste;

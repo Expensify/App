@@ -388,7 +388,7 @@ function ComposerWithSuggestions({
             const {startIndex, endIndex, diff} = findNewlyAddedChars(prevText, commentValue);
 
             // Try to rewrite if this looks like "selected text replaced with a single URL"
-            const {text: rewritten, didReplace} = detectAndRewritePaste(prevText, prevSelectionStart, prevSelectionEnd, diff, {});
+            const {text: rewritten, didReplace} = detectAndRewritePaste(prevText, prevSelectionStart, prevSelectionEnd, diff);
 
             // Use the rewritten text when we replaced; otherwise fall back to the original commentValue pipeline
             const effectiveCommentValue = didReplace ? (rewritten ?? commentValue) : commentValue;

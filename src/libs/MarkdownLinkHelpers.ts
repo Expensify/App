@@ -12,6 +12,14 @@ const isStandaloneURL = (text: string): boolean => {
         return false;
     }
     const unwrapped = trimmed.replace(/^<|>$/g, '');
+
+    // Reject if contains emoji or any non-ASCII characters
+    // (valid URLs per RFC 3986 should be ASCII-only)
+    // eslint-disable-next-line no-control-regex
+    if (/[^\x00-\x7F]/.test(unwrapped)) {
+        return false;
+    }
+
     return Str.isValidURL(unwrapped);
 };
 
@@ -65,10 +73,8 @@ type DetectRewriteResult = {text: string | null; didReplace: boolean};
 /**
  * Given prevText and a selection (start/end) and the insertedText (e.g. diff),
  * returns a rewritten text if this looks like "selection replaced by a single URL" and we should turn it into a markdown link.
- *
- * options.maxLength (optional) allows the caller to guard against growing past a message limit.
  */
-const detectAndRewritePaste = (prevText: string, selectionStart: number, selectionEnd: number, insertedText: string, options?: {maxLength?: number}): DetectRewriteResult => {
+const detectAndRewritePaste = (prevText: string, selectionStart: number, selectionEnd: number, insertedText: string): DetectRewriteResult => {
     if (!insertedText || !isStandaloneURL(insertedText)) {
         return {text: null, didReplace: false};
     }
@@ -82,11 +88,6 @@ const detectAndRewritePaste = (prevText: string, selectionStart: number, selecti
     const selectedText = prevText.substring(selectionStart, selectionEnd);
     const replacement = toMarkdownLink(selectedText, insertedText);
     const newText = prevText.slice(0, selectionStart) + replacement + prevText.slice(selectionEnd);
-
-    if (options?.maxLength && newText.length > options.maxLength) {
-        // If replacing would exceed the configured limit, bail out and don't rewrite.
-        return {text: null, didReplace: false};
-    }
 
     return {text: newText, didReplace: true};
 };
