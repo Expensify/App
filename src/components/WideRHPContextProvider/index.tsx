@@ -49,7 +49,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const shouldShowSecondaryOverlay = useRootNavigationState((state) => {
         // Safe handling when navigation is not yet initialized
         if (!state) {
-            return undefined;
+            return false;
         }
 
         const focusedRoute = findFocusedRoute(state);
