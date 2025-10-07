@@ -561,6 +561,8 @@ function MoneyRequestView({
                     errorText={tagError}
                     shouldShowBasicTitle
                     shouldShowDescriptionOnTop
+                    copyValue={!canEdit ? tagForDisplay : undefined}
+                    copyable={!canEdit && !!tagForDisplay}
                 />
             </OfflineWithFeedback>
         );
@@ -571,6 +573,10 @@ function MoneyRequestView({
 
     if (!report?.reportID || !transaction?.transactionID) {
         return <ReportActionsSkeletonView />;
+    }
+
+    function getAttendeesTitle() {
+        return Array.isArray(transactionAttendees) ? transactionAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : '';
     }
 
     return (
@@ -617,6 +623,8 @@ function MoneyRequestView({
                         }}
                         brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={getErrorForField('amount')}
+                        copyValue={!canEditAmount ? amountTitle : undefined}
+                        copyable={!canEditAmount && !!amountTitle}
                     />
                 </OfflineWithFeedback>
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
@@ -636,6 +644,8 @@ function MoneyRequestView({
                         brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={getErrorForField('comment')}
                         numberOfLinesTitle={0}
+                        copyValue={!canEdit ? (updatedTransactionDescription ?? transactionDescription) : undefined}
+                        copyable={!canEdit && !!(updatedTransactionDescription ?? transactionDescription)}
                     />
                 </OfflineWithFeedback>
                 {isManualDistanceRequest || (isMapDistanceRequest && transaction?.comment?.waypoints) ? (
@@ -709,6 +719,8 @@ function MoneyRequestView({
                             }}
                             brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('category')}
+                            copyValue={!canEdit ? (updatedTransaction?.category ?? categoryForDisplay) : undefined}
+                            copyable={!canEdit && !!(updatedTransaction?.category ?? categoryForDisplay)}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -720,6 +732,8 @@ function MoneyRequestView({
                             title={cardProgramName}
                             titleStyle={styles.flex1}
                             interactive={false}
+                            copyValue={cardProgramName}
+                            copyable
                         />
                     </OfflineWithFeedback>
                 )}
@@ -738,6 +752,8 @@ function MoneyRequestView({
                             }}
                             brickRoadIndicator={getErrorForField('tax') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('tax')}
+                            copyValue={!canEditTaxFields ? (taxRateTitle ?? fallbackTaxRateTitle) : undefined}
+                            copyable={!canEditTaxFields && !!(taxRateTitle ?? fallbackTaxRateTitle)}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -754,6 +770,8 @@ function MoneyRequestView({
                                     ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
                                 );
                             }}
+                            copyValue={!canEditTaxFields ? (formattedTaxAmount?.toString() ?? '') : undefined}
+                            copyable={!canEditTaxFields && !!(formattedTaxAmount ? formattedTaxAmount.toString() : '')}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -761,7 +779,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('attendees')}>
                         <MenuItemWithTopDescription
                             key="attendees"
-                            title={Array.isArray(transactionAttendees) ? transactionAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : ''}
+                            title={getAttendeesTitle()}
                             description={`${translate('iou.attendees')} ${
                                 Array.isArray(transactionAttendees) && transactionAttendees.length > 1 && formattedPerAttendeeAmount
                                     ? `${CONST.DOT_SEPARATOR} ${formattedPerAttendeeAmount} ${translate('common.perPerson')}`
@@ -775,6 +793,8 @@ function MoneyRequestView({
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             shouldRenderAsHTML
+                            copyValue={!canEdit ? getAttendeesTitle() : undefined}
+                            copyable={!canEdit && !!getAttendeesTitle()}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -837,6 +857,8 @@ function MoneyRequestView({
                             }}
                             interactive={canEditReport}
                             shouldRenderAsHTML
+                            copyValue={!canEditReport ? (getReportName(actualParentReport) || actualParentReport?.reportName) : undefined}
+                            copyable={!canEditReport && !!(getReportName(actualParentReport) || actualParentReport?.reportName)}
                         />
                     </OfflineWithFeedback>
                 )}
