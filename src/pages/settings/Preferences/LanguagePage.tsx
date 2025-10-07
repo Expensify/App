@@ -2,9 +2,9 @@ import React, {useMemo, useRef} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import {setLocale} from '@userActions/App';
@@ -49,11 +49,11 @@ function LanguagePage() {
             />
             <FullPageOfflineBlockingView>
                 <SelectionList
-                    sections={[{data: locales}]}
+                    data={locales}
                     ListItem={RadioListItem}
                     onSelectRow={updateLanguage}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedOptionKey={locales.find((locale) => locale.isSelected)?.keyForList}
+                    initiallyFocusedItemKey={locales.find((locale) => locale.isSelected)?.keyForList}
                 />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
