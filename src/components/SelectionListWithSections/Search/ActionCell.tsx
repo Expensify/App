@@ -102,6 +102,7 @@ function ActionCell({
                     textStyles={StyleUtils.getFontSizeStyle(extraSmall ? variables.fontSizeExtraSmall : variables.fontSizeSmall)}
                     iconStyles={styles.mr0}
                     success
+                    shouldUseXXSmallIcon={extraSmall}
                 />
             </View>
         );
