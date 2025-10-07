@@ -217,13 +217,7 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, onFocus,
     return (
         <>
             {shouldAllowRecoveryCode && (
-                <Text style={[styles.mb3]}>
-                    {translate(
-                        isUsingRecoveryCode
-                            ? 'twoFactorAuth.explainProcessToRemoveWithRecovery'
-                            : 'twoFactorAuth.explainProcessToRemove',
-                    )}
-                </Text>
+                <Text style={[styles.mb3]}>{translate(isUsingRecoveryCode ? 'twoFactorAuth.explainProcessToRemoveWithRecovery' : 'twoFactorAuth.explainProcessToRemove')}</Text>
             )}
             {shouldAllowRecoveryCode && isUsingRecoveryCode ? (
                 <TextInput
