@@ -8,7 +8,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import {useSession} from '@components/OnyxListItemProvider';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
-import type QRShareWithDownloadHandle from '@components/QRShare/QRShareWithDownload/types';
+import type {QRShareWithDownloadHandle} from '@components/QRShare/QRShareWithDownload/types';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -55,14 +55,14 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
     const logoBackgroundColor = !hasAvatar ? defaultWorkspaceAvatarColors.backgroundColor?.toString() : undefined;
     const svgLogoFillColor = !hasAvatar ? defaultWorkspaceAvatarColors.fill : undefined;
 
-    const adminRoom = useMemo(() => {
+    const adminRoomReportID = useMemo(() => {
         if (!policy?.id) {
             return undefined;
         }
-        return getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policy?.id);
-    }, [policy?.id]);
+        return getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policy?.id)?.reportID ?? String(policy?.chatReportIDAdmins);
+    }, [policy?.chatReportIDAdmins, policy?.id]);
 
-    const adminsRoomLink = adminRoom ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(adminRoom.reportID)}` : '';
+    const adminsRoomLink = adminRoomReportID ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(adminRoomReportID)}` : '';
 
     return (
         <AccessOrNotFoundWrapper

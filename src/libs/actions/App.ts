@@ -221,7 +221,10 @@ AppState.addEventListener('change', (nextAppState) => {
 function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrReconnect> {
     return new Promise((resolve) => {
         isReadyToOpenApp.then(() => {
-            const connection = Onyx.connect({
+            // Using Onyx.connectWithoutView is appropriate here because the data retrieved is not directly bound to the View
+            // and each time the getPolicyParamsForOpenOrReconnect function is called,
+            // connectWithoutView will fetch the latest data from Onyx.
+            const connection = Onyx.connectWithoutView({
                 key: ONYXKEYS.COLLECTION.POLICY,
                 waitForCollectionCallback: true,
                 callback: (policies) => {
@@ -499,10 +502,6 @@ function savePolicyDraftByNewWorkspace(
 
  * When the exitTo route is 'workspace/new', we create a new
  * workspace and navigate to it
- *
- * We subscribe to the session using withOnyx in the AuthScreens and
- * pass it in as a parameter. withOnyx guarantees that the value has been read
- * from Onyx because it will not render the AuthScreens until that point.
  */
 function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
     const currentUrl = getCurrentUrl();
@@ -657,6 +656,22 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     clearSoundAssetsCache();
 }
 
+/**
+ * Clears a top-level Onyx value key by setting it to null.
+ * This is used for ephemeral flags so they do not persist across reloads.
+ */
+function clearSupportalPermissionDenied() {
+    // We intentionally set to null to keep key present but empty
+    Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, null);
+}
+
+/**
+ * Shows a top-level modal informing that a supportal-auth user attempted an unauthorized command.
+ */
+function showSupportalPermissionDenied(payload: OnyxTypes.SupportalPermissionDenied) {
+    Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, payload);
+}
+
 export {
     setLocale,
     setSidebarLoaded,
@@ -677,6 +692,8 @@ export {
     updateLastRoute,
     setIsUsingImportedState,
     clearOnyxAndResetApp,
+    clearSupportalPermissionDenied,
+    showSupportalPermissionDenied,
     setPreservedUserSession,
     KEYS_TO_PRESERVE,
 };
