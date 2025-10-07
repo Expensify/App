@@ -7,7 +7,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
-import {getActivePolicies, getPerDiemCustomUnit, getPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
+import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit, getPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {setCustomUnitID, setMoneyRequestCategory, setMoneyRequestParticipants} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -38,7 +38,7 @@ function IOURequestStepPerDiemWorkspace({
     const selectedWorkspace = useMemo(() => transaction?.participants?.[0], [transaction]);
 
     const workspaceOptions: WorkspaceListItem[] = useMemo(() => {
-        const availableWorkspaces = getActivePolicies(allPolicies, currentUserLogin).filter((policy) => policy?.arePerDiemRatesEnabled);
+        const availableWorkspaces = getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserLogin);
 
         return availableWorkspaces
             .sort((policy1, policy2) =>
