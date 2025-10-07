@@ -45,7 +45,7 @@ jest.mock('@libs/ReportUtils', () => {
     const originalModule = jest.requireActual<Report>('@libs/ReportUtils');
     return {
         ...originalModule,
-        getPolicyExpenseChat: jest.fn().mockReturnValue({reportID: MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID, hasOutstandingChildRequest: false}),
+        getPolicyExpenseChat: jest.fn().mockImplementation(() => ({reportID: MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID, hasOutstandingChildRequest: false})),
     };
 });
 
@@ -2113,7 +2113,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             // When moving to another workspace
-            Report.changeReportPolicy(expenseReport, newPolicy);
+            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', false, false);
             await waitForBatchedUpdates();
 
             // Then the expense report chatReportID and parentReportID should be updated to the new expense chat reportID
