@@ -20,6 +20,7 @@ import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen as canUseTouchScreenLib} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import type VideoPlayerProps from './types';
@@ -93,9 +94,10 @@ function BaseVideoPlayer({
     const {isPlaying} = useEvent(videoPlayerRef.current, 'playingChange', {isPlaying: false});
     const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: 'idle'} as StatusChangeEventPayload);
 
+    const [isMobileSafariLoading, setIsMobileSafariLoading] = useState(false);
     const isLoading = useMemo(() => {
-        return status === 'loading';
-    }, [status]);
+        return status === 'loading' || isMobileSafariLoading;
+    }, [isMobileSafariLoading, status]);
 
     const hasError = useMemo(() => {
         // No need to set hasError while offline, since the offline indicator is already shown.
@@ -115,6 +117,9 @@ function BaseVideoPlayer({
     const canUseTouchScreen = canUseTouchScreenLib();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
+    const shouldShowLoadingIndicator = useMemo(() => {
+        return !isPlaying && !isOffline && !hasError && (isLoading || isBuffering);
+    }, [hasError, isBuffering, isLoading, isOffline, isPlaying]);
     const {updateVolume, lastNonZeroVolume} = useVolumeContext();
     useHandleNativeVideoControls({
         videoViewRef,
@@ -222,7 +227,10 @@ function BaseVideoPlayer({
     });
 
     useEventListener(videoPlayerRef.current, 'statusChange', (payload: StatusChangeEventPayload) => {
-        if (payload.status !== 'readyToPlay' || !isFirstLoad) {
+        if (isMobileSafariLoading) {
+            setIsMobileSafariLoading(false);
+        }
+        if (payload.status !== 'readyToPlay' || !isFirstLoad || videoPlayerRef.current !== currentVideoPlayerRef.current) {
             return;
         }
         isReadyForDisplayRef.current = true;
@@ -363,6 +371,16 @@ function BaseVideoPlayer({
         updateCurrentURLAndReportID(url, reportID);
     }, [reportID, shouldPlay, updateCurrentURLAndReportID, url]);
 
+    // ensure that video loads after page refresh on iOS Safari
+    useEffect(() => {
+        const videoElement = videoViewRef.current?.nativeRef.current as HTMLVideoElement;
+        if (!videoElement || hasError || !isMobileSafari()) {
+            return;
+        }
+        videoElement.load();
+        setIsMobileSafariLoading(true);
+    }, [hasError]);
+
     return (
         <>
             {/* We need to wrap the video component in a component that will catch unhandled pointer events. Otherwise, these
@@ -448,27 +466,28 @@ function BaseVideoPlayer({
                                     </View>
                                 )}
                             </PressableWithoutFeedback>
-                            {hasError && !isBuffering && !isOffline && <VideoErrorIndicator isPreview={isPreview} />}
-                            {((isLoading && !isOffline && !hasError) || (isBuffering && !isPlaying && !hasError)) && (
-                                <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />
-                            )}
+                            {hasError && !isOffline && <VideoErrorIndicator isPreview={isPreview} />}
+                            {shouldShowLoadingIndicator && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
                             {isLoading && (isOffline || !isBuffering) && <AttachmentOfflineIndicator isPreview={isPreview} />}
-                            {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen || isEnded) && (
-                                <VideoPlayerControls
-                                    duration={duration ?? 0}
-                                    position={currentTime ?? 0}
-                                    url={url}
-                                    videoPlayerRef={videoPlayerRef}
-                                    videoViewRef={videoViewRef}
-                                    isPlaying={isPlaying}
-                                    small={shouldUseSmallVideoControls}
-                                    style={[videoControlsStyle, controlsAnimatedStyle]}
-                                    togglePlayCurrentVideo={togglePlayCurrentVideo}
-                                    controlsStatus={controlStatusState}
-                                    showPopoverMenu={showPopoverMenu}
-                                    reportID={reportID}
-                                />
-                            )}
+                            {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE &&
+                                !shouldShowLoadingIndicator &&
+                                !(hasError && !isOffline) &&
+                                (isPopoverVisible || isHovered || canUseTouchScreen || isEnded) && (
+                                    <VideoPlayerControls
+                                        duration={duration ?? 0}
+                                        position={currentTime ?? 0}
+                                        url={url}
+                                        videoPlayerRef={videoPlayerRef}
+                                        videoViewRef={videoViewRef}
+                                        isPlaying={isPlaying}
+                                        small={shouldUseSmallVideoControls}
+                                        style={[videoControlsStyle, controlsAnimatedStyle]}
+                                        togglePlayCurrentVideo={togglePlayCurrentVideo}
+                                        controlsStatus={controlStatusState}
+                                        showPopoverMenu={showPopoverMenu}
+                                        reportID={reportID}
+                                    />
+                                )}
                         </View>
                     )}
                 </Hoverable>
