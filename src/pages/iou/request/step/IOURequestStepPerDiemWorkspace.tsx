@@ -1,8 +1,8 @@
 import React, {useMemo} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import SelectionList from '@components/SelectionList';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -31,7 +31,7 @@ function IOURequestStepPerDiemWorkspace({
     },
     transaction,
 }: IOURequestStepPerDiemWorkspaceProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {localeCompare} = useLocalize();
     const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
@@ -92,11 +92,11 @@ function IOURequestStepPerDiemWorkspace({
     return (
         <SelectionList
             key={selectedWorkspace?.policyID}
-            sections={[{data: workspaceOptions, title: translate('common.workspaces')}]}
+            data={workspaceOptions}
             onSelectRow={selectWorkspace}
             shouldSingleExecuteRowSelect
             ListItem={UserListItem}
-            initiallyFocusedOptionKey={selectedWorkspace?.policyID}
+            initiallyFocusedItemKey={selectedWorkspace?.policyID}
         />
     );
 }
