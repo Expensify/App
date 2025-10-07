@@ -1,9 +1,10 @@
 import {isActingAsDelegateSelector} from '@selectors/Account';
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useInitial from '@hooks/useInitial';
 import useOnyx from '@hooks/useOnyx';
 import {clearIssueNewCardFlow, startIssueNewCardFlow} from '@libs/actions/Card';
@@ -44,7 +45,7 @@ function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
     return issueNewCard.isChangeAssigneeDisabled ? stepIndex - 1 : stepIndex;
 }
 
-function IssueNewCardPage({policy, route, navigation}: IssueNewCardPageProps) {
+function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
     const {currentStep} = issueNewCard ?? {};
@@ -59,18 +60,16 @@ function IssueNewCardPage({policy, route, navigation}: IssueNewCardPageProps) {
         startIssueNewCardFlow(policyID);
     }, [policyID]);
 
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('blur', () => {
-            InteractionManager.runAfterInteractions(() => {
-                if (currentStep !== CONST.EXPENSIFY_CARD.STEP.ASSIGNEE) {
-                    return;
-                }
-                clearIssueNewCardFlow(policyID);
-            });
+    const handleBeforeRemove = useCallback(() => {
+        InteractionManager.runAfterInteractions(() => {
+            if (currentStep !== CONST.EXPENSIFY_CARD.STEP.ASSIGNEE || issueNewCard?.isEditing) {
+                return;
+            }
+            clearIssueNewCardFlow(policyID);
         });
+    }, [currentStep, issueNewCard?.isEditing, policyID]);
 
-        return unsubscribe;
-    }, [navigation, currentStep, policyID]);
+    useBeforeRemove(handleBeforeRemove);
 
     const getCurrentStep = () => {
         switch (currentStep) {
