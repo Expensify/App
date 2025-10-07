@@ -195,6 +195,8 @@ function ReportActionsList({
     const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
     const topReportAction = sortedVisibleReportActions.at(-1);
     const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount && !reportActionID);
+    const createdReportAction = sortedVisibleReportActions.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const prevCreatedReportAction = usePrevious(createdReportAction);
 
     useEffect(() => {
         const unsubscribe = Visibility.onVisibilityChange(() => {
@@ -368,6 +370,14 @@ function ReportActionsList({
         previousLastIndex.current = lastActionIndex;
         reportActionSize.current = sortedVisibleReportActions.length;
     }, [lastActionIndex, sortedVisibleReportActions, reportScrollManager, hasNewestReportAction, linkedReportActionID, setIsFloatingMessageCounterVisible]);
+
+    useEffect(() => {
+        const shouldScrollAfterLayout = createdReportAction?.reportActionID !== prevCreatedReportAction?.reportActionID && !shouldScrollToEndAfterLayout && shouldFocusToTopOnMount;
+        if (!shouldScrollAfterLayout) {
+            return;
+        }
+        setShouldScrollToEndAfterLayout(true);
+    }, [createdReportAction, prevCreatedReportAction, shouldScrollToEndAfterLayout, shouldFocusToTopOnMount]);
 
     useEffect(() => {
         userActiveSince.current = DateUtils.getDBTime();
