@@ -7,7 +7,7 @@ import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import * as Expensicons from './Icon/Expensicons';
 import type {LocaleContextProps} from './LocaleContextProvider';
 
-type ApprovalButtonProps = {
+type ExpenseHeaderApprovalButtonProps = {
     /** Whether any transaction is on hold */
     isAnyTransactionOnHold: boolean;
 
@@ -42,22 +42,30 @@ type ApprovalOption = {
 
 type ApprovalDropdownOptions = {
     options: ApprovalOption[];
-    menuHeaderText: string;
-    shouldShowDropdown: boolean;
+};
+
+type ApprovalDropdownOptionProps = {
+    nonHeldAmount: string | undefined;
+    fullAmount: string;
+    hasValidNonHeldAmount: boolean;
+    hasOnlyHeldExpenses: boolean;
+    onPartialApprove: () => void;
+    onFullApprove: () => void;
+    translate: LocaleContextProps['translate'];
 };
 
 /**
  * Generates dropdown options for approve button when there are held expenses
  */
-function getApprovalDropdownOptions(
-    nonHeldAmount: string | undefined,
-    fullAmount: string,
-    hasValidNonHeldAmount: boolean,
-    hasOnlyHeldExpenses: boolean,
-    onApprovePartial: () => void,
-    onApproveFull: () => void,
-    translate: LocaleContextProps['translate'],
-): ApprovalDropdownOptions {
+function getApprovalDropdownOptions({
+    nonHeldAmount,
+    fullAmount,
+    hasValidNonHeldAmount,
+    hasOnlyHeldExpenses,
+    onPartialApprove,
+    onFullApprove,
+    translate,
+}: ApprovalDropdownOptionProps): ApprovalDropdownOptions {
     const options: ApprovalOption[] = [];
 
     if (nonHeldAmount && hasValidNonHeldAmount && !hasOnlyHeldExpenses) {
@@ -65,7 +73,7 @@ function getApprovalDropdownOptions(
             value: 'approve_partial',
             text: `${translate('iou.approveOnly')} ${nonHeldAmount}`,
             icon: Expensicons.ThumbsUp,
-            onSelected: onApprovePartial,
+            onSelected: onPartialApprove,
         });
     }
 
@@ -73,19 +81,15 @@ function getApprovalDropdownOptions(
         value: 'approve_full',
         text: `${translate('iou.approve')} ${fullAmount}`,
         icon: Expensicons.DocumentCheck,
-        onSelected: onApproveFull,
+        onSelected: onFullApprove,
     });
-
-    const shouldShowDropdown = options.length > 1;
 
     return {
         options,
-        menuHeaderText: translate('iou.confirmApprovalWithHeldAmount'),
-        shouldShowDropdown,
     };
 }
 
-function ApprovalButton({
+function ExpenseHeaderApprovalButton({
     isAnyTransactionOnHold,
     isDelegateAccessRestricted,
     hasOnlyHeldExpenses,
@@ -94,32 +98,32 @@ function ApprovalButton({
     fullAmount,
     onApprove,
     onConfirmApproval,
-}: ApprovalButtonProps) {
+}: ExpenseHeaderApprovalButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const shouldShowDropdown = isAnyTransactionOnHold && !isDelegateAccessRestricted;
 
     if (shouldShowDropdown) {
-        const approvalOptions = getApprovalDropdownOptions(
-            !hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
+        const approvalOptions = getApprovalDropdownOptions({
+            nonHeldAmount: !hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
             fullAmount,
             hasValidNonHeldAmount,
             hasOnlyHeldExpenses,
-            () => onApprove(false),
-            () => onApprove(true),
+            onPartialApprove: () => onApprove(false),
+            onFullApprove: () => onApprove(true),
             translate,
-        );
+        });
 
-        if (approvalOptions.shouldShowDropdown) {
+        if (approvalOptions.options.length > 1) {
             return (
                 <ButtonWithDropdownMenu
                     success
                     options={approvalOptions.options}
-                    menuHeaderText={approvalOptions.menuHeaderText}
+                    menuHeaderText={translate('iou.confirmApprovalWithHeldAmount')}
                     onPress={() => {}}
                     customText={translate('iou.approve')}
-                    headerStyles={styles.lineHeightNormal}
+                    headerTextStyles={styles.lineHeightNormal}
                     shouldAlwaysShowDropdownMenu
                     isSplitButton={false}
                 />
@@ -136,5 +140,5 @@ function ApprovalButton({
     );
 }
 
-export default ApprovalButton;
+export default ExpenseHeaderApprovalButton;
 export {getApprovalDropdownOptions};

@@ -5,11 +5,11 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
-import {getApprovalDropdownOptions} from '@components/ApprovalButton';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {getApprovalDropdownOptions} from '@components/ExpenseHeaderApprovalButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
@@ -553,30 +553,30 @@ function MoneyRequestReportPreviewContent({
             const shouldShowDropdown = hasHeldExpensesReportUtils(iouReport?.reportID) && !isDelegateAccessRestricted;
 
             if (shouldShowDropdown) {
-                const approvalOptions = getApprovalDropdownOptions(
-                    !hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
+                const approvalOptions = getApprovalDropdownOptions({
+                    nonHeldAmount: !hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
                     fullAmount,
                     hasValidNonHeldAmount,
                     hasOnlyHeldExpenses,
-                    () => {
+                    onPartialApprove: () => {
                         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
                         startApprovedAnimation();
                         approveMoneyRequest(iouReport, false);
                     },
-                    () => {
+                    onFullApprove: () => {
                         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
                         startApprovedAnimation();
                         approveMoneyRequest(iouReport, true);
                     },
                     translate,
-                );
+                });
 
-                if (approvalOptions.shouldShowDropdown) {
+                if (approvalOptions.options.length > 1) {
                     return (
                         <ButtonWithDropdownMenu
                             success
                             options={approvalOptions.options}
-                            menuHeaderText={approvalOptions.menuHeaderText}
+                            menuHeaderText={translate('iou.confirmApprovalWithHeldAmount')}
                             onPress={() => {}}
                             customText={translate('iou.approve')}
                             shouldAlwaysShowDropdownMenu

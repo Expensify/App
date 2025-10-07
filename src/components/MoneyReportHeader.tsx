@@ -115,7 +115,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ActivityIndicator from './ActivityIndicator';
 import AnimatedSubmitButton from './AnimatedSubmitButton';
-import ApprovalButton from './ApprovalButton';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -123,6 +122,7 @@ import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmModal from './ConfirmModal';
 import DecisionModal from './DecisionModal';
 import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
+import ExpenseHeaderApprovalButton from './ExpenseHeaderApprovalButton';
 import Header from './Header';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
@@ -759,7 +759,7 @@ function MoneyReportHeader({
             />
         ),
         [CONST.REPORT.PRIMARY_ACTIONS.APPROVE]: (
-            <ApprovalButton
+            <ExpenseHeaderApprovalButton
                 isAnyTransactionOnHold={isAnyTransactionOnHold}
                 isDelegateAccessRestricted={isDelegateAccessRestricted}
                 hasOnlyHeldExpenses={hasOnlyHeldExpenses}

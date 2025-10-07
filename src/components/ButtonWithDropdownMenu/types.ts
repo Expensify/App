@@ -150,7 +150,7 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     shouldUseOptionIcon?: boolean;
 
     /** Used to apply styles specifically to the header text */
-    headerStyles?: StyleProp<TextStyle>;
+    headerTextStyles?: StyleProp<TextStyle>;
 
     /** Reference to the outer element */
     ref?: React.Ref<ButtonWithDropdownMenuRef>;
