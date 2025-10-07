@@ -161,7 +161,7 @@ function Footer({navigateFocus}: FooterProps) {
         <View style={[styles.flex1]}>
             <View style={footerWrapper}>
                 {isVertical ? (
-                    <View style={[styles.signInPageGradientMobile]}>
+                    <View style={styles.signInPageGradientMobile}>
                         <ImageSVG
                             src={SignInGradient}
                             height="100%"
