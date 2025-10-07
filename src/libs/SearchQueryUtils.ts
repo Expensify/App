@@ -118,6 +118,7 @@ function sanitizeSearchValue(str: string) {
  * Returns date filter value for QueryString.
  */
 function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>, filterKey: SearchDateFilterKeys) {
+    const negatedDate = filterValues[`${filterKey}${CONST.SEARCH.NOT_MODIFIER}`];
     const dateOn = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`];
     const dateAfter = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`];
     const dateBefore = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`];
@@ -133,6 +134,9 @@ function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>, 
     if (dateBefore) {
         dateFilters.push(`${filterKey}<${dateBefore}`);
     }
+    if (negatedDate) {
+        dateFilters.push(`-${filterKey}`);
+    }
 
     return dateFilters.join(' ');
 }
@@ -142,6 +146,7 @@ function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>, 
  * Returns amount filter value for QueryString.
  */
 function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues: Partial<SearchAdvancedFiltersForm>) {
+    const negatedAmount = filterValues[`${filterKey}${CONST.SEARCH.NOT_MODIFIER}`];
     const equalTo = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`];
     const lessThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`];
     const greaterThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
@@ -158,6 +163,10 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
 
     if (lessThan) {
         amountStrings.push(`${filterKey}<${lessThan}`);
+    }
+
+    if (negatedAmount) {
+        amountStrings.push(`-${filterKey}`);
     }
 
     return amountStrings.join(' ');
@@ -466,7 +475,6 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
  * Main usage is to consume data format that comes from AdvancedFilters Onyx Form Data, and generate query string.
  *
  * Reverse operation of buildFilterFormValuesFromQuery()
- * JACK_TODO
  */
 function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
     const supportedFilterValues = {...filterValues};
@@ -619,7 +627,6 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
  * Main usage of this is to generate the initial values for AdvancedFilters from existing query.
  *
  * Reverse operation of buildQueryStringFromFilterFormValues()
- * JACK_TODO: FIx dates here
  */
 function buildFilterFormValuesFromQuery(
     queryJSON: SearchQueryJSON,
