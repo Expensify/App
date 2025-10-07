@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useWalletAdditionalDetailsStepFormSubmit from '@hooks/useWalletAdditionalDetailsStepFormSubmit';
-import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
+import {appendCountryCodeWithCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
 import {getFieldRequiredErrors, isValidPhoneNumber, isValidUSPhone} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,7 +17,8 @@ const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.PHONE_NUMBER];
 function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
-    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
+    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {canBeMissing: true});
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const defaultPhoneNumber = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.PHONE_NUMBER] ?? '';
 
     const validate = useCallback(
@@ -25,7 +26,7 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
             const errors = getFieldRequiredErrors(values, STEP_FIELDS);
 
             if (values.phoneNumber) {
-                const phoneNumberWithCountryCode = appendCountryCode(values.phoneNumber);
+                const phoneNumberWithCountryCode = appendCountryCodeWithCountryCode(values.phoneNumber, countryCode ?? CONST.DEFAULT_COUNTRY_CODE);
                 const e164FormattedPhoneNumber = formatE164PhoneNumber(values.phoneNumber);
 
                 if (!isValidPhoneNumber(phoneNumberWithCountryCode) || !isValidUSPhone(e164FormattedPhoneNumber)) {
@@ -35,7 +36,7 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
 
             return errors;
         },
-        [translate],
+        [countryCode, translate],
     );
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
