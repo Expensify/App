@@ -20,7 +20,7 @@ import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import {isMobileSafari} from '@libs/Browser';
+import {isSafari} from '@libs/Browser';
 import {canUseTouchScreen as canUseTouchScreenLib} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import type VideoPlayerProps from './types';
@@ -94,10 +94,10 @@ function BaseVideoPlayer({
     const {isPlaying} = useEvent(videoPlayerRef.current, 'playingChange', {isPlaying: false});
     const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: 'idle'} as StatusChangeEventPayload);
 
-    const [isMobileSafariLoading, setIsMobileSafariLoading] = useState(false);
+    const [isSafariLoading, setIsMobileSafariLoading] = useState(false);
     const isLoading = useMemo(() => {
-        return status === 'loading' || isMobileSafariLoading;
-    }, [isMobileSafariLoading, status]);
+        return status === 'loading' || isSafariLoading;
+    }, [isSafariLoading, status]);
 
     const hasError = useMemo(() => {
         // No need to set hasError while offline, since the offline indicator is already shown.
@@ -227,15 +227,17 @@ function BaseVideoPlayer({
     });
 
     useEventListener(videoPlayerRef.current, 'statusChange', (payload: StatusChangeEventPayload) => {
-        if (isMobileSafariLoading) {
+        if (isSafariLoading) {
             setIsMobileSafariLoading(false);
         }
-        if (payload.status !== 'readyToPlay' || !isFirstLoad || videoPlayerRef.current !== currentVideoPlayerRef.current) {
+        if (payload.status !== 'readyToPlay') {
             return;
         }
         isReadyForDisplayRef.current = true;
-        playVideo();
-        setIsFirstLoad(false);
+        if (videoPlayerRef.current === currentVideoPlayerRef.current && isFirstLoad) {
+            playVideo();
+            setIsFirstLoad(false);
+        }
     });
 
     useEventListener(videoPlayerRef.current, 'playToEnd', () => {
@@ -374,7 +376,7 @@ function BaseVideoPlayer({
     // ensure that video loads after page refresh on iOS Safari
     useEffect(() => {
         const videoElement = videoViewRef.current?.nativeRef.current as HTMLVideoElement;
-        if (!videoElement || hasError || !isMobileSafari()) {
+        if (!videoElement || hasError || !isSafari()) {
             return;
         }
         videoElement.load();
@@ -468,7 +470,7 @@ function BaseVideoPlayer({
                             </PressableWithoutFeedback>
                             {hasError && !isOffline && <VideoErrorIndicator isPreview={isPreview} />}
                             {shouldShowLoadingIndicator && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-                            {isLoading && (isOffline || !isBuffering) && <AttachmentOfflineIndicator isPreview={isPreview} />}
+                            {!isLoading && (isOffline || !isBuffering) && <AttachmentOfflineIndicator isPreview={isPreview} />}
                             {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE &&
                                 !shouldShowLoadingIndicator &&
                                 !(hasError && !isOffline) &&
