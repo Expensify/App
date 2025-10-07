@@ -3,9 +3,9 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
@@ -65,11 +65,11 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
             />
             <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                 <SelectionList
-                    sections={[{data: items}]}
+                    data={items}
                     ListItem={RadioListItem}
                     onSelectRow={changeRole}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedOptionKey={items.find((item) => item.isSelected)?.keyForList}
+                    initiallyFocusedItemKey={items.find((item) => item.isSelected)?.keyForList}
                 />
             </View>
         </ScreenWrapper>
