@@ -272,6 +272,7 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const prevOptions = useRef<OptionList>(null);
     const [areInternalOptionsInitialized, setAreInternalOptionsInitialized] = useState(false);
 
+    const prevIsInitialized = usePrevious(areOptionsInitialized);
     useEffect(() => {
         if (!prevOptions.current) {
             prevOptions.current = optionsList;
@@ -285,12 +286,17 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
          */
         const areOptionsEqual = shallowOptionsListCompare(prevOptions.current, optionsList);
         prevOptions.current = optionsList;
+        const hasInitializedChanged = prevIsInitialized !== areOptionsInitialized;
         if (areOptionsEqual) {
+            if (hasInitializedChanged) {
+                setAreInternalOptionsInitialized(areOptionsInitialized);
+            }
+
             return;
         }
         setInternalOptions(optionsList);
         setAreInternalOptionsInitialized(areOptionsInitialized);
-    }, [optionsList, areOptionsInitialized]);
+    }, [optionsList, areOptionsInitialized, prevIsInitialized]);
 
     useEffect(() => {
         if (!shouldInitialize || areOptionsInitialized) {
