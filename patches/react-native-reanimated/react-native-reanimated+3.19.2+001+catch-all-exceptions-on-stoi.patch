@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy.cpp b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy.cpp
-index 8102462..f2738d2 100644
+index e117423..61241fe 100644
 --- a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy.cpp
 +++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy.cpp
-@@ -853,7 +853,7 @@ void LayoutAnimationsProxy::transferConfigFromNativeID(
+@@ -880,7 +880,7 @@ void LayoutAnimationsProxy::transferConfigFromNativeID(
      auto nativeId = stoi(nativeIdString);
      layoutAnimationsManager_->transferConfigFromNativeID(nativeId, tag);
    } catch (std::invalid_argument) {
@@ -10,4 +10,4 @@ index 8102462..f2738d2 100644
 +  } catch (...) {
    }
  }
-
+ 
