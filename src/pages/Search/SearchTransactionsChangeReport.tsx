@@ -15,6 +15,7 @@ import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditRe
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -45,6 +46,10 @@ function SearchTransactionsChangeReport() {
     const createReport = () => {
         if (shouldSelectPolicy) {
             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true));
+            return;
+        }
+        if (policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
             return;
         }
         const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
