@@ -21,7 +21,7 @@ When an expense is submitted on a workspace with an approval workflow configured
 **For each expense report, you can:**
 
 - **Approve**: Confirm the expense is valid and ready to pay.
-- **Unapprove**: Return the report to the submitted state, assigned to its last approver for edits.
+- **Unapprove**: Return the report to its previous state for additional edits.
 
 **For each expense on a report, you can:**
 - **Hold**: Temporarily delay approval of the individual expense if more information is needed.
@@ -95,7 +95,7 @@ When an expense is submitted on a workspace with an approval workflow configured
 4. Open the **More** dropdown at the top of the report.
 5. Select **Unapprove**.
 
-Unapproving a report will return the report to the Processing state, awaiting the last approver’s action. The last approver will be notified that the report was unapproved, so they can revise or reject expenses on the report.
+Unapproving a report returns it to the Processing state. The last approver will be notified and can then revise or reject expenses on the report.
 
 **Note:** Paid reports cannot be unapproved. If the expense was already exported to accounting software, unapproving it may cause reconciliation issues. Be sure to remove the exported data before approving the expense again.
 
