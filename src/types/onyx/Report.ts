@@ -68,7 +68,7 @@ type ReportNextStep = {
     icon: ValueOf<typeof CONST.NEXT_STEP.ICONS>;
 
     /** The account ID of the user who is required to take action. This could be -1 which translates to "an admin" */
-    actorAccountID: number;
+    actorAccountID?: number;
 
     /** The ETA (if applicable, e.g. expected reimbursement date) */
     eta?: {
