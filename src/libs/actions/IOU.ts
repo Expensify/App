@@ -11395,7 +11395,6 @@ function putOnHold(transactionID: string, comment: string, ancestors: Ancestor[]
         );
 
         if (iouAction?.reportActionID) {
-
             // We link the IOU action to the new transaction thread by setting childReportID optimistically
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
