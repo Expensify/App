@@ -204,7 +204,7 @@ function EmptySearchViewContent({
             return;
         }
 
-        const createdReportID = createNewReport(currentUserPersonalDetails, inferredWorkspaceID);
+        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, inferredWorkspaceID);
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
         });
@@ -500,7 +500,6 @@ function EmptySearchViewContent({
         hasSeenTour,
         groupPoliciesWithChatEnabled,
         activePolicy,
-        activePolicyID,
         currentUserPersonalDetails,
         isASAPSubmitBetaEnabled,
         hasViolations,
