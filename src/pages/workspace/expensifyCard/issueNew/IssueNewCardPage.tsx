@@ -1,11 +1,12 @@
 import {isActingAsDelegateSelector} from '@selectors/Account';
 import React, {useEffect, useMemo} from 'react';
+import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useInitial from '@hooks/useInitial';
 import useOnyx from '@hooks/useOnyx';
-import {startIssueNewCardFlow} from '@libs/actions/Card';
+import {clearIssueNewCardFlow, startIssueNewCardFlow} from '@libs/actions/Card';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -43,7 +44,7 @@ function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
     return issueNewCard.isChangeAssigneeDisabled ? stepIndex - 1 : stepIndex;
 }
 
-function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
+function IssueNewCardPage({policy, route, navigation}: IssueNewCardPageProps) {
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
     const {currentStep} = issueNewCard ?? {};
@@ -57,6 +58,19 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     useEffect(() => {
         startIssueNewCardFlow(policyID);
     }, [policyID]);
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('blur', () => {
+            InteractionManager.runAfterInteractions(() => {
+                if (currentStep !== CONST.EXPENSIFY_CARD.STEP.ASSIGNEE) {
+                    return;
+                }
+                clearIssueNewCardFlow(policyID);
+            });
+        });
+
+        return unsubscribe;
+    }, [navigation, currentStep, policyID]);
 
     const getCurrentStep = () => {
         switch (currentStep) {
