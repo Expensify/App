@@ -35,6 +35,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
+import SuggestedSearchSkeleton from './SuggestedSearchSkeleton';
 
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON | undefined;
@@ -47,7 +48,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
-    const {typeMenuSections} = useSearchTypeMenuSections();
+    const {typeMenuSections, suggestedSearchesReady} = useSearchTypeMenuSections();
     const isFocused = useIsFocused();
     const {
         shouldShowProductTrainingTooltip: shouldShowSavedSearchTooltip,
@@ -83,6 +84,14 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     }, [typeMenuSections]);
 
     const getOverflowMenu = useCallback((itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal), [showDeleteModal]);
+
+    if (!suggestedSearchesReady) {
+        return (
+            <View style={[styles.flex1]}>
+                <SuggestedSearchSkeleton shouldShowResultsColumn={false} />
+            </View>
+        );
+    }
     const createSavedSearchMenuItem = useCallback(
         (item: SaveSearchItem, key: string, index: number) => {
             let title = item.name;

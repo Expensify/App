@@ -66,6 +66,8 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults, Transaction} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
+import SearchReadinessGate from './SearchReadinessGate';
+import SuggestedSearchSkeleton from './SuggestedSearchSkeleton';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
@@ -673,80 +675,88 @@ function SearchPage({route}: SearchPageProps) {
 
     if (shouldUseNarrowLayout) {
         return (
-            <>
-                <DragAndDropProvider>
-                    {PDFValidationComponent}
-                    <SearchPageNarrow
-                        queryJSON={queryJSON}
-                        metadata={metadata}
-                        headerButtonsOptions={headerButtonsOptions}
-                        searchResults={searchResults}
-                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                        footerData={footerData}
-                        currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
-                        currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
-                        confirmPayment={onBulkPaySelected}
-                        latestBankItems={latestBankItems}
-                    />
-                    <DragAndDropConsumer onDrop={initScanRequest}>
-                        <DropZoneUI
-                            icon={Expensicons.SmartScan}
-                            dropTitle={translate('dropzone.scanReceipts')}
-                            dropStyles={styles.receiptDropOverlay(true)}
-                            dropTextStyles={styles.receiptDropText}
-                            dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
-                            dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
-                        />
-                    </DragAndDropConsumer>
-                    {ErrorModal}
-                </DragAndDropProvider>
-                {!!isMobileSelectionModeEnabled && (
-                    <View>
-                        <ConfirmModal
-                            isVisible={isDeleteExpensesConfirmModalVisible}
-                            onConfirm={handleDeleteExpenses}
-                            onCancel={() => {
-                                setIsDeleteExpensesConfirmModalVisible(false);
-                            }}
-                            title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
-                            prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
-                            confirmText={translate('common.delete')}
-                            cancelText={translate('common.cancel')}
-                            danger
-                        />
-                        <DecisionModal
-                            title={translate('common.youAppearToBeOffline')}
-                            prompt={translate('common.offlinePrompt')}
-                            isSmallScreenWidth={isSmallScreenWidth}
-                            onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
-                            secondOptionText={translate('common.buttonConfirm')}
-                            isVisible={isOfflineModalVisible}
-                            onClose={() => setIsOfflineModalVisible(false)}
-                        />
-                        <DecisionModal
-                            title={translate('common.downloadFailedTitle')}
-                            prompt={translate('common.downloadFailedDescription')}
-                            isSmallScreenWidth={isSmallScreenWidth}
-                            onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
-                            secondOptionText={translate('common.buttonConfirm')}
-                            isVisible={isDownloadErrorModalVisible}
-                            onClose={() => setIsDownloadErrorModalVisible(false)}
-                        />
-                        <ConfirmModal
-                            isVisible={isExportWithTemplateModalVisible}
-                            onConfirm={() => {
-                                setIsExportWithTemplateModalVisible(false);
-                                clearSelectedTransactions(undefined, true);
-                            }}
-                            onCancel={() => setIsExportWithTemplateModalVisible(false)}
-                            title={translate('export.exportInProgress')}
-                            prompt={translate('export.conciergeWillSend')}
-                            confirmText={translate('common.buttonConfirm')}
-                            shouldShowCancelButton={false}
-                        />
-                    </View>
+            <SearchReadinessGate queryJSON={queryJSON}>
+                {({suggestedSearchesReady}) => (
+                    <>
+                        <DragAndDropProvider>
+                            {PDFValidationComponent}
+                            {suggestedSearchesReady ? (
+                                <SearchPageNarrow
+                                    queryJSON={queryJSON}
+                                    metadata={metadata}
+                                    headerButtonsOptions={headerButtonsOptions}
+                                    searchResults={searchResults}
+                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                    footerData={footerData}
+                                    currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
+                                    currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
+                                    confirmPayment={onBulkPaySelected}
+                                    latestBankItems={latestBankItems}
+                                />
+                            ) : (
+                                <SuggestedSearchSkeleton shouldShowNavigationColumn={false} />
+                            )}
+                            <DragAndDropConsumer onDrop={initScanRequest}>
+                                <DropZoneUI
+                                    icon={Expensicons.SmartScan}
+                                    dropTitle={translate('dropzone.scanReceipts')}
+                                    dropStyles={styles.receiptDropOverlay(true)}
+                                    dropTextStyles={styles.receiptDropText}
+                                    dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
+                                    dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
+                                />
+                            </DragAndDropConsumer>
+                            {ErrorModal}
+                        </DragAndDropProvider>
+                        {!!isMobileSelectionModeEnabled && (
+                            <View>
+                                <ConfirmModal
+                                    isVisible={isDeleteExpensesConfirmModalVisible}
+                                    onConfirm={handleDeleteExpenses}
+                                    onCancel={() => {
+                                        setIsDeleteExpensesConfirmModalVisible(false);
+                                    }}
+                                    title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
+                                    prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
+                                    confirmText={translate('common.delete')}
+                                    cancelText={translate('common.cancel')}
+                                    danger
+                                />
+                                <DecisionModal
+                                    title={translate('common.youAppearToBeOffline')}
+                                    prompt={translate('common.offlinePrompt')}
+                                    isSmallScreenWidth={isSmallScreenWidth}
+                                    onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
+                                    secondOptionText={translate('common.buttonConfirm')}
+                                    isVisible={isOfflineModalVisible}
+                                    onClose={() => setIsOfflineModalVisible(false)}
+                                />
+                                <DecisionModal
+                                    title={translate('common.downloadFailedTitle')}
+                                    prompt={translate('common.downloadFailedDescription')}
+                                    isSmallScreenWidth={isSmallScreenWidth}
+                                    onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
+                                    secondOptionText={translate('common.buttonConfirm')}
+                                    isVisible={isDownloadErrorModalVisible}
+                                    onClose={() => setIsDownloadErrorModalVisible(false)}
+                                />
+                                <ConfirmModal
+                                    isVisible={isExportWithTemplateModalVisible}
+                                    onConfirm={() => {
+                                        setIsExportWithTemplateModalVisible(false);
+                                        clearSelectedTransactions(undefined, true);
+                                    }}
+                                    onCancel={() => setIsExportWithTemplateModalVisible(false)}
+                                    title={translate('export.exportInProgress')}
+                                    prompt={translate('export.conciergeWillSend')}
+                                    confirmText={translate('common.buttonConfirm')}
+                                    shouldShowCancelButton={false}
+                                />
+                            </View>
+                        )}
+                    </>
                 )}
-            </>
+            </SearchReadinessGate>
         );
     }
 
@@ -763,70 +773,78 @@ function SearchPage({route}: SearchPageProps) {
                 shouldShowLink={false}
             >
                 {!!queryJSON && (
-                    <View style={styles.searchSplitContainer}>
-                        <ScreenWrapper
-                            testID={Search.displayName}
-                            shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
-                            offlineIndicatorStyle={offlineIndicatorStyle}
-                        >
-                            <DragAndDropProvider>
-                                {PDFValidationComponent}
-                                <SearchPageHeader
-                                    queryJSON={queryJSON}
-                                    headerButtonsOptions={headerButtonsOptions}
-                                    handleSearch={handleSearchAction}
-                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                />
-                                <SearchFiltersBar
-                                    queryJSON={queryJSON}
-                                    headerButtonsOptions={headerButtonsOptions}
-                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                    currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
-                                    currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
-                                    confirmPayment={onBulkPaySelected}
-                                    latestBankItems={latestBankItems}
-                                />
-                                <Search
-                                    key={queryJSON.hash}
-                                    queryJSON={queryJSON}
-                                    searchResults={searchResults}
-                                    handleSearch={handleSearchAction}
-                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                    onSearchListScroll={(e) => {
-                                        if (!e.nativeEvent.contentOffset.y) {
-                                            return;
-                                        }
+                    <SearchReadinessGate queryJSON={queryJSON}>
+                        {({suggestedSearchesReady}) => (
+                            <View style={styles.searchSplitContainer}>
+                                <ScreenWrapper
+                                    testID={Search.displayName}
+                                    shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
+                                    offlineIndicatorStyle={offlineIndicatorStyle}
+                                >
+                                    <DragAndDropProvider>
+                                        {PDFValidationComponent}
+                                        <SearchPageHeader
+                                            queryJSON={queryJSON}
+                                            headerButtonsOptions={headerButtonsOptions}
+                                            handleSearch={handleSearchAction}
+                                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                        />
+                                        <SearchFiltersBar
+                                            queryJSON={queryJSON}
+                                            headerButtonsOptions={headerButtonsOptions}
+                                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                            currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
+                                            currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
+                                            confirmPayment={onBulkPaySelected}
+                                            latestBankItems={latestBankItems}
+                                        />
+                                        {suggestedSearchesReady ? (
+                                            <Search
+                                                key={queryJSON.hash}
+                                                queryJSON={queryJSON}
+                                                searchResults={searchResults}
+                                                handleSearch={handleSearchAction}
+                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                onSearchListScroll={(e) => {
+                                                    if (!e.nativeEvent.contentOffset.y) {
+                                                        return;
+                                                    }
 
-                                        saveScrollOffset(route, e.nativeEvent.contentOffset.y);
-                                    }}
-                                    onSortPressedCallback={() => {
-                                        setIsSorting(true);
-                                    }}
-                                />
-                                {shouldShowFooter && (
-                                    <SearchPageFooter
-                                        count={footerData.count}
-                                        total={footerData.total}
-                                        currency={footerData.currency}
-                                    />
-                                )}
-                                <DragAndDropConsumer onDrop={initScanRequest}>
-                                    <DropZoneUI
-                                        icon={Expensicons.SmartScan}
-                                        dropTitle={translate('dropzone.scanReceipts')}
-                                        dropStyles={styles.receiptDropOverlay(true)}
-                                        dropTextStyles={styles.receiptDropText}
-                                        dashedBorderStyles={[
-                                            styles.dropzoneArea,
-                                            styles.easeInOpacityTransition,
-                                            styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true),
-                                        ]}
-                                    />
-                                </DragAndDropConsumer>
-                            </DragAndDropProvider>
-                        </ScreenWrapper>
-                        {ErrorModal}
-                    </View>
+                                                    saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+                                                }}
+                                                onSortPressedCallback={() => {
+                                                    setIsSorting(true);
+                                                }}
+                                            />
+                                        ) : (
+                                            <SuggestedSearchSkeleton shouldShowNavigationColumn={false} />
+                                        )}
+                                        {suggestedSearchesReady && shouldShowFooter && (
+                                            <SearchPageFooter
+                                                count={footerData.count}
+                                                total={footerData.total}
+                                                currency={footerData.currency}
+                                            />
+                                        )}
+                                        <DragAndDropConsumer onDrop={initScanRequest}>
+                                            <DropZoneUI
+                                                icon={Expensicons.SmartScan}
+                                                dropTitle={translate('dropzone.scanReceipts')}
+                                                dropStyles={styles.receiptDropOverlay(true)}
+                                                dropTextStyles={styles.receiptDropText}
+                                                dashedBorderStyles={[
+                                                    styles.dropzoneArea,
+                                                    styles.easeInOpacityTransition,
+                                                    styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true),
+                                                ]}
+                                            />
+                                        </DragAndDropConsumer>
+                                    </DragAndDropProvider>
+                                </ScreenWrapper>
+                                {ErrorModal}
+                            </View>
+                        )}
+                    </SearchReadinessGate>
                 )}
                 <ConfirmModal
                     isVisible={isDeleteExpensesConfirmModalVisible}
