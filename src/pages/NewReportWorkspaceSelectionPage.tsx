@@ -99,7 +99,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
                     reportNextStep,
                 );
-                clearSelectedTransactions();
+                clearSelectedTransactions(true);
                 Navigation.dismissModal();
                 Navigation.goBack(backTo ?? ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
                 return;
@@ -107,16 +107,17 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             navigateToNewReport(optimisticReportID);
         },
         [
-            allReportNextSteps,
-            clearSelectedTransactions,
             currentUserPersonalDetails,
             isASAPSubmitBetaEnabled,
-            isMovingExpenses,
-            navigateToNewReport,
-            policies,
-            selectedTransactionIDs,
-            selectedTransactions,
             hasViolations,
+            selectedTransactions,
+            isMovingExpenses,
+            selectedTransactionIDs,
+            navigateToNewReport,
+            allReportNextSteps,
+            policies,
+            clearSelectedTransactions,
+            backTo,
         ],
     );
 
