@@ -32,11 +32,11 @@ const mockDiff = jest.fn();
 const mockShow = jest.fn();
 
 // Apply mocks to Git using jest.spyOn (ignore type errors for now)
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
 jest.spyOn(Git as any, 'isValidRef').mockImplementation(mockIsValidRef);
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
 jest.spyOn(Git as any, 'diff').mockImplementation(mockDiff);
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
 jest.spyOn(Git as any, 'show').mockImplementation(mockShow);
 
 let tempDir: string;

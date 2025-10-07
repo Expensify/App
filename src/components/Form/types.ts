@@ -28,7 +28,6 @@ import type UploadFile from '@components/UploadFile';
 import type ValuePicker from '@components/ValuePicker';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type ConstantSelector from '@pages/Debug/ConstantSelector';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type OnboardingCurrencyPicker from '@pages/OnboardingWorkspaceConfirmation/OnboardingCurrencyPicker';
 import type BusinessTypePicker from '@pages/ReimbursementAccount/USD/BusinessInfo/subSteps/TypeBusiness/BusinessTypePicker';
 import type DimensionTypeSelector from '@pages/workspace/accounting/intacct/import/DimensionTypeSelector';
@@ -39,6 +38,7 @@ import type {Country} from '@src/CONST';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type {BaseForm} from '@src/types/form/Form';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 /**
  * This type specifies all the inputs that can be used with `InputWrapper` component. Make sure to update it

@@ -1,5 +1,5 @@
-import type {FileObject} from '@components/AttachmentModal';
 import type {OnboardingPurpose} from '@libs/actions/Welcome/OnboardingFlow';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type Account from './Account';
 import type AccountData from './AccountData';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';

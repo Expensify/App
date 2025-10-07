@@ -1,8 +1,8 @@
 import {Image} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import Log from '@libs/Log';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 import getFile from './getFile';
 import type {SetTestReceipt} from './types';
 

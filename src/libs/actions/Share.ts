@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import type {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@src/types/utils/Attachment';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ShareTempFile} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';

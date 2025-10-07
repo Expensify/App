@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import type {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@src/types/utils/Attachment';
 import ConfirmModal from '@components/ConfirmModal';
 import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import PDFThumbnail from '@components/PDFThumbnail';
