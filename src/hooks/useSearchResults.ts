@@ -16,7 +16,7 @@ function useSearchResults<TValue extends ListItem>(
      * Whether to sort data immediately on mount to prevent briefly displaying unsorted data,
      * since sorting is handled inside startTransition.
      */
-    shouldSortInitialData?: boolean,
+    shouldSortInitialData = true,
 ) {
     const [inputValue, setInputValue] = useState('');
     const [result, setResult] = useState(() => (shouldSortInitialData ? sortData(data) : data));
