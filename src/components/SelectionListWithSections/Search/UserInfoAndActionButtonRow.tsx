@@ -51,13 +51,14 @@ function UserInfoAndActionButtonRow({
                     participantToDisplayName={participantToDisplayName}
                     participantTo={item?.to}
                     avatarSize={shouldUseNarrowLayout ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.MID_SUBSCRIPT}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
                     infoCellsTextStyle={{lineHeight: 14}}
                     infoCellsAvatarStyle={styles.pr1}
                     fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : {}}
+                    shoudlUseArrowIcon={false}
                 />
             )}
-            <View style={[{width: variables.w80}, styles.alignItemsEnd]}>
+            <View style={[{width: shouldUseNarrowLayout ? variables.w72 : variables.w80}, styles.alignItemsEnd]}>
                 <ActionCell
                     action={item.action}
                     goToItem={handleActionButtonPress}

@@ -86,7 +86,7 @@ function ActionCell({
 
     if (!isChildListItem && ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID) || action === CONST.SEARCH.ACTION_TYPES.DONE)) {
         return (
-            <View style={[StyleUtils.getHeight(variables.h28), styles.justifyContentCenter]}>
+            <View style={[StyleUtils.getHeight(variables.h20), styles.justifyContentCenter]}>
                 <Badge
                     text={text}
                     icon={action === CONST.SEARCH.ACTION_TYPES.DONE ? Expensicons.Checkbox : Expensicons.Checkmark}

@@ -3,6 +3,8 @@ import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {AvatarSizeName} from '@styles/utils';
@@ -22,6 +24,7 @@ function UserInfoCellsWithArrow({
     infoCellsTextStyle,
     infoCellsAvatarStyle,
     fromRecipientStyle,
+    shoudlUseArrowIcon = true,
 }: {
     shouldShowToRecipient: boolean;
     participantFrom: SearchPersonalDetails | PersonalDetails;
@@ -33,9 +36,11 @@ function UserInfoCellsWithArrow({
     infoCellsTextStyle?: TextStyle;
     infoCellsAvatarStyle?: ViewStyle;
     fromRecipientStyle?: ViewStyle;
+    shoudlUseArrowIcon?: boolean;
 }) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {translate} = useLocalize();
 
     if (!participantFrom) {
         return null;
@@ -54,13 +59,17 @@ function UserInfoCellsWithArrow({
             />
             {shouldShowToRecipient && (
                 <>
-                    <Icon
-                        src={Expensicons.ArrowRightLong}
-                        width={variables.iconSizeXXSmall}
-                        height={variables.iconSizeXXSmall}
-                        fill={theme.icon}
-                        testID="ArrowRightLong Icon"
-                    />
+                    {shoudlUseArrowIcon ? (
+                        <Icon
+                            src={Expensicons.ArrowRightLong}
+                            width={variables.iconSizeXXSmall}
+                            height={variables.iconSizeXXSmall}
+                            fill={theme.icon}
+                            testID="ArrowRightLong Icon"
+                        />
+                    ) : (
+                        <Text style={[styles.textMicroSupporting]}>{translate('common.conjunctionTo')}</Text>
+                    )}
                     <UserInfoCell
                         accountID={participantTo.accountID}
                         avatar={participantTo.avatar}
