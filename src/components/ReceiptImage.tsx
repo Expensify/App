@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,9 +14,6 @@ import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import type {TransactionListItemType} from './SelectionListWithSections/types';
 import ThumbnailImage from './ThumbnailImage';
-
-// It is used to avoid updating the image width in a loop.
-const MIN_UPDATE_WIDTH_DIFF = 1000;
 
 type Style = {height: number; borderRadius: number; margin: number};
 
@@ -111,9 +108,6 @@ type ReceiptImageProps = (
 
     /** Whether the receipt empty state should extend to the full height of the container. */
     shouldUseFullHeight?: boolean;
-
-    /** Callback to be called when the image loads */
-    onLoad?: (event?: {nativeEvent: {width: number; height: number}}) => void;
 };
 
 function ReceiptImage({
@@ -140,11 +134,8 @@ function ReceiptImage({
     shouldUseFullHeight,
     loadingIndicatorStyles,
     thumbnailContainerStyles,
-    onLoad,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
-    const [receiptImageWidth, setReceiptImageWidth] = useState<number | undefined>(undefined);
-    const lastUpdateWidthTimestampRef = useRef(new Date().getTime());
 
     if (isEmptyReceipt) {
         return (
@@ -153,7 +144,6 @@ function ReceiptImage({
                 onPress={onPress}
                 disabled={!onPress}
                 shouldUseFullHeight={shouldUseFullHeight}
-                onLoad={onLoad}
             />
         );
     }
@@ -163,7 +153,6 @@ function ReceiptImage({
             <PDFThumbnail
                 previewSourceURL={source ?? ''}
                 style={[styles.w100, styles.h100]}
-                onLoadSuccess={onLoad}
             />
         );
     }
@@ -173,8 +162,6 @@ function ReceiptImage({
             <EReceiptWithSizeCalculation
                 transactionID={transactionID}
                 transactionItem={transactionItem}
-                shouldUseAspectRatio={shouldUseFullHeight}
-                onLoad={onLoad}
             />
         );
     }
@@ -207,29 +194,18 @@ function ReceiptImage({
                 fallbackIconColor={fallbackIconColor}
                 fallbackIconBackground={fallbackIconBackground}
                 objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
-                onLoad={onLoad}
             />
         );
     }
 
     return (
         <ImageWithLoading
-            onLayout={(e) => {
-                if (e.nativeEvent.layout.width !== receiptImageWidth && e.timeStamp - lastUpdateWidthTimestampRef.current > MIN_UPDATE_WIDTH_DIFF) {
-                    setReceiptImageWidth(e.nativeEvent.layout.width);
-                }
-                lastUpdateWidthTimestampRef.current = e.timeStamp;
-            }}
             source={{uri: source}}
             style={[style ?? [styles.w100, styles.h100], styles.overflowHidden]}
             isAuthTokenRequired={!!isAuthTokenRequired}
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}
             shouldShowOfflineIndicator={false}
-            objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
-            onLoad={onLoad}
-            shouldCalculateAspectRatioForWideImage={shouldUseFullHeight}
-            imageWidthToCalculateHeight={receiptImageWidth}
         />
     );
 }

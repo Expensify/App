@@ -43,9 +43,6 @@ type ImageWithSizeCalculationProps = {
 
     /** The style of the loading indicator */
     loadingIndicatorStyles?: StyleProp<ViewStyle>;
-
-    /** Callback to be called when the image loads */
-    onLoad?: (event: {nativeEvent: {width: number; height: number}}) => void;
 };
 
 /**
@@ -64,7 +61,6 @@ function ImageWithSizeCalculation({
     objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
     loadingIconSize,
     loadingIndicatorStyles,
-    onLoad,
 }: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
 
@@ -89,7 +85,6 @@ function ImageWithSizeCalculation({
                     width: event.nativeEvent.width,
                     height: event.nativeEvent.height,
                 });
-                onLoad?.(event);
             }}
             objectPosition={objectPosition}
             loadingIconSize={loadingIconSize}

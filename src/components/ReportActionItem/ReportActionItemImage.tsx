@@ -19,7 +19,7 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Report, Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReportActionItemImageProps = {
@@ -69,15 +69,6 @@ type ReportActionItemImageProps = {
 
     /** Whether the receipt empty state should extend to the full height of the container. */
     shouldUseFullHeight?: boolean;
-
-    /** The report associated with this image, if any. Used to pass report directly instead of relaying on context. */
-    report?: OnyxEntry<Report>;
-
-    /** Whether to use the thumbnail image instead of the full image */
-    shouldUseThumbnailImage?: boolean;
-
-    /** Callback to be called when the image loads */
-    onLoad?: (event?: {nativeEvent: {width: number; height: number}}) => void;
 };
 
 /**
@@ -103,9 +94,6 @@ function ReportActionItemImage({
     mergeTransactionID,
     onPress,
     shouldUseFullHeight,
-    report: reportProp,
-    shouldUseThumbnailImage,
-    onLoad,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -128,42 +116,33 @@ function ReportActionItemImage({
         );
     }
 
-    const originalImageSource = tryResolveUrlFromApiRoot(image ?? '');
+    const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
-    const isPDF = filename && Str.isPDF(filename);
 
     let propsObj: ReceiptImageProps;
 
     if (isEReceipt) {
-        propsObj = {isEReceipt: true, transactionID: transaction.transactionID, iconSize: isSingleImage ? 'medium' : ('small' as IconSize), shouldUseFullHeight};
+        propsObj = {isEReceipt: true, transactionID: transaction.transactionID, iconSize: isSingleImage ? 'medium' : ('small' as IconSize)};
     } else if (thumbnail && !isLocalFile) {
         propsObj = {
-            shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
-
-            // PDF won't have originalImage that we can use. Use thumbnail instead
-            // We explicitly want to use || instead of nullish-coalescing because shouldUseThumbnailImage can be false.
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            source: shouldUseThumbnailImage || isPDF ? thumbnailSource : originalImageSource,
+            shouldUseThumbnailImage: true,
+            source: thumbnailSource,
             fallbackIcon: Expensicons.Receipt,
             fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
             isAuthTokenRequired: true,
-
-            // If the image is full height, use initial position to make sure it will grow properly to fill the container
-            shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
+            shouldUseInitialObjectPosition: isMapDistanceRequest,
         };
-    } else if (isLocalFile && isPDF && typeof originalImageSource === 'string') {
-        propsObj = {isPDFThumbnail: true, source: originalImageSource};
+    } else if (isLocalFile && filename && Str.isPDF(filename) && typeof attachmentModalSource === 'string') {
+        propsObj = {isPDFThumbnail: true, source: attachmentModalSource};
     } else {
         propsObj = {
             isThumbnail,
             ...(isThumbnail && {iconSize: (isSingleImage ? 'medium' : 'small') as IconSize, fileExtension}),
-            shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
+            shouldUseThumbnailImage: true,
             isAuthTokenRequired: false,
-            source: shouldUseThumbnailImage ? (thumbnail ?? image ?? '') : originalImageSource,
-
-            // If the image is full height, use initial position to make sure it will grow properly to fill the container
-            shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
+            source: thumbnail ?? image ?? '',
+            shouldUseInitialObjectPosition: isMapDistanceRequest,
             isEmptyReceipt,
             onPress,
         };
@@ -180,7 +159,7 @@ function ReportActionItemImage({
                         onPress={() =>
                             Navigation.navigate(
                                 ROUTES.TRANSACTION_RECEIPT.getRoute(
-                                    transactionThreadReport?.reportID ?? report?.reportID ?? reportProp?.reportID,
+                                    transactionThreadReport?.reportID ?? report?.reportID,
                                     transaction?.transactionID,
                                     readonly,
                                     isFromReviewDuplicates,
@@ -191,11 +170,7 @@ function ReportActionItemImage({
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         accessibilityRole={CONST.ROLE.BUTTON}
                     >
-                        <ReceiptImage
-                            {...propsObj}
-                            onLoad={onLoad}
-                            shouldUseFullHeight={shouldUseFullHeight}
-                        />
+                        <ReceiptImage {...propsObj} />
                     </PressableWithoutFocus>
                 )}
             </ShowContextMenuContext.Consumer>
@@ -207,7 +182,6 @@ function ReportActionItemImage({
             {...propsObj}
             shouldUseFullHeight={shouldUseFullHeight}
             thumbnailContainerStyles={styles.thumbnailImageContainerHover}
-            onLoad={onLoad}
         />
     );
 }

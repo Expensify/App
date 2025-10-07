@@ -16,9 +16,6 @@ type EReceiptWithSizeCalculationProps = {
 
     /** Whether the eReceipt should preserve aspect ratio */
     shouldUseAspectRatio?: boolean;
-
-    /** Callback to be called when the image loads */
-    onLoad?: () => void;
 };
 
 const eReceiptAspectRatio = variables.eReceiptBGHWidth / variables.eReceiptBGHeight;
