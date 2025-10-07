@@ -4,7 +4,7 @@ import type {CustomFlatListProps} from './index';
 
 // On iOS, we have to unset maintainVisibleContentPosition while the user is scrolling to prevent jumping to the beginning issue
 function CustomFlatList<T>({ref, ...props}: CustomFlatListProps<T>) {
-    const {maintainVisibleContentPosition: originalMaintainVisibleContentPosition, ...rest} = props;
+    const {maintainVisibleContentPosition: originalMaintainVisibleContentPosition, shouldDisableVisibleContentPosition, ...rest} = props;
     const [isScrolling, setIsScrolling] = useState(false);
 
     const handleScrollBegin = useCallback(() => {
@@ -15,7 +15,7 @@ function CustomFlatList<T>({ref, ...props}: CustomFlatListProps<T>) {
         setIsScrolling(false);
     }, []);
 
-    const maintainVisibleContentPosition = isScrolling ? undefined : originalMaintainVisibleContentPosition;
+    const maintainVisibleContentPosition = isScrolling || shouldDisableVisibleContentPosition ? undefined : originalMaintainVisibleContentPosition;
 
     return (
         <FlatList<T>
