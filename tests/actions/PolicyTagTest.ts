@@ -592,7 +592,7 @@ describe('actions/Policy', () => {
             mockFetch.resume();
             await waitForBatchedUpdates();
 
-            // Then the pending action should be cleared after API success
+            // Then the pending action should be cleared after API success and the tag name should be updated
             let successPolicyTags: PolicyTagLists | undefined;
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
@@ -600,6 +600,8 @@ describe('actions/Policy', () => {
             });
 
             const successTags = successPolicyTags?.[tagListName]?.tags;
+            expect(successTags?.[oldTagName]).toBeFalsy();
+            expect(successTags?.[newTagName]?.name).toBe(newTagName);
             expect(successTags?.[newTagName]?.pendingAction).toBeFalsy();
             expect(successTags?.[newTagName]?.pendingFields?.name).toBeFalsy();
         });
@@ -792,7 +794,7 @@ describe('actions/Policy', () => {
             expect(optimisticTag?.name).toBe(newTagName);
             expect(optimisticTag?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
-            // Then success update should clear pending state
+            // Then success update should clear pending state and the tag name should be updated
             mockFetch.resume();
             await waitForBatchedUpdates();
 
@@ -802,9 +804,10 @@ describe('actions/Policy', () => {
                 callback: (val) => (successPolicyTags = val),
             });
 
-            const successTag = successPolicyTags?.[tagListName]?.tags[newTagName];
-            expect(successTag?.name).toBe(newTagName);
-            expect(successTag?.pendingAction).toBeFalsy();
+            const successTags = successPolicyTags?.[tagListName]?.tags;
+            expect(successTags?.[oldTagName]).toBeFalsy();
+            expect(successTags?.[newTagName]?.name).toBe(newTagName);
+            expect(successTags?.[newTagName]?.pendingAction).toBeFalsy();
         });
     });
 
