@@ -13,14 +13,14 @@ import BigNumberPad from '@components/BigNumberPad';
 import CONST from '@src/CONST';
 import { isValidValidateCode, isValidTwoFactorCode} from '@libs/ValidationUtils';
 import Text from '@components/Text';
-import useOnyx from '@hooks/useOnyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {Str} from 'expensify-common';
 import ConfirmationPage from '@components/ConfirmationPage';
+import RenderHTML from '@components/RenderHTML';
+import useNetwork from '@hooks/useNetwork';
 
 
 function EnableBiometricsFallbackPage() {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const onGoBackPress = () => Navigation.goBack();
     const [hasSuccesfullyVerifiedMagicCode, setHasSuccesfullyVerifiedMagicCode] = useState(false);
@@ -28,17 +28,19 @@ function EnableBiometricsFallbackPage() {
     const [lastPressedDigit, setLastPressedDigit] = useState('');
     const [formError, setFormError] = useState<{inputCode?: string}>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
+    const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const inputRef = useRef<MagicCodeInputHandle>(null);
     const bottomButtonText = useMemo(() => hasSuccesfullyVerifiedMagicCode ? `common.verify` : `common.continue`, [hasSuccesfullyVerifiedMagicCode]);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const contactMethod = account?.primaryLogin ?? '';
-    const hasPhoneNumber = Str.isSMSLogin(contactMethod);
+    const email = 'placeholder@email.com' // TODO: Replcae with actual logic responsible for retrieving the factual email of user
+    const phoneNumber = '+15555264234'; // TODO: Replace with actual logic retrieving the factual phone number of user
+    const hasPhoneNumber = false; // TODO: Replace of actual logic validating if the user has provided a (correct) phone number
     const has2FAEnabled = true; // TODO: Replace with actual 2FA status from user account
+    const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     const [verified2FA, setVerified2FA] = useState(false); // TODO: Replace with actual 2FA verification status
     const [verifiedSmsOtp, setVerifiedSmsOtp] = useState(false); // TODO: Replace with actual SMS OTP verification status
 
-    const [hasSuccesfullyEnabledBiometrics, setHasSuccesfullyEnabledBiometrics] = useState(false);
+    const [hasSuccesfullyEnabledBiometrics, setHasSuccesfullyEnabledBiometrics] = useState(false); // TODO: Replace with actual Biometrics status
 
     if (!has2FAEnabled && !hasPhoneNumber) {
         onGoBackPress();
@@ -107,10 +109,8 @@ function EnableBiometricsFallbackPage() {
             setHasSuccesfullyVerifiedMagicCode(true);
         } else if (has2FAEnabled) {
             setVerified2FA(true);
-            setHasSuccesfullyEnabledBiometrics(true)
         } else {
             setVerifiedSmsOtp(true);
-            setHasSuccesfullyEnabledBiometrics(true)
         }
         setInputCode('');
         setCanShowError(false);
@@ -118,18 +118,18 @@ function EnableBiometricsFallbackPage() {
 
     }, [inputCode, translate]);
 
-    // useEffect(() => {
-    //     if (!(verified2FA || verifiedSmsOtp)) {
-    //         return;
-    //     }
-    //     onGoBackPress();
-    // }, [verified2FA, verifiedSmsOtp]);
+    useEffect(() => {
+        if (!(verified2FA || verifiedSmsOtp)) {
+            return;
+        }
+        setHasSuccesfullyEnabledBiometrics(true);
+    }, [verified2FA, verifiedSmsOtp]);
 
     const renderMagicCodeContent = () => {
         if (!hasSuccesfullyVerifiedMagicCode) {
             return (
                 <Text style={[styles.mh5, styles.mb6, styles.textNormal]}>
-                    {translate('initialSettingsPage.troubleshoot.biometrics.fallbackPageMagicCodeContent')}
+                    {translate('initialSettingsPage.troubleshoot.biometrics.fallbackPageMagicCodeContent', { contactMethod: email})}
                 </Text>
             );
         }
@@ -144,10 +144,23 @@ function EnableBiometricsFallbackPage() {
 
         return (
             <Text style={[styles.mh5, styles.mb6, styles.textNormal]}>
-                {translate('initialSettingsPage.troubleshoot.biometrics.fallbackPageSMSotpContent', { contactMethod })}
+                {translate('initialSettingsPage.troubleshoot.biometrics.fallbackPageSMSotpContent', { contactMethod: phoneNumber })}
             </Text>
         );
     };
+
+    useEffect(() => {
+        if (timeRemaining > 0) {
+            timerRef.current = setTimeout(() => {
+                setTimeRemaining(timeRemaining - 1);
+            }, 1000);
+        }
+        return () => {
+            clearTimeout(timerRef.current);
+        };
+    }, [timeRemaining]);
+
+    const shouldShowTimer = timeRemaining > 0 && !isOffline;
 
     return (
         <ScreenWrapper testID={EnableBiometricsFallbackPage.displayName}>
@@ -171,6 +184,15 @@ function EnableBiometricsFallbackPage() {
                             errorText={canShowError ? formError.inputCode : ''}
                             ref={inputRef}
                         />
+                        {shouldShowTimer && (
+                            <View style={[styles.mt5, styles.flexRow, styles.renderHTML]}>
+                                <RenderHTML
+                                    html={translate('validateCodeForm.requestNewCode', {
+                                        timeRemaining: `00:${String(timeRemaining).padStart(2, '0')}`,
+                                    })}
+                                />
+                            </View>
+                        )}
                     </View>
                     <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pv0]}>{canUseTouchScreen() && <BigNumberPad numberPressed={updateLastPressedDigit} />}</View>
                     <Button
