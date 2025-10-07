@@ -6,25 +6,7 @@ import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
-import {
-    Building,
-    CalendarSolid,
-    Car,
-    Coins,
-    CreditCard,
-    Document,
-    ExpensifyAppIcon,
-    ExpensifyCard,
-    Feed,
-    Folder,
-    Gear,
-    InvoiceGeneric,
-    Receipt,
-    Sync,
-    Tag,
-    Users,
-    Workflows,
-} from '@components/Icon/Expensicons';
+import {ExpensifyAppIcon} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -46,23 +28,19 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
-import {checkIfFeedConnectionIsBroken, flatAllCardsList, getCompanyFeeds} from '@libs/CardUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {getCompanyFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
     shouldShowPolicy as checkIfShouldShowPolicy,
     goBackFromInvalidPolicy,
     hasPolicyCategoriesError,
-    isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyFeatureEnabled,
     shouldShowEmployeeListError,
     shouldShowSyncError,
-    shouldShowTaxRateError,
 } from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar, getPolicyExpenseChat, getReportName, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import type WORKSPACE_TO_RHP from '@navigation/linkingConfig/RELATIONS/WORKSPACE_TO_RHP';
@@ -78,6 +56,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import getWorkspaceMenuItems from './workspaceMenuItems';
 
 type WorkspaceTopLevelScreens = keyof typeof WORKSPACE_TO_RHP;
 
@@ -188,175 +167,22 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const [highlightedFeature, setHighlightedFeature] = useState<string | undefined>(undefined);
 
     const workspaceMenuItems: WorkspaceMenuItem[] = useMemo(() => {
-        const protectedMenuItems: WorkspaceMenuItem[] = [];
-
-        protectedMenuItems.push({
-            translationKey: 'common.reports',
-            icon: Document,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORTS.getRoute(policyID)))),
-            screenName: SCREENS.WORKSPACE.REPORTS,
+        return getWorkspaceMenuItems({
+            policy,
+            featureStates,
+            workspaceAccountID,
+            hasSyncError,
+            hasGeneralSettingsError,
+            hasMembersError,
+            hasPolicyCategoryError,
+            shouldShowProtectedItems,
+            shouldShowEnterCredentialsError,
+            highlightedFeature,
+            cardsDomainIDs,
+            singleExecution,
+            waitForNavigate,
+            allFeedsCards,
         });
-
-        if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]) {
-            protectedMenuItems.push({
-                translationKey: 'workspace.common.accounting',
-                icon: Sync,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)))),
-                brickRoadIndicator: hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                screenName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
-            });
-        }
-
-        if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]) {
-            protectedMenuItems.push({
-                translationKey: 'workspace.common.receiptPartners',
-                brickRoadIndicator: shouldShowEnterCredentialsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                icon: Receipt,
-                action: singleExecution(
-                    waitForNavigate(() => {
-                        Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
-                    }),
-                ),
-                screenName: SCREENS.WORKSPACE.RECEIPT_PARTNERS,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
-            });
-        }
-
-        if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED]) {
-            protectedMenuItems.push({
-                translationKey: 'workspace.common.categories',
-                icon: Folder,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)))),
-                brickRoadIndicator: hasPolicyCategoryError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                screenName: SCREENS.WORKSPACE.CATEGORIES,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
-            });
-        }
-
-        if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]) {
-            protectedMenuItems.push({
-                translationKey: 'workspace.common.tags',
-                icon: Tag,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID)))),
-                screenName: SCREENS.WORKSPACE.TAGS,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED,
-            });
-        }
-
-        if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]) {
-            protectedMenuItems.push({
-                translationKey: 'workspace.common.taxes',
-                icon: Coins,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAXES.getRoute(policyID)))),
-                screenName: SCREENS.WORKSPACE.TAXES,
-                brickRoadIndicator: shouldShowTaxRateError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED,
-            });
-        }
-
-        if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED]) {
-            protectedMenuItems.push({
-                translationKey: 'workspace.common.workflows',
-                icon: Workflows,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)))),
-                screenName: SCREENS.WORKSPACE.WORKFLOWS,
-                brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburser ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
-            });
-        }
-
-        if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]) {
-            protectedMenuItems.push({
-                translationKey: 'workspace.common.rules',
-                icon: Feed,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_RULES.getRoute(policyID)))),
-                screenName: SCREENS.WORKSPACE.RULES,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
-            });
-        }
-
-        if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]) {
-            protectedMenuItems.push({
-                translationKey: 'workspace.common.distanceRates',
-                icon: Car,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID)))),
-                screenName: SCREENS.WORKSPACE.DISTANCE_RATES,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
-            });
-        }
-
-        if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]) {
-            protectedMenuItems.push({
-                translationKey: 'workspace.common.expensifyCard',
-                icon: ExpensifyCard,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)))),
-                screenName: SCREENS.WORKSPACE.EXPENSIFY_CARD,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED,
-            });
-        }
-
-        if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]) {
-            const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, workspaceAccountID, cardsDomainIDs));
-
-            protectedMenuItems.push({
-                translationKey: 'workspace.common.companyCards',
-                icon: CreditCard,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)))),
-                screenName: SCREENS.WORKSPACE.COMPANY_CARDS,
-                brickRoadIndicator: hasBrokenFeedConnection ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED,
-            });
-        }
-
-        if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]) {
-            protectedMenuItems.push({
-                translationKey: 'common.perDiem',
-                icon: CalendarSolid,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID)))),
-                screenName: SCREENS.WORKSPACE.PER_DIEM,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
-            });
-        }
-
-        if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]) {
-            const currencyCode = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-            protectedMenuItems.push({
-                translationKey: 'workspace.common.invoices',
-                icon: InvoiceGeneric,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID)))),
-                screenName: SCREENS.WORKSPACE.INVOICES,
-                badgeText: convertToDisplayString(policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0, currencyCode),
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED,
-            });
-        }
-
-        protectedMenuItems.push({
-            translationKey: 'workspace.common.moreFeatures',
-            icon: Gear,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)))),
-            screenName: SCREENS.WORKSPACE.MORE_FEATURES,
-        });
-
-        const menuItems: WorkspaceMenuItem[] = [
-            {
-                translationKey: 'workspace.common.profile',
-                icon: Building,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID)))),
-                brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                screenName: SCREENS.WORKSPACE.PROFILE,
-            },
-            {
-                translationKey: 'workspace.common.members',
-                icon: Users,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)))),
-                brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                screenName: SCREENS.WORKSPACE.MEMBERS,
-            },
-            ...(isPaidGroupPolicy(policy) && shouldShowProtectedItems ? protectedMenuItems : []),
-        ];
-
-        return menuItems;
     }, [
         singleExecution,
         waitForNavigate,
@@ -365,7 +191,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         hasMembersError,
         policy,
         shouldShowProtectedItems,
-        policyID,
         hasSyncError,
         highlightedFeature,
         shouldShowEnterCredentialsError,
