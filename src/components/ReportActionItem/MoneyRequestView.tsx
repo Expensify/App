@@ -852,7 +852,7 @@ function MoneyRequestView({
                                         iouType,
                                         transaction?.transactionID,
                                         report.reportID,
-                                        getReportRHPActiveRoute() ?? lastVisitedPath,
+                                        getReportRHPActiveRoute() || lastVisitedPath,
                                     ),
                                 );
                             }}
