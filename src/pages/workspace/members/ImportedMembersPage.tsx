@@ -84,7 +84,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const hasAuditorRole =
             membersRolesColumn !== -1 &&
             spreadsheet?.data?.[membersRolesColumn]?.some(
-                (role, index) => (containsHeader ? spreadsheet?.data?.[membersRolesColumn]?.[index + 1] : (role ?? '')) === CONST.POLICY.ROLE.AUDITOR,
+                (role, index) => (containsHeader ? spreadsheet?.data?.[membersRolesColumn]?.at(index + 1) : (role ?? '')) === CONST.POLICY.ROLE.AUDITOR,
             );
 
         if ((containsAdvanceApprovalColumns || hasAuditorRole) && !isControlPolicy(policy)) {
