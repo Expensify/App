@@ -83,6 +83,10 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 
     // Return undefined if RHP is not the last route
     const lastVisibleRHPRouteKey = useRootNavigationState((state) => {
+        // Safe handling when navigation is not yet initialized
+        if (!state) {
+            return undefined;
+        }
         const lastFullScreenRouteIndex = state?.routes.findLastIndex((route) => isFullScreenName(route.name));
         const lastRHPRouteIndex = state?.routes.findLastIndex((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
 
