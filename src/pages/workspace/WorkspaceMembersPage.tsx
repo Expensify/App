@@ -359,7 +359,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             const isPendingDeleteOrError = isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
 
             result.push({
-                keyForList: String(accountID),
+                keyForList: details.login ?? '',
                 accountID,
                 login: details.login ?? '',
                 isDisabledCheckbox: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
@@ -422,7 +422,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         if (isEmptyObject(invitedEmailsToAccountIDsDraft) || accountIDs === prevAccountIDs) {
             return;
         }
-        const invitedEmails = Object.values(invitedEmailsToAccountIDsDraft).map(String);
+        const invitedEmails = Object.keys(invitedEmailsToAccountIDsDraft);
         selectionListRef.current?.scrollAndHighlightItem?.(invitedEmails);
         clearInviteDraft(route.params.policyID);
     }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, route.params.policyID]);
@@ -725,7 +725,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         ref={selectionListRef}
                         canSelectMultiple={canSelectMultiple}
                         sections={[{data: filteredData, isDisabled: false}]}
-                        selectedItems={selectedEmployees.map(String)}
+                        selectedItems={selectedEmployees}
                         ListItem={TableListItem}
                         shouldUseDefaultRightHandSideCheckmark={false}
                         turnOnSelectionModeOnLongPress={isPolicyAdmin}
