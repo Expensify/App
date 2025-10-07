@@ -19,7 +19,6 @@ import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -56,7 +55,6 @@ type SearchPageNarrowProps = {
 
 function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMobileSelectionModeEnabled, metadata, footerData}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -118,7 +116,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
-    const shouldDisplayCancelSearch = shouldUseNarrowLayout && searchRouterListVisible;
+    const shouldDisplayCancelSearch = searchRouterListVisible;
     const cancelSearchCallback = useCallback(() => {
         setSearchRouterListVisible(false);
     }, []);
