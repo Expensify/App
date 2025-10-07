@@ -4816,7 +4816,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (policy) {
-                        deleteWorkspace(policy.id, policy.name, undefined, undefined, undefined);
+                        deleteWorkspace(policy.id, policy.name, undefined, undefined, [expenseReport as Report, chatReport as Report], undefined, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
