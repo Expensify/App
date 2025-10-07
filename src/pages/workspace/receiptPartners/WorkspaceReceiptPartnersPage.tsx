@@ -45,7 +45,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const {isOffline} = useNetwork();
     const threeDotsMenuContainerRef = useRef<View>(null);
     const policy = usePolicy(policyID);
-    const {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected} = useGetReceiptPartnersIntegrationData({policyID});
+    const {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
     const [selectedPartner, setSelectedPartner] = useState<string | null>(null);
     const isLoading = policy?.isLoading;
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
@@ -115,19 +115,20 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         (integration: string) => {
             switch (integration) {
                 case CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER:
+                    if (shouldShowEnterCredentialsError) {
+                        return [
+                            {
+                                icon: Expensicons.Key,
+                                text: translate('workspace.accounting.enterCredentials'),
+                                onSelected: () => startIntegrationFlow({name: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER}),
+                                shouldCallAfterModalHide: true,
+                                disabled: isOffline,
+                                iconRight: Expensicons.NewWindow,
+                            },
+                        ];
+                    }
+
                     return [
-                        ...(shouldShowEnterCredentialsError
-                            ? [
-                                  {
-                                      icon: Expensicons.Key,
-                                      text: translate('workspace.accounting.enterCredentials'),
-                                      onSelected: () => startIntegrationFlow({name: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER}),
-                                      shouldCallAfterModalHide: true,
-                                      disabled: isOffline,
-                                      iconRight: Expensicons.NewWindow,
-                                  },
-                              ]
-                            : []),
                         {
                             icon: Expensicons.Trashcan,
                             text: translate('workspace.accounting.disconnect'),
@@ -188,27 +189,28 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                         titleContainerStyle: [styles.pr2],
                         description: integrationData?.description,
                         brickRoadIndicator: !!integrationData?.errorFields || shouldShowEnterCredentialsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                        rightComponent: isUberConnected ? (
-                            <View ref={threeDotsMenuContainerRef}>
-                                <ThreeDotsMenu
-                                    getAnchorPosition={calculateAndSetThreeDotsMenuPosition}
-                                    menuItems={overflowMenu}
-                                    anchorAlignment={{
-                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                                    }}
+                        rightComponent:
+                            isUberConnected || shouldShowEnterCredentialsError ? (
+                                <View ref={threeDotsMenuContainerRef}>
+                                    <ThreeDotsMenu
+                                        getAnchorPosition={calculateAndSetThreeDotsMenuPosition}
+                                        menuItems={overflowMenu}
+                                        anchorAlignment={{
+                                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                                        }}
+                                    />
+                                </View>
+                            ) : (
+                                <Button
+                                    onPress={() => startIntegrationFlow({name: integration})}
+                                    text={translate('workspace.accounting.setup')}
+                                    style={styles.justifyContentCenter}
+                                    small
+                                    isLoading={!policy?.receiptPartners?.uber}
+                                    isDisabled={isOffline}
                                 />
-                            </View>
-                        ) : (
-                            <Button
-                                onPress={() => startIntegrationFlow({name: integration})}
-                                text={translate('workspace.accounting.setup')}
-                                style={styles.justifyContentCenter}
-                                small
-                                isLoading={!policy?.receiptPartners?.uber}
-                                isDisabled={isOffline}
-                            />
-                        ),
+                            ),
                     };
                 })
                 .filter(Boolean) as MenuItemData[];
