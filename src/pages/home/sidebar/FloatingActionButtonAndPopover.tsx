@@ -205,7 +205,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             clearLastSearchParams();
         }
 
-        const createdReportID = createNewReport(currentUserPersonalDetails, inferredWorkspaceID);
+        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, inferredWorkspaceID);
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(
                 isSearchTopmostFullScreenRoute()
@@ -214,7 +214,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 {forceReplace: isReportInSearch},
             );
         });
-    }, [currentUserPersonalDetails, inferredWorkspaceID, isReportInSearch]);
+    }, [currentUserPersonalDetails, hasViolations, inferredWorkspaceID, isASAPSubmitBetaEnabled, isReportInSearch]);
 
     const {openCreateReportConfirmation: openFabCreateReportConfirmation, CreateReportConfirmationModal: FabCreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
         policyID: inferredWorkspaceID,
@@ -537,7 +537,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
                               if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
                                   // Check if empty report confirmation should be shown
-                                  const hasEmptyReports = hasEmptyReportsForPolicy(allReports, isASAPSubmitBetaEnabled, hasViolations, workspaceIDForReportCreation, session?.accountID);
+                                  const hasEmptyReports = hasEmptyReportsForPolicy(allReports, workspaceIDForReportCreation, session?.accountID);
 
                                   if (hasEmptyReports) {
                                       openFabCreateReportConfirmation();
