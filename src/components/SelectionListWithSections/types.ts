@@ -465,8 +465,8 @@ type SplitListItemType = ListItem &
         /** Original amount before split */
         originalAmount: number;
 
-        /** Indicates whether a split was opened through this transaction */
-        isTransactionLinked: boolean;
+        /** Indicates whether a split wasn't approved, paid etc. when report.statusNum < CONST.REPORT.STATUS_NUM.CLOSED */
+        isEditable: boolean;
 
         /** Function for updating amount */
         onSplitExpenseAmountChange: (currentItemTransactionID: string, value: number) => void;
