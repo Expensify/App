@@ -96,10 +96,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         return policies.some((policy) => policy.outputCurrency !== outputCurrency);
     }, [allPolicies]);
 
-    /**
-     * When using negated filters alongside equal to filters, both are added to flatFilters with the same key. These values
-     * need to be filtered out in order to avoid displaying negated filter values in the filter bar
-     */
     const filterFormValues = useMemo(() => {
         return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
     }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
