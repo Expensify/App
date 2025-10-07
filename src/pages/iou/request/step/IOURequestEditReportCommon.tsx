@@ -4,14 +4,15 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -38,6 +39,7 @@ type Props = {
     isEditing?: boolean;
     isUnreported?: boolean;
     shouldShowNotFoundPage?: boolean;
+    createReport?: () => void;
 };
 
 const policyIdSelector = (policy: OnyxEntry<Policy>) => policy?.id;
@@ -54,6 +56,7 @@ function IOURequestEditReportCommon({
     isEditing = false,
     isUnreported,
     shouldShowNotFoundPage: shouldShowNotFoundPageFromProps,
+    createReport,
 }: Props) {
     const {translate, localeCompare} = useLocalize();
     const {options} = useOptionsList();
@@ -62,7 +65,10 @@ function IOURequestEditReportCommon({
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`, {canBeMissing: true});
     const reportOwnerAccountID = useMemo(() => selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, [selectedReport, currentUserPersonalDetails.accountID]);
     const reportPolicy = usePolicy(selectedReport?.policyID);
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: false});
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
@@ -145,8 +151,27 @@ function IOURequestEditReportCommon({
 
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions, translate]);
 
+    const createReportOption = useMemo(() => {
+        if (!createReport || isUnreported === false) {
+            return undefined;
+        }
+
+        return (
+            <MenuItem
+                onPress={createReport}
+                title={translate('report.newReport.createReport')}
+                description={policyForMovingExpenses?.name}
+                icon={Expensicons.DocumentPlus}
+            />
+        );
+    }, [createReport, isUnreported, translate, policyForMovingExpenses?.name]);
+
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
+        if (createReport) {
+            return false;
+        }
+
         if (expenseReports.length === 0 || shouldShowNotFoundPageFromProps) {
             return true;
         }
@@ -160,7 +185,7 @@ function IOURequestEditReportCommon({
         const isSubmitter = isReportOwner(selectedReport);
         // If the report is Open, then only submitters, admins can move expenses
         return isOpen && !isAdmin && !isSubmitter;
-    }, [selectedReport, reportPolicy, expenseReports.length, shouldShowNotFoundPageFromProps]);
+    }, [createReport, selectedReport, reportPolicy, shouldShowNotFoundPageFromProps]);
 
     return (
         <StepScreenWrapper
@@ -182,15 +207,19 @@ function IOURequestEditReportCommon({
                 initiallyFocusedOptionKey={selectedReportID}
                 ListItem={InviteMemberListItem}
                 listFooterContent={
-                    shouldShowRemoveFromReport ? (
-                        <MenuItem
-                            onPress={removeFromReport}
-                            title={translate('iou.removeFromReport')}
-                            description={translate('iou.moveToPersonalSpace')}
-                            icon={Expensicons.Close}
-                        />
-                    ) : undefined
+                    <>
+                        {shouldShowRemoveFromReport && (
+                            <MenuItem
+                                onPress={removeFromReport}
+                                title={translate('iou.removeFromReport')}
+                                description={translate('iou.moveToPersonalSpace')}
+                                icon={Expensicons.Close}
+                            />
+                        )}
+                        {createReportOption}
+                    </>
                 }
+                listEmptyContent={createReportOption}
             />
         </StepScreenWrapper>
     );

@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type {PaymentMethod} from '@components/KYCWall/types';
-import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -46,6 +46,9 @@ type SelectedTransactionInfo = {
 
     /** The transaction currency */
     currency: string;
+    
+    /** Whether it is the only expense of the parent expense report */
+    isFromOneTransactionReport?: boolean;
 };
 
 /** Model of selected transactions */
