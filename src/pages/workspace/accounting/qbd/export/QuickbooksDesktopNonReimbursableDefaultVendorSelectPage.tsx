@@ -15,7 +15,6 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 type CardListItem = ListItem & {
     value: string;
@@ -47,7 +46,7 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
             if (row.value !== nonReimbursableBillDefaultVendor) {
                 QuickbooksDesktop.updateQuickbooksDesktopNonReimbursableBillDefaultVendor(policyID, row.value, nonReimbursableBillDefaultVendor);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID));
+            Navigation.goBack();
         },
         [nonReimbursableBillDefaultVendor, policyID],
     );
@@ -80,7 +79,7 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
             initiallyFocusedOptionKey={sections.at(0)?.data.find((mode) => mode.isSelected)?.keyForList}
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack()}
             pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR], qbdConfig?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR)}
             errorRowStyles={[styles.ph5, styles.pv3]}
