@@ -84,7 +84,14 @@ import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getMemberAccountIDsForWorkspace, goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage, navigateToReceiptPartnersPage} from '@libs/PolicyUtils';
+import {
+    getCustomUnitsForDuplication,
+    getMemberAccountIDsForWorkspace,
+    goBackWhenEnableFeature,
+    isControlPolicy,
+    navigateToExpensifyCardPage,
+    navigateToReceiptPartnersPage,
+} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
@@ -2576,7 +2583,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
                 name: policyName,
                 fieldList: isReportsOptionSelected ? policy?.fieldList : undefined,
                 connections: isConnectionsOptionSelected ? policy?.connections : undefined,
-                customUnits: isCustomUnitsOptionSelected ? policy?.customUnits : undefined,
+                customUnits: getCustomUnitsForDuplication(policy, isCustomUnitsOptionSelected, isPerDiemOptionSelected),
                 taxRates: isTaxesOptionSelected ? policy?.taxRates : undefined,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 pendingFields: {
@@ -3000,9 +3007,11 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
         return acc;
     }, {});
 
-    // Build map for resetting employees on failure
-    const resetEmployeesOnFailure = emails.reduce<Record<string, null>>((acc, email) => {
-        acc[email] = null;
+    // Build map for resetting employees on failure with individual errors
+    const resetEmployeesOnFailure = emails.reduce<Record<string, {status?: string; errors: Errors}>>((acc, email) => {
+        acc[email] = {
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.receiptPartners.uber.invitationFailure'),
+        };
         return acc;
     }, {});
 
@@ -3039,7 +3048,6 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
             value: {
                 receiptPartners: {
                     uber: {
-                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.receiptPartners.uber.invitationFailure'),
                         employees: resetEmployeesOnFailure,
                     },
                 },
@@ -3048,6 +3056,21 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
     ];
 
     API.write(WRITE_COMMANDS.INVITE_WORKSPACE_EMPLOYEES_TO_UBER, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears an error for a specific Uber employee
+ */
+function clearUberEmployeeError(policyID: string, email: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        receiptPartners: {
+            uber: {
+                employees: {
+                    [email]: {errors: null, pendingAction: null},
+                },
+            },
+        },
+    });
 }
 
 /**
@@ -6306,6 +6329,13 @@ function clearPolicyTitleFieldError(policyID: string) {
     });
 }
 
+/**
+ * Set the workspace currency for the workspace confirmation form
+ */
+function setWorkspaceConfirmationCurrency(currency: string) {
+    Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT, {currency});
+}
+
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -6330,6 +6360,7 @@ export {
     removeWorkspace,
     createWorkspaceFromIOUPayment,
     clearErrors,
+    clearUberEmployeeError,
     dismissAddedWithPrimaryLoginMessages,
     openDraftWorkspaceRequest,
     createDraftInitialWorkspace,
@@ -6427,4 +6458,5 @@ export {
     updateInterestedFeatures,
     clearPolicyTitleFieldError,
     inviteWorkspaceEmployeesToUber,
+    setWorkspaceConfirmationCurrency,
 };
