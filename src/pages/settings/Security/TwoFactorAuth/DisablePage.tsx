@@ -20,7 +20,7 @@ import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 function DisablePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
