@@ -2026,6 +2026,7 @@ const translations = {
         addApprovalsTitle: 'Genehmigungen hinzufügen',
         addApprovalButton: 'Genehmigungsworkflow hinzufügen',
         addApprovalTip: 'Dieser Standard-Workflow gilt für alle Mitglieder, es sei denn, es existiert ein spezifischerer Workflow.',
+        disableApprovalPromptDescription: 'Durch das Deaktivieren von Genehmigungen werden alle vorhandenen Genehmigungsworkflows gelöscht.',
         approver: 'Genehmiger',
         addApprovalsDescription: 'Zusätzliche Genehmigung erforderlich, bevor eine Zahlung autorisiert wird.',
         makeOrTrackPaymentsTitle: 'Zahlungen vornehmen oder verfolgen',

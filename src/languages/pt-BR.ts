@@ -2013,6 +2013,7 @@ const translations = {
         delaySubmissionDescription: 'Escolha um cronograma personalizado para enviar despesas ou deixe isso desativado para atualizações em tempo real sobre gastos.',
         submissionFrequency: 'Frequência de envio',
         submissionFrequencyDateOfMonth: 'Data do mês',
+        disableApprovalPromptDescription: 'Desativar aprovações removerá todos os fluxos de trabalho de aprovação existentes.',
         addApprovalsTitle: 'Adicionar aprovações',
         addApprovalButton: 'Adicionar fluxo de trabalho de aprovação',
         addApprovalTip: 'Este fluxo de trabalho padrão se aplica a todos os membros, a menos que exista um fluxo de trabalho mais específico.',

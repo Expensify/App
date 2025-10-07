@@ -1987,6 +1987,7 @@ const translations = {
         delaySubmissionTitle: 'Retrasar envíos',
         delaySubmissionDescription: 'Elige una frecuencia para enviar los gastos, o dejalo desactivado para recibir actualizaciones en tiempo real sobre los gastos.',
         submissionFrequency: 'Frecuencia de envíos',
+        disableApprovalPromptDescription: 'Deshabilitar las aprobaciones borrará todos los flujos de trabajo de aprobación existentes.',
         submissionFrequencyDateOfMonth: 'Fecha del mes',
         addApprovalsTitle: 'Aprobaciones',
         addApprovalButton: 'Añadir flujo de aprobación',
