@@ -149,22 +149,20 @@ function ReportActionsView({
     // and we also generate an expense action if the number of expenses in allReportActions is less than the total number of expenses
     // to display at least one expense action to match the total data.
     const reportActionsToDisplay = useMemo(() => {
-        const shouldAddCreatedAction = isMoneyRequestReport(report) || isInvoiceReport(report) || (isReportTransactionThread && isLoadingInitialReportActions);
+        const actions = [...(allReportActions ?? [])];
+        const lastAction = allReportActions?.at(-1);
+        const shouldAddCreatedAction =
+            !isCreatedAction(lastAction) &&
+            (isMoneyRequestReport(report) || isInvoiceReport(report) || (isReportTransactionThread && (!!isLoadingInitialReportActions || actions?.length <= 1)));
 
-        if (!shouldAddCreatedAction || !allReportActions?.length) {
-            return allReportActions;
-        }
-
-        const actions = [...allReportActions];
-        const lastAction = allReportActions.at(-1);
-
-        if (lastAction && !isCreatedAction(lastAction)) {
-            const optimisticCreatedAction = buildOptimisticCreatedReportAction(String(report?.ownerAccountID), DateUtils.subtractMillisecondsFromDateTime(lastAction.created, 1));
+        if (shouldAddCreatedAction) {
+            const createdTime = lastAction && DateUtils.subtractMillisecondsFromDateTime(lastAction.created, 1);
+            const optimisticCreatedAction = buildOptimisticCreatedReportAction(String(report?.ownerAccountID), createdTime);
             optimisticCreatedAction.pendingAction = null;
             actions.push(optimisticCreatedAction);
         }
 
-        if (!isMoneyRequestReport(report)) {
+        if (!isMoneyRequestReport(report) || !allReportActions?.length) {
             return actions;
         }
 
