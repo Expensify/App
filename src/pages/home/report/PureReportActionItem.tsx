@@ -97,6 +97,8 @@ import {
     getUpdatedAuditRateMessage,
     getUpdatedBudgetMessage,
     getUpdatedManualApprovalThresholdMessage,
+    getUpdatedTimeEnabledMessage,
+    getUpdatedTimeRateMessage,
     getWhisperedTo,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
@@ -1372,6 +1374,10 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getUpdatedBudgetMessage(action, policy)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_BUDGET)) {
             children = <ReportActionItemBasicMessage message={getDeletedBudgetMessage(action, policy)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED)) {
+            children = <ReportActionItemBasicMessage message={getUpdatedTimeEnabledMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_RATE)) {
+            children = <ReportActionItemBasicMessage message={getUpdatedTimeRateMessage(action)} />;
         } else if (isActionableMentionWhisper(action)) {
             children = (
                 <ReportActionItemBasicMessage>

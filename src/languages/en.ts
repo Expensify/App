@@ -263,6 +263,8 @@ import type {
     UpdatedPolicyTagListRequiredParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTimeEnabledParams,
+    UpdatedPolicyTimeRateParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -6054,6 +6056,13 @@ const translations = {
             }
             const suffix = details.length ? ` Previous budget details: ${details.join(', ')}.` : '';
             return `deleted the budget for the ${entityType} "${entityName}".${suffix}`;
+        },
+        updatedTimeEnabled: ({enabled}: UpdatedPolicyTimeEnabledParams) => {
+            return `${enabled ? 'enabled' : 'disabled'} the Default Hourly Rate`;
+        },
+
+        updatedTimeRate: ({newRate, oldRate}: UpdatedPolicyTimeRateParams) => {
+            return `changed the Default Hourly Rate from ${oldRate} to ${newRate}`;
         },
     },
     roomMembersPage: {

@@ -565,6 +565,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** The ID of the transaction thread report */
     transactionThreadReportID?: string;
+
+    /** Old rate of the time enabled */
+    oldRate?: number;
+
+    /** New rate of the time enabled */
+    newRate?: number;
 };
 
 /** Model of `join policy` report action */

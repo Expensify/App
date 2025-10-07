@@ -410,6 +410,10 @@ type UpdatedPolicyPreventSelfApprovalParams = {oldValue: string; newValue: strin
 
 type UpdatedPolicyFieldWithNewAndOldValueParams = {oldValue: string; newValue: string};
 
+type UpdatedPolicyTimeEnabledParams = {enabled?: boolean};
+
+type UpdatedPolicyTimeRateParams = {newRate?: string; oldRate?: string};
+
 type UpdatedPolicyFieldWithValueParam = {value: boolean};
 
 type UpdatedPolicyFrequencyParams = {oldFrequency: string; newFrequency: string};
@@ -1205,6 +1209,8 @@ export type {
     UpdatedPolicyTagListRequiredParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
+    UpdatedPolicyTimeEnabledParams,
+    UpdatedPolicyTimeRateParams,
     UpdatedPolicyFieldWithValueParam,
     UpdatedPolicyDescriptionParams,
     EditDestinationSubtitleParams,

@@ -20,7 +20,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {convertAmountToDisplayString, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
+import {convertAmountToDisplayString, convertToBackendAmount, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
@@ -2957,6 +2957,29 @@ function getDeletedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: 
     });
 }
 
+function getUpdatedTimeEnabledMessage(reportAction: OnyxEntry<ReportAction>) {
+    const {enabled} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED>) ?? {};
+
+    if (typeof enabled === 'boolean') {
+        return translateLocal('workspaceActions.updatedTimeEnabled', {enabled});
+    }
+
+    return getReportActionText(reportAction);
+}
+
+function getUpdatedTimeRateMessage(reportAction: OnyxEntry<ReportAction>) {
+    const {newRate, oldRate, currency} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED>) ?? {};
+
+    const newRateText = newRate !== undefined ? convertToDisplayString(convertToBackendAmount(newRate), currency) : undefined;
+    const oldRateText = oldRate !== undefined ? convertToDisplayString(convertToBackendAmount(oldRate), currency) : undefined;
+
+    if (newRate !== undefined && oldRate !== undefined) {
+        return translateLocal('workspaceActions.updatedTimeRate', {newRate: newRateText, oldRate: oldRateText});
+    }
+
+    return getReportActionText(reportAction);
+}
+
 function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL | typeof CONST.REPORT.ACTIONS.TYPE.REROUTE>(reportAction: OnyxEntry<ReportAction>) {
     const {mentionedAccountIDs} = getOriginalMessage(reportAction as ReportAction<T>) ?? {};
 
@@ -3321,6 +3344,8 @@ export {
     getUpdatedAuditRateMessage,
     getUpdatedManualApprovalThresholdMessage,
     getDeletedBudgetMessage,
+    getUpdatedTimeEnabledMessage,
+    getUpdatedTimeRateMessage,
     getUpdatedBudgetMessage,
     getAddedBudgetMessage,
     getWorkspaceCustomUnitRateDeletedMessage,
