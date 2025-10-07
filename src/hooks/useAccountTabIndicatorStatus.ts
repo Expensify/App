@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 import useTheme from './useTheme';
+import {hasBankAccountInSetupState} from '@libs/BankAccountUtils';
 
 type AccountTabIndicatorStatus = ValueOf<typeof CONST.INDICATOR_STATUS>;
 
@@ -47,6 +48,7 @@ function useAccountTabIndicatorStatus(): AccountTabIndicatorStatusResult {
     const infoChecking: Partial<Record<AccountTabIndicatorStatus, boolean>> = {
         [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO]: !!loginList && hasLoginListInfo(loginList, session?.email),
         [CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO]: hasSubscriptionGreenDotInfo(stripeCustomerId),
+        [CONST.INDICATOR_STATUS.HAS_BANK_ACCOUNT_IN_SETUP_STATE_INFO]: hasBankAccountInSetupState(bankAccountList),
     };
 
     const [error] = Object.entries(errorChecking).find(([, value]) => value) ?? [];
