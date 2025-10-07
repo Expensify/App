@@ -192,7 +192,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const addressName = policy?.achAccount?.addressName ?? bankAccount?.accountData?.addressName ?? '';
         const accountData = bankAccount?.accountData ?? policy?.achAccount ?? {};
         const state = policy?.achAccount?.state ?? bankAccount?.accountData?.state ?? '';
-        const shouldShowBankAccount = !!bankAccount && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        const shouldShowBankAccount = (!!bankAccount || !!bankAccountID) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
         const isAccountInSetupState = state === CONST.BANK_ACCOUNT.STATE.SETUP;
         const bankIcon = getBankIcon({bankName: bankName as BankName, isCard: false, styles});
