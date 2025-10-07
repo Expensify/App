@@ -158,7 +158,9 @@ function MoneyRequestReceiptView({
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 
     const isReceiptAllowed = !isPaidReport && !isInvoice;
-    const shouldShowReceiptEmptyState = isReceiptAllowed && !hasReceipt && !!transaction && !transaction.receipt;
+    const doesTransactionHaveReceipt = !!transaction?.receipt && !isEmptyObject(transaction?.receipt);
+    const shouldShowReceiptEmptyState = isReceiptAllowed && !hasReceipt && !!transaction && !doesTransactionHaveReceipt;
+
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
         const imageViolations = [];
         const allViolations = [];
