@@ -723,6 +723,10 @@ const SCREENS = {
         WORKSPACE_INVITE: 'Onboarding_Workspace_Invite',
     },
 
+    CURRENCY: {
+        SELECTION: 'Currency_Selection',
+    },
+
     EXPLANATION_MODAL: {
         ROOT: 'Explanation_Modal_Root',
     },

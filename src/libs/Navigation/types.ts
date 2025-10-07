@@ -1212,7 +1212,9 @@ type ProfileNavigatorParamList = {
 };
 
 type NewReportWorkspaceSelectionNavigatorParamList = {
-    [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: undefined;
+    [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: {
+        isMovingExpenses?: boolean;
+    };
 };
 
 type ReportDetailsNavigatorParamList = {
@@ -1622,6 +1624,9 @@ type MoneyRequestNavigatorParamList = {
 
 type WorkspaceConfirmationNavigatorParamList = {
     [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: {
+        backTo?: Routes;
+    };
+    [SCREENS.CURRENCY.SELECTION]: {
         backTo?: Routes;
     };
 };
