@@ -429,6 +429,7 @@ function IOURequestStepDistanceMap({
         navigateToConfirmationPage,
         reportID,
         lastSelectedDistanceRates,
+        localeCompare,
     ]);
 
     const getError = () => {

@@ -239,7 +239,7 @@ function IOURequestStepParticipants({
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             selectedReportID.current = firstParticipantReportID || generateReportID();
         },
-        [iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense, allPolicies, lastSelectedDistanceRates],
+        [iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense, allPolicies, lastSelectedDistanceRates, localeCompare],
     );
 
     const goToNextStep = useCallback(() => {

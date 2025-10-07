@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import SelectionList from '@components/SelectionListWithSections';
 import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
@@ -57,7 +57,7 @@ function IOURequestStepDistanceRate({
     const transactionCurrency = getCurrency(transaction);
 
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
-    const sortedRates = Object.values(rates).sort((a, b) => localeCompare(a.name ?? '', b.name ?? ''));
+    const sortedRates = useMemo(() => Object.values(rates).sort((a, b) => localeCompare(a.name ?? '', b.name ?? '')), [rates, localeCompare]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

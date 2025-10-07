@@ -286,6 +286,7 @@ function IOURequestStepDistanceManual({
             navigateToConfirmationPage,
             action,
             distance,
+            localeCompare,
         ],
     );
 
