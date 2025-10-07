@@ -88,7 +88,7 @@
     "@expensify/react-native-background-task": "file:./modules/background-task",
     "@expensify/react-native-hybrid-app": "file:./modules/hybrid-app",
     "@expensify/react-native-live-markdown": "0.1.304",
-    "@expensify/react-native-wallet": "^0.1.5",
+    "@expensify/react-native-wallet": "0.1.11",
     "@expo/metro-runtime": "^5.0.4",
     "@firebase/app": "^0.13.2",
     "@firebase/performance": "^0.6.8",
