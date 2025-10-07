@@ -1,7 +1,6 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import DateUtils from '@libs/DateUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -1535,12 +1534,10 @@ const translations = {
                         return `Waiting for an admin to add a bank account.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
-                if (DateUtils.isDate(eta)) {
-                    formattedETA = ` on ${DateUtils.formatToLongDateWithWeekday(eta)}`;
-                } else if (eta) {
-                    formattedETA = ` ${eta}`;
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` on ${eta}` : ` ${eta}`;
                 }
 
                 // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
@@ -1602,12 +1599,10 @@ const translations = {
                         return `Waiting for an admin to finish setting up a business bank account.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
-                if (DateUtils.isDate(eta)) {
-                    formattedETA = ` by ${DateUtils.formatToLongDateWithWeekday(eta)}`;
-                } else if (eta) {
-                    formattedETA = ` ${eta}`;
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` by ${eta}` : ` ${eta}`;
                 }
 
                 return `Waiting for payment to complete${formattedETA}.`;

@@ -1537,6 +1537,10 @@ const CONST = {
             OTHER_USER: 'otherUser',
             UNSPECIFIED_ADMIN: 'unspecifiedAdmin',
         },
+        ETA_TYPE: {
+            KEY: 'key',
+            DATE_TIME: 'dateTime',
+        },
     },
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
     COMPOSER: {

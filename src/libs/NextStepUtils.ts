@@ -10,6 +10,7 @@ import type {Beta, Policy, Report, ReportNextStepDeprecated, TransactionViolatio
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
 import Permissions from './Permissions';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
@@ -86,14 +87,17 @@ function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContext
         actorType = CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER;
     }
 
-    let eta: Date | string | undefined;
+    let eta: string | undefined;
+    let etaType: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE> | undefined;
     if (nextStep.eta?.etaKey) {
         eta = translate(`nextStep.eta.${nextStep.eta.etaKey}`);
+        etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
     } else if (nextStep.eta?.dateTime) {
-        eta = new Date(nextStep.eta.dateTime);
+        eta = DateUtils.formatToLongDateWithWeekday(nextStep.eta.dateTime);
+        etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
     }
 
-    return `<next-step>${translate(`nextStep.message.${nextStep.messageKey}`, {actor, actorType, eta})}</next-step>`;
+    return `<next-step>${translate(`nextStep.message.${nextStep.messageKey}`, {actor, actorType, eta, etaType})}</next-step>`;
 }
 
 function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep | null {

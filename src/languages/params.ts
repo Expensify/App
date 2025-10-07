@@ -945,7 +945,8 @@ type MergeAccountIntoParams = {
 type NextStepParams = {
     actor: string;
     actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
-    eta?: Date | string;
+    eta?: string;
+    etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>;
 };
 
 export type {
