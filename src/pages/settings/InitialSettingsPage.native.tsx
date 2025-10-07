@@ -10,8 +10,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -25,7 +23,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
@@ -92,8 +89,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [stripeCustomerId] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
 
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const network = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -102,7 +99,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
-    const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
+    const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, true);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
 
     const privateSubscription = usePrivateSubscription();
@@ -111,9 +108,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const shouldLogout = useRef(false);
 
-    const freeTrialText = getFreeTrialText(policies);
-
-    const shouldDisplayLHB = !shouldUseNarrowLayout;
+    const freeTrialText = getFreeTrialText(policies, introSelected);
 
     const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
     const walletBrickRoadIndicator =
@@ -419,7 +414,36 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             testID={InitialSettingsPage.displayName}
             shouldEnableKeyboardAvoidingView={false}
         >
-            {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
+            {headerContent}
+            <ScrollView
+                ref={scrollViewRef}
+                onScroll={onScroll}
+                scrollEventThrottle={16}
+                contentContainerStyle={[styles.w100]}
+                showsVerticalScrollIndicator={false}
+            >
+                {accountMenuItems}
+                {generalMenuItems}
+                <ConfirmModal
+                    danger
+                    title={translate('common.areYouSure')}
+                    prompt={translate('initialSettingsPage.signOutConfirmationText')}
+                    confirmText={translate('initialSettingsPage.signOut')}
+                    cancelText={translate('common.cancel')}
+                    isVisible={shouldShowSignoutConfirmModal}
+                    onConfirm={() => {
+                        toggleSignoutConfirmModal(false);
+                        shouldLogout.current = true;
+                    }}
+                    onCancel={() => toggleSignoutConfirmModal(false)}
+                    onModalHide={() => {
+                        if (!shouldLogout.current) {
+                            return;
+                        }
+                        signOut(true);
+                    }}
+                />
+            </ScrollView>
         </ScreenWrapper>
     );
 }
