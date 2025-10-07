@@ -11357,6 +11357,18 @@ function putOnHold(transactionID: string, comment: string, ancestors: Ancestor[]
         },
     ];
 
+    for (const {reportAction: ancestorReportAction} of ancestors) {
+        if (ancestorReportAction?.reportActionID && ancestorReportAction?.reportID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReportAction.reportID}`,
+                value: {
+                    [ancestorReportAction.reportActionID]: updateOptimisticParentReportAction(ancestorReportAction, holdReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
+                },
+            });
+        }
+    }
+
     // If the transaction thread report wasn't created before, we create it optimistically
     if (!initialReportID) {
         transactionThreadReport.pendingFields = {
@@ -11397,18 +11409,6 @@ function putOnHold(transactionID: string, comment: string, ancestors: Ancestor[]
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.parentReportID}`,
                 value: {[iouAction?.reportActionID]: {childReportID: null, childType: null}},
             });
-        }
-
-        for (const {reportAction: ancestorReportAction} of ancestors) {
-            if (ancestorReportAction?.reportActionID && ancestorReportAction?.reportID) {
-                optimisticData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReportAction.reportID}`,
-                    value: {
-                        [ancestorReportAction.reportActionID]: updateOptimisticParentReportAction(ancestorReportAction, holdReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
-                    },
-                });
-            }
         }
 
         successData.push(
