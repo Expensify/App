@@ -784,7 +784,6 @@ const translations = {
     moneyRequestConfirmationList: {
         paidBy: 'Paid by',
         whatsItFor: "What's it for?",
-        smartScanExplainer: 'Concierge will automatically enter the expense details for you, or you can add them manually.',
     },
     selectionList: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',

@@ -560,6 +560,7 @@ const translations = {
         card: '卡片',
         whyDoWeAskForThis: '我们为什么要求这个？',
         required: '必填',
+        automatic: '自动',
         showing: '显示中',
         of: '的',
         default: '默认',
@@ -1135,6 +1136,7 @@ const translations = {
         pendingMatchWithCreditCardDescription: '收据待与卡交易匹配。标记为现金以取消。',
         markAsCash: '标记为现金',
         routePending: '路由处理中...',
+        automaticallyEnterExpenseDetails: 'Concierge 将自动为您输入费用详情，或者您可以手动添加。',
         receiptScanning: () => ({
             one: '收据扫描中...',
             other: '正在扫描收据...',

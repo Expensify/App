@@ -560,6 +560,7 @@ const translations = {
         card: 'Karta',
         whyDoWeAskForThis: 'Dlaczego o to prosimy?',
         required: 'Wymagane',
+        automatic: 'Automatyczny',
         showing: 'Pokazywanie',
         of: 'of',
         default: 'Domyślny',
@@ -1142,6 +1143,7 @@ const translations = {
         pendingMatchWithCreditCardDescription: 'Paragon oczekuje na dopasowanie z transakcją kartą. Oznacz jako gotówka, aby anulować.',
         markAsCash: 'Oznacz jako gotówka',
         routePending: 'Trasa w toku...',
+        automaticallyEnterExpenseDetails: 'Concierge automatycznie wprowadzi szczegóły wydatku za Ciebie lub możesz dodać je ręcznie.',
         receiptScanning: () => ({
             one: 'Skanowanie paragonu...',
             other: 'Skanowanie paragonów...',

@@ -771,7 +771,6 @@ const translations = {
     moneyRequestConfirmationList: {
         paidBy: 'Pagado por',
         whatsItFor: '¿Para qué es?',
-        smartScanExplainer: 'Concierge introducirá automáticamente los detalles del gasto por ti, o puedes añadirlos manualmente.',
     },
     selectionList: {
         nameEmailOrPhoneNumber: 'Nombre, correo electrónico o número de teléfono',
@@ -1113,6 +1112,7 @@ const translations = {
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con la transacción de la tarjeta. Márcalo como efectivo para cancelar.',
         markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
+        automaticallyEnterExpenseDetails: 'Concierge introducirá automáticamente los detalles del gasto por ti, o puedes añadirlos manualmente.',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto (${amount} para ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `movió un gasto${reportName ? ` desde ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto${reportName ? ` a <a href="${reportUrl}">${reportName}</a>` : ''}`,
