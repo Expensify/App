@@ -13207,6 +13207,7 @@ function saveSplitTransactions(
                     policyCategories ?? null,
                     undefined,
                     undefined,
+                    undefined,
                     splitExpense?.reportID,
                 );
                 if (currentSplit) {
