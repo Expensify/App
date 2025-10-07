@@ -24,7 +24,7 @@ import type {OnyxCollectionKey, OnyxCollectionValuesMapping} from '@src/ONYXKEYS
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS, NEGATABLE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -499,6 +499,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
  * Main usage is to consume data format that comes from AdvancedFilters Onyx Form Data, and generate query string.
  *
  * Reverse operation of buildFilterFormValuesFromQuery()
+ * JACK_TODO
  */
 function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
     const supportedFilterValues = {...filterValues};
@@ -543,6 +544,15 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     const mappedFilters = Object.entries(otherFilters)
         .map(([filterKey, filterValue]) => {
+            const isNegated = filterKey.endsWith(CONST.SEARCH.NOT_MODIFIER);
+
+            if (isNegated) {
+                // eslint-disable-next-line no-param-reassign
+                filterKey = filterKey.replace(CONST.SEARCH.NOT_MODIFIER, '');
+            }
+
+            const prefix = isNegated ? '-' : '';
+
             if (
                 (filterKey === FILTER_KEYS.MERCHANT ||
                     filterKey === FILTER_KEYS.DESCRIPTION ||
@@ -557,7 +567,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             ) {
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
                 if (keyInCorrectForm) {
-                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeSearchValue(filterValue as string)}`;
+                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeSearchValue(filterValue as string)}`;
                 }
             }
             if ((filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.WITHDRAWAL_ID) && filterValue) {
@@ -568,7 +578,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
                 if (keyInCorrectForm && reportIDs.length > 0) {
-                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${reportIDs.join(',')}`;
+                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${reportIDs.join(',')}`;
                 }
             }
 
@@ -602,7 +612,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
 
                 if (keyInCorrectForm) {
-                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
+                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
                 }
             }
 
@@ -642,6 +652,7 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
  * Main usage of this is to generate the initial values for AdvancedFilters from existing query.
  *
  * Reverse operation of buildQueryStringFromFilterFormValues()
+ * JACK_TODO: FIx dates here
  */
 function buildFilterFormValuesFromQuery(
     queryJSON: SearchQueryJSON,
@@ -658,9 +669,17 @@ function buildFilterFormValuesFromQuery(
     const policyID = queryJSON.policyID;
 
     for (const queryFilter of filters) {
-        const filterKey = queryFilter.key;
         const filterList = queryFilter.filters;
+        const originalFilterKey = queryFilter.key as SearchAdvancedFiltersKey;
         const filterValues = filterList.map((item) => item.value.toString());
+
+        const isNegatableFilter = NEGATABLE_FILTER_KEYS.includes(originalFilterKey as SearchNegatableFilterKeys);
+        const containsNegatedValue = filterList.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
+
+        const isNegatable = isNegatableFilter && containsNegatedValue;
+        const negatedFilterKey = isNegatable ? (`${originalFilterKey}${CONST.SEARCH.NOT_MODIFIER}` as `${SearchNegatableFilterKeys}${typeof CONST.SEARCH.NOT_MODIFIER}`) : undefined;
+        const filterKey = negatedFilterKey ?? originalFilterKey;
+
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID) {
             filtersForm[filterKey] = filterValues.join(',');
         }
