@@ -2302,7 +2302,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-wallet (0.1.5):
+  - react-native-wallet (0.1.11):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3817,7 +3817,7 @@ SPEC CHECKSUMS:
   react-native-release-profiler: 3c899b04a88a63735e74beb1d1010ec8c8616347
   react-native-safe-area-context: 6cec90ce53951d3b52dc73e873323a4a7662fc0c
   react-native-view-shot: 70a8e604c289cc67324011554c63ee87dca04a06
-  react-native-wallet: 9d31bca007c1d11766fa420f5509cf9513d3b7d9
+  react-native-wallet: 4151b1bfb7b322caf7e1e31b402a69fc7ab46349
   react-native-webview: 9cf95bd9b16cde5d9bbae452a9cf55631b62028d
   React-NativeModulesApple: 1b5e6bf9164371771e553f744da801f5d9f5c7e5
   React-oscompat: ef5df1c734f19b8003e149317d041b8ce1f7d29c
