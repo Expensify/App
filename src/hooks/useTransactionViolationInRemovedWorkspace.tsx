@@ -18,29 +18,33 @@ function useTransactionViolationInRemovedWorkspace(policyID?: string) {
             transactionIDs.push(transaction.transactionID);
         }
     });
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
-        selector: (violations) => {
-            if (!violations) {
-                return {};
-            }
+    const [transactionViolations] = useOnyx(
+        ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+        {
+            selector: (violations) => {
+                if (!violations) {
+                    return {};
+                }
 
-            const filteredViolationKeys = Object.keys(violations).filter((violationKey) => {
-                const transactionID = violationKey.slice(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS.length);
-                return transactionIDs.includes(transactionID);
-            });
+                const filteredViolationKeys = Object.keys(violations).filter((violationKey) => {
+                    const transactionID = violationKey.slice(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS.length);
+                    return transactionIDs.includes(transactionID);
+                });
 
-            const filteredViolations = filteredViolationKeys.reduce(
-                (acc, key) => {
-                    acc[key] = violations[key];
-                    return acc;
-                },
-                {} as typeof violations,
-            );
+                const filteredViolations = filteredViolationKeys.reduce(
+                    (acc, key) => {
+                        acc[key] = violations[key];
+                        return acc;
+                    },
+                    {} as typeof violations,
+                );
 
-            return filteredViolations;
+                return filteredViolations;
+            },
+            canBeMissing: true,
         },
-        canBeMissing: true,
-    });
+        [transactionIDs],
+    );
 
     return {
         reportsToArchive,
