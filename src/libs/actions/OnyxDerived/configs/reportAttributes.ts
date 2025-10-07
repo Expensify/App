@@ -170,6 +170,10 @@ export default createOnyxDerivedValueConfig({
             const report = reports[key];
 
             if (!report || !isValidReport(report)) {
+                const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
+                if (acc[reportID]) {
+                    delete acc[reportID];
+                }
                 return acc;
             }
 

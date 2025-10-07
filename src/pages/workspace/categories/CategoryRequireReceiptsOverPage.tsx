@@ -2,8 +2,8 @@ import React from 'react';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -90,12 +90,12 @@ function CategoryRequireReceiptsOverPage({
                 />
                 <SelectionList
                     sections={[{data: requireReceiptsOverListData}]}
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                     onSelectRow={(item) => {
                         if (typeof item.value === 'number') {
-                            setPolicyCategoryReceiptsRequired(policyID, categoryName, item.value);
+                            setPolicyCategoryReceiptsRequired(policyID, categoryName, item.value, policyCategories);
                         } else {
-                            removePolicyCategoryReceiptsRequired(policyID, categoryName);
+                            removePolicyCategoryReceiptsRequired(policyID, categoryName, policyCategories);
                         }
                         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
                     }}

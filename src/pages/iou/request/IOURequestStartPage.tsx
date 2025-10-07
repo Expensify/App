@@ -1,11 +1,11 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
@@ -67,14 +67,11 @@ function IOURequestStartPage({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: (items) => Object.values(items ?? {}),
+        selector: transactionDraftValuesSelector,
         canBeMissing: true,
     });
     const [isMultiScanEnabled, setIsMultiScanEnabled] = useState((optimisticTransactions ?? []).length > 1);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
-
-    const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
-    const amountInputRef = useRef<AnimatedTextInputRef | null>(null);
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
@@ -183,7 +180,6 @@ function IOURequestStartPage({
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
     const {isBetaEnabled} = usePermissions();
-    const manualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
     const setTestReceiptAndNavigateRef = useRef<() => void>(() => {});
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
@@ -197,19 +193,6 @@ function IOURequestStartPage({
             },
         },
     );
-
-    const onTabSelectFocusHandler = ({index}: {index: number}) => {
-        // We runAfterInteractions since the function is called in the animate block on web-based
-        // implementation, this fixes an animation glitch and matches the native internal delay
-        InteractionManager.runAfterInteractions(() => {
-            // 0 - Amount, 3 - PerDiem
-            if (index === 0) {
-                amountInputRef.current?.focus();
-            } else if (index === 3) {
-                perDiemInputRef.current?.focus();
-            }
-        });
-    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -256,7 +239,6 @@ function IOURequestStartPage({
                                 lazyLoadEnabled
                                 // We're disabling swipe on mWeb fo the Per Diem tab because the keyboard will hang on the other tab after switching
                                 disableSwipe={(isMultiScanEnabled && selectedTab === CONST.TAB_REQUEST.SCAN) || (selectedTab === CONST.TAB_REQUEST.PER_DIEM && isMobile())}
-                                onTabSelect={onTabSelectFocusHandler}
                             >
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                     {() => (
@@ -265,8 +247,6 @@ function IOURequestStartPage({
                                                 shouldKeepUserInput
                                                 route={route}
                                                 navigation={navigation}
-                                                shouldAutoFocusInput={false}
-                                                ref={amountInputRef}
                                             />
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
@@ -282,11 +262,12 @@ function IOURequestStartPage({
                                                 }}
                                                 isMultiScanEnabled={isMultiScanEnabled}
                                                 setIsMultiScanEnabled={setIsMultiScanEnabled}
+                                                isStartingScan
                                             />
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
                                 </TopTab.Screen>
-                                {(!manualDistanceTrackingEnabled || iouType === CONST.IOU.TYPE.SPLIT) && (
+                                {iouType === CONST.IOU.TYPE.SPLIT && (
                                     <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
                                         {() => (
                                             <TabScreenWithFocusTrapWrapper>
@@ -313,7 +294,6 @@ function IOURequestStartPage({
                                                         explicitPolicyID={moreThanOnePerDiemExist ? undefined : perDiemCustomUnits.at(0)?.policyID}
                                                         route={route}
                                                         navigation={navigation}
-                                                        ref={perDiemInputRef}
                                                     />
                                                 )}
                                             </TabScreenWithFocusTrapWrapper>
