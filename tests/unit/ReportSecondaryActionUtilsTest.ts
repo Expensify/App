@@ -1098,7 +1098,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         // Then it should return false since the unreported card expense is imported with deleting disabled
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [transaction], violations: {}, policy, reportActions});
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [transaction], violations: {}, policy, reportActions, currentUserEmail: EMPLOYEE_EMAIL});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
 
