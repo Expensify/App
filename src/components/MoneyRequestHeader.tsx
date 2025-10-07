@@ -264,7 +264,15 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (!transaction || !reportActions) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(currentUserLogin ?? '', parentReport, transaction, Object.values(reportActions), policy, report, isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS));
+        return getSecondaryTransactionThreadActions(
+            currentUserLogin ?? '',
+            parentReport,
+            transaction,
+            Object.values(reportActions),
+            policy,
+            report,
+            isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS),
+        );
     }, [parentReport, transaction, currentUserLogin, policy, report, isBetaEnabled]);
 
     const dismissModalAndUpdateUseReject = () => {
