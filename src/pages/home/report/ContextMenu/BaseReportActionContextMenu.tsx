@@ -362,6 +362,7 @@ function BaseReportActionContextMenu({
                             card,
                             originalReport,
                             isTryNewDotNVPDismissed,
+                            childReport,
                             movedFromReport,
                             movedToReport,
                         };
