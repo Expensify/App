@@ -68,7 +68,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const navigation = useNavigation();
 
     useEffect(() => {
-        if (typeof videoUrl !== 'string' || !videoUrl || getPlatform() !== CONST.PLATFORM.WEB) {
+        if (typeof videoUrl !== 'string' || !videoUrl || (getPlatform() !== CONST.PLATFORM.WEB && getPlatform() !== CONST.PLATFORM.DESKTOP)) {
             return;
         }
 
