@@ -4795,7 +4795,8 @@ const translations = {
             importMultiLevelTags: {
                 firstRowTitle: '每个标签列表的第一行是标题。',
                 independentTags: '这些是独立标签',
-                glAdjacentColumn: '相邻列中有一个GL代码',
+                glAdjacentColumn: '相邻列包含总账代码',
+                enabledAdjacentColumn: '相邻列包含启用状态',
             },
             tagLevel: {
                 singleLevel: '单级标签',

@@ -4858,7 +4858,8 @@ const translations = {
             importMultiLevelTags: {
                 firstRowTitle: '最初の行は各タグリストのタイトルです',
                 independentTags: 'これらは独立したタグです',
-                glAdjacentColumn: '隣の列にGLコードがあります。',
+                glAdjacentColumn: '隣接する列にGLコードが含まれています',
+                enabledAdjacentColumn: '隣接する列に有効状態が含まれています',
             },
             tagLevel: {
                 singleLevel: '単一レベルのタグ',

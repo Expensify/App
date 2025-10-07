@@ -4885,7 +4885,8 @@ const translations = {
             importMultiLevelTags: {
                 firstRowTitle: 'Die erste Zeile ist der Titel für jede Tag-Liste.',
                 independentTags: 'Dies sind unabhängige Tags',
-                glAdjacentColumn: 'Es gibt einen GL-Code in der angrenzenden Spalte.',
+                glAdjacentColumn: 'Die angrenzende Spalte enthält den Hauptbuchcode',
+                enabledAdjacentColumn: 'Die angrenzende Spalte enthält den Aktivierungsstatus',
             },
             tagLevel: {
                 singleLevel: 'Einzelne Ebene von Tags',

@@ -4893,7 +4893,8 @@ const translations = {
             importMultiLevelTags: {
                 firstRowTitle: 'De eerste rij is de titel voor elke taglijst',
                 independentTags: 'Dit zijn onafhankelijke tags',
-                glAdjacentColumn: 'Er is een GL-code in de aangrenzende kolom',
+                glAdjacentColumn: 'Aangrenzende kolom bevat grootboekcode',
+                enabledAdjacentColumn: 'Aangrenzende kolom bevat ingeschakelde status',
             },
             tagLevel: {
                 singleLevel: 'Enkel niveau van tags',

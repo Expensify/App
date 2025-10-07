@@ -4883,7 +4883,8 @@ const translations = {
             importMultiLevelTags: {
                 firstRowTitle: 'Pierwszy wiersz to tytuł dla każdej listy tagów',
                 independentTags: 'Są to niezależne tagi',
-                glAdjacentColumn: 'W sąsiedniej kolumnie znajduje się kod GL',
+                glAdjacentColumn: 'Sąsiednia kolumna zawiera kod GL',
+                enabledAdjacentColumn: 'Sąsiednia kolumna zawiera stan włączony',
             },
             tagLevel: {
                 singleLevel: 'Pojedynczy poziom tagów',
