@@ -5,7 +5,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {BankAccountMenuItem, SearchQueryJSON} from '@components/Search/types';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -19,6 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 import SearchPageNarrowContent from './SearchPageNarrowContent';
 
@@ -33,9 +34,24 @@ type SearchPageNarrowProps = {
         total: number | undefined;
         currency: string | undefined;
     };
+    currentSelectedPolicyID?: string | undefined;
+    currentSelectedReportID?: string | undefined;
+    confirmPayment?: (paymentType: PaymentMethodType | undefined) => void;
+    latestBankItems?: BankAccountMenuItem[] | undefined;
 };
 
-function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMobileSelectionModeEnabled, metadata, footerData}: SearchPageNarrowProps) {
+function SearchPageNarrow({
+    queryJSON,
+    headerButtonsOptions,
+    searchResults,
+    isMobileSelectionModeEnabled,
+    metadata,
+    footerData,
+    currentSelectedPolicyID,
+    currentSelectedReportID,
+    latestBankItems,
+    confirmPayment,
+}: SearchPageNarrowProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {clearSelectedTransactions} = useSearchContext();
@@ -110,6 +126,10 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
                 shouldShowLoadingState={shouldShowLoadingState}
                 shouldDisplayCancelSearch={shouldDisplayCancelSearch}
                 cancelSearchCallback={cancelSearchCallback}
+                currentSelectedPolicyID={currentSelectedPolicyID}
+                currentSelectedReportID={currentSelectedReportID}
+                latestBankItems={latestBankItems}
+                confirmPayment={confirmPayment}
             />
         </ScreenWrapper>
     );

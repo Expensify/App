@@ -11,7 +11,7 @@ import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
-import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
+import type {BankAccountMenuItem, SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -20,6 +20,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import variables from '@styles/variables';
 import type {SearchResults} from '@src/types/onyx';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -45,6 +46,10 @@ type SearchPageNarrowContentProps = {
     shouldShowLoadingState: boolean;
     shouldDisplayCancelSearch: boolean;
     cancelSearchCallback?: () => void;
+    currentSelectedPolicyID?: string | undefined;
+    currentSelectedReportID?: string | undefined;
+    confirmPayment?: (paymentType: PaymentMethodType | undefined) => void;
+    latestBankItems?: BankAccountMenuItem[] | undefined;
 };
 
 function SearchPageNarrowContent({
@@ -61,6 +66,10 @@ function SearchPageNarrowContent({
     shouldShowLoadingState,
     shouldDisplayCancelSearch,
     cancelSearchCallback,
+    currentSelectedPolicyID,
+    currentSelectedReportID,
+    confirmPayment,
+    latestBankItems,
 }: SearchPageNarrowContentProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -116,14 +125,15 @@ function SearchPageNarrowContent({
                             cancelSearch={shouldDisplayCancelSearch ? cancelSearchCallback : undefined}
                         />
                     </View>
-
                     <View style={[styles.flex1]}>
                         <Animated.View style={[topBarAnimatedStyle, !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.flex1, styles.bgTransparent]}>
                             <View style={[styles.flex1, styles.pt2, styles.appBG]}>
                                 <SearchPageHeader
                                     queryJSON={queryJSON}
                                     searchRouterListVisible={searchRouterListVisible}
-                                    hideSearchRouterList={() => setSearchRouterListVisible(false)}
+                                    hideSearchRouterList={() => {
+                                        setSearchRouterListVisible(false);
+                                    }}
                                     onSearchRouterFocus={() => {
                                         topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
                                         setSearchRouterListVisible(true);
@@ -133,7 +143,6 @@ function SearchPageNarrowContent({
                                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                 />
                             </View>
-
                             <View style={[styles.appBG]}>
                                 {!searchRouterListVisible && (
                                     <SearchFiltersBar
@@ -161,10 +170,13 @@ function SearchPageNarrowContent({
                         headerButtonsOptions={headerButtonsOptions}
                         handleSearch={handleSearchAction}
                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                        currentSelectedPolicyID={currentSelectedPolicyID}
+                        currentSelectedReportID={currentSelectedReportID}
+                        latestBankItems={latestBankItems}
+                        confirmPayment={confirmPayment}
                     />
                 </>
             )}
-
             {!searchRouterListVisible && (
                 <View style={[styles.flex1]}>
                     <Search
@@ -178,7 +190,6 @@ function SearchPageNarrowContent({
                     />
                 </View>
             )}
-
             {shouldShowFooter && (
                 <SearchPageFooter
                     count={footerData.count}
