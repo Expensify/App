@@ -68,8 +68,8 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const participantsExcludingPayee = participants.filter((participant) => participant.accountID !== reportAction?.actorAccountID);
 
     const hasSmartScanFailed = hasReceipt(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
-    const isEditingSplitBill = session?.accountID === actorAccountID && areRequiredFieldsEmpty(transaction);
     const isDistanceRequest = isDistanceRequestUtil(transaction);
+    const isEditingSplitBill = session?.accountID === actorAccountID && areRequiredFieldsEmpty(transaction) && !isDistanceRequest;
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
     const isMapDistanceRequest = isDistanceRequest && !isManualDistanceRequest;
     const [isConfirmed, setIsConfirmed] = useState(false);
