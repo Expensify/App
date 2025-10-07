@@ -234,6 +234,12 @@ function MoneyRequestReceiptView({
 
     const showBorderlessLoading = isLoading && fillSpace;
 
+    const receiptAuditMessagesRow = (
+        <View style={[styles.mt3, isEmptyObject(errors) && isDisplayedInWideRHP && styles.mb3]}>
+            <ReceiptAuditMessages notes={receiptImageViolations} />
+        </View>
+    );
+
     // For empty receipt should be fullHeight
     // For the rest, expand to match the content
     return (
@@ -313,14 +319,11 @@ function MoneyRequestReceiptView({
                             />
                         </View>
                     )}
-                    {!!shouldShowAuditMessage && hasReceipt && !isLoading && (
-                        <View style={[styles.mt3, isEmptyObject(errors) && isDisplayedInWideRHP && styles.mb3]}>
-                            <ReceiptAuditMessages notes={receiptImageViolations} />
-                        </View>
-                    )}
+                    {!!shouldShowAuditMessage && hasReceipt && !isLoading && receiptAuditMessagesRow}
                 </OfflineWithFeedback>
             )}
             {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
+            {!!shouldShowAuditMessage && !hasReceipt && receiptAuditMessagesRow}
             <ConfirmModal
                 isVisible={showConfirmDismissReceiptError}
                 onConfirm={() => {
