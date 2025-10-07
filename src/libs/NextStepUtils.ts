@@ -75,7 +75,7 @@ Onyx.connect({
     },
 });
 
-function buildMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate']) {
+function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate']): string {
     const actor = getDisplayNameForParticipant({accountID: nextStep.actorAccountID});
 
     let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
@@ -97,6 +97,19 @@ function buildMessage(nextStep: ReportNextStep, translate: LocaleContextProps['t
     return `<next-step>${translate(`nextStep.message.${nextStep.messageKey}`, {actor, actorType, eta})}</next-step>`;
 }
 
+function buildOptimisticNextStep(): ReportNextStep {
+    // TODO
+    const nextStep: ReportNextStep = {
+        messageKey: 'noFurtherAction',
+        icon: 'checkmark',
+    };
+
+    return nextStep;
+}
+
+/**
+ * @deprecated Use buildNextStepMessage instead
+ */
 function parseMessage(messages: Message[] | undefined) {
     let nextStepHTML = '';
     messages?.forEach((part, index) => {
@@ -128,12 +141,18 @@ function parseMessage(messages: Message[] | undefined) {
     return `<next-step>${formattedHtml}</next-step>`;
 }
 
+/**
+ * @private
+ */
 function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove?: boolean) {
     const approverAccountID = getNextApproverAccountID(report, isUnapprove);
 
     return getDisplayNameForParticipant({accountID: approverAccountID}) ?? getPersonalDetailsForAccountID(approverAccountID).login;
 }
 
+/**
+ * @deprecated Use buildOptimisticNextStep instead
+ */
 function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
     const optimisticNextStep: ReportNextStepDeprecated = {
         type: 'alert',
@@ -163,8 +182,9 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
 }
 
 /**
- * Please don't use this function anymore, let's use buildNextStepNew instead
+ * Please don't use this function anymore, let's use buildOptimisticNextStep instead
  *
+ * @deprecated Use buildOptimisticNextStep instead
  * @param report
  * @param predictedNextStatus - a next expected status of the report
  * @param shouldFixViolations - whether to show `fix the issue` next step
@@ -539,6 +559,7 @@ function buildNextStep(
 /**
  * Generates an optimistic nextStep based on a current report status and other properties.
  * Need to rename this function and remove the buildNextStep function above after migrating to this function
+ * @deprecated Use buildOptimisticNextStep instead
  */
 function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDeprecated | null {
     const {report, policy, currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled, predictedNextStatus, shouldFixViolations, isUnapprove, isReopen} =
@@ -895,4 +916,4 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
     return optimisticNextStep;
 }
 
-export {buildMessage, parseMessage, buildNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled, buildNextStepNew};
+export {buildNextStepMessage, buildOptimisticNextStep, parseMessage, buildNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled, buildNextStepNew};
