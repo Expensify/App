@@ -2911,11 +2911,11 @@ function getUpdatedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: 
 
     const oldFrequency = translateLocal(`workspace.common.budgetFrequency.${previous.frequency}` as TranslationPaths);
     const newFrequency = translateLocal(`workspace.common.budgetFrequency.${updated.frequency}` as TranslationPaths);
-    const oldIndividual = typeof previous.individual === 'number' ? convertAmountToDisplayString(previous.individual, currency) : undefined;
-    const newIndividual = typeof updated.individual === 'number' ? convertAmountToDisplayString(updated.individual, currency) : undefined;
-    const oldShared = typeof previous.shared === 'number' ? convertAmountToDisplayString(previous.shared, currency) : undefined;
-    const newShared = typeof updated.shared === 'number' ? convertAmountToDisplayString(updated.shared, currency) : undefined;
-    const oldNotificationThreshold = previous.notificationThreshold;
+    const oldIndividual = convertAmountToDisplayString(previous.individual ?? 0, currency);
+    const newIndividual = convertAmountToDisplayString(updated.individual ?? 0, currency);
+    const oldShared = convertAmountToDisplayString(previous.shared ?? 0, currency);
+    const newShared = convertAmountToDisplayString(updated.shared ?? 0, currency);
+    const oldNotificationThreshold = previous.notificationThreshold ?? 100;
     const newNotificationThreshold = updated.notificationThreshold;
 
     return translateLocal('workspaceActions.updateBudget', {

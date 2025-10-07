@@ -6016,19 +6016,19 @@ const translations = {
         }: UpdatedBudgetParams) => {
             const changesList: string[] = [];
 
-            if (oldFrequency && newFrequency && oldFrequency !== newFrequency) {
+            if (newFrequency && oldFrequency !== newFrequency) {
                 changesList.push(`frequency from ${oldFrequency} to ${newFrequency}`);
             }
 
-            if (oldShared && newShared && oldShared !== newShared) {
+            if (newShared && oldShared !== newShared) {
                 changesList.push(`total policy budget from ${oldShared} to ${newShared}`);
             }
 
-            if (oldIndividual && newIndividual && oldIndividual !== newIndividual) {
+            if (newIndividual && oldIndividual !== newIndividual) {
                 changesList.push(`individual budget from ${oldIndividual} to ${newIndividual}`);
             }
 
-            if (typeof oldNotificationThreshold === 'number' && typeof newNotificationThreshold === 'number' && oldNotificationThreshold !== newNotificationThreshold) {
+            if (newNotificationThreshold && oldNotificationThreshold !== newNotificationThreshold) {
                 changesList.push(`notification threshold from ${oldNotificationThreshold}% to ${newNotificationThreshold}%`);
             }
 
