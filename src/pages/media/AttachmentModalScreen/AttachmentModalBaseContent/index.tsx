@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
@@ -186,14 +186,15 @@ function AttachmentModalBaseContent({
         };
     }, [clearAttachmentErrors]);
 
+    const {isAttachmentLoaded} = useContext(AttachmentStateContext);
     const shouldShowDownloadButton = useMemo(() => {
         const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH;
         if (!isValidContext || isErrorInAttachment(source)) {
             return false;
         }
 
-        return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource;
-    }, [isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, onDownloadAttachment, report, shouldShowNotFoundPage, source, type]);
+        return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && isAttachmentLoaded?.(source);
+    }, [isAttachmentLoaded, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, onDownloadAttachment, report, shouldShowNotFoundPage, source, type]);
 
     // We need to pass a shared value of type boolean to the context, so `falseSV` acts as a default value.
     const falseSV = useSharedValue(false);
