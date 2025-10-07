@@ -13,7 +13,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {shouldShowReceiptEmptyState, isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
+import {isMovingTransactionFromTrackExpense, shouldShowReceiptEmptyState} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
 import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
