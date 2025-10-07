@@ -1406,7 +1406,7 @@ function getReportSections(
                     action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                     allActions,
                     groupedBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                    keyForList: reportItem.reportID,
+                    keyForList: String(reportItem.reportID),
                     from: transactions.length > 0 ? data.personalDetailsList[data?.[reportKey as ReportKey]?.accountID ?? CONST.DEFAULT_NUMBER_ID] : emptyPersonalDetails,
                     to: !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                     transactions,
