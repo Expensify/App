@@ -637,6 +637,7 @@ const translations = {
         downloadAsPDF: 'PDFとしてダウンロード',
         downloadAsCSV: 'CSVとしてダウンロード',
         help: '助けて',
+        expenseReport: '経費報告書',
         expenseReports: '経費報告書',
         rateOutOfPolicy: 'ポリシー外のレート',
         reimbursable: '払い戻し可能',

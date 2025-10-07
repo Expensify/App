@@ -637,6 +637,7 @@ const translations = {
         downloadAsPDF: 'Télécharger en PDF',
         downloadAsCSV: 'Télécharger en CSV',
         help: 'Aide',
+        expenseReport: 'Rapport de dépenses',
         expenseReports: 'Rapports de dépenses',
         rateOutOfPolicy: 'Taux hors politique',
         reimbursable: 'Remboursable',

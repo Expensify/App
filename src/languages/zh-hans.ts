@@ -636,6 +636,7 @@ const translations = {
         downloadAsPDF: '下载为PDF',
         downloadAsCSV: '下载为CSV',
         help: '帮助',
+        expenseReport: '费用报告',
         expenseReports: '费用报告',
         rateOutOfPolicy: '超出政策的费率',
         reimbursable: '可报销的',
