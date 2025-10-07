@@ -2191,7 +2191,7 @@ function getPolicyChangeLogUpdateEmployee(reportAction: OnyxInputOrEntry<ReportA
     }
 
     const originalMessage = getOriginalMessage(reportAction);
-    const email = originalMessage?.email ?? '';
+    const email = formatPhoneNumber(originalMessage?.email ?? '');
     const field = originalMessage?.field;
     const customFieldType = Object.values(CONST.CUSTOM_FIELD_KEYS).find((value) => value === field);
     if (customFieldType) {
@@ -2726,7 +2726,7 @@ function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<Re
         return '';
     }
     const originalMessage = getOriginalMessage(reportAction);
-    const email = originalMessage?.email ?? '';
+    const email = formatPhoneNumber(originalMessage?.email ?? '');
     const role = translateLocal('workspace.common.roleName', {role: originalMessage?.role ?? ''}).toLowerCase();
     return translateLocal('report.actions.type.removeMember', {email, role});
 }
