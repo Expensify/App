@@ -59,6 +59,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const didClearError = useRef(false);
 
     const {formatPhoneNumber, translate} = useLocalize();
     const themeStyles = useThemeStyles();
@@ -163,6 +164,23 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         // validatedDate property is responsible to decide the status of the magic code verification
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
     }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo]);
+
+    const clearError = useCallback(() => {
+        // When removing unverified contact methods, the ValidateCodeActionForm unmounts and triggers clearError.
+        // This causes loginData to become an object, which makes sendValidateCode trigger, so we add this check to prevent clearing the error.
+        if (!loginData?.partnerUserID) {
+            return;
+        }
+        clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent');
+    }, [contactMethod, loginData?.partnerUserID, validateLoginError]);
+
+    useEffect(() => {
+        if (isLoadingOnyxValues || didClearError.current) {
+            return;
+        }
+        didClearError.current = true;
+        clearError();
+    }, [clearError, isLoadingOnyxValues]);
 
     useEffect(() => {
         setIsValidateCodeFormVisible(!loginData?.validatedDate);
@@ -343,14 +361,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                         handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode, formatPhoneNumber)}
                         validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
-                        clearError={() => {
-                            // When removing unverified contact methods, the ValidateCodeActionForm unmounts and triggers clearError.
-                            // This causes loginData to become an object, which makes sendValidateCode trigger, so we add this check to prevent clearing the error.
-                            if (!loginData.partnerUserID) {
-                                return;
-                            }
-                            clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent');
-                        }}
+                        clearError={clearError}
                         sendValidateCode={() => {
                             if (!loginData.partnerUserID) {
                                 return;
