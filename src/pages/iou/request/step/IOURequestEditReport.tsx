@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
+import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import {createNewReport} from '@userActions/Report';
@@ -39,6 +40,8 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
 
     const selectReport = (item: TransactionGroupListItem) => {
         if (selectedTransactionIDs.length === 0 || item.value === reportID) {
@@ -74,7 +77,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     };
 
     const createReport = () => {
-        const createdReportID = createNewReport(currentUserPersonalDetails, policyForMovingExpensesID);
+        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
         const backToRoute = ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID});
         if (shouldSelectPolicy) {
             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true, backToRoute));

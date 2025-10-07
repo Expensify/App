@@ -11,7 +11,7 @@ import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
-import {getReportOrDraftReport, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
+import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -51,7 +51,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const session = useSession();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
-    console.log(action);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
 
     const handleGoBack = () => {
         if (isEditing) {
@@ -170,7 +171,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, reportOrDraftReport, transaction);
 
     const createReport = () => {
-        const createdReportID = createNewReport(currentUserPersonalDetails, policyForMovingExpensesID);
+        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
         const backToRoute = ROUTES.REPORT_WITH_ID.getRoute(createdReportID);
         if (shouldSelectPolicy) {
             setSelectedTransactions([transactionID]);
