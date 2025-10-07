@@ -11395,13 +11395,12 @@ function putOnHold(transactionID: string, comment: string, ancestors: Ancestor[]
         );
 
         if (iouAction?.reportActionID) {
-            const iouActionParentUpdate = updateOptimisticParentReportAction(iouAction, holdReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
             // We link the IOU action to the new transaction thread by setting childReportID optimistically
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.parentReportID}`,
-                value: {[iouAction?.reportActionID]: {childReportID: reportID, childType: CONST.REPORT.TYPE.CHAT, ...iouActionParentUpdate}},
+                value: {[iouAction?.reportActionID]: {childReportID: reportID, childType: CONST.REPORT.TYPE.CHAT}},
             });
             // We reset the childReportID if the request fails
             failureData.push({
