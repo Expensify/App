@@ -200,8 +200,7 @@ function useReportActionAvatars({
     const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails}) ?? '';
     const invoiceReport = [iouReport, chatReport, reportChatReport].find((susReport) => isInvoiceReport(susReport) || susReport?.chatType === CONST.REPORT.TYPE.INVOICE);
     const isNestedInInvoiceReport = !!invoiceReport && !isChatThread(report);
-    const isInvoiceReportActor = isAInvoiceReport && (!actorAccountID || displayAllActors || isAReportPreviewAction);
-    const isWorkspaceActor = isInvoiceReportActor || (isAWorkspaceChat && (!actorAccountID || displayAllActors));
+    const isWorkspaceActor = (isAWorkspaceChat || isAInvoiceReport) && (!actorAccountID || displayAllActors);
     const isChatReportOnlyProp = !iouReport && chatReport?.reportID;
     const isWorkspaceChatWithoutChatReport = !chatReport?.reportID && isAWorkspaceChat;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
