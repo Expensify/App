@@ -1,19 +1,20 @@
-import React, {createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState} from 'react';
+import {isActingAsDelegateSelector} from '@selectors/Account';
+import {emailSelector} from '@selectors/Session';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Text from '@components/Text';
+import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanel from '@hooks/useSidePanel';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {parseFSAttributes} from '@libs/Fullstory';
 import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
-import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -49,7 +50,7 @@ const ProductTrainingContext = createContext<ProductTrainingContextType>({
 });
 
 function ProductTrainingContextProvider({children}: ChildrenProps) {
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true, canBeMissing: true});
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
     const [isOnboardingCompleted = true, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -58,8 +59,8 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
     });
 
     const [allPolicies, allPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [currentUserLogin, currentUserLoginMetadata] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: true});
+    const [currentUserLogin, currentUserLoginMetadata] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: true});
 
     const isUserPolicyEmployee = useMemo(() => {
         if (!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) {
@@ -117,6 +118,13 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         return highestPriorityTooltip.name;
     }, [activeTooltips]);
 
+    const isUserInPaidPolicy = useMemo(() => {
+        if (!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) {
+            return false;
+        }
+        return getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies).length > 0;
+    }, [allPolicies, currentUserLogin, allPoliciesMetadata, currentUserLoginMetadata]);
+
     const shouldTooltipBeVisible = useCallback(
         (tooltipName: ProductTrainingTooltipName) => {
             if (isLoadingOnyxValue(isOnboardingCompletedMetadata) || isLoadingApp) {
@@ -154,18 +162,20 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 isUserPolicyEmployee,
                 isUserPolicyAdmin,
                 hasBeenAddedToNudgeMigration,
+                isUserInPaidPolicy,
             });
         },
         [
+            isOnboardingCompletedMetadata,
+            isLoadingApp,
             dismissedProductTraining,
             hasBeenAddedToNudgeMigration,
             isOnboardingCompleted,
-            isOnboardingCompletedMetadata,
-            shouldUseNarrowLayout,
             isModalVisible,
-            isLoadingApp,
+            shouldUseNarrowLayout,
             isUserPolicyEmployee,
             isUserPolicyAdmin,
+            isUserInPaidPolicy,
         ],
     );
 
@@ -238,14 +248,6 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         };
     }, [tooltipName, registerTooltip, unregisterTooltip, shouldShow]);
 
-    /**
-     * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
-     * to ensure necessary properties are available for further processing.
-     * Reevaluates "fs-class" to dynamically apply styles or behavior based on
-     * updated attribute values.
-     */
-    useLayoutEffect(parseFSAttributes, []);
-
     const shouldShowProductTrainingTooltip = useMemo(() => {
         return shouldShow && shouldRenderTooltip(tooltipName) && !shouldHideToolTip;
     }, [shouldRenderTooltip, tooltipName, shouldShow, shouldHideToolTip]);
@@ -265,20 +267,16 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const renderProductTrainingTooltip = useCallback(() => {
         const tooltip = TOOLTIPS[tooltipName];
         return (
-            <View
-                fsClass={CONST.FULL_STORY.UNMASK}
-                testID={CONST.FULL_STORY.UNMASK}
-            >
+            <View fsClass={CONST.FULLSTORY.CLASS.UNMASK}>
                 <View
                     style={[
                         styles.alignItemsCenter,
                         styles.flexRow,
                         tooltip?.shouldRenderActionButtons ? styles.justifyContentStart : styles.justifyContentCenter,
-                        styles.flexWrap,
                         styles.textAlignCenter,
                         styles.gap3,
                         styles.pv2,
-                        styles.ph1,
+                        styles.ph2,
                     ]}
                 >
                     <Icon
@@ -286,19 +284,9 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                         fill={theme.tooltipHighlightText}
                         medium
                     />
-                    <Text style={[styles.productTrainingTooltipText, styles.textWrap, styles.mw100]}>
-                        {tooltip.content.map(({text, isBold}) => {
-                            const translatedText = translate(text);
-                            return (
-                                <Text
-                                    key={text}
-                                    style={[styles.productTrainingTooltipText, isBold && styles.textBold]}
-                                >
-                                    {translatedText}
-                                </Text>
-                            );
-                        })}
-                    </Text>
+                    <View style={[styles.renderHTML, styles.dFlex, styles.flexShrink1]}>
+                        <RenderHTML html={translate(tooltip.content)} />
+                    </View>
                     {!tooltip?.shouldRenderActionButtons && (
                         <PressableWithoutFeedback
                             shouldUseAutoHitSlop
@@ -341,19 +329,16 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         styles.flexRow,
         styles.justifyContentStart,
         styles.justifyContentCenter,
-        styles.flexWrap,
         styles.textAlignCenter,
         styles.gap3,
         styles.pv2,
-        styles.ph1,
-        styles.productTrainingTooltipText,
-        styles.textWrap,
-        styles.mw100,
         styles.flex1,
         styles.justifyContentBetween,
         styles.ph2,
         styles.gap2,
-        styles.textBold,
+        styles.renderHTML,
+        styles.dFlex,
+        styles.flexShrink1,
         theme.tooltipHighlightText,
         theme.icon,
         translate,

@@ -1,9 +1,9 @@
 import {useIsFocused} from '@react-navigation/native';
+import {emailSelector} from '@selectors/Session';
 import type {ReactNode} from 'react';
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -12,13 +12,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
-import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -30,7 +30,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
-    Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'threeDotsAnchorPosition' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
+    Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
         shouldSkipVBBACall?: boolean;
 
         /** The text to display in the header */
@@ -122,26 +122,25 @@ function WorkspacePageWithSections({
     onBackButtonPress,
     shouldShowThreeDotsButton,
     threeDotsMenuItems,
-    threeDotsAnchorPosition,
     shouldUseHeadlineHeader = true,
     addBottomSafeAreaPadding = false,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
-    useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
+    const {isOffline} = useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {
-        selector: (session) => session?.email,
+        selector: emailSelector,
         canBeMissing: true,
     });
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
-    const achState = reimbursementAccount?.achData?.state;
+    const achState = policy?.achAccount?.state ?? reimbursementAccount?.achData?.state;
     const isUsingECard = account?.isUsingExpensifyCard ?? false;
-    const hasVBA = achState === BankAccount.STATE.OPEN;
+    const hasVBA = achState === CONST.BANK_ACCOUNT.STATE.OPEN;
     const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const firstRender = useRef(showLoadingAsFirstRender);
@@ -200,7 +199,7 @@ function WorkspacePageWithSections({
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                onLinkPress={Navigation.goBackToHome}
+                onLinkPress={goBackFromInvalidPolicy}
                 shouldShow={shouldShow}
                 subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
                 shouldForceFullScreen
@@ -213,12 +212,11 @@ function WorkspacePageWithSections({
                     icon={icon ?? undefined}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsMenuItems={threeDotsMenuItems}
-                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                     shouldUseHeadlineHeader={shouldUseHeadlineHeader}
                 >
                     {headerContent}
                 </HeaderWithBackButton>
-                {(isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
+                {!isOffline && (isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                 ) : (
                     <>

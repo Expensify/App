@@ -1,25 +1,26 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {ScrollView} from 'react-native-gesture-handler';
-import {useOnyx} from 'react-native-onyx';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-// Importing from the react-native-gesture-handler package instead of the `components/ScrollView` to fix scroll issue:
-// https://github.com/react-native-modal/react-native-modal/issues/236
 import HeaderGap from '@components/HeaderGap';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScrollView from '@components/ScrollView';
 import getHelpContent from '@components/SidePanel/getHelpContent';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOneTransactionThreadReportAction, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getHelpPaneReportType} from '@libs/ReportUtils';
 import {getExpenseType} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Screen} from '@src/SCREENS';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
+import HelpHeader from './HelpHeader';
 
 type HelpContentProps = {
     closeSidePanel: (shouldUpdateNarrow?: boolean) => void;
@@ -43,14 +44,33 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     });
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID || String(CONST.DEFAULT_NUMBER_ID)}`, {canBeMissing: true});
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {
-        canEvict: false,
-        canBeMissing: true,
-    });
-    const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
-    const linkedTransactionID = useMemo(() => (isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined), [parentReportAction]);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`, {canBeMissing: true});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canBeMissing: true});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
+
+    const getParentIOUReportActionSelector = useCallback(
+        (actions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> => {
+            return Object.values(actions ?? {})
+                .filter((action) => action.reportActionID === report?.parentReportActionID)
+                .filter(isMoneyRequestAction)
+                .at(0);
+        },
+        [report?.parentReportActionID],
+    );
+
+    const [parentIOUReportAction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`,
+        {
+            canBeMissing: true,
+            selector: getParentIOUReportActionSelector,
+        },
+        [getParentIOUReportActionSelector],
+    );
+
+    const transactionID = useMemo(() => {
+        const transactionThreadReportAction = getOneTransactionThreadReportAction(report, chatReport, reportActions ?? []);
+        return getOriginalMessage(parentIOUReportAction ?? transactionThreadReportAction)?.IOUTransactionID;
+    }, [report, chatReport, reportActions, parentIOUReportAction]);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
     const route = useMemo(() => {
         const path = normalizedConfigs[routeName]?.path;
@@ -61,8 +81,17 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
 
         const cleanedPath = path.replaceAll('?', '');
         const expenseType = getExpenseType(transaction);
-        const reportOverride = expenseType ? `:${CONST.REPORT.HELP_TYPE.EXPENSE}/:${expenseType}` : `:${getHelpPaneReportType(report)}`;
-        return cleanedPath.replaceAll(':reportID', reportOverride);
+        const reportType = getHelpPaneReportType(report);
+
+        if (expenseType && reportType !== CONST.REPORT.HELP_TYPE.EXPENSE_REPORT) {
+            return cleanedPath.replaceAll(':reportID', `:${CONST.REPORT.HELP_TYPE.EXPENSE}/:${expenseType}`);
+        }
+
+        if (reportType) {
+            return cleanedPath.replaceAll(':reportID', `:${reportType}`);
+        }
+
+        return cleanedPath;
     }, [routeName, transaction, report]);
 
     const wasPreviousNarrowScreen = useRef(!isExtraLargeScreenWidth);
@@ -82,20 +111,18 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     return (
         <>
             <HeaderGap />
-            <HeaderWithBackButton
+            <HelpHeader
                 title={translate('common.help')}
                 onBackButtonPress={() => closeSidePanel(false)}
                 onCloseButtonPress={() => closeSidePanel(false)}
                 shouldShowBackButton={!isExtraLargeScreenWidth}
                 shouldShowCloseButton={isExtraLargeScreenWidth}
-                shouldDisplayHelpButton={false}
             />
             {currentState === undefined ? (
                 <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
             ) : (
                 <ScrollView
                     style={[styles.ph5, styles.pb5]}
-                    userSelect="auto"
                     scrollIndicatorInsets={{right: Number.MIN_VALUE}}
                 >
                     {getHelpContent(styles, route, isProduction, expandedIndex, setExpandedIndex)}

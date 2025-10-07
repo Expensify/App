@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import type {Icon} from './OnyxCommon';
@@ -77,6 +78,9 @@ type Participant = {
 
     /** The report associated to the IOU participant */
     item?: Report;
+
+    /** The avatar of the IOU participant */
+    avatar?: AvatarSource;
 };
 
 /** Model of IOU split */
@@ -232,5 +236,8 @@ type Accountant = {
     login?: string;
 };
 
+/** Type of distance expense */
+type DistanceExpenseType = typeof CONST.IOU.EXPENSE_TYPE.DISTANCE_MAP | typeof CONST.IOU.EXPENSE_TYPE.DISTANCE_MANUAL;
+
 export default IOU;
-export type {Participant, Split, Attendee, Accountant, SplitExpense};
+export type {Participant, Split, Attendee, Accountant, SplitExpense, DistanceExpenseType};

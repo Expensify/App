@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function setSpreadsheetData(data: string[][], fileURI: string, isImportingMultiLevelTags: boolean): Promise<void | void[]> {
+function setSpreadsheetData(data: string[][], fileURI: string, fileType: string, fileName: string, isImportingMultiLevelTags: boolean): Promise<void | void[]> {
     if (!Array.isArray(data) || !Array.isArray(data.at(0))) {
         return Promise.reject(new Error('Invalid data format'));
     }
@@ -13,7 +13,7 @@ function setSpreadsheetData(data: string[][], fileURI: string, isImportingMultiL
             acc[colIndex] = CONST.CSV_IMPORT_COLUMNS.IGNORE;
             return acc;
         }, {}) ?? {};
-    return Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET, {data: transposedData, columns: columnNames, fileURI, isImportingMultiLevelTags});
+    return Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET, {data: transposedData, columns: columnNames, fileURI, fileType, fileName, isImportingMultiLevelTags});
 }
 
 function setColumnName(columnIndex: number, columnName: string): Promise<void> {

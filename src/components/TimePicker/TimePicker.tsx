@@ -132,17 +132,18 @@ function TimePicker(
     const value = DateUtils.extractTime12Hour(defaultValue, showFullFormat);
     const canUseTouchScreen = canUseTouchScreenDeviceCapabilities();
 
-    const [isError, setError] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
-    const [selectionHour, setSelectionHour] = useState({start: 0, end: 0});
-    const [selectionMinute, setSelectionMinute] = useState(showFullFormat ? {start: 0, end: 0} : {start: 2, end: 2}); // we focus it by default so need  to have selection on the end
-    const [selectionSecond, setSelectionSecond] = useState({start: 0, end: 0});
-    const [selectionMillisecond, setSelectionMillisecond] = useState(showFullFormat ? {start: 6, end: 6} : {start: 0, end: 0});
     const [hours, setHours] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).hour);
     const [minutes, setMinutes] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).minute);
     const [seconds, setSeconds] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).seconds);
     const [milliseconds, setMilliseconds] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).milliseconds);
     const [amPmValue, setAmPmValue] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).period);
+
+    const [isError, setError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [selectionHour, setSelectionHour] = useState({start: 0, end: 0});
+    const [selectionMinute, setSelectionMinute] = useState(showFullFormat ? {start: 0, end: 0} : {start: minutes.length, end: minutes.length}); // we focus it by default so need to have selection on the end
+    const [selectionSecond, setSelectionSecond] = useState({start: 0, end: 0});
+    const [selectionMillisecond, setSelectionMillisecond] = useState(showFullFormat ? {start: milliseconds.length, end: milliseconds.length} : {start: 0, end: 0});
 
     const lastPressedKey = useRef('');
     const hourInputRef = useRef<TextInput | null>(null);
@@ -261,17 +262,44 @@ function TimePicker(
             // There is an active selection of the second digit
             newHour = trimmedText.substring(0, 2).padEnd(2, '0');
             newSelection = trimmedText.length === 1 ? 1 : 2;
-        } else if (trimmedText.length === 1 && Number(trimmedText) <= 1) {
-            /*
-             The trimmed text is either 0 or 1.
-             We are either replacing hours with a single digit, or removing the last digit.
-             In both cases, we should append 0 to the remaining value.
-             Note: we must check the length of the filtered text to avoid incorrectly handling e.g. "01" as "1".
-            */
-            newHour = `${trimmedText}0`;
-            newSelection = 1;
+        } else if (trimmedText.length === 1 && /^\d$/.test(trimmedText)) {
+            // Handles any single digit '0'-'9'
+            const digit = trimmedText[0];
+            if (digit === '0') {
+                newHour = '00';
+                newSelection = 1;
+            } else if (digit === '1') {
+                newHour = '01';
+                // Check if it was a full replacement of a 2-digit hour field
+                if (selectionHour.start === 0 && typeof selectionHour.end === 'number' && selectionHour.end >= 2 && hours.length >= 2) {
+                    newSelection = 2;
+                } else {
+                    newSelection = 1;
+                }
+            } else {
+                // Digit is '2' through '9'
+                newHour = `0${digit}`;
+                newSelection = 2;
+            }
         } else {
-            newHour = trimmedText.substring(0, 2).padStart(2, '0');
+            // Handle empty input or multiple digits
+            if (trimmedText.length === 0) {
+                newHour = '00';
+                newSelection = 0;
+                return;
+            }
+
+            const candidate = trimmedText.substring(0, 2);
+            if (/^\d\d$/.test(candidate)) {
+                // e.g. "05", "12"
+                newHour = candidate;
+            } else if (/^\d$/.test(candidate)) {
+                // e.g. "5" became candidate (should be rare here)
+                newHour = `0${candidate}`;
+            } else {
+                // Invalid input like "aa"
+                newHour = hours; // Revert to previous valid hours
+            }
             newSelection = 2;
         }
 
@@ -895,3 +923,5 @@ function TimePicker(
 TimePicker.displayName = 'TimePicker';
 
 export default React.forwardRef(TimePicker);
+
+export type {TimePickerProps, TimePickerRef, TimePickerRefName};

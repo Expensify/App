@@ -1,11 +1,8 @@
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import * as Localize from './Localize';
+import type Locale from '@src/types/onyx/Locale';
+import {translate} from './Localize';
 import memoize from './memoize';
-import * as NumberFormatUtils from './NumberFormatUtils';
-
-type Locale = ValueOf<typeof CONST.LOCALES>;
+import {format, formatToParts} from './NumberFormatUtils';
 
 const STANDARD_DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '-', ','];
 
@@ -14,12 +11,12 @@ const INDEX_MINUS_SIGN = 11;
 const INDEX_GROUP = 12;
 
 const getLocaleDigits = memoize(
-    (locale: Locale): string[] => {
+    (locale: Locale | undefined): string[] => {
         const localeDigits = [...STANDARD_DIGITS];
         for (let i = 0; i <= 9; i++) {
-            localeDigits[i] = NumberFormatUtils.format(locale, i);
+            localeDigits[i] = format(locale, i);
         }
-        NumberFormatUtils.formatToParts(locale, 1000000.5).forEach((part) => {
+        formatToParts(locale, 1000000.5).forEach((part) => {
             switch (part.type) {
                 case 'decimal':
                     localeDigits[INDEX_DECIMAL] = part.value;
@@ -47,7 +44,7 @@ const getLocaleDigits = memoize(
  *
  * @throws If `digit` is not a valid standard digit.
  */
-function toLocaleDigit(locale: Locale, digit: string): string {
+function toLocaleDigit(locale: Locale | undefined, digit: string): string {
     const index = STANDARD_DIGITS.indexOf(digit);
     if (index < 0) {
         throw new Error(`"${digit}" must be in ${JSON.stringify(STANDARD_DIGITS)}`);
@@ -63,7 +60,7 @@ function toLocaleDigit(locale: Locale, digit: string): string {
  *
  * @throws If `localeDigit` is not a valid locale digit.
  */
-function fromLocaleDigit(locale: Locale, localeDigit: string): string {
+function fromLocaleDigit(locale: Locale | undefined, localeDigit: string): string {
     const index = getLocaleDigits(locale).indexOf(localeDigit);
     if (index < 0) {
         throw new Error(`"${localeDigit}" must be in ${JSON.stringify(getLocaleDigits(locale))}`);
@@ -77,7 +74,7 @@ function fromLocaleDigit(locale: Locale, localeDigit: string): string {
  * @param number - The number to format
  * @param writtenOrdinals - If true, returns the written ordinal (e.g. "first", "second") for numbers 1-10
  */
-function toLocaleOrdinal(locale: Locale, number: number, writtenOrdinals = false): string {
+function toLocaleOrdinal(locale: Locale | undefined, number: number, writtenOrdinals = false): string {
     // Defaults to "other" suffix or "th" in English
     let suffixKey: TranslationPaths = 'workflowsPage.frequencies.ordinals.other';
 
@@ -88,7 +85,7 @@ function toLocaleOrdinal(locale: Locale, number: number, writtenOrdinals = false
     const lastTwoDigits = number % 100;
 
     if (writtenOrdinals && number >= 1 && number <= 10) {
-        return Localize.translate(locale, `workflowsPage.frequencies.ordinals.${number}` as TranslationPaths);
+        return translate(locale, `workflowsPage.frequencies.ordinals.${number}` as TranslationPaths);
     }
 
     if (lastDigit === 1 && lastTwoDigits !== 11) {
@@ -99,7 +96,7 @@ function toLocaleOrdinal(locale: Locale, number: number, writtenOrdinals = false
         suffixKey = 'workflowsPage.frequencies.ordinals.few';
     }
 
-    const suffix = Localize.translate(locale, suffixKey);
+    const suffix = translate(locale, suffixKey);
 
     return `${number}${suffix}`;
 }

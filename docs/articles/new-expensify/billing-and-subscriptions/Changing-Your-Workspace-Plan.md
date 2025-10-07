@@ -3,7 +3,6 @@ title: Change Workspace Plan
 description: Learn how to update your Expensify workspace subscription, downgrade to a free account, or delete your workspace with step-by-step instructions.
 keywords: [New Expensify, workspace plan, subscription, downgrade, cancel subscription, delete workspace]
 ---
-<div id="new-expensify" markdown="1">
 
 Take a look at this resource to learn how to update your Expensify workspace subscription, downgrade to a free account, or delete your workspace entirely.
 
@@ -13,7 +12,7 @@ Take a look at this resource to learn how to update your Expensify workspace sub
 
 To update your subscription plan:
 
-1. Use the **left-hand navigation bar (LHB)** to go to **Workspaces > Subscription**.
+1. Use the **navigation tabs** (on the left on web, and at the bottom on mobile) to go to **Account > Subscription**.
 2. Click **Explore all plans** and choose the one that best fits your needs.
 
 ---
@@ -22,7 +21,7 @@ To update your subscription plan:
 
 If you're on an Annual Subscription (a 12-month commitment), you may be eligible to request early cancellation and switch to a free account:
 
-1. Use the **left-hand navigation bar** to go to **Workspaces > Subscription**.
+1. Use the **navigation tabs** (on the left on web, and at the bottom on mobile) to go to **Account > Subscription**.
 2. Click **Request early cancellation**.
 
 **Note:** Early cancellations are subject to eligibility review.
@@ -33,7 +32,7 @@ If you're on an Annual Subscription (a 12-month commitment), you may be eligible
 
 If you're on a Pay-per-use plan and want to switch to a free account:
 
-1. Go to **Workspaces > Subscription**.
+1. Go to **Account > Subscription**.
 2. Click the three dots **(⋮)** next to your workspace name.
 3. Select **Delete workspace**.
 
@@ -55,4 +54,3 @@ No. Once a workspace is deleted, it cannot be reopened or reactivated. To use Ex
 
 Deleting a workspace will permanently remove workspace-specific settings like company cards. However, your expenses and reports will remain unless you close your Expensify account entirely.
 
-</div>

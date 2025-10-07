@@ -1,7 +1,7 @@
 import React, {useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import AddressStep from '@components/SubStepForms/AddressStep';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import CONST from '@src/CONST';
@@ -16,13 +16,12 @@ function Address({onNext, isEditing, onMove}: NameProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
 
-    const countryInputKey = COUNTRY;
     const inputKeys = {
         street: STREET,
         city: CITY,
         state: STATE,
         zipCode: ZIP_CODE,
-        country: countryInputKey,
+        country: COUNTRY,
     } as const;
 
     const defaultValues = {
@@ -42,12 +41,12 @@ function Address({onNext, isEditing, onMove}: NameProps) {
     const [shouldValidateZipCodeFormat, setShouldValidateZipCodeFormat] = useState<boolean>(defaultValues.country === CONST.COUNTRY.US);
 
     const stepFieldsWithState = useMemo(
-        () => [inputKeys.street, inputKeys.city, inputKeys.state, inputKeys.zipCode, countryInputKey],
-        [countryInputKey, inputKeys.city, inputKeys.state, inputKeys.street, inputKeys.zipCode],
+        () => [inputKeys.street, inputKeys.city, inputKeys.state, inputKeys.zipCode, inputKeys.country],
+        [inputKeys.country, inputKeys.city, inputKeys.state, inputKeys.street, inputKeys.zipCode],
     );
     const stepFieldsWithoutState = useMemo(
-        () => [inputKeys.street, inputKeys.city, inputKeys.zipCode, countryInputKey],
-        [countryInputKey, inputKeys.city, inputKeys.street, inputKeys.zipCode],
+        () => [inputKeys.street, inputKeys.city, inputKeys.zipCode, inputKeys.country],
+        [inputKeys.country, inputKeys.city, inputKeys.street, inputKeys.zipCode],
     );
 
     const stepFields = shouldDisplayStateSelector ? stepFieldsWithState : stepFieldsWithoutState;

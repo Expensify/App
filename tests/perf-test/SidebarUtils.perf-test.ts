@@ -12,7 +12,8 @@ import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
+import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 15000;
@@ -83,17 +84,21 @@ describe('SidebarUtils', () => {
                 policy,
                 parentReportAction,
                 oneTransactionThreadReport: undefined,
+                card: undefined,
+                lastAction: undefined,
+                localeCompare,
+                lastActionReport: undefined,
             }),
         );
     });
 
-    test('[SidebarUtils] getOrderedReportIDs on 15k reports for default priorityMode', async () => {
+    test('[SidebarUtils] getReportsToDisplayInLHN on 15k reports for default priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.DEFAULT, transactionViolations));
+        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.DEFAULT, transactionViolations));
     });
 
-    test('[SidebarUtils] getOrderedReportIDs on 15k reports for GSD priorityMode', async () => {
+    test('[SidebarUtils] getReportsToDisplayInLHN on 15k reports for GSD priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.GSD, transactionViolations));
+        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.GSD, transactionViolations));
     });
 });

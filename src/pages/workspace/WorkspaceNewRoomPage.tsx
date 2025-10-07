@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/core';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {Ref} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
@@ -16,10 +16,10 @@ import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
-import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePolicies} from '@libs/PolicyUtils';
 import {buildOptimisticChatReport, getCommentLength, getParsedComment, isPolicyAdmin} from '@libs/ReportUtils';
@@ -45,7 +45,6 @@ function EmptyWorkspaceView() {
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.emptyWorkspace.notFound')}
                 subtitle={translate('workspace.emptyWorkspace.description')}
-                shouldShowLink={false}
                 addBottomSafeAreaPadding
             />
             <Button
@@ -63,10 +62,15 @@ type WorkspaceNewRoomPageRef = {
     focus?: () => void;
 };
 
-function WorkspaceNewRoomPage(_: unknown, ref: React.Ref<WorkspaceNewRoomPageRef>) {
+type WorkspaceNewRoomPageProps = {
+    /** Forwarded ref to pass to the room name input */
+    ref?: Ref<WorkspaceNewRoomPageRef>;
+};
+
+function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [shouldEnableValidation, setShouldEnableValidation] = useState(false);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
@@ -92,7 +96,7 @@ function WorkspaceNewRoomPage(_: unknown, ref: React.Ref<WorkspaceNewRoomPageRef
                     value: policy.id,
                 }))
                 .sort((a, b) => localeCompare(a.label, b.label)) ?? [],
-        [policies, session?.email],
+        [policies, session?.email, localeCompare],
     );
     const [policyID, setPolicyID] = useState<string>(() => {
         if (!!activePolicyID && workspaceOptions.some((option) => option.value === activePolicyID)) {
@@ -127,6 +131,7 @@ function WorkspaceNewRoomPage(_: unknown, ref: React.Ref<WorkspaceNewRoomPageRef
             description: parsedDescription,
         });
 
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 addPolicyReport(policyReport);
@@ -316,4 +321,4 @@ function WorkspaceNewRoomPage(_: unknown, ref: React.Ref<WorkspaceNewRoomPageRef
 
 WorkspaceNewRoomPage.displayName = 'WorkspaceNewRoomPage';
 
-export default forwardRef(WorkspaceNewRoomPage);
+export default WorkspaceNewRoomPage;

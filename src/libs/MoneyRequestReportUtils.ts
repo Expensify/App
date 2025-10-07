@@ -1,17 +1,21 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {TransactionListItemType} from '@components/SelectionListWithSections/types';
 import CONST from '@src/CONST';
-import type {OriginalMessageIOU, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportMetadata, Transaction} from '@src/types/onyx';
 import {convertToDisplayString} from './CurrencyUtils';
-import {getIOUActionForTransactionID, getOriginalMessage, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasUpdatedTotal,
+    isInvoiceReport,
+    isMoneyRequestReport,
     isReportTransactionThread,
 } from './ReportUtils';
+import {isTransactionPendingDelete} from './TransactionUtils';
 
 /**
  * In MoneyRequestReport we filter out some IOU action types, because expense/transaction data is displayed in a separate list
@@ -43,6 +47,10 @@ function isActionVisibleOnMoneyRequestReport(action: ReportAction) {
 function getThreadReportIDsForTransactions(reportActions: ReportAction[], transactions: Transaction[]) {
     return transactions
         .map((transaction) => {
+            if (isTransactionPendingDelete(transaction)) {
+                return;
+            }
+
             const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
             return action?.childReportID;
         })
@@ -50,20 +58,34 @@ function getThreadReportIDsForTransactions(reportActions: ReportAction[], transa
 }
 
 /**
- * Filters all available transactions and returns the ones that belong to a specific report (by `reportID`).
- * It is used as an onyx selector, to make sure that report related views do not process all transactions in onyx.
+ * Returns a correct reportID for a given TransactionListItemType for navigation/displaying purposes.
  */
-function selectAllTransactionsForReport(transactions: OnyxCollection<Transaction>, reportID: string | undefined, reportActions: ReportAction[]) {
-    if (!reportID) {
-        return [];
-    }
+function getReportIDForTransaction(transactionItem: TransactionListItemType) {
+    const isFromSelfDM = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
+    return (!transactionItem.isFromOneTransactionReport || isFromSelfDM) && transactionItem.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
+        ? transactionItem.transactionThreadReportID
+        : transactionItem.reportID;
+}
+
+/**
+ * Filters all available transactions and returns the ones that belong to not removed action and not removed parent action.
+ */
+function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[], isOffline = false) {
     return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
         if (!transaction) {
             return false;
         }
+
+        if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return true;
+        }
+
         const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-        return transaction.reportID === reportID && !isDeletedParentAction(action);
+        if (action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isOffline) {
+            return true;
+        }
+        return !isDeletedParentAction(action) && (reportActions.length === 0 || !isDeletedAction(action));
     });
 }
 
@@ -91,6 +113,18 @@ function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: T
     return !isReportTransactionThread(report) && !isSingleTransactionReport(report, transactions);
 }
 
+function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Transaction[] | undefined, reportMetadata: OnyxEntry<ReportMetadata>) {
+    const isTransactionDataReady = transactions !== undefined;
+    const isTransactionThreadView = isReportTransactionThread(report);
+    const isStillLoadingData = transactions?.length === 0 && ((!!reportMetadata?.isLoadingInitialReportActions && !reportMetadata.hasOnceLoadedReportActions) || report?.total !== 0);
+    return (
+        (isMoneyRequestReport(report) || isInvoiceReport(report)) &&
+        (!isTransactionDataReady || isStillLoadingData) &&
+        !isTransactionThreadView &&
+        report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
+    );
+}
+
 /**
  * Determines the total amount to be displayed based on the selected button type in the IOU Report Preview.
  *
@@ -115,7 +149,7 @@ const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, poli
         }
 
         // We shouldn't display the nonHeldAmount as the default option if it's not valid since we cannot pay partially in this case
-        if (hasHeldExpensesReportUtils(report?.reportID) && canAllowSettlement && hasValidNonHeldAmount) {
+        if (hasHeldExpensesReportUtils(report?.reportID) && canAllowSettlement && hasValidNonHeldAmount && !hasOnlyHeldExpenses) {
             return nonHeldAmount;
         }
 
@@ -130,8 +164,10 @@ const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, poli
 export {
     isActionVisibleOnMoneyRequestReport,
     getThreadReportIDsForTransactions,
+    getReportIDForTransaction,
     getTotalAmountForIOUReportPreviewButton,
-    selectAllTransactionsForReport,
+    getAllNonDeletedTransactions,
     isSingleTransactionReport,
     shouldDisplayReportTableView,
+    shouldWaitForTransactions,
 };

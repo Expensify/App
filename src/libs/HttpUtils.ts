@@ -22,7 +22,8 @@ const ABORT_COMMANDS = {
 
 type AbortCommand = keyof typeof ABORT_COMMANDS;
 
-Onyx.connect({
+// We have used `connectWithoutView` here because HttpUtils is not connected to any UI component
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
@@ -180,4 +181,5 @@ function cancelPendingRequests(command: AbortCommand = ABORT_COMMANDS.All) {
 export default {
     xhr,
     cancelPendingRequests,
+    processHTTPRequest,
 };

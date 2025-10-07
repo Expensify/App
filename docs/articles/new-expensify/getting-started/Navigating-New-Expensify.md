@@ -1,17 +1,16 @@
 ---
 title: Navigating New Expensify
-description: A guide to navigating New Expensify using the left-hand bar, workspace filters, and mobile layout.
-keywords: [New Expensify, navigation, LHB, left-hand bar, workspace filter, mobile tabs, UI layout, reports tab, account page]
+description: A guide to navigating New Expensify using the navigation tabs, workspace filters, and mobile layout.
+keywords: [New Expensify, navigation, LHB, navigation tabs, workspace filter, mobile tabs, UI layout, reports tab, account page]
 ---
-<div id="new-expensify" markdown="1">
 
 New Expensify features an intuitive, cross-platform navigation experience that makes it easy to access key tools like Inbox, Reports, Workspaces, and Account settings. This article outlines how to navigate New Expensify on both desktop and mobile.
 
 ---
 
-# Left-hand bar (LHB) Navigation
+# Navigation tabs
 
-The vertical **left-hand bar** is the primary navigation hub in your account. It includes:
+The **navigation tabs** (on the left on web, and at the bottom on mobile) are primary orientation hubs in your account. They includes:
 
 - The **Expensify logo**, which acts as a **Home** button and takes you to your Inbox
 - Top-level tabs:
@@ -49,7 +48,7 @@ The **Reports** tab consolidates all filtering and reporting tools:
 
 # Workspaces Page
 
-The **Workspaces** tab helps you manage everything related to your company or personal workspaces. Whether you're creating a new workspace, editing an existing one, or managing features like billing and card connections, this section is your main hub.
+The **Workspaces** tab shows you a clean list of all your workspaces and allows you to manage everything related to your company or personal workspaces. This section is your main hub for workspace management.
 
 From the **Workspaces** tab, you can:
 
@@ -59,10 +58,8 @@ From the **Workspaces** tab, you can:
 - **Enable features** – Turn on or off modules like Company Cards, Workflows, Tags, Distance tracking, and more via the **More features** menu.
 - **Set up accounting connections** – Integrate tools like QuickBooks or NetSuite under **Accounting**.
 - **Edit categories and tags** – Create or disable expense categories and tags to organize expenses.
-- **Track billing and subscription** – Navigate to the **Subscription** section to choose a plan, view billing history, or cancel your subscription.
-- **Access domains** (if applicable) – Allow centralized control over company-wide settings like SAML, domain groups, and company card feeds.
 
-**Tip:** All workspace-specific settings live under this tab, while account specific settings live under the **Account** tab.
+**Tip:** All workspace-specific settings live under this tab, while account-level settings (including billing and subscription management) live under the **Account** tab.
 
 ---
 
@@ -74,6 +71,7 @@ The **Account** tab includes all personal and account-level settings. Here’s w
 - **Wallet** – Add or manage personal payment methods (e.g., cards or bank accounts).
 - **Preferences** – Choose your default payment currency, language, and notification preferences.
 - **Security** – Set up two-factor authentication and manage device access.
+- **Subscription** – Manage your billing, view subscription details, and track usage.
 - **Help** – Access Expensify Help docs and reach out to Concierge.
 - **Switch to Expensify Classic** – Return to the classic layout if needed.
 - **About** – View app version details and system information.
@@ -87,7 +85,7 @@ The **Account** tab includes all personal and account-level settings. Here’s w
 
 # FAQ
 
-## What does the Expensify logo do in the left-hand bar?
+## What does the Expensify logo do in the navigation tabs?
 
 Clicking the logo takes you to your **Inbox**, which serves as the homepage of New Expensify. It’s where you’ll find action items, system suggestions, and task reminders.
 
@@ -99,4 +97,3 @@ Use the **Workspace filter** inside the Filters menu under the **Reports** tab t
 
 Yes. New Expensify offers a consistent experience across web and mobile, using the same tab layout and filtering tools.
 
-</div>

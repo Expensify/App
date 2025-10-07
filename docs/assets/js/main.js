@@ -121,7 +121,7 @@ function openSidebar() {
 // Function to adapt & fix cropped SVG viewBox from Google based on viewport (Mobile or Tablet-Desktop)
 function changeSVGViewBoxGoogle() {
     // Get all inline Google SVG elements on the page
-    const svgsGoogle = document.querySelectorAll('svg:([data-source])');
+    const svgsGoogle = document.querySelectorAll('svg[data-source]:not(.logo)');
 
     Array.from(svgsGoogle).forEach((svg) => {
         // Set the viewBox attribute to '0 0 13 13' to make the svg fit in the mobile view
@@ -235,35 +235,6 @@ mobileBreakpoint.addEventListener('change', handleBreakpointChange);
 // Initial check
 handleBreakpointChange();
 
-function selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent) {
-    newExpensifyTab.classList.add('active');
-    newExpensifyContent.classList.remove('hidden');
-
-    if (expensifyClassicTab && expensifyClassicContent) {
-        expensifyClassicTab.classList.remove('active');
-        expensifyClassicContent.classList.add('hidden');
-    }
-    window.tocbot.refresh({
-        ...tocbotOptions,
-        contentSelector: '#new-expensify',
-    });
-}
-
-function selectExpensifyClassic(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent) {
-    expensifyClassicTab.classList.add('active');
-    expensifyClassicContent.classList.remove('hidden');
-
-    if (newExpensifyTab && newExpensifyContent) {
-        newExpensifyTab.classList.remove('active');
-        newExpensifyContent.classList.add('hidden');
-    }
-
-    window.tocbot.refresh({
-        ...tocbotOptions,
-        contentSelector: '#expensify-classic',
-    });
-}
-
 window.addEventListener('DOMContentLoaded', () => {
     injectFooterCopyright();
 
@@ -278,37 +249,12 @@ window.addEventListener('DOMContentLoaded', () => {
         buttonCloseSidebar.addEventListener('click', closeSidebar);
     }
 
-    const expensifyClassicTab = document.getElementById('platform-tab-expensify-classic');
-    const newExpensifyTab = document.getElementById('platform-tab-new-expensify');
-
-    const expensifyClassicContent = document.getElementById('expensify-classic');
-    const newExpensifyContent = document.getElementById('new-expensify');
-
-    let contentSelector = '.article-toc-content';
-    if (expensifyClassicContent) {
-        contentSelector = '#expensify-classic';
-        selectExpensifyClassic(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent);
-    } else if (newExpensifyContent) {
-        contentSelector = '#new-expensify';
-        selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent);
-    }
-
     if (window.tocbot) {
         window.tocbot.init({
             ...tocbotOptions,
-            contentSelector,
+            contentSelector: '.article-toc-content',
         });
     }
-
-    // eslint-disable-next-line es/no-optional-chaining
-    expensifyClassicTab?.addEventListener('click', () => {
-        selectExpensifyClassic(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent);
-    });
-
-    // eslint-disable-next-line es/no-optional-chaining
-    newExpensifyTab?.addEventListener('click', () => {
-        selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent);
-    });
 
     document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
 
@@ -380,7 +326,14 @@ const makeTwoPartCallback = () => {
         results.forEach((result) => {
             const {ogUrl, ogSiteName} = result.richSnippet.metatags;
 
-            const newOgSiteName = ogUrl.includes('expensify-classic') ? 'Expensify Classic' : 'New Expensify';
+            let newOgSiteName;
+            if (ogUrl.includes('expensify-classic')) {
+                newOgSiteName = 'Expensify Classic';
+            } else if (ogUrl.includes('travel')) {
+                newOgSiteName = 'Expensify Travel';
+            } else {
+                newOgSiteName = 'New Expensify';
+            }
 
             result.title = result.title.replace(`- ${ogSiteName}`, `• ${newOgSiteName}`);
             result.titleNoFormatting = result.titleNoFormatting.replace(`- ${ogSiteName}`, `• ${newOgSiteName}`);

@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
-import AmountWithoutCurrencyForm from '@components/AmountWithoutCurrencyForm';
+import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -8,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -31,7 +31,7 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
     const policyID = route.params.policyID;
     const rateID = route.params.rateID;
     const subRateID = route.params.subRateID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
 
     const customUnit = getPerDiemCustomUnit(policy);
 
@@ -98,13 +98,14 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
                 >
                     <InputWrapper
                         ref={inputCallbackRef}
-                        InputComponent={AmountWithoutCurrencyForm}
+                        InputComponent={AmountWithoutCurrencyInput}
                         defaultValue={defaultAmount}
                         label={translate('workspace.perDiem.amount')}
                         accessibilityLabel={translate('workspace.perDiem.amount')}
                         inputID={INPUT_IDS.AMOUNT}
                         role={CONST.ROLE.PRESENTATION}
                         shouldAllowNegative
+                        uncontrolled
                     />
                 </FormProvider>
             </ScreenWrapper>

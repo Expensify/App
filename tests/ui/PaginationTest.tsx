@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -17,14 +17,16 @@ import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
-jest.setTimeout(60000);
+jest.setTimeout(120000);
 
 jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
+jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
 
 TestHelper.setupApp();
 const fetchMock = TestHelper.setupGlobalFetchMock();
@@ -91,7 +93,7 @@ function getReportActions(reportID?: string) {
 async function navigateToSidebarOption(reportID: string): Promise<void> {
     const optionRow = screen.getByTestId(reportID);
     fireEvent(optionRow, 'press');
-    await act(() => {
+    await waitFor(() => {
         (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
     });
     // ReportScreen relies on the onLayout event to receive updates from onyx.
@@ -319,7 +321,7 @@ describe('Pagination', () => {
         TestHelper.expectAPICommandToHaveBeenCalledWith('GetOlderActions', 0, {reportID: REPORT_ID, reportActionID: '4'});
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
 
-        await waitForBatchedUpdatesWithAct();
+        await waitForNetworkPromises();
 
         // We now have 18 messages. 15 (MIN_INITIAL_REPORT_ACTION_COUNT) from the initial OpenReport and 3 from GetOlderActions.
         // GetOlderActions only returns 3 actions since it reaches id '1', which is the created action.
@@ -335,7 +337,7 @@ describe('Pagination', () => {
 
         const link = screen.getByText('Link 1');
         fireEvent(link, 'press');
-        await act(() => {
+        await waitFor(() => {
             (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
         });
         // Due to https://github.com/facebook/react-native/commit/3485e9ed871886b3e7408f90d623da5c018da493

@@ -1,7 +1,7 @@
 import {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SilentCommentUpdaterOnyxProps, SilentCommentUpdaterProps} from './types';
+import type SilentCommentUpdaterProps from './types';
 
 /**
  * Adding .android component to disable updating comment when prev comment is different
@@ -13,9 +13,11 @@ import type {SilentCommentUpdaterOnyxProps, SilentCommentUpdaterProps} from './t
  * It is connected to the actual draft comment in onyx. The comment in onyx might updates multiple times, and we want to avoid
  * re-rendering a UI component for that. That's why the side effect was moved down to a separate component.
  */
-function SilentCommentUpdater({comment, updateComment}: SilentCommentUpdaterProps) {
+function SilentCommentUpdater({updateComment, reportID}: SilentCommentUpdaterProps) {
+    const [comment = ''] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
+
     useEffect(() => {
-        updateComment(comment ?? '');
+        updateComment(comment);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We need to run this on mount
     }, []);
 
@@ -24,8 +26,4 @@ function SilentCommentUpdater({comment, updateComment}: SilentCommentUpdaterProp
 
 SilentCommentUpdater.displayName = 'SilentCommentUpdater';
 
-export default withOnyx<SilentCommentUpdaterProps, SilentCommentUpdaterOnyxProps>({
-    comment: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
-    },
-})(SilentCommentUpdater);
+export default SilentCommentUpdater;

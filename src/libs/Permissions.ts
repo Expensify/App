@@ -1,14 +1,11 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
+import type BetaConfiguration from '@src/types/onyx/BetaConfiguration';
 
+// eslint-disable-next-line rulesdir/no-beta-handler
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
-}
-
-function isBlockedFromSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
-    // Don't check for all betas or nobody can use test travel on dev
-    return !!betas?.includes(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
 }
 
 /**
@@ -18,17 +15,28 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
-function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>): boolean {
-    // This beta has been released to everyone, but in case user does not have the NVP loaded, we need to return true here.
-    // Will be removed in this issue https://github.com/Expensify/App/issues/63254
-    if (beta === CONST.BETAS.TABLE_REPORT_VIEW) {
-        return true;
+/**
+ * Temporary check for Unreported Expense Project - change to true for testing
+ */
+function canUseUnreportedExpense(): boolean {
+    return false;
+}
+
+function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?: OnyxEntry<BetaConfiguration>): boolean {
+    const hasAllBetasEnabled = canUseAllBetas(betas);
+    const isFeatureEnabled = !!betas?.includes(beta);
+
+    // Explicit only betas and exclusion betas are not enabled only by the 'all' beta. Explicit only betas must be set explicitly to enable the feature.
+    // Exclusion betas are designed to disable features, so being on the 'all' beta should not disable these features as that contradicts its purpose.
+    if (((betaConfiguration?.explicitOnly?.includes(beta) ?? false) || (betaConfiguration?.exclusion?.includes(beta) ?? false)) && hasAllBetasEnabled && !isFeatureEnabled) {
+        return false;
     }
-    return !!betas?.includes(beta) || canUseAllBetas(betas);
+
+    return isFeatureEnabled || hasAllBetasEnabled;
 }
 
 export default {
     canUseLinkPreviews,
-    isBlockedFromSpotnanaTravel,
     isBetaEnabled,
+    canUseUnreportedExpense,
 };

@@ -14,16 +14,16 @@ function TransactionPreviewSkeletonView({transactionPreviewWidth}: TransactionPr
     const theme = useTheme();
     const styles = useThemeStyles();
 
-    const isWidthANumber = typeof transactionPreviewWidth === 'number';
-    const width = isWidthANumber ? transactionPreviewWidth - styles.p4.padding * 2 : transactionPreviewWidth;
     const height = variables.transactionPreviewSkeletonHeight;
+    const widthOfTheLeftSkeleton = 120;
+    const widthOfTheRightSkeleton = 68;
 
     return (
-        <View style={[styles.p4, styles.mtn1]}>
+        <View style={[styles.p4, styles.mtn1, styles.justifyContentBetween, {width: transactionPreviewWidth}]}>
             <SkeletonViewContentLoader
                 testID={TransactionPreviewSkeletonView.displayName}
                 animate
-                width={width}
+                width={widthOfTheLeftSkeleton}
                 height={height}
                 backgroundColor={theme.skeletonLHNIn}
                 foregroundColor={theme.skeletonLHNOut}
@@ -37,7 +37,7 @@ function TransactionPreviewSkeletonView({transactionPreviewWidth}: TransactionPr
                 <Rect
                     x="0"
                     y="24"
-                    width="120"
+                    width={widthOfTheLeftSkeleton}
                     height="20"
                 />
                 <Rect
@@ -47,12 +47,9 @@ function TransactionPreviewSkeletonView({transactionPreviewWidth}: TransactionPr
                     height="7"
                 />
             </SkeletonViewContentLoader>
-            {/* This skeleton inverts the progress bar, which should be on the right,
-            so we don't need to know the width of the component to calculate it - works with percentages.
-           */}
-            <View style={[styles.r0, styles.b0, styles.p4, styles.mtn1, styles.pAbsolute, styles.mirror]}>
+            <View style={[styles.r0, styles.b0, styles.p4, styles.mtn1, styles.pAbsolute]}>
                 <SkeletonViewContentLoader
-                    width={width}
+                    width={widthOfTheRightSkeleton}
                     height={height}
                     foregroundColor={theme.skeletonLHNOut}
                     backgroundColor={theme.skeletonLHNIn}
@@ -60,7 +57,7 @@ function TransactionPreviewSkeletonView({transactionPreviewWidth}: TransactionPr
                     <Rect
                         x="0"
                         y="24"
-                        width="68"
+                        width={widthOfTheRightSkeleton}
                         height="20"
                     />
                 </SkeletonViewContentLoader>

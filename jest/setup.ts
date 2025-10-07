@@ -11,8 +11,8 @@ import setupMockImages from './setupMockImages';
 
 // Needed for tests to have the necessary environment variables set
 if (!('GITHUB_REPOSITORY' in process.env)) {
-    process.env.GITHUB_REPOSITORY_OWNER = 'Expensify';
-    process.env.GITHUB_REPOSITORY = 'Expensify/App';
+    (process.env as NodeJS.ProcessEnv).GITHUB_REPOSITORY_OWNER = 'Expensify';
+    (process.env as NodeJS.ProcessEnv).GITHUB_REPOSITORY = 'Expensify/App';
 }
 
 setupMockImages();
@@ -110,25 +110,6 @@ jest.mock('../modules/hybrid-app/src/NativeReactNativeHybridApp', () => ({
     switchAccount: jest.fn(),
 }));
 
-// This makes FlatList render synchronously for easier testing.
-jest.mock(
-    '@react-native/virtualized-lists/Interaction/Batchinator',
-    () =>
-        class SyncBatchinator {
-            #callback: () => void;
-
-            constructor(callback: () => void) {
-                this.#callback = callback;
-            }
-
-            schedule() {
-                this.#callback();
-            }
-
-            dispose() {}
-        },
-);
-
 jest.mock(
     '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue',
     () =>
@@ -175,3 +156,27 @@ jest.mock('@src/hooks/useWorkletStateMachine/executeOnUIRuntimeSync', () => ({
     __esModule: true,
     default: jest.fn(() => jest.fn()), // Return a function that returns a function
 }));
+
+jest.mock('react-native-nitro-sqlite', () => ({
+    open: jest.fn(),
+}));
+
+// Provide a default global fetch mock for tests that do not explicitly set it up
+// This avoids ReferenceError: fetch is not defined in CI when coverage is enabled
+const globalWithOptionalFetch: typeof globalThis & {fetch?: unknown} = globalThis as typeof globalThis & {fetch?: unknown};
+if (typeof globalWithOptionalFetch.fetch !== 'function') {
+    const mockResponse = {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: {get: () => null},
+        // Return a minimal shape our code expects
+        json: () => Promise.resolve({jsonCode: 200}),
+    };
+
+    Object.defineProperty(globalWithOptionalFetch, 'fetch', {
+        value: jest.fn(() => Promise.resolve(mockResponse)),
+        writable: true,
+        configurable: true,
+    });
+}

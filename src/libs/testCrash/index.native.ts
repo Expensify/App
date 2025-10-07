@@ -1,6 +1,8 @@
-import crashlytics from '@react-native-firebase/crashlytics';
+import {crash, getCrashlytics} from '@react-native-firebase/crashlytics';
+
+const crashlytics = getCrashlytics();
 
 const testCrash = () => {
-    crashlytics().crash();
+    crash(crashlytics);
 };
 export default testCrash;

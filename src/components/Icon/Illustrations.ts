@@ -6,6 +6,7 @@ import CapitalOneCompanyCardDetail from '@assets/images/companyCards/card-capita
 import ChaseCompanyCardDetail from '@assets/images/companyCards/card-chase.svg';
 import CitibankCompanyCardDetail from '@assets/images/companyCards/card-citi.svg';
 import MasterCardCompanyCardDetail from '@assets/images/companyCards/card-mastercard.svg';
+import PlaidCompanyCardDetail from '@assets/images/companyCards/card-plaid.svg';
 import StripeCompanyCardDetail from '@assets/images/companyCards/card-stripe.svg';
 import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
 import WellsFargoCompanyCardDetail from '@assets/images/companyCards/card-wellsfargo.svg';
@@ -17,6 +18,7 @@ import CapitalOneCompanyCardDetailLarge from '@assets/images/companyCards/large/
 import ChaseCompanyCardDetailLarge from '@assets/images/companyCards/large/card-chase-large.svg';
 import CitibankCompanyCardDetailLarge from '@assets/images/companyCards/large/card-citi-large.svg';
 import MasterCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-mastercard-large.svg';
+import PlaidCompanyCardDetailLarge from '@assets/images/companyCards/large/card-plaid-large.svg';
 import StripeCompanyCardDetailLarge from '@assets/images/companyCards/large/card-stripe-large.svg';
 import VisaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-visa-large.svg';
 import WellsFargoCompanyCardDetailLarge from '@assets/images/companyCards/large/card-wellsfargo-large.svg';
@@ -31,6 +33,7 @@ import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
 import BankArrowPink from '@assets/images/product-illustrations/bank-arrow--pink.svg';
 import BankMouseGreen from '@assets/images/product-illustrations/bank-mouse--green.svg';
 import BankUserGreen from '@assets/images/product-illustrations/bank-user--green.svg';
+import BrokenCompanyCardBankConnection from '@assets/images/product-illustrations/broken-humpty-dumpty.svg';
 import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
 import ConciergeBlue from '@assets/images/product-illustrations/concierge--blue.svg';
 import ConciergeExclamation from '@assets/images/product-illustrations/concierge--exclamation.svg';
@@ -42,28 +45,33 @@ import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__t
 import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
 import GpsTrackOrange from '@assets/images/product-illustrations/gps-track--orange.svg';
 import Hands from '@assets/images/product-illustrations/home-illustration-hands.svg';
+import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
 import InvoiceOrange from '@assets/images/product-illustrations/invoice--orange.svg';
 import JewelBoxBlue from '@assets/images/product-illustrations/jewel-box--blue.svg';
 import JewelBoxGreen from '@assets/images/product-illustrations/jewel-box--green.svg';
 import JewelBoxPink from '@assets/images/product-illustrations/jewel-box--pink.svg';
 import JewelBoxYellow from '@assets/images/product-illustrations/jewel-box--yellow.svg';
 import MagicCode from '@assets/images/product-illustrations/magic-code.svg';
+import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
 import MoneyEnvelopeBlue from '@assets/images/product-illustrations/money-envelope--blue.svg';
 import MoneyMousePink from '@assets/images/product-illustrations/money-mouse--pink.svg';
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
 import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
 import ReceiptYellow from '@assets/images/product-illustrations/receipt--yellow.svg';
 import ReceiptsSearchYellow from '@assets/images/product-illustrations/receipts-search--yellow.svg';
+import ReceiptsStackedOnPin from '@assets/images/product-illustrations/receipts-stacked-on-pin.svg';
 import RocketBlue from '@assets/images/product-illustrations/rocket--blue.svg';
 import RocketOrange from '@assets/images/product-illustrations/rocket--orange.svg';
 import RocketDude from '@assets/images/product-illustrations/rocket-dude.svg';
 import SafeBlue from '@assets/images/product-illustrations/safe.svg';
+import SewerDino from '@assets/images/product-illustrations/sewer_dino.svg';
 import SmartScan from '@assets/images/product-illustrations/simple-illustration__smartscan.svg';
 import TadaBlue from '@assets/images/product-illustrations/tada--blue.svg';
 import TadaYellow from '@assets/images/product-illustrations/tada--yellow.svg';
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_legged_laptop_woman.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
+import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
 import BigVault from '@assets/images/simple-illustrations/emptystate__big-vault.svg';
@@ -80,6 +88,7 @@ import Building from '@assets/images/simple-illustrations/simple-illustration__b
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
+import PinkCar from '@assets/images/simple-illustrations/simple-illustration__car_pink.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
 import CoffeeMug from '@assets/images/simple-illustrations/simple-illustration__coffeemug.svg';
@@ -92,6 +101,7 @@ import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustrat
 import CreditCardEyes from '@assets/images/simple-illustrations/simple-illustration__creditcardeyes.svg';
 import CreditCardsNewGreen from '@assets/images/simple-illustrations/simple-illustration__creditcards--green.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
+import EmptyShelves from '@assets/images/simple-illustrations/simple-illustration__empty-shelves.svg';
 import EmptyState from '@assets/images/simple-illustrations/simple-illustration__empty-state.svg';
 import Encryption from '@assets/images/simple-illustrations/simple-illustration__encryption.svg';
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
@@ -120,6 +130,7 @@ import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustra
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
 import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
+import PaperAirplane from '@assets/images/simple-illustrations/simple-illustration__paperairplane.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
 import PerDiem from '@assets/images/simple-illustrations/simple-illustration__perdiem.svg';
 import PiggyBank from '@assets/images/simple-illustrations/simple-illustration__piggybank.svg';
@@ -130,6 +141,7 @@ import RealtimeReport from '@assets/images/simple-illustrations/simple-illustrat
 import ReceiptEnvelope from '@assets/images/simple-illustrations/simple-illustration__receipt-envelope.svg';
 import ReceiptLocationMarker from '@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
+import ReceiptPartners from '@assets/images/simple-illustrations/simple-illustration__receipt.svg';
 import ReceiptUpload from '@assets/images/simple-illustrations/simple-illustration__receiptupload.svg';
 import ReportReceipt from '@assets/images/simple-illustrations/simple-illustration__report-receipt.svg';
 import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
@@ -143,6 +155,7 @@ import SubscriptionAnnual from '@assets/images/simple-illustrations/simple-illus
 import SubscriptionPPU from '@assets/images/simple-illustrations/simple-illustration__subscription-ppu.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
 import TeachersUnite from '@assets/images/simple-illustrations/simple-illustration__teachers-unite.svg';
+import ThumbsDown from '@assets/images/simple-illustrations/simple-illustration__thumbsdown.svg';
 import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
 import Tire from '@assets/images/simple-illustrations/simple-illustration__tire.svg';
 import TrackShoe from '@assets/images/simple-illustrations/simple-illustration__track-shoe.svg';
@@ -168,6 +181,7 @@ export {
     CoffeeMug,
     ConciergeBlue,
     ConciergeExclamation,
+    PinkCar,
     CreditCardsBlue,
     EmailAddress,
     EmptyCardState,
@@ -199,11 +213,14 @@ export {
     TadaYellow,
     TadaBlue,
     ToddBehindCloud,
+    SewerDino,
     ToddWithPhones,
+    ToddInCar,
     GpsTrackOrange,
     ShieldYellow,
     MoneyReceipts,
     PinkBill,
+    BrokenCompanyCardBankConnection,
     CreditCardsNew,
     CreditCardsNewGreen,
     InvoiceBlue,
@@ -308,10 +325,19 @@ export {
     ChaseCompanyCardDetailLarge,
     CitibankCompanyCardDetailLarge,
     MasterCardCompanyCardDetailLarge,
+    ReceiptPartners,
     StripeCompanyCardDetailLarge,
     VisaCompanyCardDetailLarge,
     WellsFargoCompanyCardDetailLarge,
     Flash,
     ExpensifyMobileApp,
     ReportReceipt,
+    ModalHoldOrReject,
+    ThumbsDown,
+    PlaidCompanyCardDetailLarge,
+    PlaidCompanyCardDetail,
+    ReceiptsStackedOnPin,
+    PaperAirplane,
+    CardReplacementSuccess,
+    EmptyShelves,
 };

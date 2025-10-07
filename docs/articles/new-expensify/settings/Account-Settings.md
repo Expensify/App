@@ -1,9 +1,8 @@
 ---
 title: Account Settings
 description: Learn how to update your profile settings, preferences, and notifications in Expensify.
-keywords: [Expensify profile, account preferences, notifications, language, theme, timezone, personal information]
+keywords: [New Expensify, profile, account preferences, notifications, language, theme, timezone, personal information]
 ---
-<div id="new-expensify" markdown="1">
 
 Expensify allows you to personalize your experience by customizing your profile, preferences, and notifications. This guide shows you how to update your photo, language, timezone, notification settings, and more—all from the left-hand navigation menu.
 
@@ -16,11 +15,25 @@ You can update the following profile settings:
 - **Profile Photo** – Upload or change your photo.
 - **Status** – Add a custom message and emoji to show your current status.
 - **Pronouns** – Display your preferred pronouns on your profile.
-- **Language** – Change the app language to Spanish or other supported languages.
+- **Language** – Update your account to your preferred language.
 - **Timezone** – Set the correct timezone for expense and report timestamps.
 - **Theme** – Toggle between light mode, dark mode, or follow device settings.
 - **Notifications** – Customize how and when you receive email and app notifications.
 - **Personal Information** – Add or update your legal name, birth date, and address.
+
+---
+# Supported Languages
+
+   - English
+   - German (Deutsch)
+   - Spanish (Español)
+   - French (Français)
+   - Italian (Italiano)
+   - Dutch (Nederlands)
+   - Polish (Polski)
+   - Portuguese (Português – Brasil)
+   - Japanese (日本語)
+   - Chinese (中文 (简体))
 
 ---
 
@@ -29,7 +42,7 @@ You can update the following profile settings:
 ## Profile Photo
 
 To upload or update your photo:
-1. In the left-hand menu, click **Account > Profile**.
+1. In the navigation tabs, click **Account > Profile**.
 2. Click the pencil icon next to your profile image.
 3. Select **Upload Image** and choose a new photo.
 
@@ -40,15 +53,19 @@ To update your timezone:
 2. Click **Timezone** and select the correct time zone from the list.
 
 ## Language
-
 To change your language:
-1. Go to **Account > Preferences**.
-2. Click **Language** and choose your preferred option.
+1. In the navigation tabs, select **Account > Preferences**.
+2. Tap or click on **Language**.
+3. Choose your preferred language from the list.
+4. The checkmark will confirm the selected language.
+5. Your account will update automatically to reflect the new language setting.
+
+**Note:** Language changes affect your personal account view only. Workspace members must update their own preferences individually.
 
 ## Notifications
 
 To manage notification settings:
-1. Go to **Account > Preferences**.
+1. Go to **Account > Preferences > App preferences**.
 2. Adjust the notification toggles:
    - **Receive relevant feature updates and Expensify news**
    - **Mute all sounds from Expensify**
@@ -99,18 +116,14 @@ To edit your display or legal name:
 Your photo helps teammates identify you easily in chats, reports, and notifications.
 
 ## Will changing my language affect reports?
-No. It only changes the language of your user interface—not the content of your reports.
+No. It only changes the language of your user interface, not the content of your reports.
 
 ## Can I disable all Expensify notifications?
-Yes. Go to **Account > Preferences** and toggle off both update and sound notifications.
+Yes. From the navigation tabs, go to **Account > Preferences** and toggle off both update and sound notifications.
 
 ## Will theme preferences sync across devices?
-Yes. Your chosen theme applies across web, mobile, and desktop versions of Expensify.
+Yes! Your chosen theme applies across web, mobile, and desktop versions of Expensify.
 
 ## Can I set a permanent status message?
 Yes. After entering your status, choose **Never** under “Clear After” to keep it active indefinitely.
 
-## Why should I add my legal name and address?
-These details are used for things like booking travel or receiving payments and help verify your identity when needed.
-
-</div>

@@ -3,7 +3,6 @@ title: Configure Sage Intacct
 description: Learn how to configure Sage Intacct's export, coding, and advanced settings in Expensify for seamless integration.
 keywords: [Sage Intacct, export settings, coding settings, advanced settings, Expensify Classic]
 ---
-<div id="expensify-classic" markdown="1">
 
 By properly configuring your Sage Intacct settings in Expensify, you can automate many tasks, streamlining your expense management workflow.
 
@@ -197,4 +196,3 @@ Make sure your **approval workflow** is correctly configured. If your domain is 
 - Reports **marked paid in Sage Intacct** will be marked **Reimbursed** in Expensify.
 - Reports **not yet exported** will **not** be automatically exported.
 
-</div>

@@ -1,12 +1,14 @@
 import {useCallback, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
+import {getExportTemplates} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {isMergeAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
@@ -21,14 +23,18 @@ import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OriginalMessageIOU, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useLocalize from './useLocalize';
+import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
+import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
 
 // We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ignored.
 const HOLD = 'HOLD';
 const UNHOLD = 'UNHOLD';
 const MOVE = 'MOVE';
+const MERGE = 'MERGE';
 
 function useSelectedTransactionsActions({
     report,
@@ -36,15 +42,28 @@ function useSelectedTransactionsActions({
     allTransactionsLength,
     session,
     onExportFailed,
+    onExportOffline,
+    policy,
+    beginExportWithTemplate,
 }: {
     report?: Report;
     reportActions: ReportAction[];
     allTransactionsLength: number;
     session?: Session;
     onExportFailed?: () => void;
+    onExportOffline?: () => void;
+    policy?: Policy;
+    beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
 }) {
+    const {isOffline} = useNetworkWithOfflineStatus();
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
+
+    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
+    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
+
+    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const selectedTransactions = useMemo(
         () =>
@@ -62,6 +81,7 @@ function useSelectedTransactionsActions({
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const isTrackExpenseThread = isTrackExpenseReport(report);
     const isInvoice = isInvoiceReport(report);
+
     let iouType: IOUType = CONST.IOU.TYPE.SUBMIT;
 
     if (isTrackExpenseThread) {
@@ -77,18 +97,27 @@ function useSelectedTransactionsActions({
         const transactionsWithActions = selectedTransactionIDs.map((transactionID) => ({
             transactionID,
             action: iouActions.find((action) => {
-                const IOUTransactionID = (getOriginalMessage(action) as OriginalMessageIOU)?.IOUTransactionID;
+                const IOUTransactionID = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action)?.IOUTransactionID;
                 return transactionID === IOUTransactionID;
             }),
         }));
+        const deletedTransactionIDs: string[] = [];
+        const deletedTransactionThreadReportIDs = new Set<string>();
+        transactionsWithActions.forEach(({transactionID, action}) => {
+            if (!action) {
+                return;
+            }
 
-        transactionsWithActions.forEach(({transactionID, action}) => action && deleteMoneyRequest(transactionID, action));
+            deleteMoneyRequest(transactionID, action, duplicateTransactions, duplicateTransactionViolations, false, deletedTransactionIDs, selectedTransactionIDs);
+            deletedTransactionIDs.push(transactionID);
+            if (action.childReportID) {
+                deletedTransactionThreadReportIDs.add(action.childReportID);
+            }
+        });
         clearSelectedTransactions(true);
-        if (allTransactionsLength - transactionsWithActions.length <= 1) {
-            turnOffMobileSelectionMode();
-        }
         setIsDeleteModalVisible(false);
-    }, [allTransactionsLength, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
+        Navigation.removeReportScreen(deletedTransactionThreadReportIDs);
+    }, [duplicateTransactions, duplicateTransactionViolations, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
 
     const showDeleteModal = useCallback(() => {
         setIsDeleteModalVisible(true);
@@ -157,19 +186,52 @@ function useSelectedTransactionsActions({
             });
         }
 
-        options.push({
-            value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV,
-            text: translate('common.downloadAsCSV'),
-            icon: Expensicons.Download,
-            onSelected: () => {
-                if (!report) {
-                    return;
-                }
-                exportReportToCSV({reportID: report.reportID, transactionIDList: selectedTransactionIDs}, () => {
-                    onExportFailed?.();
+        // Gets the list of options for the export sub-menu
+        const getExportOptions = (): PopoverMenuItem[] => {
+            // We provide the basic and expense level export options by default
+            const exportOptions: PopoverMenuItem[] = [
+                {
+                    text: translate('export.basicExport'),
+                    icon: Expensicons.Table,
+                    onSelected: () => {
+                        if (!report) {
+                            return;
+                        }
+                        if (isOffline) {
+                            onExportOffline?.();
+                            return;
+                        }
+                        exportReportToCSV({reportID: report.reportID, transactionIDList: selectedTransactionIDs}, () => {
+                            onExportFailed?.();
+                        });
+                        clearSelectedTransactions(true);
+                    },
+                },
+            ];
+
+            // If we've selected all the transactions on the report, we can also provide the report level export option
+            const includeReportLevelExport = allTransactionsLength === selectedTransactionIDs.length;
+
+            // If the user has any custom integration export templates, add them as export options
+            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, policy, includeReportLevelExport);
+            for (const template of exportTemplates) {
+                exportOptions.push({
+                    text: template.name,
+                    icon: Expensicons.Table,
+                    description: template.description,
+                    onSelected: () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.policyID),
                 });
-                clearSelectedTransactions(true);
-            },
+            }
+            return exportOptions;
+        };
+
+        options.push({
+            value: CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
+            text: translate('common.export'),
+            backButtonText: translate('common.export'),
+            icon: Expensicons.Export,
+            rightIcon: Expensicons.ArrowRight,
+            subMenuItems: getExportOptions(),
         });
 
         const canSelectedExpensesBeMoved = selectedTransactions.every((transaction) => {
@@ -178,26 +240,47 @@ function useSelectedTransactionsActions({
             }
             const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
 
-            const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
+            const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
             return canMoveExpense;
         });
 
-        const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
+        const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
         if (canSelectedExpensesBeMoved && canUserPerformWriteAction) {
             options.push({
                 text: translate('iou.moveExpenses', {count: selectedTransactionIDs.length}),
                 icon: Expensicons.DocumentMerge,
                 value: MOVE,
                 onSelected: () => {
-                    const route = ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, report?.reportID);
+                    const shouldTurnOffSelectionMode = allTransactionsLength - selectedTransactionIDs.length <= 1;
+                    const route = ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, report?.reportID, shouldTurnOffSelectionMode);
                     Navigation.navigate(route);
                 },
             });
         }
 
-        const canAllSelectedTransactionsBeRemoved = selectedTransactionIDs.every((transactionID) => {
-            const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(transactionID);
-            const action = getIOUActionForTransactionID(reportActions, transactionID);
+        // In phase 1, we only show merge action if report is eligible for merge and only one transaction is selected
+        const canMergeTransaction = selectedTransactions.length === 1 && report && isMergeAction(report, selectedTransactions, policy);
+        if (canMergeTransaction) {
+            options.push({
+                text: translate('common.merge'),
+                icon: Expensicons.ArrowCollapse,
+                value: MERGE,
+                onSelected: () => {
+                    const targetTransaction = selectedTransactions.at(0);
+
+                    if (!report || !targetTransaction) {
+                        return;
+                    }
+
+                    setupMergeTransactionData(targetTransaction.transactionID, {targetTransactionID: targetTransaction.transactionID});
+                    Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute()));
+                },
+            });
+        }
+
+        const canAllSelectedTransactionsBeRemoved = Object.values(selectedTransactions).every((transaction) => {
+            const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(transaction);
+            const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
             const isActionDeleted = isDeletedAction(action);
             const isIOUActionOwner = typeof action?.actorAccountID === 'number' && typeof session?.accountID === 'number' && action.actorAccountID === session?.accountID;
 
@@ -220,13 +303,21 @@ function useSelectedTransactionsActions({
         report,
         selectedTransactions,
         translate,
+        isReportArchived,
         reportActions,
         clearSelectedTransactions,
         onExportFailed,
+        allTransactionsLength,
         iouType,
         session?.accountID,
         showDeleteModal,
-        isReportArchived,
+        outstandingReportsByPolicyID,
+        policy,
+        beginExportWithTemplate,
+        isOffline,
+        onExportOffline,
+        csvExportLayouts,
+        integrationsExportTemplates,
     ]);
 
     return {

@@ -5,6 +5,7 @@ import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
 import type {AllConnectionName} from './Policy';
 import type ReportActionName from './ReportActionName';
+import type {Reservation} from './Transaction';
 
 /** Types of join workspace resolutions */
 type JoinWorkspaceResolution = ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION>;
@@ -38,17 +39,11 @@ type OriginalMessageIOU = {
     /** ID of the expense report */
     expenseReportID?: string;
 
-    /** How much was transaction */
-    amount: number;
-
     /** Was the action created automatically, not by a human */
     automaticAction?: boolean;
 
     /** Optional comment */
     comment?: string;
-
-    /** Currency of the transaction money */
-    currency: string;
 
     /** When was the `IOU` last modified */
     lastModified?: string;
@@ -68,12 +63,36 @@ type OriginalMessageIOU = {
     /** Timestamp of when the `IOU` report action was deleted */
     deleted?: string;
 
-    /** Only exists when we are sending money */
-    IOUDetails?: IOUDetails;
-
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo?: number[];
-};
+
+    /** Where the invoice is paid with business account or not */
+    payAsBusiness?: boolean;
+
+    /** The bank account id */
+    bankAccountID?: number;
+} & (
+    | {
+          /** How much was transaction */
+          amount: number;
+
+          /** Currency of the transaction money */
+          currency: string;
+
+          /** Only exists when we are sending money */
+          IOUDetails?: IOUDetails;
+      }
+    | {
+          /** How much was transaction */
+          amount?: number;
+
+          /** Currency of the transaction money */
+          currency?: string;
+
+          /** Only exists when we are sending money */
+          IOUDetails: IOUDetails;
+      }
+);
 
 /** Names of moderation decisions */
 type DecisionName = ValueOf<
@@ -115,11 +134,26 @@ type OriginalMessageAddComment = {
 
 /** Model of `actionable mention whisper` report action */
 type OriginalMessageActionableMentionWhisper = {
+    /** Emails of users that aren't members of the room  */
+    inviteeEmails: string[];
+
     /** Account IDs of users that aren't members of the room  */
     inviteeAccountIDs: number[];
 
     /** Decision on whether to invite users that were mentioned but aren't members or do nothing */
     resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
+
+    /** Collection of accountIDs of users mentioned in message */
+    whisperedTo?: number[];
+};
+
+/** Model of `actionable mention whisper` report action */
+type OriginalMessageActionableMentionInviteToSubmitExpenseConfirmWhisper = {
+    /** Account IDs of users that aren't members of the room  */
+    inviteeAccountIDs: number[];
+
+    /** Decision on whether to invite users that were mentioned but aren't members or do nothing */
+    resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER> | null;
 
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo?: number[];
@@ -134,8 +168,29 @@ type OriginalMessageActionableReportMentionWhisper = {
     whisperedTo?: number[];
 };
 
+/** Model of `welcome whisper` report action */
+type OriginalMessagePolicyExpenseChatWelcomeWhisper = {
+    /** HTML content of the welcome message */
+    html: string;
+
+    /** Collection of accountIDs of users mentioned in message */
+    whisperedTo?: number[];
+
+    /** When was the welcome whisper last modified */
+    lastModified?: string;
+
+    /** Type of whisper (automated) */
+    type?: string;
+};
+
 /** Model of `submitted` report action */
 type OriginalMessageSubmitted = {
+    /** The login of the admin (used in admin-submit) */
+    admin?: string;
+
+    /** The account id of the admin (used in admin-submit) */
+    adminAccountID?: number;
+
     /** Approved expense amount */
     amount: number;
 
@@ -143,10 +198,22 @@ type OriginalMessageSubmitted = {
     currency: string;
 
     /** Report ID of the expense */
-    expenseReportID: string;
+    expenseReportID?: string;
 
     /** Was the report submitted via harvesting (delayed submit) */
     harvesting?: boolean;
+
+    /** The memo of the submitted report */
+    message?: string;
+
+    /** The login the approver who is acting on behalf of the vacationer */
+    to?: string;
+
+    /** The login of the approver who is on a vacation */
+    vacationer?: string;
+
+    /** Carbon copy list */
+    cc?: string;
 };
 
 /** Model of `closed` report action */
@@ -174,6 +241,9 @@ type OriginalMessageClosed = {
 
     /** If the expense report was mark as closed, then this is the report currency */
     currency?: string;
+
+    /** The memo of the closed report */
+    message?: string;
 };
 
 /** Model of `renamed` report action, created when chat rooms get renamed */
@@ -349,6 +419,12 @@ type OriginalMessagePolicyChangeLog = {
     /** New default billable value */
     newDefaultBillable?: string;
 
+    /** Old default reimbursable value */
+    oldDefaultReimbursable?: string;
+
+    /** New default reimbursable value */
+    newDefaultReimbursable?: string;
+
     /** value -- returned when updating "Auto-approve compliant reports" */
     value?: boolean;
 
@@ -370,8 +446,17 @@ type OriginalMessagePolicyChangeLog = {
     /** Custom unit name */
     customUnitName?: string;
 
+    /** Rate name of the custom unit */
+    customUnitRateName?: string;
+
     /** Custom unit name */
     rateName?: string;
+
+    /** Tax percentage of the new tax rate linked to distance rate */
+    newTaxPercentage?: string;
+
+    /** Tax percentage of the old tax rate linked to distance rate */
+    oldTaxPercentage?: string;
 
     /** Added/Updated tag name */
     tagName?: string;
@@ -399,6 +484,60 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Old role of user or old value of the category/tag field */
     oldValue?: boolean | string;
+
+    /** Old approval audit rate */
+    oldAuditRate?: number;
+
+    /** New approval audit rate */
+    newAuditRate?: number;
+
+    /** Old limit of manual approval threshold */
+    oldLimit?: number;
+
+    /** New limit of manual approval threshold */
+    newLimit?: number;
+
+    /** Name for the field of which approver has been updated */
+    name?: string;
+
+    /** Account ID of the approver */
+    approverAccountID?: string;
+
+    /** Email of the new approver */
+    newApproverEmail?: string;
+
+    /** Name of the new approver */
+    newApproverName?: string;
+
+    /** Email of the old approver */
+    oldApproverEmail?: string;
+
+    /** Name of the old approver */
+    oldApproverName?: string;
+
+    /** Email of the approver */
+    approverEmail?: string;
+
+    /** Name of the approver */
+    approverName?: string;
+
+    /** Option name of a list report field */
+    optionName?: string;
+
+    /** Option enabled state of a list report field */
+    optionEnabled?: string;
+
+    /** Number of report field options updated */
+    toggledOptionsCount?: number;
+
+    /** Are all allEnabled report field options enabled */
+    allEnabled?: string;
+
+    /** The amount of the transaction */
+    amount?: number;
+
+    /** The ID of the transaction thread report */
+    transactionThreadReportID?: string;
 };
 
 /** Model of `join policy` report action */
@@ -490,11 +629,23 @@ type OriginalMessageModifiedExpense = {
     /** The ID of moved report */
     movedToReportID?: string;
 
+    /** The ID of the report the expense moved from */
+    movedFromReport?: string;
+
     /** The old list of attendees */
     oldAttendees?: Attendee[];
 
     /** The list of attendees */
     newAttendees?: Attendee[];
+};
+
+/** Model of a `travel update` report action */
+type OriginalMessageTravelUpdate = Reservation & UpdateOperationType;
+
+/** Travel update operation type */
+type UpdateOperationType = {
+    /** Type of operation */
+    operation: ValueOf<typeof CONST.TRAVEL.UPDATE_OPERATION_TYPE>;
 };
 
 /** Model of the `deleted transaction` report action */
@@ -513,6 +664,18 @@ type OriginalMessageDeletedTransaction = {
 type OriginalMessageConciergeCategoryOptions = {
     /** The options we present to the user when confidence in the predicted category is low */
     options: string[];
+
+    /** The confidence levels for each option */
+    confidenceLevels?: number[];
+
+    /** The transaction ID associated with this action */
+    transactionID?: string;
+
+    /** The category selected by the user (set when the action is resolved) */
+    selectedCategory?: string;
+
+    /** Agent Zero metadata (optional) */
+    agentZero?: Record<string, unknown>;
 };
 
 /** Model of `reimbursement queued` report action */
@@ -618,6 +781,9 @@ type OriginalMessageApproved = {
 
     /** Report ID of the expense */
     expenseReportID: string;
+
+    /** The login of approver who is on vacation */
+    managerOnVacation?: string;
 };
 
 /** Model of `forwarded` report action */
@@ -668,6 +834,11 @@ type OriginalMessageExportIntegration = {
      * An list of URLs to the report in the integration for out of pocket expenses
      */
     reimbursableUrls?: string[];
+
+    /**
+     * The type of the export action
+     */
+    type?: string;
 };
 
 /** Model of `unapproved` report action */
@@ -723,7 +894,7 @@ type OriginalMessageIntegrationSyncFailed = {
 };
 
 /**
- * Model of CARD_ISSUED, CARD_MISSING_ADDRESS, and CARD_ISSUED_VIRTUAL actions
+ * Model of CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ISSUED_VIRTUAL actions
  */
 type OriginalMessageCard = {
     /** The id of the user the card was assigned to */
@@ -745,6 +916,16 @@ type OriginalMessageIntegrationMessage = {
 };
 
 /**
+ * Model of Take Control action original message
+ */
+type OriginalMessageTakeControl = {
+    /** Time the action was created */
+    lastModified: string;
+    /** Tagged account IDs of new approvers */
+    mentionedAccountIDs: number[];
+};
+
+/**
  * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ASSIGNED and CARD_ISSUED_VIRTUAL actions
  */
 type IssueNewCardOriginalMessage = OriginalMessage<
@@ -754,14 +935,36 @@ type IssueNewCardOriginalMessage = OriginalMessage<
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED
 >;
 
+/**
+ * Model of reimbursement director information report action
+ */
+type OriginalMessageReimbursementDirectorInformationRequired = {
+    /** Last four digits of bank account number */
+    bankAccountLastFour: string;
+
+    /** Currency of policy */
+    currency: string;
+
+    /** ID of policy */
+    policyID: string;
+
+    /** ID of bank account */
+    bankAccountID: string;
+
+    /** Whether user added signer information */
+    completed: boolean;
+};
+
 /** The map type of original message */
 /* eslint-disable jsdoc/require-jsdoc */
 type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD]: OriginalMessageAddPaymentCard;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST]: OriginalMessageJoinPolicy;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER]: OriginalMessageActionableMentionWhisper;
+    [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER]: OriginalMessageActionableMentionInviteToSubmitExpenseConfirmWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER]: OriginalMessageActionableReportMentionWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER]: OriginalMessageActionableTrackedExpenseWhisper;
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_EXPENSE_CHAT_WELCOME_WHISPER]: OriginalMessagePolicyExpenseChatWelcomeWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT]: OriginalMessageAddComment;
     [CONST.REPORT.ACTIONS.TYPE.APPROVED]: OriginalMessageApproved;
     [CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD]: never;
@@ -770,14 +973,17 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST]: OriginalMessageChronosOOOList;
     [CONST.REPORT.ACTIONS.TYPE.CLOSED]: OriginalMessageClosed;
     [CONST.REPORT.ACTIONS.TYPE.CREATED]: never;
-    [CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT]: never;
     [CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION]: OriginalMessageDismissedViolation;
+    [CONST.REPORT.ACTIONS.TYPE.EXPENSIFY_CARD_SYSTEM_MESSAGE]: never;
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV]: never;
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION]: OriginalMessageExportIntegration;
     [CONST.REPORT.ACTIONS.TYPE.FORWARDED]: OriginalMessageForwarded;
     [CONST.REPORT.ACTIONS.TYPE.HOLD]: never;
     [CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT]: never;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE]: OriginalMessageIntegrationMessage;
+    [CONST.REPORT.ACTIONS.TYPE.REJECTED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED]: never;
     [CONST.REPORT.ACTIONS.TYPE.IOU]: OriginalMessageIOU;
     [CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT]: never;
     [CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT]: never;
@@ -811,7 +1017,8 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TASK_EDITED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED]: never;
-    [CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL]: never;
+    [CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL]: OriginalMessageTakeControl;
+    [CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE]: OriginalMessageTravelUpdate;
     [CONST.REPORT.ACTIONS.TYPE.UNAPPROVED]: OriginalMessageUnapproved;
     [CONST.REPORT.ACTIONS.TYPE.UNHOLD]: never;
     [CONST.REPORT.ACTIONS.TYPE.UNSHARE]: never;
@@ -834,6 +1041,9 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REROUTE]: OriginalMessageTakeControl;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
 } & OldDotOriginalMessageMap & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessagePolicyChangeLog;
     } & {
@@ -858,4 +1068,5 @@ export type {
     OriginalMessageChangePolicy,
     OriginalMessageUnreportedTransaction,
     OriginalMessageMovedTransaction,
+    OriginalMessageReimbursementDirectorInformationRequired,
 };

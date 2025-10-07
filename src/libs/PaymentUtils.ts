@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {Merge, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
-import type {PaymentMethod as KYCPaymentMethod} from '@components/KYCWall/types';
+import type {ContinueActionParams, PaymentMethod as KYCPaymentMethod} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
@@ -22,17 +22,22 @@ import Navigation from './Navigation/Navigation';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
-type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => void;
+type TriggerKYCFlow = (params: ContinueActionParams) => void;
 type AccountType = ValueOf<typeof CONST.PAYMENT_METHODS> | undefined;
 
 /**
- * Check to see if user has either a debit card or personal bank account added that can be used with a wallet.
+ * Check to see if user has either a debit card or personal US bank account added that can be used with a wallet.
  */
 function hasExpensifyPaymentMethod(fundList: Record<string, Fund>, bankAccountList: Record<string, BankAccount>, shouldIncludeDebitCard = true): boolean {
     const validBankAccount = Object.values(bankAccountList).some((bankAccountJSON) => {
         const bankAccount = new BankAccountModel(bankAccountJSON);
 
-        return bankAccount.getPendingAction() !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount.isOpen() && bankAccount.getType() === CONST.BANK_ACCOUNT.TYPE.PERSONAL;
+        return (
+            bankAccount.getPendingAction() !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            bankAccount.isOpen() &&
+            bankAccount.getType() === CONST.BANK_ACCOUNT.TYPE.PERSONAL &&
+            bankAccount?.getCountry() === CONST.COUNTRY.US
+        );
     });
 
     // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
@@ -132,7 +137,7 @@ const selectPaymentType = (
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
             return;
         }
-        triggerKYCFlow(event, iouPaymentType);
+        triggerKYCFlow({event, iouPaymentType});
         setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
         return;
     }

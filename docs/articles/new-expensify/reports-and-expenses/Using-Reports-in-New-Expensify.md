@@ -3,7 +3,6 @@ title: Using Reports in New Expensify
 description: Discover how to leverage New Expensify's advanced Reports feature for financial data management and expense tracking.
 keywords: [New Expensify, reports feature, filter expenses, create reports]
 ---
-<div id="new-expensify" markdown="1">
 
 Expensify's Reports feature introduces a powerful way to access and manage financial data across the platform. Focusing on resolving previous inefficiencies, Reports offers enhanced filtering, expanded search capabilities, and improved user experience across devices.
 
@@ -46,7 +45,7 @@ Expensify’s report filters help users narrow down results to find specific dat
 
 # Search Formats
 
-Using search formats allows you to define complex report parameters using simple text commands. 
+Using search formats allows you to define complex report parameters using simple text commands.
 
 ## Popular Searches for Employees
 
@@ -59,10 +58,10 @@ Using search formats allows you to define complex report parameters using simple
 - **Locate unapproved reports:** `status:unapproved`
 - **Unapproved employee expenses:** `type:expense status:outstanding`
 - **Unpaid employee expenses:** `type:expense status:approved`
-- **All card spend from December 2024:** `type:expense status:all expense-type:card posted<=2024-12-31 posted>=2024-12-01`
+- **All card spend from December 2024:** `type:expense expense-type:card posted<=2024-12-31 posted>=2024-12-01`
 
 ## Access Search Commands:
-- **Option 1:** Click Reports at the bottom of the left-hand navigation bar.
+- **Option 1:** Click Reports in the navigation tab (on the left on web, and at the bottom on mobile).
 - **Option 2:** Click the magnifying glass in the upper-right corner.
 
 ---
@@ -90,7 +89,7 @@ Your communication history is always accessible in one place, helping you stay o
 ---
 
 ## Invoices – View and Manage Invoices Effortlessly
-The Invoices section of Reports provides a streamlined way to handle billing. 
+The Invoices section of Reports provides a streamlined way to handle billing.
 
 **Key Functionalities:**
 - View invoices by status, such as **Outstanding** or **Paid**.
@@ -150,4 +149,3 @@ Use the following steps to locate unsubmitted reports:
 2. Select **Expenses** from the Type-based filter.
 3. Apply the **Drafts** contextual filter to view all unsubmitted reports.
 
-</div>

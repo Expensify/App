@@ -1,20 +1,21 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useState} from 'react';
-import {Linking, View} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {buildTravelDotURL} from '@libs/actions/Link';
 import {acceptSpotnanaTerms, cleanupTravelProvisioningSession} from '@libs/actions/Travel';
+import asyncOpenURL from '@libs/asyncOpenURL';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
@@ -29,7 +30,8 @@ type TravelTermsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SC
 function TravelTerms({route}: TravelTermsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isBlockedFromSpotnanaTravel} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
+    const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING, {canBeMissing: true});
@@ -44,9 +46,6 @@ function TravelTerms({route}: TravelTermsPageProps) {
         if (travelProvisioning?.spotnanaToken) {
             Navigation.closeRHPFlow();
             cleanupTravelProvisioningSession();
-
-            // TravelDot is a standalone white-labeled implementation of Spotnana so it has to be opened in a new tab
-            Linking.openURL(buildTravelDotURL(travelProvisioning.spotnanaToken, travelProvisioning.isTestAccount ?? false));
         }
         if (travelProvisioning?.errors && !travelProvisioning?.error) {
             setErrorMessage(getLatestErrorMessage(travelProvisioning));
@@ -65,16 +64,6 @@ function TravelTerms({route}: TravelTermsPageProps) {
         setErrorMessage('');
     }, [hasAcceptedTravelTerms]);
 
-    const AgreeToTheLabel = useCallback(
-        () => (
-            <Text>
-                {`${translate('travel.termsAndConditions.agree')}`}
-                <TextLink href={CONST.TRAVEL_TERMS_URL}>{`${translate('travel.termsAndConditions.travelTermsAndConditions')}`}</TextLink>
-            </Text>
-        ),
-        [translate],
-    );
-
     // Add beta support for FullPageNotFound that is universal across travel pages
     return (
         <ScreenWrapper
@@ -89,15 +78,14 @@ function TravelTerms({route}: TravelTermsPageProps) {
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}>
                     <View style={styles.flex1}>
                         <Text style={styles.headerAnonymousFooter}>{`${translate('travel.termsAndConditions.title')}`}</Text>
-                        <Text style={styles.mt4}>
-                            {`${translate('travel.termsAndConditions.subtitle')}`}
-                            <TextLink href={CONST.TRAVEL_TERMS_URL}>{`${translate('travel.termsAndConditions.termsAndConditions')}.`}</TextLink>
-                        </Text>
+                        <View style={[styles.renderHTML, styles.mt4]}>
+                            <RenderHTML html={translate('travel.termsAndConditions.subtitle')} />
+                        </View>
                         <CheckboxWithLabel
                             style={styles.mt6}
-                            accessibilityLabel={translate('travel.termsAndConditions.travelTermsAndConditions')}
+                            accessibilityLabel={translate('travel.termsAndConditions.label')}
                             onInputChange={toggleTravelTerms}
-                            LabelComponent={AgreeToTheLabel}
+                            label={translate('travel.termsAndConditions.label')}
                         />
                     </View>
 
@@ -113,7 +101,17 @@ function TravelTerms({route}: TravelTermsPageProps) {
                                 setErrorMessage('');
                             }
 
-                            acceptSpotnanaTerms(domain);
+                            asyncOpenURL(
+                                acceptSpotnanaTerms(domain).then((response) => {
+                                    if (response?.jsonCode !== 200) {
+                                        return Promise.reject();
+                                    }
+                                    if (response?.spotnanaToken) {
+                                        return buildTravelDotURL(response.spotnanaToken, response.isTestAccount ?? false);
+                                    }
+                                }),
+                                (travelDotURL) => travelDotURL ?? '',
+                            );
                         }}
                         message={errorMessage}
                         isAlertVisible={!!errorMessage}

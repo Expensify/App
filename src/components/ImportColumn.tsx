@@ -1,8 +1,8 @@
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setColumnName} from '@libs/actions/ImportSpreadsheet';
 import CONST from '@src/CONST';
@@ -188,7 +188,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
             >
                 {columnHeader}
             </Text>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.justifyContentBetween, styles.w100]}>
                 <Text
                     numberOfLines={2}
                     ellipsizeMode="tail"
@@ -210,6 +210,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
                             }}
                             defaultSelectedIndex={finalIndex}
                             options={options}
+                            success={false}
                         />
                     </View>
                 )}

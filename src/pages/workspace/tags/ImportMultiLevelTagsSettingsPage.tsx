@@ -1,6 +1,6 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -12,6 +12,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
@@ -48,6 +49,8 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
     const [isImportingTags, setIsImportingTags] = useState(false);
     const {setIsClosing} = useCloseImportPage();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+
+    const isFocused = useIsFocused();
 
     useEffect(() => {
         setImportedSpreadsheetIsFirstLineHeader(true);
@@ -86,13 +89,13 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
             >
                 <HeaderWithBackButton
                     title={translate('workspace.tags.importTags')}
-                    onBackButtonPress={() => Navigation.goBack(backTo)}
+                    onBackButtonPress={() => Navigation.goBack(backTo ?? ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID))}
                 />
                 <FullPageOfflineBlockingView>
                     <Text style={[styles.textSupporting, styles.textNormal, styles.ph5]}>{translate('workspace.tags.configureMultiLevelTags')}</Text>
 
                     <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text style={[styles.textNormal]}>{translate('workspace.tags.importMultiLevelTags.firstRowTitle')}</Text>
+                        <Text style={[styles.textNormal, styles.flex1]}>{translate('workspace.tags.importMultiLevelTags.firstRowTitle')}</Text>
                         <Switch
                             isOn={spreadsheet?.containsHeader ?? true}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.firstRowTitle')}
@@ -103,7 +106,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                     </View>
 
                     <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text style={[styles.textNormal]}>{translate('workspace.tags.importMultiLevelTags.independentTags')}</Text>
+                        <Text style={[styles.textNormal, styles.flex1, styles.mr2]}>{translate('workspace.tags.importMultiLevelTags.independentTags')}</Text>
                         <Switch
                             isOn={spreadsheet?.isImportingIndependentMultiLevelTags ?? true}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.independentTags')}
@@ -114,7 +117,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                     </View>
 
                     <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text style={[styles.textNormal]}>{translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}</Text>
+                        <Text style={[styles.textNormal, styles.flex1, styles.mr2]}>{translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}</Text>
                         <Switch
                             isOn={spreadsheet?.isGLAdjacent ?? false}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}
@@ -144,9 +147,9 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                         />
                     </FixedFooter>
                     <ConfirmModal
-                        isVisible={spreadsheet?.shouldFinalModalBeOpened ?? false}
-                        title={translate('spreadsheet.importSuccessfulTitle')}
-                        prompt={translate('spreadsheet.importMultiLevelTagsSuccessfulDescription')}
+                        isVisible={isFocused && (spreadsheet?.shouldFinalModalBeOpened ?? false)}
+                        title={spreadsheet?.importFinalModal?.title ?? ''}
+                        prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
                         onConfirm={closeImportPageAndModal}
                         onCancel={closeImportPageAndModal}
                         confirmText={translate('common.buttonConfirm')}

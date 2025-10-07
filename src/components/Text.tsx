@@ -1,12 +1,14 @@
 import type {ForwardedRef} from 'react';
-import React, {useContext} from 'react';
+import React, {useContext, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Text as RNText, StyleSheet} from 'react-native';
 import type {TextProps as RNTextProps, TextStyle} from 'react-native';
 import useTheme from '@hooks/useTheme';
+import {containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import type {FontUtilsType} from '@styles/utils/FontUtils';
 import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {CustomStylesForChildrenContext} from './CustomStylesForChildrenProvider';
 
@@ -26,9 +28,15 @@ type TextProps = RNTextProps &
 
         /** The family of the font to use */
         family?: keyof FontUtilsType['fontFamily']['platform'];
+
+        /** Should apply default line height */
+        shouldUseDefaultLineHeight?: boolean;
+
+        /** Reference to the outer element */
+        ref?: ForwardedRef<RNText>;
     };
 
-function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', children, family = 'EXP_NEUE', style = {}, ...props}: TextProps, ref: ForwardedRef<RNText>) {
+function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', children, family = 'EXP_NEUE', style = {}, shouldUseDefaultLineHeight = true, ref, ...props}: TextProps) {
     const theme = useTheme();
     const customStyle = useContext(CustomStylesForChildrenContext);
 
@@ -41,8 +49,24 @@ function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', c
         ...StyleSheet.flatten(customStyle),
     };
 
-    if (!componentStyle.lineHeight && componentStyle.fontSize === variables.fontSizeNormal) {
+    if (!componentStyle.lineHeight && componentStyle.fontSize === variables.fontSizeNormal && shouldUseDefaultLineHeight) {
         componentStyle.lineHeight = variables.fontSizeNormalHeight;
+    }
+
+    const isOnlyCustomEmoji = useMemo(() => {
+        if (typeof children === 'string') {
+            return containsOnlyCustomEmoji(children.replace(CONST.UNICODE.LTR, ''));
+        }
+        if (Array.isArray(children)) {
+            return children.every((child) => {
+                return child === null || child === undefined || (typeof child === 'string' && containsOnlyCustomEmoji(child));
+            });
+        }
+        return false;
+    }, [children]);
+
+    if (isOnlyCustomEmoji) {
+        componentStyle.fontFamily = FontUtils.fontFamily.single.CUSTOM_EMOJI_FONT?.fontFamily;
     }
 
     return (
@@ -60,5 +84,5 @@ function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', c
 
 Text.displayName = 'Text';
 
-export default React.forwardRef(Text);
+export default Text;
 export type {TextProps};

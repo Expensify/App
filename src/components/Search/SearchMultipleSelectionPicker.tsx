@@ -1,14 +1,13 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import Button from '@components/Button';
-import SelectionList from '@components/SelectionList';
-import SelectableListItem from '@components/SelectionList/SelectableListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 import ROUTES from '@src/ROUTES';
+import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
 type SearchMultipleSelectionPickerItem = {
     name: string;
@@ -24,8 +23,7 @@ type SearchMultipleSelectionPickerProps = {
 };
 
 function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, onSaveSelection, shouldShowTextInput = true}: SearchMultipleSelectionPickerProps) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
+    const {translate, localeCompare} = useLocalize();
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedItems, setSelectedItems] = useState<SearchMultipleSelectionPickerItem[]>(initiallySelectedItems ?? []);
@@ -37,7 +35,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     const {sections, noResultsFound} = useMemo(() => {
         const selectedItemsSection = selectedItems
             .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => sortOptionsWithEmptyValue(a.value as string, b.value as string))
+            .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare))
             .map((item) => ({
                 text: item.name,
                 keyForList: item.name,
@@ -45,8 +43,11 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                 value: item.value,
             }));
         const remainingItemsSection = items
-            .filter((item) => selectedItems.some((selectedItem) => selectedItem.value === item.value) === false && item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => sortOptionsWithEmptyValue(a.value as string, b.value as string))
+            .filter(
+                (item) =>
+                    !selectedItems.some((selectedItem) => selectedItem.value.toString() === item.value.toString()) && item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()),
+            )
+            .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare))
             .map((item) => ({
                 text: item.name,
                 keyForList: item.name,
@@ -71,7 +72,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                   ],
             noResultsFound: isEmpty,
         };
-    }, [selectedItems, items, pickerTitle, debouncedSearchTerm]);
+    }, [selectedItems, items, pickerTitle, debouncedSearchTerm, localeCompare]);
 
     const onSelectItem = useCallback(
         (item: Partial<OptionData & SearchMultipleSelectionPickerItem>) => {
@@ -87,23 +88,23 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
         [selectedItems],
     );
 
-    const handleConfirmSelection = useCallback(() => {
+    const resetChanges = useCallback(() => {
+        setSelectedItems([]);
+    }, []);
+
+    const applyChanges = useCallback(() => {
         onSaveSelection(selectedItems.map((item) => item.value).flat());
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [onSaveSelection, selectedItems]);
 
     const footerContent = useMemo(
         () => (
-            <Button
-                success
-                style={[styles.mt4]}
-                text={translate('common.save')}
-                pressOnEnter
-                onPress={handleConfirmSelection}
-                large
+            <SearchFilterPageFooterButtons
+                applyChanges={applyChanges}
+                resetChanges={resetChanges}
             />
         ),
-        [translate, handleConfirmSelection, styles.mt4],
+        [resetChanges, applyChanges],
     );
     return (
         <SelectionList
@@ -118,7 +119,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             showLoadingPlaceholder={!noResultsFound}
             shouldShowTooltips
             canSelectMultiple
-            ListItem={SelectableListItem}
+            ListItem={MultiSelectListItem}
         />
     );
 }

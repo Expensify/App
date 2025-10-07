@@ -1,8 +1,8 @@
 import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -16,11 +16,11 @@ import ErrorMessageRow from './ErrorMessageRow';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
-import SelectionList from './SelectionList';
-import type RadioListItem from './SelectionList/RadioListItem';
-import type TableListItem from './SelectionList/TableListItem';
-import type {ListItem, SectionListDataType} from './SelectionList/types';
-import type UserListItem from './SelectionList/UserListItem';
+import SelectionList from './SelectionListWithSections';
+import type RadioListItem from './SelectionListWithSections/RadioListItem';
+import type TableListItem from './SelectionListWithSections/TableListItem';
+import type {ListItem, SectionListDataType} from './SelectionListWithSections/types';
+import type UserListItem from './SelectionListWithSections/UserListItem';
 
 type SelectorType<T = string> = ListItem & {
     value: T;

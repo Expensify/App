@@ -2,8 +2,7 @@ import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import MenuItem from '@components/MenuItem';
-import Modal from '@components/Modal';
+import PopoverMenu from '@components/PopoverMenu';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,7 +14,9 @@ type SearchSelectedNarrowProps = {options: Array<DropdownOption<SearchHeaderOpti
 function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const selectedOptionIndexRef = useRef(-1);
+
+    // Stores an option to execute after modal closes when using deferred execution
+    const selectedOptionRef = useRef<DropdownOption<SearchHeaderOptionValue> | null>(null);
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const buttonRef = useRef<View>(null);
@@ -24,16 +25,17 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
     const closeMenu = () => setIsModalVisible(false);
 
     const handleOnModalHide = () => {
-        if (selectedOptionIndexRef.current === -1) {
+        if (!selectedOptionRef.current) {
             return;
         }
 
-        options[selectedOptionIndexRef.current]?.onSelected?.();
+        selectedOptionRef.current.onSelected?.();
+        selectedOptionRef.current = null;
     };
 
-    const handleOnMenuItemPress = (option: DropdownOption<SearchHeaderOptionValue>, index: number) => {
+    const handleOnMenuItemPress = (option: DropdownOption<SearchHeaderOptionValue>) => {
         if (option?.shouldCloseModalOnSelect) {
-            selectedOptionIndexRef.current = index;
+            selectedOptionRef.current = option;
             closeMenu();
             return;
         }
@@ -41,7 +43,7 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
     };
 
     const handleOnCloseMenu = () => {
-        selectedOptionIndexRef.current = -1;
+        selectedOptionRef.current = null;
         closeMenu();
     };
 
@@ -58,24 +60,23 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
                 shouldShowRightIcon={options.length !== 0}
                 success
             />
-            <Modal
+            <PopoverMenu
                 isVisible={isModalVisible}
-                type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 onClose={handleOnCloseMenu}
                 onModalHide={handleOnModalHide}
-            >
-                {options.map((option, index) => (
-                    <MenuItem
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...option}
-                        title={option.text}
-                        titleStyle={option.titleStyle}
-                        icon={option.icon}
-                        onPress={() => handleOnMenuItemPress(option, index)}
-                        key={option.value}
-                    />
-                ))}
-            </Modal>
+                onItemSelected={(selectedItem) => {
+                    handleOnMenuItemPress(selectedItem as DropdownOption<SearchHeaderOptionValue>);
+                }}
+                anchorPosition={{horizontal: 0, vertical: 0}}
+                anchorRef={buttonRef}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                }}
+                fromSidebarMediumScreen={false}
+                shouldUseModalPaddingStyle
+                menuItems={options}
+            />
         </View>
     );
 }

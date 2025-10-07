@@ -8,7 +8,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 let queuedOnyxUpdates: OnyxUpdate[] = [];
 let currentAccountID: number | undefined;
 
-Onyx.connect({
+// We use `connectWithoutView` because it is not connected to any UI component.
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
         currentAccountID = session?.accountID;
@@ -32,9 +33,11 @@ function flushQueue(): Promise<void> {
 
     if (!currentAccountID && !CONFIG.IS_TEST_ENV && !CONFIG.E2E_TESTING) {
         const preservedKeys: OnyxKey[] = [
+            ONYXKEYS.NVP_TRY_NEW_DOT,
             ONYXKEYS.NVP_TRY_FOCUS_MODE,
             ONYXKEYS.PREFERRED_THEME,
             ONYXKEYS.NVP_PREFERRED_LOCALE,
+            ONYXKEYS.ARE_TRANSLATIONS_LOADING,
             ONYXKEYS.SESSION,
             ONYXKEYS.IS_LOADING_APP,
             ONYXKEYS.HAS_LOADED_APP,

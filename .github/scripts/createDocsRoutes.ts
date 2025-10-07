@@ -41,6 +41,7 @@ const routes = yaml.load(fs.readFileSync(`${docsDir}/_data/_routes.yml`, 'utf8')
 const platformNames = {
     expensifyClassic: 'expensify-classic',
     newExpensify: 'new-expensify',
+    travel: 'travel',
 } as const;
 
 /**
@@ -140,9 +141,11 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
 function run() {
     const expensifyClassicArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.expensifyClassic}`);
     const newExpensifyArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.newExpensify}`);
+    const travelArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.travel}`);
 
     const expensifyClassicRoute = routes.platforms.find((platform) => platform.href === platformNames.expensifyClassic);
     const newExpensifyRoute = routes.platforms.find((platform) => platform.href === platformNames.newExpensify);
+    const travelRoute = routes.platforms.find((platform) => platform.href === platformNames.travel);
 
     if (expensifyClassicArticleHubs.length !== expensifyClassicRoute?.hubs.length) {
         console.error(warnMessage(platformNames.expensifyClassic));
@@ -154,8 +157,14 @@ function run() {
         process.exit(1);
     }
 
+    if (travelArticleHubs.length !== travelRoute?.hubs.length) {
+        console.error(warnMessage(platformNames.travel));
+        process.exit(1);
+    }
+
     createHubsWithArticles(expensifyClassicArticleHubs, platformNames.expensifyClassic, expensifyClassicRoute.hubs);
     createHubsWithArticles(newExpensifyArticleHubs, platformNames.newExpensify, newExpensifyRoute.hubs);
+    createHubsWithArticles(travelArticleHubs, platformNames.travel, travelRoute.hubs);
 
     // Convert the object to YAML and write it to the file
     let yamlString = yaml.dump(routes);

@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {InteractionManager, View} from 'react-native';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Badge from '@components/Badge';
 import ConfirmModal from '@components/ConfirmModal';
@@ -14,12 +13,16 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useCardFeeds from '@hooks/useCardFeeds';
+import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {filterInactiveCards, getTranslationKeyForLimitType, maskCard} from '@libs/CardUtils';
+import {getAllCardsForWorkspace, getTranslationKeyForLimitType, maskCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -52,20 +55,20 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const [isDeleted, setIsDeleted] = useState(false);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {
-        selector: filterInactiveCards,
-        canBeMissing: true,
-    });
+    const [cardFeeds] = useCardFeeds(policyID);
+    const expensifyCardSettings = useExpensifyCardFeeds(policyID);
+    const [allFeedsCards, allFeedsCardsResult] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const workspaceCards = getAllCardsForWorkspace(defaultFundID, allFeedsCards, cardFeeds, expensifyCardSettings);
 
     const isWorkspaceCardRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS;
-    const card = cardsList?.[cardID];
+    const card = workspaceCards?.[cardID];
+    const currency = useCurrencyForExpensifyCard({policyID});
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isVirtual = !!card?.nameValuePairs?.isVirtual;
-    const formattedAvailableSpendAmount = convertToDisplayString(card?.availableSpend);
-    const formattedLimit = convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit);
+    const formattedAvailableSpendAmount = convertToDisplayString(card?.availableSpend, currency);
+    const formattedLimit = convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency);
     const displayName = getDisplayNameOrDefault(cardholder);
     const translationForLimitType = getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
 
@@ -73,28 +76,19 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         openCardDetailsPage(Number(cardID));
     }, [cardID]);
 
-    useEffect(() => {
-        if (!isDeleted) {
-            return;
-        }
-        return () => {
-            deactivateCardAction(defaultFundID, card);
-        };
-    }, [isDeleted, defaultFundID, card]);
-
     const {isOffline} = useNetwork({onReconnect: fetchCardDetails});
 
     useEffect(() => fetchCardDetails(), [fetchCardDetails]);
 
     const deactivateCard = () => {
-        setIsDeleted(true);
         setIsDeactivateModalVisible(false);
-        requestAnimationFrame(() => {
-            Navigation.goBack();
+        Navigation.goBack();
+        InteractionManager.runAfterInteractions(() => {
+            deactivateCardAction(defaultFundID, card);
         });
     };
 
-    if (!card && !isLoadingOnyxValue(cardsListResult)) {
+    if (!card && !isLoadingOnyxValue(allFeedsCardsResult)) {
         return <NotFoundPage />;
     }
 

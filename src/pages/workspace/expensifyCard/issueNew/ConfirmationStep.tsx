@@ -1,6 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -11,6 +10,8 @@ import useBeforeRemove from '@hooks/useBeforeRemove';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
@@ -31,19 +32,30 @@ type ConfirmationStepProps = {
 
     /** Route to navigate to */
     backTo?: Route;
+
+    /** Array of step names */
+    stepNames: readonly string[];
+
+    /** Start from step index */
+    startStepIndex: number;
 };
 
-function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
+function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const validateError = getLatestErrorMessageField(issueNewCard);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
     const defaultFundID = useDefaultFundID(policyID);
+    const {isBetaEnabled} = usePermissions();
+    const hasApprovalError = !!policy?.errorFields?.approvalMode;
+    const isAddApprovalEnabled = policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL && !hasApprovalError;
+    const shouldDisableSubmitButton = !isAddApprovalEnabled && data?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART;
 
     const submitButton = useRef<View>(null);
 
@@ -68,10 +80,11 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     }, [backTo, policyID, isSuccessful]);
 
     const submit = (validateCode: string) => {
-        issueExpensifyCard(defaultFundID, policyID, CONST.COUNTRY.US, validateCode, data);
+        // NOTE: For Expensify Card UK/EU, the backend will automatically detect the correct feedCountry to use
+        issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, validateCode, data);
     };
 
-    const errorMessage = getLatestErrorMessage(issueNewCard);
+    const errorMessage = getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
 
     const editStep = (step: IssueNewCardStep) => {
         setIssueNewCardStepAndData({step, isEditing: true, policyID});
@@ -90,8 +103,8 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={5}
-            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            startStepIndex={startStepIndex}
+            stepNames={stepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScrollView
@@ -104,7 +117,8 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.cardholder')}
                     title={getUserNameByEmail(data?.assigneeEmail ?? '', 'displayName')}
-                    shouldShowRightIcon
+                    shouldShowRightIcon={!issueNewCard?.isChangeAssigneeDisabled}
+                    interactive={!issueNewCard?.isChangeAssigneeDisabled}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE)}
                 />
                 <MenuItemWithTopDescription
@@ -115,7 +129,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.limit')}
-                    title={convertToShortDisplayString(data?.limit)}
+                    title={convertToShortDisplayString(data?.limit, data?.currency)}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT)}
                 />
@@ -136,7 +150,8 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                         buttonRef={submitButton}
                         message={errorMessage}
                         isAlertVisible={!!errorMessage}
-                        isDisabled={isOffline}
+                        isDisabled={isOffline || shouldDisableSubmitButton}
+                        isMessageHtml={shouldDisableSubmitButton}
                         isLoading={issueNewCard?.isLoading}
                         onSubmit={() => setIsValidateCodeActionModalVisible(true)}
                         buttonText={translate('workspace.card.issueCard')}

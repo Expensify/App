@@ -1,13 +1,18 @@
-import React, {useRef} from 'react';
-import {InteractionManager, View} from 'react-native';
+import type {NavigatorScreenParams} from '@react-navigation/native';
+import React, {useCallback, useContext, useMemo, useRef} from 'react';
+// We use Animated for all functionality related to wide RHP to make it easier
+// to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
+// eslint-disable-next-line no-restricted-imports
+import {Animated, InteractionManager} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import {expandedRHPProgress, WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
 import {clearTwoFactorAuthData} from '@libs/actions/TwoFactorAuthActions';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
-import useCustomScreenOptions from '@libs/Navigation/AppNavigator/useCustomScreenOptions';
+import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
@@ -19,52 +24,57 @@ import Overlay from './Overlay';
 
 type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
 
-const Stack = createPlatformStackNavigator<RightModalNavigatorParamList>();
+const Stack = createPlatformStackNavigator<RightModalNavigatorParamList, string>();
 
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
+    const screenOptions = useRHPScreenOptions();
+    const {shouldRenderSecondaryOverlay, secondOverlayProgress, dismissToWideReport} = useContext(WideRHPContext);
 
-    const screenOptions = useCustomScreenOptions();
+    const screenListeners = useMemo(
+        () => ({
+            blur: () => {
+                const rhpParams = navigation.getState().routes.find((innerRoute) => innerRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params as
+                    | NavigatorScreenParams<RightModalNavigatorParamList>
+                    | undefined;
+
+                if (rhpParams?.screen === SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE || route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE) {
+                    return;
+                }
+                // Delay clearing review duplicate data till the RHP is completely closed
+                // to avoid not found showing briefly in confirmation page when RHP is closing
+                // eslint-disable-next-line deprecation/deprecation
+                InteractionManager.runAfterInteractions(() => {
+                    abandonReviewDuplicateTransactions();
+                });
+            },
+        }),
+        [navigation, route],
+    );
+
+    const handleOverlayPress = useCallback(() => {
+        if (isExecutingRef.current) {
+            return;
+        }
+        isExecutingRef.current = true;
+        navigation.goBack();
+        setTimeout(() => {
+            isExecutingRef.current = false;
+        }, CONST.ANIMATED_TRANSITION);
+    }, [navigation]);
 
     return (
         <NarrowPaneContextProvider>
             <NoDropZone>
-                {!shouldUseNarrowLayout && (
-                    <Overlay
-                        onPress={() => {
-                            if (isExecutingRef.current) {
-                                return;
-                            }
-                            isExecutingRef.current = true;
-                            navigation.goBack();
-                            setTimeout(() => {
-                                isExecutingRef.current = false;
-                            }, CONST.ANIMATED_TRANSITION);
-                        }}
-                    />
-                )}
-                <View style={styles.RHPNavigatorContainer(shouldUseNarrowLayout)}>
+                {!shouldUseNarrowLayout && <Overlay onPress={handleOverlayPress} />}
+                {/* This one is to limit the outer Animated.View and allow the background to be pressable */}
+                {/* Without it, the transparent half of the narrow format RHP card would cover the pressable part of the overlay */}
+                <Animated.View style={[styles.animatedRHPNavigatorContainer, styles.animatedRHPNavigatorContainerWidth(shouldUseNarrowLayout, expandedRHPProgress)]}>
                     <Stack.Navigator
                         screenOptions={screenOptions}
-                        screenListeners={{
-                            blur: () => {
-                                if (
-                                    // @ts-expect-error There is something wrong with a types here and it's don't see the params list
-                                    navigation.getState().routes.find((routes) => routes.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params?.screen ===
-                                        SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE ||
-                                    route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE
-                                ) {
-                                    return;
-                                }
-                                // Delay clearing review duplicate data till the RHP is completely closed
-                                // to avoid not found showing briefly in confirmation page when RHP is closing
-                                InteractionManager.runAfterInteractions(() => {
-                                    abandonReviewDuplicateTransactions();
-                                });
-                            },
-                        }}
+                        screenListeners={screenListeners}
                         id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                     >
                         <Stack.Screen
@@ -76,6 +86,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.TwoFactorAuthenticatorStackNavigator}
                             listeners={{
                                 beforeRemove: () => {
+                                    // eslint-disable-next-line deprecation/deprecation
                                     InteractionManager.runAfterInteractions(clearTwoFactorAuthData);
                                 },
                             }}
@@ -103,6 +114,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.REPORT_CHANGE_WORKSPACE}
                             component={ModalStackNavigators.ReportChangeWorkspaceModalStackNavigator}
+                        />
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER}
+                            component={ModalStackNavigators.ReportChangeApproverModalStackNavigator}
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.REPORT_SETTINGS}
@@ -143,6 +158,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION}
                             component={ModalStackNavigators.WorkspaceConfirmationModalStackNavigator}
+                        />
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.WORKSPACE_DUPLICATE}
+                            component={ModalStackNavigators.WorkspaceDuplicateModalStackNavigator}
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.NEW_TASK}
@@ -198,6 +217,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.TransactionDuplicateStackNavigator}
                         />
                         <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.MERGE_TRANSACTION}
+                            component={ModalStackNavigators.MergeTransactionStackNavigator}
+                        />
+                        <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.TRAVEL}
                             component={ModalStackNavigators.TravelModalStackNavigator}
                         />
@@ -230,7 +253,16 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.ScheduleCallModalStackNavigator}
                         />
                     </Stack.Navigator>
-                </View>
+                </Animated.View>
+                {/* The second overlay is here to cover the wide rhp screen underneath */}
+                {/* It has a gap on the right to make the last rhp route (narrow) visible and pressable */}
+                {shouldRenderSecondaryOverlay && !shouldUseNarrowLayout && (
+                    <Overlay
+                        hasMarginRight
+                        progress={secondOverlayProgress}
+                        onPress={dismissToWideReport}
+                    />
+                )}
             </NoDropZone>
         </NarrowPaneContextProvider>
     );

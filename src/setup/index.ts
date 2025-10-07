@@ -1,3 +1,4 @@
+import toSortedPolyfill from 'array.prototype.tosorted';
 import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import intlPolyfill from '@libs/IntlPolyfill';
@@ -11,6 +12,8 @@ import telemetry from './telemetry';
 
 export default function () {
     telemetry();
+
+    toSortedPolyfill.shim();
 
     /*
      * Initialize the Onyx store when the app loads for the first time.
@@ -48,7 +51,8 @@ export default function () {
                 isVisible: false,
                 willAlertModalBecomeVisible: false,
             },
-            [ONYXKEYS.TALK_TO_AI_SALES]: {isLoading: false, isTalkingToAISales: false},
+            // Ensure the Supportal permission modal doesn't persist across reloads
+            [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: null,
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
     });

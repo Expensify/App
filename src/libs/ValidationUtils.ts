@@ -1,5 +1,5 @@
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
-import {PUBLIC_DOMAINS, Str, Url} from 'expensify-common';
+import {PUBLIC_DOMAINS_SET, Str, Url} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -11,7 +11,7 @@ import type {Report, TaxRates} from '@src/types/onyx';
 import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
-import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
+import {getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
 
@@ -67,6 +67,15 @@ function isValidDate(date: string | Date): boolean {
 
     const pastDate = subYears(new Date(), 1000);
     const futureDate = addYears(new Date(), 1000);
+
+    if (typeof date === 'string') {
+        const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
+        if (!isValid(parsedDate)) {
+            return false;
+        }
+        return isAfter(parsedDate, pastDate) && isBefore(parsedDate, futureDate);
+    }
+
     const testDate = new Date(date);
     return isValid(testDate) && isAfter(testDate, pastDate) && isBefore(testDate, futureDate);
 }
@@ -256,7 +265,7 @@ function isValidWebsite(url: string): boolean {
 
 /** Checks if the domain is public */
 function isPublicDomain(domain: string): boolean {
-    return PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase());
+    return PUBLIC_DOMAINS_SET.has(domain.toLowerCase());
 }
 
 function validateIdentity(identity: Record<string, string>): Record<string, boolean> {
@@ -533,8 +542,7 @@ function isValidEmail(email: string): boolean {
  * @param phoneNumber
  */
 function isValidPhoneInternational(phoneNumber: string): boolean {
-    const phoneNumberWithCountryCode = appendCountryCode(phoneNumber);
-    const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
+    const parsedPhoneNumber = parsePhoneNumber(phoneNumber);
 
     return parsedPhoneNumber.possible && Str.isValidE164Phone(parsedPhoneNumber.number?.e164 ?? '');
 }
@@ -637,12 +645,36 @@ function isValidCARegistrationNumber(registrationNumber: string): boolean {
     return /^\d{9}(?:[A-Z]{2}\d{4})?$/.test(registrationNumber);
 }
 
+type EUCountry = keyof typeof CONST.ALL_EUROPEAN_UNION_COUNTRIES;
+
+/**
+ * Validates the given value if it is EU member country
+ * @param country
+ */
+function isEUMember(country: Country | ''): boolean {
+    return country in CONST.ALL_EUROPEAN_UNION_COUNTRIES;
+}
+
+/**
+ * Validates the given values if its is correct registration number for given EU member country
+ * @param registrationNumber
+ * @param country
+ */
+function isValidEURegistrationNumber(registrationNumber: string, country: EUCountry): boolean {
+    const regex = CONST.EU_REGISTRATION_NUMBER_REGEX[country];
+    return !!regex && regex.test(registrationNumber);
+}
+
 /**
  * Validates the given value if it is correct registration number for the given country.
  * @param registrationNumber
  * @param country
  */
 function isValidRegistrationNumber(registrationNumber: string, country: Country | '') {
+    if (isEUMember(country)) {
+        return isValidEURegistrationNumber(registrationNumber, country as EUCountry);
+    }
+
     switch (country) {
         case CONST.COUNTRY.AU:
             return isValidAURegistrationNumber(registrationNumber);
@@ -654,6 +686,74 @@ function isValidRegistrationNumber(registrationNumber: string, country: Country 
             return isValidTaxID(registrationNumber);
         default:
             return true;
+    }
+}
+
+/**
+ * Checks if the `inputValue` byte length exceeds the specified byte length,
+ * returning `isValid` (boolean) and `byteLength` (number) to be used in dynamic error copy.
+ */
+function isValidInputLength(inputValue: string, byteLength: number) {
+    const valueByteLength = StringUtils.getUTF8ByteLength(inputValue);
+    return {isValid: valueByteLength <= byteLength, byteLength: valueByteLength};
+}
+
+/**
+ * Validates the given value as a U.S. Employer Identification Number (EIN).
+ * Format: XX-XXXXXXX
+ * @param ein - The EIN to validate.
+ */
+function isValidEIN(ein: string): boolean {
+    return /^\d{2}-\d{7}$/.test(ein);
+}
+
+/**
+ * Validates the given value as a UK VAT Registration Number (VRN).
+ * Format: Optional "GB" prefix followed by 9 digits.
+ * @param vrn - The VRN to validate.
+ */
+function isValidVRN(vrn: string): boolean {
+    return /^(GB)?\d{9}$/.test(vrn);
+}
+
+/**
+ * Validates the given value as a Canadian Business Number (BN).
+ * Format: 9 digits, optionally followed by a 2-letter program ID and 4-digit reference number.
+ * Valid program IDs include: RT, RC, RM, RP, etc.
+ * @param bn - The Business Number to validate.
+ */
+function isValidBN(bn: string): boolean {
+    return /^\d{9}([A-Z]{2}\d{4})?$/.test(bn);
+}
+
+/**
+ * Validates the given value as a European Union VAT Number.
+ * Format: Two-letter country code followed by 8–12 alphanumeric characters.
+ * @param vat - The VAT number to validate.
+ * @returns True if the value is a valid EU VAT number; otherwise, false.
+ */
+function isValidEUVATNumber(vat: string): boolean {
+    return /^[A-Z]{2}[A-Z0-9]{8,12}$/.test(vat);
+}
+
+/**
+ * Validates the given value as a country-specific tax identification number.
+ * Delegates to the appropriate country-specific validation function.
+ * @param number - The tax ID number to validate.
+ * @param country - The country code (e.g., 'US', 'GB', 'CA', 'AU').
+ */
+function isValidTaxIDEINNumber(number: string, country: Country | '') {
+    switch (country) {
+        case CONST.COUNTRY.AU:
+            return isValidABN(number);
+        case CONST.COUNTRY.GB:
+            return isValidVRN(number);
+        case CONST.COUNTRY.CA:
+            return isValidBN(number);
+        case CONST.COUNTRY.US:
+            return isValidEIN(number);
+        default:
+            return isValidEUVATNumber(number);
     }
 }
 
@@ -708,4 +808,6 @@ export {
     isValidZipCodeInternational,
     isValidOwnershipPercentage,
     isValidRegistrationNumber,
+    isValidInputLength,
+    isValidTaxIDEINNumber,
 };

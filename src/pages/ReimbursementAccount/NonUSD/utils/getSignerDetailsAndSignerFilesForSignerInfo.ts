@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import type {BeneficialOwnerDataKey, SignerInfoStepProps} from '@src/types/form/ReimbursementAccountForm';
@@ -29,11 +29,6 @@ function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: 
         if (fieldName === EMAIL) {
             signerDetails[fieldName] = signerEmail;
             return;
-        }
-
-        if (fieldName === DOWNLOADED_PDS_AND_FSG) {
-            // hardcoded "true" temporarily - it will be handled properly in separate PR
-            signerDetails[fieldName] = true;
         }
 
         if (!reimbursementAccountDraft?.[fieldName]) {

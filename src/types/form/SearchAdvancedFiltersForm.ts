@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
-import type {SearchDateFilterKeys} from '@components/Search/types';
+import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchGroupBy, SearchWithdrawalType} from '@components/Search/types';
 import CONST from '@src/CONST';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type Form from './Form';
 
 const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
@@ -10,7 +11,10 @@ const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
 ];
+
+const AMOUNT_FILTER_KEYS: SearchAmountFilterKeys[] = [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT];
 
 const FILTER_KEYS = {
     GROUP_BY: 'groupBy',
@@ -34,7 +38,12 @@ const FILTER_KEYS = {
     POSTED_ON: 'postedOn',
     POSTED_AFTER: 'postedAfter',
     POSTED_BEFORE: 'postedBefore',
+    WITHDRAWAL_TYPE: 'withdrawalType',
+    WITHDRAWN_ON: 'withdrawnOn',
+    WITHDRAWN_AFTER: 'withdrawnAfter',
+    WITHDRAWN_BEFORE: 'withdrawnBefore',
     CURRENCY: 'currency',
+    GROUP_CURRENCY: 'groupCurrency',
     CATEGORY: 'category',
     POLICY_ID: 'policyID',
     CARD_ID: 'cardID',
@@ -42,8 +51,12 @@ const FILTER_KEYS = {
     MERCHANT: 'merchant',
     DESCRIPTION: 'description',
     REPORT_ID: 'reportID',
-    LESS_THAN: 'lessThan',
-    GREATER_THAN: 'greaterThan',
+    AMOUNT_EQUAL_TO: 'amountEqualTo',
+    AMOUNT_LESS_THAN: 'amountLessThan',
+    AMOUNT_GREATER_THAN: 'amountGreaterThan',
+    TOTAL_EQUAL_TO: 'totalEqualTo',
+    TOTAL_LESS_THAN: 'totalLessThan',
+    TOTAL_GREATER_THAN: 'totalGreaterThan',
     TAX_RATE: 'taxRate',
     EXPENSE_TYPE: 'expenseType',
     TAG: 'tag',
@@ -57,17 +70,220 @@ const FILTER_KEYS = {
     ASSIGNEE: 'assignee',
     REIMBURSABLE: 'reimbursable',
     BILLABLE: 'billable',
+    ACTION: 'action',
+    HAS: 'has',
+    IS: 'is',
+    PURCHASE_AMOUNT_EQUAL_TO: 'purchaseAmountEqualTo',
+    PURCHASE_AMOUNT_LESS_THAN: 'purchaseAmountLessThan',
+    PURCHASE_AMOUNT_GREATER_THAN: 'purchaseAmountGreaterThan',
+    PURCHASE_CURRENCY: 'purchaseCurrency',
+    WITHDRAWAL_ID: 'withdrawalID',
+    ATTENDEE: 'attendee',
 } as const;
 
-type InputID = ValueOf<typeof FILTER_KEYS>;
+const ALLOWED_TYPE_FILTERS = {
+    [CONST.SEARCH.DATA_TYPES.EXPENSE]: [
+        FILTER_KEYS.TYPE,
+        FILTER_KEYS.STATUS,
+        FILTER_KEYS.FROM,
+        FILTER_KEYS.TO,
+        FILTER_KEYS.KEYWORD,
+        FILTER_KEYS.POLICY_ID,
+        FILTER_KEYS.EXPENSE_TYPE,
+        FILTER_KEYS.MERCHANT,
+        FILTER_KEYS.DATE_ON,
+        FILTER_KEYS.DATE_AFTER,
+        FILTER_KEYS.DATE_BEFORE,
+        FILTER_KEYS.AMOUNT_EQUAL_TO,
+        FILTER_KEYS.AMOUNT_GREATER_THAN,
+        FILTER_KEYS.AMOUNT_LESS_THAN,
+        FILTER_KEYS.TOTAL_EQUAL_TO,
+        FILTER_KEYS.TOTAL_GREATER_THAN,
+        FILTER_KEYS.TOTAL_LESS_THAN,
+        FILTER_KEYS.CURRENCY,
+        FILTER_KEYS.GROUP_CURRENCY,
+        FILTER_KEYS.CATEGORY,
+        FILTER_KEYS.TAG,
+        FILTER_KEYS.PAYER,
+        FILTER_KEYS.DESCRIPTION,
+        FILTER_KEYS.CARD_ID,
+        FILTER_KEYS.FEED,
+        FILTER_KEYS.POSTED_AFTER,
+        FILTER_KEYS.POSTED_BEFORE,
+        FILTER_KEYS.POSTED_ON,
+        FILTER_KEYS.WITHDRAWAL_TYPE,
+        FILTER_KEYS.WITHDRAWN_AFTER,
+        FILTER_KEYS.WITHDRAWN_BEFORE,
+        FILTER_KEYS.WITHDRAWN_ON,
+        FILTER_KEYS.TAX_RATE,
+        FILTER_KEYS.REIMBURSABLE,
+        FILTER_KEYS.BILLABLE,
+        FILTER_KEYS.REPORT_ID,
+        FILTER_KEYS.SUBMITTED_ON,
+        FILTER_KEYS.SUBMITTED_AFTER,
+        FILTER_KEYS.SUBMITTED_BEFORE,
+        FILTER_KEYS.APPROVED_AFTER,
+        FILTER_KEYS.APPROVED_BEFORE,
+        FILTER_KEYS.APPROVED_ON,
+        FILTER_KEYS.PAID_AFTER,
+        FILTER_KEYS.PAID_BEFORE,
+        FILTER_KEYS.PAID_ON,
+        FILTER_KEYS.EXPORTED_AFTER,
+        FILTER_KEYS.EXPORTED_BEFORE,
+        FILTER_KEYS.EXPORTED_ON,
+        FILTER_KEYS.EXPORTER,
+        FILTER_KEYS.GROUP_BY,
+        FILTER_KEYS.FEED,
+        FILTER_KEYS.ACTION,
+        FILTER_KEYS.HAS,
+        FILTER_KEYS.PURCHASE_AMOUNT_EQUAL_TO,
+        FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN,
+        FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN,
+        FILTER_KEYS.PURCHASE_CURRENCY,
+        FILTER_KEYS.WITHDRAWAL_ID,
+        FILTER_KEYS.TITLE,
+        FILTER_KEYS.ATTENDEE,
+    ],
+    [CONST.SEARCH.DATA_TYPES.INVOICE]: [
+        FILTER_KEYS.TYPE,
+        FILTER_KEYS.STATUS,
+        FILTER_KEYS.FROM,
+        FILTER_KEYS.TO,
+        FILTER_KEYS.KEYWORD,
+        FILTER_KEYS.POLICY_ID,
+        FILTER_KEYS.MERCHANT,
+        FILTER_KEYS.DATE_ON,
+        FILTER_KEYS.DATE_AFTER,
+        FILTER_KEYS.DATE_BEFORE,
+        FILTER_KEYS.AMOUNT_EQUAL_TO,
+        FILTER_KEYS.AMOUNT_GREATER_THAN,
+        FILTER_KEYS.AMOUNT_LESS_THAN,
+        FILTER_KEYS.TOTAL_EQUAL_TO,
+        FILTER_KEYS.TOTAL_GREATER_THAN,
+        FILTER_KEYS.TOTAL_LESS_THAN,
+        FILTER_KEYS.CURRENCY,
+        FILTER_KEYS.CATEGORY,
+        FILTER_KEYS.TAG,
+        FILTER_KEYS.PAYER,
+        FILTER_KEYS.DESCRIPTION,
+        FILTER_KEYS.CARD_ID,
+        FILTER_KEYS.FEED,
+        FILTER_KEYS.POSTED_AFTER,
+        FILTER_KEYS.POSTED_BEFORE,
+        FILTER_KEYS.POSTED_ON,
+        FILTER_KEYS.WITHDRAWAL_TYPE,
+        FILTER_KEYS.WITHDRAWN_AFTER,
+        FILTER_KEYS.WITHDRAWN_BEFORE,
+        FILTER_KEYS.WITHDRAWN_ON,
+        FILTER_KEYS.TAX_RATE,
+        FILTER_KEYS.REPORT_ID,
+        FILTER_KEYS.SUBMITTED_ON,
+        FILTER_KEYS.SUBMITTED_AFTER,
+        FILTER_KEYS.SUBMITTED_BEFORE,
+        FILTER_KEYS.APPROVED_AFTER,
+        FILTER_KEYS.APPROVED_BEFORE,
+        FILTER_KEYS.APPROVED_ON,
+        FILTER_KEYS.PAID_AFTER,
+        FILTER_KEYS.PAID_BEFORE,
+        FILTER_KEYS.PAID_ON,
+        FILTER_KEYS.EXPORTED_AFTER,
+        FILTER_KEYS.EXPORTED_BEFORE,
+        FILTER_KEYS.EXPORTED_ON,
+        FILTER_KEYS.EXPORTER,
+        FILTER_KEYS.ACTION,
+        FILTER_KEYS.PURCHASE_AMOUNT_EQUAL_TO,
+        FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN,
+        FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN,
+        FILTER_KEYS.PURCHASE_CURRENCY,
+        FILTER_KEYS.WITHDRAWAL_ID,
+        FILTER_KEYS.TITLE,
+    ],
+    [CONST.SEARCH.DATA_TYPES.TRIP]: [
+        FILTER_KEYS.TYPE,
+        FILTER_KEYS.STATUS,
+        FILTER_KEYS.FROM,
+        FILTER_KEYS.TO,
+        FILTER_KEYS.KEYWORD,
+        FILTER_KEYS.POLICY_ID,
+        FILTER_KEYS.MERCHANT,
+        FILTER_KEYS.DATE_ON,
+        FILTER_KEYS.DATE_AFTER,
+        FILTER_KEYS.DATE_BEFORE,
+        FILTER_KEYS.AMOUNT_EQUAL_TO,
+        FILTER_KEYS.AMOUNT_GREATER_THAN,
+        FILTER_KEYS.AMOUNT_LESS_THAN,
+        FILTER_KEYS.TOTAL_EQUAL_TO,
+        FILTER_KEYS.TOTAL_GREATER_THAN,
+        FILTER_KEYS.TOTAL_LESS_THAN,
+        FILTER_KEYS.CURRENCY,
+        FILTER_KEYS.GROUP_CURRENCY,
+        FILTER_KEYS.CATEGORY,
+        FILTER_KEYS.TAG,
+        FILTER_KEYS.PAYER,
+        FILTER_KEYS.DESCRIPTION,
+        FILTER_KEYS.CARD_ID,
+        FILTER_KEYS.FEED,
+        FILTER_KEYS.POSTED_AFTER,
+        FILTER_KEYS.POSTED_BEFORE,
+        FILTER_KEYS.POSTED_ON,
+        FILTER_KEYS.TAX_RATE,
+        FILTER_KEYS.REPORT_ID,
+        FILTER_KEYS.SUBMITTED_ON,
+        FILTER_KEYS.SUBMITTED_AFTER,
+        FILTER_KEYS.SUBMITTED_BEFORE,
+        FILTER_KEYS.APPROVED_AFTER,
+        FILTER_KEYS.APPROVED_BEFORE,
+        FILTER_KEYS.APPROVED_ON,
+        FILTER_KEYS.PAID_AFTER,
+        FILTER_KEYS.PAID_BEFORE,
+        FILTER_KEYS.PAID_ON,
+        FILTER_KEYS.EXPORTED_AFTER,
+        FILTER_KEYS.EXPORTED_BEFORE,
+        FILTER_KEYS.EXPORTED_ON,
+        FILTER_KEYS.EXPORTER,
+        FILTER_KEYS.FEED,
+        FILTER_KEYS.ACTION,
+        FILTER_KEYS.PURCHASE_AMOUNT_EQUAL_TO,
+        FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN,
+        FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN,
+        FILTER_KEYS.PURCHASE_CURRENCY,
+        FILTER_KEYS.TITLE,
+    ],
+    [CONST.SEARCH.DATA_TYPES.CHAT]: [
+        FILTER_KEYS.TYPE,
+        FILTER_KEYS.FROM,
+        FILTER_KEYS.TO,
+        FILTER_KEYS.IN,
+        FILTER_KEYS.KEYWORD,
+        FILTER_KEYS.POLICY_ID,
+        FILTER_KEYS.DATE_AFTER,
+        FILTER_KEYS.DATE_BEFORE,
+        FILTER_KEYS.DATE_ON,
+        FILTER_KEYS.IS,
+        FILTER_KEYS.HAS,
+    ],
+    [CONST.SEARCH.DATA_TYPES.TASK]: [
+        FILTER_KEYS.TYPE,
+        FILTER_KEYS.STATUS,
+        FILTER_KEYS.TITLE,
+        FILTER_KEYS.DESCRIPTION,
+        FILTER_KEYS.IN,
+        FILTER_KEYS.FROM,
+        FILTER_KEYS.ASSIGNEE,
+        FILTER_KEYS.DATE_ON,
+        FILTER_KEYS.DATE_AFTER,
+        FILTER_KEYS.DATE_BEFORE,
+    ],
+};
+
+type SearchAdvancedFiltersKey = ValueOf<typeof FILTER_KEYS>;
 
 type SearchAdvancedFiltersForm = Form<
-    InputID,
+    SearchAdvancedFiltersKey,
     {
-        [FILTER_KEYS.GROUP_BY]: string;
-        [FILTER_KEYS.TYPE]: string;
+        [FILTER_KEYS.GROUP_BY]: SearchGroupBy;
+        [FILTER_KEYS.TYPE]: SearchDataTypes;
         [FILTER_KEYS.STATUS]: string[] | string;
-        [FILTER_KEYS.GROUP_BY]: string;
         [FILTER_KEYS.DATE_AFTER]: string;
         [FILTER_KEYS.DATE_BEFORE]: string;
         [FILTER_KEYS.DATE_ON]: string;
@@ -86,16 +302,25 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.POSTED_ON]: string;
         [FILTER_KEYS.POSTED_AFTER]: string;
         [FILTER_KEYS.POSTED_BEFORE]: string;
+        [FILTER_KEYS.WITHDRAWAL_TYPE]: SearchWithdrawalType;
+        [FILTER_KEYS.WITHDRAWN_ON]: string;
+        [FILTER_KEYS.WITHDRAWN_AFTER]: string;
+        [FILTER_KEYS.WITHDRAWN_BEFORE]: string;
         [FILTER_KEYS.CURRENCY]: string[];
+        [FILTER_KEYS.GROUP_CURRENCY]: string;
         [FILTER_KEYS.CATEGORY]: string[];
-        [FILTER_KEYS.POLICY_ID]: string;
+        [FILTER_KEYS.POLICY_ID]: string[];
         [FILTER_KEYS.CARD_ID]: string[];
         [FILTER_KEYS.FEED]: string[];
         [FILTER_KEYS.MERCHANT]: string;
         [FILTER_KEYS.DESCRIPTION]: string;
         [FILTER_KEYS.REPORT_ID]: string;
-        [FILTER_KEYS.LESS_THAN]: string;
-        [FILTER_KEYS.GREATER_THAN]: string;
+        [FILTER_KEYS.AMOUNT_EQUAL_TO]: string;
+        [FILTER_KEYS.AMOUNT_LESS_THAN]: string;
+        [FILTER_KEYS.AMOUNT_GREATER_THAN]: string;
+        [FILTER_KEYS.TOTAL_EQUAL_TO]: string;
+        [FILTER_KEYS.TOTAL_LESS_THAN]: string;
+        [FILTER_KEYS.TOTAL_GREATER_THAN]: string;
         [FILTER_KEYS.KEYWORD]: string;
         [FILTER_KEYS.TAX_RATE]: string[];
         [FILTER_KEYS.EXPENSE_TYPE]: string[];
@@ -109,9 +334,19 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.ASSIGNEE]: string[];
         [FILTER_KEYS.REIMBURSABLE]: string;
         [FILTER_KEYS.BILLABLE]: string;
+        [FILTER_KEYS.ACTION]: string;
+        [FILTER_KEYS.HAS]: string[];
+        [FILTER_KEYS.PURCHASE_AMOUNT_EQUAL_TO]: string;
+        [FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN]: string;
+        [FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN]: string;
+        [FILTER_KEYS.PURCHASE_CURRENCY]: string[];
+        [FILTER_KEYS.WITHDRAWAL_ID]: string;
+        [FILTER_KEYS.ATTENDEE]: string[];
+        [FILTER_KEYS.IS]: string[];
+        [FILTER_KEYS.HAS]: string[];
     }
 >;
 
-export type {SearchAdvancedFiltersForm};
+export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey};
 export default FILTER_KEYS;
-export {DATE_FILTER_KEYS};
+export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, FILTER_KEYS, AMOUNT_FILTER_KEYS};

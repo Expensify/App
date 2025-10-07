@@ -1,13 +1,13 @@
 import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateSettlementFrequency as updateSettlementFrequencyUtil} from '@libs/actions/Card';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';

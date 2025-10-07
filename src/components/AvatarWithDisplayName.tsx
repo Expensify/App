@@ -1,9 +1,12 @@
+import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {ColorValue, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,9 +16,9 @@ import type {DisplayNameWithTooltips} from '@libs/ReportUtils';
 import {
     getChatRoomSubtitle,
     getDisplayNamesWithTooltips,
-    getIcons,
     getParentNavigationSubtitle,
     getReportName,
+    getReportStatusTranslation,
     isChatThread,
     isExpenseReport,
     isInvoiceReport,
@@ -24,30 +27,23 @@ import {
     isMoneyRequestReport,
     isTrackExpenseReport,
     navigateToDetailsPage,
-    shouldReportShowSubscript,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
+import type {Report} from '@src/types/onyx';
 import {getButtonRole} from './Button/utils';
 import DisplayNames from './DisplayNames';
 import type DisplayNamesProps from './DisplayNames/types';
-import {FallbackAvatar} from './Icon/Expensicons';
-import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import type {TransactionListItemType} from './SelectionList/types';
-import SubscriptAvatar from './SubscriptAvatar';
+import ReportActionAvatars from './ReportActionAvatars';
+import type {TransactionListItemType} from './SelectionListWithSections/types';
 import Text from './Text';
 
 type AvatarWithDisplayNameProps = {
     /** The report currently being looked at */
     report: OnyxEntry<Report>;
-
-    /** The policy which the user has access to and which the report is tied to */
-    policy?: OnyxEntry<Policy>;
 
     /** The size of the avatar */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -64,6 +60,9 @@ type AvatarWithDisplayNameProps = {
     /** Whether we should enable custom title logic designed for search lis */
     shouldUseCustomSearchTitleName?: boolean;
 
+    /** Whether we should display the status of the report */
+    shouldDisplayStatus?: boolean;
+
     /** Transactions inside report */
     transactions?: TransactionListItemType[];
 
@@ -72,13 +71,6 @@ type AvatarWithDisplayNameProps = {
 
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
-};
-
-const fallbackIcon: Icon = {
-    source: FallbackAvatar,
-    type: CONST.ICON_TYPE_AVATAR,
-    name: '',
-    id: -1,
 };
 
 function getCustomDisplayName(
@@ -158,7 +150,6 @@ function getCustomDisplayName(
 }
 
 function AvatarWithDisplayName({
-    policy,
     report,
     isAnonymous = false,
     size = CONST.AVATAR_SIZE.DEFAULT,
@@ -168,8 +159,10 @@ function AvatarWithDisplayName({
     transactions = [],
     openParentReportInCurrentTab = false,
     avatarBorderColor: avatarBorderColorProp,
+    shouldDisplayStatus = false,
 }: AvatarWithDisplayNameProps) {
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false, canBeMissing: false});
+    const {localeCompare} = useLocalize();
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false, canBeMissing: !report?.parentReportID});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false}) ?? CONST.EMPTY_OBJECT;
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -179,17 +172,18 @@ function AvatarWithDisplayName({
         `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : undefined}`,
         {canBeMissing: true},
     );
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
     const parentReportActionParam = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
-    const title = getReportName(report, undefined, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes);
-    const subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report);
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const title = getReportName(report, undefined, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes, undefined, isReportArchived);
+    const isParentReportArchived = useReportIsArchived(report?.parentReportID);
+    const subtitle = getChatRoomSubtitle(report, true, isReportArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isParentReportArchived, reportAttributes);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
-    const icons = getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
-    const shouldShowSubscriptAvatar = shouldReportShowSubscript(report);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false, localeCompare);
     const avatarBorderColor = avatarBorderColorProp ?? (isAnonymous ? theme.highlightBG : theme.componentBG);
+    const statusText = shouldDisplayStatus ? getReportStatusTranslation(report?.stateNum, report?.statusNum) : undefined;
 
     const actorAccountID = useRef<number | null>(null);
     useEffect(() => {
@@ -201,7 +195,7 @@ function AvatarWithDisplayName({
     }, [parentReportActions, report]);
 
     const goToDetailsPage = useCallback(() => {
-        navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute());
+        navigateToDetailsPage(report, Navigation.getActiveRoute());
     }, [report]);
 
     const showActorDetails = useCallback(() => {
@@ -234,40 +228,37 @@ function AvatarWithDisplayName({
             Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
         }
     }, [report, shouldEnableDetailPageNavigation, goToDetailsPage]);
+
     const shouldUseFullTitle = isMoneyRequestOrReport || isAnonymous;
-    const avatar = (
-        <View accessibilityLabel={title}>
-            {shouldShowSubscriptAvatar ? (
-                <SubscriptAvatar
-                    backgroundColor={avatarBorderColor}
-                    mainAvatar={icons.at(0) ?? fallbackIcon}
-                    secondaryAvatar={icons.at(1)}
-                    size={size}
-                />
-            ) : (
-                <MultipleAvatars
-                    icons={icons}
-                    size={size}
-                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
-                />
-            )}
-        </View>
+
+    const multipleAvatars = (
+        <ReportActionAvatars
+            singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+            subscriptAvatarBorderColor={avatarBorderColor}
+            size={size}
+            secondaryAvatarContainerStyle={StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)}
+            reportID={report?.reportID}
+        />
     );
+
     const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {!!report && !!title && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    {shouldEnableAvatarNavigation ? (
-                        <PressableWithoutFeedback
-                            onPress={showActorDetails}
-                            accessibilityLabel={title}
-                            role={getButtonRole(true)}
-                        >
-                            {avatar}
-                        </PressableWithoutFeedback>
-                    ) : (
-                        avatar
-                    )}
+                    <View accessibilityLabel={title}>
+                        {shouldEnableAvatarNavigation ? (
+                            <PressableWithoutFeedback
+                                onPress={showActorDetails}
+                                accessibilityLabel={title}
+                                role={getButtonRole(true)}
+                            >
+                                {multipleAvatars}
+                            </PressableWithoutFeedback>
+                        ) : (
+                            multipleAvatars
+                        )}
+                    </View>
+
                     <View style={[styles.flex1, styles.flexColumn]}>
                         {getCustomDisplayName(
                             shouldUseCustomSearchTitleName,
@@ -288,6 +279,7 @@ function AvatarWithDisplayName({
                                 parentReportActionID={report?.parentReportActionID}
                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                 openParentReportInCurrentTab={openParentReportInCurrentTab}
+                                statusText={statusText}
                             />
                         )}
                         {!!subtitle && (

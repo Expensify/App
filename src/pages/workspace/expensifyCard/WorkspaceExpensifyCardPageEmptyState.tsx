@@ -1,18 +1,21 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useContext} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
 import * as Illustrations from '@components/Icon/Illustrations';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import Text from '@components/Text';
 import useDismissModalForUSD from '@hooks/useDismissModalForUSD';
+import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
@@ -20,6 +23,7 @@ import Navigation from '@navigation/Navigation';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+import variables from '@styles/variables';
 import {updateGeneralSettings as updatePolicyGeneralSettings} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,14 +58,15 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: false});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useDismissModalForUSD(policy?.outputCurrency);
-
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: false});
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-
-    const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountList ?? {});
+    const {windowHeight} = useWindowDimensions();
+    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const reimbursementAccountStatus = reimbursementAccount?.achData?.state ?? '';
     const isSetupUnfinished = isEmptyObject(bankAccountList) && reimbursementAccountStatus && reimbursementAccountStatus !== CONST.BANK_ACCOUNT.STATE.OPEN;
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policy?.id);
+
+    const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForUkEuCard(bankAccountList, policy?.outputCurrency) : getEligibleBankAccountsForCard(bankAccountList);
 
     const startFlow = useCallback(() => {
         if (!eligibleBankAccounts.length || isSetupUnfinished) {
@@ -90,19 +95,23 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
             shouldShowOfflineIndicatorInWideScreen
             addBottomSafeAreaPadding
         >
-            <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+            <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, {minHeight: windowHeight - variables.contentHeaderHeight}]}>
                 <FeatureList
-                    menuItems={expensifyCardFeatures}
+                    menuItems={isUkEuCurrencySupported ? expensifyCardFeatures.slice(1) : expensifyCardFeatures}
                     title={translate('workspace.moreFeatures.expensifyCard.feed.title')}
                     subtitle={translate('workspace.moreFeatures.expensifyCard.feed.subTitle')}
                     ctaText={translate(isSetupUnfinished ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard')}
                     ctaAccessibilityLabel={translate('workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
                     onCtaPress={() => {
                         if (isActingAsDelegate) {
-                            setIsNoDelegateAccessMenuVisible(true);
+                            showDelegateNoAccessModal();
                             return;
                         }
-                        if (!(policy?.outputCurrency === CONST.CURRENCY.USD)) {
+                        if (isAccountLocked) {
+                            showLockedAccountModal();
+                            return;
+                        }
+                        if (!(policy?.outputCurrency === CONST.CURRENCY.USD || isUkEuCurrencySupported)) {
                             setIsCurrencyModalOpen(true);
                             return;
                         }
@@ -123,12 +132,12 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
             </View>
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
+            <View style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <Text style={[styles.textMicroSupporting, styles.m5]}>
+                    {translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
+                </Text>
+            </View>
         </WorkspacePageWithSections>
     );
 }

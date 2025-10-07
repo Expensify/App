@@ -1,11 +1,13 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import searchOptions from '@libs/searchOptions';
@@ -16,27 +18,34 @@ import {fetchCorpayFields} from '@userActions/BankAccounts';
 import Text from '@src/components/Text';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-function CountrySelection({isEditing, onNext, formValues, resetScreenIndex}: CustomSubStepProps) {
+function CountrySelection({isEditing, onNext, formValues, resetScreenIndex, fieldsMap}: CustomSubStepProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [currentCountry, setCurrentCountry] = useState(formValues.bankCountry);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: false});
 
     const onCountrySelected = useCallback(() => {
         if (currentCountry === CONST.COUNTRY.US) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT);
+            if (isUserValidated) {
+                Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT);
+            } else {
+                Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT));
+            }
             return;
         }
-        if (isEditing && formValues.bankCountry === currentCountry) {
+        if (!isEmptyObject(fieldsMap) && formValues.bankCountry === currentCountry) {
             onNext();
             return;
         }
         fetchCorpayFields(currentCountry);
         resetScreenIndex?.(CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_ACCOUNT_DETAILS);
-    }, [currentCountry, formValues.bankCountry, isEditing, onNext, resetScreenIndex]);
+    }, [currentCountry, fieldsMap, formValues.bankCountry, resetScreenIndex, isUserValidated, onNext]);
 
     const onSelectionChange = useCallback((country: Option) => {
         setCurrentCountry(country.value);

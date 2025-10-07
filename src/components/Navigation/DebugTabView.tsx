@@ -1,7 +1,7 @@
+import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import type {IndicatorStatus} from '@hooks/useIndicatorStatus';
 import useIndicatorStatus from '@hooks/useIndicatorStatus';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -17,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getRouteForCurrentStep as getReimbursementAccountRouteForCurrentStep} from '@libs/ReimbursementAccountUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
-import {getChatTabBrickRoadReport} from '@libs/WorkspacesSettingsUtils';
+import {getChatTabBrickRoadReportID} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -104,8 +105,9 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
-    const {orderedReports} = useSidebarOrderedReports();
+    const {orderedReportIDs} = useSidebarOrderedReports();
 
     const message = useMemo((): TranslationPaths | undefined => {
         if (selectedTab === NAVIGATION_TABS.HOME) {
@@ -139,10 +141,10 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
 
     const navigateTo = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.HOME && !!chatTabBrickRoad) {
-            const report = getChatTabBrickRoadReport(orderedReports);
+            const reportID = getChatTabBrickRoadReportID(orderedReportIDs, reportAttributes);
 
-            if (report) {
-                Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID));
+            if (reportID) {
+                Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(reportID));
             }
         }
         if (selectedTab === NAVIGATION_TABS.SETTINGS) {
@@ -152,7 +154,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
                 Navigation.navigate(route);
             }
         }
-    }, [selectedTab, chatTabBrickRoad, orderedReports, status, reimbursementAccount, policyIDWithErrors]);
+    }, [selectedTab, chatTabBrickRoad, orderedReportIDs, reportAttributes, status, reimbursementAccount, policyIDWithErrors]);
 
     if (!([NAVIGATION_TABS.HOME, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES] as string[]).includes(selectedTab ?? '') || !indicator) {
         return null;

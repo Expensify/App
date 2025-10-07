@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAuthenticationModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
@@ -17,6 +17,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const is2FAEnabled = account?.requiresTwoFactorAuth;
+    const isUserValidated = account?.validated;
 
     const [isRequire2FAModalOpen, setIsRequire2FAModalOpen] = useState(false);
 
@@ -34,7 +35,20 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
             <RequireTwoFactorAuthenticationModal
                 onSubmit={() => {
                     setIsRequire2FAModalOpen(false);
-                    close(() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.POLICY_ACCOUNTING.getRoute(policyID), getXeroSetupLink(policyID))));
+                    close(() => {
+                        const backTo = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
+                        const validatedUserForwardTo = getXeroSetupLink(policyID);
+                        if (isUserValidated) {
+                            Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(backTo, validatedUserForwardTo));
+                            return;
+                        }
+                        Navigation.navigate(
+                            ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute({
+                                backTo,
+                                forwardTo: ROUTES.SETTINGS_2FA_ROOT.getRoute(backTo, validatedUserForwardTo),
+                            }),
+                        );
+                    });
                 }}
                 onCancel={() => {
                     setIsRequire2FAModalOpen(false);

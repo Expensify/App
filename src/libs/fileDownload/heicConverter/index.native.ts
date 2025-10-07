@@ -1,6 +1,6 @@
 import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
-import type {FileObject} from '@components/AttachmentModal';
 import {verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {HeicConverterFunction} from './types';
 
@@ -25,7 +25,8 @@ const convertImageWithManipulator = (
         onFinish?: () => void;
     } = {},
 ) => {
-    ImageManipulator.manipulate(sourceUri)
+    const imageManipulatorContext = ImageManipulator.manipulate(sourceUri);
+    imageManipulatorContext
         .renderAsync()
         .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
         .then((manipulationResult) => {

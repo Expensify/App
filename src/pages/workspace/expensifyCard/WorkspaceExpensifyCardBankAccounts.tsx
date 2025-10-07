@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -14,18 +13,21 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useDefaultFundID from '@hooks/useDefaultFundID';
+import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
+import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
-import {configureExpensifyCardsForPolicy} from '@userActions/Card';
+import {configureExpensifyCardsForPolicy, setIssueNewCardStepAndData} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,10 +43,13 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: false});
 
     const policyID = route?.params?.policyID;
+    const policy = usePolicy(policyID);
 
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 
-    const [cardBankAccountMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_METADATA}${workspaceAccountID}`, {canBeMissing: true});
+    const defaultFundID = useDefaultFundID(policyID);
+
+    const [cardBankAccountMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_METADATA}${defaultFundID}`, {canBeMissing: true});
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`, {canBeMissing: true});
 
     const getVerificationState = () => {
@@ -75,7 +80,9 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
             return null;
         }
 
-        const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountsList);
+        const eligibleBankAccounts = isUkEuCurrencySupported
+            ? getEligibleBankAccountsForUkEuCard(bankAccountsList, policy?.outputCurrency)
+            : getEligibleBankAccountsForCard(bankAccountsList);
 
         return eligibleBankAccounts.map((bankAccount) => {
             const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
@@ -86,6 +93,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
 
             return (
                 <MenuItem
+                    key={bankAccountID}
                     title={bankName}
                     description={`${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`}
                     onPress={() => handleSelectBankAccount(bankAccountID)}
@@ -159,6 +167,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                             style={[styles.m5, bottomSafeAreaPaddingStyle]}
                             pressOnEnter
                             onPress={() => {
+                                setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
                                 Navigation.dismissModal();
                                 Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
                             }}

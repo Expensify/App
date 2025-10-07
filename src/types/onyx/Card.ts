@@ -37,6 +37,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Last four Primary Account Number digits */
     lastFourPAN?: string;
 
+    /** Pin of the card */
+    pin?: string;
+
     /** Card number */
     cardNumber?: string;
 
@@ -223,6 +226,9 @@ type IssueNewCardData = {
 
     /** Name of the card */
     cardTitle: string;
+
+    /** Currency of the card */
+    currency: string;
 };
 
 /** Model of Issue new card flow */
@@ -235,6 +241,9 @@ type IssueNewCard = {
 
     /** Whether the user is editing step */
     isEditing: boolean;
+
+    /** Whether the changing assignee is disabled. E.g., The assignee is auto selected from workspace members page */
+    isChangeAssigneeDisabled: boolean;
 
     /** Whether the request is being processed */
     isLoading?: boolean;

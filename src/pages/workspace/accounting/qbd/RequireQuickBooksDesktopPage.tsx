@@ -10,23 +10,17 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 
-type RequireQuickBooksDesktopModalProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL>;
-
-function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalProps) {
+function RequireQuickBooksDesktopModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID: string = route.params.policyID;
 
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID={RequireQuickBooksDesktopModal.displayName}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('workspace.qbd.qbdSetup')}
@@ -47,7 +41,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                     <Button
                         success
                         text={translate('common.buttonConfirm')}
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID))}
+                        onPress={() => Navigation.dismissModal()}
                         pressOnEnter
                         large
                     />

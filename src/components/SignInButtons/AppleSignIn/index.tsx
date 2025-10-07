@@ -2,12 +2,16 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
-import getUserLanguage from '@components/SignInButtons/GetUserLanguage';
+import useOnyx from '@hooks/useOnyx';
 import {beginAppleSignIn} from '@libs/actions/Session';
+import {getDevicePreferredLocale} from '@libs/Localize';
 import Log from '@libs/Log';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {AppleIDSignInOnFailureEvent, AppleIDSignInOnSuccessEvent} from '@src/types/modules/dom';
+import type Locale from '@src/types/onyx/Locale';
+import MAP_EXFY_LOCALE_TO_APPLE_LOCALE from './AppleSignInLocales';
 
 // react-native-config doesn't trim whitespace on iOS for some reason so we
 // add a trim() call to lodashGet here to prevent headaches.
@@ -44,9 +48,9 @@ const config = {
  * Apple Sign In success and failure listeners.
  */
 
-const successListener = (event: AppleIDSignInOnSuccessEvent) => {
+const successListener = (event: AppleIDSignInOnSuccessEvent, preferredLocale?: Locale) => {
     const token = event.detail.authorization.id_token;
-    beginAppleSignIn(token);
+    beginAppleSignIn(token, preferredLocale);
 };
 
 const failureListener = (event: AppleIDSignInOnFailureEvent) => {
@@ -60,6 +64,7 @@ const failureListener = (event: AppleIDSignInOnFailureEvent) => {
  * Apple Sign In button for Web.
  */
 function AppleSignInDiv({isDesktopFlow, onPointerDown}: AppleSignInDivProps) {
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     useEffect(() => {
         // `init` renders the button, so it must be called after the div is
         // first mounted.
@@ -68,13 +73,13 @@ function AppleSignInDiv({isDesktopFlow, onPointerDown}: AppleSignInDivProps) {
     //  Result listeners need to live within the focused item to avoid duplicate
     //  side effects on success and failure.
     React.useEffect(() => {
-        document.addEventListener('AppleIDSignInOnSuccess', successListener);
+        document.addEventListener('AppleIDSignInOnSuccess', (event) => successListener(event, preferredLocale));
         document.addEventListener('AppleIDSignInOnFailure', failureListener);
         return () => {
-            document.removeEventListener('AppleIDSignInOnSuccess', successListener);
+            document.removeEventListener('AppleIDSignInOnSuccess', (event) => successListener(event, preferredLocale));
             document.removeEventListener('AppleIDSignInOnFailure', failureListener);
         };
-    }, []);
+    }, [preferredLocale]);
 
     return isDesktopFlow ? (
         <div
@@ -127,7 +132,7 @@ function AppleSignIn({isDesktopFlow = false, onPointerDown}: AppleSignInProps) {
             return;
         }
 
-        const localeCode = getUserLanguage();
+        const localeCode = MAP_EXFY_LOCALE_TO_APPLE_LOCALE[getDevicePreferredLocale()];
         const script = document.createElement('script');
         script.src = `https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1//${localeCode}/appleid.auth.js`;
         script.async = true;

@@ -3,7 +3,6 @@ title: Tax Exempt Status
 description: Learn how to request tax-exempt status in Expensify if your organization is exempt from sales tax.
 keywords: [New Expensify, tax exempt, tax exemption, remove tax from bill, nonprofit billing, VAT, ST-119, 501(c)]
 ---
-<div id="new-expensify" markdown="1">
 
 If your organization qualifies as tax-exempt, you can request to remove sales tax from your Expensify subscription. This guide shows you how to submit the documentation required for tax exemption.
 
@@ -20,7 +19,7 @@ If your organization qualifies as tax-exempt, you can request to remove sales ta
 
 **To request tax-exempt status for your Expensify subscription:**
 
-1. Go to **Account > Workspaces > Subscription > Subscription settings**.
+1. Go to **Account > Subscription > Subscription settings**.
 2. Click **Tax exempt status**.
 3. Selecting **Tax exempt status** will begin a chat with Concierge.
 4. From there, communicate that your account is tax-exempt and attach a PDF of your tax-exempt document.
@@ -46,4 +45,3 @@ If your organization qualifies as tax-exempt, you can request to remove sales ta
 
 If you were charged tax before receiving tax-exempt status, we can refund the tax amount. Contact your Account Manager or Concierge to request a refund.
 
-</div>

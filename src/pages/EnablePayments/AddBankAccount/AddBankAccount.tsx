@@ -1,10 +1,10 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,9 +21,9 @@ import Plaid from './substeps/PlaidStep';
 
 const plaidSubsteps: Array<React.ComponentType<SubStepProps>> = [Plaid, Confirmation];
 function AddBankAccount() {
-    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
-    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
-    const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
+    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA, {canBeMissing: true});
+    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {canBeMissing: true});
+    const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -32,9 +32,15 @@ function AddBankAccount() {
         const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === personalBankAccountDraft?.plaidAccountID);
 
         if (selectedPlaidBankAccount) {
-            addPersonalBankAccount(selectedPlaidBankAccount);
+            const bankAccountWithToken = selectedPlaidBankAccount.plaidAccessToken
+                ? selectedPlaidBankAccount
+                : {
+                      ...selectedPlaidBankAccount,
+                      plaidAccessToken: plaidData?.plaidAccessToken ?? '',
+                  };
+            addPersonalBankAccount(bankAccountWithToken);
         }
-    }, [personalBankAccountDraft?.plaidAccountID, plaidData?.bankAccounts]);
+    }, [personalBankAccountDraft?.plaidAccountID, plaidData?.bankAccounts, plaidData?.plaidAccessToken]);
 
     const isSetupTypeChosen = personalBankAccountDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
 
@@ -75,6 +81,7 @@ function AddBankAccount() {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicator
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 shouldShowBackButton

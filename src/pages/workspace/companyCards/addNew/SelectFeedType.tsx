@@ -1,17 +1,18 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isPlaidSupportedCountry} from '@libs/CardUtils';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,7 +24,7 @@ function SelectFeedType() {
     const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>>();
     const [hasError, setHasError] = useState(false);
     const {isBetaEnabled} = usePermissions();
-    const isCountrySupportPlaid = addNewCard?.data?.selectedCountry ? CONST.PLAID_SUPPORT_COUNTRIES.includes(addNewCard.data.selectedCountry) : false;
+    const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
     const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
 
     const submit = () => {
@@ -52,10 +53,10 @@ function SelectFeedType() {
             setTypeSelected(addNewCard?.data.selectedFeedType);
             return;
         }
-        if (isCountrySupportPlaid) {
+        if (doesCountrySupportPlaid) {
             setTypeSelected(CONST.COMPANY_CARDS.FEED_TYPE.DIRECT);
         }
-    }, [addNewCard?.data.selectedFeedType, isCountrySupportPlaid]);
+    }, [addNewCard?.data.selectedFeedType, doesCountrySupportPlaid]);
 
     const handleBackButtonPress = () => {
         setAddNewCompanyCardStepAndData({step: isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY : CONST.COMPANY_CARDS.STEP.SELECT_BANK});
@@ -84,7 +85,7 @@ function SelectFeedType() {
         if (!isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS)) {
             return data;
         }
-        if (isCountrySupportPlaid) {
+        if (doesCountrySupportPlaid) {
             return data.reverse();
         }
 
@@ -106,10 +107,9 @@ function SelectFeedType() {
             />
 
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.howDoYouWantToConnect')}</Text>
-            <Text style={[styles.textSupporting, styles.ph5, styles.mb6]}>
-                {`${translate('workspace.companyCards.addNewCard.learnMoreAboutOptions.text')}`}
-                <TextLink href={CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}>{`${translate('workspace.companyCards.addNewCard.learnMoreAboutOptions.linkText')}`}</TextLink>
-            </Text>
+            <View style={[styles.renderHTML, styles.flexRow, styles.ph5, styles.mb6]}>
+                <RenderHTML html={translate('workspace.companyCards.addNewCard.learnMoreAboutOptions')} />
+            </View>
 
             <SelectionList
                 ListItem={RadioListItem}

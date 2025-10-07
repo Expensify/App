@@ -11,7 +11,7 @@ import {getButtonRole} from './Button/utils';
 import Icon from './Icon';
 import {Close} from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
-import Text from './Text';
+import RenderHTML from './RenderHTML';
 import Tooltip from './Tooltip';
 
 type ReferralProgramCTAProps = {
@@ -54,15 +54,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
             accessibilityLabel="referral"
             role={getButtonRole(true)}
         >
-            <Text>
-                {translate(`referralProgram.${referralContentType}.buttonText1`)}
-                <Text
-                    color={theme.success}
-                    style={styles.textStrong}
-                >
-                    {translate(`referralProgram.${referralContentType}.buttonText2`)}
-                </Text>
-            </Text>
+            <RenderHTML html={translate(`referralProgram.${referralContentType}.buttonText`)} />
             <Tooltip text={translate('common.close')}>
                 <PressableWithoutFeedback
                     onPress={handleDismissCallToAction}

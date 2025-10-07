@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
+import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -16,7 +16,7 @@ function ReportAvatar({route}: ReportAvatarProps) {
     const {reportID, policyID} = route.params;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true, canBeMissing: true});
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
     const attachment = useMemo(() => {
         if (isGroupChat(report) && !isThread(report)) {

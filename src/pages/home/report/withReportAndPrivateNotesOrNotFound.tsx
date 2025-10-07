@@ -1,12 +1,12 @@
 import React, {useEffect, useMemo} from 'react';
-import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
+import type {ComponentType} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import {getReportPrivateNote} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
@@ -28,11 +28,11 @@ type WithReportAndPrivateNotesOrNotFoundOnyxProps = {
 type WithReportAndPrivateNotesOrNotFoundProps = WithReportOrNotFoundProps & WithReportAndPrivateNotesOrNotFoundOnyxProps;
 
 export default function (pageTitle: TranslationPaths) {
-    return <TProps extends WithReportAndPrivateNotesOrNotFoundProps, TRef>(
-        WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-    ): React.ComponentType<Omit<TProps, keyof WithReportAndPrivateNotesOrNotFoundOnyxProps> & RefAttributes<TRef>> => {
+    return <TProps extends WithReportAndPrivateNotesOrNotFoundProps>(
+        WrappedComponent: ComponentType<TProps>,
+    ): React.ComponentType<Omit<TProps, keyof WithReportAndPrivateNotesOrNotFoundOnyxProps>> => {
         // eslint-disable-next-line rulesdir/no-negated-variables
-        function WithReportAndPrivateNotesOrNotFound(props: Omit<TProps, keyof WithReportAndPrivateNotesOrNotFoundOnyxProps>, ref: ForwardedRef<TRef>) {
+        function WithReportAndPrivateNotesOrNotFound(props: Omit<TProps, keyof WithReportAndPrivateNotesOrNotFoundOnyxProps>) {
             const {translate} = useLocalize();
             const {isOffline} = useNetwork();
             const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -105,7 +105,6 @@ export default function (pageTitle: TranslationPaths) {
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...(props as TProps)}
-                    ref={ref}
                     accountID={session?.accountID}
                 />
             );

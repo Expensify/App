@@ -1,10 +1,12 @@
+import {isActingAsDelegateSelector} from '@selectors/Account';
 import React, {useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useInitial from '@hooks/useInitial';
+import useOnyx from '@hooks/useOnyx';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import PlaidConnectionStep from '@pages/workspace/companyCards/addNew/PlaidConnectionStep';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -28,7 +30,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
     const backTo = route.params?.backTo;
     const policyID = policy?.id;
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: true});
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: true});
     const firstAssigneeEmail = useInitial(assignCard?.data?.email);
     const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === assignCard?.data?.email;
 
@@ -56,6 +58,13 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
                 <BankConnection
                     policyID={policyID}
                     feed={feed}
+                />
+            );
+        case CONST.COMPANY_CARD.STEP.PLAID_CONNECTION:
+            return (
+                <PlaidConnectionStep
+                    feed={feed}
+                    policyID={policyID}
                 />
             );
         case CONST.COMPANY_CARD.STEP.ASSIGNEE:
@@ -86,6 +95,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
             return (
                 <ConfirmationStep
                     policyID={policyID}
+                    feed={feed}
                     backTo={shouldUseBackToParam ? backTo : undefined}
                 />
             );

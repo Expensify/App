@@ -7,7 +7,6 @@ export default {
     RIGHT_MODAL_NAVIGATOR: 'RightModalNavigator',
     ONBOARDING_MODAL_NAVIGATOR: 'OnboardingModalNavigator',
     FEATURE_TRAINING_MODAL_NAVIGATOR: 'FeatureTrainingModalNavigator',
-    WELCOME_VIDEO_MODAL_NAVIGATOR: 'WelcomeVideoModalNavigator',
     EXPLANATION_MODAL_NAVIGATOR: 'ExplanationModalNavigator',
     MIGRATED_USER_MODAL_NAVIGATOR: 'MigratedUserModalNavigator',
     TEST_DRIVE_MODAL_NAVIGATOR: 'TestDriveModalNavigator',
@@ -18,4 +17,5 @@ export default {
     SEARCH_FULLSCREEN_NAVIGATOR: 'SearchFullscreenNavigator',
     SHARE_MODAL_NAVIGATOR: 'ShareModalNavigator',
     PUBLIC_RIGHT_MODAL_NAVIGATOR: 'PublicRightModalNavigator',
+    TEST_TOOLS_MODAL_NAVIGATOR: 'TestToolsModalNavigator',
 } as const;

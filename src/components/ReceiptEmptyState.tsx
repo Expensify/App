@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -10,9 +10,6 @@ import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 type ReceiptEmptyStateProps = {
-    /** Whether or not there is an error */
-    hasError?: boolean;
-
     /** Callback to be called on onPress */
     onPress?: () => void;
 
@@ -29,13 +26,17 @@ type ReceiptEmptyStateProps = {
     shouldUseFullHeight?: boolean;
 
     style?: StyleProp<ViewStyle>;
+
+    /** Callback to be called when the image loads */
+    onLoad?: () => void;
 };
 
 // Returns an SVG icon indicating that the user should attach a receipt
-function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false, shouldUseFullHeight = false, style}: ReceiptEmptyStateProps) {
+function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false, shouldUseFullHeight = false, style, onLoad}: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
+    const isLoadedRef = useRef(false);
 
     const Wrapper = onPress ? PressableWithoutFeedback : View;
     const containerStyle = [
@@ -43,10 +44,17 @@ function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumb
         styles.justifyContentCenter,
         styles.moneyRequestViewImage,
         isThumbnail && !isInMoneyRequestView ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
-        hasError && styles.borderColorDanger,
         shouldUseFullHeight && styles.receiptEmptyStateFullHeight,
         style,
     ];
+
+    useEffect(() => {
+        if (isLoadedRef.current) {
+            return;
+        }
+        isLoadedRef.current = true;
+        onLoad?.();
+    }, [onLoad]);
 
     return (
         <Wrapper

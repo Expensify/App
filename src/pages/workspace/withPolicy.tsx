@@ -1,7 +1,7 @@
-import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React, {forwardRef} from 'react';
+import type {ComponentType} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, ReimbursementAccountNavigatorParamList, SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import {updateLastAccessedWorkspace} from '@userActions/Policy/Policy';
@@ -39,6 +39,7 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.TAX_EDIT
     | typeof SCREENS.WORKSPACE.ADDRESS
     | typeof SCREENS.WORKSPACE.CATEGORIES_SETTINGS
+    | typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS
     | typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT
     | typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT
     | typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE
@@ -75,10 +76,8 @@ const policyDefaultProps: WithPolicyOnyxProps = {
 /*
  * HOC for connecting a policy in Onyx corresponding to the policyID in route params
  */
-export default function <TProps extends WithPolicyProps, TRef>(
-    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): React.ComponentType<Omit<TProps, keyof WithPolicyOnyxProps> & RefAttributes<TRef>> {
-    function WithPolicy(props: Omit<TProps, keyof WithPolicyOnyxProps>, ref: ForwardedRef<TRef>) {
+export default function <TProps extends WithPolicyProps>(WrappedComponent: ComponentType<TProps>): React.ComponentType<Omit<TProps, keyof WithPolicyOnyxProps>> {
+    function WithPolicy(props: Omit<TProps, keyof WithPolicyOnyxProps>) {
         const policyID = getPolicyIDFromRoute(props.route as PolicyRoute);
         const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP, {canBeMissing: true});
         const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
@@ -97,14 +96,13 @@ export default function <TProps extends WithPolicyProps, TRef>(
                 policy={policy}
                 policyDraft={policyDraft}
                 isLoadingPolicy={isLoadingPolicy}
-                ref={ref}
             />
         );
     }
 
     WithPolicy.displayName = `WithPolicy`;
 
-    return forwardRef(WithPolicy);
+    return WithPolicy;
 }
 
 export {policyDefaultProps};

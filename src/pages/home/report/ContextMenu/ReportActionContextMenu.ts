@@ -44,6 +44,7 @@ type ShowContextMenuParams = {
     disabledOptions?: ContextMenuAction[];
     shouldCloseOnTarget?: boolean;
     isOverflowMenu?: boolean;
+    withoutOverlay?: boolean;
 };
 
 type ShowContextMenu = (params: ShowContextMenuParams) => void;
@@ -57,7 +58,7 @@ type ReportActionContextMenu = {
     instanceIDRef: RefObject<string>;
     runAndResetOnPopoverHide: () => void;
     clearActiveReportAction: () => void;
-    contentRef: RefObject<View>;
+    contentRef: RefObject<View | null>;
     isContextMenuOpening: boolean;
 };
 

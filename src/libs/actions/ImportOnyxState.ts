@@ -1,6 +1,6 @@
-import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollectionKey, OnyxCollectionValuesMapping, OnyxValues} from '@src/ONYXKEYS';
+import type OnyxState from '@src/types/onyx/OnyxState';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import {KEYS_TO_PRESERVE} from './App';
 
@@ -15,7 +15,7 @@ function importOnyxCollectionState(collectionsMap: Map<keyof OnyxCollectionValue
     return Promise.all(collectionPromises);
 }
 
-function importOnyxRegularState(state: Partial<Record<OnyxKey, OnyxEntry<OnyxKey>>>): Promise<void> {
+function importOnyxRegularState(state: OnyxState): Promise<void> {
     if (Object.keys(state).length > 0) {
         return Onyx.multiSet(state as Partial<OnyxValues>);
     }

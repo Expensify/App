@@ -1,12 +1,13 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -28,6 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import DebugReportActions from './DebugReportActions';
 
 type DebugReportPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT>;
@@ -52,13 +54,21 @@ function DebugReportPage({
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
-        selector: (attributes) => attributes?.reports?.[reportID],
-        canBeMissing: true,
-    });
+    const reportAttributesSelector = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => attributes?.reports?.[reportID], [reportID]);
+    const [reportAttributes] = useOnyx(
+        ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
+        {
+            selector: reportAttributesSelector,
+            canBeMissing: true,
+        },
+        [reportAttributesSelector],
+    );
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
 
@@ -70,12 +80,29 @@ function DebugReportPage({
         const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
         const shouldDisplayReportViolations = isReportOwner(report) && hasReportViolations(reportID);
         const hasViolations = !!shouldDisplayViolations || shouldDisplayReportViolations;
-        const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
+        const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, isReportArchived) ?? {};
         const {reason: reasonRBR, reportAction: reportActionRBR} =
-            DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, transactions, hasViolations, reportAttributes?.reportErrors ?? {}, isReportArchived) ?? {};
+            DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                report,
+                chatReport,
+                reportActions,
+                transactions,
+                transactionViolations,
+                hasViolations,
+                reportAttributes?.reportErrors ?? {},
+                isReportArchived,
+            ) ?? {};
         const hasRBR = !!reasonRBR;
         const hasGBR = !hasRBR && !!reasonGBR;
-        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, hasRBR);
+        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN({
+            report,
+            chatReport,
+            betas,
+            doesReportHaveViolations: shouldDisplayViolations,
+            hasRBR,
+            isReportArchived,
+            isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
+        });
 
         return [
             {
@@ -120,7 +147,7 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [report, transactionViolations, reportID, reportActions, transactions, reportAttributes?.reportErrors, isReportArchived, translate]);
+    }, [report, transactionViolations, reportID, isReportArchived, chatReport, reportActions, transactions, reportAttributes?.reportErrors, betas, priorityMode, translate]);
 
     const DebugDetailsTab = useCallback(
         () => (

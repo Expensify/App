@@ -1,28 +1,34 @@
+import {isBlockedFromChatSelector} from '@selectors/BlockedFromChat';
 import {Str} from 'expensify-common';
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
 import BlockedReportFooter from '@components/BlockedReportFooter';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineIndicator from '@components/OfflineIndicator';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SwipeableView from '@components/SwipeableView';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShortMentionsList from '@hooks/useShortMentionsList';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {addComment} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
-import Log from '@libs/Log';
+import {isEmailPublicDomain} from '@libs/LoginUtils';
+import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
+import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {
-    addDomainToShortMention,
     canUserPerformWriteAction,
     canWriteInReport as canWriteInReportUtil,
     isAdminsOnlyPostingRoom as isAdminsOnlyPostingRoomUtil,
@@ -46,6 +52,12 @@ type ReportFooterProps = {
     /** Report metadata */
     reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
 
+    /** Report transactions */
+    reportTransactions?: OnyxEntry<OnyxTypes.Transaction[]>;
+
+    /** The ID of the transaction thread report if there is a single transaction */
+    transactionThreadReportID?: string;
+
     /** The policy of the report */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -54,9 +66,6 @@ type ReportFooterProps = {
 
     /** The pending action when we are adding a chat */
     pendingAction?: PendingAction;
-
-    /** Whether the report is ready for display */
-    isReportReadyForDisplay?: boolean;
 
     /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
@@ -74,44 +83,36 @@ function ReportFooter({
     report = {reportID: '-1'},
     reportMetadata,
     policy,
-    isReportReadyForDisplay = true,
     isComposerFullSize = false,
     onComposerBlur,
     onComposerFocus,
+    reportTransactions,
+    transactionThreadReportID,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const personalDetail = useCurrentUserPersonalDetails();
 
-    const [shouldShowComposeInput] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {initialValue: false, canBeMissing: true});
-    const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS, canBeMissing: false});
+    const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const isAnonymousUser = useIsAnonymousUser();
     const [isBlockedFromChat] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CHAT, {
-        selector: (dateString) => {
-            if (!dateString) {
-                return false;
-            }
-            try {
-                return new Date(dateString) >= new Date();
-            } catch (error) {
-                // If the NVP is malformed, we'll assume the user is not blocked from chat. This is not expected, so if it happens we'll log an alert.
-                Log.alert(`[${CONST.ERROR.ENSURE_BUG_BOT}] Found malformed ${ONYXKEYS.NVP_BLOCKED_FROM_CHAT} nvp`, dateString);
-                return false;
-            }
-        },
+        selector: isBlockedFromChatSelector,
         canBeMissing: true,
     });
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
-    const isArchivedRoom = isArchivedNonExpenseReport(report, reportNameValuePairs);
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
 
     const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.sideBarWithLHBWidth) < variables.anonymousReportFooterBreakpoint;
 
     // If a user just signed in and is viewing a public report, optimistically show the composer while loading the report, since they will have write access when the response comes back.
     const shouldShowComposerOptimistically = !isAnonymousUser && isPublicRoom(report) && !!reportMetadata?.isLoadingInitialReportActions;
-    const canPerformWriteAction = canUserPerformWriteAction(report) ?? shouldShowComposerOptimistically;
+    const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived) ?? shouldShowComposerOptimistically;
     const shouldHideComposer = !canPerformWriteAction || isBlockedFromChat;
     const canWriteInReport = canWriteInReportUtil(report);
     const isSystemChat = isSystemChatUtil(report);
@@ -119,6 +120,8 @@ function ReportFooter({
     const isUserPolicyAdmin = isPolicyAdmin(policy);
 
     const allPersonalDetails = usePersonalDetails();
+    const {availableLoginsList} = useShortMentionsList();
+    const currentUserEmail = getCurrentUserEmail();
 
     const handleCreateTask = useCallback(
         (text: string): boolean => {
@@ -132,7 +135,8 @@ function ReportFooter({
             }
 
             const mention = match[1] ? match[1].trim() : '';
-            const mentionWithDomain = addDomainToShortMention(mention) ?? mention;
+            const currentUserPrivateDomain = isEmailPublicDomain(currentUserEmail ?? '') ? '' : Str.extractEmailDomain(currentUserEmail ?? '');
+            const mentionWithDomain = addDomainToShortMention(mention, availableLoginsList, currentUserPrivateDomain) ?? mention;
             const isValidMention = Str.isValidEmail(mentionWithDomain);
 
             let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
@@ -152,10 +156,10 @@ function ReportFooter({
                     title = `@${mentionWithDomain} ${title}`;
                 }
             }
-            createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID, true);
+            createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID, true, quickAction);
             return true;
         },
-        [allPersonalDetails, report.policyID, report.reportID],
+        [allPersonalDetails, availableLoginsList, currentUserEmail, quickAction, report.policyID, report.reportID],
     );
 
     const onSubmitComment = useCallback(
@@ -164,10 +168,13 @@ function ReportFooter({
             if (isTaskCreated) {
                 return;
             }
-            addComment(report.reportID, text, true);
+            // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
+            // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
+            const targetReportID = transactionThreadReportID ?? report.reportID;
+            addComment(targetReportID, report.reportID, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [report.reportID, handleCreateTask],
+        [report.reportID, handleCreateTask, transactionThreadReportID],
     );
 
     const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);
@@ -223,8 +230,9 @@ function ReportFooter({
                             lastReportAction={lastReportAction}
                             pendingAction={pendingAction}
                             isComposerFullSize={isComposerFullSize}
-                            isReportReadyForDisplay={isReportReadyForDisplay}
                             didHideComposerInput={didHideComposerInput}
+                            reportTransactions={reportTransactions}
+                            transactionThreadReportID={transactionThreadReportID}
                         />
                     </SwipeableView>
                 </View>
@@ -238,12 +246,12 @@ ReportFooter.displayName = 'ReportFooter';
 export default memo(
     ReportFooter,
     (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.report, nextProps.report) &&
+        deepEqual(prevProps.report, nextProps.report) &&
         prevProps.pendingAction === nextProps.pendingAction &&
         prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
-        prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
-        lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
-        lodashIsEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
-        lodashIsEqual(prevProps.policy?.role, nextProps.policy?.role),
+        deepEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
+        deepEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
+        deepEqual(prevProps.policy?.role, nextProps.policy?.role) &&
+        deepEqual(prevProps.reportTransactions, nextProps.reportTransactions),
 );

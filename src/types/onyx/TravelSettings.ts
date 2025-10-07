@@ -8,6 +8,9 @@ type TravelSettings = {
 
     /** Whether the user is setup for staging travelDot */
     testAccount?: boolean;
+
+    /** The last travel signup request time */
+    lastTravelSignupRequestTime?: string;
 };
 
 /** Model of workspace travel information to connect with Spotnana */

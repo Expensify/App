@@ -17,19 +17,47 @@ jobs:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
     steps:
+      - name: Count commits between merge base and HEAD
+        id: count
+        run: |
+          # Compare the base commit and HEAD to get the count of commits after base
+          # up to and including HEAD. Add 2 to this total when fetching history. 
+          #
+          # When opening a PR, GitHub will create a merge commit that squashes
+          # your changes for use in the workflow. So your history locally
+          # may look like
+          #          o---o---o---B - development
+          #         /
+          # ---o---1---C---o---o---A - main
+          # Note that the `1` is the merge-base of development and main. The
+          # number of commits after `1` upto and including `A` is 4.
+          # In the workflow, GitHub squashs development, so it becomes:
+          # ---o---1---C---o---o---A - main
+          #                         \--M - PR branch
+          # Where `M`` is the new squashed commit. To fetch enough history to
+          # include the merge base, we need to fetch `M`, `A` through `C` and
+          # `1` for total of 4+2=6 commits. The +2 commits accounts for the
+          # base `1` and merge commit `M`.
+          RAW_COUNT="$(gh api "repos/$REPO/compare/${BASE}...main" | jq -r '.total_commits')"
+          ADJUSTED_COUNT=$((RAW_COUNT + 2))
+          echo "count=$ADJUSTED_COUNT" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          REPO: ${{ github.repository }}
+          
       - name: Checkout
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          fetch-depth: ${{ fromJSON(steps.count.outputs.count) }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
         with:
           IS_DESKTOP_BUILD: true
-      
+ 
       - name: Run ESLint to check for deprecation warnings
         run: |
-          # This will just fetch the latest commit from main
-          git fetch origin main --no-tags --depth=1
-
           # shellcheck disable=SC2046
           npm run lint-changed

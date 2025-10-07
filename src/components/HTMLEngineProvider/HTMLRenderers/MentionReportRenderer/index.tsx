@@ -1,11 +1,11 @@
 import React, {useContext, useMemo} from 'react';
 import type {TextStyle} from 'react-native';
 import {StyleSheet} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentReportID from '@hooks/useCurrentReportID';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportMentionDetails} from '@libs/MentionUtils';

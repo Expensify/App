@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
@@ -64,17 +65,19 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.APPLICANT_TYPE_ID]: string;
     /** Nature of business */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CATEGORY]: string;
-    /**  */
+    /** Business type */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_TYPE_ID]: string;
+    /** Purpose of transaction ID */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.PURPOSE_OF_TRANSACTION_ID]: string;
     /** Currency */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.CURRENCY_NEEDED]: string;
-    /**  */
+    /** Trade volume */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.TRADE_VOLUME]: string;
     /** Annual volume */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANNUAL_VOLUME]: string;
-    /**  */
+    /** Fund destination countries */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FUND_DESTINATION_COUNTRIES]: string;
-    /**  */
+    /** Fund source countries */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FUND_SOURCE_COUNTRIES]: string;
     /** Is user also an owner */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.OWNS_MORE_THAN_25_PERCENT]: boolean;
@@ -92,6 +95,16 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_EMAIL]: string;
     /** Signer full address */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
+    /** Second signer email address */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_EMAIL]: string;
+    /** Second signer full name */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_FULL_NAME]?: string;
+    /** Second signer DOB */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_DATE_OF_BIRTH]?: string;
+    /** Second signer job title */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_JOB_TITLE]?: string;
+    /** Second signer full address */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
     /** Checkbox - provided truthful information */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION]: boolean;
     /** Checkbox - agrees to terms and conditions */
@@ -108,6 +121,8 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]?: string;
     /** Indicates that the PDS and FSD document has been downloaded */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.DOWNLOADED_PDS_AND_FSG]?: boolean;
+    /** Powerform required for US and CA workspaces */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACH_AUTHORIZATION_FORM]?: FileObject[];
 };
 
 /** Model of ACH data */
@@ -221,8 +236,17 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether we are saving the signer info data via the API */
     isSavingCorpayOnboardingDirectorInformation?: boolean;
 
+    /** Whether we are asking for corpay signer information via the API */
+    isAskingForCorpaySignerInformation?: boolean;
+
+    /** Whether asking for corpay signer information request is successful */
+    isAskingForCorpaySignerInformationSuccess?: boolean;
+
     /** Whether we are saving agreements accepted by user via the API (non USD flow Step 6) */
     isFinishingCorpayBankAccountOnboarding?: boolean;
+
+    /** Whether we are sending a reminder about filling signer information via the API */
+    isSendingReminderForCorpaySignerInformation?: boolean;
 
     /** Where the request is successful */
     isSuccess?: boolean;

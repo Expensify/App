@@ -1,10 +1,10 @@
 import React from 'react';
-import SearchBooleanFilterBase from '@components/Search/SearchBooleanFilterBase';
+import SearchBooleanFilterBasePage from '@components/Search/SearchBooleanFilterBasePage';
 import CONST from '@src/CONST';
 
 function SearchFiltersBillablePage() {
     return (
-        <SearchBooleanFilterBase
+        <SearchBooleanFilterBasePage
             booleanKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE}
             titleKey="search.filters.billable"
         />

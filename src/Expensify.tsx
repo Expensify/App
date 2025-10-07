@@ -1,23 +1,25 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Audio} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
-import FocusModeNotification from './components/FocusModeNotification';
 import GrowlNotification from './components/GrowlNotification';
+import {InitialURLContext} from './components/InitialURLContextProvider';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
-import TestToolsModal from './components/TestToolsModal';
 import UpdateAppModal from './components/UpdateAppModal';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
+import useOnyx from './hooks/useOnyx';
+import usePriorityMode from './hooks/usePriorityChange';
 import {updateLastRoute} from './libs/actions/App';
 import {disconnect} from './libs/actions/Delegate';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
@@ -46,6 +48,7 @@ import * as ReportActionContextMenu from './pages/home/report/ContextMenu/Report
 import type {Route} from './ROUTES';
 import SplashScreenStateContext from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
+import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 Onyx.registerLogger(({level, message, parameters}) => {
     if (level === 'alert') {
@@ -81,35 +84,37 @@ type ExpensifyProps = {
     /** True when the user must update to the latest minimum version of the app */
     updateRequired: OnyxEntry<boolean>;
 
-    /** Whether we should display the notification alerting the user that focus mode has been auto-enabled */
-    focusModeNotification: OnyxEntry<boolean>;
-
     /** Last visited path in the app */
     lastVisitedPath: OnyxEntry<string | undefined>;
 };
 function Expensify() {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
+    const linkingChangeListener = useRef<NativeEventSubscription | null>(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE, {canBeMissing: true});
     const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA, {canBeMissing: true});
-    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false, canBeMissing: true});
+    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false, canBeMissing: true});
     const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false, canBeMissing: true});
     const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false, canBeMissing: true});
     const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: true});
     const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST, {canBeMissing: true});
-    const [focusModeNotification] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION, {initWithStoredValues: false, canBeMissing: true});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
+    const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
+    const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
+    const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
 
     useDebugShortcut();
+    usePriorityMode();
 
-    const [initialUrl, setInitialUrl] = useState<string | null>(null);
-
+    const [initialUrl, setInitialUrl] = useState<Route | null>(null);
+    const {setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
     useEffect(() => {
         if (isCheckingPublicRoom) {
             return;
@@ -120,10 +125,20 @@ function Expensify() {
     const isAuthenticated = useIsAuthenticated();
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
-    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
+    const isSplashReadyToBeHidden = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN;
     const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
-    const isHybridAppReady = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated;
-    const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isHybridAppReady : isSplashVisible);
+
+    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
+    const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isSplashReadyToBeHidden : isSplashVisible);
+
+    useEffect(() => {
+        if (!shouldInit || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
+            return;
+        }
+
+        // Clears OldDot UI after sign-out, if there's no OldDot UI left it has no effect.
+        HybridAppModule.clearOldDotAfterSignOut();
+    }, [shouldInit, splashScreenState]);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
@@ -156,10 +171,10 @@ function Expensify() {
         ActiveClientManager.init();
 
         // Used for the offline indicator appearing when someone is offline
-        const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo();
+        const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo(session?.accountID);
 
         return unsubscribeNetInfo;
-    }, []);
+    }, [session?.accountID]);
 
     useEffect(() => {
         // Initialize Fullstory lib
@@ -172,6 +187,9 @@ function Expensify() {
     }, []);
 
     useEffect(() => {
+        if (isLoadingOnyxValue(sessionMetadata)) {
+            return;
+        }
         setTimeout(() => {
             const appState = AppState.currentState;
             Log.info('[BootSplash] splash screen status', false, {appState, splashScreenState});
@@ -183,7 +201,6 @@ function Expensify() {
                     updateAvailable,
                     isSidebarLoaded,
                     screenShareRequest,
-                    focusModeNotification,
                     isAuthenticated,
                     lastVisitedPath,
                 };
@@ -207,25 +224,32 @@ function Expensify() {
 
         appStateChangeListener.current = AppState.addEventListener('change', initializeClient);
 
+        setIsAuthenticatedAtStartup(isAuthenticated);
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
-            setInitialUrl(url);
-            Report.openReportFromDeepLink(url ?? '');
+            setInitialUrl(url as Route);
+            Report.openReportFromDeepLink(url ?? '', currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated);
         });
 
         // Open chat report from a deep link (only mobile native)
-        Linking.addEventListener('url', (state) => {
-            Report.openReportFromDeepLink(state.url);
+        linkingChangeListener.current = Linking.addEventListener('url', (state) => {
+            Report.openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated);
         });
+        if (CONFIG.IS_HYBRID_APP) {
+            HybridAppModule.onURLListenerAdded();
+        }
 
         return () => {
-            if (!appStateChangeListener.current) {
+            if (appStateChangeListener.current) {
+                appStateChangeListener.current.remove();
+            }
+            if (!linkingChangeListener.current) {
                 return;
             }
-            appStateChangeListener.current.remove();
+            linkingChangeListener.current.remove();
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, []);
+    }, [sessionMetadata?.status]);
 
     // This is being done since we want to play sound even when iOS device is on silent mode, to align with other platforms.
     useEffect(() => {
@@ -292,7 +316,6 @@ function Expensify() {
                             isVisible
                         />
                     ) : null}
-                    {focusModeNotification ? <FocusModeNotification /> : null}
                 </>
             )}
 
@@ -306,7 +329,6 @@ function Expensify() {
                 />
             )}
             {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
-            <TestToolsModal />
         </DeeplinkWrapper>
     );
 }

@@ -62,18 +62,6 @@ Onyx.connect({
     callback: (value) => (amountOwed = value),
 });
 
-let stripeCustomerId: OnyxEntry<StripeCustomerID>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-
-        stripeCustomerId = value;
-    },
-});
-
 let billingDisputePending: OnyxEntry<number>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING,
@@ -187,12 +175,6 @@ Onyx.connect({
     },
 });
 
-let introSelected: OnyxEntry<IntroSelected>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => (introSelected = value),
-});
-
 /**
  * @returns The date when the grace period ends.
  */
@@ -231,7 +213,7 @@ function hasAmountOwed(): boolean {
 /**
  * @returns Whether there is a card authentication error.
  */
-function hasCardAuthenticatedError() {
+function hasCardAuthenticatedError(stripeCustomerId: OnyxEntry<StripeCustomerID>) {
     return stripeCustomerId?.status === 'authentication_required' && getAmountOwed() === 0;
 }
 
@@ -256,7 +238,7 @@ function hasInsufficientFundsError() {
     return billingStatus?.declineReason === 'insufficient_funds' && getAmountOwed() !== 0;
 }
 
-function shouldShowPreTrialBillingBanner(): boolean {
+function shouldShowPreTrialBillingBanner(introSelected: OnyxEntry<IntroSelected>): boolean {
     // We don't want to show the Pre Trial banner if the user was a Test Drive Receiver that created their workspace
     // with the promo code.
     const wasUserTestDriveReceiver = introSelected?.previousChoices?.some((choice) => choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER);
@@ -372,7 +354,7 @@ type SubscriptionStatus = {
 /**
  * @returns The subscription status.
  */
-function getSubscriptionStatus(): SubscriptionStatus | undefined {
+function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>): SubscriptionStatus | undefined {
     if (hasOverdueGracePeriod()) {
         if (hasAmountOwed()) {
             // 1. Policy owner with amount owed, within grace period
@@ -417,7 +399,7 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
     }
 
     // 6. Card not authenticated
-    if (hasCardAuthenticatedError()) {
+    if (hasCardAuthenticatedError(stripeCustomerId)) {
         return {
             status: PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED,
             isError: true,
@@ -469,15 +451,15 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
 /**
  * @returns Whether there is a subscription red dot error.
  */
-function hasSubscriptionRedDotError(): boolean {
-    return getSubscriptionStatus()?.isError ?? false;
+function hasSubscriptionRedDotError(stripeCustomerId: OnyxEntry<StripeCustomerID>): boolean {
+    return getSubscriptionStatus(stripeCustomerId)?.isError ?? false;
 }
 
 /**
  * @returns Whether there is a subscription green dot info.
  */
-function hasSubscriptionGreenDotInfo(): boolean {
-    return getSubscriptionStatus()?.isError === false;
+function hasSubscriptionGreenDotInfo(stripeCustomerId: OnyxEntry<StripeCustomerID>): boolean {
+    return getSubscriptionStatus(stripeCustomerId)?.isError === false;
 }
 
 /**
@@ -500,13 +482,13 @@ function calculateRemainingFreeTrialDays(): number {
  * @param policies - The policies collection.
  * @returns The free trial badge text .
  */
-function getFreeTrialText(policies: OnyxCollection<Policy> | null): string | undefined {
+function getFreeTrialText(policies: OnyxCollection<Policy> | null, introSelected: OnyxEntry<IntroSelected>): string | undefined {
     const ownedPaidPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
     if (isEmptyObject(ownedPaidPolicies)) {
         return undefined;
     }
 
-    if (shouldShowPreTrialBillingBanner()) {
+    if (shouldShowPreTrialBillingBanner(introSelected)) {
         return translateLocal('subscription.billingBanner.preTrial.title');
     }
     if (isUserOnFreeTrial()) {

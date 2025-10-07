@@ -3,7 +3,6 @@ title: Enable and set up Expense Violations
 description: Set up rules for expenses and enable violations
 keywords: [Expensify Classic, violations, expense violations]
 ---
-<div id="expensify-classic" markdown="1">
 
    Expensify automatically detects expense errors or discrepancies as violations that must be corrected. You can also set rules for a workspace that will trigger a violation if the rule is not met. These rules can be set for categories, tags, and even for specific domain groups.
 
@@ -48,13 +47,13 @@ To set up category rules:
 
 If users violate these rules, the violations will be displayed in red on the report.
 
-**Note:** If Delayed Submission is enabled on a workspace, expenses with category violations will not be auto-submitted unless a comment is added to the expense.
+**Note:** If Delay Submission is enabled on a workspace, expenses with category violations will not be auto-submitted unless a comment is added to the expense.
 
 ---
 
 # Make Categories Required
 
-This setting ensures that all expenses must be coded with a category. If a category is not selected, the report will receive a violation, which may prevent submission if **Delayed Submission** is enabled.
+This setting ensures that all expenses must be coded with a category. If a category is not selected, the report will receive a violation, which may prevent submission if **Delay Submission** is enabled.
 
 You can set this up under **Settings > Workspace > [Workspace Name] > Categories**, select **People must categorize expenses**.
 
@@ -100,4 +99,3 @@ GL account numbers are only visible to **Workspace Admins** when part of a Contr
 - An expense is categorized under a category that is not included in the workspace settings.
 - If workspace categories are imported from an accounting system and updated there but not in Expensify, old categories may still be assigned, leading to violations. Re-select the correct category to resolve the issue.
 
-</div>

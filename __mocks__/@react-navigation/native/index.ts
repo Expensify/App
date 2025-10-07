@@ -8,6 +8,7 @@ const realReactNavigation = isJestEnv ? jest.requireActual<typeof ReactNavigatio
 
 const useIsFocused = isJestEnv ? realReactNavigation.useIsFocused : () => true;
 const useTheme = isJestEnv ? realReactNavigation.useTheme : () => ({});
+const useLocale = isJestEnv ? realReactNavigation.useTheme : () => ({});
 
 const {triggerTransitionEnd, addListener} = isJestEnv
     ? createAddListenerMock()
@@ -44,14 +45,14 @@ const useLinkTo = isJestEnv ? realReactNavigation.useLinkTo : () => null;
 const useScrollToTop = isJestEnv ? realReactNavigation.useScrollToTop : () => null;
 const useRoute = isJestEnv ? realReactNavigation.useRoute : () => ({params: {}});
 const useFocusEffect = isJestEnv ? realReactNavigation.useFocusEffect : (callback: () => void) => callback();
-// eslint-disable-next-line @typescript-eslint/naming-convention
-const UNSTABLE_usePreventRemove = isJestEnv ? jest.fn() : () => {};
+const usePreventRemove = isJestEnv ? jest.fn() : () => {};
 
 export {
     // Overridden modules
     useIsFocused,
     useTheme,
     useNavigation,
+    useLocale,
     triggerTransitionEnd,
 
     // Theme modules are left alone
@@ -68,7 +69,7 @@ export {
     useScrollToTop,
     useRoute,
     useFocusEffect,
-    UNSTABLE_usePreventRemove,
+    usePreventRemove,
 };
 
 export type {NativeNavigationMock};

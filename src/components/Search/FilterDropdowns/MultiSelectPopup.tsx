@@ -2,16 +2,16 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
-import MultiSelectListItem from '@components/SelectionList/MultiSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {TranslationPaths} from '@src/languages/types';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 type MultiSelectItem<T> = {
-    translation: TranslationPaths;
+    text: string;
     value: T;
 };
 
@@ -37,15 +37,16 @@ function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, 
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
     const [selectedItems, setSelectedItems] = useState(value);
 
     const listData: ListItem[] = useMemo(() => {
         return items.map((item) => ({
-            text: translate(item.translation),
+            text: item.text,
             keyForList: item.value,
             isSelected: !!selectedItems.find((i) => i.value === item.value),
         }));
-    }, [items, selectedItems, translate]);
+    }, [items, selectedItems]);
 
     const updateSelectedItems = useCallback(
         (item: ListItem) => {
@@ -77,10 +78,10 @@ function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, 
         <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
             {isSmallScreenWidth && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
 
-            <View style={[styles.getSelectionListPopoverHeight(items.length)]}>
+            <View style={[styles.getSelectionListPopoverHeight(items.length, windowHeight, false)]}>
                 <SelectionList
                     shouldSingleExecuteRowSelect
-                    sections={[{data: listData}]}
+                    data={listData}
                     ListItem={MultiSelectListItem}
                     onSelectRow={updateSelectedItems}
                 />

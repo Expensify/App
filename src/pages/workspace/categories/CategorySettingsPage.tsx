@@ -1,7 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Trashcan} from '@components/Icon/Expensicons';
@@ -12,8 +11,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
@@ -37,21 +38,27 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
-type CategorySettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_SETTINGS>;
+type CategorySettingsPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_SETTINGS>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS>;
 
 function CategorySettingsPage({
     route: {
         params: {backTo, policyID, categoryName},
+        name,
     },
     navigation,
 }: CategorySettingsPageProps) {
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
     const policy = usePolicy(policyID);
+    const {environmentURL} = useEnvironment();
 
     const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories ?? {}).find((category) => category.previousCategoryName === categoryName);
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -60,7 +67,12 @@ function CategorySettingsPage({
     const [isCannotDeleteOrDisableLastCategoryModalVisible, setIsCannotDeleteOrDisableLastCategoryModalVisible] = useState(false);
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [policyCategory]);
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
-    const isQuickSettingsFlow = !!backTo;
+    const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS;
+    const {
+        taskReport: setupCategoryTaskReport,
+        taskParentReport: setupCategoryTaskParentReport,
+        isOnboardingTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
 
     const navigateBack = () => {
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
@@ -123,7 +135,16 @@ function CategorySettingsPage({
             setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
             return;
         }
-        setWorkspaceCategoryEnabled(policyID, {[policyCategory.name]: {name: policyCategory.name, enabled: value}});
+        setWorkspaceCategoryEnabled(
+            policyID,
+            {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
+            isSetupCategoryTaskParentReportArchived,
+            setupCategoryTaskReport,
+            setupCategoryTaskParentReport,
+            policyCategories,
+            policyTagLists,
+            allTransactionViolations,
+        );
     };
 
     const navigateToEditCategory = () => {
@@ -133,7 +154,16 @@ function CategorySettingsPage({
     };
 
     const deleteCategory = () => {
-        deleteWorkspaceCategories(policyID, [categoryName]);
+        deleteWorkspaceCategories(
+            policyID,
+            [categoryName],
+            isSetupCategoryTaskParentReportArchived,
+            setupCategoryTaskReport,
+            setupCategoryTaskParentReport,
+            policyTagLists,
+            policyCategories,
+            allTransactionViolations,
+        );
         setDeleteCategoryConfirmModalVisible(false);
         navigateBack();
     };
@@ -184,7 +214,7 @@ function CategorySettingsPage({
                         errors={getLatestErrorMessageField(policyCategory)}
                         pendingAction={policyCategory?.pendingFields?.enabled}
                         errorRowStyles={styles.mh5}
-                        onClose={() => clearCategoryErrors(policyID, categoryName)}
+                        onClose={() => clearCategoryErrors(policyID, categoryName, policyCategories)}
                     >
                         <View style={[styles.mt2, styles.mh5]}>
                             <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -271,9 +301,9 @@ function CategorySettingsPage({
                                             accessibilityLabel={translate('workspace.rules.categoryRules.requireDescription')}
                                             onToggle={() => {
                                                 if (policyCategory.commentHint && areCommentsRequired) {
-                                                    setWorkspaceCategoryDescriptionHint(policyID, categoryName, '');
+                                                    setWorkspaceCategoryDescriptionHint(policyID, categoryName, '', policyCategories);
                                                 }
-                                                setPolicyCategoryDescriptionRequired(policyID, categoryName, !areCommentsRequired);
+                                                setPolicyCategoryDescriptionRequired(policyID, categoryName, !areCommentsRequired, policyCategories);
                                             }}
                                         />
                                     </View>
@@ -298,20 +328,16 @@ function CategorySettingsPage({
                                     Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
                                 }}
                                 shouldShowRightIcon
-                                // disabled={approverDisabled}
+                                disabled={approverDisabled}
+                                helperText={
+                                    approverDisabled
+                                        ? translate('workspace.rules.categoryRules.enableWorkflows', {
+                                              moreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`,
+                                          })
+                                        : undefined
+                                }
+                                shouldParseHelperText
                             />
-                            {approverDisabled && (
-                                <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv2, styles.mh5]}>
-                                    <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.goTo')}</Text>{' '}
-                                    <TextLink
-                                        style={[styles.link, styles.label]}
-                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}
-                                    >
-                                        {translate('workspace.common.moreFeatures')}
-                                    </TextLink>{' '}
-                                    <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.andEnableWorkflows')}</Text>
-                                </Text>
-                            )}
                             {!!policy?.tax?.trackingEnabled && (
                                 <MenuItemWithTopDescription
                                     title={defaultTaxRateText}

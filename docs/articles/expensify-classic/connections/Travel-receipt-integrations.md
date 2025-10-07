@@ -4,7 +4,6 @@ description: Learn how to use pre-built or custom integrations to automatically 
 keywords: [Expensify Classic, travel receipts, integrations, Bolt Work, SpotHero, Grab, KAYAK, email receipts]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Expensify’s receipt integrations allow merchants to automatically send receipts directly to a member’s Expensify account. When a merchant emails a receipt to a member and Cc's **receipts@expensify.com**, Expensify creates a transaction in the account of the email recipient.
 
@@ -59,6 +58,14 @@ Expensify offers pre-built integrations with **Bolt Work, SpotHero, Grab, and KA
 9. Select **Expensify**, then tap **Save**.
 
 **Note:** When booking a trip, select **business** instead of **personal** to ensure the receipt is sent to Expensify.
+
+---
+
+## Delta for Business
+
+1. Log in to your [Delta Business](https://businessmanagement.delta.com/agentlogin.html) Admin account.
+2. Go to Settings > Expense Providers, select Expensify, and follow the instructions listed on page.
+3. Once the connection is established, the status for Expensify on the Expense Providers page will change from Pending to Connected, and all incoming data from Delta Business will be routed to Expensify.  
 
 ---
 
@@ -144,4 +151,3 @@ Yes! You can promote your integration on your **website** and **social media** (
 
 For support, contact **Concierge** by clicking the **green chat icon** in the mobile or web app, or email **concierge@expensify.com**. Our global team is ready to assist you.
 
-</div>

@@ -71,9 +71,7 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                 isVisible={isPickerVisible}
                 onClose={hidePickerModal}
                 onModalHide={hidePickerModal}
-                hideModalContentWhileAnimating
                 shouldEnableNewFocusManagement
-                useNativeDriver
                 onBackdropPress={Navigation.dismissModal}
                 shouldUseModalPaddingStyle={false}
                 shouldHandleNavigationBack

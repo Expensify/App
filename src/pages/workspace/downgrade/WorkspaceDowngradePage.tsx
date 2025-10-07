@@ -1,5 +1,5 @@
 import React, {useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import {InteractionManager} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,6 +9,7 @@ import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCompanyFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -54,13 +55,23 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
         Navigation.dismissModal();
     };
 
+    const dismissModalAndNavigate = (targetPolicyID: string) => {
+        Navigation.dismissModal();
+        Navigation.isNavigationReady().then(() => {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(targetPolicyID));
+            InteractionManager.runAfterInteractions(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(targetPolicyID));
+            });
+        });
+    };
+
     const onMoveToCompanyCardFeeds = () => {
         if (!policyID) {
             return;
         }
+
         setIsDowngradeWarningModalOpen(false);
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID));
+        InteractionManager.runAfterInteractions(() => dismissModalAndNavigate(policyID));
     };
 
     if (!canPerformDowngrade) {

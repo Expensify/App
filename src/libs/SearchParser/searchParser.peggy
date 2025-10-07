@@ -30,7 +30,7 @@
 {
   const defaultValues = {
     type: "expense",
-    status: "all",
+    status: "",
     sortBy: "date",
     sortOrder: "desc",
   };
@@ -43,6 +43,10 @@
   }
 
   function updateDefaultValues(field, value) {
+    if (field === "status" && value === "all") {
+      defaultValues[field] = "";
+      return;
+    }
     defaultValues[field] = value;
   }
 }
@@ -111,44 +115,55 @@ key "key"
   = @(
       date
       / amount
+      / total
       / merchant
       / description
       / reportID
       / keyword
       / in
       / currency
+      / groupCurrency
       / tag
       / category
       / to
       / taxRate
       / cardID
       / from
+      / attendee
       / payer
       / exporter
       / expenseType
+      / withdrawalType
+      / withdrawalID
       / submitted
       / approved
       / paid
       / exported
       / posted
+      / withdrawn
       / feed
       / title
       / assignee
       / createdBy
       / reimbursable
       / billable
+      / action
+      / has
+      / is
+      / purchaseCurrency
+      / purchaseAmount
     )
 
 filterKey
   = k:key {
-      nameOperator = (k === "from" || k === "to");
+      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
       return k;
 }
 
 defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy)
 
 identifier
-  = (","+)? parts:(quotedString / alphanumeric)|1.., ","+| empty:(","+)? {
+  = (","+)? parts:(values / quotedString / alphanumeric)|1.., ","+| empty:(","+)? {
       const value = parts.flat().filter(Boolean).map((word) => {
         if (word.startsWith('"') && word.endsWith('"') && word.length >= 2) {
           return word.slice(1, -1);

@@ -1,5 +1,4 @@
 import React, {useRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import Icon from '@components/Icon';
@@ -8,6 +7,7 @@ import {PaymentHands} from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';

@@ -2,7 +2,6 @@ import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {TextInput} from 'react-native';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -17,8 +16,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {isSafari} from '@libs/Browser';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
@@ -67,7 +66,6 @@ function IOURequestStepWaypoint({
     transaction,
 }: IOURequestStepWaypointProps) {
     const styles = useThemeStyles();
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const navigation = useNavigation();
@@ -204,7 +202,6 @@ function IOURequestStepWaypoint({
                     onBackButtonPress={goBack}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     shouldSetModalVisibility={false}
-                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Trashcan,

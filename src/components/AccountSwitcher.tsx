@@ -1,10 +1,11 @@
+import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,6 +14,7 @@ import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate'
 import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,11 +41,14 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
 
@@ -53,6 +58,8 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
+    const displayName = currentUserPersonalDetails?.displayName ?? '';
+    const doesDisplayNameContainEmojis = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g')).test(displayName);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER,
@@ -153,7 +160,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             close(() => setShouldShowOfflineModal(true));
                             return;
                         }
-                        connect(email);
+                        connect({email, delegatedAccess: account?.delegatedAccess, credentials});
                     },
                 });
             });
@@ -163,7 +170,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
 
     const hideDelegatorMenu = () => {
         setShouldShowDelegatorMenu(false);
-        clearDelegatorErrors();
+        clearDelegatorErrors({delegatedAccess: account?.delegatedAccess});
     };
 
     return (
@@ -189,12 +196,21 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                         />
                         <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
                             <View style={[styles.flexRow, styles.gap1]}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
-                                >
-                                    {currentUserPersonalDetails?.displayName}
-                                </Text>
+                                {doesDisplayNameContainEmojis ? (
+                                    <Text numberOfLines={1}>
+                                        <TextWithEmojiFragment
+                                            message={displayName}
+                                            style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
+                                        />
+                                    </Text>
+                                ) : (
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
+                                    >
+                                        {formatPhoneNumber(displayName)}
+                                    </Text>
+                                )}
                                 {!!canSwitchAccounts && (
                                     <View style={styles.justifyContentCenter}>
                                         <Icon
@@ -212,12 +228,12 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             >
                                 {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
                             </Text>
-                            {!!account?.isDebugModeEnabled && (
+                            {!!isDebugModeEnabled && (
                                 <Text
                                     style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
                                     numberOfLines={1}
                                 >
-                                    AccountID: {session?.accountID}
+                                    AccountID: {accountID}
                                 </Text>
                             )}
                         </View>

@@ -40,7 +40,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
+import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
@@ -56,24 +56,11 @@ type ConnectionWithLastSyncData = {
 };
 
 let allPolicies: OnyxCollection<Policy>;
-let activePolicyId: OnyxEntry<string>;
-let isLoadingReportData = true;
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
-});
-
-Onyx.connect({
-    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (value) => (activePolicyId = value),
-});
-
-Onyx.connect({
-    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-    initWithStoredValues: false,
-    callback: (value) => (isLoadingReportData = value ?? false),
 });
 
 /**
@@ -88,9 +75,27 @@ function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserL
     );
 }
 
+/**
+ * Filter out the active policies, which will exclude policies with pending deletion
+ * and policies the current user doesn't belong to.
+ * These will be policies that has expense chat enabled.
+ * These are policies that we can use to create reports with in NewDot.
+ */
+function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+    return Object.values(policies ?? {}).filter<Policy>(
+        (policy): policy is Policy =>
+            !!policy &&
+            policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            !!policy.name &&
+            !!policy.id &&
+            !!getPolicyRole(policy, currentUserLogin) &&
+            policy.isPolicyExpenseChatEnabled,
+    );
+}
+
 function getPerDiemCustomUnits(policies: OnyxCollection<Policy> | null, email: string | undefined): Array<{policyID: string; customUnit: CustomUnit}> {
     return (
-        getActivePolicies(policies, email)
+        getActivePoliciesWithExpenseChat(policies, email)
             .map((mappedPolicy) => ({policyID: mappedPolicy.id, customUnit: getPerDiemCustomUnit(mappedPolicy)}))
             // We filter out custom units that are undefine but ts cant' figure it out.
             .filter(({customUnit}) => !isEmptyObject(customUnit) && !!customUnit.enabled) as Array<{policyID: string; customUnit: CustomUnit}>
@@ -185,6 +190,39 @@ function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRate
     return distanceUnit?.rates[customUnitRateID];
 }
 
+function getCustomUnitsForDuplication(policy: Policy, isCustomUnitsOptionSelected: boolean, isPerDiemOptionSelected: boolean): Record<string, CustomUnit> | undefined {
+    const customUnits = policy?.customUnits;
+    if ((!isCustomUnitsOptionSelected && !isPerDiemOptionSelected) || !customUnits || Object.keys(customUnits).length === 0) {
+        return undefined;
+    }
+
+    if (isCustomUnitsOptionSelected && isPerDiemOptionSelected) {
+        return customUnits;
+    }
+
+    if (isCustomUnitsOptionSelected) {
+        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+        if (!distanceCustomUnit) {
+            return undefined;
+        }
+        return {[distanceCustomUnit.customUnitID]: distanceCustomUnit};
+    }
+
+    const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
+    if (!perDiemUnit) {
+        return undefined;
+    }
+    return {[perDiemUnit.customUnitID]: perDiemUnit};
+}
+
+/**
+ * Retrieves custom unit rate object from the given customUnitRateID
+ */
+function getPerDiemRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string): Rate | undefined {
+    const perDiemUnit = getPerDiemCustomUnit(policy);
+    return perDiemUnit?.rates[customUnitRateID];
+}
+
 function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => string, withDecimals?: boolean): string {
     const numValue = getNumericValue(value, toLocaleDigit);
     if (Number.isNaN(numValue)) {
@@ -221,7 +259,7 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
     return undefined;
 }
 
-function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentUserLogin: string | undefined) {
+function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentUserLogin: string | undefined): string | undefined {
     if (policy?.role) {
         return policy.role;
     }
@@ -254,8 +292,45 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePoli
     );
 }
 
-function isPolicyMember(currentUserLogin: string | undefined, policyID: string | undefined): boolean {
-    return !!currentUserLogin && !!policyID && !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList?.[currentUserLogin];
+/**
+ * Checks if a specific user is a member of the policy.
+ */
+function isPolicyMember(policy: OnyxEntry<Policy>, userLogin: string | undefined): boolean {
+    return !!policy && !!userLogin && !!policy.employeeList?.[userLogin];
+}
+
+function isPolicyMemberWithoutPendingDelete(currentUserLogin: string | undefined, policy: OnyxEntry<Policy>): boolean {
+    if (!currentUserLogin || !policy?.id) {
+        return false;
+    }
+
+    const policyEmployee = policy?.employeeList?.[currentUserLogin];
+    return !!policyEmployee && policyEmployee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
+function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean {
+    if (!policy) {
+        return false;
+    }
+
+    const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
+    const isReimburser = policy.reimburser === currentUserLogin;
+
+    if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+        return policy.reimburser ? isReimburser : isAdmin;
+    }
+
+    if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+        return isAdmin;
+    }
+
+    return false;
+}
+
+function getUberConnectionErrorDirectlyFromPolicy(policy: OnyxEntry<Policy>) {
+    const receiptUber = policy?.receiptPartners?.uber;
+
+    return !!receiptUber?.error;
 }
 
 function isExpensifyTeam(email: string | undefined): boolean {
@@ -279,12 +354,8 @@ const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: strin
 const isPolicyAuditor = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean =>
     (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.AUDITOR;
 
-const isPolicyEmployee = (policyID: string | undefined, policies: OnyxCollection<Policy>): boolean => {
-    if (!policyID) {
-        return false;
-    }
-
-    return Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
+const isPolicyEmployee = (policyID: string | undefined, policy: OnyxEntry<Policy>): boolean => {
+    return !!policyID && policyID === policy?.id;
 };
 
 /**
@@ -390,6 +461,23 @@ function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number):
     );
 }
 
+/**
+ * Gets a tag list of a policy by a tag's orderWeight.
+ */
+function getTagListByOrderWeight(policyTagList: OnyxEntry<PolicyTagLists>, orderWeight: number): ValueOf<PolicyTagLists> {
+    const tagListEmpty = {
+        name: '',
+        required: false,
+        tags: {},
+        orderWeight: 0,
+    };
+    if (isEmptyObject(policyTagList)) {
+        return tagListEmpty;
+    }
+
+    return Object.values(policyTagList).find((tag) => tag.orderWeight === orderWeight) ?? tagListEmpty;
+}
+
 function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
     const uniqueTagNames = new Set<string>();
 
@@ -406,6 +494,23 @@ function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
  */
 function getCleanedTagName(tag: string) {
     return tag?.replace(/\\:/g, CONST.COLON);
+}
+
+/**
+ * Converts a colon-delimited tag string into a comma-separated string, filtering out empty tags.
+ */
+function getCommaSeparatedTagNameWithSanitizedColons(tag: string): string {
+    return getTagArrayFromName(tag)
+        .filter((tagItem) => tagItem !== '')
+        .map(getCleanedTagName)
+        .join(', ');
+}
+
+function getLengthOfTag(tag: string): number {
+    if (!tag) {
+        return 0;
+    }
+    return getTagArrayFromName(tag).length;
 }
 
 /**
@@ -449,7 +554,7 @@ function isPaidGroupPolicy(policy: OnyxInputOrEntry<Policy> | SearchPolicy): boo
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
-function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUserAccountID: number): Policy[] {
+function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUserAccountID: number | undefined): Policy[] {
     return Object.values(policies ?? {}).filter((policy): policy is Policy => isPolicyOwner(policy, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) && isPaidGroupPolicy(policy));
 }
 
@@ -479,6 +584,13 @@ function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Po
  */
 function isInstantSubmitEnabled(policy: OnyxInputOrEntry<Policy> | SearchPolicy): boolean {
     return policy?.autoReporting === true && policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
+}
+
+/**
+ * Checks if policy's scheduled submit / auto reporting frequency is not "instant".
+ */
+function isDelayedSubmissionEnabled(policy: OnyxInputOrEntry<Policy> | SearchPolicy): boolean {
+    return policy?.autoReporting === true && policy?.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
 }
 
 /**
@@ -520,14 +632,27 @@ function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): bool
 }
 
 /**
- * Whether the policy has active accounting integration connections
+ * Whether the policy has active accounting integration connections.
+ * `getCurrentConnectionName` only returns connections supported in NewDot.
+ * `hasSupportedOnlyOnOldDotIntegration` detects connections that are supported only on OldDot.
  */
 function hasAccountingConnections(policy: OnyxEntry<Policy>) {
-    return !isEmptyObject(policy?.connections);
+    return !!getCurrentConnectionName(policy) || hasSupportedOnlyOnOldDotIntegration(policy);
 }
 
 function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pick<Policy, 'employeeList'>>, currentPolicyID?: string, currentUserAccountID?: number) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${currentPolicyID}`] ?? null;
+    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
+    return Object.values(policyMemberEmailsToAccountIDs)
+        .map((policyMemberAccountID) => Number(policyMemberAccountID))
+        .filter((policyMemberAccountID) => policyMemberAccountID !== currentUserAccountID);
+}
+
+function getPolicyEmployeeAccountIDs(policy: OnyxEntry<Pick<Policy, 'employeeList'>>, currentUserAccountID?: number) {
+    if (!policy) {
+        return [];
+    }
+
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
     return Object.values(policyMemberEmailsToAccountIDs)
         .map((policyMemberAccountID) => Number(policyMemberAccountID))
@@ -556,6 +681,9 @@ function getAllTaxRatesNamesAndKeys(): Record<string, string[]> {
                 allTaxRates[taxRate.name] = [taxRateKey];
                 return;
             }
+            if (allTaxRates[taxRate.name].includes(taxRateKey)) {
+                return;
+            }
             allTaxRates[taxRate.name].push(taxRateKey);
         });
     });
@@ -576,6 +704,9 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) {
         return policy?.[featureName] ? !!policy?.[featureName] : !isEmptyObject(policy?.connections);
     }
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
+        return policy?.receiptPartners?.enabled ?? false;
+    }
 
     return !!policy?.[featureName];
 }
@@ -589,7 +720,8 @@ function getApprovalWorkflow(policy: OnyxEntry<Policy> | SearchPolicy): ValueOf<
 }
 
 function getDefaultApprover(policy: OnyxEntry<Policy> | SearchPolicy): string {
-    return policy?.approver ?? policy?.owner ?? '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return policy?.approver || policy?.owner || '';
 }
 
 function getRuleApprovers(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>) {
@@ -701,6 +833,7 @@ function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
 
 /**
  * Returns the policy of the report
+ * @deprecated Get the data straight from Onyx - This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
  */
 function getPolicy(policyID: string | undefined, policies: OnyxCollection<Policy> = allPolicies): OnyxEntry<Policy> {
     if (!policies || !policyID) {
@@ -738,6 +871,8 @@ function hasPolicyWithXeroConnection(currentUserLogin: string | undefined) {
 
 /** Whether the user can send invoice from the workspace */
 function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     return policy?.areInvoicesEnabled ?? false;
 }
@@ -745,7 +880,7 @@ function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
 /** Whether the user can submit per diem expense from the workspace */
 function canSubmitPerDiemExpenseFromWorkspace(policy: OnyxEntry<Policy>): boolean {
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
-    return !isEmptyObject(perDiemCustomUnit) && !!perDiemCustomUnit?.enabled;
+    return !!policy?.isPolicyExpenseChatEnabled && !isEmptyObject(perDiemCustomUnit) && !!perDiemCustomUnit?.enabled;
 }
 
 /** Whether the user can send invoice */
@@ -1009,6 +1144,7 @@ function getNetSuiteImportCustomFieldLabel(
     policy: Policy | undefined,
     importField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>,
     translate: LocaleContextProps['translate'],
+    localeCompare: LocaleContextProps['localeCompare'],
 ): string | undefined {
     const fieldData = policy?.connections?.netsuite?.options?.config.syncOptions?.[importField] ?? [];
     if (fieldData.length === 0) {
@@ -1017,7 +1153,7 @@ function getNetSuiteImportCustomFieldLabel(
 
     const mappingSet = new Set(fieldData.map((item) => item.mapping));
     const importedTypes = Array.from(mappingSet)
-        .sort((a, b) => b.localeCompare(a))
+        .sort((a, b) => localeCompare(b, a))
         .map((mapping) => translate(`workspace.netsuite.import.importTypes.${mapping !== '' ? mapping : 'TAG'}.label`).toLowerCase());
     return translate(`workspace.netsuite.import.importCustomFields.label`, {importedTypes});
 }
@@ -1119,14 +1255,22 @@ function getSageIntacctCreditCards(policy?: Policy, selectedAccount?: string): S
  * @param workspace2 Details of the second workspace to be compared.
  * @param selectedWorkspaceID ID of the selected workspace which needs to be at the beginning.
  */
-const sortWorkspacesBySelected = (workspace1: WorkspaceDetails, workspace2: WorkspaceDetails, selectedWorkspaceID: string | undefined): number => {
-    if (workspace1.policyID === selectedWorkspaceID) {
+const sortWorkspacesBySelected = (
+    workspace1: WorkspaceDetails,
+    workspace2: WorkspaceDetails,
+    selectedWorkspaceIDs: string[] | undefined,
+    localeCompare: LocaleContextProps['localeCompare'],
+): number => {
+    if (workspace1.policyID && selectedWorkspaceIDs?.includes(workspace1?.policyID) && workspace2.policyID && selectedWorkspaceIDs?.includes(workspace2.policyID)) {
+        return localeCompare(workspace1.name?.toLowerCase() ?? '', workspace2.name?.toLowerCase() ?? '');
+    }
+    if (workspace1.policyID && selectedWorkspaceIDs?.includes(workspace1?.policyID)) {
         return -1;
     }
-    if (workspace2.policyID === selectedWorkspaceID) {
+    if (workspace2.policyID && selectedWorkspaceIDs?.includes(workspace2.policyID)) {
         return 1;
     }
-    return workspace1.name?.toLowerCase().localeCompare(workspace2.name?.toLowerCase() ?? '') ?? 0;
+    return localeCompare(workspace1.name?.toLowerCase() ?? '', workspace2.name?.toLowerCase() ?? '');
 };
 
 /**
@@ -1153,6 +1297,12 @@ function navigateToExpensifyCardPage(policyID: string) {
     });
 }
 
+function navigateToReceiptPartnersPage(policyID: string) {
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
+    });
+}
+
 function getConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
     return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find((integration) => !!policy?.connections?.[integration]);
 }
@@ -1167,8 +1317,12 @@ function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration
     return (connectedIntegration && policy?.connections?.[connectedIntegration]?.config?.autoSync?.enabled) ?? false;
 }
 
-function hasUnsupportedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
-    return !(accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).some((integration) => !!policy?.connections?.[integration]);
+function hasUnsupportedIntegration(policy: Policy | undefined) {
+    return Object.values(CONST.POLICY.CONNECTIONS.UNSUPPORTED_NAMES).some((integration) => !!(policy?.connections as Record<string, unknown>)?.[integration]);
+}
+
+function hasSupportedOnlyOnOldDotIntegration(policy: Policy | undefined) {
+    return Object.values(CONST.POLICY.CONNECTIONS.SUPPORTED_ONLY_ON_OLDDOT).some((integration) => !!(policy?.connections as Record<string, unknown>)?.[integration]);
 }
 
 function getCurrentConnectionName(policy: Policy | undefined): string | undefined {
@@ -1196,6 +1350,8 @@ function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | und
 }
 
 function getWorkspaceAccountID(policyID?: string) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
 
     if (!policy) {
@@ -1205,6 +1361,8 @@ function getWorkspaceAccountID(policyID?: string) {
 }
 
 function hasVBBA(policyID: string | undefined) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     return !!policy?.achAccount?.bankAccountID;
 }
@@ -1213,7 +1371,8 @@ function getTagApproverRule(policyOrID: string | SearchPolicy | OnyxEntry<Policy
     if (!policyOrID) {
         return;
     }
-
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = typeof policyOrID === 'string' ? getPolicy(policyOrID) : policyOrID;
 
     const approvalRules = policy?.rules?.approvalRules ?? [];
@@ -1234,14 +1393,6 @@ function getDomainNameForPolicy(policyID?: string): string {
 
 function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || !!policy?.errorFields?.approvalMode;
-}
-
-function getAllPoliciesLength() {
-    return Object.keys(allPolicies ?? {}).length;
-}
-
-function getActivePolicy(): OnyxEntry<Policy> {
-    return getPolicy(activePolicyId);
 }
 
 function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY.TYPE>) {
@@ -1276,17 +1427,6 @@ function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Pol
     return Object.values(policies).filter((policy) => isPaidGroupPolicy(policy) && policy?.isPolicyExpenseChatEnabled);
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
-function shouldDisplayPolicyNotFoundPage(policyID: string): boolean {
-    const policy = getPolicy(policyID);
-
-    if (!policy) {
-        return false;
-    }
-
-    return !isPolicyAccessible(policy) && !isLoadingReportData;
-}
-
 function hasOtherControlWorkspaces(currentPolicyID: string) {
     const otherControlWorkspaces = Object.values(allPolicies ?? {}).filter((policy) => policy?.id !== currentPolicyID && isPolicyAdmin(policy) && isControlPolicy(policy));
     return otherControlWorkspaces.length > 0;
@@ -1306,6 +1446,8 @@ function canModifyPlan(policyID?: string) {
     if (!policyID) {
         return ownerPolicies.length > 1;
     }
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
 
     return !!policy && isPolicyAdmin(policy);
@@ -1374,6 +1516,8 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     // A domain name containing a policyID indicates that this is a workspace feed
     const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
     if (policyID) {
+        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+        // eslint-disable-next-line deprecation/deprecation
         const policy = getPolicy(policyID.toUpperCase());
         return policy?.name ?? domainName;
     }
@@ -1394,13 +1538,21 @@ function isPreferredExporter(policy: Policy) {
 }
 
 /**
- * Checks if the user is invited to any workspace.
+ * Checks if the current user is a member of any policyExpenseChatEnabled policy
  */
-function isUserInvitedToWorkspace(): boolean {
-    const currentUserAccountID = getCurrentUserAccountID();
-    return Object.values(allPolicies ?? {}).some(
-        (policy) => policy?.ownerAccountID !== currentUserAccountID && policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE,
-    );
+function isCurrentUserMemberOfAnyPolicy(): boolean {
+    return Object.values(allPolicies ?? {}).some((policy) => policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE);
+}
+
+/**
+ * Whether the given policy member is an admin of the given policy
+ */
+function isMemberPolicyAdmin(policy: OnyxEntry<Policy>, memberEmail: string | undefined): boolean {
+    if (!policy || !memberEmail) {
+        return false;
+    }
+    const admins = getAdminEmployees(policy);
+    return admins.some((admin) => admin.email === memberEmail);
 }
 
 export {
@@ -1410,6 +1562,7 @@ export {
     getPerDiemCustomUnits,
     getAdminEmployees,
     getCleanedTagName,
+    getCommaSeparatedTagNameWithSanitizedColons,
     getConnectedIntegration,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
@@ -1418,11 +1571,14 @@ export {
     getNumericValue,
     isMultiLevelTags,
     getPersonalPolicy,
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     getPolicy,
     getPolicyBrickRoadIndicatorStatus,
     getPolicyEmployeeListByIdWithoutCurrentUser,
     getSortedTagKeys,
     getTagList,
+    getTagListByOrderWeight,
     getTagListName,
     getTagLists,
     getTaxByID,
@@ -1442,6 +1598,7 @@ export {
     isExpensifyTeam,
     isDeletedPolicyEmployee,
     isInstantSubmitEnabled,
+    isDelayedSubmissionEnabled,
     getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
     isPendingDeletePolicy,
@@ -1451,8 +1608,10 @@ export {
     isPolicyAuditor,
     isPolicyEmployee,
     isPolicyFeatureEnabled,
+    getUberConnectionErrorDirectlyFromPolicy,
     isPolicyOwner,
     isPolicyMember,
+    isPolicyPayer,
     arePaymentsEnabled,
     isSubmitAndClose,
     isTaxTrackingEnabled,
@@ -1471,6 +1630,7 @@ export {
     getXeroBankAccounts,
     findSelectedVendorWithDefaultSelect,
     findSelectedBankAccountWithDefaultSelect,
+    navigateToReceiptPartnersPage,
     findSelectedInvoiceItemWithDefaultSelect,
     findSelectedTaxAccountWithDefaultSelect,
     findSelectedSageVendorWithDefaultSelect,
@@ -1495,6 +1655,7 @@ export {
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     getDistanceRateCustomUnitRate,
+    getPerDiemRateCustomUnitRate,
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,
     goBackWhenEnableFeature,
@@ -1524,13 +1685,11 @@ export {
     getTagApproverRule,
     getDomainNameForPolicy,
     hasUnsupportedIntegration,
+    hasSupportedOnlyOnOldDotIntegration,
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
-    getAllPoliciesLength,
-    getActivePolicy,
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
-    shouldDisplayPolicyNotFoundPage,
     hasOtherControlWorkspaces,
     getManagerAccountEmail,
     getRuleApprovers,
@@ -1541,12 +1700,17 @@ export {
     getDescriptionForPolicyDomainCard,
     getManagerAccountID,
     isPreferredExporter,
+    getCustomUnitsForDuplication,
     areAllGroupPoliciesExpenseChatDisabled,
     getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
-    isUserInvitedToWorkspace,
+    isCurrentUserMemberOfAnyPolicy,
     getPolicyRole,
     hasIndependentTags,
+    getLengthOfTag,
+    isPolicyMemberWithoutPendingDelete,
+    getPolicyEmployeeAccountIDs,
+    isMemberPolicyAdmin,
 };
 
 export type {MemberEmailsToAccountIDs};

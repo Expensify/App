@@ -3,7 +3,6 @@ title: Configure Netsuite
 description: Configure NetSuite's export, coding, and advanced settings. 
 keywords: [Expensify Classic, NetSuite settings, configure NetSuite]
 ---
-<div id="expensify-classic" markdown="1">
 
 Correctly configuring NetSuite settings in Expensify ensures seamless integration between your expense management and accounting processes, saving time and reducing manual errors. Aligning your workspace settings with NetSuite’s financial structure can automate data syncs, simplify reporting, and improve overall financial accuracy.
 
@@ -499,4 +498,3 @@ If you have confirmed that your categories are set as Expense Categories in NetS
 - **Custom Segment**: A custom classification field similar to standard NetSuite segments like Department, Class, or Location. Typically used when you need to categorize transactions, records, or GL entries for reporting purposes or to separate financial. (NetSuite automatically creates a Custom Record behind the scenes to power the segment.)
 - **Custom List**: A static dropdown of predefined values used for simple selections, like **Preferred Contact Method.** Custom Lists are lightweight and don't support complex relationships or GL impacts.
 
-</div>

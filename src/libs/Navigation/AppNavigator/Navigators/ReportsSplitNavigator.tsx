@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import usePermissions from '@hooks/usePermissions';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
+import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
@@ -15,7 +16,6 @@ import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 const loadReportScreen = () => require<ReactComponentModule>('@pages/home/ReportScreen').default;
 const loadSidebarScreen = () => require<ReactComponentModule>('@pages/home/sidebar/BaseSidebarScreen').default;
-
 const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
 
 /**
@@ -37,6 +37,9 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
         // eslint-disable-next-line rulesdir/no-default-id-values
         return initialReport?.reportID ?? '';
     });
+
+    // This hook preloads the screens of adjacent tabs to make changing tabs faster.
+    usePreloadFullScreenNavigators();
 
     return (
         <FreezeWrapper>

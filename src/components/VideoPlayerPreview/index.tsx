@@ -4,12 +4,11 @@ import React, {useEffect, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useCheckIfRouteHasRemainedUnchanged from '@hooks/useCheckIfRouteHasRemainedUnchanged';
-import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -63,12 +62,11 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const [isThumbnail, setIsThumbnail] = useState(true);
     const [measuredDimensions, setMeasuredDimensions] = useState(videoDimensions);
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
-    const {isOnSearch} = useSearchContext();
+    const isOnSearch = useIsOnSearch();
     const navigation = useNavigation();
 
-    const didUserNavigateOutOfReportScreen = useCheckIfRouteHasRemainedUnchanged();
-    // We want to play the video only when the user is on the page where it was rendered
-    const firstRenderRoute = useFirstRenderRoute(didUserNavigateOutOfReportScreen);
+    // We want to play the video only when the user is on the page where it was initially rendered
+    const doesUserRemainOnFirstRenderRoute = useCheckIfRouteHasRemainedUnchanged(videoUrl);
 
     // `onVideoLoaded` is passed to VideoPlayerPreview's `Video` element which is displayed only on web.
     // VideoReadyForDisplayEvent type is lacking srcElement, that's why it's added here
@@ -85,14 +83,15 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
 
     useEffect(() => {
         return navigation.addListener('blur', () => !isOnAttachmentRoute() && setIsThumbnail(true));
-    }, [navigation, firstRenderRoute]);
+    }, [navigation]);
 
     useEffect(() => {
-        if (videoUrl !== currentlyPlayingURL || reportID !== currentRouteReportID || !firstRenderRoute.isFocused) {
+        const isFocused = doesUserRemainOnFirstRenderRoute();
+        if (videoUrl !== currentlyPlayingURL || reportID !== currentRouteReportID || !isFocused) {
             return;
         }
         setIsThumbnail(false);
-    }, [currentlyPlayingURL, currentRouteReportID, updateCurrentURLAndReportID, videoUrl, reportID, firstRenderRoute, isOnSearch]);
+    }, [currentlyPlayingURL, currentRouteReportID, updateCurrentURLAndReportID, videoUrl, reportID, doesUserRemainOnFirstRenderRoute, isOnSearch]);
 
     return (
         <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>

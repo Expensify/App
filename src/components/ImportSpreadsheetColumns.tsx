@@ -1,8 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setContainsHeader} from '@libs/actions/ImportSpreadsheet';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -74,14 +74,13 @@ function ImportSpreadsheetColumns({
                         {customHeaderText ?? (
                             <>
                                 {translate('spreadsheet.importDescription')}
-                                <TextLink href={learnMoreLink ?? ''}>{` ${translate('common.learnMore')}`}</TextLink>
+                                <TextLink href={learnMoreLink ?? ''}>{` ${translate('common.learnMore')}`}</TextLink>.
                             </>
                         )}
                     </Text>
                     {shouldShowColumnHeader && (
                         <View style={[styles.mt7, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                            <Text>{translate('spreadsheet.fileContainsHeader')}</Text>
-
+                            <Text style={[styles.flex1, styles.mr2]}>{translate('spreadsheet.fileContainsHeader')}</Text>
                             <Switch
                                 accessibilityLabel={translate('spreadsheet.fileContainsHeader')}
                                 isOn={containsHeader}
@@ -116,6 +115,7 @@ function ImportSpreadsheetColumns({
                         onPress={importFunction}
                         isLoading={isButtonLoading}
                         isDisabled={isOffline}
+                        pressOnEnter
                         success
                         large
                     />

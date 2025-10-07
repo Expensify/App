@@ -1,4 +1,4 @@
-import {PUBLIC_DOMAINS, Str} from 'expensify-common';
+import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -8,10 +8,10 @@ import {clearSignInData, setAccountError} from './actions/Session';
 import Navigation from './Navigation/Navigation';
 import {parsePhoneNumber} from './PhoneNumber';
 
-let countryCodeByIP: number;
+let countryCodeByIPOnyx: number;
 Onyx.connect({
     key: ONYXKEYS.COUNTRY_CODE,
-    callback: (val) => (countryCodeByIP = val ?? 1),
+    callback: (val) => (countryCodeByIPOnyx = val ?? 1),
 });
 
 /**
@@ -28,7 +28,38 @@ function appendCountryCode(phone: string): string {
     if (phone.startsWith('+')) {
         return phone;
     }
-    const phoneWithCountryCode = `+${countryCodeByIP}${phone}`;
+    const phoneWithCountryCode = `+${countryCodeByIPOnyx}${phone}`;
+    if (parsePhoneNumber(phoneWithCountryCode).possible) {
+        return phoneWithCountryCode;
+    }
+    return `+${phone}`;
+}
+
+/**
+ * MIGRATION STEP 1: Temporary function for transitioning away from Onyx.connect to useOnyx
+ *
+ * This function serves as a bridge during our migration from Onyx.connect to useOnyx hooks.
+ * The main appendCountryCode() function currently uses countryCodeByIPOnyx (via Onyx.connect),
+ * but UI components need to use useOnyx hooks for better React integration.
+ *
+ * Migration plan:
+ * 1. Add this function with explicit countryCode parameter (current step)
+ * 2. Update UI components to use useOnyx(ONYXKEYS.COUNTRY_CODE)
+ * 3. Update UI components to call this function with explicit countryCode
+ * 4. Remove Onyx.connect from main appendCountryCode function
+ * 5. Remove this temporary function and update all calls to use main function
+ *
+ * @param phone - Phone number to append country code to
+ * @param countryCode - Country code (e.g., "1" for US, "44" for UK)
+ * @returns Phone number with country code appended
+ *
+ * TODO: Remove this function after completing Onyx.connect deprecation (issue #66329)
+ */
+function appendCountryCodeWithCountryCode(phone: string, countryCode: number): string {
+    if (phone.startsWith('+')) {
+        return phone;
+    }
+    const phoneWithCountryCode = `+${countryCode}${phone}`;
     if (parsePhoneNumber(phoneWithCountryCode).possible) {
         return phoneWithCountryCode;
     }
@@ -40,7 +71,7 @@ function appendCountryCode(phone: string): string {
  */
 function isEmailPublicDomain(email: string): boolean {
     const emailDomain = Str.extractEmailDomain(email).toLowerCase();
-    return (PUBLIC_DOMAINS as readonly string[]).includes(emailDomain);
+    return PUBLIC_DOMAINS_SET.has(emailDomain);
 }
 
 /**
@@ -111,6 +142,7 @@ function formatE164PhoneNumber(phoneNumber: string) {
 export {
     getPhoneNumberWithoutSpecialChars,
     appendCountryCode,
+    appendCountryCodeWithCountryCode,
     isEmailPublicDomain,
     validateNumber,
     getPhoneLogin,

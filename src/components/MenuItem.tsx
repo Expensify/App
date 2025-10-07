@@ -1,8 +1,8 @@
 import type {ImageContentFit} from 'expo-image';
 import type {ReactElement, ReactNode, Ref} from 'react';
-import React, {forwardRef, useContext, useMemo, useRef} from 'react';
+import React, {useContext, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -10,11 +10,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
+import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
 import type {AvatarSource} from '@libs/UserUtils';
+import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
@@ -22,22 +24,23 @@ import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import ActivityIndicator from './ActivityIndicator';
 import Avatar from './Avatar';
 import Badge from './Badge';
+import CopyTextToClipboard from './CopyTextToClipboard';
 import DisplayNames from './DisplayNames';
 import type {DisplayNameWithTooltip} from './DisplayNames/types';
 import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import {MenuItemGroupContext} from './MenuItemGroup';
-import MultipleAvatars from './MultipleAvatars';
+import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
+import ReportActionAvatars from './ReportActionAvatars';
 import SelectCircle from './SelectCircle';
-import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 
@@ -50,9 +53,9 @@ type IconProps = {
 };
 
 type AvatarProps = {
-    iconType?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
+    iconType?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE | typeof CONST.ICON_TYPE_PLAID;
 
-    icon: AvatarSource | IconType[];
+    icon?: AvatarSource | IconType[];
 };
 
 type NoIcon = {
@@ -62,9 +65,8 @@ type NoIcon = {
 };
 
 type MenuItemBaseProps = {
-    /* View ref  */
-    /* eslint-disable-next-line react/no-unused-prop-types */
-    ref?: Ref<View>;
+    /** Reference to the outer element */
+    ref?: PressableRef | Ref<View>;
 
     /** Function to fire when component is pressed */
     onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
@@ -103,7 +105,7 @@ type MenuItemBaseProps = {
     descriptionTextStyle?: StyleProp<TextStyle>;
 
     /** The fill color to pass into the icon. */
-    iconFill?: string;
+    iconFill?: string | ((isHovered: boolean) => string);
 
     /** Secondary icon to display on the left side of component, right of the icon */
     secondaryIcon?: IconAsset;
@@ -224,18 +226,6 @@ type MenuItemBaseProps = {
     /** Prop to represent the size of the avatar images to be shown */
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
-    /** Avatars to show on the right of the menu item */
-    floatRightAvatars?: IconType[];
-
-    /** Prop to represent the size of the float right avatar images to be shown */
-    floatRightAvatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
-
-    /** Whether the secondary right avatar should show as a subscript */
-    shouldShowSubscriptRightAvatar?: boolean;
-
-    /** Whether the secondary avatar should show as a subscript */
-    shouldShowSubscriptAvatar?: boolean;
-
     /** Affects avatar size  */
     viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -265,6 +255,10 @@ type MenuItemBaseProps = {
 
     /** Should we remove the hover background color of the menu item */
     shouldRemoveHoverBackground?: boolean;
+
+    rightIconAccountID?: number | string;
+
+    iconAccountID?: number;
 
     /** Should we use default cursor for disabled content */
     shouldUseDefaultCursorWhenDisabled?: boolean;
@@ -373,8 +367,23 @@ type MenuItemBaseProps = {
     /** Whether to teleport the portal to the modal layer */
     shouldTeleportPortalToModalLayer?: boolean;
 
-    /** The value to copy on secondary interaction */
+    /** The value to copy in copy to clipboard action. Must be used in conjunction with `copyable=true`. Default value is `title` prop. */
     copyValue?: string;
+
+    /** Should enable copy to clipboard action */
+    copyable?: boolean;
+
+    /** Plaid image for the bank */
+    plaidUrl?: string;
+
+    /** Report ID for the avatar */
+    iconReportID?: string;
+
+    /** Report ID for the avatar on the right */
+    rightIconReportID?: string;
+
+    /** Whether the menu item contains nested submenu items. */
+    hasSubMenuItems?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -387,117 +396,118 @@ const getSubscriptAvatarBackgroundColor = (isHovered: boolean, isPressed: boolea
         return hoveredBackgroundColor;
     }
 };
-function MenuItem(
-    {
-        interactive = true,
-        onPress,
-        badgeText,
-        style,
-        wrapperStyle,
-        titleWrapperStyle,
-        outerWrapperStyle,
-        containerStyle,
-        titleStyle,
-        labelStyle,
-        descriptionTextStyle,
-        badgeStyle,
-        viewMode = CONST.OPTION_MODE.DEFAULT,
-        numberOfLinesTitle = 1,
-        numberOfLinesDescription = 2,
-        icon,
-        iconFill,
-        secondaryIcon,
-        secondaryIconFill,
-        iconType = CONST.ICON_TYPE_ICON,
-        isSecondaryIconHoverable = false,
-        iconWidth,
-        iconHeight,
-        iconStyles,
-        fallbackIcon = Expensicons.FallbackAvatar,
-        shouldShowTitleIcon = false,
-        titleIcon,
-        shouldShowRightIcon = false,
-        iconRight = Expensicons.ArrowRight,
-        furtherDetailsIcon,
-        furtherDetails,
-        furtherDetailsNumberOfLines = 2,
-        furtherDetailsStyle,
-        furtherDetailsComponent,
-        description,
-        helperText,
-        helperTextStyle,
-        errorText,
-        errorTextStyle,
-        shouldShowRedDotIndicator,
-        hintText,
-        success = false,
-        focused = false,
-        disabled = false,
-        title,
-        titleComponent,
-        titleContainerStyle,
-        subtitle,
-        shouldShowBasicTitle,
-        label,
-        shouldTruncateTitle = false,
-        characterLimit = 200,
-        isLabelHoverable = true,
-        rightLabel,
-        shouldShowSelectedState = false,
-        isSelected = false,
-        shouldStackHorizontally = false,
-        shouldShowDescriptionOnTop = false,
-        shouldShowRightComponent = false,
-        rightComponent,
-        floatRightAvatars = [],
-        floatRightAvatarSize,
-        shouldShowSubscriptRightAvatar = false,
-        shouldShowSubscriptAvatar: shouldShowSubscriptAvatarProp = false,
-        avatarSize = CONST.AVATAR_SIZE.DEFAULT,
-        isSmallAvatarSubscriptMenu = false,
-        brickRoadIndicator,
-        shouldRenderAsHTML = false,
-        shouldEscapeText = undefined,
-        shouldGreyOutWhenDisabled = true,
-        shouldRemoveBackground = false,
-        shouldRemoveHoverBackground = false,
-        shouldUseDefaultCursorWhenDisabled = false,
-        shouldShowLoadingSpinnerIcon = false,
-        isAnonymousAction = false,
-        shouldBlockSelection = false,
-        shouldParseTitle = false,
-        shouldParseHelperText = false,
-        shouldRenderHintAsHTML = false,
-        shouldRenderErrorAsHTML = false,
-        excludedMarkdownRules = [],
-        shouldCheckActionAllowedOnPress = true,
-        onSecondaryInteraction,
-        titleWithTooltips,
-        displayInDefaultIconColor = false,
-        contentFit = 'cover',
-        isPaneMenu = true,
-        shouldPutLeftPaddingWhenNoIcon = false,
-        onFocus,
-        onBlur,
-        avatarID,
-        shouldRenderTooltip = false,
-        shouldHideOnScroll = false,
-        tooltipAnchorAlignment,
-        tooltipWrapperStyle = {},
-        tooltipShiftHorizontal = 0,
-        tooltipShiftVertical = 0,
-        renderTooltipContent,
-        onEducationTooltipPress,
-        additionalIconStyles,
-        shouldShowSelectedItemCheck = false,
-        shouldIconUseAutoWidthStyle = false,
-        shouldBreakWord = false,
-        pressableTestID,
-        shouldTeleportPortalToModalLayer,
-        copyValue,
-    }: MenuItemProps,
-    ref: PressableRef,
-) {
+function MenuItem({
+    interactive = true,
+    onPress,
+    badgeText,
+    style,
+    wrapperStyle,
+    titleWrapperStyle,
+    outerWrapperStyle,
+    containerStyle,
+    titleStyle,
+    labelStyle,
+    descriptionTextStyle,
+    badgeStyle,
+    viewMode = CONST.OPTION_MODE.DEFAULT,
+    numberOfLinesTitle = 1,
+    numberOfLinesDescription = 2,
+    icon,
+    iconFill,
+    secondaryIcon,
+    secondaryIconFill,
+    iconType = CONST.ICON_TYPE_ICON,
+    isSecondaryIconHoverable = false,
+    iconWidth,
+    iconHeight,
+    iconStyles,
+    fallbackIcon = Expensicons.FallbackAvatar,
+    shouldShowTitleIcon = false,
+    titleIcon,
+    rightIconAccountID,
+    iconAccountID,
+    shouldShowRightIcon = false,
+    iconRight = Expensicons.ArrowRight,
+    furtherDetailsIcon,
+    furtherDetails,
+    furtherDetailsNumberOfLines = 2,
+    furtherDetailsStyle,
+    furtherDetailsComponent,
+    description,
+    helperText,
+    helperTextStyle,
+    errorText,
+    errorTextStyle,
+    shouldShowRedDotIndicator,
+    hintText,
+    success = false,
+    iconReportID,
+    focused = false,
+    disabled = false,
+    title,
+    titleComponent,
+    titleContainerStyle,
+    subtitle,
+    shouldShowBasicTitle,
+    label,
+    shouldTruncateTitle = false,
+    characterLimit = 200,
+    isLabelHoverable = true,
+    rightLabel,
+    shouldShowSelectedState = false,
+    isSelected = false,
+    shouldStackHorizontally = false,
+    shouldShowDescriptionOnTop = false,
+    shouldShowRightComponent = false,
+    rightComponent,
+    rightIconReportID,
+    avatarSize = CONST.AVATAR_SIZE.DEFAULT,
+    isSmallAvatarSubscriptMenu = false,
+    brickRoadIndicator,
+    shouldRenderAsHTML = false,
+    shouldEscapeText = undefined,
+    shouldGreyOutWhenDisabled = true,
+    shouldRemoveBackground = false,
+    shouldRemoveHoverBackground = false,
+    shouldUseDefaultCursorWhenDisabled = false,
+    shouldShowLoadingSpinnerIcon = false,
+    isAnonymousAction = false,
+    shouldBlockSelection = false,
+    shouldParseTitle = false,
+    shouldParseHelperText = false,
+    shouldRenderHintAsHTML = false,
+    shouldRenderErrorAsHTML = false,
+    excludedMarkdownRules = [],
+    shouldCheckActionAllowedOnPress = true,
+    onSecondaryInteraction,
+    titleWithTooltips,
+    displayInDefaultIconColor = false,
+    contentFit = 'cover',
+    isPaneMenu = true,
+    shouldPutLeftPaddingWhenNoIcon = false,
+    onFocus,
+    onBlur,
+    avatarID,
+    shouldRenderTooltip = false,
+    shouldHideOnScroll = false,
+    tooltipAnchorAlignment,
+    tooltipWrapperStyle = {},
+    tooltipShiftHorizontal = 0,
+    tooltipShiftVertical = 0,
+    renderTooltipContent,
+    onEducationTooltipPress,
+    additionalIconStyles,
+    shouldShowSelectedItemCheck = false,
+    shouldIconUseAutoWidthStyle = false,
+    shouldBreakWord = false,
+    pressableTestID,
+    shouldTeleportPortalToModalLayer,
+    plaidUrl,
+    copyValue = title,
+    copyable = false,
+    hasSubMenuItems = false,
+    ref,
+}: MenuItemProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -505,12 +515,11 @@ function MenuItem(
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
     const popoverAnchor = useRef<View>(null);
+    const deviceHasHoverSupport = hasHoverSupport();
 
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
-    const fallbackAvatarSize = isCompact ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
-    const firstRightIcon = floatRightAvatars.at(0);
 
     const combinedTitleTextStyle = StyleUtils.combineStyles(
         [
@@ -528,9 +537,7 @@ function MenuItem(
         ],
         titleStyle ?? {},
     );
-    const shouldShowAvatar = !!icon && Array.isArray(icon);
-    const firstIcon = Array.isArray(icon) && !!icon.length ? icon.at(0) : undefined;
-    const shouldShowSubscriptAvatar = shouldShowSubscriptAvatarProp && !!firstIcon;
+
     const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
         styles.textLabelSupporting,
         icon && !Array.isArray(icon) ? styles.ml3 : {},
@@ -596,6 +603,18 @@ function MenuItem(
             );
         }
 
+        const titleContainsTextAndCustomEmoji = containsCustomEmoji(title ?? '') && !containsOnlyCustomEmoji(title ?? '');
+
+        if (title && titleContainsTextAndCustomEmoji) {
+            return (
+                <TextWithEmojiFragment
+                    message={convertToLTR(title) || ''}
+                    style={combinedTitleTextStyle}
+                    alignCustomEmoji
+                />
+            );
+        }
+
         return title ? convertToLTR(title) : '';
     };
 
@@ -634,6 +653,8 @@ function MenuItem(
         onSecondaryInteraction?.(event);
     };
 
+    const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
+
     return (
         <View onBlur={onBlur}>
             {!!label && !isLabelHoverable && (
@@ -659,7 +680,7 @@ function MenuItem(
                                 onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
-                                onSecondaryInteraction={copyValue ? secondaryInteraction : onSecondaryInteraction}
+                                onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}
                                 wrapperStyle={outerWrapperStyle}
                                 activeOpacity={!interactive ? 1 : variables.pressDimValue}
                                 opacityAnimationDuration={0}
@@ -691,32 +712,27 @@ function MenuItem(
                                         <View style={[styles.flexRow]}>
                                             <View style={[styles.flexColumn, styles.flex1]}>
                                                 {!!label && isLabelHoverable && (
-                                                    <View style={[icon ? styles.mb2 : null, labelStyle]}>
+                                                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                                    <View style={[isIDPassed ? styles.mb2 : null, labelStyle]}>
                                                         <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>
                                                             {label}
                                                         </Text>
                                                     </View>
                                                 )}
                                                 <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
-                                                    {shouldShowAvatar && !shouldShowSubscriptAvatar && (
-                                                        <MultipleAvatars
-                                                            isHovered={isHovered}
-                                                            isPressed={pressed}
-                                                            icons={icon as IconType[]}
+                                                    {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
+                                                    {isIDPassed && (
+                                                        <ReportActionAvatars
+                                                            subscriptAvatarBorderColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
+                                                            singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
                                                             size={avatarSize}
-                                                            secondAvatarStyle={[
+                                                            secondaryAvatarContainerStyle={[
                                                                 StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
                                                                 pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.buttonPressedBG) : undefined,
                                                                 isHovered && !pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.border) : undefined,
                                                             ]}
-                                                        />
-                                                    )}
-                                                    {shouldShowAvatar && shouldShowSubscriptAvatar && (
-                                                        <SubscriptAvatar
-                                                            backgroundColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
-                                                            mainAvatar={firstIcon as IconType}
-                                                            secondaryAvatar={(icon as IconType[]).at(1)}
-                                                            size={avatarSize}
+                                                            reportID={iconReportID}
+                                                            accountIDs={iconAccountID ? [iconAccountID] : undefined}
                                                         />
                                                     )}
                                                     {!icon && shouldPutLeftPaddingWhenNoIcon && (
@@ -747,22 +763,22 @@ function MenuItem(
                                                                         width={iconWidth}
                                                                         height={iconHeight}
                                                                         fill={
+                                                                            // eslint-disable-next-line no-nested-ternary
                                                                             displayInDefaultIconColor
                                                                                 ? undefined
-                                                                                : (iconFill ??
-                                                                                  StyleUtils.getIconFillColor(
-                                                                                      getButtonState(focused || isHovered, pressed, success, disabled, interactive),
-                                                                                      true,
-                                                                                      isPaneMenu,
-                                                                                  ))
+                                                                                : typeof iconFill === 'function'
+                                                                                  ? iconFill(isHovered)
+                                                                                  : (iconFill ??
+                                                                                    StyleUtils.getIconFillColor(
+                                                                                        getButtonState(focused || isHovered, pressed, success, disabled, interactive),
+                                                                                        true,
+                                                                                        isPaneMenu,
+                                                                                    ))
                                                                         }
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
                                                                 ) : (
-                                                                    <ActivityIndicator
-                                                                        size="small"
-                                                                        color={theme.textSupporting}
-                                                                    />
+                                                                    <ActivityIndicator color={theme.textSupporting} />
                                                                 ))}
                                                             {!!icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
                                                                 <Avatar
@@ -785,6 +801,7 @@ function MenuItem(
                                                                     type={CONST.ICON_TYPE_AVATAR}
                                                                 />
                                                             )}
+                                                            {iconType === CONST.ICON_TYPE_PLAID && !!plaidUrl && <PlaidCardFeedIcon plaidUrl={plaidUrl} />}
                                                         </View>
                                                     )}
                                                     {!!secondaryIcon && (
@@ -890,26 +907,22 @@ function MenuItem(
                                                         <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[])]}>{subtitle}</Text>
                                                     </View>
                                                 )}
-                                                {floatRightAvatars?.length > 0 && !!firstRightIcon && (
+                                                {(!!rightIconAccountID || !!rightIconReportID) && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : styles.mrn2]}>
-                                                        {shouldShowSubscriptRightAvatar ? (
-                                                            <SubscriptAvatar
-                                                                backgroundColor={isHovered ? theme.activeComponentBG : theme.componentBG}
-                                                                mainAvatar={firstRightIcon}
-                                                                secondaryAvatar={floatRightAvatars.at(1)}
-                                                                size={floatRightAvatarSize ?? fallbackAvatarSize}
-                                                            />
-                                                        ) : (
-                                                            <MultipleAvatars
-                                                                isHovered={isHovered}
-                                                                isPressed={pressed}
-                                                                icons={floatRightAvatars}
-                                                                size={floatRightAvatarSize ?? fallbackAvatarSize}
-                                                                fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
-                                                                shouldStackHorizontally={shouldStackHorizontally}
-                                                                isFocusMode
-                                                            />
-                                                        )}
+                                                        <ReportActionAvatars
+                                                            subscriptAvatarBorderColor={isHovered ? theme.activeComponentBG : theme.componentBG}
+                                                            singleAvatarContainerStyle={[styles.actionAvatar, styles.mr2]}
+                                                            reportID={rightIconReportID}
+                                                            size={CONST.AVATAR_SIZE.SMALL}
+                                                            horizontalStacking={
+                                                                shouldStackHorizontally && {
+                                                                    isHovered,
+                                                                    isPressed: pressed,
+                                                                }
+                                                            }
+                                                            accountIDs={!!rightIconAccountID && Number(rightIconAccountID) > 0 ? [Number(rightIconAccountID)] : undefined}
+                                                            useMidSubscriptSizeForMultipleAvatars
+                                                        />
                                                     </View>
                                                 )}
                                                 {!!brickRoadIndicator && (
@@ -931,11 +944,15 @@ function MenuItem(
                                                             styles.pointerEventsAuto,
                                                             StyleUtils.getMenuItemIconStyle(isCompact),
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
+                                                            hasSubMenuItems && styles.opacitySemiTransparent,
+                                                            hasSubMenuItems && styles.pl6,
                                                         ]}
                                                     >
                                                         <Icon
                                                             src={iconRight}
                                                             fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
+                                                            width={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
+                                                            height={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
                                                         />
                                                     </View>
                                                 )}
@@ -947,6 +964,19 @@ function MenuItem(
                                                         fill={theme.iconSuccessFill}
                                                         additionalStyles={styles.alignSelfCenter}
                                                     />
+                                                )}
+                                                {copyable && deviceHasHoverSupport && !interactive && isHovered && !!copyValue && (
+                                                    <View style={styles.justifyContentCenter}>
+                                                        <CopyTextToClipboard
+                                                            urlToCopy={copyValue}
+                                                            shouldHaveActiveBackground
+                                                            iconHeight={variables.iconSizeExtraSmall}
+                                                            iconWidth={variables.iconSizeExtraSmall}
+                                                            iconStyles={styles.t0}
+                                                            styles={styles.reportActionContextMenuMiniButton}
+                                                            shouldUseButtonBackground
+                                                        />
+                                                    </View>
                                                 )}
                                             </View>
                                         </View>
@@ -990,4 +1020,4 @@ function MenuItem(
 MenuItem.displayName = 'MenuItem';
 
 export type {MenuItemBaseProps, MenuItemProps};
-export default forwardRef(MenuItem);
+export default MenuItem;

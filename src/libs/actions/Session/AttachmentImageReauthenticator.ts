@@ -14,7 +14,9 @@ let timer: NodeJS.Timeout;
 const TIMING_BEFORE_REAUTHENTICATION_MS = 3500; // 3.5s
 
 // We subscribe to network's online/offline status
-Onyx.connect({
+// We do not depend on updates on the UI to check for the offline status
+// So we can use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
@@ -25,7 +27,9 @@ Onyx.connect({
 });
 
 // We subscribe to sessions changes
-Onyx.connect({
+// We do not depend on updates on the UI to call the `deactivate` function
+// So we can use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         if (!value || isSameSession(value) || !active) {
@@ -64,7 +68,7 @@ function tryReauthenticate() {
     if (isOffline || !active) {
         return;
     }
-    reauthenticate()?.catch((error) => {
+    reauthenticate().catch((error) => {
         Log.hmmm('Could not reauthenticate attachment image or receipt', {error});
     });
 }

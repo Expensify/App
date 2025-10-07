@@ -4,15 +4,14 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
-import {Context as SearchContext} from '@components/Search/SearchContext';
-import ReportListItemHeader from '@components/SelectionList/Search/ReportListItemHeader';
-import type {ReportListItemType} from '@components/SelectionList/types';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {SearchContext} from '@components/Search/SearchContext';
+import ReportListItemHeader from '@components/SelectionListWithSections/Search/ReportListItemHeader';
+import type {TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 import createRandomPolicy from '../utils/collections/policies';
-import createRandomReport from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@components/ConfirmedRoute.tsx');
@@ -30,11 +29,11 @@ const mockSearchContext = {
     setSelectedReports: jest.fn(),
     clearSelectedTransactions: jest.fn(),
     setLastSearchType: jest.fn(),
-    setCurrentSearchHash: jest.fn(),
+    setCurrentSearchHashAndKey: jest.fn(),
     setSelectedTransactions: jest.fn(),
     setShouldShowFiltersBarLoading: jest.fn(),
-    setShouldShowExportModeOption: jest.fn(),
-    setExportMode: jest.fn(),
+    shouldShowSelectAllMatchingItems: jest.fn(),
+    selectAllMatchingItems: jest.fn(),
 };
 
 const mockPersonalDetails: Record<string, SearchPersonalDetails> = {
@@ -59,7 +58,12 @@ const mockPersonalDetails: Record<string, SearchPersonalDetails> = {
 };
 
 const mockPolicy = createRandomPolicy(1);
-const createReportListItem = (type: ValueOf<typeof CONST.REPORT.TYPE>, from?: string, to?: string, options: Partial<ReportListItemType> = {}): ReportListItemType => ({
+const createReportListItem = (
+    type: ValueOf<typeof CONST.REPORT.TYPE>,
+    from?: string,
+    to?: string,
+    options: Partial<TransactionReportGroupListItemType> = {},
+): TransactionReportGroupListItemType => ({
     shouldAnimateInHighlight: false,
     action: 'view' as const,
     chatReportID: '123',
@@ -88,17 +92,13 @@ const createReportListItem = (type: ValueOf<typeof CONST.REPORT.TYPE>, from?: st
 });
 
 // Helper function to wrap component with context
-const renderReportListItemHeader = (reportItem: ReportListItemType) => {
-    const mockReport = createRandomReport(Number(reportItem.reportID));
-
+const renderReportListItemHeader = (reportItem: TransactionReportGroupListItemType) => {
     return render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             {/* @ts-expect-error - Disable TypeScript errors to simplify the test */}
             <SearchContext.Provider value={mockSearchContext}>
                 <ReportListItemHeader
-                    report={mockReport}
-                    policy={mockPolicy}
-                    item={reportItem}
+                    report={reportItem}
                     onSelectRow={jest.fn()}
                     onCheckboxPress={jest.fn()}
                     isDisabled={false}
@@ -142,13 +142,13 @@ describe('ReportListItemHeader', () => {
                 expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
             });
 
-            it('should only display submitter if submitter and recipient are the same', async () => {
+            it('should display submitter and receiver, even if submitter and recipient are the same', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.IOU, 'john', 'john');
                 renderReportListItemHeader(reportItem);
                 await waitForBatchedUpdates();
 
-                expect(screen.getByText('John Doe')).toBeOnTheScreen();
-                expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
+                expect(screen.getAllByText('John Doe')).toHaveLength(2);
+                expect(screen.getByTestId('ArrowRightLong Icon')).toBeOnTheScreen();
             });
 
             it('should not render anything if neither submitter nor recipient is present', async () => {
@@ -188,13 +188,13 @@ describe('ReportListItemHeader', () => {
                 expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
             });
 
-            it('should only display submitter if submitter and recipient are the same', async () => {
+            it('should display submitter and receiver, even if submitter and recipient are the same', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.EXPENSE, 'john', 'john');
                 renderReportListItemHeader(reportItem);
                 await waitForBatchedUpdates();
 
-                expect(screen.getByText('John Doe')).toBeOnTheScreen();
-                expect(screen.queryByTestId('ArrowRightLong Icon')).not.toBeOnTheScreen();
+                expect(screen.getAllByText('John Doe')).toHaveLength(2);
+                expect(screen.getByTestId('ArrowRightLong Icon')).toBeOnTheScreen();
             });
 
             it('should not render anything if no participants are present', async () => {

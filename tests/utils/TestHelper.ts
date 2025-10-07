@@ -2,8 +2,9 @@ import {fireEvent, screen} from '@testing-library/react-native';
 import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
-import type {ConnectOptions, OnyxKey} from 'react-native-onyx/dist/types';
+import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/types';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
+import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
@@ -14,7 +15,7 @@ import HttpUtils from '@src/libs/HttpUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import appSetup from '@src/setup';
-import type {Response as OnyxResponse, PersonalDetails, Report} from '@src/types/onyx';
+import type {Response as OnyxResponse, PersonalDetails, Report, StripeCustomerID} from '@src/types/onyx';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
@@ -37,6 +38,17 @@ type QueueItem = {
 
 type FormData = {
     entries: () => Array<[string, string | Blob]>;
+};
+
+function formatPhoneNumber(phoneNumber: string) {
+    return formatPhoneNumberWithCountryCode(phoneNumber, 1);
+}
+
+const STRIPE_CUSTOMER_ID: OnyxEntry<StripeCustomerID> = {
+    paymentMethodID: '1',
+    intentsID: '2',
+    currency: 'USD',
+    status: 'authentication_required',
 };
 
 function setupApp() {
@@ -171,7 +183,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                 // Return a Promise that resolves with the mocked response
                 return Promise.resolve(mockedResponse);
             });
-            Session.signIn(password);
+            Session.signIn(password, undefined);
             return waitForBatchedUpdates();
         })
         .then(() => {
@@ -346,6 +358,16 @@ async function navigateToSidebarOption(index: number): Promise<void> {
     await waitForBatchedUpdatesWithAct();
 }
 
+/**
+ * @private
+ * This is a custom collator only for testing purposes.
+ */
+const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
+
+function localeCompare(a: string, b: string): number {
+    return customCollator.compare(a, b);
+}
+
 export type {MockFetch, FormData};
 export {
     assertFormDataMatchesObject,
@@ -363,4 +385,7 @@ export {
     navigateToSidebarOption,
     getOnyxData,
     getNavigateToChatHintRegex,
+    formatPhoneNumber,
+    localeCompare,
+    STRIPE_CUSTOMER_ID,
 };

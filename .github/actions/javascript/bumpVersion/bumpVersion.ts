@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
-import bumpVersion from '@scripts/bumpVersion';
 import * as versionUpdater from '@github/libs/versionUpdater';
+import bumpVersion from '@scripts/bumpVersion';
 
 async function run() {
     try {
@@ -10,6 +10,7 @@ async function run() {
         }
         const newVersion = await bumpVersion(semverLevel);
         core.setOutput('NEW_VERSION', newVersion);
+        core.notice(`New version is ${newVersion}`);
     } catch (e) {
         if (e instanceof Error) {
             core.setFailed(e);

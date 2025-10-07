@@ -2,6 +2,7 @@ import AddReaction from '@assets/images/add-reaction.svg';
 import All from '@assets/images/all.svg';
 import Android from '@assets/images/android.svg';
 import Apple from '@assets/images/apple.svg';
+import ArrowCircleClockwise from '@assets/images/arrow-circle-clockwise.svg';
 import ArrowCollapse from '@assets/images/arrow-collapse.svg';
 import ArrowDownLong from '@assets/images/arrow-down-long.svg';
 import ArrowRightLong from '@assets/images/arrow-right-long.svg';
@@ -85,6 +86,7 @@ import Lightbulb from '@assets/images/emojiCategoryIcons/light-bulb.svg';
 import EmptySquare from '@assets/images/empty-square.svg';
 import EmptyStateAttachReceipt from '@assets/images/empty-state__attach-receipt.svg';
 import EmptyStateRoutePending from '@assets/images/emptystate__routepending.svg';
+import EmptyStateSpyPigeon from '@assets/images/emptystate__spy-pigeon.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
@@ -121,6 +123,14 @@ import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
 import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
+import MicrosoftDynamicsExport from '@assets/images/integrationicons/export/microsoft-dynamics-icon.svg';
+import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon.svg';
+import NetSuiteOracleExport from '@assets/images/integrationicons/export/netsuite-oracle-icon.svg';
+import OracleExport from '@assets/images/integrationicons/export/oracle-icon.svg';
+import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
+import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
+import SapExport from '@assets/images/integrationicons/export/sap-icon.svg';
+import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
 import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
 import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg';
@@ -129,6 +139,7 @@ import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
 import SageIntacctSquare from '@assets/images/integrationicons/sage-intacct-icon-square.svg';
 import SapSquare from '@assets/images/integrationicons/sap-icon-square.svg';
+import Uber from '@assets/images/integrationicons/uber.svg';
 import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
@@ -144,12 +155,14 @@ import MagnifyingGlassSpyMouthClosed from '@assets/images/magnifying-glass-spy-m
 import MagnifyingGlass from '@assets/images/magnifying-glass.svg';
 import Mail from '@assets/images/mail.svg';
 import MakeAdmin from '@assets/images/make-admin.svg';
+import Map from '@assets/images/map.svg';
 import Megaphone from '@assets/images/megaphone.svg';
 import Menu from '@assets/images/menu.svg';
 import Meter from '@assets/images/meter.svg';
 import Minus from '@assets/images/minus.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
+import MoneyHourglass from '@assets/images/money-hourglass.svg';
 import MoneySearch from '@assets/images/money-search.svg';
 import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
@@ -159,7 +172,6 @@ import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
 import OfflineCloud from '@assets/images/offline-cloud.svg';
 import Offline from '@assets/images/offline.svg';
-import OldDotWireframe from '@assets/images/olddot-wireframe.svg';
 import Paperclip from '@assets/images/paperclip.svg';
 import Pause from '@assets/images/pause.svg';
 import Paycheck from '@assets/images/paycheck.svg';
@@ -209,15 +221,18 @@ import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
 import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
+import ThumbsDown from '@assets/images/thumbs-down.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
+import TreasureChest from '@assets/images/treasure-chest.svg';
 import Unlock from '@assets/images/unlock.svg';
 import UploadAlt from '@assets/images/upload-alt.svg';
 import Upload from '@assets/images/upload.svg';
 import UserCheck from '@assets/images/user-check.svg';
 import UserEye from '@assets/images/user-eye.svg';
+import UserLock from '@assets/images/user-lock.svg';
 import UserPlus from '@assets/images/user-plus.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
@@ -350,6 +365,7 @@ export {
     MagnifyingGlass,
     Mail,
     MakeAdmin,
+    Map,
     Menu,
     Meter,
     Megaphone,
@@ -358,6 +374,7 @@ export {
     MoneyCircle,
     MoneySearch,
     MoneyWaving,
+    MoneyHourglass,
     Monitor,
     Mute,
     ExpensifyLogoNew,
@@ -366,7 +383,6 @@ export {
     NotificationsAvatar,
     Offline,
     OfflineCloud,
-    OldDotWireframe,
     Paperclip,
     Pause,
     Paycheck,
@@ -380,6 +396,7 @@ export {
     QBOSquare,
     QrCode,
     QuestionMark,
+    TreasureChest,
     Receipt,
     ReceiptPlaceholderPlus,
     ReceiptPlus,
@@ -403,6 +420,7 @@ export {
     ThreeDots,
     Transfer,
     Trashcan,
+    Uber,
     Unlock,
     UpArrow,
     Upload,
@@ -464,4 +482,16 @@ export {
     EmptySquare,
     CheckSquare,
     Minus,
+    ThumbsDown,
+    UserLock,
+    EmptyStateSpyPigeon,
+    MicrosoftDynamicsExport,
+    NetSuiteExport,
+    NetSuiteOracleExport,
+    OracleExport,
+    QBOExport,
+    SageIntacctExport,
+    SapExport,
+    XeroExport,
+    ArrowCircleClockwise,
 };

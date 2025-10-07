@@ -1,11 +1,12 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useContext} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
 import {CompanyCardsEmptyState, CreditCardsNew, HandCard, MagnifyingGlassMoney} from '@components/Icon/Illustrations';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasIssuedExpensifyCard} from '@libs/CardUtils';
@@ -34,13 +35,16 @@ const companyCardFeatures: FeatureListItem[] = [
     },
 ];
 
-function WorkspaceCompanyCardPageEmptyState({policy}: WithPolicyAndFullscreenLoadingProps) {
+type WorkspaceCompanyCardPageEmptyStateProps = {
+    shouldShowGBDisclaimer?: boolean;
+} & WithPolicyAndFullscreenLoadingProps;
+
+function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: WorkspaceCompanyCardPageEmptyStateProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-    const [allWorkspaceCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const [allWorkspaceCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const shouldShowExpensifyCardPromotionBanner = !hasIssuedExpensifyCard(policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID, allWorkspaceCards);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
@@ -49,12 +53,12 @@ function WorkspaceCompanyCardPageEmptyState({policy}: WithPolicyAndFullscreenLoa
             return;
         }
         if (isActingAsDelegate) {
-            setIsNoDelegateAccessMenuVisible(true);
+            showDelegateNoAccessModal();
             return;
         }
         clearAddNewCardFlow();
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policy.id));
-    }, [policy, isActingAsDelegate]);
+    }, [policy, isActingAsDelegate, showDelegateNoAccessModal]);
 
     return (
         <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -73,10 +77,7 @@ function WorkspaceCompanyCardPageEmptyState({policy}: WithPolicyAndFullscreenLoa
                 titleStyles={styles.textHeadlineH1}
                 isButtonDisabled={workspaceAccountID === CONST.DEFAULT_NUMBER_ID}
             />
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
+            {!!shouldShowGBDisclaimer && <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.companyCards.ukRegulation')}</Text>}
         </View>
     );
 }

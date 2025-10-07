@@ -40,6 +40,9 @@ type Session = {
     /** Indicates whether the user is re-authenticating with shortLivedToken */
     isAuthenticatingWithShortLivedToken?: boolean;
 
+    /** Indicates whether the support auth token is used for re-authentication */
+    isSupportAuthTokenUsed?: boolean;
+
     /** Timestamp of the session creation date */
     creationDate?: number;
 };

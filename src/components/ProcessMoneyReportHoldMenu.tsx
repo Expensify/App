@@ -1,11 +1,13 @@
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import {isLinkedTransactionHeld} from '@libs/ReportActionsUtils';
-import * as IOU from '@userActions/IOU';
+import {approveMoneyRequest, payMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -63,21 +65,22 @@ function ProcessMoneyReportHoldMenu({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
 
     const onSubmit = (full: boolean) => {
         if (isApprove) {
             if (startAnimation) {
                 startAnimation();
             }
-            IOU.approveMoneyRequest(moneyRequestReport, full);
-            if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId() ?? '-1', moneyRequestReport?.reportID ?? '')) {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport?.reportID ?? ''));
+            approveMoneyRequest(moneyRequestReport, full);
+            if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId(), moneyRequestReport?.reportID)) {
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport?.reportID));
             }
         } else if (chatReport && paymentType) {
             if (startAnimation) {
                 startAnimation();
             }
-            IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport, full);
+            payMoneyRequest(paymentType, chatReport, moneyRequestReport, introSelected, undefined, full);
         }
         onClose();
     };

@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -8,21 +8,26 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
-import SelectionList from '@components/SelectionList';
-import SplitListItem from '@components/SelectionList/SplitListItem';
-import type {SectionListDataType, SplitListItemType} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
+import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addSplitExpenseField, initDraftSplitExpenseDataForEdit, saveSplitTransactions, updateSplitExpenseAmountField} from '@libs/actions/IOU';
+import {addSplitExpenseField, clearSplitTransactionDraftErrors, initDraftSplitExpenseDataForEdit, saveSplitTransactions, updateSplitExpenseAmountField} from '@libs/actions/IOU';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
+import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getTransactionDetails} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {isCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -35,17 +40,27 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {listRef, viewRef, footerRef, bottomOffset, scrollToFocusedInput, SplitListItem} = useDisplayFocusedInputUnderKeyboard();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+    const [errorMessage, setErrorMessage] = React.useState<string>('');
     const {currentSearchHash} = useSearchContext();
 
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
+    const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
+    const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`, {canBeMissing: true});
+    const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: false});
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: true});
+
+    const policy = usePolicy(report?.policyID);
+    const isSplitAvailable = report && transaction && isSplitAction(report, [transaction], policy);
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
@@ -56,14 +71,28 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isCard = isCardTransaction(transaction);
 
     useEffect(() => {
-        setErrorMessage(null);
+        const errorString = getLatestErrorMessage(draftTransaction ?? {});
+
+        if (errorString) {
+            setErrorMessage(errorString);
+        }
+    }, [draftTransaction, draftTransaction?.errors]);
+
+    useEffect(() => {
+        setErrorMessage('');
     }, [sumOfSplitExpenses, draftTransaction?.comment?.splitExpenses?.length]);
 
     const onAddSplitExpense = useCallback(() => {
+        if (draftTransaction?.errors) {
+            clearSplitTransactionDraftErrors(transactionID);
+        }
         addSplitExpenseField(transaction, draftTransaction);
-    }, [draftTransaction, transaction]);
+    }, [draftTransaction, transaction, transactionID]);
 
     const onSaveSplitExpense = useCallback(() => {
+        if (draftTransaction?.errors) {
+            clearSplitTransactionDraftErrors(transactionID);
+        }
         if (sumOfSplitExpenses > Math.abs(transactionDetailsAmount)) {
             const difference = sumOfSplitExpenses - Math.abs(transactionDetailsAmount);
             setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
@@ -80,8 +109,20 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        saveSplitTransactions(draftTransaction, currentSearchHash);
-    }, [currentSearchHash, draftTransaction, isCard, isPerDiem, sumOfSplitExpenses, transactionDetailsAmount, transactionDetails?.currency, translate]);
+        saveSplitTransactions(draftTransaction, currentSearchHash, policyCategories, expenseReportPolicy);
+    }, [
+        draftTransaction,
+        sumOfSplitExpenses,
+        transactionDetailsAmount,
+        isPerDiem,
+        isCard,
+        currentSearchHash,
+        policyCategories,
+        expenseReportPolicy,
+        transactionID,
+        translate,
+        transactionDetails?.currency,
+    ]);
 
     const onSplitExpenseAmountChange = useCallback(
         (currentItemTransactionID: string, value: number) => {
@@ -147,13 +188,21 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     );
 
     const footerContent = useMemo(() => {
+        const shouldShowWarningMessage = sumOfSplitExpenses < Math.abs(transactionDetailsAmount);
+        const warningMessage = shouldShowWarningMessage
+            ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(Math.abs(transactionDetailsAmount) - sumOfSplitExpenses, transactionDetails.currency)})
+            : '';
         return (
-            <>
-                {!!errorMessage && (
+            <View
+                ref={footerRef}
+                style={styles.pt3}
+            >
+                {(!!errorMessage || !!warningMessage) && (
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
-                        isError
-                        message={errorMessage}
+                        isError={!!errorMessage}
+                        isInfo={!errorMessage && shouldShowWarningMessage}
+                        message={errorMessage || warningMessage}
                     />
                 )}
                 <Button
@@ -165,9 +214,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     pressOnEnter
                     enterKeyEventListenerPriority={1}
                 />
-            </>
+            </View>
         );
-    }, [onSaveSplitExpense, styles.mb2, styles.ph1, styles.w100, translate, errorMessage]);
+    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense, styles.pt3, footerRef]);
 
     const initiallyFocusedOptionKey = useMemo(
         () => sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList,
@@ -181,8 +230,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             keyboardAvoidingViewBehavior="height"
             shouldDismissKeyboardBeforeClose={false}
         >
-            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction)}>
-                <View style={[styles.flex1]}>
+            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
+                <View
+                    ref={viewRef}
+                    style={styles.flex1}
+                    onLayout={() => {
+                        scrollToFocusedInput();
+                    }}
+                >
                     <HeaderWithBackButton
                         title={translate('iou.split')}
                         subtitle={translate('iou.splitExpenseSubtitle', {
@@ -192,12 +247,22 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
                     <SelectionList
+                        /* Keeps input fields visible above keyboard on mobile */
+                        renderScrollComponent={(props) => (
+                            <KeyboardAwareScrollView
+                                // eslint-disable-next-line react/jsx-props-no-spreading
+                                {...props}
+                                bottomOffset={bottomOffset.current} /* Bottom offset ensures inputs stay above the "save" button */
+                            />
+                        )}
                         onSelectRow={(item) => {
                             Keyboard.dismiss();
+                            // eslint-disable-next-line deprecation/deprecation
                             InteractionManager.runAfterInteractions(() => {
                                 initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, reportID);
                             });
                         }}
+                        ref={listRef}
                         headerContent={headerContent}
                         sections={sections}
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
@@ -208,6 +273,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         shouldSingleExecuteRowSelect
                         canSelectMultiple={false}
                         shouldPreventDefaultFocusOnSelectRow
+                        removeClippedSubviews={false}
                     />
                 </View>
             </FullPageNotFoundView>

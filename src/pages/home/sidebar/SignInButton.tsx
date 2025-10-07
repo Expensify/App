@@ -21,7 +21,9 @@ function SignInButton() {
                 <Button
                     success
                     text={translate('common.signIn')}
-                    onPress={() => signOutAndRedirectToSignIn()}
+                    onPress={() => {
+                        signOutAndRedirectToSignIn();
+                    }}
                 />
             </View>
         </PressableWithoutFeedback>

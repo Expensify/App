@@ -1,11 +1,10 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {AppState, Keyboard} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BaseTextInput from './BaseTextInput';
-import type {BaseTextInputProps, BaseTextInputRef} from './BaseTextInput/types';
+import type {BaseTextInputProps} from './BaseTextInput/types';
 
-function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef>) {
+function TextInput({ref, ...props}: BaseTextInputProps) {
     const styles = useThemeStyles();
 
     useEffect(() => {
@@ -35,10 +34,11 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
             ref={ref}
             autoCompleteType={props.autoCompleteType === 'new-password' ? 'password' : props.autoCompleteType}
             inputStyle={[styles.baseTextInput, props.inputStyle]}
+            textInputContainerStyles={[props.textInputContainerStyles]}
         />
     );
 }
 
 TextInput.displayName = 'TextInput';
 
-export default forwardRef(TextInput);
+export default TextInput;

@@ -1,11 +1,10 @@
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
-import {InteractionManager, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
-import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,7 +35,6 @@ type SidebarLinksProps = {
 function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {updateLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useEffect(() => {
@@ -44,12 +42,6 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
     }, []);
 
     useEffect(() => {
-        InteractionManager.runAfterInteractions(() => {
-            requestAnimationFrame(() => {
-                updateLocale();
-            });
-        });
-
         ReportActionContextMenu.hideContextMenu(false);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);

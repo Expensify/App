@@ -1,6 +1,5 @@
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -13,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -84,9 +84,13 @@ function PayAndDowngradePage() {
                 <FullPageOfflineBlockingView>
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pt3]}>
                         <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('workspace.payAndDowngrade.headline')}</Text>
-                        <Text>
-                            {translate('workspace.payAndDowngrade.description1')} <Text style={[styles.textBold]}>{billingDetails?.formattedSubtotal}</Text>
-                        </Text>
+                        <View style={[styles.renderHTML]}>
+                            <RenderHTML
+                                html={translate('workspace.payAndDowngrade.description1', {
+                                    formattedAmount: billingDetails?.formattedSubtotal ?? '',
+                                })}
+                            />
+                        </View>
                         <Text style={[styles.mb5]}>
                             {translate('workspace.payAndDowngrade.description2', {
                                 date: billingDetails?.billingMonth ?? '',

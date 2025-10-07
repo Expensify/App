@@ -30,7 +30,7 @@ class MainApplication : MultiDexApplication(), ReactApplication {
     override val reactNativeHost: ReactNativeHost = ReactNativeHostWrapper(this, object : DefaultReactNativeHost(this) {
         override fun getUseDeveloperSupport() = BuildConfig.DEBUG
 
-        override fun getPackages(): List<ReactPackage>  = 
+        override fun getPackages(): List<ReactPackage>  =
             PackageList(this).packages.apply {
             // Packages that cannot be autolinked yet can be added manually here, for example:
             // add(MyReactNativePackage());
@@ -54,10 +54,10 @@ class MainApplication : MultiDexApplication(), ReactApplication {
 
     override fun onCreate() {
         super.onCreate()
+        ReactFontManager.getInstance().addCustomFont(this, "Custom Emoji Font", R.font.custom_emoji_font)
         ReactFontManager.getInstance().addCustomFont(this, "Expensify New Kansas", R.font.expensify_new_kansas)
         ReactFontManager.getInstance().addCustomFont(this, "Expensify Neue", R.font.expensify_neue)
         ReactFontManager.getInstance().addCustomFont(this, "Expensify Mono", R.font.expensify_mono)
-
         RNPerformance.getInstance().mark("appCreationStart", false);
 
         if (isOnfidoProcess()) {

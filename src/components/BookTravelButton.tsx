@@ -1,38 +1,39 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
+import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
-import React, {useCallback, useContext, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import React, {useCallback, useEffect, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openTravelDotLink} from '@libs/actions/Link';
-import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
-import Log from '@libs/Log';
+import {cleanupTravelProvisioningSession, requestTravelAccess} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
+import {openTravelDotLink} from '@libs/openTravelDotLink';
 import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import colors from '@styles/theme/colors';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
-import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import {RocketDude} from './Icon/Illustrations';
-import Text from './Text';
-import TextLink from './TextLink';
+import RenderHTML from './RenderHTML';
 
 type BookTravelButtonProps = {
     text: string;
 
     /** Whether to render the error message below the button */
     shouldRenderErrorMessageBelowButton?: boolean;
+
+    /** Function to set the shouldScrollToBottom state */
+    setShouldScrollToBottom?: (shouldScrollToBottom: boolean) => void;
 };
 
 const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
@@ -42,60 +43,55 @@ const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
         Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
         return;
     }
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.TRAVEL_TCS.getRoute(domain)));
+    Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain));
 };
 
-function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: BookTravelButtonProps) {
+function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, setShouldScrollToBottom}: BookTravelButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
+    const {environmentURL} = useEnvironment();
+    const phoneErrorMethodsRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute())}`;
+    const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isUserValidated = account?.validated ?? false;
     const primaryLogin = account?.primaryLogin ?? '';
+    const isLoading = isLoadingOnyxValue(activePolicyIDMetadata);
 
     const policy = usePolicy(activePolicyID);
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
-    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: false});
-    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
+    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
-    const {isBlockedFromSpotnanaTravel, isBetaEnabled} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
     const [isVerificationModalVisible, setVerificationModalVisibility] = useState(false);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const activePolicies = getActivePolicies(policies, currentUserLogin);
     const groupPaidPolicies = activePolicies.filter((activePolicy) => activePolicy.type !== CONST.POLICY.TYPE.PERSONAL && isPaidGroupPolicy(activePolicy));
-    // Flag indicating whether NewDot was launched exclusively for Travel,
-    // e.g., when the user selects "Trips" from the Expensify Classic menu in HybridApp.
-    const [wasNewDotLaunchedJustForTravel] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: false});
 
     const hidePreventionModal = () => setPreventionModalVisibility(false);
     const hideVerificationModal = () => setVerificationModalVisibility(false);
 
+    useEffect(() => {
+        if (!errorMessage) {
+            return;
+        }
+        setShouldScrollToBottom?.(true);
+    }, [errorMessage, setShouldScrollToBottom]);
+
     const bookATrip = useCallback(() => {
         setErrorMessage('');
 
-        if (isBlockedFromSpotnanaTravel) {
+        if (isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL)) {
             setPreventionModalVisibility(true);
             return;
         }
 
         // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
         if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
-            setErrorMessage(
-                <Text style={[styles.flexRow, StyleUtils.getDotIndicatorTextStyles(true)]}>
-                    <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('travel.phoneError.phrase1')}</Text>{' '}
-                    <TextLink
-                        style={[StyleUtils.getDotIndicatorTextStyles(true), styles.link]}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute()))}
-                    >
-                        {translate('travel.phoneError.link')}
-                    </TextLink>
-                    <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('travel.phoneError.phrase2')}</Text>
-                </Text>,
-            );
+            setErrorMessage(<RenderHTML html={translate('travel.phoneError', {phoneErrorMethodsRoute})} />);
             return;
         }
 
@@ -117,26 +113,14 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
 
         const isPolicyProvisioned = policy?.travelSettings?.spotnanaCompanyID ?? policy?.travelSettings?.associatedTravelDomainAccountID;
         if (policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
-            openTravelDotLink(policy?.id)
-                ?.then(() => {
-                    // When a user selects "Trips" in the Expensify Classic menu, the HybridApp opens the ManageTrips page in NewDot.
-                    // The wasNewDotLaunchedJustForTravel flag indicates if NewDot was launched solely for this purpose.
-                    if (!CONFIG.IS_HYBRID_APP || !wasNewDotLaunchedJustForTravel) {
-                        return;
-                    }
-
-                    // Close NewDot if it was opened only for Travel, as its purpose is now fulfilled.
-                    Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
-                    HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
-                    setRootStatusBarEnabled(false);
-                })
-                ?.catch(() => {
-                    setErrorMessage(translate('travel.errorMessage'));
-                });
+            openTravelDotLink(policy?.id);
         } else if (isPolicyProvisioned) {
             navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN);
         } else if (!isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
             setVerificationModalVisibility(true);
+            if (!travelSettings?.lastTravelSignupRequestTime) {
+                requestTravelAccess();
+            }
         }
         // Determine the domain to associate with the workspace during provisioning in Spotnana.
         // - If all admins share the same private domain, the workspace is tied to it automatically.
@@ -154,19 +138,15 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
             Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR.getRoute(Navigation.getActiveRoute()));
         }
     }, [
-        isBlockedFromSpotnanaTravel,
         primaryContactMethod,
         policy,
-        travelSettings?.hasAcceptedTerms,
-        styles.flexRow,
-        styles.link,
-        StyleUtils,
-        translate,
-        wasNewDotLaunchedJustForTravel,
-        setRootStatusBarEnabled,
-        isUserValidated,
         groupPaidPolicies.length,
+        travelSettings?.hasAcceptedTerms,
+        travelSettings?.lastTravelSignupRequestTime,
         isBetaEnabled,
+        translate,
+        isUserValidated,
+        phoneErrorMethodsRoute,
     ]);
 
     return (
@@ -183,6 +163,8 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
                 onPress={bookATrip}
                 accessibilityLabel={translate('travel.bookTravel')}
                 style={styles.w100}
+                isLoading={isLoading}
+                isDisabled={!isLoading && !activePolicyID}
                 success
                 large
             />

@@ -1,5 +1,5 @@
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {PersonalDetailsList, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -11,7 +11,10 @@ type TransactionPreviewStyleType = {
 };
 
 type TransactionPreviewProps = {
-    /** The active IOUReport, used for Onyx subscription */
+    /** All the data of the report collection */
+    allReports: OnyxCollection<Report>;
+
+    /** The active reportID linked to the transaction */
     iouReportID: string | undefined;
 
     /** The associated chatReport */
@@ -65,7 +68,7 @@ type TransactionPreviewProps = {
     reportPreviewAction?: ReportAction;
 
     /** Whether to show payer/receiver data in the preview */
-    shouldShowIOUData?: boolean;
+    shouldShowPayerAndReceiver?: boolean;
 
     /** In case we want to override context menu action */
     contextAction?: OnyxEntry<ReportAction>;
@@ -93,14 +96,18 @@ type TransactionPreviewContentProps = {
     /** Records any errors related to wallet terms. */
     walletTermsErrors: Errors | undefined;
 
-    /** Represents the IOU report entry from Onyx */
-    iouReport: OnyxEntry<Report>;
+    /** Represents the report linked to the transaction */
+    report: OnyxEntry<Report>;
 
     /** Flag to determine if a transaction involves a bill split among multiple parties. */
     isBillSplit: boolean;
 
     /** Holds the transaction data entry from Onyx */
     transaction: OnyxEntry<Transaction>;
+
+    /** The amount of the transaction saved in the database. This is used to deduce who is the sender and who is the receiver of the money request
+     * In case of Splits the property `transaction` is actually an original transaction (for the whole split) and it does not have the data required to deduce who is the sender */
+    transactionRawAmount: number;
 
     /** Represents the action entry from Onyx */
     action: OnyxEntry<ReportAction>;
@@ -130,7 +137,7 @@ type TransactionPreviewContentProps = {
     reportPreviewAction?: ReportAction;
 
     /** Whether to show payer/receiver data in the preview */
-    shouldShowIOUData?: boolean;
+    shouldShowPayerAndReceiver?: boolean;
 
     /** Is this component used during duplicate review flow */
     isReviewDuplicateTransactionPage?: boolean;

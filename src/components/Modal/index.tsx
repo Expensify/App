@@ -22,13 +22,10 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
 
     const hideModal = () => {
         onModalHide();
-        if ((window.history.state as WindowState)?.shouldGoBack) {
-            window.history.back();
-        }
     };
 
     const handlePopStateRef = useRef(() => {
-        rest.onClose();
+        rest.onClose?.();
     });
 
     const showModal = () => {
@@ -66,6 +63,9 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     const onModalWillHide = () => {
         setStatusBarColor(previousStatusBarColor);
         rest.onModalWillHide?.();
+        if ((window.history.state as WindowState)?.shouldGoBack && shouldHandleNavigationBack) {
+            window.history.back();
+        }
     };
 
     return (
@@ -78,8 +78,6 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
             onModalWillHide={onModalWillHide}
             avoidKeyboard={false}
             fullscreen={fullscreen}
-            useNativeDriver={false}
-            useNativeDriverForBackdrop={false}
             type={type}
         >
             {children}

@@ -1,4 +1,4 @@
-import isEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import isObject from 'lodash/isObject';
 import lodashTransform from 'lodash/transform';
 import React, {forwardRef, Profiler} from 'react';
@@ -17,7 +17,7 @@ import canCapturePerformanceMetrics from './Metrics';
 function diffObject(object: Record<string, unknown>, base: Record<string, unknown>): Record<string, unknown> {
     function changes(obj: Record<string, unknown>, comparisonObject: Record<string, unknown>): Record<string, unknown> {
         return lodashTransform(obj, (result, value, key) => {
-            if (isEqual(value, comparisonObject[key])) {
+            if (deepEqual(value, comparisonObject[key])) {
                 return;
             }
 
@@ -45,6 +45,7 @@ function measureFailSafe(measureName: string, startOrMeasureOptions: string, end
  */
 function measureTTI(endMark?: string): void {
     // Make sure TTI is captured when the app is really usable
+    // eslint-disable-next-line deprecation/deprecation
     InteractionManager.runAfterInteractions(() => {
         requestAnimationFrame(() => {
             measureFailSafe('TTI', 'nativeLaunchStart', endMark);
@@ -197,9 +198,8 @@ type Phase = 'mount' | 'update' | 'nested-update';
  * @param baseDuration estimated time to render the entire subtree without memoization
  * @param startTime when React began rendering this update
  * @param commitTime when React committed this update
- * @param interactions the Set of interactions belonging to this update
  */
-function traceRender(id: string, phase: Phase, actualDuration: number, baseDuration: number, startTime: number, commitTime: number, interactions: Set<unknown>): PerformanceMeasure {
+function traceRender(id: string, phase: Phase, actualDuration: number, baseDuration: number, startTime: number, commitTime: number): PerformanceMeasure {
     return performance.measure(id, {
         start: startTime,
         duration: actualDuration,
@@ -207,7 +207,6 @@ function traceRender(id: string, phase: Phase, actualDuration: number, baseDurat
             phase,
             baseDuration,
             commitTime,
-            interactions,
         },
     });
 }

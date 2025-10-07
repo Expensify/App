@@ -1,10 +1,11 @@
 import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DebugUtils from '@libs/DebugUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -21,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
 import DebugReportActionPreview from './DebugReportActionPreview';
 
 type DebugReportActionPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION>;
@@ -32,10 +34,23 @@ function DebugReportActionPage({
 }: DebugReportActionPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        canEvict: false,
-        selector: (reportActions) => reportActions?.[reportActionID],
-    });
+
+    const getReportActionSelector = useCallback(
+        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
+            return reportActions?.[reportActionID];
+        },
+        [reportActionID],
+    );
+
+    const [reportAction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        {
+            canEvict: false,
+            selector: getReportActionSelector,
+            canBeMissing: true,
+        },
+        [getReportActionSelector],
+    );
     const transactionID = getLinkedTransactionID(reportAction);
 
     const DebugDetailsTab = useCallback(
@@ -50,6 +65,7 @@ function DebugReportActionPage({
                     Navigation.goBack();
                     // We need to wait for navigation animations to finish before deleting an action,
                     // otherwise the user will see a not found page briefly.
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => {
                         Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
                     });

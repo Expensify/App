@@ -1,10 +1,11 @@
 import {useIsFocused} from '@react-navigation/native';
-import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React, {forwardRef} from 'react';
+import type {ComponentType} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import useOnyx from '@hooks/useOnyx';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -45,25 +46,28 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION
     | typeof SCREENS.MONEY_REQUEST.STEP_TIME
     | typeof SCREENS.MONEY_REQUEST.STEP_TIME_EDIT
-    | typeof SCREENS.MONEY_REQUEST.STEP_SUBRATE;
+    | typeof SCREENS.MONEY_REQUEST.STEP_SUBRATE
+    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP
+    | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE
+    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL;
 
 type WithFullTransactionOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithFullTransactionOrNotFoundOnyxProps &
     PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
 
-export default function <TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>, TRef>(
-    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): React.ComponentType<Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps> & RefAttributes<TRef>> {
+export default function <TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>>(
+    WrappedComponent: ComponentType<TProps>,
+): React.ComponentType<Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>> {
     // eslint-disable-next-line rulesdir/no-negated-variables
-    function WithFullTransactionOrNotFound(props: Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>, ref: ForwardedRef<TRef>) {
+    function WithFullTransactionOrNotFound(props: Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>) {
         const {route} = props;
         const transactionID = route.params.transactionID;
         const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
 
-        const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
-        const [transactionDraft, transactionDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+        const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
+        const [transactionDraft, transactionDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
         const isLoadingTransaction = isLoadingOnyxValue(transactionResult, transactionDraftResult);
 
-        const [splitTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+        const [splitTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
         const userType = 'iouType' in route.params && route.params.iouType ? route.params.iouType : CONST.IOU.TYPE.CREATE;
 
@@ -83,14 +87,13 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
                 {...(props as TProps)}
                 transaction={shouldUseTransactionDraft(userAction, userType) ? transactionDraftData : transaction}
                 isLoadingTransaction={isLoadingTransaction}
-                ref={ref}
             />
         );
     }
 
     WithFullTransactionOrNotFound.displayName = `withFullTransactionOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-    return forwardRef(WithFullTransactionOrNotFound);
+    return WithFullTransactionOrNotFound;
 }
 
 export type {WithFullTransactionOrNotFoundProps};

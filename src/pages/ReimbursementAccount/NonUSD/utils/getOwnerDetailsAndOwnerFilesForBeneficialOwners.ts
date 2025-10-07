@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {BeneficialOwnerDataKey, ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 
@@ -47,7 +47,7 @@ function getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys: string[], re
             }
 
             if (fieldName === OWNERSHIP_PERCENTAGE) {
-                ownerDetails[ownerDetailsKey] = `${String(reimbursementAccountDraft?.[ownerDetailsKey])}%`;
+                ownerDetails[ownerDetailsKey] = String(reimbursementAccountDraft?.[ownerDetailsKey]);
                 return;
             }
 

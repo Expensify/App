@@ -1,6 +1,5 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {AttachmentContext} from '@components/AttachmentContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -40,7 +40,7 @@ type NoteListItem = {
 function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNotesListPageProps) {
     const route = useRoute<PlatformStackRouteProp<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.LIST>>();
     const backTo = route.params.backTo;
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const getAttachmentValue = useCallback((item: NoteListItem) => ({reportID: item.reportID, accountID: Number(item.accountID), type: CONST.ATTACHMENT_TYPE.NOTE}), []);
@@ -88,10 +88,7 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
     }, [report, personalDetailsList, sessionAccountID, translate, backTo]);
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={PrivateNotesListPage.displayName}
-        >
+        <ScreenWrapper testID={PrivateNotesListPage.displayName}>
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
                 shouldShowBackButton

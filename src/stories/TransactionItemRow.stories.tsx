@@ -1,7 +1,7 @@
 import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
-import type {ValueOf} from 'type-fest';
 import ScreenWrapper from '@components/ScreenWrapper';
+import type {SearchColumnType} from '@components/Search/types';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
 import TransactionItemRow from '@components/TransactionItemRow';
@@ -30,9 +30,8 @@ type TransactionItemRowProps = {
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
-    shouldShowCheckbox: boolean;
-    columns?: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
-    isParentHovered?: boolean;
+    shouldShowCheckbox?: boolean;
+    columns?: SearchColumnType[];
 };
 
 const story: Meta<typeof TransactionItemRow> = {
@@ -62,9 +61,6 @@ const story: Meta<typeof TransactionItemRow> = {
         shouldShowCheckbox: {
             control: 'boolean',
         },
-        isParentHovered: {
-            control: 'boolean',
-        },
 
         columns: {
             control: {
@@ -79,7 +75,7 @@ const story: Meta<typeof TransactionItemRow> = {
 };
 
 function Template(
-    {transactionItem, shouldUseNarrowLayout, isSelected, shouldShowTooltip, shouldShowCheckbox, columns, isParentHovered}: TransactionItemRowProps,
+    {transactionItem, shouldUseNarrowLayout, isSelected, shouldShowTooltip, shouldShowCheckbox, columns}: TransactionItemRowProps,
     {parameters}: {parameters: {useLightTheme?: boolean}},
 ) {
     const theme = parameters.useLightTheme ? CONST.THEME.LIGHT : CONST.THEME.DARK;
@@ -94,10 +90,11 @@ function Template(
                         isSelected={isSelected}
                         shouldShowTooltip={shouldShowTooltip}
                         dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                        amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                        taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         onCheckboxPress={() => {}}
                         shouldShowCheckbox={shouldShowCheckbox}
                         columns={columns}
-                        isParentHovered={isParentHovered}
                         onButtonPress={() => {}}
                     />
                 </ThemeStylesProvider>

@@ -1,30 +1,30 @@
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
 import {BrokenMagnifyingGlass} from '@components/Icon/Illustrations';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
+import RenderHTML from '@components/RenderHTML';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {getBankName, getCardFeedIcon, getFilteredCardList, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getBankName, getCardFeedIcon, getCustomOrFormattedFeedName, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
 
 type CardSelectionStepProps = {
@@ -39,12 +39,13 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
-    const {environmentURL} = useEnvironment();
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
     const [list] = useCardsList(policyID, feed);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
+    const plaidUrl = getPlaidInstitutionIconUrl(feed);
+    const formattedFeedName = getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames);
 
     const isEditing = assignCard?.isEditing;
     const assigneeDisplayName = getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
@@ -53,12 +54,37 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
 
+    const cardListOptions = Object.entries(filteredCardList).map(([cardNumber, encryptedCardNumber]) => ({
+        keyForList: encryptedCardNumber,
+        value: encryptedCardNumber,
+        text: maskCardNumber(cardNumber, feed),
+        alternateText: lastFourNumbersFromCardName(cardNumber),
+        isSelected: cardSelected === encryptedCardNumber,
+        leftElement: plaidUrl ? (
+            <PlaidCardFeedIcon
+                plaidUrl={plaidUrl}
+                style={styles.mr3}
+            />
+        ) : (
+            <Icon
+                src={getCardFeedIcon(feed, illustrations)}
+                height={variables.cardIconHeight}
+                width={variables.iconSizeExtraLarge}
+                additionalStyles={[styles.mr3, styles.cardIcon]}
+            />
+        ),
+    }));
+
     const handleBackButtonPress = () => {
         if (isEditing) {
             setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 isEditing: false,
             });
+            return;
+        }
+        if (!cardListOptions.length) {
+            Navigation.goBack();
             return;
         }
         setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
@@ -87,22 +113,6 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         });
     };
 
-    const cardListOptions = Object.entries(filteredCardList).map(([cardNumber, encryptedCardNumber]) => ({
-        keyForList: encryptedCardNumber,
-        value: encryptedCardNumber,
-        text: maskCardNumber(cardNumber, feed),
-        alternateText: lastFourNumbersFromCardName(cardNumber),
-        isSelected: cardSelected === encryptedCardNumber,
-        leftElement: (
-            <Icon
-                src={getCardFeedIcon(feed, illustrations)}
-                height={variables.cardIconHeight}
-                width={variables.iconSizeExtraLarge}
-                additionalStyles={[styles.mr3, styles.cardIcon]}
-            />
-        ),
-    }));
-
     const searchedListOptions = useMemo(() => {
         return tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
     }, [searchText, cardListOptions]);
@@ -125,16 +135,9 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                         height={168}
                     />
                     <Text style={[styles.textHeadlineLineHeightXXL, styles.mt3]}>{translate('workspace.companyCards.noActiveCards')}</Text>
-                    <Text style={[styles.textSupporting, styles.ph5, styles.mv3, styles.textAlignCenter]}>
-                        {translate('workspace.companyCards.somethingMightBeBroken')}{' '}
-                        <TextLink
-                            href={`${environmentURL}/${ROUTES.CONCIERGE}`}
-                            style={styles.link}
-                        >
-                            {translate('workspace.companyCards.contactConcierge')}
-                        </TextLink>
-                        .
-                    </Text>
+                    <View style={[styles.renderHTML, styles.flexRow, styles.ph5, styles.mv3]}>
+                        <RenderHTML html={translate('workspace.companyCards.somethingMightBeBroken')} />
+                    </View>
                 </View>
             ) : (
                 <SelectionList
@@ -159,7 +162,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
                                 {translate('workspace.companyCards.chooseCardFor', {
                                     assignee: assigneeDisplayName,
-                                    feed: getBankName(feed),
+                                    feed: plaidUrl && formattedFeedName ? formattedFeedName : getBankName(feed),
                                 })}
                             </Text>
                         </View>

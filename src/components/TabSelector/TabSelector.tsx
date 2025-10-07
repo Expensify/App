@@ -1,9 +1,11 @@
 import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs/lib/typescript/src/types';
-import React, {useEffect, useMemo, useState} from 'react';
+import {TabActions} from '@react-navigation/native';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import useIsResizing from '@hooks/useIsResizing';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,16 +30,25 @@ type TabSelectorProps = MaterialTopTabBarProps & {
 
     /** Function to render the content of the product training tooltip. */
     renderProductTrainingTooltip?: () => React.JSX.Element;
+
+    /** Whether tabs should have equal width */
+    equalWidth?: boolean;
 };
 
 type IconTitleAndTestID = {
-    icon: IconAsset;
+    icon?: IconAsset;
     title: string;
     testID?: string;
 };
 
 function getIconTitleAndTestID(route: string, translate: LocaleContextProps['translate']): IconTitleAndTestID {
     switch (route) {
+        case CONST.TAB.RECEIPT_PARTNERS.ALL:
+            return {title: translate('workspace.receiptPartners.uber.all'), testID: 'all'};
+        case CONST.TAB.RECEIPT_PARTNERS.LINKED:
+            return {title: translate('workspace.receiptPartners.uber.linked'), testID: 'linked'};
+        case CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING:
+            return {title: translate('workspace.receiptPartners.uber.outstanding'), testID: 'outstanding'};
         case CONST.TAB_REQUEST.MANUAL:
             return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'manual'};
         case CONST.TAB_REQUEST.SCAN:
@@ -54,6 +65,10 @@ function getIconTitleAndTestID(route: string, translate: LocaleContextProps['tra
             return {icon: Expensicons.Receipt, title: translate('common.submit'), testID: 'submit'};
         case CONST.TAB_REQUEST.PER_DIEM:
             return {icon: Expensicons.CalendarSolid, title: translate('common.perDiem'), testID: 'perDiem'};
+        case CONST.TAB_REQUEST.DISTANCE_MAP:
+            return {icon: Expensicons.Map, title: translate('tabSelector.map'), testID: 'distanceMap'};
+        case CONST.TAB_REQUEST.DISTANCE_MANUAL:
+            return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'distanceManual'};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }
@@ -68,12 +83,18 @@ function TabSelector({
     shouldShowLabelWhenInactive = true,
     shouldShowProductTrainingTooltip = false,
     renderProductTrainingTooltip,
+    equalWidth = false,
 }: TabSelectorProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: state.routes.length}, (v, i) => i), [state.routes.length]);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
+    const viewRef = useRef<View>(null);
+    const [selectorWidth, setSelectorWidth] = React.useState(0);
+    const [selectorX, setSelectorX] = React.useState(0);
+
+    const isResizing = useIsResizing();
 
     useEffect(() => {
         // It is required to wait transition end to reset affectedAnimatedTabs because tabs style is still animating during transition.
@@ -82,9 +103,35 @@ function TabSelector({
         }, CONST.ANIMATED_TRANSITION);
     }, [defaultAffectedAnimatedTabs, state.index]);
 
+    const measure = useCallback(() => {
+        viewRef.current?.measureInWindow((x, _y, width) => {
+            setSelectorX(x);
+            setSelectorWidth(width);
+        });
+    }, [viewRef]);
+
+    useLayoutEffect(() => {
+        // measure location/width after animation completes
+        setTimeout(() => {
+            measure();
+        }, CONST.TOOLTIP_ANIMATION_DURATION);
+    }, [measure]);
+
+    useEffect(() => {
+        if (isResizing) {
+            return;
+        }
+        // Re-measure when resizing ends
+        // This is necessary to ensure the tooltip is positioned correctly after resizing
+        measure();
+    }, [measure, isResizing]);
+
     return (
         <FocusTrapContainerElement onContainerElementChanged={onFocusTrapContainerElementChanged}>
-            <View style={styles.tabSelector}>
+            <View
+                style={styles.tabSelector}
+                ref={viewRef}
+            >
                 {state.routes.map((route, index) => {
                     const isActive = index === state.index;
                     const activeOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: true, affectedTabs: affectedAnimatedTabs, position, isActive});
@@ -105,8 +152,7 @@ function TabSelector({
                         });
 
                         if (!event.defaultPrevented) {
-                            // The `merge: true` option makes sure that the params inside the tab screen are preserved
-                            navigation.navigate({key: route.key, merge: true});
+                            navigation.dispatch(TabActions.jumpTo(route.name));
                         }
 
                         onTabPress(route.name);
@@ -126,6 +172,9 @@ function TabSelector({
                             shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                             shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                             renderProductTrainingTooltip={renderProductTrainingTooltip}
+                            parentWidth={selectorWidth}
+                            parentX={selectorX}
+                            equalWidth={equalWidth}
                         />
                     );
                 })}

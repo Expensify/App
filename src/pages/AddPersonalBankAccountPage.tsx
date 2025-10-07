@@ -1,22 +1,20 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmationPage from '@components/ConfirmationPage';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {addPersonalBankAccount, clearPersonalBankAccount, validatePlaidSelection} from '@userActions/BankAccounts';
 import {continueSetup} from '@userActions/PaymentMethods';
-import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -26,7 +24,6 @@ function AddPersonalBankAccountPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [selectedPlaidAccountId, setSelectedPlaidAccountId] = useState('');
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: false});
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {canBeMissing: true});
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA, {canBeMissing: true});
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
@@ -54,7 +51,13 @@ function AddPersonalBankAccountPage() {
         const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === selectedPlaidAccountId);
 
         if (selectedPlaidBankAccount) {
-            addPersonalBankAccount(selectedPlaidBankAccount, policyID, source);
+            const bankAccountWithToken = selectedPlaidBankAccount.plaidAccessToken
+                ? selectedPlaidBankAccount
+                : {
+                      ...selectedPlaidBankAccount,
+                      plaidAccessToken: plaidData?.plaidAccessToken ?? '',
+                  };
+            addPersonalBankAccount(bankAccountWithToken, policyID, source);
         }
     }, [plaidData, selectedPlaidAccountId, personalBankAccount]);
 
@@ -83,48 +86,46 @@ function AddPersonalBankAccountPage() {
             shouldShowOfflineIndicator={false}
             testID={AddPersonalBankAccountPage.displayName}
         >
-            <FullPageNotFoundView shouldShow={!isUserValidated}>
-                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                    <HeaderWithBackButton
-                        title={translate('bankAccount.addBankAccount')}
-                        onBackButtonPress={shouldShowSuccess ? exitFlow : Navigation.goBack}
-                    />
-                    {shouldShowSuccess ? (
-                        <ScrollView contentContainerStyle={styles.flexGrow1}>
-                            <ConfirmationPage
-                                heading={translate('addPersonalBankAccountPage.successTitle')}
-                                description={translate('addPersonalBankAccountPage.successMessage')}
-                                shouldShowButton
-                                buttonText={translate('common.continue')}
-                                onButtonPress={() => exitFlow(true)}
-                                containerStyle={styles.h100}
-                            />
-                        </ScrollView>
-                    ) : (
-                        <FormProvider
-                            formID={ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM}
-                            isSubmitButtonVisible={(plaidData?.bankAccounts ?? []).length > 0}
-                            submitButtonText={translate('common.saveAndContinue')}
-                            scrollContextEnabled
-                            onSubmit={submitBankAccountForm}
-                            validate={validatePlaidSelection}
-                            style={[styles.mh5, styles.flex1]}
-                            shouldHideFixErrorsAlert
-                        >
-                            <InputWrapper
-                                inputID={INPUT_IDS.BANK_INFO_STEP.SELECTED_PLAID_ACCOUNT_ID}
-                                InputComponent={AddPlaidBankAccount}
-                                onSelect={setSelectedPlaidAccountId}
-                                text={translate('walletPage.chooseAccountBody')}
-                                plaidData={plaidData}
-                                isDisplayedInWalletFlow
-                                onExitPlaid={Navigation.goBack}
-                                receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
-                                selectedPlaidAccountID={selectedPlaidAccountId}
-                            />
-                        </FormProvider>
-                    )}
-                </DelegateNoAccessWrapper>
+            <FullPageNotFoundView>
+                <HeaderWithBackButton
+                    title={translate('bankAccount.addBankAccount')}
+                    onBackButtonPress={shouldShowSuccess ? exitFlow : Navigation.goBack}
+                />
+                {shouldShowSuccess ? (
+                    <ScrollView contentContainerStyle={styles.flexGrow1}>
+                        <ConfirmationPage
+                            heading={translate('addPersonalBankAccountPage.successTitle')}
+                            description={translate('addPersonalBankAccountPage.successMessage')}
+                            shouldShowButton
+                            buttonText={translate('common.continue')}
+                            onButtonPress={() => exitFlow(true)}
+                            containerStyle={styles.h100}
+                        />
+                    </ScrollView>
+                ) : (
+                    <FormProvider
+                        formID={ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM}
+                        isSubmitButtonVisible={(plaidData?.bankAccounts ?? []).length > 0}
+                        submitButtonText={translate('common.saveAndContinue')}
+                        scrollContextEnabled
+                        onSubmit={submitBankAccountForm}
+                        validate={validatePlaidSelection}
+                        style={[styles.mh5, styles.flex1]}
+                        shouldHideFixErrorsAlert
+                    >
+                        <InputWrapper
+                            inputID={INPUT_IDS.BANK_INFO_STEP.SELECTED_PLAID_ACCOUNT_ID}
+                            InputComponent={AddPlaidBankAccount}
+                            onSelect={setSelectedPlaidAccountId}
+                            text={translate('walletPage.chooseAccountBody')}
+                            plaidData={plaidData}
+                            isDisplayedInWalletFlow
+                            onExitPlaid={Navigation.goBack}
+                            receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
+                            selectedPlaidAccountID={selectedPlaidAccountId}
+                        />
+                    </FormProvider>
+                )}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

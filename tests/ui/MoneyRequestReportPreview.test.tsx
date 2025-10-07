@@ -1,16 +1,15 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
-import {render, screen} from '@testing-library/react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {fireEvent, render, screen} from '@testing-library/react-native';
+import type {OnyxCollection, OnyxEntry, OnyxMergeInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
 import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/MoneyRequestReportPreview/types';
 import ScreenWrapper from '@components/ScreenWrapper';
-import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
@@ -62,16 +61,19 @@ const hasViolations = (reportID: string | undefined, transactionViolations: Onyx
 
 const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = null}: Partial<MoneyRequestReportPreviewProps>) => {
     return render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <OptionsListContextProvider>
                 <ScreenWrapper testID="test">
                     <PortalProvider>
                         <MoneyRequestReportPreview
+                            allReports={{
+                                [`${ONYXKEYS.COLLECTION.REPORT}${mockChatReport.iouReportID}`]: mockChatReport,
+                            }}
+                            policies={{}}
                             policyID={mockChatReport.policyID}
                             action={mockAction}
-                            iouReportID={mockIOUReport.iouReportID}
+                            iouReportID={mockIOUReport.reportID}
                             chatReportID={mockChatReport.chatReportID}
-                            containerStyles={[]}
                             contextMenuAnchor={contextMenuAnchor}
                             checkIfContextMenuActive={() => {}}
                             onPaymentOptionsShow={() => {}}
@@ -94,6 +96,15 @@ const getTransactionDisplayAmountAndHeaderText = (transaction: Transaction) => {
     const transactionHeaderText = `${date} ${CONST.DOT_SEPARATOR} ${cashOrCard}`;
     const transactionDisplayAmount = convertToDisplayString(transaction.amount, transaction.currency);
     return {transactionHeaderText, transactionDisplayAmount};
+};
+
+const setCurrentWidth = () => {
+    fireEvent(screen.getByTestId('MoneyRequestReportPreviewContent-wrapper'), 'layout', {
+        nativeEvent: {layout: {width: 600}},
+    });
+    fireEvent(screen.getByTestId('carouselWidthSetter'), 'layout', {
+        nativeEvent: {layout: {width: 500}},
+    });
 };
 
 const mockSecondTransaction: Transaction = {
@@ -136,7 +147,9 @@ describe('MoneyRequestReportPreview', () => {
     it('renders transaction details and associated report name correctly', async () => {
         renderPage({});
         await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
         await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions).then(waitForBatchedUpdates);
+        await waitForBatchedUpdatesWithAct();
         const {reportName: moneyRequestReportPreviewName = ''} = mockChatReport;
         for (const transaction of arrayOfTransactions) {
             const {transactionDisplayAmount, transactionHeaderText} = getTransactionDisplayAmountAndHeaderText(transaction);
@@ -151,13 +164,110 @@ describe('MoneyRequestReportPreview', () => {
     it('renders RBR for every transaction with violations', async () => {
         renderPage({});
         await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
         await Onyx.multiSet({...mockOnyxTransactions, ...mockOnyxViolations});
+        await waitForBatchedUpdatesWithAct();
         expect(screen.getAllByText(translateLocal('violations.reviewRequired'))).toHaveLength(2);
     });
 
     it('renders a skeleton if the transaction is empty', async () => {
         renderPage({});
         await waitForBatchedUpdatesWithAct();
-        expect(screen.getAllByTestId(TransactionPreviewSkeletonView.displayName)).toHaveLength(2);
+        setCurrentWidth();
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`, {} as OnyxMergeInput<`transactions_${string}`>);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockSecondTransactionID}`, {} as OnyxMergeInput<`transactions_${string}`>);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getAllByTestId('TransactionPreviewSkeletonView')).toHaveLength(2);
+    });
+
+    it('renders Review button when violations exist', async () => {
+        // Mock the canReview function to return true when violations exist
+        const canReviewSpy = jest.spyOn(require('@libs/ReportPreviewActionUtils'), 'canReview').mockReturnValue(true);
+        const getReportPreviewActionSpy = jest.spyOn(require('@libs/ReportPreviewActionUtils'), 'getReportPreviewAction').mockReturnValue(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
+
+        renderPage({});
+        await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
+
+        // Set up an IOU report with violations
+        const reportWithViolations = {
+            ...mockIOUReport,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        };
+
+        await Onyx.multiSet({
+            ...mockOnyxTransactions,
+            ...mockOnyxViolations,
+            [`${ONYXKEYS.COLLECTION.REPORT}${mockIOUReport.reportID}`]: reportWithViolations,
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Verify the Review button is rendered
+        expect(screen.getByText(translateLocal('common.review'))).toBeOnTheScreen();
+
+        // Verify the button has the correct styling (danger icon)
+        const reviewButton = screen.getByText(translateLocal('common.review'));
+        expect(reviewButton).toBeOnTheScreen();
+
+        // Clean up mocks
+        canReviewSpy.mockRestore();
+        getReportPreviewActionSpy.mockRestore();
+    });
+
+    it('does not render Review button when no violations exist', async () => {
+        // Mock the functions to return false/VIEW when no violations
+        const canReviewSpy = jest.spyOn(require('@libs/ReportPreviewActionUtils'), 'canReview').mockReturnValue(false);
+        const getReportPreviewActionSpy = jest.spyOn(require('@libs/ReportPreviewActionUtils'), 'getReportPreviewAction').mockReturnValue(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+
+        renderPage({});
+        await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
+
+        // Set up transactions without violations
+        await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions);
+        await waitForBatchedUpdatesWithAct();
+
+        // Verify the Review button is NOT rendered
+        expect(screen.queryByText(translateLocal('common.review'))).not.toBeOnTheScreen();
+
+        // But View button should be rendered instead
+        expect(screen.getByText(translateLocal('common.view'))).toBeOnTheScreen();
+
+        // Clean up mocks
+        canReviewSpy.mockRestore();
+        getReportPreviewActionSpy.mockRestore();
+    });
+
+    it('Review button can be pressed when violations exist', async () => {
+        // Mock the canReview function to return true
+        const canReviewSpy = jest.spyOn(require('@libs/ReportPreviewActionUtils'), 'canReview').mockReturnValue(true);
+        const getReportPreviewActionSpy = jest.spyOn(require('@libs/ReportPreviewActionUtils'), 'getReportPreviewAction').mockReturnValue(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
+
+        renderPage({});
+        await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
+
+        await Onyx.multiSet({
+            ...mockOnyxTransactions,
+            ...mockOnyxViolations,
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Find and press the Review button
+        const reviewButton = screen.getByText(translateLocal('common.review'));
+        expect(reviewButton).toBeOnTheScreen();
+
+        fireEvent.press(reviewButton);
+
+        // Verify the button remains present after press (basic interaction test)
+        expect(reviewButton).toBeOnTheScreen();
+
+        // Clean up mocks
+        canReviewSpy.mockRestore();
+        getReportPreviewActionSpy.mockRestore();
     });
 });

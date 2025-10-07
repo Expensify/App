@@ -1,20 +1,18 @@
-import React, {forwardRef, useImperativeHandle} from 'react';
-import type {ForwardedRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import React, {useImperativeHandle} from 'react';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useBasePopoverReactionList from '@hooks/useBasePopoverReactionList';
 import type {BasePopoverReactionListProps} from '@hooks/useBasePopoverReactionList/types';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import BaseReactionList from '@pages/home/report/ReactionList/BaseReactionList';
-import type {ReactionListRef} from '@pages/home/ReportScreenContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type PopoverReactionListProps = WithCurrentUserPersonalDetailsProps & BasePopoverReactionListProps;
 
-function BasePopoverReactionList({emojiName, reportActionID, currentUserPersonalDetails}: PopoverReactionListProps, ref: ForwardedRef<Partial<ReactionListRef>>) {
+function BasePopoverReactionList({emojiName, reportActionID, currentUserPersonalDetails, ref}: PopoverReactionListProps) {
     const {preferredLocale} = useLocalize();
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -41,7 +39,6 @@ function BasePopoverReactionList({emojiName, reportActionID, currentUserPersonal
             disableAnimation={false}
             shouldSetModalVisibility={false}
             fullscreen
-            withoutOverlay
             anchorRef={reactionListRef}
         >
             <BaseReactionList
@@ -57,4 +54,4 @@ function BasePopoverReactionList({emojiName, reportActionID, currentUserPersonal
     );
 }
 
-export default withCurrentUserPersonalDetails(forwardRef(BasePopoverReactionList));
+export default withCurrentUserPersonalDetails(BasePopoverReactionList);

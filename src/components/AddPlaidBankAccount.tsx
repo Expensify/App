@@ -1,10 +1,9 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handlePlaidError, openPlaidBankAccountSelector, openPlaidBankLogin, setPlaidEvent} from '@libs/actions/BankAccounts';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -14,6 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PlaidData} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ActivityIndicator from './ActivityIndicator';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import FormHelpMessage from './FormHelpMessage';
 import Icon from './Icon';
@@ -22,15 +22,7 @@ import PlaidLink from './PlaidLink';
 import RadioButtons from './RadioButtons';
 import Text from './Text';
 
-type AddPlaidBankAccountOnyxProps = {
-    /** If the user has been throttled from Plaid */
-    isPlaidDisabled: OnyxEntry<boolean>;
-
-    /** Plaid SDK token to use to initialize the widget */
-    plaidLinkToken: OnyxEntry<string>;
-};
-
-type AddPlaidBankAccountProps = AddPlaidBankAccountOnyxProps & {
+type AddPlaidBankAccountProps = {
     /** Contains plaid data */
     plaidData: OnyxEntry<PlaidData>;
 
@@ -71,7 +63,6 @@ type AddPlaidBankAccountProps = AddPlaidBankAccountOnyxProps & {
 function AddPlaidBankAccount({
     plaidData,
     selectedPlaidAccountID = '',
-    plaidLinkToken,
     onExitPlaid = () => {},
     onSelect = () => {},
     text = '',
@@ -79,21 +70,20 @@ function AddPlaidBankAccount({
     plaidLinkOAuthToken = '',
     bankAccountID = 0,
     allowDebit = false,
-    isPlaidDisabled,
     errorText = '',
     onInputChange = () => {},
     isDisplayedInWalletFlow = false,
 }: AddPlaidBankAccountProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const plaidBankAccounts = plaidData?.bankAccounts ?? [];
     const defaultSelectedPlaidAccount = plaidBankAccounts.find((account) => account.plaidAccountID === selectedPlaidAccountID);
-    const defaultSelectedPlaidAccountID = defaultSelectedPlaidAccount?.plaidAccountID ?? '-1';
+    const defaultSelectedPlaidAccountID = defaultSelectedPlaidAccount?.plaidAccountID;
     const defaultSelectedPlaidAccountMask = plaidBankAccounts.find((account) => account.plaidAccountID === selectedPlaidAccountID)?.mask ?? '';
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
     const previousNetworkState = useRef<boolean | undefined>(undefined);
     const [selectedPlaidAccountMask, setSelectedPlaidAccountMask] = useState(defaultSelectedPlaidAccountMask);
-
+    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN, {canBeMissing: true, initWithStoredValues: false});
+    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {canBeMissing: true});
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
@@ -239,10 +229,7 @@ function AddPlaidBankAccount({
         if (plaidData?.isLoading) {
             return (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <ActivityIndicator
-                        color={theme.spinner}
-                        size="large"
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             );
         }
@@ -287,12 +274,4 @@ function AddPlaidBankAccount({
 
 AddPlaidBankAccount.displayName = 'AddPlaidBankAccount';
 
-export default withOnyx<AddPlaidBankAccountProps, AddPlaidBankAccountOnyxProps>({
-    plaidLinkToken: {
-        key: ONYXKEYS.PLAID_LINK_TOKEN,
-        initWithStoredValues: false,
-    },
-    isPlaidDisabled: {
-        key: ONYXKEYS.IS_PLAID_DISABLED,
-    },
-})(AddPlaidBankAccount);
+export default AddPlaidBankAccount;

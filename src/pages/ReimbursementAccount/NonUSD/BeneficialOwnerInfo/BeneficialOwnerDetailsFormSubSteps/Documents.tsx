@@ -1,17 +1,17 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import type {FileObject} from '@components/AttachmentModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import UploadFile from '@components/UploadFile';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import getNeededDocumentsStatusForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForBeneficialOwner';
 import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -39,10 +39,10 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
     const beneficialOwnerCountry = String(reimbursementAccountDraft?.[beneficialOwnerCountryInputID] ?? '');
     const isDocumentNeededStatus = getNeededDocumentsStatusForBeneficialOwner(currency, countryStepCountryValue, beneficialOwnerCountry);
     const defaultValues: Record<string, FileObject[]> = {
-        [proofOfOwnershipInputID]: Array.isArray(reimbursementAccountDraft?.[proofOfOwnershipInputID]) ? ((reimbursementAccountDraft?.[proofOfOwnershipInputID] as FileObject[]) ?? []) : [],
-        [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? ((reimbursementAccountDraft?.[copyOfIDInputID] as FileObject[]) ?? []) : [],
-        [addressProofInputID]: Array.isArray(reimbursementAccountDraft?.[addressProofInputID]) ? ((reimbursementAccountDraft?.[addressProofInputID] as FileObject[]) ?? []) : [],
-        [codiceFiscaleInputID]: Array.isArray(reimbursementAccountDraft?.[codiceFiscaleInputID]) ? ((reimbursementAccountDraft?.[codiceFiscaleInputID] as FileObject[]) ?? []) : [],
+        [proofOfOwnershipInputID]: Array.isArray(reimbursementAccountDraft?.[proofOfOwnershipInputID]) ? (reimbursementAccountDraft?.[proofOfOwnershipInputID] ?? []) : [],
+        [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? (reimbursementAccountDraft?.[copyOfIDInputID] ?? []) : [],
+        [addressProofInputID]: Array.isArray(reimbursementAccountDraft?.[addressProofInputID]) ? (reimbursementAccountDraft?.[addressProofInputID] ?? []) : [],
+        [codiceFiscaleInputID]: Array.isArray(reimbursementAccountDraft?.[codiceFiscaleInputID]) ? (reimbursementAccountDraft?.[codiceFiscaleInputID] ?? []) : [],
     };
 
     const [uploadedProofOfOwnership, setUploadedProofOfOwnership] = useState<FileObject[]>(defaultValues[proofOfOwnershipInputID]);

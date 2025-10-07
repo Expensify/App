@@ -140,7 +140,7 @@ beforeAll(() => {
     GithubUtils.internalOctokit = mockOctokit as unknown as InternalOctokit;
 
     // Mock GitUtils
-    GitUtils.getPullRequestsMergedBetween = jest.fn();
+    GitUtils.getPullRequestsDeployedBetween = jest.fn();
 
     jest.mock('../../.github/libs/ActionUtils', () => ({
         getJSONInput: jest.fn().mockImplementation((name: string, defaultValue: string) => {
@@ -284,9 +284,7 @@ platform | result
 🖥 desktop 🖥|success ✅
 🕸 web 🕸|success ✅
 🤖 android 🤖|success ✅
-🍎 iOS 🍎|success ✅
-
-@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.`,
+🍎 iOS 🍎|success ✅`,
             issue_number: 3,
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
