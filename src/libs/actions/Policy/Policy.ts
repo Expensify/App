@@ -1333,8 +1333,7 @@ function createPolicyExpenseChats(
                         createChat: null,
                     },
                     participants: {
-                        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-                        [accountID]: allPersonalDetails && allPersonalDetails[accountID] ? {} : null,
+                        [accountID]: allPersonalDetails?.[accountID] ? {} : null,
                     },
                 },
             },
