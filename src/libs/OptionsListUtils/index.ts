@@ -1187,11 +1187,18 @@ const recentReportComparator = (option: SearchOptionData) => {
 function optionsOrderBy<T = SearchOptionData>(options: T[], comparator: (option: T) => number | string, limit?: number, filter?: (option: T) => boolean | undefined, reversed = false): T[] {
     Timing.start(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
     const heap = reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator);
+
+    // If a limit is 0 or negative, return an empty array
+    if (limit !== undefined && limit <= 0) {
+        Timing.end(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
+        return [];
+    }
+
     options.forEach((option) => {
         if (filter && !filter(option)) {
             return;
         }
-        if (limit && heap.size() >= limit) {
+        if (limit !== undefined && heap.size() >= limit) {
             const peekedValue = heap.peek();
             if (!peekedValue) {
                 throw new Error('Heap is empty, cannot peek value');
@@ -1756,6 +1763,7 @@ function getValidOptions(
         searchString,
         maxElements,
         includeUserToInvite = false,
+        maxRecentReportElements = undefined,
         ...config
     }: GetOptionsConfig = {},
 ): Options {
@@ -1816,7 +1824,7 @@ function getValidOptions(
             });
         };
 
-        filteredReports = optionsOrderBy(options.reports, recentReportComparator, maxElements, filteringFunction);
+        filteredReports = optionsOrderBy(options.reports, recentReportComparator, maxRecentReportElements ?? maxElements, filteringFunction);
 
         const {recentReports, workspaceOptions, selfDMOption} = getValidReports(filteredReports, {
             ...getValidReportsConfig,
@@ -1878,7 +1886,9 @@ function getValidOptions(
             return searchTerms.every((term) => searchText.includes(term));
         };
 
-        personalDetailsOptions = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxElements, filteringFunction, true);
+        // when we expect that function return eg. 50 elements and we already found 40 recent reports, we should adjust the max personal details number
+        const maxPersonalDetailsElements = maxElements ? Math.max(maxElements - recentReportOptions.length, 0) : undefined;
+        personalDetailsOptions = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxPersonalDetailsElements, filteringFunction, true);
 
         for (let i = 0; i < personalDetailsOptions.length; i++) {
             const personalDetail = personalDetailsOptions.at(i);

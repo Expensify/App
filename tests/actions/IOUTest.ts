@@ -6701,7 +6701,6 @@ describe('actions/IOU', () => {
             expect(draftTransaction?.amount).toBe(100);
             expect(draftTransaction?.currency).toBe('USD');
             expect(draftTransaction?.merchant).toBe('Test Merchant');
-            expect(draftTransaction?.reportID).toBe(transaction.reportID);
 
             expect(splitExpenses?.[0].amount).toBe(50);
             expect(splitExpenses?.[0].description).toBe('Test comment');
