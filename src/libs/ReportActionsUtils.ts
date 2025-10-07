@@ -13,7 +13,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Card, OnyxInputOrEntry, OriginalMessageIOU, Policy, PrivatePersonalDetails} from '@src/types/onyx';
-import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
+import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration, PolicyBudgetFrequency} from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -2363,7 +2363,7 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
                 if (value === CONST.DISABLED_MAX_EXPENSE_VALUE) {
                     return translateLocal('workspace.rules.categoryRules.requireReceiptsOverList.never');
                 }
-                if (value === 0) {
+                if (!value) {
                     return translateLocal('workspace.rules.categoryRules.requireReceiptsOverList.always');
                 }
 
@@ -2372,8 +2372,8 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
 
             return translateLocal('workspaceActions.updateCategoryMaxAmountNoReceipt', {
                 categoryName,
-                oldValue: getTranslation(oldValue),
-                newValue: getTranslation(newValue),
+                oldValue: getTranslation(oldValue as number),
+                newValue: getTranslation(newValue as number),
             });
         }
     }
@@ -2460,6 +2460,27 @@ function getTagListNameUpdatedMessage(action: ReportAction): string {
     return getReportActionText(action);
 }
 
+function getTagListUpdatedMessage(action: ReportAction): string {
+    const {tagListName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST>) ?? {};
+    if (tagListName) {
+        return translateLocal('workspaceActions.updateTagList', {
+            tagListName,
+        });
+    }
+    return getReportActionText(action);
+}
+
+function getTagListUpdatedRequiredMessage(action: ReportAction): string {
+    const {tagListsName, isRequired} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_REQUIRED>) ?? {};
+    if (tagListsName) {
+        return translateLocal('workspaceActions.updateTagListRequired', {
+            tagListsName,
+            isRequired: !!isRequired,
+        });
+    }
+    return getReportActionText(action);
+}
+
 function getWorkspaceCustomUnitUpdatedMessage(action: ReportAction): string {
     const {oldValue, newValue, customUnitName, updatedField} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT>) ?? {};
 
@@ -2521,8 +2542,8 @@ function getWorkspaceCustomUnitRateUpdatedMessage(action: ReportAction): string 
     if (customUnitRateName && updatedField === 'taxClaimablePercentage' && typeof newValue === 'number' && customUnitRateName) {
         return translateLocal('workspaceActions.updatedCustomUnitTaxClaimablePercentage', {
             customUnitRateName,
-            newValue: parseFloat(parseFloat(newValue ?? 0).toFixed(2)),
-            oldValue: typeof oldValue === 'number' ? parseFloat(parseFloat(oldValue ?? 0).toFixed(2)) : undefined,
+            newValue: parseFloat(parseFloat(newValue?.toString() ?? '0').toFixed(2)),
+            oldValue: typeof oldValue === 'number' ? parseFloat(parseFloat(oldValue?.toString() ?? '0').toFixed(2)) : undefined,
         });
     }
 
@@ -2854,6 +2875,86 @@ function getUpdatedManualApprovalThresholdMessage(reportAction: OnyxEntry<Report
         return getReportActionText(reportAction);
     }
     return translateLocal('workspaceActions.updatedManualApprovalThreshold', {oldLimit: convertToDisplayString(oldLimit, currency), newLimit: convertToDisplayString(newLimit, currency)});
+}
+
+function getAddedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: OnyxEntry<Policy>) {
+    const {newValue, categoryName, entityType} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET>) ?? {};
+    const value = newValue as PolicyBudgetFrequency;
+
+    if (newValue && value?.frequency && categoryName && entityType) {
+        const sharedAmount = convertAmountToDisplayString(value?.shared, policy?.outputCurrency ?? CONST.CURRENCY.USD);
+        const individualAmount = convertAmountToDisplayString(value?.individual, policy?.outputCurrency ?? CONST.CURRENCY.USD);
+        const frequency = translateLocal(`workspace.common.budgetFrequency.${value.frequency}` as TranslationPaths);
+        return translateLocal('workspaceActions.addBudget', {
+            frequency,
+            entityName: categoryName,
+            entityType,
+            shared: value.shared ? sharedAmount : undefined,
+            individual: value.individual ? individualAmount : undefined,
+            notificationThreshold: value.notificationThreshold,
+        });
+    }
+    return getReportActionText(reportAction);
+}
+
+function getUpdatedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: OnyxEntry<Policy>) {
+    const {newValue, oldValue, categoryName, entityType} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET>) ?? {};
+
+    const updated = newValue as PolicyBudgetFrequency | undefined;
+    const previous = oldValue as PolicyBudgetFrequency | undefined;
+
+    if (!updated || !previous || !categoryName || !entityType) {
+        return getReportActionText(reportAction);
+    }
+
+    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+
+    const oldFrequency = translateLocal(`workspace.common.budgetFrequency.${previous.frequency}` as TranslationPaths);
+    const newFrequency = translateLocal(`workspace.common.budgetFrequency.${updated.frequency}` as TranslationPaths);
+    const oldIndividual = typeof previous.individual === 'number' ? convertAmountToDisplayString(previous.individual, currency) : undefined;
+    const newIndividual = typeof updated.individual === 'number' ? convertAmountToDisplayString(updated.individual, currency) : undefined;
+    const oldShared = typeof previous.shared === 'number' ? convertAmountToDisplayString(previous.shared, currency) : undefined;
+    const newShared = typeof updated.shared === 'number' ? convertAmountToDisplayString(updated.shared, currency) : undefined;
+    const oldNotificationThreshold = previous.notificationThreshold;
+    const newNotificationThreshold = updated.notificationThreshold;
+
+    return translateLocal('workspaceActions.updateBudget', {
+        entityType,
+        entityName: categoryName,
+        oldFrequency,
+        newFrequency,
+        oldIndividual,
+        newIndividual,
+        oldShared,
+        newShared,
+        oldNotificationThreshold,
+        newNotificationThreshold,
+    });
+}
+
+function getDeletedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: OnyxEntry<Policy>) {
+    const {oldValue, categoryName, entityType} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_BUDGET>) ?? {};
+
+    const previous = oldValue as PolicyBudgetFrequency | undefined;
+
+    if (!previous || !categoryName || !entityType) {
+        return getReportActionText(reportAction);
+    }
+
+    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+    const frequency = previous.frequency ? translateLocal(`workspace.common.budgetFrequency.${previous.frequency}` as TranslationPaths) : undefined;
+    const individual = typeof previous.individual === 'number' ? convertAmountToDisplayString(previous.individual, currency) : undefined;
+    const shared = typeof previous.shared === 'number' ? convertAmountToDisplayString(previous.shared, currency) : undefined;
+    const notificationThreshold = previous.notificationThreshold;
+
+    return translateLocal('workspaceActions.deleteBudget', {
+        entityType,
+        entityName: categoryName,
+        frequency,
+        individual,
+        shared,
+        notificationThreshold,
+    });
 }
 
 function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL | typeof CONST.REPORT.ACTIONS.TYPE.REROUTE>(reportAction: OnyxEntry<ReportAction>) {
@@ -3219,10 +3320,15 @@ export {
     getWorkspaceReportFieldDeleteMessage,
     getUpdatedAuditRateMessage,
     getUpdatedManualApprovalThresholdMessage,
+    getDeletedBudgetMessage,
+    getUpdatedBudgetMessage,
+    getAddedBudgetMessage,
     getWorkspaceCustomUnitRateDeletedMessage,
     getAddedConnectionMessage,
     getWorkspaceCustomUnitRateUpdatedMessage,
     getTagListNameUpdatedMessage,
+    getTagListUpdatedMessage,
+    getTagListUpdatedRequiredMessage,
     getWorkspaceCustomUnitUpdatedMessage,
     getRoomChangeLogMessage,
     getReportActions,

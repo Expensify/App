@@ -8,6 +8,7 @@ import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {
     AccountOwnerParams,
     ActionsAreCurrentlyRestricted,
+    AddBudgetParams,
     AddedOrDeletedPolicyReportFieldParams,
     AddedPolicyApprovalRuleParams,
     AddEmployeeParams,
@@ -78,6 +79,7 @@ import type {
     DelegateRoleParams,
     DelegatorParams,
     DeleteActionParams,
+    DeleteBudgetParams,
     DeleteConfirmationParams,
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
@@ -234,6 +236,7 @@ import type {
     UnapproveWithIntegrationWarningParams,
     UnshareParams,
     UntilTimeParams,
+    UpdatedBudgetParams,
     UpdatedCustomFieldParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyAuditRateParams,
@@ -256,6 +259,8 @@ import type {
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
+    UpdatedPolicyTagListParams,
+    UpdatedPolicyTagListRequiredParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
     UpdatedTheDistanceMerchantParams,
@@ -3576,6 +3581,10 @@ const translations = {
                 semimonthly: 'Twice a month',
                 monthly: 'Monthly',
             },
+            budgetFrequency: {
+                monthly: 'monthly',
+                yearly: 'yearly',
+            },
             planType: 'Plan type',
             submitExpense: 'Submit your expenses below:',
             defaultCategory: 'Default category',
@@ -5891,6 +5900,14 @@ const translations = {
                 : `changed the "${categoryName}" category description hint to “${newValue}” (previously “${oldValue}”)`;
         },
         updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `changed the tag list name to "${newName}" (previously "${oldName}")`,
+        updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `updated the tags on the list "${tagListName}"`,
+        updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) =>
+            `updated the tag lists ${tagListsName
+                .split(',')
+                .map((v) => `"${v}"`)
+                .join(', ')} to be ${isRequired ? 'required' : 'not required'}`,
+        importTags: 'imported a tag CSV',
+        deletedAllTags: 'deleted all tags',
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `added the tag "${tagName}" to the list "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `updated the tag list "${tagListName}" by changing the tag "${oldName}" to "${newName}`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'enabled' : 'disabled'} the tag "${tagName}" on the list "${tagListName}"`,
@@ -5982,6 +5999,69 @@ const translations = {
             `changed the rate of reports randomly routed for manual approval to ${Math.round(newAuditRate * 100)}% (previously ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `changed the manual approval limit for all expenses to ${newLimit} (previously ${oldLimit})`,
+        addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
+            const notificationThresholdText = notificationThreshold ? ` Notification threshold is set to ${notificationThreshold}%.` : '';
+            if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
+                return `added a ${frequency} individual budget of ${individual} and shared budget of ${shared} to the ${entityType} "${entityName}".${notificationThresholdText}`;
+            }
+            if (typeof individual !== 'undefined') {
+                return `added a ${frequency} individual budget of ${individual} to the ${entityType} "${entityName}".${notificationThresholdText}`;
+            }
+            return `added a ${frequency} shared budget of ${shared} to the ${entityType} "${entityName}".${notificationThresholdText}`;
+        },
+        updateBudget: ({
+            entityType,
+            entityName,
+            oldFrequency,
+            newFrequency,
+            oldIndividual,
+            newIndividual,
+            oldShared,
+            newShared,
+            oldNotificationThreshold,
+            newNotificationThreshold,
+        }: UpdatedBudgetParams) => {
+            const changesList: string[] = [];
+
+            if (oldFrequency && newFrequency && oldFrequency !== newFrequency) {
+                changesList.push(`frequency from ${oldFrequency} to ${newFrequency}`);
+            }
+
+            if (oldShared && newShared && oldShared !== newShared) {
+                changesList.push(`total policy budget from ${oldShared} to ${newShared}`);
+            }
+
+            if (oldIndividual && newIndividual && oldIndividual !== newIndividual) {
+                changesList.push(`individual budget from ${oldIndividual} to ${newIndividual}`);
+            }
+
+            if (typeof oldNotificationThreshold === 'number' && typeof newNotificationThreshold === 'number' && oldNotificationThreshold !== newNotificationThreshold) {
+                changesList.push(`notification threshold from ${oldNotificationThreshold}% to ${newNotificationThreshold}%`);
+            }
+
+            const joined = changesList.join(', ');
+            if (!joined) {
+                return `updated the budget for ${entityType} "${entityName}".`;
+            }
+            return `updated the budget for ${entityType} "${entityName}". Budget's updated fields: ${joined}.`;
+        },
+        deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}: DeleteBudgetParams) => {
+            const details: string[] = [];
+            if (frequency) {
+                details.push(`frequency: ${frequency}`);
+            }
+            if (individual) {
+                details.push(`individual budget: ${individual}`);
+            }
+            if (typeof notificationThreshold === 'number') {
+                details.push(`notification threshold: ${notificationThreshold}%`);
+            }
+            if (shared) {
+                details.push(`shared budget: ${shared}`);
+            }
+            const suffix = details.length ? ` Previous budget details: ${details.join(', ')}.` : '';
+            return `deleted the budget for the ${entityType} "${entityName}".${suffix}`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',
