@@ -2,9 +2,9 @@ import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import SelectionList from '@components/SelectionList';
-import type {ListItem} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import type {ListItem} from '@components/SelectionListWithSections/types';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -98,6 +98,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
                 alternateText: email,
                 login: email,
                 accountID: personalDetail?.accountID,
+                isSelected: issueNewCard?.data?.assigneeEmail === email,
                 icons: [
                     {
                         source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
@@ -112,7 +113,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, formatPhoneNumber, localeCompare]);
+    }, [policy?.employeeList, localeCompare, isOffline, issueNewCard?.data?.assigneeEmail, formatPhoneNumber]);
 
     const sections = useMemo(() => {
         if (!debouncedSearchTerm) {
@@ -163,6 +164,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
                 ListItem={UserListItem}
                 onSelectRow={submit}
                 addBottomSafeAreaPadding
+                initiallyFocusedOptionKey={sections[0].data.find((mode) => mode.isSelected)?.keyForList}
             />
         </InteractiveStepWrapper>
     );
