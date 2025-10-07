@@ -613,7 +613,7 @@ const translations = {
         disabled: 'Disabilitato',
         import: 'Importa',
         offlinePrompt: 'Non puoi eseguire questa azione in questo momento.',
-        outstanding: 'Eccezionale',
+        outstanding: 'In sospeso',
         chats: 'Chat',
         tasks: 'Attività',
         unread: 'Non letto',
@@ -638,7 +638,7 @@ const translations = {
         downloadAsCSV: 'Scarica come CSV',
         help: 'Aiuto',
         expenseReports: 'Report di spesa',
-        rateOutOfPolicy: 'Valuta fuori politica',
+        rateOutOfPolicy: 'Tariffa fuori politica',
         reimbursable: 'Rimborsabile',
         editYourProfile: 'Modifica il tuo profilo',
         comments: 'Commenti',
@@ -678,9 +678,7 @@ const translations = {
         }: {
             command?: string;
         } = {}) =>
-            `Non sei autorizzato a eseguire questa azione quando il supporto è connesso (comando: ${
-                command ?? ''
-            }). Se ritieni che Success debba essere in grado di eseguire questa azione, avvia una conversazione su Slack.`,
+            `Non sei autorizzato a eseguire questa azione quando il supporto è connesso (comando: ${command ?? ''}). Se ritieni che Success debba essere in grado di eseguire questa azione, avvia una conversazione su Slack.`,
     },
     lockedAccount: {
         title: 'Account bloccato',
