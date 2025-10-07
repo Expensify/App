@@ -2096,32 +2096,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-pager-view (6.5.3):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.11.18.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-hermes
-    - React-ImageManager
-    - React-jsi
-    - react-native-pager-view/common (= 6.5.3)
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
-  - react-native-pager-view/common (6.5.3):
+  - react-native-pager-view (6.9.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2341,7 +2316,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-wallet (0.1.5):
+  - react-native-wallet (0.1.11):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3849,14 +3824,14 @@ SPEC CHECKSUMS:
   react-native-keyboard-controller: be15b0f8fdfd9ee0370f5bc7dab5ed2cfc3ef5e5
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: b8577cba87fbe7b7740c279ee23d25d7c5d87666
-  react-native-pager-view: 12c1b7b6f50efb3e5d57d62ea5c601cba0585bfd
+  react-native-pager-view: 0f1489fdcdfa56677aa1492e342c9216cbf468a0
   react-native-pdf: 1fee221a1bdb66bb5dc14718e0687dd34f33a823
   react-native-performance: ed312c0ee791c50077b7ad22b01685fe5a0e3db6
   react-native-plaid-link-sdk: 017d025be9fdb05151e03453bb191e0518e3fe6a
   react-native-release-profiler: 3c899b04a88a63735e74beb1d1010ec8c8616347
   react-native-safe-area-context: 6cec90ce53951d3b52dc73e873323a4a7662fc0c
   react-native-view-shot: 70a8e604c289cc67324011554c63ee87dca04a06
-  react-native-wallet: 9d31bca007c1d11766fa420f5509cf9513d3b7d9
+  react-native-wallet: 4151b1bfb7b322caf7e1e31b402a69fc7ab46349
   react-native-webview: 9cf95bd9b16cde5d9bbae452a9cf55631b62028d
   React-NativeModulesApple: 1b5e6bf9164371771e553f744da801f5d9f5c7e5
   React-oscompat: ef5df1c734f19b8003e149317d041b8ce1f7d29c
