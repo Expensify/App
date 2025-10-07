@@ -9,6 +9,7 @@ import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactio
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -26,6 +27,7 @@ import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionU
 import {changeMoneyRequestHoldStatus, isSelfDM, navigateToDetailsPage, rejectMoneyRequestReason} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {
+    getOriginalTransactionWithSplitInfo,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate as isDuplicateTransactionUtils,
     isExpensifyCardTransaction,
@@ -110,12 +112,15 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isDuplicate = isDuplicateTransactionUtils(transaction);
     const reportID = report?.reportID;
     const {removeTransaction} = useSearchContext();
+    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const isFromReviewDuplicates = !!route.params.backTo?.replace(/\?.*/g, '').endsWith('/duplicates/review');
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
+
+    const {isBetaEnabled} = usePermissions();
 
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
 
@@ -259,8 +264,16 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (!transaction || !reportActions) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(currentUserLogin ?? '', parentReport, transaction, Object.values(reportActions), policy, report);
-    }, [report, parentReport, policy, transaction, currentUserLogin]);
+        return getSecondaryTransactionThreadActions(
+            currentUserLogin ?? '',
+            parentReport,
+            transaction,
+            Object.values(reportActions),
+            policy,
+            report,
+            isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS),
+        );
+    }, [parentReport, transaction, currentUserLogin, policy, report, isBetaEnabled]);
 
     const dismissModalAndUpdateUseReject = () => {
         setIsRejectEducationalModalVisible(false);
@@ -301,7 +314,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT]: {
-            text: translate('iou.split'),
+            text: isExpenseSplit ? translate('iou.editSplits') : translate('iou.split'),
             icon: Expensicons.ArrowSplit,
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {

@@ -1162,6 +1162,15 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        cannotBeEditedSplitInputContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 4,
+            marginVertical: 15,
+            borderWidth: 1,
+            borderColor: 'transparent',
+        },
+
         outlinedButton: {
             backgroundColor: 'transparent',
             borderColor: theme.border,
@@ -5352,6 +5361,12 @@ const dynamicStyles = (theme: ThemeColors) =>
             pointerEvents: shouldDisplayTopLevelNavigationTabBar ? 'auto' : 'none',
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWithLHBWidth,
             paddingBottom: bottomSafeAreaOffset,
+        }),
+
+        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number) => ({
+            marginLeft: inputMarginLeft,
+            width: amountWidth,
+            marginRight: 4,
         }),
 
         uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>
