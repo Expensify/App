@@ -79,7 +79,7 @@ function ReportActionItemSingle({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
@@ -157,7 +157,7 @@ function ReportActionItemSingle({
     };
 
     const hasEmojiStatus = !details.shouldDisplayAllActors && details.status?.emojiCode;
-    const formattedDate = DateUtils.getStatusUntilDate(details.status?.clearAfter ?? '');
+    const formattedDate = DateUtils.getStatusUntilDate(details.status?.clearAfter ?? '', preferredLocale);
     const statusText = details.status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 
