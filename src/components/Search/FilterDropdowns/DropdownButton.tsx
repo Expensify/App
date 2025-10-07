@@ -1,3 +1,4 @@
+import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
 import type {ReactNode} from 'react';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -58,7 +59,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
         vertical: 0,
     });
 
-    const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => modal?.willAlertModalBecomeVisible, canBeMissing: true});
+    const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector, canBeMissing: true});
 
     /**
      * Toggle the overlay between open & closed

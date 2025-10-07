@@ -1,6 +1,6 @@
 import {activePolicySelector} from '@selectors/Policy';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
@@ -13,12 +13,14 @@ import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -236,8 +238,7 @@ function MoneyRequestView({
     const canEditMerchant = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT, undefined, isChatReportArchived);
     const canEditDate = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, undefined, isChatReportArchived);
     const canEditDistance = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE, undefined, isChatReportArchived);
-    const canEditDistanceRate =
-        (isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE, undefined, isChatReportArchived)) || (isExpenseUnreported && !!activePolicy);
+    const canEditDistanceRate = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE, undefined, isChatReportArchived);
     const canEditReport = useMemo(
         () => isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID),
         [isEditable, parentReportAction, isChatReportArchived, outstandingReportsByPolicyID],
@@ -268,8 +269,7 @@ function MoneyRequestView({
     // Flags for showing categories and tags
     // transactionCategory can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const areCategoriesEnabledAndHasCategory = categoryForDisplay || hasEnabledOptions(policyCategories ?? {});
-    const shouldShowCategory = (isPolicyExpenseChat && areCategoriesEnabledAndHasCategory) || (isExpenseUnreported && (!activePolicy || areCategoriesEnabledAndHasCategory));
+    const shouldShowCategory = (isPolicyExpenseChat && (categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) || isExpenseUnreported;
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = shouldShowPolicySpecificFields && (transactionTag || hasEnabledTags(policyTagLists));
@@ -277,9 +277,9 @@ function MoneyRequestView({
     const isCurrentTransactionReimbursableDifferentFromPolicyDefault =
         policy?.defaultReimbursable !== undefined && !!(updatedTransaction?.reimbursable ?? transactionReimbursable) !== policy.defaultReimbursable;
     const shouldShowReimbursable =
-        shouldShowPolicySpecificFields && (!policy?.disabledFields?.reimbursable || isCurrentTransactionReimbursableDifferentFromPolicyDefault) && !isCardTransaction && !isInvoice;
+        isPolicyExpenseChat && (!policy?.disabledFields?.reimbursable || isCurrentTransactionReimbursableDifferentFromPolicyDefault) && !isCardTransaction && !isInvoice;
     const canEditReimbursable = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived);
-    const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy, isExpenseUnreported), [iouType, policy, isExpenseUnreported]);
+    const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
     const shouldShowTax = isTaxTrackingEnabled(shouldShowPolicySpecificFields, policy, isDistanceRequest, isPerDiemRequest);
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
@@ -569,6 +569,11 @@ function MoneyRequestView({
     const actualParentReport = isFromMergeTransaction ? getReportOrDraftReport(getReportIDForExpense(updatedTransaction)) : parentReport;
     const shouldShowReport = !!parentReportID || !!actualParentReport;
 
+    // In this case we want to use this value. The  shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {wideRHPRouteKeys} = useContext(WideRHPContext);
+
     if (!report?.reportID || !transaction?.transactionID) {
         return <ReportActionsSkeletonView />;
     }
@@ -577,14 +582,16 @@ function MoneyRequestView({
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
-                <MoneyRequestReceiptView
-                    allReports={allReports}
-                    report={report}
-                    readonly={readonly}
-                    updatedTransaction={updatedTransaction}
-                    isFromReviewDuplicates={isFromReviewDuplicates}
-                    mergeTransactionID={mergeTransactionID}
-                />
+                {(wideRHPRouteKeys.length === 0 || isSmallScreenWidth) && (
+                    <MoneyRequestReceiptView
+                        allReports={allReports}
+                        report={report}
+                        readonly={readonly}
+                        updatedTransaction={updatedTransaction}
+                        isFromReviewDuplicates={isFromReviewDuplicates}
+                        mergeTransactionID={mergeTransactionID}
+                    />
+                )}
                 {isCustomUnitOutOfPolicy && isPerDiemRequest && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mh4, styles.mb2]}>
                         <Icon
@@ -829,20 +836,6 @@ function MoneyRequestView({
                                 if (!canEditReport) {
                                     return;
                                 }
-
-                                if (!policy) {
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                            iouType,
-                                            action: CONST.IOU.ACTION.EDIT,
-                                            transactionID: transaction?.transactionID,
-                                            reportID: report.reportID,
-                                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                                        }),
-                                    );
-                                    return;
-                                }
-
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report.reportID, getReportRHPActiveRoute()),
                                 );

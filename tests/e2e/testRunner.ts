@@ -13,7 +13,7 @@
  * node tests/e2e/merge.js
  */
 
-/* eslint-disable @lwc/lwc/no-async-await,no-restricted-syntax,no-await-in-loop */
+/* eslint-disable no-restricted-syntax,no-await-in-loop */
 import {execSync} from 'child_process';
 import fs from 'fs';
 import type {TestResult} from '@libs/E2E/client';

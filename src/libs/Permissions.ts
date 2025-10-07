@@ -15,6 +15,13 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
+/**
+ * Temporary check for Unreported Expense Project - change to true for testing
+ */
+function canUseUnreportedExpense(): boolean {
+    return false;
+}
+
 function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?: OnyxEntry<BetaConfiguration>): boolean {
     const hasAllBetasEnabled = canUseAllBetas(betas);
     const isFeatureEnabled = !!betas?.includes(beta);
@@ -31,4 +38,5 @@ function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?:
 export default {
     canUseLinkPreviews,
     isBetaEnabled,
+    canUseUnreportedExpense,
 };

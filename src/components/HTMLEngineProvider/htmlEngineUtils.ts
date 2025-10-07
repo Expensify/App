@@ -137,6 +137,19 @@ function isChildOfMutedTextMicro(tnode: TNode): boolean {
     return isChildOfMutedTextMicro(tnode.parent);
 }
 
+/**
+ * @returns Whether the node is a child of alert-text
+ */
+function isChildOfAlertText(tnode: TNode): boolean {
+    if (!tnode.parent) {
+        return false;
+    }
+    if (tnode.parent.tagName === 'alert-text') {
+        return true;
+    }
+    return isChildOfAlertText(tnode.parent);
+}
+
 export {
     computeEmbeddedMaxWidth,
     isChildOfComment,
@@ -149,4 +162,5 @@ export {
     isChildOfMutedTextLabel,
     isChildOfMutedTextXS,
     isChildOfMutedTextMicro,
+    isChildOfAlertText,
 };

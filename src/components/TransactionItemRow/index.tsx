@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
+import {isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
@@ -37,7 +38,7 @@ import TagCell from './DataCells/TagCell';
 import TaxCell from './DataCells/TaxCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
-import TransactionItemRowRBRWithOnyx from './TransactionItemRowRBRWithOnyx';
+import TransactionItemRowRBR from './TransactionItemRowRBR';
 
 type ColumnComponents = {
     [key in ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>]: React.ReactElement;
@@ -170,8 +171,12 @@ function TransactionItemRow({
     const merchantOrDescription = merchant || description;
 
     const missingFieldError = useMemo(() => {
+        if (isSettled(report)) {
+            return '';
+        }
+
         const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem);
-        const hasFieldErrors = hasMissingSmartscanFields(transactionItem) || isCustomUnitOutOfPolicy;
+        const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report) || isCustomUnitOutOfPolicy;
         if (hasFieldErrors) {
             const amountMissing = isAmountMissing(transactionItem);
             const merchantMissing = isMerchantMissing(transactionItem);
@@ -181,14 +186,14 @@ function TransactionItemRow({
                 error = translate('violations.reviewRequired');
             } else if (amountMissing) {
                 error = translate('iou.missingAmount');
-            } else if (merchantMissing) {
+            } else if (merchantMissing && !isSettled(report)) {
                 error = translate('iou.missingMerchant');
             } else if (isCustomUnitOutOfPolicy) {
                 error = translate('violations.customUnitOutOfPolicy');
             }
             return error;
         }
-    }, [transactionItem, translate]);
+    }, [transactionItem, translate, report]);
 
     const columnComponent: ColumnComponents = useMemo(
         () => ({
@@ -479,7 +484,7 @@ function TransactionItemRow({
                             </View>
                         )}
                         {shouldShowErrors && (
-                            <TransactionItemRowRBRWithOnyx
+                            <TransactionItemRowRBR
                                 transaction={transactionItem}
                                 violations={violations}
                                 report={report}
@@ -529,7 +534,7 @@ function TransactionItemRow({
                 )}
             </View>
             {shouldShowErrors && (
-                <TransactionItemRowRBRWithOnyx
+                <TransactionItemRowRBR
                     transaction={transactionItem}
                     violations={violations}
                     report={report}

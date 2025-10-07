@@ -67,7 +67,7 @@ function CategoryFlagAmountsOverPage({
                     style={[styles.flexGrow1]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER_FORM}
                     onSubmit={({maxExpenseAmount}) => {
-                        setPolicyCategoryMaxAmount(policyID, categoryName, maxExpenseAmount, expenseLimitType);
+                        setPolicyCategoryMaxAmount(policyID, categoryName, maxExpenseAmount, expenseLimitType, policyCategories);
                         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
                     }}
                     submitButtonText={translate('workspace.editor.save')}

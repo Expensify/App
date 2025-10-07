@@ -1,5 +1,6 @@
 import {useFocusEffect} from '@react-navigation/core';
 import reportsSelector from '@selectors/Attributes';
+import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Alert, AppState, InteractionManager, StyleSheet, View} from 'react-native';
 import type {LayoutRectangle} from 'react-native';
@@ -94,6 +95,7 @@ function IOURequestStepScan({
     currentUserPersonalDetails,
     onLayout,
     isMultiScanEnabled = false,
+    isStartingScan = false,
     setIsMultiScanEnabled,
 }: IOURequestStepScanProps) {
     const theme = useTheme();
@@ -108,7 +110,7 @@ function IOURequestStepScan({
     const hasFlash = !!device?.hasFlash;
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
-    const canUseMultiScan = !isEditing && iouType !== CONST.IOU.TYPE.SPLIT && !backTo && !backToReport;
+    const canUseMultiScan = isStartingScan && iouType !== CONST.IOU.TYPE.SPLIT;
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
@@ -134,7 +136,7 @@ function IOURequestStepScan({
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: (items) => Object.values(items ?? {}),
+        selector: transactionDraftValuesSelector,
         canBeMissing: true,
     });
     const transactions = useMemo(() => {
@@ -233,6 +235,7 @@ function IOURequestStepScan({
                     .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
             };
 
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => {
                 // Check initial camera permission status
                 refreshCameraPermissionStatus();
@@ -546,6 +549,7 @@ function IOURequestStepScan({
     }, [initialTransactionID, isEditing, navigateToConfirmationStep]);
 
     const dismissMultiScanEducationalPopup = () => {
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL);
             setShouldShowMultiScanEducationalPopup(false);

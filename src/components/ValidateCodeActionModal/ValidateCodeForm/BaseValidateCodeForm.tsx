@@ -272,13 +272,13 @@ function BaseValidateCodeForm({
                 autoFocus={false}
             />
             {shouldShowTimer && (
-                <Text style={[styles.mt5]}>
+                <View style={[styles.mt5, styles.flexRow, styles.renderHTML]}>
                     <RenderHTML
                         html={translate('validateCodeForm.requestNewCode', {
                             timeRemaining: `00:${String(timeRemaining).padStart(2, '0')}`,
                         })}
                     />
-                </Text>
+                </View>
             )}
             <OfflineWithFeedback
                 pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}

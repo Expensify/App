@@ -23,6 +23,19 @@ import {
     isPayer,
 } from './ReportUtils';
 
+type BuildNextStepNewParams = {
+    report: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    hasViolations: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
+    shouldFixViolations?: boolean;
+    isUnapprove?: boolean;
+    isReopen?: boolean;
+};
+
 let currentUserAccountID = -1;
 let currentUserEmail = '';
 Onyx.connect({
@@ -502,18 +515,10 @@ function buildNextStep(
  * Generates an optimistic nextStep based on a current report status and other properties.
  * Need to rename this function and remove the buildNextStep function above after migrating to this function
  */
-function buildNextStepNew(
-    report: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    currentUserAccountIDParam: number,
-    currentUserEmailParam: string,
-    hasViolations: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>,
-    shouldFixViolations?: boolean,
-    isUnapprove?: boolean,
-    isReopen?: boolean,
-): ReportNextStep | null {
+function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStep | null {
+    const {report, policy, currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled, predictedNextStatus, shouldFixViolations, isUnapprove, isReopen} =
+        params;
+
     if (!isExpenseReport(report)) {
         return null;
     }

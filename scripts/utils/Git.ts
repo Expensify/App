@@ -1,11 +1,20 @@
+import {context} from '@actions/github';
 import {execSync, exec as execWithCallback} from 'child_process';
 import {promisify} from 'util';
+import GitHubUtils from '@github/libs/GithubUtils';
+import {error as logError} from './Logger';
 
 const exec = promisify(execWithCallback);
 
+const IS_CI = process.env.CI === 'true';
+
+const GIT_ERRORS = {
+    FAILED_TO_FETCH_FROM_REMOTE: 'Failed to fetch from remote',
+} as const;
+
 /**
  * Represents a single changed line in a git diff.
- * With -U0, only added and removed lines are present (no context).
+ * Only added and removed lines are tracked (context lines are skipped during parsing).
  */
 type DiffLine = {
     number: number;
@@ -55,7 +64,7 @@ class Git {
      */
     static isValidRef(ref: string): boolean {
         try {
-            execSync(`git rev-parse --verify "${ref}"`, {
+            execSync(`git rev-parse --verify "${ref}^{object}"`, {
                 encoding: 'utf8',
                 cwd: process.cwd(),
                 stdio: 'pipe', // Suppress output
@@ -191,6 +200,9 @@ class Git {
                         type: 'removed',
                         content,
                     });
+                } else if (firstChar === ' ') {
+                    // Context line - skip it (we only care about added/removed lines)
+                    continue;
                 } else {
                     throw new Error(`Unknown line type! First character of line is ${firstChar}`);
                 }
@@ -303,7 +315,91 @@ class Git {
             throw new Error(`Failed to fetch git reference ${ref}: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
+
+    static getMainBaseCommitHash(remote: string): string {
+        // Fetch the main branch from the specified remote to ensure it's available
+        try {
+            execSync(`git fetch ${remote} main --no-tags --depth=1 -q`, {encoding: 'utf8'});
+        } catch (error) {
+            throw new Error(GIT_ERRORS.FAILED_TO_FETCH_FROM_REMOTE);
+        }
+
+        // In CI, use a simpler approach - just use the remote main branch directly
+        // This avoids issues with shallow clones and merge-base calculations
+        if (IS_CI) {
+            try {
+                const mergeBaseHash = execSync(`git rev-parse ${remote}/main`, {encoding: 'utf8'}).trim();
+
+                // Validate the output is a proper SHA hash
+                if (!mergeBaseHash || !/^[a-fA-F0-9]{40}$/.test(mergeBaseHash)) {
+                    throw new Error(`git rev-parse returned unexpected output: ${mergeBaseHash}`);
+                }
+
+                return mergeBaseHash;
+            } catch (error) {
+                logError(`Failed to get commit hash for ${remote}/main:`, error);
+                throw new Error(`Could not get commit hash for ${remote}/main`);
+            }
+        }
+
+        // For local development, try to find the actual merge base
+        let mergeBaseHash: string;
+        try {
+            mergeBaseHash = execSync(`git merge-base ${remote}/main HEAD`, {encoding: 'utf8'}).trim();
+        } catch (error) {
+            // If merge-base fails locally, fall back to using the remote main branch
+            try {
+                mergeBaseHash = execSync(`git rev-parse ${remote}/main`, {encoding: 'utf8'}).trim();
+                logError(`Warning: Could not find merge base between ${remote}/main and HEAD. Using ${remote}/main as base.`);
+            } catch (fallbackError) {
+                logError(`Failed to find merge base with ${remote}/main:`, error);
+                logError(`Fallback also failed:`, fallbackError);
+                throw new Error(`Could not determine merge base with ${remote}/main`);
+            }
+        }
+
+        // Validate the output is a proper SHA hash
+        if (!mergeBaseHash || !/^[a-fA-F0-9]{40}$/.test(mergeBaseHash)) {
+            throw new Error(`git merge-base returned unexpected output: ${mergeBaseHash}`);
+        }
+
+        return mergeBaseHash;
+    }
+
+    static async getChangedFiles(remote: string): Promise<string[]> {
+        if (IS_CI) {
+            const {data: changedFiles} = await GitHubUtils.octokit.pulls.listFiles({
+                owner: 'Expensify',
+                repo: 'App',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                pull_number: context.payload.pull_request?.number ?? 0,
+            });
+
+            return changedFiles.map((file) => file.filename);
+        }
+
+        try {
+            // Get files changed in the current branch/commit
+            const mainBaseCommitHash = this.getMainBaseCommitHash(remote);
+
+            // Get the diff output and check status
+            const gitDiffOutput = execSync(`git diff --diff-filter=AMR --name-only ${mainBaseCommitHash} HEAD`, {
+                encoding: 'utf8',
+            });
+
+            const files = gitDiffOutput.trim().split('\n');
+            return files;
+        } catch (error) {
+            if (error instanceof Error && error.message === GIT_ERRORS.FAILED_TO_FETCH_FROM_REMOTE) {
+                throw error;
+            }
+
+            logError('Could not determine changed files:', error);
+            throw error;
+        }
+    }
 }
 
 export default Git;
+export {GIT_ERRORS};
 export type {DiffResult, FileDiff, DiffHunk, DiffLine};
