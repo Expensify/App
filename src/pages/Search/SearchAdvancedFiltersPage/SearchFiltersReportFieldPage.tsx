@@ -27,8 +27,9 @@ function SearchFiltersReportFieldPage() {
             }, {});
 
             const nonFormulaReportFields = Object.entries(allPolicyReportFields)
+                // JACK_TODO: 'formula' was reverted so the const doesnt exist. This should not be a magic string
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                .filter(([_, value]) => value.type !== CONST.REPORT_FIELD_TYPES.FORMULA)
+                .filter(([_, value]) => value.type !== 'formula')
                 .sort(([aKey], [bKey]) => localeCompare(aKey, bKey));
 
             return Object.fromEntries(nonFormulaReportFields);

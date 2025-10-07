@@ -235,7 +235,10 @@ function useAdvancedSearchFilters() {
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length !== 0);
     const shouldDisplayGroupByFilter = !!groupBy && groupBy !== CONST.SEARCH.GROUP_BY.REPORTS;
     const shouldDisplayGroupCurrencyFilter = shouldDisplayGroupByFilter;
-    const shouldDisplayReportFieldFilter = Object.values(policies).some((policy): policy is NonNullable<Policy> => Object.keys(policy?.fieldList ?? {}).length > 0);
+    const shouldDisplayReportFieldFilter = Object.values(policies).some((policy): policy is NonNullable<Policy> => {
+        // JACK_TODO: Dont use a magic string, the 'formula' const PR was reverted
+        return Object.values(policy?.fieldList ?? {}).some((val) => val.type !== 'formula');
+    });
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
