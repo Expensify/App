@@ -13,9 +13,9 @@ import {
     getCustomOrFormattedFeedName,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
-    isCard,
     isCardClosed,
     isCardHiddenFromSearch,
+    isNonCashCard,
 } from './CardUtils';
 import {getDescriptionForPolicyDomainCard, getPolicy} from './PolicyUtils';
 import type {OptionData} from './ReportUtils';
@@ -60,7 +60,7 @@ function getCardFeedKey(workspaceCardFeeds: Record<string, WorkspaceCardsList | 
     if (!workspaceFeed) {
         return;
     }
-    const representativeCard = Object.values(workspaceFeed).find((cardFeedItem) => isCard(cardFeedItem));
+    const representativeCard = Object.values(workspaceFeed).find((cardFeedItem) => isNonCashCard(cardFeedItem));
     if (!representativeCard) {
         return;
     }
@@ -113,7 +113,7 @@ function buildCardsData(
     isClosedCards = false,
 ): ItemsGroupedBySelection {
     // Filter condition to build different cards data for closed cards and individual cards based on the isClosedCards flag, we don't want to show closed cards in the individual cards section
-    const filterCondition = (card: Card) => (isClosedCards ? isCardClosed(card) : !isCardHiddenFromSearch(card) && !isCardClosed(card) && isCard(card));
+    const filterCondition = (card: Card) => (isClosedCards ? isCardClosed(card) : !isCardHiddenFromSearch(card) && !isCardClosed(card) && isNonCashCard(card));
     const userAssignedCards: CardFilterItem[] = Object.values(userCardList ?? {})
         .filter((card) => filterCondition(card))
         .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations));
@@ -123,7 +123,7 @@ function buildCardsData(
         .filter((cardFeed) => !isEmptyObject(cardFeed))
         .flatMap((cardFeed) => {
             return Object.values(cardFeed as Record<string, Card>)
-                .filter((card) => card && isCard(card) && !userCardList?.[card.cardID] && filterCondition(card))
+                .filter((card) => card && isNonCashCard(card) && !userCardList?.[card.cardID] && filterCondition(card))
                 .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations));
         });
 
@@ -178,8 +178,8 @@ function getDomainFeedData(workspaceCardFeeds: Record<string, WorkspaceCardsList
 
 function getWorkspaceCardFeedData(cardFeed: WorkspaceCardsList | undefined, repeatingBanks: string[], translate: LocaleContextProps['translate']): CardFeedData | undefined {
     const cardFeedArray = Object.values(cardFeed ?? {});
-    const representativeCard = cardFeedArray.find((cardFeedItem) => isCard(cardFeedItem));
-    if (!representativeCard || !cardFeedArray.some((cardFeedItem) => isCard(cardFeedItem) && !isCardHiddenFromSearch(cardFeedItem))) {
+    const representativeCard = cardFeedArray.find((cardFeedItem) => isNonCashCard(cardFeedItem));
+    if (!representativeCard || !cardFeedArray.some((cardFeedItem) => isNonCashCard(cardFeedItem) && !isCardHiddenFromSearch(cardFeedItem))) {
         return;
     }
     const {domainName, bank, cardName} = representativeCard;
@@ -344,7 +344,7 @@ function buildCardFeedsData(
 
     filterOutDomainCards(workspaceCardFeeds).forEach(([workspaceFeedKey, workspaceFeed]) => {
         const correspondingCardIDs = Object.entries(workspaceFeed ?? {})
-            .filter(([cardKey, card]) => cardKey !== 'cardList' && isCard(card) && !isCardHiddenFromSearch(card))
+            .filter(([cardKey, card]) => cardKey !== 'cardList' && isNonCashCard(card) && !isCardHiddenFromSearch(card))
             .map(([cardKey]) => cardKey);
 
         const cardFeedData = getWorkspaceCardFeedData(workspaceFeed, repeatingBanks, translate);

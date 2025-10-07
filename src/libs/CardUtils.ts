@@ -84,8 +84,8 @@ function getCompanyCardDescription(transactionCardName?: string, cardID?: number
     return card.cardName;
 }
 
-function isCard(item: Card | Record<string, string>): item is Card {
-    return typeof item === 'object' && 'cardID' in item && !!item.cardID && 'bank' in item && !!item.bank;
+function isNonCashCard(item: Card | Record<string, string>): item is Card {
+    return item?.cardName !== CONST.EXPENSE.TYPE.CASH_CARD_NAME;
 }
 
 function isCardHiddenFromSearch(card: Card) {
@@ -99,7 +99,7 @@ function isCardClosed(card: Card) {
 function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList: CardList | undefined, shouldExcludeCardHiddenFromSearch = false) {
     const feedCards: CardList = {};
     Object.values(cardList ?? {}).forEach((card) => {
-        if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
+        if (!isNonCashCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
             return;
         }
 
@@ -108,7 +108,7 @@ function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, Workspac
 
     Object.values(workspaceFeeds ?? {}).forEach((currentCardFeed) => {
         Object.values(currentCardFeed ?? {}).forEach((card) => {
-            if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
+            if (!isNonCashCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
                 return;
             }
             feedCards[card.cardID] = card;
@@ -750,7 +750,7 @@ export {
     getDefaultCardName,
     getDomainOrWorkspaceAccountID,
     mergeCardListWithWorkspaceFeeds,
-    isCard,
+    isNonCashCard,
     getAllCardsForWorkspace,
     isCardHiddenFromSearch,
     getFeedType,
