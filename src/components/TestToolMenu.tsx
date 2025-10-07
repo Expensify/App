@@ -20,12 +20,10 @@ import TestToolRow from './TestToolRow';
 import Text from './Text';
 
 const ACCOUNT_DEFAULT: AccountOnyx = {
-    shouldUseStagingServer: undefined,
     isSubscribedToNewsletter: false,
     validated: false,
     isFromPublicDomain: false,
     isUsingExpensifyCard: false,
-    isDebugModeEnabled: false,
 };
 
 function TestToolMenu() {
@@ -33,8 +31,8 @@ function TestToolMenu() {
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
     const [account = ACCOUNT_DEFAULT] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE, {canBeMissing: true});
-    const shouldUseStagingServer = account?.shouldUseStagingServer ?? isUsingStagingApi();
-    const isDebugModeEnabled = !!account?.isDebugModeEnabled;
+    const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER, {canBeMissing: true});
+    const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const shouldBlockTransactionThreadReportCreation = !!account?.shouldBlockTransactionThreadReportCreation;
     const shouldShowTransactionThreadReportToggle = isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const styles = useThemeStyles();

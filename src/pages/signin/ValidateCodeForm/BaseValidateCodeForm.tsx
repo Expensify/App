@@ -7,6 +7,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {WithToggleVisibilityViewProps} from '@components/withToggleVisibilityView';
@@ -49,6 +50,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -238,7 +240,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
             clearAccountMessages();
         }
         const requiresTwoFactorAuth = account?.requiresTwoFactorAuth;
-        if (requiresTwoFactorAuth) {
+        if (requiresTwoFactorAuth && !!credentials?.validateCode) {
             if (input2FARef.current) {
                 input2FARef.current.blur();
             }
@@ -283,11 +285,22 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
 
         const accountID = credentials?.accountID;
         if (accountID) {
-            signInWithValidateCode(accountID, validateCode, recoveryCodeOr2faCode);
+            signInWithValidateCode(accountID, validateCode, preferredLocale, recoveryCodeOr2faCode);
         } else {
-            signIn(validateCode, recoveryCodeOr2faCode);
+            signIn(validateCode, preferredLocale, recoveryCodeOr2faCode);
         }
-    }, [account?.isLoading, account?.errors, account?.requiresTwoFactorAuth, isUsingRecoveryCode, recoveryCode, twoFactorAuthCode, credentials?.accountID, validateCode]);
+    }, [
+        account?.isLoading,
+        account?.errors,
+        account?.requiresTwoFactorAuth,
+        credentials?.validateCode,
+        credentials?.accountID,
+        isUsingRecoveryCode,
+        recoveryCode,
+        twoFactorAuthCode,
+        validateCode,
+        preferredLocale,
+    ]);
 
     return (
         <SafariFormWrapper>
@@ -362,10 +375,13 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                     {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
                     <View style={[styles.alignItemsStart]}>
                         {timeRemaining > 0 && !isOffline ? (
-                            <Text style={[styles.mt2]}>
-                                {translate('validateCodeForm.requestNewCode')}
-                                <Text style={[styles.textBlue]}>00:{String(timeRemaining).padStart(2, '0')}</Text>
-                            </Text>
+                            <View style={[styles.mt2, styles.flexRow, styles.renderHTML]}>
+                                <RenderHTML
+                                    html={translate('validateCodeForm.requestNewCode', {
+                                        timeRemaining: `00:${String(timeRemaining).padStart(2, '0')}`,
+                                    })}
+                                />
+                            </View>
                         ) : (
                             <PressableWithFeedback
                                 style={[styles.mt2]}

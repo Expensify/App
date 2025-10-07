@@ -1,8 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type Policy from '@src/types/onyx/Policy';
-import type Report from '@src/types/onyx/Report';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 import {getCurrencySymbol} from './CurrencyUtils';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getReportTransactions} from './ReportUtils';
@@ -25,6 +24,7 @@ type FormulaPart = {
 type FormulaContext = {
     report: Report;
     policy: OnyxEntry<Policy>;
+    transaction?: Transaction;
 };
 
 const FORMULA_PART_TYPES = {
@@ -38,7 +38,7 @@ const FORMULA_PART_TYPES = {
  * Extract formula parts from a formula string, handling nested braces and escapes
  * Based on OldDot Formula.extract method
  */
-function extract(formula: string, opener = '{', closer = '}'): string[] {
+function extract(formula?: string, opener = '{', closer = '}'): string[] {
     if (!formula || typeof formula !== 'string') {
         return [];
     }
@@ -79,7 +79,7 @@ function extract(formula: string, opener = '{', closer = '}'): string[] {
  * Parse a formula string into an array of formula parts
  * Based on OldDot Formula.parse method
  */
-function parse(formula: string): FormulaPart[] {
+function parse(formula?: string): FormulaPart[] {
     if (!formula || typeof formula !== 'string') {
         return [];
     }
@@ -191,8 +191,11 @@ function parsePart(definition: string): FormulaPart {
 /**
  * Compute the value of a formula given a context
  */
-function compute(formula: string, context: FormulaContext): string {
+function compute(formula?: string, context?: FormulaContext): string {
     if (!formula || typeof formula !== 'string') {
+        return '';
+    }
+    if (!context) {
         return '';
     }
 
@@ -244,7 +247,7 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'type':
             return formatType(report.type);
         case 'startdate':
-            return formatDate(getOldestTransactionDate(report.reportID), format);
+            return formatDate(getOldestTransactionDate(report.reportID, context), format);
         case 'total':
             return formatAmount(report.total, getCurrencySymbol(report.currency ?? '') ?? report.currency);
         case 'currency':
@@ -468,7 +471,7 @@ function formatType(type: string | undefined): string {
 /**
  * Get the date of the oldest transaction for a given report
  */
-function getOldestTransactionDate(reportID: string): string | undefined {
+function getOldestTransactionDate(reportID: string, context?: FormulaContext): string | undefined {
     if (!reportID) {
         return undefined;
     }
@@ -481,14 +484,17 @@ function getOldestTransactionDate(reportID: string): string | undefined {
     let oldestDate: string | undefined;
 
     transactions.forEach((transaction) => {
-        const created = getCreated(transaction);
+        // Use updated transaction data if available and matches this transaction
+        const currentTransaction = context?.transaction && transaction.transactionID === context.transaction.transactionID ? context.transaction : transaction;
+
+        const created = getCreated(currentTransaction);
         if (!created) {
             return;
         }
         if (oldestDate && created >= oldestDate) {
             return;
         }
-        if (isPartialTransaction(transaction)) {
+        if (isPartialTransaction(currentTransaction)) {
             return;
         }
         oldestDate = created;

@@ -1,12 +1,20 @@
 import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import type {DistanceExpenseType} from '@src/types/onyx/IOU';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
 import type {IOURequestType} from './IOU';
-import {startMoneyRequest} from './IOU';
+import {startDistanceRequest, startMoneyRequest} from './IOU';
 import {startOutCreateTaskQuickAction} from './Task';
 
-function getQuickActionRequestType(action: QuickActionName | undefined): IOURequestType | undefined {
+type NavigateToQuickActionParams = {
+    isValidReport: boolean;
+    quickAction: QuickAction;
+    selectOption: (onSelected: () => void, shouldRestrictAction: boolean) => void;
+    lastDistanceExpenseType?: DistanceExpenseType;
+};
+
+function getQuickActionRequestType(action: QuickActionName | undefined, lastDistanceExpenseType?: DistanceExpenseType): IOURequestType | undefined {
     if (!action) {
         return;
     }
@@ -17,7 +25,7 @@ function getQuickActionRequestType(action: QuickActionName | undefined): IOURequ
     } else if ([CONST.QUICK_ACTIONS.REQUEST_SCAN, CONST.QUICK_ACTIONS.SPLIT_SCAN, CONST.QUICK_ACTIONS.TRACK_SCAN].some((a) => a === action)) {
         requestType = CONST.IOU.REQUEST_TYPE.SCAN;
     } else if ([CONST.QUICK_ACTIONS.REQUEST_DISTANCE, CONST.QUICK_ACTIONS.SPLIT_DISTANCE, CONST.QUICK_ACTIONS.TRACK_DISTANCE].some((a) => a === action)) {
-        requestType = CONST.IOU.REQUEST_TYPE.DISTANCE;
+        requestType = lastDistanceExpenseType ?? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
     } else if (action === CONST.QUICK_ACTIONS.PER_DIEM) {
         requestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
     }
@@ -25,14 +33,14 @@ function getQuickActionRequestType(action: QuickActionName | undefined): IOURequ
     return requestType;
 }
 
-function navigateToQuickAction(isValidReport: boolean, quickAction: QuickAction, selectOption: (onSelected: () => void, shouldRestrictAction: boolean) => void) {
+function navigateToQuickAction(params: NavigateToQuickActionParams) {
+    const {isValidReport, quickAction, selectOption, lastDistanceExpenseType} = params;
     const reportID = isValidReport && quickAction?.chatReportID ? quickAction?.chatReportID : generateReportID();
-    const requestType = getQuickActionRequestType(quickAction?.action);
+    const requestType = getQuickActionRequestType(quickAction?.action, lastDistanceExpenseType);
 
     switch (quickAction?.action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
         case CONST.QUICK_ACTIONS.PER_DIEM:
             selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true), true);
             break;
@@ -49,8 +57,13 @@ function navigateToQuickAction(isValidReport: boolean, quickAction: QuickAction,
             break;
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
-        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
             selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
+            break;
+        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+            selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true), false);
+            break;
+        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
+            selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
             break;
         default:
     }

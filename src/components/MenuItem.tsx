@@ -1,8 +1,8 @@
 import type {ImageContentFit} from 'expo-image';
 import type {ReactElement, ReactNode, Ref} from 'react';
-import React, {forwardRef, useContext, useMemo, useRef} from 'react';
+import React, {useContext, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -24,6 +24,7 @@ import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import ActivityIndicator from './ActivityIndicator';
 import Avatar from './Avatar';
 import Badge from './Badge';
 import CopyTextToClipboard from './CopyTextToClipboard';
@@ -64,9 +65,8 @@ type NoIcon = {
 };
 
 type MenuItemBaseProps = {
-    /* View ref  */
-    /* eslint-disable-next-line react/no-unused-prop-types */
-    ref?: Ref<View>;
+    /** Reference to the outer element */
+    ref?: PressableRef | Ref<View>;
 
     /** Function to fire when component is pressed */
     onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
@@ -396,120 +396,118 @@ const getSubscriptAvatarBackgroundColor = (isHovered: boolean, isPressed: boolea
         return hoveredBackgroundColor;
     }
 };
-function MenuItem(
-    {
-        interactive = true,
-        onPress,
-        badgeText,
-        style,
-        wrapperStyle,
-        titleWrapperStyle,
-        outerWrapperStyle,
-        containerStyle,
-        titleStyle,
-        labelStyle,
-        descriptionTextStyle,
-        badgeStyle,
-        viewMode = CONST.OPTION_MODE.DEFAULT,
-        numberOfLinesTitle = 1,
-        numberOfLinesDescription = 2,
-        icon,
-        iconFill,
-        secondaryIcon,
-        secondaryIconFill,
-        iconType = CONST.ICON_TYPE_ICON,
-        isSecondaryIconHoverable = false,
-        iconWidth,
-        iconHeight,
-        iconStyles,
-        fallbackIcon = Expensicons.FallbackAvatar,
-        shouldShowTitleIcon = false,
-        titleIcon,
-        rightIconAccountID,
-        iconAccountID,
-        shouldShowRightIcon = false,
-        iconRight = Expensicons.ArrowRight,
-        furtherDetailsIcon,
-        furtherDetails,
-        furtherDetailsNumberOfLines = 2,
-        furtherDetailsStyle,
-        furtherDetailsComponent,
-        description,
-        helperText,
-        helperTextStyle,
-        errorText,
-        errorTextStyle,
-        shouldShowRedDotIndicator,
-        hintText,
-        success = false,
-        iconReportID,
-        focused = false,
-        disabled = false,
-        title,
-        titleComponent,
-        titleContainerStyle,
-        subtitle,
-        shouldShowBasicTitle,
-        label,
-        shouldTruncateTitle = false,
-        characterLimit = 200,
-        isLabelHoverable = true,
-        rightLabel,
-        shouldShowSelectedState = false,
-        isSelected = false,
-        shouldStackHorizontally = false,
-        shouldShowDescriptionOnTop = false,
-        shouldShowRightComponent = false,
-        rightComponent,
-        rightIconReportID,
-        avatarSize = CONST.AVATAR_SIZE.DEFAULT,
-        isSmallAvatarSubscriptMenu = false,
-        brickRoadIndicator,
-        shouldRenderAsHTML = false,
-        shouldEscapeText = undefined,
-        shouldGreyOutWhenDisabled = true,
-        shouldRemoveBackground = false,
-        shouldRemoveHoverBackground = false,
-        shouldUseDefaultCursorWhenDisabled = false,
-        shouldShowLoadingSpinnerIcon = false,
-        isAnonymousAction = false,
-        shouldBlockSelection = false,
-        shouldParseTitle = false,
-        shouldParseHelperText = false,
-        shouldRenderHintAsHTML = false,
-        shouldRenderErrorAsHTML = false,
-        excludedMarkdownRules = [],
-        shouldCheckActionAllowedOnPress = true,
-        onSecondaryInteraction,
-        titleWithTooltips,
-        displayInDefaultIconColor = false,
-        contentFit = 'cover',
-        isPaneMenu = true,
-        shouldPutLeftPaddingWhenNoIcon = false,
-        onFocus,
-        onBlur,
-        avatarID,
-        shouldRenderTooltip = false,
-        shouldHideOnScroll = false,
-        tooltipAnchorAlignment,
-        tooltipWrapperStyle = {},
-        tooltipShiftHorizontal = 0,
-        tooltipShiftVertical = 0,
-        renderTooltipContent,
-        onEducationTooltipPress,
-        additionalIconStyles,
-        shouldShowSelectedItemCheck = false,
-        shouldIconUseAutoWidthStyle = false,
-        shouldBreakWord = false,
-        pressableTestID,
-        shouldTeleportPortalToModalLayer,
-        plaidUrl,
-        copyValue = title,
-        copyable = false,
-        hasSubMenuItems = false,
-    }: MenuItemProps,
-    ref: PressableRef,
-) {
+function MenuItem({
+    interactive = true,
+    onPress,
+    badgeText,
+    style,
+    wrapperStyle,
+    titleWrapperStyle,
+    outerWrapperStyle,
+    containerStyle,
+    titleStyle,
+    labelStyle,
+    descriptionTextStyle,
+    badgeStyle,
+    viewMode = CONST.OPTION_MODE.DEFAULT,
+    numberOfLinesTitle = 1,
+    numberOfLinesDescription = 2,
+    icon,
+    iconFill,
+    secondaryIcon,
+    secondaryIconFill,
+    iconType = CONST.ICON_TYPE_ICON,
+    isSecondaryIconHoverable = false,
+    iconWidth,
+    iconHeight,
+    iconStyles,
+    fallbackIcon = Expensicons.FallbackAvatar,
+    shouldShowTitleIcon = false,
+    titleIcon,
+    rightIconAccountID,
+    iconAccountID,
+    shouldShowRightIcon = false,
+    iconRight = Expensicons.ArrowRight,
+    furtherDetailsIcon,
+    furtherDetails,
+    furtherDetailsNumberOfLines = 2,
+    furtherDetailsStyle,
+    furtherDetailsComponent,
+    description,
+    helperText,
+    helperTextStyle,
+    errorText,
+    errorTextStyle,
+    shouldShowRedDotIndicator,
+    hintText,
+    success = false,
+    iconReportID,
+    focused = false,
+    disabled = false,
+    title,
+    titleComponent,
+    titleContainerStyle,
+    subtitle,
+    shouldShowBasicTitle,
+    label,
+    shouldTruncateTitle = false,
+    characterLimit = 200,
+    isLabelHoverable = true,
+    rightLabel,
+    shouldShowSelectedState = false,
+    isSelected = false,
+    shouldStackHorizontally = false,
+    shouldShowDescriptionOnTop = false,
+    shouldShowRightComponent = false,
+    rightComponent,
+    rightIconReportID,
+    avatarSize = CONST.AVATAR_SIZE.DEFAULT,
+    isSmallAvatarSubscriptMenu = false,
+    brickRoadIndicator,
+    shouldRenderAsHTML = false,
+    shouldEscapeText = undefined,
+    shouldGreyOutWhenDisabled = true,
+    shouldRemoveBackground = false,
+    shouldRemoveHoverBackground = false,
+    shouldUseDefaultCursorWhenDisabled = false,
+    shouldShowLoadingSpinnerIcon = false,
+    isAnonymousAction = false,
+    shouldBlockSelection = false,
+    shouldParseTitle = false,
+    shouldParseHelperText = false,
+    shouldRenderHintAsHTML = false,
+    shouldRenderErrorAsHTML = false,
+    excludedMarkdownRules = [],
+    shouldCheckActionAllowedOnPress = true,
+    onSecondaryInteraction,
+    titleWithTooltips,
+    displayInDefaultIconColor = false,
+    contentFit = 'cover',
+    isPaneMenu = true,
+    shouldPutLeftPaddingWhenNoIcon = false,
+    onFocus,
+    onBlur,
+    avatarID,
+    shouldRenderTooltip = false,
+    shouldHideOnScroll = false,
+    tooltipAnchorAlignment,
+    tooltipWrapperStyle = {},
+    tooltipShiftHorizontal = 0,
+    tooltipShiftVertical = 0,
+    renderTooltipContent,
+    onEducationTooltipPress,
+    additionalIconStyles,
+    shouldShowSelectedItemCheck = false,
+    shouldIconUseAutoWidthStyle = false,
+    shouldBreakWord = false,
+    pressableTestID,
+    shouldTeleportPortalToModalLayer,
+    plaidUrl,
+    copyValue = title,
+    copyable = false,
+    hasSubMenuItems = false,
+    ref,
+}: MenuItemProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -682,7 +680,7 @@ function MenuItem(
                                 onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
-                                onSecondaryInteraction={copyValue ? secondaryInteraction : onSecondaryInteraction}
+                                onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}
                                 wrapperStyle={outerWrapperStyle}
                                 activeOpacity={!interactive ? 1 : variables.pressDimValue}
                                 opacityAnimationDuration={0}
@@ -780,10 +778,7 @@ function MenuItem(
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
                                                                 ) : (
-                                                                    <ActivityIndicator
-                                                                        size="small"
-                                                                        color={theme.textSupporting}
-                                                                    />
+                                                                    <ActivityIndicator color={theme.textSupporting} />
                                                                 ))}
                                                             {!!icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
                                                                 <Avatar
@@ -1025,4 +1020,4 @@ function MenuItem(
 MenuItem.displayName = 'MenuItem';
 
 export type {MenuItemBaseProps, MenuItemProps};
-export default forwardRef(MenuItem);
+export default MenuItem;

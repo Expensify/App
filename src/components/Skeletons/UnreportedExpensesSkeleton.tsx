@@ -80,7 +80,7 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems}: {fixedNumberOfItems?: 
 
     return (
         <View
-            style={[styles.flex1, styles.pt3]}
+            style={styles.flex1}
             ref={containerRef}
         >
             <ItemListSkeletonView

@@ -3,7 +3,6 @@ title: Global Reimbursement - Australia
 description: Learn how to enable international reimbursements if your business bank account is in Australia.
 keywords: [Expensify Classic, global reimbursement, Australia, AUD, international payments, direct deposit, DocuSign, compliance]
 ---
-<div id="expensify-classic" markdown="1">
 
 If your company’s business bank account is located in Australia, you can enable global reimbursements to send payments directly. This guide walks you through setting up global reimbursement in Expensify.
 
@@ -78,4 +77,3 @@ Yes. Once verified, the reimbursement account can be shared with other workspace
 ## How long does the full verification process take?
 The verification process can take anywhere from a few business days to several weeks, depending on the information provided in the DocuSign form and if additional information is required for compliance.
 
-</div>

@@ -4,6 +4,7 @@ import type {UpdateContext} from '@libs/OptimisticReportNames';
 import {computeReportNameIfNeeded, updateOptimisticReportNamesFromUpdates} from '@libs/OptimisticReportNames';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
@@ -19,14 +20,6 @@ jest.mock('@libs/ReportUtils', () => ({
     // These methods are mocked below in the beforeAll function to return specific values
     isExpenseReport: jest.fn(),
     getTitleReportField: jest.fn(),
-}));
-jest.mock('@libs/Performance', () => ({
-    markStart: jest.fn(),
-    markEnd: jest.fn(),
-}));
-jest.mock('@libs/actions/Timing', () => ({
-    start: jest.fn(),
-    end: jest.fn(),
 }));
 jest.mock('@libs/Log', () => ({
     info: jest.fn(),
@@ -72,10 +65,12 @@ describe('[OptimisticReportNames] Performance Tests', () => {
     );
 
     const mockContext: UpdateContext = {
-        betas: ['authAutoReportTitle'],
+        betas: [CONST.BETAS.CUSTOM_REPORT_NAMES],
+        betaConfiguration: {},
         allReports: mockReports,
         allPolicies: mockPolicies,
         allReportNameValuePairs: {},
+        allTransactions: {},
     };
 
     beforeAll(async () => {
@@ -258,10 +253,12 @@ describe('[OptimisticReportNames] Performance Tests', () => {
 
         test('[OptimisticReportNames] missing policies and reports', async () => {
             const contextWithMissingData: UpdateContext = {
-                betas: ['authAutoReportTitle'],
+                betas: [CONST.BETAS.CUSTOM_REPORT_NAMES],
+                betaConfiguration: {},
                 allReports: {},
                 allPolicies: {},
                 allReportNameValuePairs: {},
+                allTransactions: {},
             };
 
             const updates = Array.from({length: 10}, (_, i) => ({

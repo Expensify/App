@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef} from 'react';
+import React from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
@@ -42,30 +42,31 @@ type AmountFormProps = {
 
     /** Whether to hide the currency symbol */
     hideCurrencySymbol?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<BaseTextInputRef>;
 } & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide'>;
 
 /**
  * Wrapper around NumberWithSymbolForm with currency handling.
  */
-function AmountForm(
-    {
-        value,
-        currency = CONST.CURRENCY.USD,
-        amountMaxLength,
-        errorText,
-        onInputChange,
-        onCurrencyButtonPress,
-        displayAsTextInput = false,
-        isCurrencyPressable = true,
-        label,
-        decimals: decimalsProp,
-        hideCurrencySymbol = false,
-        autoFocus,
-        autoGrowExtraSpace,
-        autoGrowMarginSide,
-    }: AmountFormProps,
-    forwardedRef: ForwardedRef<BaseTextInputRef>,
-) {
+function AmountForm({
+    value,
+    currency = CONST.CURRENCY.USD,
+    amountMaxLength,
+    errorText,
+    onInputChange,
+    onCurrencyButtonPress,
+    displayAsTextInput = false,
+    isCurrencyPressable = true,
+    label,
+    decimals: decimalsProp,
+    hideCurrencySymbol = false,
+    autoFocus,
+    autoGrowExtraSpace,
+    autoGrowMarginSide,
+    ref,
+}: AmountFormProps) {
     const styles = useThemeStyles();
     const decimals = decimalsProp ?? getCurrencyDecimals(currency);
 
@@ -77,12 +78,12 @@ function AmountForm(
             displayAsTextInput={displayAsTextInput}
             onInputChange={onInputChange}
             onSymbolButtonPress={onCurrencyButtonPress}
-            ref={(ref: BaseTextInputRef) => {
-                if (typeof forwardedRef === 'function') {
-                    forwardedRef(ref);
-                } else if (forwardedRef && 'current' in forwardedRef) {
+            ref={(newRef: BaseTextInputRef | null) => {
+                if (typeof ref === 'function') {
+                    ref(newRef);
+                } else if (ref && 'current' in ref) {
                     // eslint-disable-next-line no-param-reassign
-                    forwardedRef.current = ref;
+                    ref.current = newRef;
                 }
             }}
             symbol={getLocalizedCurrencySymbol(currency) ?? ''}
@@ -103,5 +104,5 @@ function AmountForm(
 
 AmountForm.displayName = 'AmountForm';
 
-export default forwardRef(AmountForm);
+export default AmountForm;
 export type {AmountFormProps};

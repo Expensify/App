@@ -5,7 +5,6 @@ keywords: [New Expensify, QuickBooks Desktop, Web Connector, export error, sync 
 order: 3
 ---
 
-<div id="expensify-classic" markdown="1">
 
 This guide provides step-by-step solutions for the most common issues, including Web Connector errors, authentication problems, and data import/export failures.
 
@@ -25,7 +24,7 @@ If you're seeing connection errors, it's likely due to an issue between QuickBoo
    - Try syncing your Expensify workspace again.
 4. Still not working?
    - Quit and reopen QuickBooks Desktop.
-   - From the left-hand menu, go to **Workspaces > [Workspace Name] > Accounting**.
+   - From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**.
    - Click the three dots next to **QuickBooks Desktop**, then select **Sync now**.
    - If none of the above works, reinstall the Web Connector using the official link from QuickBooks.
 
@@ -115,5 +114,3 @@ This usually means QuickBooks or the Web Connector was closed during the export 
 3. Check the associated Expense Chat in Expensify to verify if the export was successful.
 
 Still not exporting? Share the Report ID and a screenshot of your Web Connector with Concierge.
-
-</div>

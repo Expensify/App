@@ -70,14 +70,20 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
             errors.required = translate('spreadsheet.fieldNotMapped', {fieldName: missingRequiredColumns.text});
         } else {
             const duplicate = findDuplicate(columns);
+            const tagsNamesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.NAME);
+            const tagsNames = tagsNamesColumn !== -1 ? spreadsheet?.data[tagsNamesColumn] : [];
+            const containsEmptyName = tagsNames?.some((name, index) => (!containsHeader || index > 0) && !name?.toString().trim());
+
             if (duplicate) {
                 errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', {fieldName: duplicate});
+            } else if (containsEmptyName) {
+                errors.emptyNames = translate('spreadsheet.emptyMappedField', {fieldName: translate('common.name')});
             } else {
                 errors = {};
             }
         }
         return errors;
-    }, [requiredColumns, spreadsheet?.columns, translate]);
+    }, [requiredColumns, spreadsheet?.columns, translate, containsHeader, spreadsheet?.data]);
 
     const importTags = useCallback(() => {
         setIsValidationEnabled(true);

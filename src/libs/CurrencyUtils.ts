@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Currency} from '@src/types/onyx';
+import type {Currency, CurrencyList} from '@src/types/onyx';
 import {format, formatToParts} from './NumberFormatUtils';
 
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
@@ -105,7 +105,7 @@ function convertToFrontendAmountAsString(amountAsInt: number | null | undefined,
  * @param amountInCents – should be an integer. Anything after a decimal place will be dropped.
  * @param currency - IOU currency
  */
-function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
+function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD, shouldUseLocalCurrencySymbol = false): string {
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
     /**
      * Fallback currency to USD if it empty string or undefined
@@ -114,6 +114,20 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
     if (!currency) {
         currencyWithFallback = CONST.CURRENCY.USD;
     }
+
+    if (shouldUseLocalCurrencySymbol) {
+        const currencySymbol = getCurrencySymbol(currencyWithFallback);
+
+        if (currencySymbol) {
+            const formattedNumber = format(IntlStore.getCurrentLocale(), convertedAmount, {
+                style: 'decimal',
+                minimumFractionDigits: getCurrencyDecimals(currency),
+                maximumFractionDigits: 2,
+            });
+            return `${currencySymbol}${formattedNumber}`;
+        }
+    }
+
     return format(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
         currency: currencyWithFallback,
@@ -195,11 +209,24 @@ function sanitizeCurrencyCode(currencyCode: string): string {
     return isValidCurrencyCode(currencyCode) ? currencyCode : CONST.CURRENCY.USD;
 }
 
+function getCurrencyKeyByCountryCode(currencies?: CurrencyList, countryCode?: string): string {
+    if (!currencies || !countryCode) {
+        return CONST.CURRENCY.USD;
+    }
+    for (const [key, value] of Object.entries(currencies)) {
+        if (value?.countries?.includes(countryCode)) {
+            return key;
+        }
+    }
+    return CONST.CURRENCY.USD;
+}
+
 export {
     getCurrencyDecimals,
     getCurrencyUnit,
     getLocalizedCurrencySymbol,
     getCurrencySymbol,
+    getCurrencyKeyByCountryCode,
     convertToBackendAmount,
     convertToFrontendAmountAsInteger,
     convertToFrontendAmountAsString,

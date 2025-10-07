@@ -225,7 +225,6 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
                     setCurrentAttachment(null);
                     setPage(0);
                 }}
-                propagateSwipe
                 initialFocus={() => {
                     if (!submitRef.current) {
                         return false;

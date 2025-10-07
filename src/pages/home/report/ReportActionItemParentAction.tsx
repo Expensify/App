@@ -1,12 +1,12 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import onyxSubscribe from '@libs/onyxSubscribe';
 import {isTripPreview} from '@libs/ReportActionsUtils';
 import type {Ancestor} from '@libs/ReportUtils';
 import {
@@ -86,6 +86,9 @@ type ReportActionItemParentActionProps = {
     /** User billing fund ID */
     userBillingFundID: number | undefined;
 
+    /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
+    isTryNewDotNVPDismissed: boolean | undefined;
+
     /** Whether the report is archived */
     isReportArchived: boolean;
 };
@@ -109,6 +112,7 @@ function ReportActionItemParentAction({
     allEmojiReactions,
     linkedTransactionRouteError,
     userBillingFundID,
+    isTryNewDotNVPDismissed = false,
     isReportArchived = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
@@ -117,45 +121,55 @@ function ReportActionItemParentAction({
     const [allAncestors, setAllAncestors] = useState<Ancestor[]>([]);
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
-    const [ancestorReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
-        canBeMissing: true,
-        selector: (allPairs) => {
-            const ancestorIDsToSelect = new Set(ancestorIDs.current.reportIDs);
 
-            return Object.fromEntries(
-                Object.entries(allPairs ?? {}).filter(([key]) => {
-                    const id = key.split('_').at(1);
-                    return id && ancestorIDsToSelect.has(id);
-                }),
-            );
+    const ancestorReportNameValuePairsSelector = useCallback((allPairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>) => {
+        const ancestorIDsToSelect = new Set(ancestorIDs.current.reportIDs);
+
+        return Object.fromEntries(
+            Object.entries(allPairs ?? {}).filter(([key]) => {
+                const id = key.split('_').at(1);
+                return id && ancestorIDsToSelect.has(id);
+            }),
+        );
+    }, []);
+
+    const [ancestorReportNameValuePairs] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+        {
+            canBeMissing: true,
+            selector: ancestorReportNameValuePairsSelector,
         },
-    });
+        [ancestorReportNameValuePairsSelector],
+    );
 
     useEffect(() => {
         const unsubscribeReports: Array<() => void> = [];
         const unsubscribeReportActions: Array<() => void> = [];
         ancestorIDs.current.reportIDs.forEach((ancestorReportID) => {
-            unsubscribeReports.push(
-                onyxSubscribe({
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${ancestorReportID}`,
-                    callback: (val) => {
-                        ancestorReports.current[ancestorReportID] = val;
-                        //  getAllAncestorReportActions use getReportOrDraftReport to get parent reports which gets the report from allReports that
-                        // holds the report collection. However, allReports is not updated by the time this current callback is called.
-                        // Therefore we need to pass the up-to-date report to getAllAncestorReportActions so that it uses the up-to-date report value
-                        // to calculate, for instance, unread marker.
-                        setAllAncestors(getAllAncestorReportActions(report, val));
-                    },
-                }),
-            );
-            unsubscribeReportActions.push(
-                onyxSubscribe({
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReportID}`,
-                    callback: () => {
-                        setAllAncestors(getAllAncestorReportActions(report));
-                    },
-                }),
-            );
+            // We are not dependent on the changes in the UI to get the report,
+            // so we can use connectWithoutView here.
+            const reportConnection = Onyx.connectWithoutView({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${ancestorReportID}`,
+                callback: (val) => {
+                    ancestorReports.current[ancestorReportID] = val;
+                    //  getAllAncestorReportActions use getReportOrDraftReport to get parent reports which gets the report from allReports that
+                    // holds the report collection. However, allReports is not updated by the time this current callback is called.
+                    // Therefore we need to pass the up-to-date report to getAllAncestorReportActions so that it uses the up-to-date report value
+                    // to calculate, for instance, unread marker.
+                    setAllAncestors(getAllAncestorReportActions(report, val));
+                },
+            });
+            unsubscribeReports.push(() => Onyx.disconnect(reportConnection));
+
+            // We are not dependent on the changes in the UI to get the report actions,
+            // so we can use connectWithoutView here.
+            const reportActionConnection = Onyx.connectWithoutView({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReportID}`,
+                callback: () => {
+                    setAllAncestors(getAllAncestorReportActions(report));
+                },
+            });
+            unsubscribeReportActions.push(() => Onyx.disconnect(reportActionConnection));
         });
 
         return () => {
@@ -225,6 +239,7 @@ function ReportActionItemParentAction({
                             emojiReactions={actionEmojiReactions}
                             linkedTransactionRouteError={linkedTransactionRouteError}
                             userBillingFundID={userBillingFundID}
+                            isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                         />
                     </OfflineWithFeedback>
                 );

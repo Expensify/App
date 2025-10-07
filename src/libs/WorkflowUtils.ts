@@ -1,12 +1,16 @@
 import lodashMapKeys from 'lodash/mapKeys';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
+import type {BankAccountList} from '@src/types/onyx';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
+import type Policy from '@src/types/onyx/Policy';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
+import {getDefaultApprover} from './PolicyUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     members: [],
@@ -70,14 +74,11 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
 }
 
 type PolicyConversionParams = {
-    /** List of employees in the policy */
-    employees: PolicyEmployeeList;
+    /** Policy data containing employees and approver information */
+    policy: OnyxEntry<Policy>;
 
     /** Personal details of the employees */
     personalDetails: PersonalDetailsList;
-
-    /** Email of the default approver for the policy */
-    defaultApprover: string;
 
     /** Email of the first approver in current edited workflow */
     firstApprover?: string;
@@ -98,7 +99,9 @@ type PolicyConversionResult = {
 };
 
 /** Convert a list of policy employees to a list of approval workflows */
-function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails, firstApprover, localeCompare}: PolicyConversionParams): PolicyConversionResult {
+function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, firstApprover, localeCompare}: PolicyConversionParams): PolicyConversionResult {
+    const employees = policy?.employeeList ?? {};
+    const defaultApprover = getDefaultApprover(policy);
     const approvalWorkflows: Record<string, ApprovalWorkflow> = {};
 
     // Keep track of used approver emails to display hints in the UI
@@ -162,7 +165,10 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
         });
     }
 
-    return {approvalWorkflows: sortedApprovalWorkflows, usedApproverEmails: [...usedApproverEmails], availableMembers: sortedApprovalWorkflows.at(0)?.members ?? []};
+    const availableMembers =
+        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC ? sortedApprovalWorkflows?.flatMap((workflow) => workflow.members) : (sortedApprovalWorkflows.at(0)?.members ?? []);
+
+    return {approvalWorkflows: sortedApprovalWorkflows, usedApproverEmails: [...usedApproverEmails], availableMembers};
 }
 
 type ConvertApprovalWorkflowToPolicyEmployeesParams = {
@@ -190,6 +196,11 @@ type ConvertApprovalWorkflowToPolicyEmployeesParams = {
      * Mode to use when converting the approval workflow
      */
     type: ValueOf<typeof CONST.APPROVAL_WORKFLOW.TYPE>;
+
+    /**
+     * The email of the default approver
+     */
+    defaultApprover?: string;
 };
 
 type UpdateWorkflowDataOnApproverRemovalParams = {
@@ -228,6 +239,7 @@ function convertApprovalWorkflowToPolicyEmployees({
     membersToRemove,
     approversToRemove,
     type,
+    defaultApprover,
 }: ConvertApprovalWorkflowToPolicyEmployeesParams): PolicyEmployeeList {
     const updatedEmployeeList: PolicyEmployeeList = {};
     const firstApprover = approvalWorkflow.approvers.at(0);
@@ -282,7 +294,7 @@ function convertApprovalWorkflowToPolicyEmployees({
     membersToRemove?.forEach(({email}) => {
         updatedEmployeeList[email] = {
             ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
-            submitsTo: '',
+            submitsTo: defaultApprover,
             pendingAction,
         };
     });
@@ -299,6 +311,7 @@ function convertApprovalWorkflowToPolicyEmployees({
 
     return updatedEmployeeList;
 }
+
 function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover, ownerDetails}: UpdateWorkflowDataOnApproverRemovalParams): UpdateWorkflowDataOnApproverRemovalResult {
     const defaultWorkflow = approvalWorkflows.find((workflow) => workflow.isDefault);
     const removedApproverEmail = removedApprover.login;
@@ -409,4 +422,24 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
     });
 }
 
-export {calculateApprovers, convertPolicyEmployeesToApprovalWorkflows, convertApprovalWorkflowToPolicyEmployees, INITIAL_APPROVAL_WORKFLOW, updateWorkflowDataOnApproverRemoval};
+/**
+ * Get eligible business bank accounts for the workspace reimbursement workflow
+ */
+function getEligibleExistingBusinessBankAccounts(bankAccountList: BankAccountList | undefined, policyCurrency: string | undefined) {
+    if (!bankAccountList || policyCurrency === undefined) {
+        return [];
+    }
+
+    return Object.values(bankAccountList).filter((account) => {
+        return account.bankCurrency === policyCurrency && account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN && account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS;
+    });
+}
+
+export {
+    calculateApprovers,
+    convertPolicyEmployeesToApprovalWorkflows,
+    convertApprovalWorkflowToPolicyEmployees,
+    getEligibleExistingBusinessBankAccounts,
+    INITIAL_APPROVAL_WORKFLOW,
+    updateWorkflowDataOnApproverRemoval,
+};
