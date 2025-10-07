@@ -94,6 +94,7 @@ import type {
     DemotedFromWorkspaceParams,
     DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
+    DisconnectYourBankAccountParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
@@ -106,6 +107,7 @@ import type {
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -142,6 +144,7 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeAccountIntoParams,
     MergeFailureDescriptionGenericParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
@@ -292,6 +295,7 @@ import type {
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
+    WalletAgreementParams,
     WalletProgramParams,
     WelcomeEnterMagicCodeParams,
     WelcomeToRoomParams,
@@ -407,7 +411,7 @@ const translations = {
         download: 'Baixar',
         downloading: 'Baixando',
         uploading: 'Carregando',
-        pin: 'Pin',
+        pin: 'Fixar',
         unPin: 'Desafixar',
         back: 'Voltar',
         saveAndContinue: 'Salvar e continuar',
@@ -610,7 +614,7 @@ const translations = {
         disabled: 'Desativado',
         import: 'Importar',
         offlinePrompt: 'Você não pode realizar esta ação no momento.',
-        outstanding: 'Excelente',
+        outstanding: 'Pendente',
         chats: 'Chats',
         tasks: 'Tarefas',
         unread: 'Não lido',
@@ -671,7 +675,12 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
-        description: 'Você não está autorizado a realizar esta ação quando o suporte estiver conectado.',
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) =>
+            `Você não está autorizado a realizar esta ação quando o suporte está conectado (comando: ${command ?? ''}). Se você acha que o Success deveria poder realizar esta ação, por favor, inicie uma conversa no Slack.`,
     },
     lockedAccount: {
         title: 'Conta Bloqueada',
@@ -854,9 +863,24 @@ const translations = {
         markAsUnread: 'Marcar como não lida',
         markAsRead: 'Marcar como lido',
         editAction: ({action}: EditActionParams) => `Editar ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'despesa' : 'comentar'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Excluir ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'despesa' : 'comentar'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) =>
-            `Tem certeza de que deseja excluir este ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'despesa' : 'comentar'}?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'comentar';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'despesa';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'relatório';
+            }
+            return `Excluir ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'comentar';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'despesa';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'relatório';
+            }
+            return `Tem certeza de que deseja excluir este ${type}?`;
+        },
         onlyVisible: 'Apenas visível para',
         replyInThread: 'Responder no tópico',
         joinThread: 'Participar do tópico',
@@ -1412,7 +1436,7 @@ const translations = {
             reasonPageDescription: 'Explique por que você está rejeitando essa despesa.',
             rejectReason: 'Motivo da rejeição',
             markAsResolved: 'Marcar como resolvido',
-            rejectedStatus: 'Esta despesa foi rejeitada. Aguardando você corrigir o(s) problema(s) e marcar como resolvido para permitir o envio.',
+            rejectedStatus: 'Esta despesa foi rejeitada. Aguardando você corrigir os problemas e marcar como resolvido para permitir o envio.',
             reportActions: {
                 rejectedExpense: 'rejeitou esta despesa',
                 markedAsResolved: 'marcou o motivo da rejeição como resolvido',
@@ -1694,13 +1718,14 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: 'Mesclar contas',
         accountDetails: {
-            accountToMergeInto: 'Insira a conta na qual você deseja mesclar',
+            accountToMergeInto: ({login}: MergeAccountIntoParams) => `Digite a conta que você deseja mesclar em <strong>${login}</strong>.`,
             notReversibleConsent: 'Entendo que isso não é reversível.',
         },
         accountValidate: {
             confirmMerge: 'Tem certeza de que deseja mesclar as contas?',
-            lossOfUnsubmittedData: `A fusão de suas contas é irreversível e resultará na perda de quaisquer despesas não enviadas para`,
-            enterMagicCode: `Para continuar, por favor, insira o código mágico enviado para`,
+            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) =>
+                `A fusão de suas contas é irreversível e resultará na perda de quaisquer despesas não enviadas para <strong>${login}</strong>.`,
+            enterMagicCode: ({login}: MergeAccountIntoParams) => `Para continuar, digite o código mágico enviado para <strong>${login}</strong>.`,
             errors: {
                 incorrectMagicCode: 'Código mágico incorreto ou inválido. Por favor, tente novamente ou solicite um novo código.',
                 fallback: 'Algo deu errado. Por favor, tente novamente mais tarde.',
@@ -2205,7 +2230,7 @@ const translations = {
         enterAuthenticatorCode: 'Por favor, insira seu código do autenticador',
         enterRecoveryCode: 'Por favor, insira seu código de recuperação',
         requiredWhen2FAEnabled: 'Necessário quando a 2FA está ativada',
-        requestNewCode: 'Solicitar um novo código em',
+        requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Solicitar um novo código em <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Solicitar um novo código',
         error: {
             pleaseFillMagicCode: 'Por favor, insira seu código mágico',
@@ -2606,13 +2631,10 @@ const translations = {
     emailDeliveryFailurePage: {
         ourEmailProvider: ({login}: OurEmailProviderParams) =>
             `Nosso provedor de e-mail suspendeu temporariamente os e-mails para ${login} devido a problemas de entrega. Para desbloquear seu login, siga estas etapas:`,
-        confirmThat: ({login}: ConfirmThatParams) => `Confirme que ${login} está escrito corretamente e é um endereço de e-mail real e válido para entrega.`,
-        emailAliases: 'Os aliases de e-mail, como "expenses@domain.com", devem ter acesso à sua própria caixa de entrada de e-mail para que seja um login válido do Expensify.',
-        ensureYourEmailClient: 'Certifique-se de que seu cliente de e-mail permita e-mails de expensify.com.',
-        youCanFindDirections: 'Você pode encontrar instruções sobre como concluir esta etapa',
-        helpConfigure: 'mas você pode precisar que o seu departamento de TI ajude a configurar as suas configurações de e-mail.',
-        onceTheAbove: 'Depois de concluir as etapas acima, por favor entre em contato com',
-        toUnblock: 'para desbloquear seu login.',
+        confirmThat: ({login}: ConfirmThatParams) =>
+            `<strong>Confirme que ${login} está escrito corretamente e é um endereço de e-mail real e válido para entrega.</strong> Os aliases de e-mail, como "expenses@domain.com", devem ter acesso à sua própria caixa de entrada de e-mail para que seja um login válido do Expensify.`,
+        ensureYourEmailClient: `<strong>Certifique-se de que seu cliente de e-mail permita e-mails de expensify.com.</strong> Você pode encontrar instruções sobre como concluir essa etapa <a href="${CONST.SET_NOTIFICATION_LINK}">aqui</a>, mas talvez seja necessário que seu departamento de TI o ajude a definir suas configurações de e-mail.`,
+        onceTheAbove: `Depois que as etapas acima forem concluídas, entre em contato com <a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a> para desbloquear seu login.`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
@@ -2874,10 +2896,11 @@ const translations = {
     termsStep: {
         headerTitle: 'Termos e taxas',
         headerTitleRefactor: 'Taxas e termos',
-        haveReadAndAgree: 'Li e concordo em receber',
-        electronicDisclosures: 'divulgações eletrônicas',
-        agreeToThe: 'Eu concordo com o/a/as/os',
-        walletAgreement: 'Acordo da Wallet',
+        haveReadAndAgreePlain: 'Eu li e concordo em receber divulgações eletrônicas.',
+        haveReadAndAgree: `Eu li e concordo em receber <a href="${CONST.ELECTRONIC_DISCLOSURES_URL}">divulgações eletrônicas</a>.`,
+        agreeToThePlain: 'Concordo com o Acordo de Privacidade e Carteira.',
+        agreeToThe: ({walletAgreementUrl}: WalletAgreementParams) =>
+            `Concordo com o Acordo de <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidade</a> e <a href="${walletAgreementUrl}">Carteira</a>.`,
         enablePayments: 'Habilitar pagamentos',
         monthlyFee: 'Taxa mensal',
         inactivity: 'Inatividade',
@@ -2894,17 +2917,14 @@ const translations = {
             cashReload: 'Recarga de dinheiro',
             inNetwork: 'na rede',
             outOfNetwork: 'fora da rede',
-            atmBalanceInquiry: 'Consulta de saldo no caixa eletrônico',
-            inOrOutOfNetwork: '(dentro da rede ou fora da rede)',
-            customerService: 'Atendimento ao cliente',
-            automatedOrLive: '(automated or live agent)',
-            afterTwelveMonths: '(após 12 meses sem transações)',
+            atmBalanceInquiry: 'Consulta de saldo no caixa eletrônico (dentro da rede ou fora da rede)',
+            customerService: 'Atendimento ao cliente (agente automatizado ou ao vivo)',
+            inactivityAfterTwelveMonths: 'Inatividade (após 12 meses sem transações)',
             weChargeOneFee: 'Cobramos 1 outro tipo de taxa. É:',
             fdicInsurance: 'Seus fundos são elegíveis para seguro FDIC.',
-            generalInfo: 'Para informações gerais sobre contas pré-pagas, visite',
-            conditionsDetails: 'Para detalhes e condições de todas as taxas e serviços, visite',
-            conditionsPhone: 'ou ligando para +1 833-400-0904.',
-            instant: '(instant)',
+            generalInfo: `Para obter informações gerais sobre contas pré-pagas, visite <a href="${CONST.CFPB_PREPAID_URL}">${CONST.TERMS.CFPB_PREPAID}</a>.`,
+            conditionsDetails: `Para obter detalhes e condições de todas as taxas e serviços, acesse <a href="${CONST.FEES_URL}">${CONST.FEES_URL}</a> ou ligue para +1 833-400-0904.`,
+            electronicFundsWithdrawalInstant: 'Retirada eletrônica de fundos (instantâneo)',
             electronicFundsInstantFeeMin: ({amount}: TermsParams) => `(min ${amount})`,
         },
         longTermsForm: {
@@ -2921,23 +2941,16 @@ const translations = {
             sendingFundsTitle: 'Enviando fundos para outro titular de conta',
             sendingFundsDetails: 'Não há taxa para enviar fundos para outro titular de conta usando seu saldo, conta bancária ou cartão de débito.',
             electronicFundsStandardDetails:
-                "There's no fee to transfer funds from your Expensify Wallet " +
-                'to your bank account using the standard option. This transfer usually completes within 1-3 business' +
-                ' days.',
+                'Não há nenhuma taxa para transferir fundos de sua Carteira Expensify para sua conta bancária usando a opção padrão. Essa transferência geralmente é concluída dentro de 1 a 3 dias úteis.',
             electronicFundsInstantDetails: ({percentage, amount}: ElectronicFundsParams) =>
-                "There's a fee to transfer funds from your Expensify Wallet to " +
-                'your linked debit card using the instant transfer option. This transfer usually completes within ' +
-                `several minutes. The fee is ${percentage}% of the transfer amount (with a minimum fee of ${amount}).`,
+                'Há uma taxa para transferir fundos de sua Carteira Expensify para seu cartão de débito vinculado usando a opção de transferência instantânea.' +
+                ` Essa transferência geralmente é concluída em alguns minutos. A taxa é de ${percentage}% do valor da transferência (com uma taxa mínima de ${amount}).`,
             fdicInsuranceBancorp: ({amount}: TermsParams) =>
-                'Your funds are eligible for FDIC insurance. Your funds will be held at or ' +
-                `transferred to ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, an FDIC-insured institution. Once there, your funds are insured up ` +
-                `to ${amount} by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails, if specific deposit insurance requirements ` +
-                `are met and your card is registered. See`,
-            fdicInsuranceBancorp2: 'para detalhes.',
-            contactExpensifyPayments: `Entre em contato com ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} ligando para +1 833-400-0904, ou por e-mail em`,
-            contactExpensifyPayments2: 'ou faça login em',
-            generalInformation: 'Para informações gerais sobre contas pré-pagas, visite',
-            generalInformation2: 'Se você tiver uma reclamação sobre uma conta pré-paga, ligue para o Bureau de Proteção Financeira do Consumidor pelo 1-855-411-2372 ou visite',
+                `Seus fundos são elegíveis para o seguro FDIC. Seus fundos serão mantidos ou transferidos para o ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, uma instituição segurada pelo FDIC.` +
+                ` Uma vez lá, seus fundos são segurados em até ${amount} pelo FDIC no caso de falência do ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, se os requisitos específicos de seguro de depósito forem atendidos e seu cartão estiver registrado. ` +
+                ` Consulte ${CONST.TERMS.FDIC_PREPAID} para obter detalhes.`,
+            contactExpensifyPayments: `Entre em contato com a ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} pelo telefone +1 833-400-0904, por e-mail em ${CONST.EMAIL.CONCIERGE} ou faça login em ${CONST.NEW_EXPENSIFY_URL}.`,
+            generalInformation: `Para obter informações gerais sobre contas pré-pagas, acesse ${CONST.TERMS.CFPB_PREPAID}. Se você tiver uma reclamação sobre uma conta pré-paga, ligue para o Consumer Financial Protection Bureau (Departamento de Proteção Financeira do Consumidor) no número 1-855-411-2372 ou acesse ${CONST.TERMS.CFPB_COMPLAINT}.`,
             printerFriendlyView: 'Ver versão para impressão',
             automated: 'Automatizado',
             liveAgent: 'Agente ao vivo',
@@ -3267,6 +3280,9 @@ const translations = {
         thisStep: 'Esta etapa foi concluída',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `está conectando uma conta bancária empresarial em ${currency} com final ${bankAccountLastFour} ao Expensify para pagar funcionários em ${currency}. A próxima etapa exige as informações de um signatário, como um diretor ou executivo sênior.`,
+        error: {
+            emailsMustBeDifferent: 'Os e-mails devem ser diferentes',
+        },
     },
     agreementsStep: {
         agreements: 'Acordos',
@@ -3602,19 +3618,19 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'Pendente',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Suspenso',
                 },
-                invitationFailure: 'Falha ao convidar membros para o Uber for Business',
+                invitationFailure: 'Não é possível convidar um membro para o Uber for Business',
                 autoInvite: 'Convidar novos membros do espaço de trabalho para o Uber for Business',
                 autoRemove: 'Desativar membros removidos do espaço de trabalho do Uber for Business',
                 bannerTitle: 'Expensify + Uber para empresas',
                 bannerDescription: 'Conecte o Uber for Business para automatizar despesas de viagens e entrega de refeições em toda a sua organização.',
                 emptyContent: {
-                    title: 'Nenhum membro para exibir',
-                    subtitle: 'Procuramos em todos os lugares e não encontramos nada.',
+                    title: 'Nenhum convite pendente',
+                    subtitle: 'Viva! Procuramos por toda parte e não encontramos nenhum convite pendente.',
                 },
             },
         },
         perDiem: {
-            subtitle: 'Defina taxas de diárias para controlar os gastos diários dos funcionários.',
+            subtitle: `<muted-text>Defina taxas de diárias para controlar os gastos diários dos funcionários. <a href="${CONST.DEEP_DIVE_PER_DIEM}">Saiba mais</a>.</muted-text>`,
             amount: 'Quantia',
             deleteRates: () => ({
                 one: 'Taxa de exclusão',
@@ -4387,10 +4403,7 @@ const translations = {
                 whoIsYourBankAccount: 'Qual é o seu banco?',
                 whereIsYourBankLocated: 'Onde está localizado o seu banco?',
                 howDoYouWantToConnect: 'Como você deseja se conectar ao seu banco?',
-                learnMoreAboutOptions: {
-                    text: 'Saiba mais sobre estes',
-                    linkText: 'opções.',
-                },
+                learnMoreAboutOptions: `<muted-text>Saiba mais sobre essas <a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">opções</a>.</muted-text>`,
                 commercialFeedDetails: 'Requer configuração com seu banco. Isso é normalmente usado por empresas maiores e geralmente é a melhor opção se você se qualificar.',
                 commercialFeedPlaidDetails: `Requer configuração com seu banco, mas nós iremos guiá-lo. Isso geralmente é limitado a empresas maiores.`,
                 directFeedDetails: 'A abordagem mais simples. Conecte-se imediatamente usando suas credenciais principais. Este método é o mais comum.',
@@ -4650,6 +4663,10 @@ const translations = {
                         automaticImport: 'Importação automática de transações',
                     },
                 },
+                bankConnectionError: 'Problema de conexão bancária',
+                connectWithPlaid: 'conectar via Plaid',
+                connectWithExpensifyCard: 'tente o Cartão Expensify.',
+                bankConnectionDescription: 'Tente adicionar seus cartões novamente. Caso contrário, você pode',
                 disableCardTitle: 'Desativar cartões corporativos',
                 disableCardPrompt: 'Você não pode desativar cartões da empresa porque esse recurso está em uso. Entre em contato com o Concierge para os próximos passos.',
                 disableCardButton: 'Converse com o Concierge',
@@ -5088,8 +5105,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Há um erro com uma conexão que foi configurada no Expensify Classic.',
-            goToODToFix: 'Vá para o Expensify Classic para resolver este problema.',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Há um erro com uma conexão que foi configurada no Expensify Classic. [Vá para o Expensify Classic para resolver este problema.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Vá para o Expensify Classic para gerenciar suas configurações.',
             setup: 'Conectar',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Última sincronização ${relativeDate}`,
@@ -5420,8 +5437,8 @@ const translations = {
             updateDetails: 'Atualizar detalhes',
             yesDisconnectMyBankAccount: 'Sim, desconectar minha conta bancária',
             yesStartOver: 'Sim, comece de novo.',
-            disconnectYour: 'Desconecte seu',
-            bankAccountAnyTransactions: 'conta bancária. Quaisquer transações pendentes para esta conta ainda serão concluídas.',
+            disconnectYourBankAccount: ({bankName}: DisconnectYourBankAccountParams) =>
+                `Desconecte sua conta bancária de <strong>${bankName}</strong>. Quaisquer transações pendentes para esta conta ainda serão concluídas.`,
             clearProgress: 'Recomeçar apagará o progresso que você fez até agora.',
             areYouSure: 'Você tem certeza?',
             workspaceCurrency: 'Moeda do espaço de trabalho',
@@ -5676,8 +5693,7 @@ const translations = {
                 nonBillable: 'Não faturável',
                 nonBillableDescription: 'Despesas são ocasionalmente refaturadas para clientes',
                 eReceipts: 'eReceipts',
-                eReceiptsHint: 'eReceipts são criados automaticamente',
-                eReceiptsHintLink: 'para a maioria das transações de crédito em USD',
+                eReceiptsHint: `Os recibos eletrônicos são criados automaticamente [para a maioria das transações de crédito em dólares](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Rastreamento de participantes',
                 attendeeTrackingHint: 'Acompanhe o custo por pessoa para cada despesa.',
                 prohibitedDefaultDescription:
@@ -6194,7 +6210,7 @@ const translations = {
         groupBy: 'Agrupar por',
         moneyRequestReport: {
             emptyStateTitle: 'Este relatório não possui despesas.',
-            emptyStateSubtitle: 'Você pode adicionar despesas a este relatório usando o botão acima.',
+            emptyStateSubtitle: 'Você pode adicionar despesas a este relatório\n usando o botão abaixo ou a opção "Adicionar despesa" no menu Mais acima.',
         },
         noCategory: 'Sem categoria',
         noTag: 'Sem etiqueta',
@@ -6676,7 +6692,7 @@ const translations = {
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Não é possível associar automaticamente o recibo devido a uma conexão bancária interrompida que ${email} precisa corrigir.`
-                    : 'Não é possível associar automaticamente o recibo devido a uma conexão bancária interrompida que você precisa corrigir.';
+                    : 'Não é possível associar automaticamente o recibo devido a uma conexão bancária interrompida.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Peça a ${member} para marcar como dinheiro ou espere 7 dias e tente novamente.` : 'Aguardando a fusão com a transação do cartão.';
