@@ -44,7 +44,10 @@ function DisablePage() {
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.DISABLE}
             title={translate('twoFactorAuth.disableTwoFactorAuth')}
         >
-            <ScrollView contentContainerStyle={styles.flexGrow1}>
+            <ScrollView
+                contentContainerStyle={styles.flexGrow1}
+                keyboardShouldPersistTaps="handled"
+            >
                 <View style={[styles.mh5, styles.mb4, styles.mt3]}>
                     <TwoFactorAuthForm
                         innerRef={formRef}
