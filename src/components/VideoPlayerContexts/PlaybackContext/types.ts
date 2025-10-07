@@ -35,6 +35,7 @@ type PlaybackContextVideoRefs = {
     resetPlayerData: () => void;
     play: () => void;
     pause: () => void;
+    stop: () => void;
     isPlaying: (statusCallback: StatusCallback) => void;
     resumeTryNumberRef: MutableRefObject<number>;
     ref: MutableRefObject<VideoWithOnFullScreenUpdate | null>;
@@ -45,6 +46,7 @@ type PlaybackContext = PlaybackContextValues & {
     resetVideoPlayerData: PlaybackContextVideoRefs['resetPlayerData'];
     playVideo: PlaybackContextVideoRefs['play'];
     pauseVideo: PlaybackContextVideoRefs['pause'];
+    stopVideo: PlaybackContextVideoRefs['stop'];
     checkIfVideoIsPlaying: PlaybackContextVideoRefs['isPlaying'];
     videoResumeTryNumberRef: PlaybackContextVideoRefs['resumeTryNumberRef'];
     currentVideoPlayerRef: PlaybackContextVideoRefs['ref'];

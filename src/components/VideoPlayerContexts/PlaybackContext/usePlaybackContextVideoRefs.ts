@@ -76,6 +76,7 @@ function usePlaybackContextVideoRefs(resetCallback: () => void) {
             resetPlayerData: resetVideoPlayerData,
             isPlaying: checkIfVideoIsPlaying,
             pause: pauseVideo,
+            stop: stopVideo,
             play: playVideo,
             ref: currentVideoPlayerRef,
             resumeTryNumberRef: videoResumeTryNumberRef,

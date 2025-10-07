@@ -33,8 +33,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
 
             if(!url){
                 if (currentlyPlayingURL) {
-                    video.pause();
-                    setCurrentlyPlayingURL(null);
+                    video.stop();
                 }
                 return;
             }
@@ -122,6 +121,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             currentVideoPlayerRef: video.ref,
             playVideo: video.play,
             pauseVideo: video.pause,
+            stopVideo: video.stop,
             checkIfVideoIsPlaying: video.isPlaying,
             videoResumeTryNumberRef: video.resumeTryNumberRef,
             resetVideoPlayerData: video.resetPlayerData,
