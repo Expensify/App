@@ -1075,11 +1075,11 @@ function MoneyRequestConfirmationListFooter({
                     </View>
                 )}
 
-                {fields.filter((field) => !isScan || (field.shouldShow && (field.isRequired ?? false))).map((field) => field.item)}
+                {fields.filter((field) => field.shouldShow && (field.isRequired ?? false)).map((field) => field.item)}
 
-                {isScan && showMoreFields && fields.filter((field) => field.shouldShow && !(field.isRequired ?? false)).map((field) => field.item)}
+                {(showMoreFields || !isScan) && fields.filter((field) => field.shouldShow && !(field.isRequired ?? false)).map((field) => field.item)}
 
-                {isScan && !showMoreFields && fields.some((field) => field.shouldShow && !(field.isRequired ?? false)) && (
+                {!showMoreFields && isScan && fields.some((field) => field.shouldShow && !(field.isRequired ?? false)) && (
                     <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative]}>
                         <View style={[styles.dividerLine, styles.pAbsolute, styles.w100, styles.justifyContentCenter, {transform: [{translateY: -0.5}]}]} />
                         <Button
