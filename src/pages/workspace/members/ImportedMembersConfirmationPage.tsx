@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import {InteractionManager} from 'react-native';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -24,7 +25,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
-import {isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {isControlPolicy, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import WorkspaceMemberDetailsRoleSelectionModal from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
 import type {ListItemType} from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
@@ -52,7 +53,9 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
 
     useEffect(() => {
         return () => {
-            clearImportedSpreadsheetMemberData();
+            InteractionManager.runAfterInteractions(() => {
+                clearImportedSpreadsheetMemberData();
+            });
         };
     }, []);
 
@@ -100,29 +103,36 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         setIsRoleSelectionModalVisible(false);
     };
 
-    const roleItems: ListItemType[] = [
-        {
-            value: CONST.POLICY.ROLE.ADMIN,
-            text: translate('common.admin'),
-            alternateText: translate('workspace.common.adminAlternateText'),
-            isSelected: role === CONST.POLICY.ROLE.ADMIN,
-            keyForList: CONST.POLICY.ROLE.ADMIN,
-        },
-        {
-            value: CONST.POLICY.ROLE.AUDITOR,
-            text: translate('common.auditor'),
-            alternateText: translate('workspace.common.auditorAlternateText'),
-            isSelected: role === CONST.POLICY.ROLE.AUDITOR,
-            keyForList: CONST.POLICY.ROLE.AUDITOR,
-        },
-        {
-            value: CONST.POLICY.ROLE.USER,
-            text: translate('common.member'),
-            alternateText: translate('workspace.common.memberAlternateText'),
-            isSelected: role === CONST.POLICY.ROLE.USER,
-            keyForList: CONST.POLICY.ROLE.USER,
-        },
-    ];
+    const roleItems: ListItemType[] = useMemo(() => {
+        const items: ListItemType[] = [
+            {
+                value: CONST.POLICY.ROLE.ADMIN,
+                text: translate('common.admin'),
+                alternateText: translate('workspace.common.adminAlternateText'),
+                isSelected: role === CONST.POLICY.ROLE.ADMIN,
+                keyForList: CONST.POLICY.ROLE.ADMIN,
+            },
+            {
+                value: CONST.POLICY.ROLE.AUDITOR,
+                text: translate('common.auditor'),
+                alternateText: translate('workspace.common.auditorAlternateText'),
+                isSelected: role === CONST.POLICY.ROLE.AUDITOR,
+                keyForList: CONST.POLICY.ROLE.AUDITOR,
+            },
+            {
+                value: CONST.POLICY.ROLE.USER,
+                text: translate('common.member'),
+                alternateText: translate('workspace.common.memberAlternateText'),
+                isSelected: role === CONST.POLICY.ROLE.USER,
+                keyForList: CONST.POLICY.ROLE.USER,
+            },
+        ];
+
+        if (!isControlPolicy(policy)) {
+            return items.filter((item) => item.value !== CONST.POLICY.ROLE.AUDITOR);
+        }
+        return items;
+    }, [role, translate, policy]);
 
     if (!spreadsheet || !importedSpreadsheetMemberData) {
         return <NotFoundPage />;

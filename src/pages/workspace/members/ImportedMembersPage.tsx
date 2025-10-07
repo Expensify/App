@@ -80,14 +80,19 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const columns = Object.values(spreadsheet?.columns ?? {});
 
         const containsAdvanceApprovalColumns = columns.includes(CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO) || columns.includes(CONST.CSV_IMPORT_COLUMNS.APPROVE_TO);
+        const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
+        const hasAuditorRole =
+            membersRolesColumn !== -1 &&
+            spreadsheet?.data?.[membersRolesColumn]?.some(
+                (role, index) => (containsHeader ? spreadsheet?.data?.[membersRolesColumn]?.[index + 1] : (role ?? '')) === CONST.POLICY.ROLE.AUDITOR,
+            );
 
-        if (containsAdvanceApprovalColumns && !isControlPolicy(policy)) {
+        if ((containsAdvanceApprovalColumns || hasAuditorRole) && !isControlPolicy(policy)) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, Navigation.getActiveRoute()));
             return;
         }
 
         const membersEmailsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.EMAIL);
-        const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
         const membersEmails = spreadsheet?.data[membersEmailsColumn].map((email) => email);
         const membersRoles = membersRolesColumn !== -1 ? spreadsheet?.data[membersRolesColumn].map((role) => role) : [];
         const membersSubmitsToColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO);
