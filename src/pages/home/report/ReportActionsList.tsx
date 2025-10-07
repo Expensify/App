@@ -817,6 +817,7 @@ function ReportActionsList({
                         shouldScrollToEndAfterLayout ? styles.opacity0 : styles.opacity1,
                         shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined,
                     ]}
+                    shouldDisableVisibleContentPosition={shouldScrollToEndAfterLayout}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
                     onEndReached={onEndReached}

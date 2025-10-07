@@ -1,10 +1,8 @@
 import {useNavigationState} from '@react-navigation/native';
-import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -188,61 +186,34 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         Navigation.goBack(backTo);
     }, [isInitialCreationFlow, approvalWorkflow?.action, route.params.policyID, rhpRoutes.length, firstApprover]);
 
-    const nextStep = useCallback(() => {
-        if (selectedApproverEmail) {
-            const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
-            const accountID = Number(policyMemberEmailsToAccountIDs[selectedApproverEmail] ?? '');
-            const {avatar, displayName = selectedApproverEmail} = personalDetails?.[accountID] ?? {};
-            setApprovalWorkflowApprover({
-                approver: {
-                    email: selectedApproverEmail,
-                    avatar,
-                    displayName,
-                },
-                approverIndex,
-                currentApprovalWorkflow,
-                policyID: route.params.policyID,
-            });
-        } else {
-            clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow});
-        }
-
-        if (isInitialCreationFlow) {
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
-        } else {
-            goBack();
-        }
-    }, [selectedApproverEmail, employeeList, personalDetails, approverIndex, route.params.policyID, isInitialCreationFlow, goBack, currentApprovalWorkflow]);
-
-    const button = useMemo(() => {
-        let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
-
-        if (shouldShowListEmptyContent) {
-            buttonText = translate('common.buttonConfirm');
-        }
-
-        return (
-            <FormAlertWithSubmitButton
-                isDisabled={!shouldShowListEmptyContent && !selectedApproverEmail && isInitialCreationFlow}
-                buttonText={buttonText}
-                onSubmit={nextStep}
-                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                enabledWhenOffline
-                shouldBlendOpacity
-            />
-        );
-    }, [isInitialCreationFlow, nextStep, selectedApproverEmail, shouldShowListEmptyContent, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
-
     const toggleApprover = useCallback(
-        (approver: SelectionListApprover) =>
-            debounce(() => {
-                if (selectedApproverEmail === approver.login) {
-                    setSelectedApproverEmail(undefined);
-                    return;
-                }
-                setSelectedApproverEmail(approver.login);
-            }, 200)(),
-        [selectedApproverEmail],
+        (approver: SelectionListApprover) => {
+            if (selectedApproverEmail === approver.login) {
+                clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow});
+            } else {
+                const newSelectedEmail = approver.login;
+                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
+                const accountID = Number(policyMemberEmailsToAccountIDs[newSelectedEmail] ?? '');
+                const {avatar, displayName = newSelectedEmail} = personalDetails?.[accountID] ?? {};
+                setApprovalWorkflowApprover({
+                    approver: {
+                        email: newSelectedEmail,
+                        avatar,
+                        displayName,
+                    },
+                    approverIndex,
+                    currentApprovalWorkflow,
+                    policyID: route.params.policyID,
+                });
+            }
+
+            if (isInitialCreationFlow) {
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
+            } else {
+                goBack();
+            }
+        },
+        [selectedApproverEmail, employeeList, personalDetails, approverIndex, route.params.policyID, isInitialCreationFlow, goBack, currentApprovalWorkflow],
     );
 
     const headerMessage = useMemo(() => (searchTerm && !sections.at(0)?.data?.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
@@ -296,7 +267,6 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                         onSelectRow={toggleApprover}
                         showScrollIndicator
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        footerContent={button}
                         listEmptyContent={listEmptyContent}
                         shouldShowListEmptyContent={shouldShowListEmptyContent}
                         initiallyFocusedOptionKey={selectedApproverEmail}

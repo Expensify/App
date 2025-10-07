@@ -613,7 +613,7 @@ const translations = {
         disabled: 'Disabilitato',
         import: 'Importa',
         offlinePrompt: 'Non puoi eseguire questa azione in questo momento.',
-        outstanding: 'Eccezionale',
+        outstanding: 'In sospeso',
         chats: 'Chat',
         tasks: 'Attività',
         unread: 'Non letto',
@@ -638,7 +638,7 @@ const translations = {
         downloadAsCSV: 'Scarica come CSV',
         help: 'Aiuto',
         expenseReports: 'Report di spesa',
-        rateOutOfPolicy: 'Valuta fuori politica',
+        rateOutOfPolicy: 'Tariffa fuori politica',
         reimbursable: 'Rimborsabile',
         editYourProfile: 'Modifica il tuo profilo',
         comments: 'Commenti',
@@ -680,9 +680,7 @@ const translations = {
         }: {
             command?: string;
         } = {}) =>
-            `Non sei autorizzato a eseguire questa azione quando il supporto è connesso (comando: ${
-                command ?? ''
-            }). Se ritieni che Success debba essere in grado di eseguire questa azione, avvia una conversazione su Slack.`,
+            `Non sei autorizzato a eseguire questa azione quando il supporto è connesso (comando: ${command ?? ''}). Se ritieni che Success debba essere in grado di eseguire questa azione, avvia una conversazione su Slack.`,
     },
     lockedAccount: {
         title: 'Account bloccato',
@@ -1102,11 +1100,15 @@ const translations = {
         splitExpense: 'Dividi spesa',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} da ${merchant}`,
         addSplit: 'Aggiungi divisione',
+        editSplits: 'Modifica suddivisioni',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `L'importo totale è ${amount} maggiore della spesa originale.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `L'importo totale è ${amount} inferiore alla spesa originale.`,
         splitExpenseZeroAmount: 'Per favore inserisci un importo valido prima di continuare.',
         splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `Modifica ${amount} per ${merchant}`,
+        splitExpenseOneMoreSplit: 'Nessuna suddivisione aggiunta. Aggiungine almeno una per salvare.',
         removeSplit: 'Rimuovi divisione',
+        splitExpenseCannotBeEditedModalTitle: 'Questa spesa non può essere modificata',
+        splitExpenseCannotBeEditedModalDescription: 'Le spese approvate o pagate non possono essere modificate',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Paga ${name ?? 'qualcuno'}`,
         expense: 'Spesa',
         categorize: 'Categorizza',
@@ -4673,6 +4675,10 @@ const translations = {
                         automaticImport: 'Importazione automatica delle transazioni',
                     },
                 },
+                bankConnectionError: 'Problema di connessione alla banca',
+                connectWithPlaid: 'Connettiti tramite Plaid',
+                connectWithExpensifyCard: 'Prova la carta Expensify.',
+                bankConnectionDescription: 'Riprova ad aggiungere le tue carte. Altrimenti, puoi',
                 disableCardTitle: 'Disabilita carte aziendali',
                 disableCardPrompt: 'Non puoi disabilitare le carte aziendali perché questa funzione è in uso. Contatta il Concierge per i prossimi passi.',
                 disableCardButton: 'Chatta con Concierge',

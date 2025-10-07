@@ -174,7 +174,7 @@ function TransactionItemRow({
         }
 
         const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem);
-        const hasFieldErrors = hasMissingSmartscanFields(transactionItem) || isCustomUnitOutOfPolicy;
+        const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report) || isCustomUnitOutOfPolicy;
         if (hasFieldErrors) {
             const amountMissing = isAmountMissing(transactionItem);
             const merchantMissing = isMerchantMissing(transactionItem);
@@ -184,7 +184,7 @@ function TransactionItemRow({
                 error = translate('violations.reviewRequired');
             } else if (amountMissing) {
                 error = translate('iou.missingAmount');
-            } else if (merchantMissing) {
+            } else if (merchantMissing && !isSettled(report)) {
                 error = translate('iou.missingMerchant');
             } else if (isCustomUnitOutOfPolicy) {
                 error = translate('violations.customUnitOutOfPolicy');

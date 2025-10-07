@@ -1,7 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {getReportPrimaryAction, getTransactionThreadPrimaryAction, isMarkAsResolvedAction, isMarkAsResolvedReportAction, isReviewDuplicatesAction} from '@libs/ReportPrimaryActionUtils';
+import {getReportPrimaryAction, getTransactionThreadPrimaryAction, isMarkAsResolvedAction, isReviewDuplicatesAction} from '@libs/ReportPrimaryActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -53,7 +53,9 @@ describe('getPrimaryAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [], violations: {}, policy: {} as Policy, isChatReportArchived: false})).toBe('');
+        expect(
+            getReportPrimaryAction({currentUserEmail: CURRENT_USER_EMAIL, report, chatReport, reportTransactions: [], violations: {}, policy: {} as Policy, isChatReportArchived: false}),
+        ).toBe('');
     });
 
     it('should return SUBMIT for expense report with manual submit', async () => {
@@ -72,9 +74,17 @@ describe('getPrimaryAction', () => {
             reportID: `${REPORT_ID}`,
         } as unknown as Transaction;
 
-        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy: policy as Policy, isChatReportArchived: false})).toBe(
-            CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
-        );
+        expect(
+            getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
     });
 
     it('should return SUBMIT for open report in instant submit policy with no approvers', async () => {
@@ -99,6 +109,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -129,7 +140,17 @@ describe('getPrimaryAction', () => {
             date: '2025-01-01',
         } as unknown as Transaction;
 
-        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy: policy as Policy, isChatReportArchived: false})).toBe('');
+        expect(
+            getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe('');
     });
 
     it('should return Approve for report being processed', async () => {
@@ -153,9 +174,17 @@ describe('getPrimaryAction', () => {
             },
         } as unknown as Transaction;
 
-        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy: policy as Policy, isChatReportArchived: false})).toBe(
-            CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
-        );
+        expect(
+            getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.APPROVE);
     });
 
     it('should return empty for report being processed but transactions are scanning', async () => {
@@ -182,7 +211,17 @@ describe('getPrimaryAction', () => {
             },
         } as unknown as Transaction;
 
-        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy: policy as Policy, isChatReportArchived: false})).toBe('');
+        expect(
+            getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe('');
     });
 
     it('should return empty for report being processed but transactions are pending', async () => {
@@ -207,7 +246,17 @@ describe('getPrimaryAction', () => {
             date: '2025-01-01',
         } as unknown as Transaction;
 
-        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy: policy as Policy, isChatReportArchived: false})).toBe('');
+        expect(
+            getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe('');
     });
 
     it('should return PAY for submitted invoice report  if paid as personal', async () => {
@@ -237,9 +286,18 @@ describe('getPrimaryAction', () => {
             reportID: `${REPORT_ID}`,
         } as unknown as Transaction;
 
-        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy, invoiceReceiverPolicy, isChatReportArchived: false})).toBe(
-            CONST.REPORT.PRIMARY_ACTIONS.PAY,
-        );
+        expect(
+            getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                policy,
+                invoiceReceiverPolicy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
     it('should not return PAY for zero value invoice report if paid as personal', async () => {
@@ -269,7 +327,18 @@ describe('getPrimaryAction', () => {
             reportID: `${REPORT_ID}`,
         } as unknown as Transaction;
 
-        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy, invoiceReceiverPolicy, isChatReportArchived: false})).toBe('');
+        expect(
+            getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                policy,
+                invoiceReceiverPolicy,
+                isChatReportArchived: false,
+            }),
+        ).toBe('');
     });
 
     it('should return PAY for expense report with payments enabled', async () => {
@@ -288,9 +357,17 @@ describe('getPrimaryAction', () => {
             reportID: `${REPORT_ID}`,
         } as unknown as Transaction;
 
-        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy: policy as Policy, isChatReportArchived: false})).toBe(
-            CONST.REPORT.PRIMARY_ACTIONS.PAY,
-        );
+        expect(
+            getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
     it('should return EXPORT TO ACCOUNTING for finished reports', async () => {
@@ -316,9 +393,17 @@ describe('getPrimaryAction', () => {
             reportID: `${REPORT_ID}`,
         } as unknown as Transaction;
 
-        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy: policy as Policy, isChatReportArchived: false})).toBe(
-            CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING,
-        );
+        expect(
+            getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
 
     it('should not return EXPORT TO ACCOUNTING for invoice reports', async () => {
@@ -344,9 +429,17 @@ describe('getPrimaryAction', () => {
             reportID: `${REPORT_ID}`,
         } as unknown as Transaction;
 
-        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy: policy as Policy, isChatReportArchived: false})).not.toBe(
-            CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING,
-        );
+        expect(
+            getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
 
     it('should not return EXPORT TO ACCOUNTING for reports marked manually as exported', async () => {
@@ -374,6 +467,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
                 report,
                 chatReport,
                 reportTransactions: [],
@@ -435,9 +529,9 @@ describe('getPrimaryAction', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[REPORT_ACTION_ID]: reportAction});
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHILD_REPORT_ID}`, {[HOLD_ACTION_ID]: holdAction});
 
-        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy, isChatReportArchived: false})).toBe(
-            CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD,
-        );
+        expect(
+            getReportPrimaryAction({currentUserEmail: CURRENT_USER_EMAIL, report, chatReport, reportTransactions: [transaction], violations: {}, policy, isChatReportArchived: false}),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD);
     });
 
     it('should return REMOVE HOLD for reports with transactions on hold', async () => {
@@ -484,9 +578,17 @@ describe('getPrimaryAction', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[REPORT_ACTION_ID]: reportAction});
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHILD_REPORT_ID}`, {[HOLD_ACTION_ID]: holdAction});
 
-        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy: policy as Policy, isChatReportArchived: false})).toBe(
-            CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD,
-        );
+        expect(
+            getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD);
     });
 
     it('should return MARK AS CASH if has all RTER violations', async () => {
@@ -517,6 +619,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -552,6 +655,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -588,6 +692,7 @@ describe('getPrimaryAction', () => {
         // Then the getReportPrimaryAction should return the empty string
         expect(
             getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
                 report,
                 chatReport: invoiceChatReport,
                 reportTransactions: [transaction],
@@ -724,7 +829,9 @@ describe('getTransactionThreadPrimaryAction', () => {
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHILD_REPORT_ID}`, {[HOLD_ACTION_ID]: holdAction});
 
-        expect(getTransactionThreadPrimaryAction(report, {} as Report, transaction, [], policy as Policy, false)).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD);
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, report, {} as Report, transaction, [], policy as Policy, false)).toBe(
+            CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD,
+        );
     });
 
     it('should return REVIEW DUPLICATES when there are duplicated transactions', async () => {
@@ -752,7 +859,9 @@ describe('getTransactionThreadPrimaryAction', () => {
             } as TransactionViolation,
         ]);
 
-        expect(getTransactionThreadPrimaryAction({} as Report, report, transaction, [], policy as Policy, false)).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES);
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, {} as Report, report, transaction, [], policy as Policy, false)).toBe(
+            CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES,
+        );
     });
 
     it('should return MARK AS CASH if has all RTER violations', async () => {
@@ -779,7 +888,9 @@ describe('getTransactionThreadPrimaryAction', () => {
             },
         } as unknown as TransactionViolation;
 
-        expect(getTransactionThreadPrimaryAction({} as Report, report, transaction, [violation], policy as Policy, false)).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH);
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, {} as Report, report, transaction, [violation], policy as Policy, false)).toBe(
+            CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH,
+        );
     });
 
     it('should return MARK AS CASH for broken connection', async () => {
@@ -805,7 +916,9 @@ describe('getTransactionThreadPrimaryAction', () => {
             },
         } as unknown as TransactionViolation;
 
-        expect(getTransactionThreadPrimaryAction({} as Report, report, transaction, [violation], policy as Policy, false)).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH);
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, {} as Report, report, transaction, [violation], policy as Policy, false)).toBe(
+            CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH,
+        );
     });
 
     it('Should return empty string when we are waiting for user to add a bank account', async () => {
@@ -834,6 +947,7 @@ describe('getTransactionThreadPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -871,6 +985,7 @@ describe('getTransactionThreadPrimaryAction', () => {
         } as unknown as Transaction;
         expect(
             getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -909,6 +1024,7 @@ describe('getTransactionThreadPrimaryAction', () => {
         } as unknown as Transaction;
         expect(
             getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -1024,205 +1140,6 @@ describe('getTransactionThreadPrimaryAction', () => {
 
             expect(result1).toBe(false);
             expect(result2).toBe(false);
-        });
-    });
-
-    describe('isMarkAsResolvedReportAction', () => {
-        const submitterAccountID = 1;
-        const otherUserAccountID = 3;
-
-        beforeEach(async () => {
-            jest.clearAllMocks();
-            Onyx.clear();
-            await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID});
-        });
-
-        it('should return true for submitter with pending auto rejected expense violation in transactions', () => {
-            const report = {
-                reportID: REPORT_ID,
-                ownerAccountID: submitterAccountID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-            } as unknown as Report;
-
-            const transactions = [
-                {
-                    transactionID: '1',
-                    reportID: REPORT_ID.toString(),
-                    amount: 1000,
-                    created: '2023-01-01',
-                    currency: 'USD',
-                    merchant: 'Test Merchant',
-                } as Transaction,
-            ];
-
-            const violations = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`]: [
-                    {
-                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
-                        type: CONST.VIOLATION_TYPES.WARNING,
-                    },
-                ],
-            };
-
-            const reportActions = [
-                {
-                    reportActionID: '1',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                    actorAccountID: CURRENT_USER_ACCOUNT_ID,
-                    created: '2023-01-01',
-                    message: [{type: 'COMMENT', text: 'Test message'}],
-                    originalMessage: {
-                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                        IOUTransactionID: '1',
-                    },
-                    childReportID: '1',
-                } as ReportAction,
-            ];
-
-            const result = isMarkAsResolvedReportAction(report, chatReport, transactions, violations, undefined, reportActions);
-            expect(result).toBe(true);
-        });
-
-        it('should return true for admin with pending auto rejected expense violation', () => {
-            const policy = {
-                role: CONST.POLICY.ROLE.ADMIN,
-            } as Policy;
-
-            const report = {
-                reportID: REPORT_ID,
-                ownerAccountID: otherUserAccountID, // Different from current user
-                type: CONST.REPORT.TYPE.EXPENSE,
-            } as unknown as Report;
-
-            const transactions = [
-                {
-                    transactionID: '1',
-                    reportID: REPORT_ID.toString(),
-                    amount: 1000,
-                    created: '2023-01-01',
-                    currency: 'USD',
-                    merchant: 'Test Merchant',
-                } as Transaction,
-            ];
-
-            const violations = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`]: [
-                    {
-                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
-                        type: CONST.VIOLATION_TYPES.WARNING,
-                    },
-                ],
-            };
-
-            const reportActions = [
-                {
-                    reportActionID: '1',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                    actorAccountID: CURRENT_USER_ACCOUNT_ID,
-                    created: '2023-01-01',
-                    message: [{type: 'COMMENT', text: 'Test message'}],
-                    originalMessage: {
-                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                        IOUTransactionID: '1',
-                    },
-                    childReportID: '1',
-                } as ReportAction,
-            ];
-
-            const result = isMarkAsResolvedReportAction(report, chatReport, transactions, violations, policy, reportActions);
-            expect(result).toBe(true);
-        });
-
-        it('should return false for non-submitter non-admin user', () => {
-            const policy = {
-                role: CONST.POLICY.ROLE.USER,
-            } as Policy;
-
-            const report = {
-                reportID: REPORT_ID,
-                ownerAccountID: otherUserAccountID, // Different from current user
-            } as unknown as Report;
-
-            const transactions = [
-                {
-                    transactionID: '1',
-                    reportID: REPORT_ID.toString(),
-                    amount: 1000,
-                    created: '2023-01-01',
-                    currency: 'USD',
-                    merchant: 'Test Merchant',
-                } as Transaction,
-            ];
-
-            const violations = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`]: [
-                    {
-                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
-                        type: CONST.VIOLATION_TYPES.WARNING,
-                    },
-                ],
-            };
-
-            const reportActions = [
-                {
-                    reportActionID: '1',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                    actorAccountID: CURRENT_USER_ACCOUNT_ID,
-                    created: '2023-01-01',
-                    message: [{type: 'COMMENT', text: 'Test message'}],
-                    originalMessage: {
-                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                        IOUTransactionID: '1',
-                    },
-                } as ReportAction,
-            ];
-
-            const result = isMarkAsResolvedReportAction(report, chatReport, transactions, violations, policy, reportActions);
-            expect(result).toBe(false);
-        });
-
-        it('should return false when no auto rejected expense violations are present', () => {
-            const report = {
-                reportID: REPORT_ID,
-                ownerAccountID: submitterAccountID,
-            } as unknown as Report;
-
-            const transactions = [
-                {
-                    transactionID: '1',
-                    reportID: REPORT_ID.toString(),
-                    amount: 1000,
-                    created: '2023-01-01',
-                    currency: 'USD',
-                    merchant: 'Test Merchant',
-                } as Transaction,
-            ];
-
-            const violations = {
-                transactionViolation1: [
-                    {
-                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
-                        type: CONST.VIOLATION_TYPES.VIOLATION,
-                    },
-                ],
-            };
-
-            const reportActions = [
-                {
-                    reportActionID: '1',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                    actorAccountID: CURRENT_USER_ACCOUNT_ID,
-                    created: '2023-01-01',
-                    message: [{type: 'COMMENT', text: 'Test message'}],
-                    originalMessage: {
-                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                        IOUTransactionID: '1',
-                    },
-                } as ReportAction,
-            ];
-
-            const result = isMarkAsResolvedReportAction(report, chatReport, transactions, violations, undefined, reportActions);
-            expect(result).toBe(false);
         });
     });
 });

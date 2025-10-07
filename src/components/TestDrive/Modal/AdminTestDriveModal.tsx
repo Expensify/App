@@ -28,8 +28,7 @@ function AdminTestDriveModal() {
         Navigation.dismissModal();
 
         Log.hmmm('[AdminTestDriveModal] Running after interactions');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
             if (!isAdminRoom(onboardingReport)) {
                 Log.hmmm('[AdminTestDriveModal] Not an admin room');
                 return;

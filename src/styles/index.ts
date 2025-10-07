@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
+import type {RefObject} from 'react';
 import type {LineLayer} from 'react-map-gl';
 import type {ImageStyle, TextStyle, ViewStyle} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -1161,6 +1162,15 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        cannotBeEditedSplitInputContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 4,
+            marginVertical: 15,
+            borderWidth: 1,
+            borderColor: 'transparent',
+        },
+
         outlinedButton: {
             backgroundColor: 'transparent',
             borderColor: theme.border,
@@ -1743,6 +1753,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         optionRow: {
             minHeight: variables.optionRowHeight,
+            paddingTop: 12,
+            paddingBottom: 12,
+        },
+
+        optionRowWithPadding: {
             paddingTop: 12,
             paddingBottom: 12,
         },
@@ -4929,6 +4944,12 @@ const staticStyles = (theme: ThemeColors) =>
             height: 190,
         },
 
+        errorStateCardIllustration: {
+            width: 254,
+            height: 165,
+            marginBottom: 12,
+        },
+
         emptyStateMoneyRequestReport: {
             maxHeight: 85,
             minHeight: 85,
@@ -5196,6 +5217,30 @@ const staticStyles = (theme: ThemeColors) =>
             right: 0,
             width: Animated.add(variables.sideBarWidth, receiptPaneRHPWidth),
         },
+
+        flexibleHeight: {
+            height: 'auto',
+            minHeight: 200,
+        },
+
+        receiptCellLoadingContainer: {
+            backgroundColor: theme.activeComponentBG,
+        },
+
+        wideRHPMoneyRequestReceiptViewContainer: {
+            backgroundColor: theme.appBG,
+            width: receiptPaneRHPWidth,
+            height: '100%',
+            borderRightWidth: 1,
+            borderColor: theme.border,
+        },
+
+        wideRHPMoneyRequestReceiptViewScrollViewContainer: {
+            ...spacing.pt3,
+            ...spacing.pb2,
+            minHeight: '100%',
+        },
+
         uploadFileView: {
             borderRadius: variables.componentBorderRadiusLarge,
             borderColor: theme.borderFocus,
@@ -5318,6 +5363,12 @@ const dynamicStyles = (theme: ThemeColors) =>
             paddingBottom: bottomSafeAreaOffset,
         }),
 
+        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number) => ({
+            marginLeft: inputMarginLeft,
+            width: amountWidth,
+            marginRight: 4,
+        }),
+
         uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>
             ({
                 borderWidth: isSmallScreenWidth ? 0 : 2,
@@ -5399,11 +5450,21 @@ const dynamicStyles = (theme: ThemeColors) =>
                 vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             }) satisfies AnchorPosition,
 
-        overlayStyles: ({progress, hasMarginRight = false, hasMarginLeft = false}: {progress: OverlayStylesParams; hasMarginRight?: boolean; hasMarginLeft?: boolean}) =>
+        overlayStyles: ({
+            progress,
+            hasMarginRight = false,
+            hasMarginLeft = false,
+            sidePanelTranslateX,
+        }: {
+            progress: OverlayStylesParams;
+            hasMarginRight?: boolean;
+            hasMarginLeft?: boolean;
+            sidePanelTranslateX?: RefObject<Animated.Value>;
+        }) =>
             ({
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: hasMarginLeft ? variables.receiptPaneRHPMaxWidth : -2 * variables.sideBarWidth,
-                right: hasMarginRight ? variables.sideBarWidth : 0,
+                left: hasMarginLeft ? receiptPaneRHPWidth : -2 * variables.sideBarWidth,
+                right: hasMarginRight ? Animated.add(variables.sideBarWidth, sidePanelTranslateX ? Animated.subtract(variables.sideBarWidth, sidePanelTranslateX.current) : 0) : 0,
                 opacity: progress.interpolate({
                     inputRange: [0, 1],
                     outputRange: [0, variables.overlayOpacity],
@@ -5624,6 +5685,16 @@ const dynamicStyles = (theme: ThemeColors) =>
             paddingTop: 0,
             // On larger screens, we need to prevent the modal from becoming too big
             maxWidth: shouldUseNarrowLayout ? undefined : 500,
+        }),
+
+        getMoneyRequestViewImage: (showBorderless: boolean) => ({
+            ...spacing.mh5,
+            overflow: 'hidden',
+            borderWidth: showBorderless ? 0 : 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusLarge,
+            height: 180,
+            maxWidth: '100%',
         }),
 
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
