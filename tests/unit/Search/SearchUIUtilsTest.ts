@@ -1661,12 +1661,12 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(TransactionGroupListItem);
         });
 
-        it('should return TransactionGroupListItem when type is TRIP and groupBy is report', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(TransactionGroupListItem);
+        it('should return TransactionListItem when type is TRIP', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(TransactionListItem);
         });
 
-        it('should return TransactionGroupListItem when type is INVOICE and groupBy is report', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(TransactionGroupListItem);
+        it('should return TransactionListItem when type is INVOICE', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(TransactionListItem);
         });
 
         it('should return TransactionGroupListItem when type is EXPENSE and groupBy is member', () => {
@@ -1745,16 +1745,16 @@ describe('SearchUIUtils', () => {
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
-        it('should return getReportSections result when type is expense-report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, formatPhoneNumber)).toStrictEqual(transactionReportGroupListItems);
+        it('should return transactionReportGroupListItems result when type is expense-report', () => {
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, searchResults.data, 2074551, formatPhoneNumber)).toStrictEqual(transactionReportGroupListItems);
         });
 
-        it('should return getReportSections result when type is TRIP and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, searchResults.data, 2074551, formatPhoneNumber)).toStrictEqual(transactionReportGroupListItems);
+        it('should return transactionsListItems result when type is TRIP', () => {
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, searchResults.data, 2074551, formatPhoneNumber)).toStrictEqual(transactionsListItems);
         });
 
-        it('should return getReportSections result when type is INVOICE and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, searchResults.data, 2074551, formatPhoneNumber)).toStrictEqual(transactionReportGroupListItems);
+        it('should return transactionsListItems result when type is INVOICE and groupBy is report', () => {
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, searchResults.data, 2074551, formatPhoneNumber)).toStrictEqual(transactionsListItems);
         });
 
         it('should return getMemberSections result when type is EXPENSE and groupBy is from', () => {
@@ -1877,7 +1877,7 @@ describe('SearchUIUtils', () => {
                     }),
                     expect.objectContaining({
                         translationPath: 'common.reports',
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                        type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                         icon: Expensicons.Document,
                     }),
                     expect.objectContaining({
@@ -2229,7 +2229,7 @@ describe('SearchUIUtils', () => {
                 .map((section) => section.menuItems)
                 .flat();
 
-            const expectedQueries = ['type:expense sortBy:date sortOrder:desc', 'type:expense sortBy:date sortOrder:desc groupBy:reports', 'type:chat sortBy:date sortOrder:desc'];
+            const expectedQueries = ['type:expense sortBy:date sortOrder:desc', 'type:expense-report sortBy:date sortOrder:desc', 'type:chat sortBy:date sortOrder:desc'];
 
             menuItems.forEach((item, index) => {
                 expect(item.searchQuery).toStrictEqual(expectedQueries.at(index));

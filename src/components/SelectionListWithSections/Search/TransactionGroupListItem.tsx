@@ -303,7 +303,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         return headers[groupBy];
-    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, groupBy]);
+    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, groupBy, searchType]);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
