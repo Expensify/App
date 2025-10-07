@@ -97,12 +97,178 @@ function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContext
     return `<next-step>${translate(`nextStep.message.${nextStep.messageKey}`, {actor, actorType, eta})}</next-step>`;
 }
 
-function buildOptimisticNextStep(): ReportNextStep {
-    // TODO
-    const nextStep: ReportNextStep = {
-        messageKey: 'noFurtherAction',
-        icon: 'checkmark',
+function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep | null {
+    const {report, policy, currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled, predictedNextStatus, shouldFixViolations, isUnapprove, isReopen} =
+        params;
+
+    if (!isExpenseReport(report)) {
+        return null;
+    }
+
+    const {ownerAccountID = -1} = report ?? {};
+    const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
+    const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
+    const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
+    const isReportContainingTransactions =
+        report &&
+        ((report.total !== 0 && report.total !== undefined) ||
+            (report.unheldTotal !== 0 && report.unheldTotal !== undefined) ||
+            (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
+    const approverAccountID = getNextApproverAccountID(report, isUnapprove);
+    const reimburserAccountID = getReimburserAccountID(policy);
+    const hasValidAccount = !!policy?.achAccount?.accountNumber || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+
+    const nextStepFixOrPayExpense: ReportNextStep = {
+        messageKey: shouldShowFixMessage ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+        actorAccountID: shouldShowFixMessage ? ownerAccountID : policy?.ownerAccountID || -1,
     };
+
+    const nextStepNoActionRequired: ReportNextStep = {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+        icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+    };
+
+    let nextStep: ReportNextStep | null;
+
+    switch (predictedNextStatus) {
+        // Generates an optimistic nextStep once a report has been opened
+        case CONST.REPORT.STATUS_NUM.OPEN:
+            if ((isASAPSubmitBetaEnabled && hasViolations && isInstantSubmitEnabled) || shouldFixViolations) {
+                nextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: ownerAccountID,
+                };
+                break;
+            }
+            if (isReopen) {
+                nextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: ownerAccountID,
+                };
+                break;
+            }
+
+            // Self review
+            nextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: ownerAccountID,
+            };
+
+            // Scheduled submit enabled
+            if (policy?.harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL && isReportContainingTransactions) {
+                nextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: ownerAccountID,
+                };
+
+                switch (autoReportingFrequency) {
+                    case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT:
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.SHORTLY};
+                        break;
+                    case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE:
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.TODAY};
+                        break;
+                    case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY:
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK};
+                        break;
+                    case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY:
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY};
+                        break;
+                    case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY:
+                        if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
+                            nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH};
+                        } else if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
+                            nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH};
+                        }
+                        break;
+                    case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP:
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP};
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            }
+
+            // Manual submission
+            if (report?.total !== 0 && !policy?.harvesting?.enabled && autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
+                nextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: ownerAccountID,
+                };
+                break;
+            }
+            break;
+
+        // Generates an optimistic nextStep once a report has been submitted
+        case CONST.REPORT.STATUS_NUM.SUBMITTED: {
+            if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
+                nextStep = nextStepFixOrPayExpense;
+                break;
+            }
+
+            // We want to show pending approval next step for cases where the policy has approvals enabled
+            const policyApprovalMode = getApprovalWorkflow(policy);
+            if ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policyApprovalMode)) {
+                nextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: approverAccountID,
+                };
+            } else {
+                nextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: isPayer({accountID: currentUserAccountIDParam, email: currentUserEmailParam}, report) ? currentUserAccountIDParam : -1,
+                };
+            }
+            break;
+        }
+
+        // Generates an optimistic nextStep once a report has been closed for example in the case of Submit and Close approval flow
+        case CONST.REPORT.STATUS_NUM.CLOSED:
+            nextStep = nextStepNoActionRequired;
+            break;
+
+        // Generates an optimistic nextStep once a report has been paid
+        case CONST.REPORT.STATUS_NUM.REIMBURSED:
+            nextStep = nextStepNoActionRequired;
+            break;
+
+        // Generates an optimistic nextStep once a report has been approved
+        case CONST.REPORT.STATUS_NUM.APPROVED:
+            if (
+                isInvoiceReport(report) ||
+                !isPayer(
+                    {
+                        accountID: currentUserAccountIDParam,
+                        email: currentUserEmailParam,
+                    },
+                    report,
+                )
+            ) {
+                nextStep = nextStepNoActionRequired;
+                break;
+            }
+
+            // Self review
+            nextStep = {
+                messageKey: hasValidAccount ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: reimburserAccountID,
+            };
+            break;
+
+        // Clear nextStep
+        default:
+            nextStep = null;
+    }
 
     return nextStep;
 }
