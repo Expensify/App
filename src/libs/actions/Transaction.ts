@@ -1155,16 +1155,16 @@ function changeTransactionsReport(
     // 9. Update next step for report
     const nextStepReport = {...newReport, total: updatedReportTotals[reportID] ?? newReport?.total, reportID: newReport?.reportID ?? reportID};
     const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation);
-    const optimisticNextStep = buildNextStepNew(
-        nextStepReport,
+    const optimisticNextStep = buildNextStepNew({
+        report: nextStepReport,
         policy,
-        accountID,
-        email,
+        currentUserAccountIDParam: accountID,
+        currentUserEmailParam: email,
         hasViolations,
         isASAPSubmitBetaEnabled,
-        nextStepReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+        predictedNextStatus: nextStepReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
         shouldFixViolations,
-    );
+    });
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
