@@ -4292,7 +4292,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
         expenseViewImageSmall: {
             maxWidth: 440,
-            aspectRatio: 16 / 9,
             height: 'auto',
         },
 
