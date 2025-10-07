@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AnimatedCollapsible from '@components/AnimatedCollapsible';
@@ -21,6 +21,7 @@ import type {
 } from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -128,6 +129,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [isExpanded, setIsExpanded] = useState(false);
 
     const isEmpty = transactions.length === 0;
+    const {markReportIDAsExpense} = useContext(WideRHPContext);
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayEmptyView = isEmpty && isGroupByReports;
     const isDisabledOrEmpty = isEmpty || isDisabled;
@@ -169,6 +171,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 createAndOpenSearchTransactionThread(transactionItem, iouAction, currentSearchHash, backTo);
                 return;
             }
+            markReportIDAsExpense(reportID);
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         };
 

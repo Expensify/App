@@ -1,7 +1,8 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {useEffect, useMemo} from 'react';
+import React, {useContext, useEffect, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useOnyx from '@hooks/useOnyx';
 import {setOptimisticTransactionThread} from '@libs/actions/Report';
 import {clearActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
@@ -34,6 +35,8 @@ function MoneyRequestReportTransactionsNavigation({currentReportID, parentReport
     const [reportIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, {
         canBeMissing: true,
     });
+
+    const {markReportIDAsExpense} = useContext(WideRHPContext);
 
     const [parentReportActionIDs = new Map<string, string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
         canBeMissing: true,
@@ -83,12 +86,18 @@ function MoneyRequestReportTransactionsNavigation({currentReportID, parentReport
             onNext={(e) => {
                 const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
+                if (nextReportID) {
+                    markReportIDAsExpense(nextReportID);
+                }
                 setOptimisticTransactionThread(nextReportID, parentReportID, nextParentReportActionID, policyID);
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true});
             }}
             onPrevious={(e) => {
                 const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
+                if (prevReportID) {
+                    markReportIDAsExpense(prevReportID);
+                }
                 setOptimisticTransactionThread(prevReportID, parentReportID, prevParentReportActionID, policyID);
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, backTo}), {forceReplace: true});
             }}
