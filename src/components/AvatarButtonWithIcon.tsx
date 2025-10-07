@@ -115,6 +115,7 @@ function AvatarButtonWithIcon({
                 {!disabled && (
                     <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
                         <Icon
+                            testID="avatar-button-edit-icon"
                             src={editIcon}
                             width={variables.iconSizeSmall}
                             height={variables.iconSizeSmall}
