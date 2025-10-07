@@ -179,7 +179,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             return;
         }
         handleRegularReportSelection({value: createdReportID});
-        Navigation.navigate(backToRoute, {forceReplace: true});
     };
 
     return (

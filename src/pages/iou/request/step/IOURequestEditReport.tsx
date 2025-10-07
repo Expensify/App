@@ -84,7 +84,6 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             return;
         }
         selectReport({value: createdReportID});
-        Navigation.navigate(backToRoute, {forceReplace: true});
     };
 
     return (
