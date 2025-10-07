@@ -232,6 +232,7 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, onFocus,
                     onSubmitEditing={validateAndSubmitForm}
                     accessibilityLabel={translate('recoveryCodeForm.recoveryCode')}
                     role={CONST.ROLE.PRESENTATION}
+                    testID="recoveryCodeInput"
                 />
             ) : (
                 <MagicCodeInput
@@ -244,6 +245,7 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, onFocus,
                     errorText={formError.twoFactorAuthCode ?? errorMessage}
                     ref={inputRef}
                     autoFocus={false}
+                    testID="twoFactorAuthCodeInput"
                 />
             )}
             {shouldAllowRecoveryCode && (
