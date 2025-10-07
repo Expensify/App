@@ -1021,7 +1021,7 @@ const translations = {
         upload: 'Subir recibo',
         uploadMultiple: 'Subir recibos',
         desktopSubtitleSingle: 'o arrastra y suéltalo aquí',
-        desktopSubtitleMultiple: 'o arrástrelos y suéltelos aquí',
+        desktopSubtitleMultiple: 'o arrástralos y suéltalos aquí',
         chooseReceipt: 'Elige un recibo para subir o reenvía un recibo a ',
         chooseReceipts: 'Elige recibos para subir o reenvía recibos a ',
         alternativeMethodsTitle: 'Otras formas de añadir recibos:',
