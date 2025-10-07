@@ -2,7 +2,6 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import {findSelectedBankAccountWithDefaultSelect, findSelectedVendorWithDefaultSelect, getCurrentConnectionName, getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
-import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Card, Policy} from '@src/types/onyx';
@@ -11,7 +10,7 @@ import type {Account, PolicyConnectionName} from '@src/types/onyx/Policy';
 type ExportIntegration = {
     title?: string;
     description?: string;
-    onExportPagePress: () => void;
+    exportPageLink: string;
     data: SelectorType[];
     exportType?: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>;
     shouldShowMenuItem?: boolean;
@@ -27,6 +26,7 @@ function getExportMenuItem(
 ): ExportIntegration | undefined {
     const currentConnectionName = getCurrentConnectionName(policy);
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
+    const defaultVendor = translate('workspace.accounting.defaultVendor');
 
     const defaultMenuItem: Account & {value?: string} = {
         name: defaultCard,
@@ -35,11 +35,18 @@ function getExportMenuItem(
         currency: '',
     };
 
+    const defaultVendorMenuItem: Account & {value?: string} = {
+        name: defaultVendor,
+        value: defaultVendor,
+        id: defaultVendor,
+        currency: '',
+    };
+
     const {nonReimbursableExpensesExportDestination, nonReimbursableExpensesAccount, reimbursableExpensesExportDestination, reimbursableExpensesAccount} =
         policy?.connections?.quickbooksOnline?.config ?? {};
     const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
     const {export: exportConfiguration} = policy?.connections?.xero?.config ?? {};
-    const config = policy?.connections?.netsuite?.options.config;
+    const config = policy?.connections?.netsuite?.options?.config;
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
     const {creditCards, bankAccounts: quickbooksOnlineBankAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
     const {creditCardAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
@@ -97,7 +104,7 @@ function getExportMenuItem(
                 title: isDefaultTitle ? defaultCard : selectedAccount?.name,
                 exportType,
                 shouldShowMenuItem,
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID, backTo)),
+                exportPageLink: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID, backTo),
                 data: resultData.map((card) => ({
                     value: card.id,
                     text: card.name,
@@ -124,7 +131,7 @@ function getExportMenuItem(
                 exportType,
                 shouldShowMenuItem: !!exportConfiguration?.nonReimbursableAccount,
                 title: isDefaultTitle ? defaultCard : selectedAccount?.name,
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID, backTo)),
+                exportPageLink: ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID, backTo),
                 data: (resultData ?? []).map((card) => {
                     return {
                         value: card.id,
@@ -209,7 +216,7 @@ function getExportMenuItem(
                 shouldShowMenuItem,
                 exportType,
                 data,
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID, backTo)),
+                exportPageLink: ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID, backTo),
             };
         }
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT: {
@@ -233,20 +240,19 @@ function getExportMenuItem(
                 case CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL: {
                     const defaultAccount = isNonReimbursable ? getSageIntacctNonReimbursableActiveDefaultVendor(policy) : exportConfig?.reimbursableExpenseReportDefaultVendor;
                     isDefaultTitle = !!(
-                        companyCard?.nameValuePairs?.intacct_export_vendor === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE ||
-                        (defaultAccount && !companyCard?.nameValuePairs?.intacct_export_vendor)
+                        companyCard?.nameValuePairs?.intacct_export_vendor === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE || !companyCard?.nameValuePairs?.intacct_export_vendor
                     );
                     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
                     const selectedVendorID = companyCard?.nameValuePairs?.intacct_export_vendor ?? defaultAccount;
                     const selectedVendor = (vendors ?? []).find(({id}) => id === selectedVendorID);
-                    title = isDefaultTitle ? defaultCard : selectedVendor?.value;
-                    const resultData = (vendors ?? []).length > 0 ? [defaultMenuItem, ...(vendors ?? [])] : vendors;
+                    title = isDefaultTitle ? defaultVendor : selectedVendor?.value;
+                    const resultData = (vendors ?? []).length > 0 ? [defaultVendorMenuItem, ...(vendors ?? [])] : vendors;
                     data = (resultData ?? []).map(({id, value}) => {
                         return {
                             value: id,
                             text: value,
                             keyForList: id,
-                            isSelected: isDefaultTitle ? value === defaultCard : selectedVendor?.id === id,
+                            isSelected: isDefaultTitle ? value === defaultVendor : selectedVendor?.id === id,
                         };
                     });
                     exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_INTACCT_EXPORT_VENDOR;
@@ -260,8 +266,7 @@ function getExportMenuItem(
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     const defaultAccount = exportConfig?.nonReimbursableAccount || defaultVendorAccount;
                     isDefaultTitle = !!(
-                        companyCard?.nameValuePairs?.intacct_export_charge_card === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE ||
-                        (defaultAccount && !companyCard?.nameValuePairs?.intacct_export_charge_card)
+                        companyCard?.nameValuePairs?.intacct_export_charge_card === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE || !companyCard?.nameValuePairs?.intacct_export_charge_card
                     );
                     const selectedVendorID = companyCard?.nameValuePairs?.intacct_export_charge_card ?? defaultAccount;
                     const selectedCard = (intacctCreditCards ?? []).find(({id}) => id === selectedVendorID);
@@ -289,7 +294,7 @@ function getExportMenuItem(
                 shouldShowMenuItem,
                 exportType,
                 title,
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID, backTo)),
+                exportPageLink: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID, backTo),
                 data,
             };
         }
@@ -337,7 +342,7 @@ function getExportMenuItem(
                 title,
                 exportType,
                 shouldShowMenuItem,
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID, backTo)),
+                exportPageLink: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID, backTo),
                 data: resultData.map((card) => ({
                     value: card.name,
                     text: card.name,

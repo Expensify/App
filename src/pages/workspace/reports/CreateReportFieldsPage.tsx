@@ -43,19 +43,30 @@ function WorkspaceCreateReportFieldsPage({
     const {translate, localeCompare} = useLocalize();
     const formRef = useRef<FormRef>(null);
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
+    const [policyExpenseReportIDs] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        canBeMissing: true,
+        selector: (value) =>
+            Object.values(value ?? {})
+                .filter((report) => report?.policyID === policyID && report.type === CONST.REPORT.TYPE.EXPENSE)
+                .map((report) => report?.reportID),
+    });
 
     const availableListValuesLength = (formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []).filter((disabledListValue) => !disabledListValue).length;
 
     const submitForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-            createReportField(policyID, {
+            createReportField({
+                policyID,
                 name: values[INPUT_IDS.NAME],
                 type: values[INPUT_IDS.TYPE],
                 initialValue: !(values[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength === 0) ? values[INPUT_IDS.INITIAL_VALUE] : '',
+                listValues: formDraft?.[INPUT_IDS.LIST_VALUES] ?? [],
+                disabledListValues: formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? [],
+                policyExpenseReportIDs,
             });
             Navigation.goBack();
         },
-        [availableListValuesLength, policyID],
+        [availableListValuesLength, formDraft, policyExpenseReportIDs, policyID],
     );
 
     const validateForm = useCallback(
@@ -122,7 +133,7 @@ function WorkspaceCreateReportFieldsPage({
                     onBackButtonPress={Navigation.goBack}
                 />
                 <FormProvider
-                    forwardedRef={formRef}
+                    ref={formRef}
                     style={[styles.mh5, styles.flex1]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
                     onSubmit={submitForm}

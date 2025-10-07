@@ -47,6 +47,9 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                 description: translate('workspace.sageIntacct.inviteEmployeesDescription'),
                 isActive: !!importEmployees,
                 onToggle: (enabled: boolean) => {
+                    if (!policyID) {
+                        return;
+                    }
                     updateSageIntacctImportEmployees(policyID, enabled);
                     updateSageIntacctApprovalMode(policyID, enabled);
                 },
@@ -62,6 +65,9 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                 description: translate('workspace.sageIntacct.syncReimbursedReportsDescription'),
                 isActive: !!sync?.syncReimbursedReports,
                 onToggle: (enabled: boolean) => {
+                    if (!policyID) {
+                        return;
+                    }
                     updateSageIntacctSyncReimbursedReports(policyID, enabled);
 
                     if (enabled && !sync?.reimbursementAccountID) {
@@ -137,7 +143,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID], pendingFields)}
                 >
                     <MenuItemWithTopDescription
-                        title={getReimbursedAccountName(data?.bankAccounts ?? [], sync?.reimbursementAccountID) ?? translate('workspace.sageIntacct.notConfigured')}
+                        title={getReimbursedAccountName(data?.bankAccounts ?? [], sync?.reimbursementAccountID)}
                         description={translate('workspace.sageIntacct.paymentAccount')}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT.getRoute(policyID))}

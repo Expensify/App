@@ -102,7 +102,14 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                         <Text
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...defaultRendererProps}
-                            style={[styles.link, styleWithoutColor, StyleUtils.getMentionStyle(isOurMention), {color: StyleUtils.getMentionTextColor(isOurMention)}]}
+                            style={[
+                                styles.link,
+                                styleWithoutColor,
+                                StyleUtils.getMentionStyle(isOurMention),
+                                {color: StyleUtils.getMentionTextColor(isOurMention)},
+                                styles.breakWord,
+                                styles.textWrap,
+                            ]}
                             role={CONST.ROLE.LINK}
                             testID="mention-user"
                             href={`/${navigationRoute}`}

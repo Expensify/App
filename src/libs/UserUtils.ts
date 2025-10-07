@@ -47,7 +47,7 @@ function hasLoginListError(loginList: OnyxEntry<LoginList>): boolean {
  * has an unvalidated contact method.
  */
 function hasLoginListInfo(loginList: OnyxEntry<LoginList>, email: string | undefined): boolean {
-    return Object.values(loginList ?? {}).some((login) => email !== login.partnerUserID && !login.validatedDate);
+    return Object.values(loginList ?? {}).some((login) => login.partnerUserID && email !== login.partnerUserID && !login.validatedDate);
 }
 
 /**

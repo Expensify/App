@@ -42,19 +42,22 @@ function ShareRootPage() {
     const {validateFiles} = useFilesValidation(addValidatedShareFile);
     const isTextShared = currentAttachment?.mimeType === 'txt';
 
-    const validateFileIfNecessary = (file: ShareTempFile) => {
-        if (!file || isTextShared || !shouldValidateFile(file)) {
-            return;
-        }
+    const validateFileIfNecessary = useCallback(
+        (file: ShareTempFile) => {
+            if (!file || isTextShared || !shouldValidateFile(file)) {
+                return;
+            }
 
-        validateFiles([
-            {
-                name: file.id,
-                uri: file.content,
-                type: file.mimeType,
-            },
-        ]);
-    };
+            validateFiles([
+                {
+                    name: file.id,
+                    uri: file.content,
+                    type: file.mimeType,
+                },
+            ]);
+        },
+        [isTextShared, validateFiles],
+    );
 
     const appState = useRef(AppState.currentState);
     const [isFileReady, setIsFileReady] = useState(false);
@@ -125,7 +128,7 @@ function ShareRootPage() {
                 addTempShareFile(tempFile);
             }
         });
-    }, [receiptFileFormats, shareFileMimeTypes, translate, errorTitle]);
+    }, [errorTitle, shareFileMimeTypes, translate, receiptFileFormats, validateFileIfNecessary]);
 
     useEffect(() => {
         const subscription = AppState.addEventListener('change', (nextAppState) => {
@@ -155,6 +158,7 @@ function ShareRootPage() {
     const onTabSelectFocusHandler = ({index}: {index: number}) => {
         // We runAfterInteractions since the function is called in the animate block on web-based
         // implementation, this fixes an animation glitch and matches the native internal delay
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             // Chat tab (0) / Room tab (1) according to OnyxTabNavigator (see below)
             if (index === 0) {

@@ -150,7 +150,27 @@ type GetValidReportsConfig = {
     excludeNonAdminWorkspaces?: boolean;
     isPerDiemRequest?: boolean;
     showRBR?: boolean;
+    shouldShowGBR?: boolean;
 } & GetValidOptionsSharedConfig;
+
+type IsValidReportsConfig = Pick<
+    GetValidReportsConfig,
+    | 'betas'
+    | 'includeMultipleParticipantReports'
+    | 'includeOwnedWorkspaceChats'
+    | 'includeThreads'
+    | 'includeTasks'
+    | 'includeMoneyRequests'
+    | 'includeReadOnly'
+    | 'transactionViolations'
+    | 'includeSelfDM'
+    | 'includeInvoiceRooms'
+    | 'action'
+    | 'includeP2P'
+    | 'includeDomainEmail'
+    | 'loginsToExclude'
+    | 'excludeNonAdminWorkspaces'
+>;
 
 type GetValidReportsReturnTypeCombined = {
     selfDMOption: SearchOptionData | undefined;
@@ -168,6 +188,7 @@ type GetOptionsConfig = {
     canShowManagerMcTest?: boolean;
     searchString?: string;
     maxElements?: number;
+    maxRecentReportElements?: number;
     includeUserToInvite?: boolean;
 } & GetValidReportsConfig;
 
@@ -266,4 +287,5 @@ export type {
     Section,
     SectionBase,
     SectionForSearchTerm,
+    IsValidReportsConfig,
 };

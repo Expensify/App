@@ -1022,7 +1022,7 @@ function setShouldUseStagingServer(shouldUseStagingServer: boolean) {
     if (CONFIG.IS_HYBRID_APP) {
         HybridAppModule.shouldUseStaging(shouldUseStagingServer);
     }
-    Onyx.merge(ONYXKEYS.ACCOUNT, {shouldUseStagingServer});
+    Onyx.set(ONYXKEYS.SHOULD_USE_STAGING_SERVER, shouldUseStagingServer);
 }
 
 function togglePlatformMute(platform: Platform, mutedPlatforms: Partial<Record<Platform, true>>) {
@@ -1405,7 +1405,7 @@ function requestRefund() {
 }
 
 function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {isDebugModeEnabled});
+    Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, isDebugModeEnabled);
 }
 
 function setShouldBlockTransactionThreadReportCreation(shouldBlockTransactionThreadReportCreation: boolean) {
@@ -1459,6 +1459,14 @@ function lockAccount() {
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT, params, {optimisticData, successData, failureData});
 }
 
+function requestUnlockAccount() {
+    const params: LockAccountParams = {
+        accountID: currentUserAccountID,
+    };
+
+    API.write(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, params);
+}
+
 export {
     closeAccount,
     dismissReferralBanner,
@@ -1498,4 +1506,5 @@ export {
     setShouldBlockTransactionThreadReportCreation,
     resetValidateActionCodeSent,
     lockAccount,
+    requestUnlockAccount,
 };
