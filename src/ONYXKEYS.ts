@@ -596,6 +596,9 @@ const ONYXKEYS = {
     /** Stores the last created distance expense type (map or manual) */
     NVP_LAST_DISTANCE_EXPENSE_TYPE: 'nvp_lastDistanceExpenseType',
 
+    /** Array of report IDs that have been subscribed to Pusher */
+    SUBSCRIBED_REPORT_IDS: 'subscribedReportIds',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -1281,6 +1284,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
     [ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS]: Record<string, OnyxTypes.ExportTemplate>;
     [ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE]: DistanceExpenseType;
+    [ONYXKEYS.SUBSCRIBED_REPORT_IDS]: string[];
 };
 
 type OnyxDerivedValuesMapping = {
