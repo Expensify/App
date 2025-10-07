@@ -87,11 +87,11 @@ function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContext
         actorType = CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER;
     }
 
-    let eta: string | undefined;
+    let eta: Date | string | undefined;
     if (nextStep.eta?.etaKey) {
         eta = translate(`nextStep.eta.${nextStep.eta.etaKey}`);
     } else if (nextStep.eta?.dateTime) {
-        eta = translate(`nextStep.eta.dateTime`, {date: DateUtils.formatToLongDateWithWeekday(nextStep.eta.dateTime)});
+        eta = new Date(nextStep.eta.dateTime);
     }
 
     return `<next-step>${translate(`nextStep.message.${nextStep.messageKey}`, {actor, actorType, eta})}</next-step>`;

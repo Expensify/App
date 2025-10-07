@@ -1,6 +1,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import DateUtils from '@libs/DateUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -1535,15 +1536,22 @@ const translations = {
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta}: NextStepParams) => {
+                let formattedETA = '';
+                if (DateUtils.isDate(eta)) {
+                    formattedETA = ` on ${DateUtils.formatToLongDateWithWeekday(eta)}`;
+                } else if (eta) {
+                    formattedETA = ` ${eta}`;
+                }
+
                 // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>your</strong> expenses to automatically submit${eta ? ` ${eta}` : ''}.`;
+                        return `Waiting for <strong>your</strong> expenses to automatically submit${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}'s</strong> expenses to automatically submit${eta ? ` ${eta}` : ''}.`;
+                        return `Waiting for <strong>${actor}'s</strong> expenses to automatically submit${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin's expenses to automatically submit${eta ? ` ${eta}` : ''}.`;
+                        return `Waiting for an admin's expenses to automatically submit${formattedETA}.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
@@ -1594,7 +1602,16 @@ const translations = {
                         return `Waiting for an admin to finish setting up a business bank account.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta}: NextStepParams) => `Waiting for payment to complete${eta ? ` ${eta}` : ''}.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta}: NextStepParams) => {
+                let formattedETA = '';
+                if (DateUtils.isDate(eta)) {
+                    formattedETA = ` by ${DateUtils.formatToLongDateWithWeekday(eta)}`;
+                } else if (eta) {
+                    formattedETA = ` ${eta}`;
+                }
+
+                return `Waiting for payment to complete${formattedETA}.`;
+            },
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'shortly',
@@ -1604,7 +1621,6 @@ const translations = {
             [CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH]: 'on the last business day of the month',
             [CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH]: 'on the last day of the month',
             [CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP]: 'at the end of your trip',
-            dateTime: ({date}: {date: string}) => `by ${date}`,
         },
     },
     profilePage: {
