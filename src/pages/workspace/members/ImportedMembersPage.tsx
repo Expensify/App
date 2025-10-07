@@ -83,9 +83,9 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
         const hasAuditorRole =
             membersRolesColumn !== -1 &&
-            spreadsheet?.data?.[membersRolesColumn]?.some(
-                (role, index) => (containsHeader ? spreadsheet?.data?.[membersRolesColumn]?.at(index + 1) : (role ?? '')) === CONST.POLICY.ROLE.AUDITOR,
-            );
+            spreadsheet?.data
+                ?.at(membersRolesColumn)
+                ?.some((role, index) => (containsHeader ? spreadsheet?.data?.at(membersRolesColumn)?.at(index + 1) : (role ?? '')) === CONST.POLICY.ROLE.AUDITOR);
 
         if ((containsAdvanceApprovalColumns || hasAuditorRole) && !isControlPolicy(policy)) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, Navigation.getActiveRoute()));
