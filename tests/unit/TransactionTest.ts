@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
+import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
@@ -357,6 +358,30 @@ describe('Transaction', () => {
             expect(parameters.transactionList).toBe(transaction.transactionID);
 
             mockAPIWrite.mockRestore();
+        });
+    });
+
+    describe('getAllNonDeletedTransactions', () => {
+        it('returns the transaction when it has a pending delete action and is offline', () => {
+            const transaction = generateTransaction({
+                reportID: '1',
+            });
+            const IOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: FAKE_OLD_REPORT_ID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+            const result = getAllNonDeletedTransactions({[transaction.transactionID]: transaction}, [IOUAction], true);
+            expect(result.at(0)).toEqual(transaction);
         });
     });
 });
