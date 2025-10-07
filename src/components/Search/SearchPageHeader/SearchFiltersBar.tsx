@@ -101,7 +101,9 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
      * need to be filtered out in order to avoid displaying negated filter values in the filter bar
      */
     const filterFormValues = useMemo(() => {
-        return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
+        const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
+        console.log(result);
+        return result;
     }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
 
     const hasErrors = Object.keys(searchResultsErrors ?? {}).length > 0 && !isOffline;
@@ -222,6 +224,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                 ...filterFormValues,
                 ...values,
             };
+
+            console.log('updateFilterForm', updatedFilterFormValues);
 
             // If the type has changed, reset the status so we dont have an invalid status selected
             if (updatedFilterFormValues.type !== filterFormValues.type) {
