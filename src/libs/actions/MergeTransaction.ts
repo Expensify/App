@@ -252,6 +252,20 @@ function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: M
               },
           ]
         : [];
+    const successSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceTransaction.reportID}`,
+                  value: {
+                      [iouActionOfSourceTransaction.reportActionID]: {
+                          pendingAction: null,
+                      },
+                  },
+              },
+          ]
+        : [];
+    const successData: OnyxUpdate[] = [...successSourceReportActionData];
     const failureSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
         ? [
               {
@@ -310,7 +324,7 @@ function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: M
         ...failureSourceReportActionData,
     ];
 
-    API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData});
 }
 
 export {setupMergeTransactionData, setMergeTransactionKey, getTransactionsForMerging, mergeTransactionRequest};
