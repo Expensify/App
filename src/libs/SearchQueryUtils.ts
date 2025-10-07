@@ -134,7 +134,7 @@ function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>, 
         dateFilters.push(`${filterKey}<${dateBefore}`);
     }
     if (negatedDate) {
-        dateFilters.push(`-${filterKey}`);
+        dateFilters.push(`-${filterKey}:${negatedDate}`);
     }
 
     return dateFilters.join(' ');
@@ -165,7 +165,7 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
     }
 
     if (negatedAmount) {
-        amountStrings.push(`-${filterKey}`);
+        amountStrings.push(`-${filterKey}:${negatedAmount}`);
     }
 
     return amountStrings.join(' ');
@@ -759,11 +759,14 @@ function buildFilterFormValuesFromQuery(
 
             const beforeFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && isValidDate(filter.value.toString()));
             const afterFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && isValidDate(filter.value.toString()));
-            const negatedFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO && isValidDate(filter.value.toString()));
-            // The `On` filter could be either a date or a date preset (e.g. Last month)
-            const onFilter = filterList.find(
-                (filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString())),
-            );
+
+            // The `On` and `Not on` filter could be either a date or a date preset (e.g. Last month)
+            const negatedFilter = filterList.find((filter) => {
+                return filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString()));
+            });
+            const onFilter = filterList.find((filter) => {
+                return filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString()));
+            });
 
             filtersForm[beforeKey] = beforeFilter?.value.toString() ?? filtersForm[beforeKey];
             filtersForm[afterKey] = afterFilter?.value.toString() ?? filtersForm[afterKey];
