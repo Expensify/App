@@ -89,7 +89,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
             setIsCannotDeleteOrDisableLastTagModalVisible(true);
             return;
         }
-        setWorkspaceTagEnabled(policyID, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
+        setWorkspaceTagEnabled({policyID, tagsToUpdate: {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, tagListIndex: policyTag.orderWeight, policyTags});
     };
 
     const navigateToEditTag = () => {
