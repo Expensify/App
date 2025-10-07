@@ -2,8 +2,6 @@
     "$schema": "https://json.schemastore.org/tsconfig",
     "extends": "expo/tsconfig.base",
     "compilerOptions": {
-        "module": "commonjs",
-        "moduleResolution": "node",
         "types": ["react-native", "react-native-web", "jest", "node"],
         "lib": ["DOM", "DOM.Iterable", "ESNext"],
         "isolatedModules": true,
@@ -26,6 +24,12 @@
             "@src/*": ["./src/*"],
             "@userActions/*": ["./src/libs/actions/*"],
             "@selectors/*": ["./src/selectors/*"]
+        }
+    },
+    "ts-node": {
+        "compilerOptions": {
+            "module": "commonjs",
+            "moduleResolution": "node"
         }
     },
     "include": [
