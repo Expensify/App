@@ -857,7 +857,7 @@ function MoneyRequestView({
                             }}
                             interactive={canEditReport}
                             shouldRenderAsHTML
-                            copyValue={!canEditReport ? (getReportName(actualParentReport) || actualParentReport?.reportName) : undefined}
+                            copyValue={!canEditReport ? getReportName(actualParentReport) || actualParentReport?.reportName : undefined}
                             copyable={!canEditReport && !!(getReportName(actualParentReport) || actualParentReport?.reportName)}
                         />
                     </OfflineWithFeedback>
