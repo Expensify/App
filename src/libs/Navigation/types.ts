@@ -145,6 +145,10 @@ type SettingsNavigatorParamList = {
         /** cardID of selected card */
         cardID: string;
     };
+    [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
+        /** cardID of selected card */
+        cardID: string;
+    };
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
         /** cardID of selected card */
         cardID: string;
@@ -1199,7 +1203,9 @@ type ProfileNavigatorParamList = {
 };
 
 type NewReportWorkspaceSelectionNavigatorParamList = {
-    [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: undefined;
+    [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: {
+        isMovingExpenses?: boolean;
+    };
 };
 
 type ReportDetailsNavigatorParamList = {
@@ -1609,6 +1615,9 @@ type MoneyRequestNavigatorParamList = {
 
 type WorkspaceConfirmationNavigatorParamList = {
     [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: {
+        backTo?: Routes;
+    };
+    [SCREENS.CURRENCY.SELECTION]: {
         backTo?: Routes;
     };
 };

@@ -28,6 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
+import {AttachmentStateContext} from './AttachmentStateContextProvider';
 import type {AttachmentModalBaseContentProps} from './types';
 
 function AttachmentModalBaseContent({

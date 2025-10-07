@@ -107,6 +107,7 @@ import type {
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -294,6 +295,7 @@ import type {
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
+    WalletAgreementParams,
     WalletProgramParams,
     WelcomeEnterMagicCodeParams,
     WelcomeToRoomParams,
@@ -611,7 +613,7 @@ const translations = {
         disabled: '禁用',
         import: '导入',
         offlinePrompt: '您现在无法执行此操作。',
-        outstanding: '优秀',
+        outstanding: '未完成的',
         chats: '聊天',
         tasks: '任务',
         unread: '未读',
@@ -2853,10 +2855,10 @@ const translations = {
     termsStep: {
         headerTitle: '条款和费用',
         headerTitleRefactor: '费用和条款',
-        haveReadAndAgree: '我已阅读并同意接收',
-        electronicDisclosures: '电子披露',
-        agreeToThe: '我同意',
-        walletAgreement: '钱包协议',
+        haveReadAndAgreePlain: '我已阅读并同意接收电子披露信息。',
+        haveReadAndAgree: `我已阅读并同意接收<a href="${CONST.ELECTRONIC_DISCLOSURES_URL}">电子披露信息</a>。`,
+        agreeToThePlain: '我同意隐私和钱包协议。',
+        agreeToThe: ({walletAgreementUrl}: WalletAgreementParams) => `我同意<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私</a>和<a href="${walletAgreementUrl}">钱包协议</a>。`,
         enablePayments: '启用支付',
         monthlyFee: '月费',
         inactivity: '不活跃',
@@ -2873,17 +2875,14 @@ const translations = {
             cashReload: '现金充值',
             inNetwork: '网络内',
             outOfNetwork: '网络外',
-            atmBalanceInquiry: 'ATM余额查询',
-            inOrOutOfNetwork: '（网络内或网络外）',
-            customerService: '客户服务',
-            automatedOrLive: '（自动或人工客服）',
-            afterTwelveMonths: '（12个月没有交易后）',
+            atmBalanceInquiry: 'ATM余额查询（网络内或网络外）',
+            customerService: '客户服务（自动或人工客服）',
+            inactivityAfterTwelveMonths: '不活跃（12个月没有交易后）',
             weChargeOneFee: '我们收取另外一种费用。它是：',
             fdicInsurance: '您的资金符合FDIC保险资格。',
-            generalInfo: '有关预付账户的一般信息，请访问',
-            conditionsDetails: '有关所有费用和服务的详细信息和条件，请访问',
-            conditionsPhone: '或拨打 +1 833-400-0904。',
-            instant: '(instant)',
+            generalInfo: `有关预付账户的一般信息，请访问 <a href="${CONST.CFPB_PREPAID_URL}">${CONST.TERMS.CFPB_PREPAID}</a>。`,
+            conditionsDetails: `有关所有费用和服务的详细信息和条件，请访问 <a href="${CONST.FEES_URL}">${CONST.FEES_URL}</a> 或致电 +1 833-400-0904。`,
+            electronicFundsWithdrawalInstant: '电子资金提取（即时）',
             electronicFundsInstantFeeMin: ({amount}: TermsParams) => `(min ${amount})`,
         },
         longTermsForm: {
@@ -2899,24 +2898,15 @@ const translations = {
             inactivityDetails: '没有不活动费用。',
             sendingFundsTitle: '将资金发送到另一个账户持有人',
             sendingFundsDetails: '使用您的余额、银行账户或借记卡向其他账户持有人发送资金是免费的。',
-            electronicFundsStandardDetails:
-                "There's no fee to transfer funds from your Expensify Wallet " +
-                'to your bank account using the standard option. This transfer usually completes within 1-3 business' +
-                ' days.',
+            electronicFundsStandardDetails: '使用标准选项从您的 Expensify 钱包向您的银行账户转账不收取任何费用。转账通常在 1-3 个工作日内完成。',
             electronicFundsInstantDetails: ({percentage, amount}: ElectronicFundsParams) =>
-                "There's a fee to transfer funds from your Expensify Wallet to " +
-                'your linked debit card using the instant transfer option. This transfer usually completes within ' +
-                `several minutes. The fee is ${percentage}% of the transfer amount (with a minimum fee of ${amount}).`,
+                `使用即时转账选项将资金从 Expensify 钱包转入关联的借记卡需要支付一定费用。转账通常在几分钟内完成。费用为转账金额的 ${percentage}%（最低费用为 ${amount}）。`,
             fdicInsuranceBancorp: ({amount}: TermsParams) =>
-                'Your funds are eligible for FDIC insurance. Your funds will be held at or ' +
-                `transferred to ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, an FDIC-insured institution. Once there, your funds are insured up ` +
-                `to ${amount} by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails, if specific deposit insurance requirements ` +
-                `are met and your card is registered. See`,
-            fdicInsuranceBancorp2: '详情。',
-            contactExpensifyPayments: `通过拨打 +1 833-400-0904 或发送电子邮件联系 ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}`,
-            contactExpensifyPayments2: '或登录在',
-            generalInformation: '有关预付账户的一般信息，请访问',
-            generalInformation2: '如果您对预付账户有投诉，请致电消费者金融保护局 1-855-411-2372 或访问',
+                `您的资金可享受 FDIC 保险。您的资金将存放在或转入由 FDIC 提供保险的机构 ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}。` +
+                `一旦 ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} 倒闭，您的资金将由 FDIC 提供最高 ${amount} 的保险，前提是满足特定的存款保险要求并注册了您的银行卡。` +
+                `详见 ${CONST.TERMS.FDIC_PREPAID}。`,
+            contactExpensifyPayments: `请致电 +1 833-400-0904、发送电子邮件至 ${CONST.EMAIL.CONCIERGE} 或登录 ${CONST.NEW_EXPENSIFY_URL} 与 ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} 联系。`,
+            generalInformation: `有关预付费账户的一般信息，请访问 ${CONST.TERMS.CFPB_PREPAID}。如果您对预付费账户有任何投诉，请致电 1-855-411-2372 联系消费者金融保护局，或访问 ${CONST.TERMS.CFPB_COMPLAINT}。`,
             printerFriendlyView: '查看打印友好版本',
             automated: '自动化的',
             liveAgent: '实时客服代理',
@@ -4583,6 +4573,10 @@ const translations = {
                         automaticImport: '自动交易导入',
                     },
                 },
+                bankConnectionError: '银行连接问题',
+                connectWithPlaid: '通过 Plaid 连接',
+                connectWithExpensifyCard: '尝试使用 Expensify 卡',
+                bankConnectionDescription: '请尝试重新添加您的卡。否则，您可以',
                 disableCardTitle: '禁用公司卡',
                 disableCardPrompt: '您无法禁用公司卡，因为此功能正在使用中。请联系Concierge以获取下一步指导。',
                 disableCardButton: '与Concierge聊天',
@@ -5016,8 +5010,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: '在 Expensify Classic 中设置的连接出现错误。',
-            goToODToFix: '请前往 Expensify Classic 解决此问题。',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `在 Expensify Classic 中设置的连接出现错误。[请前往 Expensify Classic 解决此问题。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '请前往 Expensify Classic 管理您的设置。',
             setup: '连接',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `上次同步时间为${relativeDate}`,
