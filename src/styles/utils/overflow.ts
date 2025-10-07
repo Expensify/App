@@ -1,5 +1,6 @@
 import type {ViewStyle} from 'react-native';
 import overflowAuto from './overflowAuto';
+import overflowXHidden from './overflowXHidden';
 import overscrollBehaviorContain from './overscrollBehaviorContain';
 
 /**
@@ -23,6 +24,8 @@ export default {
     overscrollBehaviorXNone: {
         overscrollBehaviorX: 'none',
     },
+
+    overflowXHidden,
 
     overscrollBehaviorContain,
 
