@@ -534,6 +534,7 @@ function Button({
                     <ActivityIndicator
                         color={success || danger ? theme.textLight : theme.text}
                         style={[styles.pAbsolute, styles.l0, styles.r0]}
+                        size={extraSmall ? 12 : undefined}
                     />
                 )}
             </PressableWithFeedback>
