@@ -581,4 +581,59 @@ describe('OnboardingWorkEmailValidation Page', () => {
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
+
+    it('should display specific error message when ONBOARDING_ERROR_MESSAGE is set', async () => {
+        await TestHelper.signInWithTestUser();
+
+        const specificErrorMessage = 'some extraordinarily specific error has occurred!';
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: true,
+                isMergingAccountBlocked: true,
+            });
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+                onboardingWorkEmail: 'test@company.com',
+            });
+            await Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, specificErrorMessage);
+        });
+
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText(specificErrorMessage)).toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should fallback to generic error message when ONBOARDING_ERROR_MESSAGE is not set', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: true,
+                isMergingAccountBlocked: true,
+            });
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+                onboardingWorkEmail: workEmail,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText(translateLocal('onboarding.mergeBlockScreen.subtitle', {workEmail}))).toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
 });

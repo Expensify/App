@@ -228,6 +228,7 @@ const CONST = {
     POPOVER_DROPDOWN_WIDTH: 334,
     POPOVER_DROPDOWN_MIN_HEIGHT: 0,
     POPOVER_DROPDOWN_MAX_HEIGHT: 416,
+    POPOVER_MENU_MAX_HEIGHT: 496,
     POPOVER_DATE_WIDTH: 338,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
@@ -1048,6 +1049,7 @@ const CONST = {
         ADMIN_DOMAINS_URL: 'admin_domains',
         INBOX: 'inbox',
         POLICY_CONNECTIONS_URL: (policyID: string) => `policy?param={"policyID":"${policyID}"}#connections`,
+        POLICY_CONNECTIONS_URL_ENCODED: (policyID: string) => `policy?param=%7B%22policyID%22%3A%22${policyID}%22%7D#connections`,
         SIGN_OUT: 'signout',
     },
 
@@ -1161,6 +1163,7 @@ const CONST = {
         ADD_EXPENSE_OPTIONS: {
             CREATE_NEW_EXPENSE: 'createNewExpense',
             ADD_UNREPORTED_EXPENSE: 'addUnreportedExpense',
+            TRACK_DISTANCE_EXPENSE: 'trackDistanceExpense',
         },
         ACTIONS: {
             LIMIT: 50,
@@ -7044,6 +7047,7 @@ const CONST = {
         HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
         HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
         HAS_CARD_CONNECTION_ERROR: 'hasCardConnectionError',
+        HAS_UBER_CREDENTIALS_ERROR: 'hasUberCredentialsError',
     },
 
     DEBUG: {
