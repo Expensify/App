@@ -9,7 +9,7 @@ import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
-import {getApprovalDropdownOptions} from '@components/ExpenseHeaderApprovalButton';
+import ExpenseHeaderApprovalButton from '@components/ExpenseHeaderApprovalButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
@@ -548,52 +548,22 @@ function MoneyRequestReportPreviewContent({
                 onAnimationFinish={stopAnimation}
             />
         ),
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: (() => {
-            // Check if we should show dropdown (only when there are held expenses and user has proper access)
-            const shouldShowDropdown = hasHeldExpensesReportUtils(iouReport?.reportID) && !isDelegateAccessRestricted;
-
-            if (shouldShowDropdown) {
-                const approvalOptions = getApprovalDropdownOptions({
-                    nonHeldAmount: !hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
-                    fullAmount,
-                    hasValidNonHeldAmount,
-                    hasOnlyHeldExpenses,
-                    onPartialApprove: () => {
-                        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
-                        startApprovedAnimation();
-                        approveMoneyRequest(iouReport, false);
-                    },
-                    onFullApprove: () => {
-                        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
-                        startApprovedAnimation();
-                        approveMoneyRequest(iouReport, true);
-                    },
-                    translate,
-                });
-
-                if (approvalOptions.options.length > 1) {
-                    return (
-                        <ButtonWithDropdownMenu
-                            success
-                            options={approvalOptions.options}
-                            menuHeaderText={translate('iou.confirmApprovalWithHeldAmount')}
-                            onPress={() => {}}
-                            customText={translate('iou.approve')}
-                            shouldAlwaysShowDropdownMenu
-                            isSplitButton={false}
-                        />
-                    );
-                }
-            }
-
-            return (
-                <Button
-                    text={translate('iou.approve')}
-                    success
-                    onPress={() => confirmApproval()}
-                />
-            );
-        })(),
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: (
+            <ExpenseHeaderApprovalButton
+                isAnyTransactionOnHold={hasHeldExpensesReportUtils(iouReport?.reportID)}
+                isDelegateAccessRestricted={isDelegateAccessRestricted}
+                hasOnlyHeldExpenses={hasOnlyHeldExpenses}
+                hasValidNonHeldAmount={hasValidNonHeldAmount}
+                nonHeldAmount={nonHeldAmount}
+                fullAmount={fullAmount}
+                onApprove={(isFullApproval) => {
+                    setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
+                    startApprovedAnimation();
+                    approveMoneyRequest(iouReport, isFullApproval);
+                }}
+                onConfirmApproval={confirmApproval}
+            />
+        ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY]: (
             <AnimatedSettlementButton
                 onlyShowPayElsewhere={shouldShowOnlyPayElsewhere}
