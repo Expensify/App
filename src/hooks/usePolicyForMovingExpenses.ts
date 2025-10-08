@@ -32,10 +32,7 @@ function usePolicyForMovingExpenses() {
     const login = session?.email ?? '';
     const userPolicies = Object.values(allPolicies ?? {}).filter(
         (policy) =>
-            checkForPendingDelete(login, policy) &&
-            isPolicyMemberByRole(login, policy) &&
-            isPaidGroupPolicy(policy) &&
-            policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            checkForPendingDelete(login, policy) && isPolicyMemberByRole(login, policy) && isPaidGroupPolicy(policy) && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
     const isMemberOfMoreThanOnePolicy = userPolicies.length > 1;
 
