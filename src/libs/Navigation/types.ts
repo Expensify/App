@@ -1205,6 +1205,7 @@ type ProfileNavigatorParamList = {
 type NewReportWorkspaceSelectionNavigatorParamList = {
     [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: {
         isMovingExpenses?: boolean;
+        backTo?: Routes;
     };
 };
 
