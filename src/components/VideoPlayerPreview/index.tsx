@@ -68,27 +68,26 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const navigation = useNavigation();
 
     useEffect(() => {
-        if (typeof videoUrl !== 'string' || !videoUrl || (getPlatform() !== CONST.PLATFORM.WEB && getPlatform() !== CONST.PLATFORM.DESKTOP)) {
-            return;
+        if (videoUrl && (getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP)) {
+            const video = document.createElement('video');
+            video.onloadedmetadata = () => {
+                if (video.videoWidth === measuredDimensions.width && video.videoHeight === measuredDimensions.height) {
+                    return;
+                }
+                setMeasuredDimensions({
+                    width: video.videoWidth,
+                    height: video.videoHeight,
+                });
+            };
+            video.src = videoUrl;
+            video.load();
+
+            return () => {
+                video.src = '';
+            };
         }
-
-        const video = document.createElement('video');
-        video.onloadedmetadata = () => {
-            if (video.videoWidth === measuredDimensions.width && video.videoHeight === measuredDimensions.height) {
-                return;
-            }
-            setMeasuredDimensions({
-                width: video.videoWidth,
-                height: video.videoHeight,
-            });
-        };
-        video.src = videoUrl;
-        video.load();
-
-        return () => {
-            video.src = '';
-        };
-    }, [videoUrl, measuredDimensions.width, measuredDimensions.height]);
+        setMeasuredDimensions(videoDimensions);
+    }, [videoUrl, measuredDimensions.width, measuredDimensions.height, videoDimensions]);
 
     // We want to play the video only when the user is on the page where it was initially rendered
     const doesUserRemainOnFirstRenderRoute = useCheckIfRouteHasRemainedUnchanged(videoUrl);
