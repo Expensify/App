@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Luggage} from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -77,8 +78,7 @@ function WorkspaceTravelPage({
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={Navigation.popToSidebar}
                 />
-
-                {mainContent}
+                <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>{mainContent}</View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

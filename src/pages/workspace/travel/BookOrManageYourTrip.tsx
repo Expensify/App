@@ -38,8 +38,8 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                 onCtaPress={handleCtaPress}
                 illustrationBackgroundColor={colors.blue600}
                 illustration={EmptyStateTravel}
-                illustrationStyle={styles.emptyStateCardIllustration}
-                illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart]}
+                illustrationStyle={styles.travelCardIllustration}
+                illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
                 titleStyles={styles.textHeadlineH1}
                 footer={
                     <BookTravelButton

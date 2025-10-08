@@ -19,7 +19,7 @@ import {
     Folder,
     Gear,
     InvoiceGeneric,
-    Luggage,
+    LuggageWithLines,
     Receipt,
     Sync,
     Tag,
@@ -291,7 +291,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED]) {
             protectedMenuItems.push({
                 translationKey: 'workspace.common.travel',
-                icon: Luggage,
+                icon: LuggageWithLines,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.TRAVEL,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED,

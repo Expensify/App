@@ -4929,6 +4929,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 190,
         },
 
+        travelCardIllustration: {
+            width: 191,
+            height: 170,
+        },
+
         emptyStateMoneyRequestReport: {
             maxHeight: 85,
             minHeight: 85,
