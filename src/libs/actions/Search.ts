@@ -884,4 +884,5 @@ export {
     handleBulkPayItemSelected,
     isCurrencySupportWalletBulkPay,
     getExportTemplates,
+    getReportType,
 };

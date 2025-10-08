@@ -41,6 +41,7 @@ import {
     getExportTemplates,
     getLastPolicyPaymentMethod,
     getPayOption,
+    getReportType,
     isCurrencySupportWalletBulkPay,
     payMoneyRequestOnSearch,
     queueExportSearchItemsToCSV,
@@ -187,7 +188,8 @@ function SearchPage({route}: SearchPageProps) {
                 const itemReportID = item.reportID;
                 const isExpenseReport = isExpenseReportUtil(itemReportID);
                 const isIOUReport = isIOUReportUtil(itemReportID);
-                const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(itemPolicyID, lastPaymentMethods) ?? paymentMethod;
+                const reportType = getReportType(itemReportID);
+                const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(itemPolicyID, lastPaymentMethods, reportType) ?? paymentMethod;
 
                 if (!lastPolicyPaymentMethod) {
                     Navigation.navigate(
