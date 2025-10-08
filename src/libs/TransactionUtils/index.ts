@@ -1927,9 +1927,9 @@ function isTransactionPendingDelete(transaction: OnyxEntry<Transaction>): boolea
 /**
  * Retrieves all “child” transactions associated with a given original transaction
  */
-function getChildTransactions(originalTransactionID: string | undefined) {
-    return Object.values(allTransactions ?? {}).filter((currentTransaction) => {
-        const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
+function getChildTransactions(transactions: OnyxCollection<Transaction>, reports: OnyxCollection<Report>, originalTransactionID: string | undefined) {
+    return Object.values(transactions ?? {}).filter((currentTransaction) => {
+        const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
         return (
             currentTransaction?.comment?.originalTransactionID === originalTransactionID &&
             !!currentReport &&
