@@ -51,7 +51,7 @@ async function isValidResolution(image: FileObject): Promise<boolean> {
 
 /**
  * Comprehensively validates an avatar image file.
- * Checks MIME type, extension, size, corruption, and resolution.
+ * Checks extension, size, corruption, and resolution.
  *
  * @param image - The image file object to validate
  * @returns Promise resolving to ValidationResult with error details if validation fails
@@ -65,7 +65,6 @@ async function isValidResolution(image: FileObject): Promise<boolean> {
  * ```
  */
 async function validateAvatarImage(image: FileObject): Promise<ValidationResult> {
-    // Check extension
     if (!isValidExtension(image)) {
         return {
             isValid: false,
@@ -74,7 +73,6 @@ async function validateAvatarImage(image: FileObject): Promise<ValidationResult>
         };
     }
 
-    // Check size
     if (!isValidSize(image)) {
         return {
             isValid: false,
@@ -83,7 +81,6 @@ async function validateAvatarImage(image: FileObject): Promise<ValidationResult>
         };
     }
 
-    // Check for corruption
     try {
         await validateImageForCorruption(image);
     } catch {
@@ -94,7 +91,6 @@ async function validateAvatarImage(image: FileObject): Promise<ValidationResult>
         };
     }
 
-    // Check resolution
     const validResolution = await isValidResolution(image);
     if (!validResolution) {
         return {
@@ -113,4 +109,3 @@ async function validateAvatarImage(image: FileObject): Promise<ValidationResult>
 }
 
 export {isValidExtension, isValidSize, isValidResolution, validateAvatarImage};
-export type {ValidationResult};
