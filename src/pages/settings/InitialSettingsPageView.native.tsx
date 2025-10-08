@@ -37,6 +37,7 @@ function InitialSettingsPageView({
             includeSafeAreaPaddingBottom
             testID="InitialSettingsPageView"
             shouldEnableKeyboardAvoidingView={false}
+            style={styles.scrollPaddingWhenNoBottomTab}
         >
             {headerContent}
             <ScrollView
