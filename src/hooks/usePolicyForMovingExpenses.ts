@@ -1,7 +1,7 @@
 import {activePolicySelector} from '@selectors/Policy';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useSession} from '@components/OnyxListItemProvider';
-import {isPaidGroupPolicy, isPolicyAdmin, isPolicyMemberWithoutPendingDelete, isPolicyUser} from '@libs/PolicyUtils';
+import {getPolicyRole, isPaidGroupPolicy, isPolicyAdmin, isPolicyMemberWithoutPendingDelete, isPolicyUser} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -14,6 +14,10 @@ function checkForPendingDelete(login: string, policy: OnyxEntry<Policy>) {
         return true;
     }
     return isPolicyMemberWithoutPendingDelete(login, policy);
+}
+
+function isPolicyMemberByRole(login: string, policy: OnyxEntry<Policy>) {
+    return isPolicyAdmin(policy, login) || isPolicyUser(policy, login) || getPolicyRole(policy, login) === CONST.POLICY.ROLE.AUDITOR;
 }
 
 function usePolicyForMovingExpenses() {
@@ -29,7 +33,7 @@ function usePolicyForMovingExpenses() {
     const userPolicies = Object.values(allPolicies ?? {}).filter(
         (policy) =>
             checkForPendingDelete(login, policy) &&
-            (isPolicyAdmin(policy, login) || isPolicyUser(policy, login)) &&
+            isPolicyMemberByRole(login, policy) &&
             isPaidGroupPolicy(policy) &&
             policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
