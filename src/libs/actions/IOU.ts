@@ -3206,7 +3206,7 @@ function getReceiverType(receiverParticipant: Participant | InvoiceReceiver | un
     if ('type' in receiverParticipant && receiverParticipant.type) {
         return receiverParticipant.type;
     }
-    if ('policyID' in receiverParticipant && receiverParticipant.policyID) {
+    if ('policyID' in receiverParticipant && receiverParticipant.policyID && receiverParticipant.policyID !== CONST.POLICY.ID_FAKE) {
         return CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS;
     }
     return CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
@@ -10012,7 +10012,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
 
     // Remove duplicates violations if we approve the report
     if (hasDuplicates) {
-        const transactions = getReportTransactions(expenseReport.reportID).filter((transaction) => isDuplicate(transaction, true));
+        const transactions = getReportTransactions(expenseReport.reportID).filter((transaction) => isDuplicate(transaction));
         if (!full) {
             transactions.filter((transaction) => !isOnHold(transaction));
         }
