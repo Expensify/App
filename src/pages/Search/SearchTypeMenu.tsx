@@ -49,6 +49,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const {typeMenuSections, suggestedSearchesReady} = useSearchTypeMenuSections();
+    const shouldShowSkeleton = !suggestedSearchesReady;
     const isFocused = useIsFocused();
     const {
         shouldShowProductTrainingTooltip: shouldShowSavedSearchTooltip,
@@ -217,6 +218,14 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
         return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
     }, [similarSearchHash, isSavedSearchActive, typeMenuSections]);
+
+    if (shouldShowSkeleton) {
+        return (
+            <View style={[styles.flex1]}>
+                <SuggestedSearchSkeleton shouldShowResultsColumn={false} />
+            </View>
+        );
+    }
 
     return (
         <ScrollView
