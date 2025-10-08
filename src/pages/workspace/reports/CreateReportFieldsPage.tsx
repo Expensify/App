@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
@@ -26,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
+import type {Report} from '@src/types/onyx';
 import InitialListValueSelector from './InitialListValueSelector';
 import TypeSelector from './TypeSelector';
 
@@ -43,10 +45,20 @@ function WorkspaceCreateReportFieldsPage({
     const {translate, localeCompare} = useLocalize();
     const formRef = useRef<FormRef>(null);
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
-    const [policyExpenseReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+
+    const policyExpenseReportIDsSelector = useCallback(
+        (reports: OnyxCollection<Report>) =>
+            Object.values(reports ?? {})
+                .filter((report) => report?.policyID === policyID && report.type === CONST.REPORT.TYPE.EXPENSE)
+                .map((report) => report?.reportID),
+        [policyID],
+    );
+
+    const [policyExpenseReportIDs] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         canBeMissing: true,
-        selector: (value) => Object.values(value ?? {}).filter((report) => report?.policyID === policyID && report.type === CONST.REPORT.TYPE.EXPENSE),
+        selector: policyExpenseReportIDsSelector,
     });
+
     const availableListValuesLength = (formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []).filter((disabledListValue) => !disabledListValue).length;
 
     const submitForm = useCallback(
@@ -58,11 +70,11 @@ function WorkspaceCreateReportFieldsPage({
                 initialValue: !(values[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength === 0) ? values[INPUT_IDS.INITIAL_VALUE] : '',
                 listValues: formDraft?.[INPUT_IDS.LIST_VALUES] ?? [],
                 disabledListValues: formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? [],
-                policyExpenseReports,
+                policyExpenseReportIDs,
             });
             Navigation.goBack();
         },
-        [availableListValuesLength, formDraft, policyExpenseReports, policyID],
+        [availableListValuesLength, formDraft, policyExpenseReportIDs, policyID],
     );
 
     const validateForm = useCallback(

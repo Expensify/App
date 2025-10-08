@@ -14,8 +14,8 @@ To view card transactions for a specific employee or for the entire company:
 1. Go to the **Reports** page.
 2. Click **Filters** in the top-right corner.
 3. Click **Card** to filter cards:
-   - Select a feed from **Card feeds** to view expenses from all cards in the feed. 
-   - Select a card from **Individual cards** to view expenses from that card. 
+   - Select a feed from **Card feeds** to view expenses from all cards in the feed.
+   - Select a card from **Individual cards** to view expenses from that card.
 
 This view allows you to review all transactions made on the Expensify Card, grouped by employee or feed.
 
@@ -25,11 +25,11 @@ This view allows you to review all transactions made on the Expensify Card, grou
 
 You can export transactions from a specific date range to help with monthly reconciliations:
 
-1. From the **Reports** page, select **Expenses** in the left-hand-bar. 
-2. Select **All** above the expenses list. 
+1. From the **Reports** page, select **Expenses** in the left-hand-bar.
+2. Select **All** above the expenses list.
 3. Click **Filters**.
-4. Apply the following filters: 
-   - **Card**: select the applicable card feed. 
+4. Apply the following filters:
+   - **Card**: select the applicable card feed.
    - **Posted date**: Set the appropriate date range (e.g., `posted<2025-02-28 AND posted>2025-02-01`)
 5. Alternatively, you can enter this directly in the search bar (e.g., `type:expense feed:"all in cards" posted<2025-02-28 posted>2025-02-01`)
 6. Once filtered, click the **Export** icon in the top-right corner to download the report as a spreadsheet.

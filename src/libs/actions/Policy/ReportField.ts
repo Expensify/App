@@ -1,5 +1,5 @@
 import cloneDeep from 'lodash/cloneDeep';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
@@ -51,38 +51,8 @@ type DeleteReportFieldsListValueParams = {
 type CreateReportFieldParams = Pick<WorkspaceReportFieldForm, 'name' | 'type' | 'initialValue'> & {
     listValues: string[];
     disabledListValues: boolean[];
-    policyExpenseReports: Array<OnyxEntry<Report>> | undefined;
-    policy: OnyxEntry<Policy>;
-};
-
-type DeleteReportFieldsParams = {
-    reportFieldsToUpdate: string[];
-    policy: OnyxEntry<Policy>;
-};
-
-type RemoveReportFieldListValueParams = {
-    valueIndexes: number[];
-    reportFieldID: string;
-    policy: OnyxEntry<Policy>;
-};
-
-type AddReportFieldListValueParams = {
-    valueName: string;
-    reportFieldID: string;
-    policy: OnyxEntry<Policy>;
-};
-
-type UpdateReportFieldListValueEnabledParams = {
-    valueIndexes: number[];
-    enabled: boolean;
-    reportFieldID: string;
-    policy: OnyxEntry<Policy>;
-};
-
-type UpdateReportFieldInitialValueParams = {
-    newInitialValue: string;
-    reportFieldID: string;
-    policy: OnyxEntry<Policy>;
+    policyID: string;
+    policyExpenseReportIDs: Array<string | undefined> | undefined;
 };
 
 function openPolicyReportFieldsPage(policyID: string) {
@@ -197,8 +167,8 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 errorFields: null,
             },
         },
-        ...(policyExpenseReports ?? []).map((report) => ({
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+        ...(policyExpenseReportIDs ?? []).map((reportID) => ({
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
                 fieldList: {
@@ -221,8 +191,8 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 },
             },
         },
-        ...(policyExpenseReports ?? []).map((report) => ({
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+        ...(policyExpenseReportIDs ?? []).map((reportID) => ({
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
                 fieldList: {

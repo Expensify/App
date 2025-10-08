@@ -36,7 +36,7 @@ Expensify’s report filters help users narrow down results to find specific dat
 - **Contextual filters** - Further refine results based on the selected type. For example:
   - Expenses: Outstanding, Approved, Paid
   - Invoices: Outstanding, Paid
-  - Trips: Drafts, Upcoming, In Progress, Past
+  - Trips: Draft, Upcoming, In Progress, Past
 - **Advanced filters** - Enable precise reports using query syntax (e.g., `type:expenses status:approved`).
 
 ![A photo of common report filter]({{site.url}}/assets/images/ExpensifyHelp-SearchFormat.png){:width="100%"}
@@ -45,7 +45,7 @@ Expensify’s report filters help users narrow down results to find specific dat
 
 # Search Formats
 
-Using search formats allows you to define complex report parameters using simple text commands. 
+Using search formats allows you to define complex report parameters using simple text commands.
 
 ## Popular Searches for Employees
 
@@ -61,7 +61,7 @@ Using search formats allows you to define complex report parameters using simple
 - **All card spend from December 2024:** `type:expense expense-type:card posted<=2024-12-31 posted>=2024-12-01`
 
 ## Access Search Commands:
-- **Option 1:** Click Reports at the bottom of the left-hand navigation bar.
+- **Option 1:** Click Reports in the navigation tab (on the left on web, and at the bottom on mobile).
 - **Option 2:** Click the magnifying glass in the upper-right corner.
 
 ---
@@ -89,7 +89,7 @@ Your communication history is always accessible in one place, helping you stay o
 ---
 
 ## Invoices – View and Manage Invoices Effortlessly
-The Invoices section of Reports provides a streamlined way to handle billing. 
+The Invoices section of Reports provides a streamlined way to handle billing.
 
 **Key Functionalities:**
 - View invoices by status, such as **Outstanding** or **Paid**.
@@ -147,5 +147,5 @@ Expensify ensures cross-platform consistency where possible. However, certain fe
 Use the following steps to locate unsubmitted reports:
 1. Go to the **Reports** page.
 2. Select **Expenses** from the Type-based filter.
-3. Apply the **Drafts** contextual filter to view all unsubmitted reports.
+3. Apply the **Draft** contextual filter to view all unsubmitted reports.
 

@@ -18,6 +18,16 @@ type RootStackNavigatorActionType =
               policyID: string;
               screenName: WorkspaceScreenName;
           };
+      }
+    | {
+          type: typeof CONST.NAVIGATION.ACTION_TYPE.PRELOAD;
+          payload: {
+              name: string;
+              params: {
+                  screen: string;
+                  params: Record<string, unknown>;
+              };
+          };
       };
 
 type OpenWorkspaceSplitActionType = RootStackNavigatorActionType & {
@@ -27,6 +37,8 @@ type OpenWorkspaceSplitActionType = RootStackNavigatorActionType & {
 type ToggleSidePanelWithHistoryActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY;
 };
+
+type PreloadActionType = RootStackNavigatorAction & {type: typeof CONST.NAVIGATION.ACTION_TYPE.PRELOAD};
 
 type PushActionType = StackActionType & {type: typeof CONST.NAVIGATION.ACTION_TYPE.PUSH};
 
@@ -45,6 +57,7 @@ export type {
     PushActionType,
     ReplaceActionType,
     DismissModalActionType,
+    PreloadActionType,
     RootStackNavigatorAction,
     RootStackNavigatorRouterOptions,
     ToggleSidePanelWithHistoryActionType,

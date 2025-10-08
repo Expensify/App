@@ -8,7 +8,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
-import {getDistanceRateCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -292,8 +292,10 @@ const ViolationsUtils = {
 
         const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID;
         if (customUnitRateID && customUnitRateID.length > 0) {
-            const distanceRateCustomRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-            if (distanceRateCustomRate) {
+            const isPerDiem = TransactionUtils.isPerDiemRequest(updatedTransaction);
+            const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policy, customUnitRateID);
+
+            if (customRate) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
             } else {
                 newTransactionViolations.push({
@@ -385,7 +387,7 @@ const ViolationsUtils = {
                     shouldShowCategoryReceiptRequiredViolation || !policy.maxExpenseAmountNoReceipt
                         ? undefined
                         : {
-                              formattedLimit: CurrencyUtils.convertAmountToDisplayString(policy.maxExpenseAmountNoReceipt, policy.outputCurrency),
+                              formattedLimit: CurrencyUtils.convertToDisplayString(policy.maxExpenseAmountNoReceipt, policy.outputCurrency, true),
                           },
                 type: CONST.VIOLATION_TYPES.VIOLATION,
                 showInReview: true,
@@ -468,8 +470,6 @@ const ViolationsUtils = {
             isTransactionOlderThan7Days = false,
             member,
             category,
-            rejectedBy = '',
-            rejectReason = '',
             formattedLimit = '',
             surcharge = 0,
             invoiceMarkup = 0,
@@ -486,10 +486,7 @@ const ViolationsUtils = {
             case 'allTagLevelsRequired':
                 return translate('violations.allTagLevelsRequired');
             case 'autoReportedRejectedExpense':
-                return translate('violations.autoReportedRejectedExpense', {
-                    rejectedBy,
-                    rejectReason,
-                });
+                return translate('violations.autoReportedRejectedExpense');
             case 'billableExpense':
                 return translate('violations.billableExpense');
             case 'cashExpenseWithNoReceipt':

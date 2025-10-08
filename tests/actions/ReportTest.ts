@@ -8,14 +8,16 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
-import {buildNextStep} from '@libs/NextStepUtils';
+import {buildNextStepNew} from '@libs/NextStepUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 import * as Report from '@src/libs/actions/Report';
 import * as User from '@src/libs/actions/User';
 import DateUtils from '@src/libs/DateUtils';
+import {translateLocal} from '@src/libs/Localize';
 import Log from '@src/libs/Log';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -25,7 +27,9 @@ import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
+import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
@@ -33,14 +37,15 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('@libs/NextStepUtils', () => ({
-    buildNextStep: jest.fn(),
+    buildNextStepNew: jest.fn(),
 }));
 
+const MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID = '1234';
 jest.mock('@libs/ReportUtils', () => {
     const originalModule = jest.requireActual<Report>('@libs/ReportUtils');
     return {
         ...originalModule,
-        getPolicyExpenseChat: jest.fn().mockReturnValue({reportID: '1234', hasOutstandingChildRequest: false}),
+        getPolicyExpenseChat: jest.fn().mockImplementation(() => ({reportID: MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID, hasOutstandingChildRequest: false})),
     };
 });
 
@@ -69,6 +74,12 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     default: () => ({
         didScreenTransitionEnd: true,
     }),
+}));
+
+jest.mock('@libs/Sound', () => ({
+    __esModule: true,
+    default: jest.fn(),
+    SOUNDS: {DONE: 'DONE'},
 }));
 
 const originalXHR = HttpUtils.xhr;
@@ -139,7 +150,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addComment(REPORT_ID, 'Testing a comment');
+                Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -269,7 +280,7 @@ describe('actions/Report', () => {
                 }
 
                 // And leave a comment on a report
-                Report.addComment(REPORT_ID, 'Testing a comment');
+                Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
 
                 // Then we should expect that there is on persisted request
                 expect(PersistedRequests.getAll().length).toBe(1);
@@ -390,7 +401,7 @@ describe('actions/Report', () => {
                 // When a new comment is added by the current user
 
                 currentTime = DateUtils.getDBTime();
-                Report.addComment(REPORT_ID, 'Current User Comment 1');
+                Report.addComment(REPORT_ID, REPORT_ID, 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -402,7 +413,7 @@ describe('actions/Report', () => {
 
                 // When another comment is added by the current user
                 currentTime = DateUtils.getDBTime();
-                Report.addComment(REPORT_ID, 'Current User Comment 2');
+                Report.addComment(REPORT_ID, REPORT_ID, 'Current User Comment 2', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -413,7 +424,7 @@ describe('actions/Report', () => {
 
                 // When another comment is added by the current user
                 currentTime = DateUtils.getDBTime();
-                Report.addComment(REPORT_ID, 'Current User Comment 3');
+                Report.addComment(REPORT_ID, REPORT_ID, 'Current User Comment 3', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -678,7 +689,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addComment(REPORT_ID, 'Testing a comment');
+                Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -806,7 +817,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addComment(REPORT_ID, 'Testing a comment');
+                Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -896,12 +907,16 @@ describe('actions/Report', () => {
 
         Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addComment(REPORT_ID, 'Testing a comment');
+        Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const newReportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-        Report.editReportComment(REPORT_ID, newReportAction, 'Testing an edited comment');
+        const originalReport = {
+            reportID: REPORT_ID,
+        };
+        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment');
 
         await waitForBatchedUpdates();
 
@@ -968,7 +983,7 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
-        Report.addComment(REPORT_ID, 'Testing a comment');
+        Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(1);
@@ -977,7 +992,10 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.editReportComment(REPORT_ID, reportAction, 'Testing an edited comment');
+        const originalReport = {
+            reportID: REPORT_ID,
+        };
+        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment');
 
         await waitForBatchedUpdates();
 
@@ -1019,7 +1037,7 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        Report.addComment(REPORT_ID, 'Testing a comment');
+        Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
         await waitForNetworkPromises();
 
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1068,7 +1086,7 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
         const file = new File([''], 'test.txt', {type: 'text/plain'});
-        Report.addAttachment(REPORT_ID, file);
+        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, file);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1137,7 +1155,7 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addAttachment(REPORT_ID, file, 'Attachment with comment');
+        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, file, 'Attachment with comment');
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1195,6 +1213,103 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
     });
 
+    it('should post text + attachment as first action then attachment only for remaining attachments when adding multiple attachments with a comment', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+        const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        await waitForBatchedUpdates();
+
+        const relevantPromise = new Promise((resolve) => {
+            const conn = Onyx.connect({
+                key: ONYXKEYS.PERSISTED_REQUESTS,
+                callback: (persisted) => {
+                    const relevant = (persisted ?? []).filter((r) => r?.command === WRITE_COMMANDS.ADD_ATTACHMENT || r?.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
+                    if (relevant.length >= 3) {
+                        Onyx.disconnect(conn);
+                        resolve(relevant);
+                    }
+                },
+            });
+        });
+
+        const REPORT_ID = '1';
+        const shouldPlaySound = true;
+        const fileA = new File(['a'], 'a.txt', {type: 'text/plain'});
+        const fileB = new File(['b'], 'b.txt', {type: 'text/plain'});
+        const fileC = new File(['c'], 'c.txt', {type: 'text/plain'});
+
+        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, [fileA, fileB, fileC], 'Hello world', CONST.DEFAULT_TIME_ZONE, shouldPlaySound);
+        const relevant = (await relevantPromise) as OnyxTypes.Request[];
+
+        expect(playSoundMock).toHaveBeenCalledTimes(1);
+        expect(playSoundMock).toHaveBeenCalledWith(SOUNDS.DONE);
+        expect(relevant.at(0)?.command).toBe(WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
+        expect(relevant.slice(1).every((r) => r.command === WRITE_COMMANDS.ADD_ATTACHMENT)).toBe(true);
+    });
+
+    it('should create attachment only actions when adding multiple attachments without a comment', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+        const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        await waitForBatchedUpdates();
+
+        const relevantPromise = new Promise((resolve) => {
+            const conn = Onyx.connect({
+                key: ONYXKEYS.PERSISTED_REQUESTS,
+                callback: (persisted) => {
+                    const relevant = (persisted ?? []).filter((r) => r?.command === WRITE_COMMANDS.ADD_ATTACHMENT || r?.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
+                    if (relevant.length >= 2) {
+                        Onyx.disconnect(conn);
+                        resolve(relevant);
+                    }
+                },
+            });
+        });
+
+        const REPORT_ID = '1';
+        const shouldPlaySound = true;
+        const fileA = new File(['a'], 'a.txt', {type: 'text/plain'});
+        const fileB = new File(['b'], 'b.txt', {type: 'text/plain'});
+
+        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, [fileA, fileB], undefined, CONST.DEFAULT_TIME_ZONE, shouldPlaySound);
+        const relevant = (await relevantPromise) as OnyxTypes.Request[];
+
+        expect(playSoundMock).toHaveBeenCalledTimes(1);
+        expect(playSoundMock).toHaveBeenCalledWith(SOUNDS.DONE);
+        expect(relevant.at(0)?.command).toBe(WRITE_COMMANDS.ADD_ATTACHMENT);
+        expect(relevant.slice(1).every((r) => r.command === WRITE_COMMANDS.ADD_ATTACHMENT)).toBe(true);
+        expect(relevant.some((r) => r.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT)).toBe(false);
+    });
+
+    it('should create attachment only action & not play sound when adding attachment without a comment & shouldPlaySound not passed', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+        const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        await waitForBatchedUpdates();
+
+        const relevantPromise = new Promise((resolve) => {
+            const conn = Onyx.connect({
+                key: ONYXKEYS.PERSISTED_REQUESTS,
+                callback: (persisted) => {
+                    const relevant = (persisted ?? []).filter((r) => r?.command === WRITE_COMMANDS.ADD_ATTACHMENT);
+                    if (relevant.length >= 1) {
+                        Onyx.disconnect(conn);
+                        resolve(relevant);
+                    }
+                },
+            });
+        });
+
+        const REPORT_ID = '1';
+        const file = new File(['a'], 'a.txt', {type: 'text/plain'});
+
+        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, file);
+        const relevant = (await relevantPromise) as OnyxTypes.Request[];
+
+        expect(playSoundMock).toHaveBeenCalledTimes(0);
+        expect(relevant.at(0)?.command).toBe(WRITE_COMMANDS.ADD_ATTACHMENT);
+    });
+
     it('should not send DeleteComment request and remove any Reactions accordingly', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -1210,7 +1325,8 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await Promise.resolve();
 
-        Report.addComment(REPORT_ID, 'reactions with comment');
+        Report.addComment(REPORT_ID, REPORT_ID, 'reactions with comment', CONST.DEFAULT_TIME_ZONE);
+
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
@@ -1306,7 +1422,7 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        Report.addComment(REPORT_ID, 'Attachment with comment');
+        Report.addComment(REPORT_ID, REPORT_ID, 'Attachment with comment', CONST.DEFAULT_TIME_ZONE);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1378,7 +1494,7 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await waitForBatchedUpdates();
 
-        Report.addComment(REPORT_ID, 'Testing a comment');
+        Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
 
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
@@ -1436,12 +1552,15 @@ describe('actions/Report', () => {
 
         Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addComment(REPORT_ID, 'Testing a comment');
+        Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-        Report.editReportComment(REPORT_ID, reportAction, 'Testing an edited comment');
+        const originalReport = {
+            reportID: REPORT_ID,
+        };
+        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment');
 
         await waitForBatchedUpdates();
 
@@ -1482,9 +1601,12 @@ describe('actions/Report', () => {
             created: '2024-10-21 10:37:59.881',
         };
 
-        Report.editReportComment(reportID, action, 'value1');
-        Report.editReportComment(reportID, action, 'value2');
-        Report.editReportComment(reportID, action, 'value3');
+        const originalReport = {
+            reportID,
+        };
+        Report.editReportComment(originalReport, action, 'value1');
+        Report.editReportComment(originalReport, action, 'value2');
+        Report.editReportComment(originalReport, action, 'value3');
 
         const requests = PersistedRequests?.getAll();
 
@@ -1560,7 +1682,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        const reportID = Report.createNewReport({accountID}, policyID);
+        const reportID = Report.createNewReport({accountID}, true, false, policyID);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
@@ -1636,7 +1758,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        Report.createNewReport({accountID}, policyID);
+        Report.createNewReport({accountID}, true, false, policyID);
 
         // Then the parent report's hasOutstandingChildRequest property should remain unchanged
         await new Promise<void>((resolve) => {
@@ -1747,7 +1869,7 @@ describe('actions/Report', () => {
 
             await waitForBatchedUpdates();
 
-            expect(global.fetch).toHaveBeenCalledTimes(0);
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_ROOM_DESCRIPTION, 0);
         });
 
         it('should revert to correct previous description if UpdateRoomDescription API fails', async () => {
@@ -1782,6 +1904,7 @@ describe('actions/Report', () => {
                 reportActionID: '1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 created: DateUtils.getDBTime(),
+                message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
                 originalMessage: {
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -1792,6 +1915,7 @@ describe('actions/Report', () => {
                 reportActionID: '2',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 created: DateUtils.getDBTime(),
+                message: [{type: 'COMMENT', html: 'Comment 2', text: 'Comment 2'}],
                 originalMessage: {
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -1802,6 +1926,7 @@ describe('actions/Report', () => {
                 reportActionID: '3',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 created: DateUtils.getDBTime(),
+                message: [{type: 'COMMENT', html: 'Comment 3', text: 'Comment 3'}],
                 originalMessage: {
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -1832,6 +1957,101 @@ describe('actions/Report', () => {
             // The length is 3 to include the CREATED action
             expect(Object.keys(selfDMReportActions ?? {}).length).toBe(3);
         });
+
+        it('should not reset the chatReport hasOutstandingChildRequest if there is another outstanding report', async () => {
+            const currentUserAccountID = 1;
+            const fakePolicy: OnyxTypes.Policy = {
+                ...createRandomPolicy(6),
+                role: 'admin',
+                ownerAccountID: currentUserAccountID,
+                areRulesEnabled: true,
+                preventSelfApproval: false,
+                autoReportingFrequency: 'immediate',
+                harvesting: {
+                    enabled: false,
+                },
+            };
+            const chatReport: OnyxTypes.Report = {...createRandomReport(11), policyID: fakePolicy.id, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, hasOutstandingChildRequest: true};
+
+            const expenseReport1: OnyxTypes.Report = {
+                ...createRandomReport(5),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: currentUserAccountID,
+                ownerAccountID: currentUserAccountID,
+                policyID: fakePolicy.id,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                chatReportID: chatReport.reportID,
+                parentReportID: chatReport.reportID,
+            };
+            const reportPreview1: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                originalMessage: {
+                    linkedReportID: expenseReport1.reportID,
+                },
+            };
+            const expenseReport2: OnyxTypes.Report = {
+                ...createRandomReport(6),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: currentUserAccountID,
+                ownerAccountID: currentUserAccountID,
+                policyID: fakePolicy.id,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                chatReportID: chatReport.reportID,
+                parentReportID: chatReport.reportID,
+            };
+            const transaction: OnyxTypes.Transaction = {...createRandomTransaction(22), reportID: expenseReport2.reportID};
+            const reportPreview2: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(22),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                originalMessage: {
+                    linkedReportID: expenseReport2.reportID,
+                },
+            };
+            const iouAction1: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport1.reportID}`, {
+                [iouAction1.reportActionID]: iouAction1,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                [reportPreview1.reportActionID]: reportPreview1,
+                [reportPreview2.reportActionID]: reportPreview2,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport1.reportID}`, expenseReport1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport2.reportID}`, expenseReport2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+            // When deleting the first expense report
+            Report.deleteAppReport(expenseReport1.reportID);
+            await waitForBatchedUpdates();
+
+            const report = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            // The hasOutstandingChildRequest should still remain true as there is a second outstanding report.
+            expect(report?.hasOutstandingChildRequest).toBe(true);
+        });
     });
 
     describe('changeReportPolicy', () => {
@@ -1850,7 +2070,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             // When moving to another workspace
-            Report.changeReportPolicy(expenseReport, newPolicy);
+            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', true, false);
             await waitForBatchedUpdates();
 
             // Then the expense report should not be archived anymore
@@ -1877,6 +2097,37 @@ describe('actions/Report', () => {
 
             // Then the new policy data should also be populated on the current search snapshot.
             expect(snapshotData?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]).toBeDefined();
+        });
+
+        it('should update the chatReportID and parentReportID to the new policy expense chat report ID', async () => {
+            // Given an expense report
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+                chatReportID: '2',
+                parentReportID: '2',
+            };
+
+            const newPolicy = createRandomPolicy(2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+
+            // When moving to another workspace
+            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', false, false);
+            await waitForBatchedUpdates();
+
+            // Then the expense report chatReportID and parentReportID should be updated to the new expense chat reportID
+            const expenseReport2 = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+            expect(expenseReport2?.chatReportID).toBe(MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID);
+            expect(expenseReport2?.parentReportID).toBe(MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID);
         });
     });
 
@@ -1905,6 +2156,10 @@ describe('actions/Report', () => {
             Report.changeReportPolicyAndInviteSubmitter(
                 expenseReport,
                 createRandomPolicy(Number(2)),
+                1,
+                '',
+                true,
+                false,
                 {
                     [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                 },
@@ -1924,6 +2179,242 @@ describe('actions/Report', () => {
             });
             expect(isArchived).toBe(false);
         });
+
+        it('correctly implements RedBrickRoad error handling for ChangeReportPolicyAndInviteSubmitter when the request fails to add a new user to workspace', async () => {
+            const ownerAccountID = 999;
+            const ownerEmail = 'submitter@test.com';
+            const adminEmail = 'admin@test.com';
+            const mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
+
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(1),
+                reportID: 'expenseReport123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'oldPolicy123',
+                ownerAccountID,
+                total: 15000,
+                currency: CONST.CURRENCY.USD,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            const newPolicy: OnyxTypes.Policy = {
+                ...createRandomPolicy(2),
+                id: 'newPolicy456',
+                name: 'New Test Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                employeeList: {
+                    [adminEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                    // Note: submitter is NOT in the employee list, which will trigger the invitation
+                },
+            };
+
+            const employeeList = {
+                [adminEmail]: {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                },
+            };
+
+            const submitter = {
+                accountID: ownerAccountID,
+                login: ownerEmail,
+                email: ownerEmail,
+            };
+
+            global.fetch = mockFetch;
+            mockFetch.pause?.();
+
+            // Setup initial data
+            await Promise.all([
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy),
+                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: submitter}),
+            ]);
+            await waitForBatchedUpdates();
+
+            // Call changeReportPolicyAndInviteSubmitter
+            Report.changeReportPolicyAndInviteSubmitter(expenseReport, newPolicy, 1, '', true, false, employeeList, TestHelper.formatPhoneNumber, false);
+            await waitForBatchedUpdates();
+
+            // Simulate network failure
+            mockFetch.fail?.();
+            await (mockFetch.resume?.() as Promise<unknown>);
+
+            // Verify error handling after failure - focus on workspace invitation error
+            const policyData = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`);
+
+            // The submitter should have been added to the employee list with error
+            const submitterEmployee = policyData?.employeeList?.[ownerEmail];
+            expect(submitterEmployee).toBeTruthy();
+            expect(submitterEmployee?.errors).toBeTruthy();
+            expect(Object.values(submitterEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
+
+            // Cleanup
+            mockFetch.succeed?.();
+        });
+    });
+
+    describe('moveIOUReportToPolicy', () => {
+        it('should create moved action on the expense report', async () => {
+            const ownerAccountID = 1;
+            const ownerEmail = 'owner@gmail.com';
+            const adminEmail = 'admin@gmail.com';
+            const iouReport: OnyxTypes.Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID,
+            };
+            const policy: OnyxTypes.Policy = {
+                ...createRandomPolicy(1),
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {[adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN}, [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.USER}},
+            };
+
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [ownerAccountID]: {
+                    login: ownerEmail,
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When moving iou to a workspace
+            Report.moveIOUReportToPolicy(iouReport.reportID, policy);
+            await waitForBatchedUpdates();
+
+            // Then MOVED report action should be added to the expense report
+            const reportActions = await new Promise<OnyxEntry<OnyxTypes.ReportActions>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                    callback: (val) => {
+                        resolve(val);
+                        Onyx.disconnect(connection);
+                    },
+                });
+            });
+            expect(Object.values(reportActions ?? {}).at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.MOVED);
+        });
+    });
+
+    describe('moveIOUReportToPolicyAndInviteSubmitter', () => {
+        it('should create moved action on the expense report', async () => {
+            const ownerAccountID = 1;
+            const ownerEmail = 'owner@gmail.com';
+            const iouReport: OnyxTypes.Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID,
+            };
+            const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
+
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [ownerAccountID]: {
+                    login: ownerEmail,
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When moving iou to a workspace and invite the submitter
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy, (phone: string) => phone);
+            await waitForBatchedUpdates();
+
+            // Then MOVED report action should be added to the expense report
+            const reportActions = await new Promise<OnyxEntry<OnyxTypes.ReportActions>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                    callback: (val) => {
+                        resolve(val);
+                        Onyx.disconnect(connection);
+                    },
+                });
+            });
+            expect(Object.values(reportActions ?? {}).at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.MOVED);
+        });
+
+        it('correctly implements RedBrickRoad error handling for MoveIOUReportToPolicyAndInviteSubmitter when the request fails to add a new user to workspace', async () => {
+            const ownerAccountID = 999;
+            const ownerEmail = 'submitter@test.com';
+            const mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
+
+            const iouReport: OnyxTypes.Report = {
+                ...createRandomReport(1),
+                reportID: 'iouReport123',
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID,
+                total: 10000,
+                currency: CONST.CURRENCY.USD,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            const policy: OnyxTypes.Policy = {
+                ...createRandomPolicy(1),
+                id: 'policy456',
+                name: 'Test Policy for IOU Move',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                employeeList: {
+                    'admin@test.com': {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                    // Note: submitter is NOT in the employee list, which will trigger the invitation
+                },
+            };
+
+            const submitter = {
+                accountID: ownerAccountID,
+                login: ownerEmail,
+                email: ownerEmail,
+            };
+
+            global.fetch = mockFetch;
+            mockFetch.pause?.();
+
+            // Setup initial data
+            await Promise.all([
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport),
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy),
+                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: submitter}),
+            ]);
+            await waitForBatchedUpdates();
+
+            // Call moveIOUReportToPolicyAndInviteSubmitter
+            const formatPhoneNumber = (phoneNumber: string) => phoneNumber;
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy, formatPhoneNumber);
+            await waitForBatchedUpdates();
+
+            // Simulate network failure
+            mockFetch.fail?.();
+            await (mockFetch.resume?.() as Promise<unknown>);
+
+            // Verify error handling after failure - focus on workspace invitation error
+            const policyData = await new Promise<OnyxEntry<OnyxTypes.Policy>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                    callback: (val) => {
+                        resolve(val);
+                        Onyx.disconnect(connection);
+                    },
+                });
+            });
+
+            // The submitter should have been added to the employee list with error
+            const submitterEmployee = policyData?.employeeList?.[ownerEmail];
+            expect(submitterEmployee).toBeTruthy();
+            expect(submitterEmployee?.errors).toBeTruthy();
+            expect(Object.values(submitterEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
+
+            // Cleanup
+            mockFetch.succeed?.();
+        });
     });
 
     describe('buildOptimisticChangePolicyData', () => {
@@ -1933,8 +2424,17 @@ describe('actions/Report', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-            Report.buildOptimisticChangePolicyData(report, createRandomPolicy(Number(1)));
-            expect(buildNextStep).toHaveBeenCalledWith(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+            const policy = createRandomPolicy(Number(1));
+            Report.buildOptimisticChangePolicyData(report, policy, 1, '', false, true);
+            expect(buildNextStepNew).toHaveBeenCalledWith({
+                report,
+                policy,
+                currentUserAccountIDParam: 1,
+                currentUserEmailParam: '',
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: true,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            });
         });
     });
 

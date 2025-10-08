@@ -1,4 +1,5 @@
 import React, {useCallback, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
@@ -13,7 +14,7 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {isControlPolicy, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,7 +30,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const [isImporting, setIsImporting] = useState(false);
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const {setIsClosing} = useCloseImportPage();
-
+    const [shouldShowConfirmModal, setShouldShowConfirmModal] = useState(true);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
 
@@ -77,6 +78,14 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         let isRoleMissing = false;
 
         const columns = Object.values(spreadsheet?.columns ?? {});
+
+        const containsAdvanceApprovalColumns = columns.includes(CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO) || columns.includes(CONST.CSV_IMPORT_COLUMNS.APPROVE_TO);
+
+        if (containsAdvanceApprovalColumns && !isControlPolicy(policy)) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, Navigation.getActiveRoute()));
+            return;
+        }
+
         const membersEmailsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.EMAIL);
         const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
         const membersEmails = spreadsheet?.data[membersEmailsColumn].map((email) => email);
@@ -143,7 +152,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             setIsImporting(true);
             importPolicyMembers(policyID, allMembers);
         }
-    }, [validate, spreadsheet?.columns, spreadsheet?.data, containsHeader, policy, policyID]);
+    }, [validate, spreadsheet?.columns, spreadsheet?.data, policy, containsHeader, route.params.policyID, policyID]);
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
@@ -157,13 +166,14 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImporting(false);
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+        setShouldShowConfirmModal(false);
     };
 
     return (
         <ScreenWrapper
             testID={ImportedMembersPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('workspace.people.importMembers')}
@@ -179,7 +189,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.MEMBERS_ARTICLE_LINK}
             />
             <ConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened}
+                isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal}
                 title={spreadsheet?.importFinalModal?.title ?? ''}
                 prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
                 onConfirm={closeImportPageAndModal}
@@ -187,6 +197,10 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
                 shouldHandleNavigationBack
+                onModalHide={() => {
+                    // eslint-disable-next-line deprecation/deprecation
+                    InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
+                }}
             />
         </ScreenWrapper>
     );

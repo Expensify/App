@@ -22,7 +22,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getDistanceRateCustomUnit, getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, getPerDiemCustomUnit, hasAccountingConnections, isControlPolicy} from '@libs/PolicyUtils';
 import {enablePolicyCategories} from '@userActions/Policy/Category';
 import {enablePolicyDistanceRates} from '@userActions/Policy/DistanceRate';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
@@ -80,7 +80,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const hasAccountingConnection = !isEmptyObject(policy?.connections);
+    const hasAccountingConnection = hasAccountingConnections(policy);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled =
         !!policy?.connections?.quickbooksOnline?.config?.syncTax ||
@@ -110,6 +110,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
     const defaultFundID = useDefaultFundID(policyID);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
@@ -262,7 +263,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyCategories(policyID, isEnabled, policyTagLists, allTransactionViolations, true);
+                enablePolicyCategories(policyID, isEnabled, policyTagLists, policyCategories, allTransactionViolations, true);
             },
         },
         {
@@ -332,8 +333,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             icon: Illustrations.ReceiptPartners,
             titleTranslationKey: 'workspace.moreFeatures.receiptPartners.title',
             subtitleTranslationKey: 'workspace.moreFeatures.receiptPartners.subtitle',
-            isActive: policy?.areReceiptPartnersEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areReceiptPartnersEnabled,
+            isActive: policy?.receiptPartners?.enabled ?? false,
+            pendingAction: policy?.receiptPartners?.pendingFields?.enabled,
             disabledAction: () => {
                 if (!isUberConnected) {
                     return;

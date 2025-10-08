@@ -1,6 +1,7 @@
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator, InteractionManager, View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
+import ActivityIndicator from '@components/ActivityIndicator';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConfirmModal from '@components/ConfirmModal';
 import getBankIcon from '@components/Icon/BankIcons';
@@ -20,7 +21,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     clearPolicyErrorField,
@@ -41,12 +41,14 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getCorrectedAutoReportingFrequency, isControlPolicy, isPaidGroupPolicy as isPaidGroupPolicyUtil, isPolicyAdmin as isPolicyAdminUtil} from '@libs/PolicyUtils';
-import {convertPolicyEmployeesToApprovalWorkflows, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
+import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, getEligibleExistingBusinessBankAccounts, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+import {getPaymentMethods} from '@userActions/PaymentMethods';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,7 +64,6 @@ type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {translate, localeCompare} = useLocalize();
-    const theme = useTheme();
     const styles = useThemeStyles();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
@@ -71,10 +72,14 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardFeeds] = useCardFeeds(policy?.id);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
     const [isUpdateWorkspaceCurrencyModalOpen, setIsUpdateWorkspaceCurrencyModalOpen] = useState(false);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [isDisableApprovalsConfirmModalOpen, setIsDisableApprovalsConfirmModalOpen] = useState(false);
     const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
@@ -86,6 +91,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     );
     const {isBetaEnabled} = usePermissions();
 
+    const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency).length > 0;
+
     const isAdvanceApproval = approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1;
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
     const displayNameForAuthorizedPayer = useMemo(
@@ -93,10 +100,19 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         [policy?.achAccount?.reimburser],
     );
 
+    const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
+    const achData = reimbursementAccount?.achData;
+    const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
+
+    const shouldShowContinueModal = useMemo(() => {
+        return hasInProgressVBBA(achData, isNonUSDWorkspace, nonUSDCountryDraftValue);
+    }, [achData, isNonUSDWorkspace, nonUSDCountryDraftValue]);
+
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(route.params.policyID)), [route.params.policyID]);
 
     const fetchData = useCallback(() => {
         openPolicyWorkflowsPage(route.params.policyID);
+        getPaymentMethods();
     }, [route.params.policyID]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
@@ -111,9 +127,14 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
         } else {
             updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
-            navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+            const hasValidExistingUSDAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, CONST.CURRENCY.USD).length > 0;
+            if (hasValidExistingUSDAccounts) {
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.getRoute(route.params.policyID));
+            } else {
+                navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+            }
         }
-    }, [isBetaEnabled, policy, route.params.policyID]);
+    }, [bankAccountList, isBetaEnabled, policy, route.params.policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isPolicyAdmin = isPolicyAdminUtil(policy);
@@ -121,12 +142,17 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     useEffect(() => {
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             fetchData();
         });
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+    const confirmDisableApprovals = useCallback(() => {
+        setIsDisableApprovalsConfirmModalOpen(false);
+        setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+    }, [route.params.policyID, policy?.owner]);
 
     // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addApprovalAction = useCallback(() => {
@@ -158,7 +184,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, [policy?.approvalMode, approvalWorkflows]);
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
-        const {addressName, bankName, bankAccountID} = policy?.achAccount ?? {};
+        const {bankAccountID} = policy?.achAccount ?? {};
+        const bankAccount = bankAccountList?.[bankAccountID ?? CONST.DEFAULT_NUMBER_ID];
+        const bankName = policy?.achAccount?.bankName ?? bankAccount?.accountData?.additionalData?.bankName ?? '';
+        const addressName = policy?.achAccount?.addressName ?? bankAccount?.accountData?.addressName ?? '';
+        const accountData = bankAccount?.accountData ?? policy?.achAccount ?? {};
         const shouldShowBankAccount = !!bankAccountID && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
         const bankIcon = getBankIcon({bankName: bankName as BankName, isCard: false, styles});
 
@@ -172,6 +202,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subtitle: translate('workflowsPage.delaySubmissionDescription'),
                 switchAccessibilityLabel: translate('workflowsPage.delaySubmissionDescription'),
                 onToggle: (isEnabled: boolean) => {
+                    if (!isEnabled) {
+                        setIsDisableApprovalsConfirmModalOpen(true);
+                        return;
+                    }
                     setWorkspaceAutoReportingFrequency(route.params.policyID, isEnabled ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
                 },
                 subMenuItems: (
@@ -201,6 +235,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subtitle: isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
                 switchAccessibilityLabel: isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
                 onToggle: (isEnabled: boolean) => {
+                    const hasCustomApprovalWorkflows = policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED;
+                    if (!isEnabled && hasCustomApprovalWorkflows) {
+                        setIsDisableApprovalsConfirmModalOpen(true);
+                        return;
+                    }
                     setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL);
                 },
                 subMenuItems: (
@@ -250,13 +289,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     }
 
                     const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
-                    setWorkspaceReimbursement(route.params.policyID, newReimbursementChoice, newReimburserEmail ?? '');
+                    setWorkspaceReimbursement({
+                        policyID: route.params.policyID,
+                        reimbursementChoice: newReimbursementChoice,
+                        reimburserEmail: newReimburserEmail ?? '',
+                    });
                 },
                 subMenuItems:
                     !isOffline && policy?.isLoadingWorkspaceReimbursement === true ? (
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            color={theme.spinner}
                             style={styles.mt7}
                         />
                     ) : (
@@ -269,7 +311,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                             <MenuItem
                                 title={shouldShowBankAccount ? addressName : translate('bankAccount.addBankAccount')}
                                 titleStyle={shouldShowBankAccount ? undefined : styles.textStrong}
-                                description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, policy?.achAccount ?? {})}
+                                description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData)}
                                 onPress={() => {
                                     if (isAccountLocked) {
                                         showLockedAccountModal();
@@ -279,6 +321,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         setIsUpdateWorkspaceCurrencyModalOpen(true);
                                         return;
                                     }
+
+                                    if (!shouldShowBankAccount && hasValidExistingAccounts && !shouldShowContinueModal) {
+                                        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.getRoute(route.params.policyID));
+                                        return;
+                                    }
+
                                     navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
                                 }}
                                 icon={shouldShowBankAccount ? bankIcon.icon : Plus}
@@ -322,19 +370,21 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         ];
     }, [
         policy,
+        bankAccountList,
         styles,
         translate,
         onPressAutoReportingFrequency,
         isSmartLimitEnabled,
         addApprovalAction,
         isOffline,
-        theme.spinner,
         isPolicyAdmin,
         displayNameForAuthorizedPayer,
         route.params.policyID,
         updateApprovalMode,
-        isBetaEnabled,
         isAccountLocked,
+        isBetaEnabled,
+        hasValidExistingAccounts,
+        shouldShowContinueModal,
         showLockedAccountModal,
         filteredApprovalWorkflows,
     ]);
@@ -412,6 +462,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         />
                     )}
                 </View>
+                <ConfirmModal
+                    title={translate('workspace.bankAccount.areYouSure')}
+                    isVisible={isDisableApprovalsConfirmModalOpen}
+                    onConfirm={confirmDisableApprovals}
+                    onCancel={() => setIsDisableApprovalsConfirmModalOpen(false)}
+                    prompt={translate('workflowsPage.disableApprovalPromptDescription')}
+                    confirmText={translate('common.disable')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
     );

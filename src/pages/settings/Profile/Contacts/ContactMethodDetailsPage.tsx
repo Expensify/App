@@ -19,7 +19,6 @@ import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/V
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {
@@ -62,7 +61,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const {formatPhoneNumber, translate} = useLocalize();
-    const theme = useTheme();
     const themeStyles = useThemeStyles();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -91,6 +89,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         return addSMSDomainIfPhoneNumber(decodeURIComponent(beforeAtSign + afterAtSign));
     }, [route.params.contactMethod]);
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
+
     const isDefaultContactMethod = useMemo(() => session?.email === loginData?.partnerUserID, [session?.email, loginData?.partnerUserID]);
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
     const prevPendingDeletedLogin = usePrevious(loginData?.pendingFields?.deletedLogin);
@@ -135,6 +134,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      */
     const toggleDeleteModal = useCallback((isOpen: boolean) => {
         if (canUseTouchScreen() && isOpen) {
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => {
                 setIsDeleteModalOpen(isOpen);
             });
@@ -155,14 +155,14 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (prevValidatedDate || !loginData?.validatedDate || !loginData) {
+        if (prevValidatedDate || !loginData?.validatedDate) {
             return;
         }
 
         // Navigate to methods page on successful magic code verification
         // validatedDate property is responsible to decide the status of the magic code verification
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
-    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo, loginData]);
+    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo]);
 
     useEffect(() => {
         setIsValidateCodeFormVisible(!loginData?.validatedDate);
@@ -219,6 +219,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             onConfirm={confirmDeleteAndHideModal}
             onCancel={() => toggleDeleteModal(false)}
             onModalHide={() => {
+                // eslint-disable-next-line deprecation/deprecation
                 InteractionManager.runAfterInteractions(() => {
                     validateCodeFormRef.current?.focusLastSelected?.();
                 });
@@ -265,7 +266,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     <MenuItem
                         title={translate('common.remove')}
                         icon={Trashcan}
-                        iconFill={theme.danger}
                         onPress={() => {
                             if (isActingAsDelegate) {
                                 showDelegateNoAccessModal();
@@ -283,6 +283,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         <ScreenWrapper
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => {
+                // eslint-disable-next-line deprecation/deprecation
                 InteractionManager.runAfterInteractions(() => {
                     validateCodeFormRef.current?.focus?.();
                 });

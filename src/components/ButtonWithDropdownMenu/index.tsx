@@ -17,7 +17,7 @@ import mergeRefs from '@libs/mergeRefs';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
-import type {ButtonWithDropdownMenuProps, ButtonWithDropdownMenuRef} from './types';
+import type {ButtonWithDropdownMenuProps} from './types';
 
 const defaultAnchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -25,7 +25,7 @@ const defaultAnchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function ButtonWithDropdownMenuInner<IValueType>({ref, ...props}: ButtonWithDropdownMenuProps<IValueType>) {
+function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownMenuProps<IValueType>) {
     const {
         success = true,
         isSplitButton = true,
@@ -177,7 +177,7 @@ function ButtonWithDropdownMenuInner<IValueType>({ref, ...props}: ButtonWithDrop
                         innerStyles={[innerStyleDropButton, !isSplitButton && styles.dropDownButtonCartIconView, isTextTooLong && shouldUseShortForm && {...styles.pl2, ...styles.pr1}]}
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                         iconRight={Expensicons.DownArrow}
-                        shouldShowRightIcon={!isSplitButton && !isLoading}
+                        shouldShowRightIcon={!isSplitButton && !isLoading && options?.length > 0}
                         isSplitButton={isSplitButton}
                         testID={testID}
                         textStyles={[isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}]}
@@ -296,8 +296,6 @@ function ButtonWithDropdownMenuInner<IValueType>({ref, ...props}: ButtonWithDrop
     );
 }
 
-ButtonWithDropdownMenuInner.displayName = 'ButtonWithDropdownMenu';
-const ButtonWithDropdownMenu = ButtonWithDropdownMenuInner as <IValueType>(
-    props: ButtonWithDropdownMenuProps<IValueType> & {ref?: React.Ref<ButtonWithDropdownMenuRef>},
-) => ReturnType<typeof ButtonWithDropdownMenuInner>;
+ButtonWithDropdownMenu.displayName = 'ButtonWithDropdownMenu';
+
 export default ButtonWithDropdownMenu;
