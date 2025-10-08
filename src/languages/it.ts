@@ -2788,6 +2788,8 @@ const translations = {
         hasBeenThrottledError: "Si è verificato un errore durante l'aggiunta del tuo conto bancario. Attendi qualche minuto e riprova.",
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Ops! Sembra che la valuta del tuo spazio di lavoro sia impostata su una valuta diversa da USD. Per procedere, vai a <a href="${workspaceRoute}">le impostazioni del tuo spazio di lavoro</a> impostarlo su USD e riprovare.`,
+        bbaAdded: 'Conto bancario aziendale aggiunto!',
+        bbaAddedDescription: 'È pronto per essere utilizzato per i pagamenti.',
         error: {
             youNeedToSelectAnOption: "Seleziona un'opzione per procedere",
             noBankAccountAvailable: 'Spiacente, non è disponibile alcun conto bancario.',

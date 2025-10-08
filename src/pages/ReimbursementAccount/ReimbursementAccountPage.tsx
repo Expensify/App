@@ -5,6 +5,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import ConfirmationPage from '@components/ConfirmationPage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
@@ -445,6 +446,24 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }
 
     if (shouldShowConnectedVerifiedBankAccount) {
+        if (!policyIDParam || backTo === ROUTES.SETTINGS_WALLET) {
+            return (
+                <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
+                    <HeaderWithBackButton
+                        title={translate('bankAccount.addBankAccount')}
+                        onBackButtonPress={() => Navigation.dismissModal()}
+                    />
+                    <ConfirmationPage
+                        heading={translate('bankAccount.bbaAdded')}
+                        description={translate('bankAccount.bbaAddedDescription')}
+                        shouldShowButton
+                        headingStyle={styles.mh5}
+                        buttonText={translate('common.confirm')}
+                        onButtonPress={() => Navigation.dismissModal()}
+                    />
+                </ScreenWrapper>
+            );
+        }
         return (
             <ConnectedVerifiedBankAccount
                 reimbursementAccount={reimbursementAccount}

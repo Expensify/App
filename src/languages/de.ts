@@ -2778,6 +2778,8 @@ const translations = {
         hasBeenThrottledError: 'Beim Hinzufügen Ihres Bankkontos ist ein Fehler aufgetreten. Bitte warten Sie ein paar Minuten und versuchen Sie es erneut.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Ups! Es scheint, dass die Währung Ihres Arbeitsbereichs auf eine andere Währung als USD eingestellt ist. Um fortzufahren, gehen Sie bitte zu <a href="${workspaceRoute}">Ihre Arbeitsbereichseinstellungen</a> um es auf USD zu setzen und es erneut zu versuchen.`,
+        bbaAdded: 'Geschäftsbankkonto hinzugefügt!',
+        bbaAddedDescription: 'Es ist bereit für Zahlungen verwendet zu werden.',
         error: {
             youNeedToSelectAnOption: 'Bitte wählen Sie eine Option, um fortzufahren.',
             noBankAccountAvailable: 'Entschuldigung, es ist kein Bankkonto verfügbar.',
