@@ -130,6 +130,32 @@ jest.mock('../src/hooks/useLazyAsset.ts', () => ({
             hasError: false,
         };
     }),
+    useMemoizedLazyIllustrations: jest.fn((names: readonly string[]) => {
+        // Return a Record with all requested illustration names
+        const mockIllustrations: Record<string, unknown> = {};
+        names.forEach((name) => {
+            mockIllustrations[name] = {
+                src: `mock-${name}`,
+                testID: `mock-illustration-${name}`,
+                height: 20,
+                width: 20,
+            };
+        });
+        return mockIllustrations;
+    }),
+    useMemoizedLazyExpensifyIcons: jest.fn((names: readonly string[]) => {
+        // Return a Record with all requested icon names
+        const mockIcons: Record<string, unknown> = {};
+        names.forEach((name) => {
+            mockIcons[name] = {
+                src: `mock-${name}`,
+                testID: `mock-expensify-icon-${name}`,
+                height: 20,
+                width: 20,
+            };
+        });
+        return mockIcons;
+    }),
     default: jest.fn(() => {
         const mockAsset = {src: 'mock-icon', testID: 'mock-asset'};
         return {
