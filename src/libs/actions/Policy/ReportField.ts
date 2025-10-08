@@ -1,5 +1,5 @@
 import cloneDeep from 'lodash/cloneDeep';
-import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WorkspaceReportFieldForm} from '@src/types/form/WorkspaceReportFieldForm';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
-import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
+import type {Policy, PolicyReportField} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -51,6 +51,38 @@ type DeleteReportFieldsListValueParams = {
 type CreateReportFieldParams = Pick<WorkspaceReportFieldForm, 'name' | 'type' | 'initialValue'> & {
     listValues: string[];
     disabledListValues: boolean[];
+    policyExpenseReportIDs: Array<string | undefined> | undefined;
+    policy: OnyxEntry<Policy>;
+};
+
+type DeleteReportFieldsParams = {
+    reportFieldsToUpdate: string[];
+    policy: OnyxEntry<Policy>;
+};
+
+type RemoveReportFieldListValueParams = {
+    valueIndexes: number[];
+    reportFieldID: string;
+    policy: OnyxEntry<Policy>;
+};
+
+type AddReportFieldListValueParams = {
+    valueName: string;
+    reportFieldID: string;
+    policy: OnyxEntry<Policy>;
+};
+
+type UpdateReportFieldListValueEnabledParams = {
+    valueIndexes: number[];
+    enabled: boolean;
+    reportFieldID: string;
+    policy: OnyxEntry<Policy>;
+};
+
+type UpdateReportFieldInitialValueParams = {
+    newInitialValue: string;
+    reportFieldID: string;
+    policy: OnyxEntry<Policy>;
     policyID: string;
     policyExpenseReportIDs: Array<string | undefined> | undefined;
 };
@@ -137,7 +169,7 @@ function deleteReportFieldsListValue({valueIndexes, listValues, disabledListValu
 /**
  * Creates a new report field.
  */
-function createReportField({name, type, initialValue, listValues, disabledListValues, policyExpenseReports, policy}: CreateReportFieldParams) {
+function createReportField({name, type, initialValue, listValues, disabledListValues, policyExpenseReportIDs, policy}: CreateReportFieldParams) {
     const previousFieldList = policy?.fieldList ?? {};
     const fieldID = WorkspaceReportFieldUtils.generateFieldID(name);
     const fieldKey = ReportUtils.getReportFieldKey(fieldID);
