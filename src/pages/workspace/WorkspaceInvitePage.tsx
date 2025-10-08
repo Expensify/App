@@ -59,6 +59,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const firstRenderRef = useRef(true);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
@@ -98,8 +99,8 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
 
     const inviteOptions = useMemo(
-        () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {excludeLogins: excludedUsers}),
-        [debouncedSearchTerm, defaultOptions, excludedUsers, countryCode],
+        () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, activePolicyID, {excludeLogins: excludedUsers}),
+        [defaultOptions, debouncedSearchTerm, countryCode, activePolicyID, excludedUsers],
     );
 
     useEffect(() => {

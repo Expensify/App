@@ -305,12 +305,6 @@ Onyx.connect({
     },
 });
 
-let activePolicyID: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (value) => (activePolicyID = value),
-});
-
 let nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
 Onyx.connect({
     key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
@@ -1227,6 +1221,7 @@ function optionsOrderBy<T = SearchOptionData>(options: T[], comparator: (option:
 function orderReportOptionsWithSearch(
     options: SearchOptionData[],
     searchValue: string,
+    activePolicyID?: string,
     {preferChatRoomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false}: OrderReportOptionsConfig = {},
 ) {
     const orderedByDate = orderReportOptions(options);
@@ -1273,7 +1268,7 @@ function orderReportOptionsWithSearch(
     );
 }
 
-function orderWorkspaceOptions(options: SearchOptionData[]): SearchOptionData[] {
+function orderWorkspaceOptions(options: SearchOptionData[], activePolicyID: string | undefined): SearchOptionData[] {
     return options.sort((a, b) => {
         // Check if `a` is the default workspace
         if (a.isPolicyExpenseChat && a.policyID === activePolicyID) {
@@ -1302,21 +1297,21 @@ function sortComparatorReportOptionByDate(options: SearchOptionData) {
 /**
  * Sorts reports and personal details independently.
  */
-function orderOptions(options: ReportAndPersonalDetailOptions): ReportAndPersonalDetailOptions;
+function orderOptions(options: ReportAndPersonalDetailOptions, activePolicyID?: string): ReportAndPersonalDetailOptions;
 
 /**
  * Sorts reports and personal details independently, but prioritizes the search value.
  */
-function orderOptions(options: ReportAndPersonalDetailOptions, searchValue: string, config?: OrderReportOptionsConfig): ReportAndPersonalDetailOptions;
-function orderOptions(options: ReportAndPersonalDetailOptions, searchValue?: string, config?: OrderReportOptionsConfig): ReportAndPersonalDetailOptions {
+function orderOptions(options: ReportAndPersonalDetailOptions, activePolicyID: string, searchValue: string, config?: OrderReportOptionsConfig): ReportAndPersonalDetailOptions;
+function orderOptions(options: ReportAndPersonalDetailOptions, activePolicyID?: string, searchValue?: string, config?: OrderReportOptionsConfig): ReportAndPersonalDetailOptions {
     let orderedReportOptions: SearchOptionData[];
     if (searchValue) {
-        orderedReportOptions = orderReportOptionsWithSearch(options.recentReports, searchValue, config);
+        orderedReportOptions = orderReportOptionsWithSearch(options.recentReports, searchValue, activePolicyID, config);
     } else {
         orderedReportOptions = orderReportOptions(options.recentReports);
     }
     const orderedPersonalDetailsOptions = orderPersonalDetailsOptions(options.personalDetails);
-    const orderedWorkspaceChats = orderWorkspaceOptions(options?.workspaceChats ?? []);
+    const orderedWorkspaceChats = orderWorkspaceOptions(options?.workspaceChats ?? [], activePolicyID);
 
     return {
         recentReports: orderedReportOptions,
@@ -2474,16 +2469,17 @@ type FilterAndOrderConfig = FilterUserToInviteConfig & AllOrderConfigs;
 function combineOrderingOfReportsAndPersonalDetails(
     options: ReportAndPersonalDetailOptions,
     searchInputValue: string,
+    activePolicyID?: string,
     {maxRecentReportsToShow, sortByReportTypeInSearch, ...orderReportOptionsConfig}: AllOrderConfigs = {},
 ): ReportAndPersonalDetailOptions {
     // sortByReportTypeInSearch will show the personal details as part of the recent reports
     if (sortByReportTypeInSearch) {
         const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(options.recentReports, options.personalDetails);
         const reportsAndPersonalDetails = options.recentReports.concat(personalDetailsWithoutDMs);
-        return orderOptions({recentReports: reportsAndPersonalDetails, personalDetails: []}, searchInputValue, orderReportOptionsConfig);
+        return orderOptions({recentReports: reportsAndPersonalDetails, personalDetails: []}, activePolicyID ?? '', searchInputValue, orderReportOptionsConfig);
     }
 
-    let orderedReports = orderReportOptionsWithSearch(options.recentReports, searchInputValue, orderReportOptionsConfig);
+    let orderedReports = orderReportOptionsWithSearch(options.recentReports, searchInputValue, activePolicyID, orderReportOptionsConfig);
     if (typeof maxRecentReportsToShow === 'number') {
         orderedReports = orderedReports.slice(0, maxRecentReportsToShow);
     }
@@ -2501,13 +2497,13 @@ function combineOrderingOfReportsAndPersonalDetails(
  * Filters and orders the options based on the search input value.
  * Note that personal details that are part of the recent reports will always be shown as part of the recent reports (ie. DMs).
  */
-function filterAndOrderOptions(options: Options, searchInputValue: string, countryCode: OnyxEntry<number>, config: FilterAndOrderConfig = {}): Options {
+function filterAndOrderOptions(options: Options, searchInputValue: string, countryCode: OnyxEntry<number>, activePolicyID?: string, config: FilterAndOrderConfig = {}): Options {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
         filterResult = filterOptions(options, searchInputValue, countryCode, config);
     }
 
-    const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, config);
+    const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, activePolicyID, config);
 
     // on staging server, in specific cases (see issue) BE returns duplicated personalDetails entries
     const uniqueLogins = new Set<string>();

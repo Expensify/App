@@ -89,7 +89,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         }
         const optionList = getAttendeeOptions(options.reports, options.personalDetails, betas, attendees, recentAttendees ?? [], iouType === CONST.IOU.TYPE.SUBMIT, true, false, action);
         if (isPaidGroupPolicy) {
-            const orderedOptions = orderOptions(optionList, searchTerm, {
+            const orderedOptions = orderOptions(optionList, activePolicyID ?? '', searchTerm, {
                 preferChatRoomsOverThreads: true,
                 preferPolicyExpenseChat: !!action,
                 preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
@@ -98,7 +98,20 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             optionList.personalDetails = orderedOptions.personalDetails;
         }
         return optionList;
-    }, [areOptionsInitialized, didScreenTransitionEnd, options.reports, options.personalDetails, betas, attendees, recentAttendees, iouType, action, isPaidGroupPolicy, searchTerm]);
+    }, [
+        areOptionsInitialized,
+        didScreenTransitionEnd,
+        options.reports,
+        options.personalDetails,
+        betas,
+        attendees,
+        recentAttendees,
+        iouType,
+        action,
+        isPaidGroupPolicy,
+        activePolicyID,
+        searchTerm,
+    ]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -110,7 +123,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 headerMessage: '',
             };
         }
-        const newOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, {
+        const newOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, activePolicyID, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             shouldAcceptName: true,
@@ -123,7 +136,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             })),
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, cleanSearchTerm, isPaidGroupPolicy, attendees, countryCode]);
+    }, [areOptionsInitialized, defaultOptions, cleanSearchTerm, countryCode, activePolicyID, isPaidGroupPolicy, attendees]);
 
     /**
      * Returns the sections needed for the OptionsSelector
