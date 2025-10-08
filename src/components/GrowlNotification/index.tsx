@@ -24,7 +24,6 @@ type GrowlNotificationProps = {
     ref?: ForwardedRef<GrowlRef>;
 };
 
-
 function GrowlNotification({ref}: GrowlNotificationProps) {
     const translateY = useSharedValue(INACTIVE_POSITION_Y);
     const [bodyText, setBodyText] = useState('');
