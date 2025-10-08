@@ -60,6 +60,7 @@ import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFilte
 import type {CurrencyList, Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
+import { useIsFocused } from '@react-navigation/native';
 
 type FilterItem = {
     label: string;
@@ -87,6 +88,7 @@ function SearchFiltersBar({
     confirmPayment,
     latestBankItems,
 }: SearchFiltersBarProps) {
+    const isFocused = useIsFocused();
     const scrollRef = useRef<RNScrollView>(null);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
@@ -277,10 +279,12 @@ function SearchFiltersBar({
             return;
         }
         if (filterFormValues && Object.keys(filterFormValues).length > 0) {
-            updateAdvancedFilters(filterFormValues, true);
+            if (isFocused) {
+                updateAdvancedFilters(filterFormValues, true);
+            }
             isFormInitializedRef.current = true;
         }
-    }, [queryJSON, filterFormValues]);
+    }, [queryJSON, filterFormValues, isFocused]);
 
     const typeComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
