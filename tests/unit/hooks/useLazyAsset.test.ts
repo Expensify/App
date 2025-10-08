@@ -177,6 +177,51 @@ describe('useLazyAsset', () => {
         expect(result.current.asset).toBe(mockFallbackAsset);
         expect(result.current.isLoaded).toBe(true);
     });
+
+    it('ignores stale results when importFn changes mid-flight', async () => {
+        let resolveFirst!: (v: {default: IconAsset}) => void;
+        const firstPromise = new Promise<{default: IconAsset}>((resolve) => {
+            resolveFirst = resolve;
+        });
+        const importFn1 = jest.fn(() => firstPromise);
+
+        let resolveSecond!: (v: {default: IconAsset}) => void;
+        const secondPromise = new Promise<{default: IconAsset}>((resolve) => {
+            resolveSecond = resolve;
+        });
+        const importFn2 = jest.fn(() => secondPromise);
+
+        const {result, rerender} = renderHook((props: {importFn: () => Promise<{default: IconAsset}>}) => useLazyAsset(props.importFn), {
+            initialProps: {importFn: importFn1},
+        });
+
+        // Switch to the new import function before resolving the first
+        rerender({importFn: importFn2});
+
+        // Resolve the newer request first and ensure it wins
+        resolveSecond({default: mockFallbackAsset});
+        await waitFor(() => expect(result.current.asset).toBe(mockFallbackAsset));
+
+        // Now resolve the earlier request; it should be ignored (no regression)
+        resolveFirst({default: mockAsset});
+        await waitFor(() => expect(result.current.asset).toBe(mockFallbackAsset));
+    });
+
+    it('resets isLoading when importFn changes', async () => {
+        const importFn1 = jest.fn(() => Promise.resolve({default: mockAsset}));
+        const importFn2 = jest.fn(() => Promise.resolve({default: mockFallbackAsset}));
+
+        const {result, rerender} = renderHook((props: {importFn: () => Promise<{default: IconAsset}>}) => useLazyAsset(props.importFn), {
+            initialProps: {importFn: importFn1},
+        });
+
+        await waitFor(() => expect(result.current.isLoaded).toBe(true));
+
+        // Changing importFn should trigger a new load cycle
+        rerender({importFn: importFn2});
+        expect(result.current.isLoading).toBe(true);
+        await waitFor(() => expect(result.current.asset).toBe(mockFallbackAsset));
+    });
 });
 
 describe('useMemoizedLazyAsset', () => {
@@ -271,5 +316,14 @@ describe('useMemoizedLazyAsset', () => {
         });
 
         expect(result.current.asset).toBe(mockFallbackAsset);
+    });
+
+    it('returns PlaceholderIcon while loading', () => {
+        // Our Jest mock for PlaceholderIcon exports the component directly (no default)
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const PlaceholderIcon = require('@components/Icon/PlaceholderIcon') as IconAsset;
+        const importFn: () => Promise<{default: IconAsset}> = () => new Promise(() => {});
+        const {result} = renderHook(() => useMemoizedLazyAsset(importFn));
+        expect(result.current.asset).toBe(PlaceholderIcon);
     });
 });
