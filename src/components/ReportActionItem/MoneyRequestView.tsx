@@ -232,8 +232,10 @@ function MoneyRequestView({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived) && isEditable;
-    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
-    const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], policy, isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS));
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
+    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+    const isSplitAvailable =
+        moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], originalTransaction, policy, isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS));
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount =
@@ -454,7 +456,7 @@ function MoneyRequestView({
                         }
 
                         if (isExpenseSplit && isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS)) {
-                            initSplitExpense(transaction);
+                            initSplitExpense(transaction, originalTransaction);
                             return;
                         }
 
@@ -485,7 +487,7 @@ function MoneyRequestView({
                         }
 
                         if (isExpenseSplit && isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS)) {
-                            initSplitExpense(transaction);
+                            initSplitExpense(transaction, originalTransaction);
                             return;
                         }
 
@@ -634,7 +636,7 @@ function MoneyRequestView({
                             }
 
                             if (isExpenseSplit && isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS)) {
-                                initSplitExpense(transaction);
+                                initSplitExpense(transaction, originalTransaction);
                                 return;
                             }
 
