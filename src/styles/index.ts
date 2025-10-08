@@ -4124,6 +4124,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        moneyRequestImageLarge: {
+            height: 400,
+            maxHeight: '60vh',
+        },
+
         reportPreviewBox: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
@@ -4313,7 +4318,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
         expenseViewImageSmall: {
             maxWidth: 440,
-            aspectRatio: 16 / 9,
             height: 'auto',
         },
 
