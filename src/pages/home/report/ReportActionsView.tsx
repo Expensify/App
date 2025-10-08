@@ -121,6 +121,10 @@ function ReportActionsView({
         [reportTransactions, allReportActions],
     );
 
+    const lastAction = allReportActions?.at(-1);
+    const isInitiallyLoadingTransactionThread = isReportTransactionThread && (!!isLoadingInitialReportActions || (allReportActions ?? [])?.length <= 1);
+    const shouldAddCreatedAction = !isCreatedAction(lastAction) && (isMoneyRequestReport(report) || isInvoiceReport(report) || isInitiallyLoadingTransactionThread);
+
     useEffect(() => {
         // When we linked to message - we do not need to wait for initial actions - they already exists
         if (!reportActionID || !isOffline) {
@@ -150,10 +154,6 @@ function ReportActionsView({
     // to display at least one expense action to match the total data.
     const reportActionsToDisplay = useMemo(() => {
         const actions = [...(allReportActions ?? [])];
-        const lastAction = allReportActions?.at(-1);
-        const shouldAddCreatedAction =
-            !isCreatedAction(lastAction) &&
-            (isMoneyRequestReport(report) || isInvoiceReport(report) || (isReportTransactionThread && (!!isLoadingInitialReportActions || actions?.length <= 1)));
 
         if (shouldAddCreatedAction) {
             const createdTime = lastAction && DateUtils.subtractMillisecondsFromDateTime(lastAction.created, 1);
@@ -200,7 +200,7 @@ function ReportActionsView({
         }
 
         return [...actions, createdAction];
-    }, [isReportTransactionThread, isLoadingInitialReportActions, report, allReportActions, reportPreviewAction?.childMoneyRequestCount, transactionThreadReport]);
+    }, [allReportActions, shouldAddCreatedAction, report, reportPreviewAction?.childMoneyRequestCount, transactionThreadReport, lastAction]);
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
@@ -330,6 +330,7 @@ function ReportActionsView({
                 loadNewerChats={loadNewerChats}
                 listID={listID}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
+                hasCreatedActionAdded={shouldAddCreatedAction}
             />
             <UserTypingEventListener report={report} />
         </>
