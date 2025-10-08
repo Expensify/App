@@ -639,8 +639,7 @@ function getLastMessageTextForReport({
         const movedTransactionOriginalMessage = getOriginalMessage(lastReportAction) ?? {};
         const {toReportID, fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
         const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
-        const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
-        lastMessageTextFromReport = Parser.htmlToText(getMovedTransactionMessage(toReport, fromReport));
+        lastMessageTextFromReport = Parser.htmlToText(getMovedTransactionMessage(toReport, fromReportID));
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {

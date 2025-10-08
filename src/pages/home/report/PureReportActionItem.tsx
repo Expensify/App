@@ -1223,7 +1223,7 @@ function PureReportActionItem({
             } else {
                 children = (
                     <ReportActionItemBasicMessage message="">
-                        <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(toReport, fromReport)}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(toReport, fromReportID)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             }

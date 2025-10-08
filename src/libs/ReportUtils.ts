@@ -6403,11 +6403,25 @@ function getDeletedTransactionMessage(action: ReportAction) {
     return message;
 }
 
-function getMovedTransactionMessage(toReport: OnyxEntry<Report>, fromReport?: OnyxEntry<Report>) {
-    const report: OnyxEntry<Report> = fromReport ?? toReport;
+function getMovedTransactionMessage(toReport: OnyxEntry<Report>, fromReportID?: string) {
+    const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+    const report = fromReport ?? toReport;
     const reportName = getReportName(report) ?? report?.reportName ?? '';
-    const reportUrl = `${environmentURL}/r/${report?.reportID}`;
-    return translateLocal(fromReport ? 'iou.movedTransactionFrom' : 'iou.movedTransactionTo', {
+    let reportUrl = `${environmentURL}/r/${report?.reportID}`;
+    if (typeof fromReportID === 'undefined') {
+        return translateLocal('iou.movedTransactionTo', {
+            reportUrl,
+            reportName,
+        });
+    }
+    if (fromReportID === '0') {
+        const selfDMReportID = findSelfDMReportID();
+        reportUrl = `${environmentURL}/r/${selfDMReportID}`;
+        return translateLocal('iou.movedUnreportedTransaction', {
+            reportUrl,
+        });
+    }
+    return translateLocal('iou.movedTransactionFrom', {
         reportUrl,
         reportName,
     });
