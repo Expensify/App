@@ -9,28 +9,23 @@ import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
-import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {getAssignedCardSortKey, getCardFeedIcon, getPlaidInstitutionIconUrl, isExpensifyCard, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
+import PaymentMethodListItem, {PaymentMethodItem} from '@pages/settings/Wallet/PaymentMethodListItem';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BankAccount, BankAccountList, CardList, CompanyCardFeed} from '@src/types/onyx';
-import type {BankIcon} from '@src/types/onyx/Bank';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -56,9 +51,6 @@ type PaymentMethodListProps = {
 
     /** Callback for whenever FlatList component size changes */
     onListContentSizeChange?: () => void;
-
-    /** Should menu items be selectable with a checkbox */
-    shouldShowSelectedState?: boolean;
 
     /** List container style */
     style?: StyleProp<ViewStyle>;
@@ -106,53 +98,6 @@ type PaymentMethodListProps = {
     onThreeDotsMenuPress?: PaymentMethodPressHandler | CardPressHandler;
 };
 
-type PaymentMethodItem = PaymentMethod & {
-    key?: string;
-    title?: string;
-    description: string;
-    onPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
-    isGroupedCardDomain?: boolean;
-    canDismissError?: boolean;
-    disabled?: boolean;
-    shouldShowRightIcon?: boolean;
-    interactive?: boolean;
-    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-    errors?: Errors;
-    iconRight?: IconAsset;
-    isMethodActive?: boolean;
-    cardID?: number;
-    plaidUrl?: string;
-    onThreeDotsMenuPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
-} & BankIcon;
-
-function dismissError(item: PaymentMethodItem) {
-    if (item.cardID) {
-        clearDeletePaymentMethodError(ONYXKEYS.CARD_LIST, item.cardID);
-        return;
-    }
-
-    const isBankAccount = item.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT;
-    const paymentList = isBankAccount ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST;
-    const paymentID = isBankAccount ? item.accountData?.bankAccountID : item.accountData?.fundID;
-
-    if (!paymentID) {
-        Log.info('Unable to clear payment method error: ', undefined, item);
-        return;
-    }
-
-    if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-        clearDeletePaymentMethodError(paymentList, paymentID);
-        if (!isBankAccount) {
-            clearDeletePaymentMethodError(ONYXKEYS.FUND_LIST, paymentID);
-        }
-    } else {
-        clearAddPaymentMethodError(paymentList, paymentID);
-        if (!isBankAccount) {
-            clearAddPaymentMethodError(ONYXKEYS.FUND_LIST, paymentID);
-        }
-    }
-}
-
 function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], isDefault = false, shouldHideDefaultBadge = false): boolean {
     if (!isDefault || shouldHideDefaultBadge) {
         return false;
@@ -174,16 +119,11 @@ function keyExtractor(item: PaymentMethod | string) {
     return item.key ?? '';
 }
 
-function isAccountInSetupState(account: PaymentMethodItem) {
-    return account.accountData && 'state' in account.accountData && account.accountData.state === CONST.BANK_ACCOUNT.STATE.SETUP;
-}
-
 function PaymentMethodList({
     actionPaymentMethodType = '',
     activePaymentMethodID = '',
     listHeaderComponent,
     onPress,
-    shouldShowSelectedState = false,
     shouldShowAddBankAccount = true,
     shouldShowAssignedCards = false,
     selectedMethodID = '',
@@ -440,22 +380,6 @@ function PaymentMethodList({
         return filteredPaymentMethods;
     }, [filteredPaymentMethods, shouldShowBankAccountSections, translate]);
 
-    const getBadgeText = useCallback(
-        (item: PaymentMethodItem) => {
-            if (isAccountInSetupState(item)) {
-                return translate('common.actionRequired');
-            }
-            return shouldShowDefaultBadge(
-                filteredPaymentMethods,
-                invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.methodID === userWallet?.walletLinkedAccountID,
-                shouldHideDefaultBadge,
-            )
-                ? translate('paymentMethodList.defaultPaymentMethod')
-                : undefined;
-        },
-        [filteredPaymentMethods, invoiceTransferBankAccountID, shouldHideDefaultBadge, translate, userWallet?.walletLinkedAccountID],
-    );
-
     /**
      * Create a menuItem for each passed paymentMethod
      */
@@ -469,67 +393,32 @@ function PaymentMethodList({
                 );
             }
             return (
-                <OfflineWithFeedback
-                    onClose={() => dismissError(item)}
-                    pendingAction={item.pendingAction}
-                    errors={item.errors}
-                    errorRowStyles={styles.ph6}
-                    canDismissError={item.canDismissError}
-                >
-                    <MenuItem
-                        onPress={item.onPress}
-                        title={item.title}
-                        description={item.description}
-                        icon={item.icon}
-                        plaidUrl={item.plaidUrl}
-                        disabled={item.disabled}
-                        iconType={item.plaidUrl ? CONST.ICON_TYPE_PLAID : CONST.ICON_TYPE_ICON}
-                        displayInDefaultIconColor
-                        iconHeight={item.iconHeight ?? item.iconSize}
-                        iconWidth={item.iconWidth ?? item.iconSize}
-                        iconStyles={item.iconStyles}
-                        badgeText={getBadgeText(item)}
-                        badgeIcon={isAccountInSetupState(item) ? Expensicons.DotIndicator : undefined}
-                        badgeSuccess={isAccountInSetupState(item) ? true : undefined}
-                        wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                        iconRight={item.iconRight}
-                        shouldShowRightIcon={!threeDotsMenuItems && item.shouldShowRightIcon}
-                        shouldShowRightComponent={!!threeDotsMenuItems}
-                        rightComponent={
-                            threeDotsMenuItems && onThreeDotsMenuPress ? (
-                                <ThreeDotsMenu
-                                    shouldSelfPosition
-                                    onIconPress={item.onThreeDotsMenuPress}
-                                    menuItems={threeDotsMenuItems}
-                                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                    shouldOverlay
-                                    isNested
-                                />
-                            ) : undefined
-                        }
-                        shouldShowSelectedState={shouldShowSelectedState}
-                        isSelected={selectedMethodID.toString() === item.methodID?.toString()}
-                        interactive={item.interactive}
-                        brickRoadIndicator={item.brickRoadIndicator}
-                        success={item.isMethodActive}
-                    />
-                </OfflineWithFeedback>
+                <PaymentMethodListItem
+                    item={item}
+                    shouldShowDefaultBadge={shouldShowDefaultBadge(
+                        filteredPaymentMethods,
+                        invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.methodID === userWallet?.walletLinkedAccountID,
+                        shouldHideDefaultBadge,
+                    )}
+                    listItemStyle={listItemStyle}
+                    selectedMethodID={selectedMethodID}
+                    threeDotsMenuItems={threeDotsMenuItems}
+                />
             );
         },
         [
-            styles.ph6,
-            styles.paymentMethod,
+            filteredPaymentMethods,
+            invoiceTransferBankAccountID,
+            userWallet?.walletLinkedAccountID,
+            shouldHideDefaultBadge,
+            listItemStyle,
+            selectedMethodID,
+            threeDotsMenuItems,
             styles.mt4,
             styles.mt6,
             styles.mb1,
             styles.textLabel,
             styles.colorMuted,
-            getBadgeText,
-            listItemStyle,
-            threeDotsMenuItems,
-            onThreeDotsMenuPress,
-            shouldShowSelectedState,
-            selectedMethodID,
         ],
     );
 
