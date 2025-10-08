@@ -88,31 +88,7 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, onFocus,
         [clearAccountErrorsIfPresent],
     );
 
-    /**
-     * Check that all the form fields are valid, then trigger the submit callback
-     */
-    const validateAndSubmitForm = useCallback(() => {
-        if (shouldAllowRecoveryCode && isUsingRecoveryCode) {
-            if (recoveryInputRef.current && 'blur' in recoveryInputRef.current && typeof recoveryInputRef.current.blur === 'function') {
-                recoveryInputRef.current.blur();
-            }
-
-            const sanitizedRecoveryCode = recoveryCode.trim();
-            if (!sanitizedRecoveryCode) {
-                setFormError({recoveryCode: translate('recoveryCodeForm.error.pleaseFillRecoveryCode')});
-                return;
-            }
-
-            if (!isValidRecoveryCode(sanitizedRecoveryCode)) {
-                setFormError({recoveryCode: translate('recoveryCodeForm.error.incorrectRecoveryCode')});
-                return;
-            }
-
-            setFormError({});
-            toggleTwoFactorAuth(false, sanitizedRecoveryCode);
-            return;
-        }
-
+    const validateAndSubmitAuthAppCode = useCallback(() => {
         if (inputRef.current) {
             inputRef.current.blur();
         }
@@ -134,7 +110,38 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, onFocus,
             return;
         }
         toggleTwoFactorAuth(false, sanitizedTwoFactorCode);
-    }, [isUsingRecoveryCode, recoveryCode, shouldAllowRecoveryCode, translate, twoFactorAuthCode, validateInsteadOfDisable, shouldClearData]);
+    }, [translate, twoFactorAuthCode, validateInsteadOfDisable, shouldClearData]);
+
+    const validateAndSubmitRecoveryCode = useCallback(() => {
+        if (recoveryInputRef.current && 'blur' in recoveryInputRef.current && typeof recoveryInputRef.current.blur === 'function') {
+            recoveryInputRef.current.blur();
+        }
+
+        const sanitizedRecoveryCode = recoveryCode.trim();
+        if (!sanitizedRecoveryCode) {
+            setFormError({recoveryCode: translate('recoveryCodeForm.error.pleaseFillRecoveryCode')});
+            return;
+        }
+
+        if (!isValidRecoveryCode(sanitizedRecoveryCode)) {
+            setFormError({recoveryCode: translate('recoveryCodeForm.error.incorrectRecoveryCode')});
+            return;
+        }
+
+        setFormError({});
+        toggleTwoFactorAuth(false, sanitizedRecoveryCode);
+    }, [recoveryCode, translate]);
+
+    /**
+     * Check that all the form fields are valid, then trigger the submit callback
+     */
+    const validateAndSubmitForm = useCallback(() => {
+        if (shouldAllowRecoveryCode && isUsingRecoveryCode) {
+            validateAndSubmitRecoveryCode();
+            return;
+        }
+        validateAndSubmitAuthAppCode();
+    }, [isUsingRecoveryCode, shouldAllowRecoveryCode, validateAndSubmitAuthAppCode, validateAndSubmitRecoveryCode]);
 
     useImperativeHandle(ref, () => ({
         validateAndSubmitForm() {
