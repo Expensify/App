@@ -380,7 +380,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 return;
             }
             clearWorkspaceOwnerChangeFlow(policyID);
-            InteractionManager.runAfterInteractions(() => {
+            requestIdleCallback(() => {
                 Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID));
             });
         },
