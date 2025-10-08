@@ -873,8 +873,8 @@ function createOption(
 /**
  * Get the option for a given report.
  */
-function getReportOption(participant: Participant, reportAttributesDerived?: ReportAttributesDerivedValue['reports']): OptionData {
-    const report = getReportOrDraftReport(participant.reportID);
+function getReportOption(participant: Participant, reportAttributesDerived?: ReportAttributesDerivedValue['reports'], reportOrDraft?: OnyxEntry<Report>): OptionData {
+    const report = getReportOrDraftReport(participant.reportID) ?? reportOrDraft;
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
     const option = createOption(

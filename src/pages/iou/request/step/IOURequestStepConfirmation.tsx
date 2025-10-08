@@ -270,16 +270,24 @@ function IOURequestStepConfirmation({
         return translate('iou.confirmDetails');
     }, [iouType, translate, isSharingTrackExpense, isCategorizingTrackExpense]);
 
+    const [allReportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const getReportOrDraft = useCallback(
+        (id?: string) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`] ?? allReportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${id}`],
+        [allReports, allReportDrafts],
+    );
     const participants = useMemo(
         () =>
             transaction?.participants?.map((participant) => {
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
-                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
+                const reportOrDraft = getReportOrDraft(participant?.reportID ?? '');
+                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived, reportOrDraft);
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, getReportOrDraft],
     );
+
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS) || !account?.shouldBlockTransactionThreadReportCreation;
     const formHasBeenSubmitted = useRef(false);

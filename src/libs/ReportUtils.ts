@@ -6338,16 +6338,18 @@ function buildOptimisticExpenseReport(
     nonReimbursableTotal = 0,
     parentReportActionID?: string,
     optimisticIOUReportID?: string,
+    reportPolicy?: OnyxEntry<Policy>,
 ): OptimisticExpenseReport {
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
     const storedNonReimbursableTotal = nonReimbursableTotal * -1;
     const report = chatReportID ? getReport(chatReportID, allReports) : undefined;
-    const policyName = getPolicyName({report});
-    const formattedTotal = convertToDisplayString(storedTotal, currency);
+    const policyName = reportPolicy?.name ?? getPolicyName({report});
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
-    const policy = getPolicy(policyID);
+    const policy = reportPolicy ?? getPolicy(policyID);
+
+    const formattedTotal = convertToDisplayString(storedTotal, currency);
 
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
 
@@ -6382,7 +6384,10 @@ function buildOptimisticExpenseReport(
         expenseReport.managerID = submitToAccountID;
     }
 
-    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
+    const titleReportField = getTitleReportField(policy?.fieldList ?? {});
+    if (!!titleReportField && isPaidGroupPolicyPolicyUtils(policy)) {
+        expenseReport.reportName = populateOptimisticReportFormula(titleReportField.defaultValue, expenseReport, policy);
+    }
     if (!!titleReportField && isPaidGroupPolicyExpenseReport(expenseReport)) {
         expenseReport.reportName = populateOptimisticReportFormula(titleReportField.defaultValue, expenseReport, policy);
     }
