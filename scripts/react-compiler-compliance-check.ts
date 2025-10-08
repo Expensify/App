@@ -22,6 +22,20 @@ const SUPPRESSED_COMPILER_ERRORS = [
     '(BuildHIR::lowerExpression) Expected Identifier, got MemberExpression key in ObjectExpression',
 ] as const satisfies string[];
 
+const REGEX_PATTERNS = {
+    // Parse successful compilation from verbose output
+    SUCCESS_COMPILATION: /Successfully compiled (?:hook|component) \[([^\]]+)\]\(([^)]+)\)/,
+
+    // Parse failed compilation with file, location, and reason all on one line
+    FAILURE_WITH_REASON: /Failed to compile ([^:]+):(\d+):(\d+)\. Reason: (.+)/,
+
+    // Parse failed compilation with file and location only (fallback)
+    FAILURE_WITHOUT_REASON: /Failed to compile ([^:]+):(\d+):(\d+)\./,
+
+    // Parse reason line (fallback for multi-line reasons)
+    REASON_LINE: /Reason: (.+)/,
+} as const satisfies Record<string, RegExp>;
+
 type HealthcheckJsonResults = {
     success: string[];
     failures: CompilerFailure;
@@ -161,7 +175,7 @@ function parseHealthcheckOutput(output: string): CompilerResults {
 
     for (const line of lines) {
         // Parse successful compilation from verbose output
-        const successMatch = line.match(/Successfully compiled (?:hook|component) \[([^\]]+)\]\(([^)]+)\)/);
+        const successMatch = line.match(REGEX_PATTERNS.SUCCESS_COMPILATION);
         if (successMatch) {
             const filePath = successMatch[2];
             successSet.add(filePath);
@@ -169,7 +183,7 @@ function parseHealthcheckOutput(output: string): CompilerResults {
         }
 
         // Parse failed compilation with file, location, and reason all on one line
-        const failureWithReasonMatch = line.match(/Failed to compile ([^:]+):(\d+):(\d+)\. Reason: (.+)/);
+        const failureWithReasonMatch = line.match(REGEX_PATTERNS.FAILURE_WITH_REASON);
         if (failureWithReasonMatch) {
             const newFailure = {
                 file: failureWithReasonMatch[1],
@@ -195,7 +209,7 @@ function parseHealthcheckOutput(output: string): CompilerResults {
         }
 
         // Parse failed compilation with file and location only (fallback)
-        const failureMatch = line.match(/Failed to compile ([^:]+):(\d+):(\d+)\./);
+        const failureMatch = line.match(REGEX_PATTERNS.FAILURE_WITHOUT_REASON);
         if (failureMatch) {
             // Save previous failure if exists
             if (currentFailure) {
@@ -233,7 +247,7 @@ function parseHealthcheckOutput(output: string): CompilerResults {
         }
 
         // Parse reason line (fallback for multi-line reasons)
-        const reasonMatch = line.match(/Reason: (.+)/);
+        const reasonMatch = line.match(REGEX_PATTERNS.REASON_LINE);
         if (reasonMatch && currentFailure) {
             // Only update reason if it's not already set
             if (!currentFailure.reason) {
