@@ -355,7 +355,7 @@ function selectTargetAndSourceTransactionsForMerge(originalTargetTransaction: On
 function getDisplayValue(field: MergeFieldKey, transaction: Transaction, translate: LocaleContextProps['translate']): string {
     const fieldValue = getMergeFieldValue(getTransactionDetails(transaction), transaction, field);
 
-    if (isEmptyMergeValue(fieldValue)) {
+    if (isEmptyMergeValue(fieldValue) || fieldValue === undefined) {
         return '';
     }
     if (typeof fieldValue === 'boolean') {
