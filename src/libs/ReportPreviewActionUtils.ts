@@ -227,6 +227,8 @@ function getReportPreviewAction(
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
 
+    // We want to have action displayed for either paid or approved animations
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (isPaidAnimationRunning || isApprovedAnimationRunning) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
