@@ -144,7 +144,7 @@ function SuggestedSearchSkeleton({shouldShowNavigationColumn = true, shouldShowR
         <View style={[styles.flex1, styles.gap4, styles.mr4]}>
             <ItemListSkeletonView
                 itemViewHeight={RESULT_ITEM_HEIGHT}
-                itemViewStyle={[styles.highlightBG, styles.mb2, styles.br3, styles.ml4, styles.mr4]}
+                itemViewStyle={[styles.highlightBG, styles.mb2, styles.br2, styles.mh1]}
                 renderSkeletonItem={renderResultItem}
             />
         </View>
