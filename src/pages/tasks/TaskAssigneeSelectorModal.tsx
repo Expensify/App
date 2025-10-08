@@ -5,7 +5,7 @@ import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useBetas, useSession} from '@components/OnyxListItemProvider';
+import {useBetas, usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
@@ -118,6 +118,8 @@ function TaskAssigneeSelectorModal() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {userToInvite, recentReports, personalDetails, currentUserOption, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
 
+    const allPersonalDetails = usePersonalDetails();
+
     const report: OnyxEntry<Report> = useMemo(() => {
         if (!route.params?.reportID) {
             return;
@@ -189,6 +191,7 @@ function TaskAssigneeSelectorModal() {
                     const assigneeChatReport = setAssigneeValue(
                         option?.login ?? '',
                         option?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        allPersonalDetails?.[option?.accountID ?? CONST.DEFAULT_NUMBER_ID],
                         report.reportID,
                         undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
                         isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? ''}),
@@ -205,6 +208,7 @@ function TaskAssigneeSelectorModal() {
                 setAssigneeValue(
                     option?.login ?? '',
                     option.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    allPersonalDetails?.[option?.accountID ?? CONST.DEFAULT_NUMBER_ID],
                     task?.shareDestination ?? '',
                     undefined, // passing null as report is null in this condition
                     isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? undefined}),
@@ -215,7 +219,7 @@ function TaskAssigneeSelectorModal() {
                 });
             }
         },
-        [session?.accountID, task?.shareDestination, report, backTo],
+        [report, allPersonalDetails, session?.accountID, task?.shareDestination, backTo],
     );
 
     const handleBackButtonPress = useCallback(() => Navigation.goBack(!route.params?.reportID ? ROUTES.NEW_TASK.getRoute(backTo) : backTo), [route.params, backTo]);

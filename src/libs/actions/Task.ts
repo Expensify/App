@@ -54,12 +54,6 @@ Onyx.connect({
     },
 });
 
-let allPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => (allPersonalDetails = value),
-});
-
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -814,7 +808,7 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report, isOptimisticReport 
     }
 }
 
-function setNewOptimisticAssignee(assigneeLogin: string, assigneeAccountID: number) {
+function setNewOptimisticAssignee(assigneeLogin: string, assigneeAccountID: number, assigneePersonalDetails?: OnyxTypes.PersonalDetails | null) {
     const report: ReportUtils.OptimisticChatReport = ReportUtils.buildOptimisticChatReport({
         participantList: [assigneeAccountID, currentUserAccountID],
         reportName: '',
@@ -827,8 +821,8 @@ function setNewOptimisticAssignee(assigneeLogin: string, assigneeAccountID: numb
 
     const optimisticPersonalDetailsListAction: OnyxTypes.PersonalDetails = {
         accountID: assigneeAccountID,
-        avatar: allPersonalDetails?.[assigneeAccountID]?.avatar,
-        displayName: allPersonalDetails?.[assigneeAccountID]?.displayName ?? assigneeLogin,
+        avatar: assigneePersonalDetails?.avatar,
+        displayName: assigneePersonalDetails?.displayName ?? assigneeLogin,
         login: assigneeLogin,
     };
     Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[assigneeAccountID]: optimisticPersonalDetailsListAction});
@@ -843,6 +837,7 @@ function setNewOptimisticAssignee(assigneeLogin: string, assigneeAccountID: numb
 function setAssigneeValue(
     assigneeEmail: string,
     assigneeAccountID: number,
+    assigneePersonalDetails?: OnyxTypes.PersonalDetails | null,
     shareToReportID?: string,
     chatReport?: OnyxEntry<OnyxTypes.Report>,
     isCurrentUser = false,
@@ -863,7 +858,7 @@ function setAssigneeValue(
         }
         // If chat report is still not found we need to build new optimistic chat report
         if (!report) {
-            report = setNewOptimisticAssignee(assigneeEmail, assigneeAccountID).assigneeReport;
+            report = setNewOptimisticAssignee(assigneeEmail, assigneeAccountID, assigneePersonalDetails).assigneeReport;
         }
         const reportMetadata = ReportUtils.getReportMetadata(report?.reportID);
 
@@ -905,14 +900,20 @@ function setParentReportID(parentReportID: string) {
 /**
  * Clears out the task info from the store and navigates to the NewTaskDetails page
  */
-function clearOutTaskInfoAndNavigate(reportID?: string, chatReport?: OnyxEntry<OnyxTypes.Report>, accountID = 0, skipConfirmation = false) {
+function clearOutTaskInfoAndNavigate(
+    reportID?: string,
+    chatReport?: OnyxEntry<OnyxTypes.Report>,
+    assigneeAccountID = 0,
+    assigneePersonalDetails?: OnyxTypes.PersonalDetails | null,
+    skipConfirmation = false,
+) {
     clearOutTaskInfo(skipConfirmation);
     if (reportID && reportID !== '0') {
         setParentReportID(reportID);
     }
-    if (accountID > 0) {
-        const accountLogin = allPersonalDetails?.[accountID]?.login ?? '';
-        setAssigneeValue(accountLogin, accountID, reportID, chatReport, accountID === currentUserAccountID, skipConfirmation);
+    if (assigneeAccountID > 0) {
+        const accountLogin = assigneePersonalDetails?.login ?? '';
+        setAssigneeValue(accountLogin, assigneeAccountID, assigneePersonalDetails, reportID, chatReport, assigneeAccountID === currentUserAccountID, skipConfirmation);
     }
     Navigation.navigate(ROUTES.NEW_TASK_DETAILS.getRoute(Navigation.getReportRHPActiveRoute()));
 }
@@ -920,12 +921,12 @@ function clearOutTaskInfoAndNavigate(reportID?: string, chatReport?: OnyxEntry<O
 /**
  * Start out create task action quick action step
  */
-function startOutCreateTaskQuickAction(reportID: string, targetAccountID: number) {
+function startOutCreateTaskQuickAction(reportID: string, targetAccountID: number, targetAccountPersonalDetails?: OnyxTypes.PersonalDetails | null) {
     // The second parameter of clearOutTaskInfoAndNavigate is the chat report or DM report
     // between the user and the person to whom the task is assigned.
     // Since chatReportID isn't stored in NVP_QUICK_ACTION_GLOBAL_CREATE, we set
     // it to undefined. This will make setAssigneeValue to search for the correct report.
-    clearOutTaskInfoAndNavigate(reportID, undefined, targetAccountID, true);
+    clearOutTaskInfoAndNavigate(reportID, undefined, targetAccountID, targetAccountPersonalDetails, true);
 }
 
 /**
