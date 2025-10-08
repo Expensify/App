@@ -76,7 +76,6 @@ import {
     buildOptimisticIOUReportAction,
     buildTransactionThread,
     createDraftTransactionAndNavigateToParticipantSelector,
-    hasViolations,
     isIOUReport,
 } from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
@@ -4657,7 +4656,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (expenseReport) {
-                        submitReport(expenseReport);
+                        submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -4799,7 +4798,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (expenseReport) {
-                        submitReport(expenseReport);
+                        submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -4968,7 +4967,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     mockFetch?.fail?.();
                     if (expenseReport) {
-                        submitReport(expenseReport);
+                        submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true);
                     }
                     return waitForBatchedUpdates();
                 })

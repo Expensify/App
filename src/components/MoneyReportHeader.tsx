@@ -748,7 +748,7 @@ function MoneyReportHeader({
                         return;
                     }
                     startSubmittingAnimation();
-                    submitReport(moneyRequestReport);
+                    submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
                     if (currentSearchQueryJSON) {
                         search({
                             searchKey: currentSearchKey,
@@ -940,7 +940,7 @@ function MoneyReportHeader({
                 if (!moneyRequestReport) {
                     return;
                 }
-                submitReport(moneyRequestReport);
+                submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {

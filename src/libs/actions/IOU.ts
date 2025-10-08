@@ -10419,7 +10419,14 @@ function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
     API.write(WRITE_COMMANDS.UNAPPROVE_EXPENSE_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function submitReport(expenseReport?: OnyxTypes.Report) {
+function submitReport(
+    expenseReport: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    accountIDParam: number,
+    emailParam: string,
+    hasViolationsParam: boolean,
+    isASAPSubmitBetaEnabled: boolean,
+) {
     if (!expenseReport) {
         return;
     }
@@ -10430,14 +10437,19 @@ function submitReport(expenseReport?: OnyxTypes.Report) {
 
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
     const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
-    const policy = getPolicy(expenseReport.policyID);
     const isCurrentUserManager = currentUserPersonalDetails?.accountID === expenseReport.managerID;
     const isSubmitAndClosePolicy = isSubmitAndClose(policy);
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserPersonalDetails?.accountID : undefined;
     const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, adminAccountID);
-    const optimisticNextStep = buildNextStep(expenseReport, isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED);
+    const optimisticNextStep = buildNextStepNew({
+        report: expenseReport,
+        predictedNextStatus: isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED,
+        policy,
+        currentUserAccountIDParam: accountIDParam,
+        currentUserEmailParam: emailParam,
+        hasViolations: hasViolationsParam,
+        isASAPSubmitBetaEnabled,
+    });
     const approvalChain = getApprovalChain(policy, expenseReport);
     const managerID = getAccountIDsByLogins(approvalChain).at(0);
 

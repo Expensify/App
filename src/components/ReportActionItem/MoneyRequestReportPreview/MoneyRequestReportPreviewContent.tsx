@@ -66,6 +66,7 @@ import {
     isSettled,
     isTripRoom as isTripRoomReportUtils,
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
+    hasViolations as hasViolationsReportUtils,
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -80,6 +81,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import Permissions from '@libs/Permissions';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
 import type {MoneyRequestReportPreviewContentProps} from './types';
 
@@ -132,6 +135,7 @@ function MoneyRequestReportPreviewContent({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const currentUserDetails = useCurrentUserPersonalDetails();
 
     const {areAllRequestsBeingSmartScanned, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -152,6 +156,10 @@ function MoneyRequestReportPreviewContent({
     const isIouReportArchived = useReportIsArchived(iouReportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations);
 
     const getCanIOUBePaid = useCallback(
         (shouldShowOnlyPayElsewhere = false, shouldCheckApprovedState = true) =>
@@ -541,7 +549,7 @@ function MoneyRequestReportPreviewContent({
                 text={translate('common.submit')}
                 onPress={() => {
                     startSubmittingAnimation();
-                    submitReport(iouReport);
+                    submitReport(iouReport, policy, currentUserDetails.accountID, currentUserDetails.email ?? '', hasViolations, isASAPSubmitBetaEnabled);
                 }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}
