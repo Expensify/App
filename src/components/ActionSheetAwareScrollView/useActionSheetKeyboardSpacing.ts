@@ -169,8 +169,6 @@ function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanim
             case States.TRANSITIONING_POPOVER_KEYBOARD_OPEN:
             case States.TRANSITIONING_POPOVER_KEYBOARD_OPEN_DONE:
             case States.KEYBOARD_POPOVER_OPEN: {
-                console.log({maxOpenKeyboardHeight});
-
                 const nextOffset = elementOffset + maxOpenKeyboardHeight;
                 if (isKeyboardOpen) {
                     if (popoverHeight === 0 && nextOffset > invertedKeyboardHeight) {
