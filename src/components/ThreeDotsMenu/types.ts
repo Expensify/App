@@ -59,6 +59,9 @@ type ThreeDotsMenuWithOptionalAnchorProps =
 
           /** A callback to get the anchor position dynamically */
           getAnchorPosition?: never;
+
+          /** Whether the three dot menu handles its positioning logic internally. */
+          shouldSelfPosition?: false;
       })
     | (ThreeDotsMenuProps & {
           /** The anchor position of the menu */
@@ -66,6 +69,19 @@ type ThreeDotsMenuWithOptionalAnchorProps =
 
           /** A callback to get the anchor position dynamically */
           getAnchorPosition: () => Promise<AnchorPosition>;
+
+          /** Whether the three dot menu handles its positioning logic internally. */
+          shouldSelfPosition?: false;
+      })
+    | (ThreeDotsMenuProps & {
+          /** The anchor position of the menu */
+          anchorPosition?: never;
+
+          /** A callback to get the anchor position dynamically */
+          getAnchorPosition?: never;
+
+          /** Whether the three dot menu handles its positioning logic internally. */
+          shouldSelfPosition: true;
       });
 
 export default ThreeDotsMenuWithOptionalAnchorProps;

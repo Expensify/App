@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator} from 'react-native';
 import type {WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -12,8 +12,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
 import {updateSelectedFeed} from '@libs/actions/Card';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, isSelectedFeedExpired} from '@libs/CardUtils';
@@ -21,6 +21,7 @@ import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {getCompanyCardBankConnection} from '@userActions/getCompanyCardBankConnection';
 import CONST from '@src/CONST';
@@ -43,7 +44,6 @@ type BankConnectionProps = {
 function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const theme = useTheme();
     const webViewRef = useRef<WebView>(null);
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
@@ -69,6 +69,8 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
+    const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
+    const isNewFeedHasError = !!(newFeed && cardFeeds?.settings?.oAuthAccountDetails?.[newFeed]?.errors);
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
 
@@ -96,12 +98,17 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     };
 
     useEffect(() => {
-        if (!url && !isPlaid) {
+        if ((!url && !isPlaid) || isNewFeedHasError) {
             return;
         }
 
         // Handle assign card flow
         if (feed && !isFeedExpired) {
+            if (isFeedConnectionBroken) {
+                updateBrokenConnection();
+                Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+                return;
+            }
             setAssignCardStepAndData({
                 currentStep: assignCard?.data?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
                 isEditing: false,
@@ -114,12 +121,33 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             if (newFeed) {
                 updateSelectedFeed(newFeed, policyID);
             }
-            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+
+            // Direct feeds (except those added via Plaid) are created with default statement period end date.
+            // Redirect the user to set a custom date.
+            if (policyID && !isPlaid) {
+                Navigation.closeRHPFlow();
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.getRoute(policyID));
+            } else {
+                Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+            }
         }
         if (isPlaid) {
             onImportPlaidAccounts();
         }
-    }, [isNewFeedConnected, newFeed, policyID, url, feed, isFeedExpired, assignCard?.data?.dateOption, isPlaid, onImportPlaidAccounts]);
+    }, [
+        isNewFeedConnected,
+        newFeed,
+        policyID,
+        url,
+        feed,
+        isFeedExpired,
+        assignCard?.data?.dateOption,
+        isPlaid,
+        onImportPlaidAccounts,
+        isFeedConnectionBroken,
+        updateBrokenConnection,
+        isNewFeedHasError,
+    ]);
 
     const checkIfConnectionCompleted = (navState: WebViewNavigation) => {
         if (!navState.url.includes(ROUTES.BANK_CONNECTION_COMPLETE)) {
@@ -132,7 +160,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         <ScreenWrapper
             testID={BankConnection.displayName}
             shouldShowOfflineIndicator={false}
-            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
@@ -141,7 +168,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 onBackButtonPress={handleBackButtonPress}
             />
             <FullPageOfflineBlockingView addBottomSafeAreaPadding>
-                {!!url && !isConnectionCompleted && !isPlaid && (
+                {!!url && !isConnectionCompleted && !isPlaid && !isNewFeedHasError && (
                     <WebView
                         ref={webViewRef}
                         source={{
@@ -157,11 +184,16 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                         renderLoading={renderLoading}
                     />
                 )}
-                {(isConnectionCompleted || isPlaid) && (
+                {(isConnectionCompleted || isPlaid) && !isNewFeedHasError && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}
-                        color={theme.spinner}
+                    />
+                )}
+                {isNewFeedHasError && (
+                    <WorkspaceCompanyCardsErrorConfirmation
+                        policyID={policyID}
+                        newFeed={newFeed}
                     />
                 )}
             </FullPageOfflineBlockingView>

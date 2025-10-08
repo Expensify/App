@@ -5,7 +5,6 @@ keywords: [NetSuite, integration, Expensify Classic, expense reporting, accounti
 order: 1
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Expensify integrates directly with NetSuite to automate report exports, customize your coding preferences, and leverage NetSuite's advanced features. Follow the steps below to set up the integration.
 
@@ -166,4 +165,3 @@ To transfer the connection ownership:
 
 ---
 
-</div>

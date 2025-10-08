@@ -33,8 +33,8 @@ type WorkspaceWorkflowsApprovalsEditPageProps = WithPolicyAndFullscreenLoadingPr
 
 function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsEditPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const {translate, localeCompare} = useLocalize();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const [initialApprovalWorkflow, setInitialApprovalWorkflow] = useState<ApprovalWorkflow | undefined>();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -53,6 +53,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !approvalWorkflow.members.some((member) => member.email === initialMember.email));
         const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
         Navigation.dismissModal();
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             updateApprovalWorkflow(route.params.policyID, approvalWorkflow, membersToRemove, approversToRemove);
         });
@@ -65,6 +66,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
 
         setIsDeleteModalVisible(false);
         Navigation.dismissModal();
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             // Remove the approval workflow using the initial data as it could be already edited
             removeApprovalWorkflow(route.params.policyID, initialApprovalWorkflow);
@@ -76,13 +78,12 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return {};
         }
 
-        const defaultApprover = policy?.approver ?? policy.owner;
         const firstApprover = route.params.firstApproverEmail;
         const result = convertPolicyEmployeesToApprovalWorkflows({
-            employees: policy.employeeList ?? {},
-            defaultApprover,
+            policy,
             personalDetails,
             firstApprover,
+            localeCompare,
         });
 
         return {
@@ -90,7 +91,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             usedApproverEmails: result.usedApproverEmails,
             currentApprovalWorkflow: result.approvalWorkflows.find((workflow) => workflow.approvers.at(0)?.email === firstApprover),
         };
-    }, [personalDetails, policy, route.params.firstApproverEmail]);
+    }, [personalDetails, policy, route.params.firstApproverEmail, localeCompare]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy) || !currentApprovalWorkflow;

@@ -1,5 +1,5 @@
 # New Help Guidelines
-This file outlines a series of specific rules.  Whenever editing any file on this site, please verify your changes comply with these rules.
+This file outlines a series of specific rules.  Whenever editing any file on this site, _please_ verify your changes comply with these rules.
 
 ## General Philosophy
 In general, this help site is built around a few common principles:

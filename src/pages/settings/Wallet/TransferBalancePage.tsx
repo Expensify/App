@@ -42,10 +42,10 @@ function TransferBalancePage() {
     const {isOffline} = useNetwork();
     const {paddingBottom} = useSafeAreaPaddings();
 
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
-    const [walletTransfer] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [walletTransfer] = useOnyx(ONYXKEYS.WALLET_TRANSFER, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const paymentCardList = fundList ?? {};
 
     const paymentTypes = [
@@ -146,12 +146,15 @@ function TransferBalancePage() {
     const shouldShowTransferView = hasExpensifyPaymentMethod(paymentCardList, bankAccountList ?? {}) && TRANSFER_TIER_NAMES.includes(userWallet?.tierName ?? '');
 
     return (
-        <ScreenWrapper testID={TransferBalancePage.displayName}>
+        <ScreenWrapper
+            testID={TransferBalancePage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
+        >
             <FullPageNotFoundView
                 shouldShow={!shouldShowTransferView}
                 titleKey="notFound.pageNotFound"
                 subtitleKey="transferAmountPage.notHereSubTitle"
-                linkKey="transferAmountPage.goToWallet"
+                linkTranslationKey="transferAmountPage.goToWallet"
                 onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             >
                 <HeaderWithBackButton

@@ -4,7 +4,6 @@ description: Set up real-time notifications for your Expensify Visa® Commercial
 keywords: [Expensify Card, notifications, mobile alerts, declined transaction, SmartScan receipt, workspace alerts, real-time spend alerts]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Get real-time updates about your Expensify Visa® Commercial Card spending by enabling notifications on both your workspace and device. These alerts help you stay informed about:
 
@@ -18,7 +17,7 @@ Get real-time updates about your Expensify Visa® Commercial Card spending by en
 
 # Enable Workspace Notifications
 
-1. Head to your **Inbox** in the left-hand menu.
+1. Head to your **Inbox** in the navigation tabs (on the left on web, and at the bottom on mobile).
 2. Search for the workspace you'd like to update.
 3. In your inbox, open the chat titled with your workspace name.
 4. Click the chat header at the top.
@@ -45,4 +44,3 @@ Get real-time updates about your Expensify Visa® Commercial Card spending by en
 
 Once both settings are enabled, you'll start receiving instant updates for your Expensify Card activity.
 
-</div>

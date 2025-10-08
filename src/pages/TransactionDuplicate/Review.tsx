@@ -1,6 +1,7 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -23,6 +24,7 @@ import {isReportIDApproved, isSettled} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {Transaction} from '@src/types/onyx';
 import DuplicateTransactionsList from './DuplicateTransactionsList';
 
 function TransactionDuplicateReview() {
@@ -33,21 +35,25 @@ function TransactionDuplicateReview() {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.threadReportID}`, {canBeMissing: true});
     const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const transactionID = getLinkedTransactionID(reportAction, report?.reportID) ?? undefined;
+    const transactionID = getLinkedTransactionID(reportAction);
     const transactionViolations = useTransactionViolations(transactionID);
     const duplicateTransactionIDs = useMemo(
         () => transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
         [transactionViolations],
     );
-    const transactionIDs = transactionID ? [transactionID, ...duplicateTransactionIDs] : duplicateTransactionIDs;
+    const transactionIDs = useMemo(() => (transactionID ? [transactionID, ...duplicateTransactionIDs] : duplicateTransactionIDs), [transactionID, duplicateTransactionIDs]);
+    const transactionsSelector = useCallback(
+        (allTransactions: OnyxCollection<Transaction>) =>
+            transactionIDs
+                .map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])
+                .sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime()),
+        [transactionIDs],
+    );
 
     const [transactions] = useOnyx(
         ONYXKEYS.COLLECTION.TRANSACTION,
         {
-            selector: (allTransactions) =>
-                transactionIDs
-                    .map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])
-                    .sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime()),
+            selector: transactionsSelector,
             canBeMissing: true,
         },
         [transactionIDs],

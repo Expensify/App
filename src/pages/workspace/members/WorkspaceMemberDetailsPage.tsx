@@ -73,13 +73,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const styles = useThemeStyles();
-    const {formatPhoneNumber, translate} = useLocalize();
+    const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = useState(false);
@@ -104,15 +105,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const phoneNumber = getPhoneNumber(details);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
-    const policyApproverEmail = policy?.approver;
     const {approvalWorkflows} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
-                employees: policy?.employeeList ?? {},
-                defaultApprover: policyApproverEmail ?? policy?.owner ?? '',
+                policy,
                 personalDetails: personalDetails ?? {},
+                localeCompare,
             }),
-        [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
+        [personalDetails, policy, localeCompare],
     );
 
     useEffect(() => {
@@ -127,7 +127,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     }, [accountID, workspaceCards]);
 
     const confirmModalPrompt = useMemo(() => {
-        const isApprover = isApproverUserAction(policy, accountID);
+        const isApprover = isApproverUserAction(policy, memberLogin);
         if (!isApprover) {
             return translate('workspace.people.removeMemberPrompt', {memberName: displayName});
         }
@@ -135,7 +135,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             memberName: displayName,
             ownerName: policyOwnerDisplayName,
         });
-    }, [accountID, policy, displayName, policyOwnerDisplayName, translate]);
+    }, [memberLogin, policy, displayName, policyOwnerDisplayName, translate]);
 
     const roleItems: ListItemType[] = useMemo(
         () => [
@@ -192,7 +192,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         const removedApprover = personalDetails?.[accountID];
 
         // If the user is not an approver, proceed with member removal
-        if (!isApproverUserAction(policy, accountID) || !removedApprover?.login || !ownerEmail) {
+        if (!isApproverUserAction(policy, memberLogin) || !removedApprover?.login || !ownerEmail) {
             removeMemberAndCloseModal();
             return;
         }
@@ -216,7 +216,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
         // Remove the member and close the modal
         removeMemberAndCloseModal();
-    }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy, policyID, removeMemberAndCloseModal]);
+    }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy, policyID, removeMemberAndCloseModal, memberLogin]);
 
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
@@ -251,6 +251,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                 assigneeEmail: memberLogin,
             },
             isEditing: false,
+            isChangeAssigneeDisabled: true,
             policyID,
         });
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
@@ -320,7 +321,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 </Text>
                             )}
                             {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
-                                shouldRenderTransferOwnerButton() && (
+                                shouldRenderTransferOwnerButton(fundList) && (
                                     <ButtonDisabledWhenOffline
                                         text={translate('workspace.people.transferOwner')}
                                         onPress={startChangeOwnershipFlow}
@@ -354,6 +355,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
                                 description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                 interactive={false}
+                                copyable
                             />
                             <MenuItemWithTopDescription
                                 disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}

@@ -1,6 +1,9 @@
+import {useFocusEffect} from '@react-navigation/native';
+import reportsSelector from '@selectors/Attributes';
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {Ref} from 'react';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -8,9 +11,10 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectCircle from '@components/SelectCircle';
-import SelectionList from '@components/SelectionList';
-import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import type {ListItem, SelectionListHandle} from '@components/SelectionListWithSections/types';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import useContactImport from '@hooks/useContactImport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
@@ -18,7 +22,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -58,8 +62,11 @@ function useOptions() {
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const personalData = useCurrentUserPersonalDetails();
-    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const {contacts} = useContactImport();
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -68,7 +75,7 @@ function useOptions() {
         const filteredOptions = memoizedGetValidOptions(
             {
                 reports: listOptions.reports ?? [],
-                personalDetails: listOptions.personalDetails ?? [],
+                personalDetails: (listOptions.personalDetails ?? []).concat(contacts),
             },
             {
                 betas: betas ?? [],
@@ -76,18 +83,18 @@ function useOptions() {
             },
         );
         return filteredOptions;
-    }, [betas, listOptions.personalDetails, listOptions.reports]);
+    }, [betas, listOptions.personalDetails, listOptions.reports, contacts]);
 
     const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
 
     const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, {
+        const filteredOptions = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, {
             selectedOptions,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
 
         return filteredOptions;
-    }, [debouncedSearchTerm, unselectedOptions, selectedOptions]);
+    }, [debouncedSearchTerm, unselectedOptions, selectedOptions, countryCode]);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const headerMessage = useMemo(() => {
         return getHeaderMessage(
@@ -97,6 +104,16 @@ function useOptions() {
             selectedOptions.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
         );
     }, [cleanSearchTerm, debouncedSearchTerm, options.personalDetails.length, options.recentReports.length, options.userToInvite, selectedOptions]);
+
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                setDidScreenTransitionEnd(true);
+            }, CONST.ANIMATED_TRANSITION);
+
+            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+        }, []),
+    );
 
     useEffect(() => {
         if (!debouncedSearchTerm.length) {
@@ -148,7 +165,11 @@ type NewChatPageRef = {
     focus?: () => void;
 };
 
-function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
+type NewChatPageProps = {
+    /** Reference to the outer element */
+    ref?: Ref<NewChatPageRef>;
+};
+function NewChatPage({ref}: NewChatPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
@@ -157,8 +178,10 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
     const personalData = useCurrentUserPersonalDetails();
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
+
+    const {singleExecution} = useSingleExecution();
 
     useImperativeHandle(ref, () => ({
         focus: selectionListRef.current?.focusTextInput,
@@ -279,9 +302,11 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
                 Log.warn('Tried to create chat with empty login');
                 return;
             }
-            KeyboardUtils.dismiss().then(() => navigateToAndOpenReport([login]));
+            KeyboardUtils.dismiss().then(() => {
+                singleExecution(() => navigateToAndOpenReport([login]))();
+            });
         },
-        [selectedOptions, toggleOption],
+        [selectedOptions, toggleOption, singleExecution],
     );
 
     const itemRightSideComponent = useCallback(
@@ -398,4 +423,4 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
 
 NewChatPage.displayName = 'NewChatPage';
 
-export default forwardRef(NewChatPage);
+export default NewChatPage;

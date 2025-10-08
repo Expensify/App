@@ -11,9 +11,9 @@ import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/RadioListItem';
-import type {ListItem} from './SelectionList/types';
+import SelectionList from './SelectionListWithSections';
+import RadioListItem from './SelectionListWithSections/RadioListItem';
+import type {ListItem} from './SelectionListWithSections/types';
 
 type CategoryPickerProps = {
     policyID: string | undefined;
@@ -33,7 +33,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, {canBeMissing: true});
     const {isOffline} = useNetwork();
 
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -58,6 +58,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
             searchValue: debouncedSearchValue,
             selectedOptions,
             categories,
+            localeCompare,
             recentlyUsedCategories: validPolicyRecentlyUsedCategories,
         });
 
@@ -68,7 +69,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
         const showInput = !isCategoriesCountBelowThreshold;
 
         return [categoryOptions, header, showInput];
-    }, [policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions, policyCategories, policyCategoriesDraft]);
+    }, [policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions, policyCategories, policyCategoriesDraft, localeCompare]);
 
     const selectedOptionKey = useMemo(() => (sections?.at(0)?.data ?? []).filter((category) => category.searchText === selectedCategory).at(0)?.keyForList, [sections, selectedCategory]);
 

@@ -14,8 +14,9 @@ import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,10 +24,19 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
-import {canCreateTaskInReport, getPayeeName, isPaidGroupPolicy, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
+import Permissions from '@libs/Permissions';
+import {
+    canCreateTaskInReport,
+    getPayeeName,
+    hasViolations as hasViolationsReportUtils,
+    isPaidGroupPolicy,
+    isPolicyExpenseChat,
+    isReportOwner,
+    temporary_getMoneyRequestOptions,
+} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
-import {startMoneyRequest} from '@userActions/IOU';
+import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU';
 import {close} from '@userActions/Modal';
 import {createNewReport, setIsComposerFullSize} from '@userActions/Report';
 import {clearOutTaskInfoAndNavigate} from '@userActions/Task';
@@ -56,9 +66,6 @@ type AttachmentPickerWithMenuItemsProps = {
 
     /** Whether or not the composer is full size */
     isComposerFullSize: boolean;
-
-    /** Whether or not the user is blocked from concierge */
-    isBlockedFromConcierge: boolean;
 
     /** Whether or not the attachment picker is disabled */
     disabled?: boolean;
@@ -111,7 +118,6 @@ function AttachmentPickerWithMenuItems({
     isFullComposerAvailable,
     isComposerFullSize,
     reportID,
-    isBlockedFromConcierge,
     disabled,
     setMenuVisibility,
     isMenuVisible,
@@ -132,11 +138,15 @@ function AttachmentPickerWithMenuItems({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {isProduction} = useEnvironment();
-    const {isBetaEnabled} = usePermissions();
+    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const {setIsLoaderVisible} = useFullScreenLoader();
-
-    const isManualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -173,16 +183,12 @@ function AttachmentPickerWithMenuItems({
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
                 },
-                ...(isManualDistanceTrackingEnabled
-                    ? [
-                          {
-                              icon: Expensicons.Location,
-                              text: translate('quickAction.recordDistance'),
-                              shouldCallAfterModalHide: shouldUseNarrowLayout,
-                              onSelected: () => selectOption(() => null, true),
-                          },
-                      ]
-                    : []),
+                {
+                    icon: Expensicons.Location,
+                    text: translate('quickAction.recordDistance'),
+                    shouldCallAfterModalHide: shouldUseNarrowLayout,
+                    onSelected: () => selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), lastDistanceExpenseType), true),
+                },
             ],
             [CONST.IOU.TYPE.PAY]: [
                 {
@@ -207,16 +213,12 @@ function AttachmentPickerWithMenuItems({
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
                 },
-                ...(isManualDistanceTrackingEnabled
-                    ? [
-                          {
-                              icon: Expensicons.Location,
-                              text: translate('iou.trackDistance'),
-                              shouldCallAfterModalHide: shouldUseNarrowLayout,
-                              onSelected: () => selectOption(() => null, true),
-                          },
-                      ]
-                    : []),
+                {
+                    icon: Expensicons.Location,
+                    text: translate('iou.trackDistance'),
+                    shouldCallAfterModalHide: shouldUseNarrowLayout,
+                    onSelected: () => selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), lastDistanceExpenseType), true),
+                },
             ],
             [CONST.IOU.TYPE.INVOICE]: [
                 {
@@ -228,10 +230,24 @@ function AttachmentPickerWithMenuItems({
             ],
         };
 
-        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => options[option]);
+        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], isReportArchived, isRestrictedToPreferredPolicy).map(
+            (option) => options[option],
+        );
 
         return moneyRequestOptionsList.flat().filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
-    }, [translate, shouldUseNarrowLayout, report, policy, reportParticipantIDs, selectOption, isDelegateAccessRestricted, showDelegateNoAccessModal, isManualDistanceTrackingEnabled]);
+    }, [
+        translate,
+        shouldUseNarrowLayout,
+        report,
+        policy,
+        reportParticipantIDs,
+        selectOption,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
+        isReportArchived,
+        lastDistanceExpenseType,
+        isRestrictedToPreferredPolicy,
+    ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
         if (!isPolicyExpenseChat(report) || !isPaidGroupPolicy(report) || !isReportOwner(report)) {
@@ -242,10 +258,10 @@ function AttachmentPickerWithMenuItems({
             {
                 icon: Expensicons.Document,
                 text: translate('report.newReport.createReport'),
-                onSelected: () => selectOption(() => createNewReport(currentUserPersonalDetails, report?.policyID, true), true),
+                onSelected: () => selectOption(() => createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, report?.policyID), true),
             },
         ];
-    }, [currentUserPersonalDetails, report, selectOption, translate]);
+    }, [currentUserPersonalDetails, report, selectOption, translate, isASAPSubmitBetaEnabled, hasViolations]);
 
     /**
      * Determines if we can show the task option
@@ -360,7 +376,7 @@ function AttachmentPickerWithMenuItems({
                                                 setMenuVisibility(!isMenuVisible);
                                             }}
                                             style={styles.composerSizeButton}
-                                            disabled={isBlockedFromConcierge || disabled}
+                                            disabled={disabled}
                                             role={CONST.ROLE.BUTTON}
                                             accessibilityLabel={translate('common.create')}
                                         >
@@ -387,7 +403,7 @@ function AttachmentPickerWithMenuItems({
                                                     // Keep focus on the composer when Collapse button is clicked.
                                                     onMouseDown={(e) => e.preventDefault()}
                                                     style={styles.composerSizeButton}
-                                                    disabled={isBlockedFromConcierge || disabled}
+                                                    disabled={disabled}
                                                     role={CONST.ROLE.BUTTON}
                                                     accessibilityLabel={translate('reportActionCompose.collapse')}
                                                 >
@@ -411,7 +427,7 @@ function AttachmentPickerWithMenuItems({
                                                     // Keep focus on the composer when Expand button is clicked.
                                                     onMouseDown={(e) => e.preventDefault()}
                                                     style={styles.composerSizeButton}
-                                                    disabled={isBlockedFromConcierge || disabled}
+                                                    disabled={disabled}
                                                     role={CONST.ROLE.BUTTON}
                                                     accessibilityLabel={translate('reportActionCompose.expand')}
                                                 >

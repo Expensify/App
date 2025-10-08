@@ -1,7 +1,27 @@
 {
-    "extends": "../tsconfig.json",
     "compilerOptions": {
-        "incremental": false,
-        "esModuleInterop": true
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "target": "ES2023",
+        "types": ["node"],
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+        "downlevelIteration": true,
+        "baseUrl": ".",
+        "paths": {
+            "@assets/*": ["../assets/*"],
+            "@components/*": ["../src/components/*"],
+            "@desktop/*": ["../desktop/*"],
+            "@github/*": ["../.github/*"],
+            "@hooks/*": ["../src/hooks/*"],
+            "@libs/*": ["../src/libs/*"],
+            "@navigation/*": ["../src/libs/Navigation/*"],
+            "@pages/*": ["../src/pages/*"],
+            "@prompts/*": ["../prompts/*"],
+            "@scripts/*": ["../scripts/*", "../.github/scripts/*"],
+            "@styles/*": ["../src/styles/*"],
+            "@src/*": ["../src/*"],
+            "@userActions/*": ["../src/libs/actions/*"]
+        }
     }
 }

@@ -19,6 +19,8 @@ import {
 } from '@libs/actions/IOU';
 import {verifyTestDriveRecipient} from '@libs/actions/Onboarding';
 import setTestReceipt from '@libs/actions/setTestReceipt';
+import type AccountExistsError from '@libs/Errors/AccountExistsError';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TestDriveModalNavigatorParamList} from '@libs/Navigation/types';
@@ -35,6 +37,7 @@ function EmployeeTestDriveModal() {
     const reportID = generateReportID();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
+    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const route = useRoute<PlatformStackRouteProp<TestDriveModalNavigatorParamList, typeof SCREENS.TEST_DRIVE_MODAL.ROOT>>();
     const [bossEmail, setBossEmail] = useState(route.params?.bossEmail ?? '');
     const [formError, setFormError] = useState<string | undefined>();
@@ -47,6 +50,7 @@ function EmployeeTestDriveModal() {
     }, []);
 
     const navigate = () => {
+        Log.hmmm('[EmployeeTestDriveModal] Navigate function called', {bossEmail});
         const loginTrim = bossEmail.trim();
         if (!loginTrim || !Str.isValidEmail(loginTrim)) {
             setFormError(translate('common.error.email'));
@@ -57,6 +61,7 @@ function EmployeeTestDriveModal() {
 
         verifyTestDriveRecipient(bossEmail)
             .then(() => {
+                Log.hmmm('[EmployeeTestDriveModal] Test drive recipient verified');
                 setTestReceipt(
                     TestReceipt,
                     'jpg',
@@ -69,6 +74,7 @@ function EmployeeTestDriveModal() {
                             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                             report,
                             parentReport,
+                            currentDate,
                         });
 
                         setMoneyRequestReceipt(transactionID, source, filename, true, CONST.TEST_RECEIPT.FILE_TYPE, false, true);
@@ -86,20 +92,25 @@ function EmployeeTestDriveModal() {
                         setMoneyRequestMerchant(transactionID, testDrive.EMPLOYEE_FAKE_RECEIPT.MERCHANT, true);
                         setMoneyRequestCreated(transactionID, format(new Date(), CONST.DATE.FNS_FORMAT_STRING), true);
 
+                        Log.hmmm('[EmployeeTestDriveModal] Running after interactions');
+                        Navigation.goBack();
+                        // eslint-disable-next-line deprecation/deprecation
                         InteractionManager.runAfterInteractions(() => {
-                            Navigation.goBack();
+                            Log.hmmm('[EmployeeTestDriveModal] Calling Navigation.goBack() and Navigation.navigate()');
                             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
                         });
                     },
                     () => {
+                        Log.hmmm('[EmployeeTestDriveModal] Error setting test receipt');
                         setIsLoading(false);
-                        setFormError(translate('testDrive.modal.employee.error'));
+                        setFormError(translate('common.genericErrorMessage'));
                     },
                 );
             })
-            .catch(() => {
+            .catch((e: AccountExistsError) => {
+                Log.hmmm('[EmployeeTestDriveModal] Error verifying test drive recipient', {error: e});
                 setIsLoading(false);
-                setFormError(translate('testDrive.modal.employee.error'));
+                setFormError(e.translationKey ? translate(e.translationKey) : 'common.genericErrorMessage');
             });
     };
 

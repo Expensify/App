@@ -11,7 +11,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import RadioButtonWithLabel from '@components/RadioButtonWithLabel';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -21,7 +21,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import closeReactNativeApp from '@libs/actions/HybridApp';
 import {openOldDotLink} from '@libs/actions/Link';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID, setOnboardingUserReportedIntegration} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,6 +28,7 @@ import {waitForIdle} from '@libs/Network/SequentialQueue';
 import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
+import {closeReactNativeApp} from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -103,7 +103,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-
     const [onboardingUserReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, {canBeMissing: true});
 
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(onboardingUserReportedIntegration ?? undefined);
@@ -132,7 +131,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         }
 
         if (CONFIG.IS_HYBRID_APP) {
-            closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+            closeReactNativeApp({shouldSetNVP: true});
             return;
         }
         waitForIdle().then(() => {
@@ -196,7 +195,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
 
         setOnboardingUserReportedIntegration(userReportedIntegration);
 
-        // Navigate to the next onboarding step with the selected integration
+        // Navigate to the next onboarding step interested features with the selected integration
         Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(route.params?.backTo));
     }, [translate, userReportedIntegration, route.params?.backTo]);
 

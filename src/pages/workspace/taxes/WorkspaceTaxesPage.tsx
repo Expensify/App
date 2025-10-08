@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator, InteractionManager, View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceTaxRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
@@ -7,17 +8,16 @@ import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
-import TableListItem from '@components/SelectionList/TableListItem';
-import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+import TableListItem from '@components/SelectionListWithSections/TableListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -25,7 +25,6 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -64,9 +63,7 @@ function WorkspaceTaxesPage({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
-    const {environmentURL} = useEnvironment();
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
@@ -245,13 +242,14 @@ function WorkspaceTaxesPage({
         if (!policy?.id) {
             return;
         }
-        deletePolicyTaxes(policy, selectedTaxesIDs);
+        deletePolicyTaxes(policy, selectedTaxesIDs, localeCompare);
         setIsDeleteModalVisible(false);
 
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             setSelectedTaxesIDs([]);
         });
-    }, [policy, selectedTaxesIDs]);
+    }, [policy, selectedTaxesIDs, localeCompare]);
 
     const toggleTaxes = useCallback(
         (isEnabled: boolean) => {
@@ -362,17 +360,13 @@ function WorkspaceTaxesPage({
     const headerContent = (
         <>
             <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                {!hasSyncError && isConnectionVerified ? (
-                    <Text>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.taxes.importedFromAccountingSoftware')} `}</Text>
-                        <TextLink
-                            style={[styles.textNormal, styles.link]}
-                            href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                        >
-                            {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
-                        </TextLink>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
-                    </Text>
+                {!hasSyncError && isConnectionVerified && currentConnectionName ? (
+                    <ImportedFromAccountingSoftware
+                        policyID={policyID}
+                        currentConnectionName={currentConnectionName}
+                        connectedIntegration={connectedIntegration}
+                        translatedText={translate('workspace.taxes.importedFromAccountingSoftware')}
+                    />
                 ) : (
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
                 )}
@@ -421,7 +415,6 @@ function WorkspaceTaxesPage({
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        color={theme.spinner}
                     />
                 )}
                 <SelectionListWithModal

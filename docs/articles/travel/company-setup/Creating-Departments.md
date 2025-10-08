@@ -4,7 +4,6 @@ description: Learn how travel admins can create departments in Expensify to orga
 keywords: [create department, travel admin, travel policy, user groups, assign department, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Departments help travel admins group employees together and apply travel policies by department, user, or legal entity.
 
@@ -76,4 +75,3 @@ Update their assignment under **Program** > **Users** to reflect their new depar
 ## Can departments be imported from Expensify or my accounting software?
 Not at this time. If this functionality would benefit your team, talk to your Account Manager to share feedback and explore alternatives.
 
-</div>

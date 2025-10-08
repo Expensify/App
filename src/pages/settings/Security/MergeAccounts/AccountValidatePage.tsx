@@ -1,16 +1,18 @@
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
 import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -27,6 +29,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Account} from '@src/types/onyx';
 
 const getMergeErrorPage = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> | null => {
     if (err.includes('403')) {
@@ -72,19 +75,21 @@ const getAuthenticationErrorKey = (err: string): TranslationPaths | null => {
     return 'mergeAccountsPage.accountValidate.errors.fallback';
 };
 
+const accountSelector = (account: OnyxEntry<Account>) => ({
+    mergeWithValidateCode: account?.mergeWithValidateCode,
+    getValidateCodeForAccountMerge: account?.getValidateCodeForAccountMerge,
+});
+
 function AccountValidatePage() {
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
     const navigation = useNavigation();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: (data) => ({
-            mergeWithValidateCode: data?.mergeWithValidateCode,
-            getValidateCodeForAccountMerge: data?.getValidateCodeForAccountMerge,
-        }),
+        selector: accountSelector,
         canBeMissing: true,
     });
 
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
+    const privateSubscription = usePrivateSubscription();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_VALIDATE>>();
@@ -122,6 +127,7 @@ function AccountValidatePage() {
 
     useFocusEffect(
         useCallback(() => {
+            // eslint-disable-next-line deprecation/deprecation
             const task = InteractionManager.runAfterInteractions(() => {
                 if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.INVOICING) {
                     return;
@@ -170,14 +176,12 @@ function AccountValidatePage() {
                     descriptionPrimaryStyles={{...styles.mb8, ...styles.textStrong}}
                     descriptionSecondary={
                         <View style={[styles.w100]}>
-                            <Text style={[styles.mb8]}>
-                                {translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData')}
-                                <Text style={styles.textStrong}>{email}</Text>.
-                            </Text>
-                            <Text>
-                                {translate('mergeAccountsPage.accountValidate.enterMagicCode')}
-                                <Text style={styles.textStrong}>{email}</Text>.
-                            </Text>
+                            <View style={[styles.mb8, styles.renderHTML, styles.flexRow]}>
+                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData', {login: email})} />
+                            </View>
+                            <View style={[styles.renderHTML, styles.flexRow]}>
+                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.enterMagicCode', {login: email})} />
+                            </View>
                         </View>
                     }
                     descriptionSecondaryStyles={styles.mb8}

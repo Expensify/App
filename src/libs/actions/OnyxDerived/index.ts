@@ -17,6 +17,7 @@ import {setDerivedValue} from './utils';
 
 /**
  * Initialize all Onyx derived values, store them in Onyx, and setup listeners to update them when dependencies change.
+ * Using connectWithoutView in this function since this is only executed once while initializing the App.
  */
 function init() {
     for (const [key, {compute, dependencies}] of ObjectUtils.typedEntries(ONYX_DERIVED_VALUES)) {
@@ -63,24 +64,23 @@ function init() {
                 }
             };
 
+            // Create context once outside the function, swap values inline to avoid overhead of creating new objects frequently
+            const context: DerivedValueContext<typeof key, typeof dependencies> = {
+                currentValue: undefined,
+                sourceValues: undefined,
+                areAllConnectionsSet: false,
+            };
+
             const recomputeDerivedValue = (sourceKey?: string, sourceValue?: unknown, triggeredByIndex?: number) => {
                 // If this recompute was triggered by a connection callback, check if it initializes the connection
                 if (triggeredByIndex !== undefined) {
                     checkAndMarkConnectionInitialized(triggeredByIndex);
                 }
 
-                const context: DerivedValueContext<typeof key, typeof dependencies> = {
-                    currentValue: derivedValue,
-                    sourceValues: undefined,
-                    areAllConnectionsSet,
-                };
+                context.currentValue = derivedValue;
+                context.areAllConnectionsSet = areAllConnectionsSet;
+                context.sourceValues = sourceKey && sourceValue !== undefined ? {[sourceKey]: sourceValue} : undefined;
 
-                // If we got a source key and value, add it to the sourceValues object
-                if (sourceKey && sourceValue !== undefined) {
-                    context.sourceValues = {
-                        [sourceKey]: sourceValue,
-                    };
-                }
                 // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
                 const newDerivedValue = compute(dependencyValues, context);
                 Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
@@ -93,7 +93,7 @@ function init() {
                 const dependencyOnyxKey = dependencies[dependencyIndex];
 
                 if (OnyxUtils.isCollectionKey(dependencyOnyxKey)) {
-                    Onyx.connect({
+                    Onyx.connectWithoutView({
                         key: dependencyOnyxKey,
                         waitForCollectionCallback: true,
                         callback: (value, collectionKey, sourceValue) => {
@@ -104,7 +104,7 @@ function init() {
                     });
                 } else if (dependencyOnyxKey === ONYXKEYS.NVP_PREFERRED_LOCALE) {
                     // Special case for locale, we want to recompute derived values when the locale change actually loads.
-                    Onyx.connect({
+                    Onyx.connectWithoutView({
                         key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
                         initWithStoredValues: false,
                         callback: (value) => {
@@ -124,7 +124,7 @@ function init() {
                         },
                     });
                 } else {
-                    Onyx.connect({
+                    Onyx.connectWithoutView({
                         key: dependencyOnyxKey,
                         callback: (value) => {
                             Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);

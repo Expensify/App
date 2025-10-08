@@ -1,25 +1,24 @@
+import {activePolicySelector} from '@selectors/Policy';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import {EmptyStateExpenses} from '@components/Icon/Illustrations';
-import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import TagPicker from '@components/TagPicker';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftSplitTransaction, setMoneyRequestTag, updateMoneyRequestTag} from '@libs/actions/IOU';
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTagList, getTagListName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isPolicyAdmin} from '@libs/PolicyUtils';
-import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {canEditMoneyRequest, isReportInGroupPolicy} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {areRequiredFieldsEmpty, getTag} from '@libs/TransactionUtils';
+import {getTag, getTagArrayFromName, isExpenseUnreported as isExpenseUnreportedTransactionUtils} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,15 +40,17 @@ function IOURequestStepTag({
     transaction,
 }: IOURequestStepTagProps) {
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: false});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
-    let reportID: string | undefined;
-    if (action === CONST.IOU.ACTION.EDIT) {
-        reportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID : report?.parentReportID;
-    }
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canEvict: false, canBeMissing: true});
-    const session = useSession();
+    const [reportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
+        canBeMissing: true,
+        selector: activePolicySelector,
+    });
+    const isExpenseUnreported = isExpenseUnreportedTransactionUtils(transaction);
+    const policy = isExpenseUnreported ? activePolicy : reportPolicy;
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: false});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: false});
+
     const styles = useThemeStyles();
     const {currentSearchHash} = useSearchContext();
     const {translate} = useLocalize();
@@ -64,28 +65,14 @@ function IOURequestStepTag({
     const currentTransaction = isEditingSplit && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionTag = getTag(currentTransaction);
     const tag = getTag(currentTransaction, tagListIndex);
-    const reportAction = reportActions?.[report?.parentReportActionID ?? reportActionID] ?? null;
-    const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
-    const canEditSplitExpense = isSplitExpense && !!transaction;
+
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
     const shouldShowTag = transactionTag || hasEnabledTags(policyTagLists);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    let shouldShowNotFoundPage = false;
-
-    if (!isReportInGroupPolicy(report)) {
-        shouldShowNotFoundPage = true;
-    } else if (isEditing) {
-        if (isSplitBill) {
-            shouldShowNotFoundPage = !canEditSplitBill;
-        } else if (isSplitExpense) {
-            shouldShowNotFoundPage = !canEditSplitExpense;
-        } else {
-            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction);
-        }
-    }
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -97,7 +84,7 @@ function IOURequestStepTag({
         let updatedTag: string;
 
         if (hasDependentTags) {
-            const tagParts = transactionTag ? transactionTag.split(':') : [];
+            const tagParts = transactionTag ? getTagArrayFromName(transactionTag) : [];
 
             if (isSelectedTag) {
                 // Deselect: clear this and all child tags
@@ -127,7 +114,7 @@ function IOURequestStepTag({
             updatedTag = tagParts.join(':');
         } else {
             // Independent tags (fallback): use comma-separated list
-            updatedTag = insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : searchText, tagListIndex);
+            updatedTag = insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : searchText, tagListIndex, policy?.hasMultipleTagLists ?? false);
         }
 
         if (isEditingSplit) {
@@ -188,7 +175,7 @@ function IOURequestStepTag({
                 <>
                     <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection')}</Text>
                     <TagPicker
-                        policyID={report?.policyID}
+                        policyID={policy?.id}
                         tagListName={policyTagListName}
                         tagListIndex={tagListIndex}
                         selectedTag={tag}

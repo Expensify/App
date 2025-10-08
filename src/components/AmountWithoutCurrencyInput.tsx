@@ -1,10 +1,9 @@
 import React, {useCallback, useMemo} from 'react';
-import type {ForwardedRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
+import getAmountInputKeyboard from '@libs/getAmountInputKeyboard';
 import {replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount} from '@libs/MoneyRequestUtils';
-import CONST from '@src/CONST';
 import TextInput from './TextInput';
-import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
+import type {BaseTextInputProps} from './TextInput/BaseTextInput/types';
 
 type AmountFormProps = {
     /** Amount supplied by the FormProvider */
@@ -17,10 +16,19 @@ type AmountFormProps = {
     shouldAllowNegative?: boolean;
 } & Partial<BaseTextInputProps>;
 
-function AmountWithoutCurrencyInput(
-    {value: amount, shouldAllowNegative = false, inputID, name, defaultValue, accessibilityLabel, role, label, onInputChange, ...rest}: AmountFormProps,
-    ref: ForwardedRef<BaseTextInputRef>,
-) {
+function AmountWithoutCurrencyInput({
+    value: amount,
+    shouldAllowNegative = false,
+    inputID,
+    name,
+    defaultValue,
+    accessibilityLabel,
+    role,
+    label,
+    onInputChange,
+    ref,
+    ...rest
+}: AmountFormProps) {
     const {toLocaleDigit} = useLocalize();
     const separator = useMemo(
         () =>
@@ -57,6 +65,8 @@ function AmountWithoutCurrencyInput(
         },
     ];
 
+    const {keyboardType, inputMode} = getAmountInputKeyboard(shouldAllowNegative);
+
     return (
         <TextInput
             inputID={inputID}
@@ -67,7 +77,8 @@ function AmountWithoutCurrencyInput(
             accessibilityLabel={accessibilityLabel}
             role={role}
             ref={ref}
-            keyboardType={!shouldAllowNegative ? CONST.KEYBOARD_TYPE.DECIMAL_PAD : undefined}
+            keyboardType={keyboardType}
+            inputMode={inputMode}
             type="mask"
             mask={shouldAllowNegative ? `[~][99999999]${separator}[09]` : `[09999999]${separator}[09]`}
             customNotations={customMask}
@@ -84,4 +95,4 @@ function AmountWithoutCurrencyInput(
 
 AmountWithoutCurrencyInput.displayName = 'AmountWithoutCurrencyInput';
 
-export default React.forwardRef(AmountWithoutCurrencyInput);
+export default AmountWithoutCurrencyInput;

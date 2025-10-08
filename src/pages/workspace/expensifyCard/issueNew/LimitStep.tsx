@@ -19,13 +19,19 @@ import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 type LimitStepProps = {
     /** ID of the policy */
     policyID: string | undefined;
+
+    /** Array of step names */
+    stepNames: readonly string[];
+
+    /** Start from step index */
+    startStepIndex: number;
 };
 
-function LimitStep({policyID}: LimitStepProps) {
+function LimitStep({policyID, stepNames, startStepIndex}: LimitStepProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
     const isEditing = issueNewCard?.isEditing;
 
     const submit = useCallback(
@@ -75,8 +81,8 @@ function LimitStep({policyID}: LimitStepProps) {
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={3}
-            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            startStepIndex={startStepIndex}
+            stepNames={stepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.setLimit')}</Text>
@@ -95,8 +101,9 @@ function LimitStep({policyID}: LimitStepProps) {
             >
                 <InputWrapper
                     InputComponent={AmountForm}
-                    defaultValue={convertToFrontendAmountAsString(issueNewCard?.data?.limit, CONST.CURRENCY.USD, false)}
+                    defaultValue={convertToFrontendAmountAsString(issueNewCard?.data?.limit, issueNewCard?.data?.currency, false)}
                     isCurrencyPressable={false}
+                    currency={issueNewCard?.data?.currency}
                     inputID={INPUT_IDS.LIMIT}
                     ref={inputCallbackRef}
                 />

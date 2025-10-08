@@ -34,7 +34,7 @@ function WorkspaceEditTaxPage({
     policy,
 }: WorkspaceEditTaxPageBaseProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const currentTaxID = getCurrentTaxID(policy, taxID);
     const currentTaxRate = currentTaxID && policy?.taxRates?.taxes?.[currentTaxID];
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -60,7 +60,7 @@ function WorkspaceEditTaxPage({
         if (!policyID) {
             return;
         }
-        deletePolicyTaxes(policy, [taxID]);
+        deletePolicyTaxes(policy, [taxID], localeCompare);
         setIsDeleteModalVisible(false);
         Navigation.goBack();
     };

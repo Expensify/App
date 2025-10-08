@@ -8,7 +8,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
-import {getDistanceRateCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -167,7 +167,7 @@ function getTagViolationsForMultiLevelTags(
 /**
  * Returns a period-separated string of violation messages for missing tag levels in a multi-level tag, based on error indexes.
  */
-function getTagViolationMessagesForMultiLevelTags(tagName: string, errorIndexes: number[], tags: PolicyTagLists, translate: LocaleContextProps['translate']): string {
+function getTagViolationMessagesForMultiLevelTags(tagName: string | undefined, errorIndexes: number[], tags: PolicyTagLists, translate: LocaleContextProps['translate']): string {
     if (isEmpty(errorIndexes) || isEmpty(tags)) {
         return translate('violations.someTagLevelsRequired', {tagName});
     }
@@ -226,7 +226,10 @@ const ViolationsUtils = {
         hasDependentTags: boolean,
         isInvoiceTransaction: boolean,
     ): OnyxUpdate {
-        if (TransactionUtils.isPartial(updatedTransaction)) {
+        const isScanning = TransactionUtils.isScanning(updatedTransaction);
+        const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
+        const isPartialTransaction = TransactionUtils.isPartial(updatedTransaction);
+        if (isPartialTransaction && isScanning) {
             return {
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
@@ -235,6 +238,19 @@ const ViolationsUtils = {
         }
 
         let newTransactionViolations = [...transactionViolations];
+
+        const shouldShowSmartScanFailedError = isScanRequest && updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
+        const hasSmartScanFailedError = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
+        if (shouldShowSmartScanFailedError && !hasSmartScanFailedError) {
+            return {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
+                value: [{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}],
+            };
+        }
+        if (!shouldShowSmartScanFailedError && hasSmartScanFailedError) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.SMARTSCAN_FAILED});
+        }
 
         // Calculate client-side category violations
         const policyRequiresCategories = !!policy.requiresCategory;
@@ -274,8 +290,20 @@ const ViolationsUtils = {
                     : getTagViolationsForMultiLevelTags(updatedTransaction, newTransactionViolations, policyTagList, hasDependentTags);
         }
 
-        if (updatedTransaction?.comment?.customUnit?.customUnitRateID && !!getDistanceRateCustomUnitRate(policy, updatedTransaction?.comment?.customUnit?.customUnitRateID)) {
-            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
+        const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID;
+        if (customUnitRateID && customUnitRateID.length > 0) {
+            const isPerDiem = TransactionUtils.isPerDiemRequest(updatedTransaction);
+            const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policy, customUnitRateID);
+
+            if (customRate) {
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
+            } else {
+                newTransactionViolations.push({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                });
+            }
         }
 
         const isControlPolicy = policy.type === CONST.POLICY.TYPE.CORPORATE;
@@ -284,8 +312,14 @@ const ViolationsUtils = {
         const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && violation.data);
         const hasCategoryReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && !violation.data);
         const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT);
+        // TODO: Uncomment when the OVER_TRIP_LIMIT violation is implemented
+        // const hasOverTripLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_TRIP_LIMIT);
         const hasCategoryOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
         const hasMissingCommentViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_COMMENT);
+        const hasTaxOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
+        const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
+        const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
+
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const amount = updatedTransaction.modifiedAmount || updatedTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -353,7 +387,7 @@ const ViolationsUtils = {
                     shouldShowCategoryReceiptRequiredViolation || !policy.maxExpenseAmountNoReceipt
                         ? undefined
                         : {
-                              formattedLimit: CurrencyUtils.convertAmountToDisplayString(policy.maxExpenseAmountNoReceipt, policy.outputCurrency),
+                              formattedLimit: CurrencyUtils.convertToDisplayString(policy.maxExpenseAmountNoReceipt, policy.outputCurrency, true),
                           },
                 type: CONST.VIOLATION_TYPES.VIOLATION,
                 showInReview: true,
@@ -379,6 +413,22 @@ const ViolationsUtils = {
             });
         }
 
+        // TODO: Uncomment when the OVER_TRIP_LIMIT violation is implemented
+        // if (canCalculateAmountViolations && !hasOverTripLimitViolation && Math.abs(updatedTransaction.amount) < Math.abs(amount) && TransactionUtils.hasReservationList(updatedTransaction)) {
+        //     newTransactionViolations.push({
+        //         name: CONST.VIOLATIONS.OVER_TRIP_LIMIT,
+        //         data: {
+        //             formattedLimit: CurrencyUtils.convertAmountToDisplayString(updatedTransaction.amount, updatedTransaction.currency),
+        //         },
+        //         type: CONST.VIOLATION_TYPES.VIOLATION,
+        //         showInReview: true,
+        //     });
+        // }
+
+        // if (canCalculateAmountViolations && hasOverTripLimitViolation && Math.abs(updatedTransaction.amount) >= Math.abs(amount) && TransactionUtils.hasReservationList(updatedTransaction)) {
+        //     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_TRIP_LIMIT});
+        // }
+
         if (!hasMissingCommentViolation && shouldShowMissingComment) {
             newTransactionViolations.push({
                 name: CONST.VIOLATIONS.MISSING_COMMENT,
@@ -391,6 +441,13 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_COMMENT});
         }
 
+        if (isPolicyTrackTaxEnabled && !hasTaxOutOfPolicyViolation && !isTaxInPolicy) {
+            newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION});
+        }
+
+        if (isPolicyTrackTaxEnabled && hasTaxOutOfPolicyViolation && isTaxInPolicy) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY});
+        }
         return {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
@@ -413,13 +470,11 @@ const ViolationsUtils = {
             isTransactionOlderThan7Days = false,
             member,
             category,
-            rejectedBy = '',
-            rejectReason = '',
             formattedLimit = '',
             surcharge = 0,
             invoiceMarkup = 0,
             maxAge = 0,
-            tagName = '',
+            tagName,
             taxName,
             type,
             rterType,
@@ -431,10 +486,7 @@ const ViolationsUtils = {
             case 'allTagLevelsRequired':
                 return translate('violations.allTagLevelsRequired');
             case 'autoReportedRejectedExpense':
-                return translate('violations.autoReportedRejectedExpense', {
-                    rejectedBy,
-                    rejectReason,
-                });
+                return translate('violations.autoReportedRejectedExpense');
             case 'billableExpense':
                 return translate('violations.billableExpense');
             case 'cashExpenseWithNoReceipt':
@@ -473,6 +525,8 @@ const ViolationsUtils = {
                 return translate('violations.overCategoryLimit', {formattedLimit});
             case 'overLimit':
                 return translate('violations.overLimit', {formattedLimit});
+            case 'overTripLimit':
+                return translate('violations.overTripLimit', {formattedLimit});
             case 'overLimitAttendee':
                 return translate('violations.overLimitAttendee', {formattedLimit});
             case 'perDayLimit':

@@ -22,9 +22,7 @@ function PlaidStep({onNext}: SubStepProps) {
     const selectedPlaidAccountID = personalBankAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '';
 
     const handleNextPress = useCallback(() => {
-        const selectedPlaidBankAccount = (plaidData?.bankAccounts ?? []).find(
-            (account) => account.plaidAccountID === personalBankAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? null,
-        );
+        const selectedPlaidBankAccount = (plaidData?.bankAccounts ?? []).find((account) => account.plaidAccountID === personalBankAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]);
 
         const bankAccountData = {
             [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: selectedPlaidBankAccount?.[BANK_INFO_STEP_KEYS.ROUTING_NUMBER],

@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useMemo} from 'react';
+import React, {useCallback, useContext, useMemo, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -17,9 +17,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -28,6 +30,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {clearIssueNewCardFormData, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {filterCardsByPersonalDetails, getCardsByCardholderName, sortCardsByCardholderName} from '@libs/CardUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -58,12 +61,12 @@ type WorkspaceExpensifyCardListPageProps = {
 
 function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExpensifyCardListPageProps) {
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
 
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const defaultFundID = useDefaultFundID(policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`, {canBeMissing: true});
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`, {canBeMissing: false});
@@ -73,15 +76,16 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
 
     const isBankAccountVerified = !cardOnWaitlist;
     const {windowHeight} = useWindowDimensions();
     const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
+    const [footerHeight, setFooterHeight] = useState(0);
 
-    // Currently Expensify Cards only support USD, once support for more currencies is implemented, we will need to update this
-    const settlementCurrency = CONST.CURRENCY.USD;
+    const settlementCurrency = useCurrencyForExpensifyCard({policyID});
 
     const allCards = useMemo(() => {
         const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
@@ -89,10 +93,11 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     }, [cardsList, policy?.employeeList]);
 
     const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
-    const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails), [personalDetails]);
+    const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare), [personalDetails, localeCompare]);
     const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
 
     const handleIssueCardPress = () => {
+        clearIssueNewCardFormData();
         if (isAccountLocked) {
             showLockedAccountModal();
             return;
@@ -102,6 +107,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             return;
         }
         const activeRoute = Navigation.getActiveRoute();
+        setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
     };
 
@@ -119,13 +125,15 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const getHeaderButtons = () => (
         <View style={[styles.flexRow, styles.gap2, !shouldShowSelector && shouldUseNarrowLayout && styles.mb3, shouldShowSelector && shouldChangeLayout && styles.mt3]}>
-            <Button
-                success
-                onPress={handleIssueCardPress}
-                icon={Plus}
-                text={translate('workspace.expensifyCard.issueCard')}
-                style={shouldChangeLayout && styles.flex1}
-            />
+            {!isEmptyObject(cardsList) && (
+                <Button
+                    success
+                    onPress={handleIssueCardPress}
+                    icon={Plus}
+                    text={translate('workspace.expensifyCard.issueCard')}
+                    style={shouldChangeLayout && styles.flex1}
+                />
+            )}
             <ButtonWithDropdownMenu
                 success={false}
                 onPress={() => {}}
@@ -133,7 +141,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 customText={translate('common.more')}
                 options={secondaryActions}
                 isSplitButton={false}
-                wrapperStyle={styles.flexGrow0}
+                wrapperStyle={isEmptyObject(cardsList) ? styles.flexGrow1 : styles.flexGrow0}
             />
         </View>
     );
@@ -145,7 +153,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 pendingAction={item.pendingAction}
                 errorRowStyles={styles.ph5}
                 errors={item.errors}
-                onClose={() => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, item.cardID)}
+                onClose={() => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, item.cardID)}
             >
                 <PressableWithFeedback
                     role={CONST.ROLE.BUTTON}
@@ -165,7 +173,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 </PressableWithFeedback>
             </OfflineWithFeedback>
         ),
-        [personalDetails, settlementCurrency, policyID, workspaceAccountID, styles],
+        [personalDetails, settlementCurrency, policyID, defaultFundID, styles],
     );
 
     const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
@@ -190,8 +198,6 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             {!isSearchEmpty && <WorkspaceCardListHeader cardSettings={cardSettings} />}
         </>
     );
-
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle();
 
     const handleBackButtonPress = () => {
         Navigation.popToSidebar();
@@ -230,22 +236,38 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 </View>
             )}
             {isEmptyObject(cardsList) ? (
-                <EmptyCardView isBankAccountVerified={isBankAccountVerified} />
+                <EmptyCardView
+                    isBankAccountVerified={isBankAccountVerified}
+                    policyID={policyID}
+                    buttons={[
+                        {
+                            buttonText: translate('workspace.expensifyCard.issueCard'),
+                            buttonAction: handleIssueCardPress,
+                            success: true,
+                        },
+                    ]}
+                />
             ) : (
                 <ScrollView
                     addBottomSafeAreaPadding
                     showsVerticalScrollIndicator={false}
                 >
-                    <View style={{height: windowHeight - headerHeight}}>
-                        <FlatList
-                            data={filteredSortedCards}
-                            renderItem={renderItem}
-                            ListHeaderComponent={renderListHeader}
-                            contentContainerStyle={bottomSafeAreaPaddingStyle}
-                            keyboardShouldPersistTaps="handled"
-                        />
-                    </View>
-                    <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
+                    <FlatList
+                        data={filteredSortedCards}
+                        renderItem={renderItem}
+                        ListHeaderComponent={renderListHeader}
+                        contentContainerStyle={[styles.flexGrow1, {minHeight: windowHeight - headerHeight + footerHeight}]}
+                        ListFooterComponent={
+                            <Text
+                                style={[styles.textMicroSupporting, styles.p5]}
+                                onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)}
+                            >
+                                {translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
+                            </Text>
+                        }
+                        ListFooterComponentStyle={[styles.flexGrow1, styles.justifyContentEnd]}
+                        keyboardShouldPersistTaps="handled"
+                    />
                 </ScrollView>
             )}
         </ScreenWrapper>

@@ -1,12 +1,13 @@
+import reportsSelector from '@selectors/Attributes';
+import {emailSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
-import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {InteractionManager} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
-import type {PermissionStatus} from 'react-native-permissions';
 import Button from '@components/Button';
 import ContactPermissionModal from '@components/ContactPermissionModal';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
@@ -16,9 +17,10 @@ import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type {SelectionListHandle} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
+import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
+import useContactImport from '@hooks/useContactImport';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
@@ -27,17 +29,13 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
-import contactImport from '@libs/ContactImport';
-import type {ContactImportResult} from '@libs/ContactImport/types';
-import useContactPermissions from '@libs/ContactPermission/useContactPermissions';
-import getContacts from '@libs/ContactUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getPlatform from '@libs/getPlatform';
 import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import memoize from '@libs/memoize';
 import Navigation from '@libs/Navigation/Navigation';
-import type {Option, SearchOption, Section} from '@libs/OptionsListUtils';
+import type {Option, Section} from '@libs/OptionsListUtils';
 import {
     filterAndOrderOptions,
     formatSectionsFromSearchTerm,
@@ -59,7 +57,6 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ImportContactButton from './ImportContactButton';
@@ -84,28 +81,33 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
+
+    /** Whether this is a corporate card transaction */
+    isCorporateCardTransaction?: boolean;
+
+    /** Reference to the outer element */
+    ref?: Ref<InputFocusRef>;
 };
 
 type InputFocusRef = {
     focus?: () => void;
 };
 
-function MoneyRequestParticipantsSelector(
-    {
-        participants = CONST.EMPTY_ARRAY,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        onFinish = (_value?: string) => {},
-        onParticipantsAdded,
-        iouType,
-        action,
-        isPerDiemRequest = false,
-    }: MoneyRequestParticipantsSelectorProps,
-    ref: Ref<InputFocusRef>,
-) {
+function MoneyRequestParticipantsSelector({
+    participants = CONST.EMPTY_ARRAY,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onFinish = (_value?: string) => {},
+    onParticipantsAdded,
+    iouType,
+    action,
+    isPerDiemRequest = false,
+    isCorporateCardTransaction = false,
+    ref,
+}: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
+    const {contactPermissionState, contacts, setContactPermissionState, importAndSaveContacts} = useContactImport();
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
     const showImportContacts = isNative && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
@@ -115,15 +117,16 @@ function MoneyRequestParticipantsSelector(
     const personalDetails = usePersonalDetails();
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (session) => session?.email});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const {options, areOptionsInitialized, initializeOptions} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
-    const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListHandle | null>(null);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
@@ -134,15 +137,14 @@ function MoneyRequestParticipantsSelector(
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
-    const canShowManagerMcTest = useMemo(() => !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT, [hasBeenAddedToNudgeMigration, action]);
+    const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: (items) => Object.values(items ?? {}),
+        canBeMissing: true,
+    });
 
-    const importAndSaveContacts = useCallback(() => {
-        contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
-            setContactPermissionState(permissionStatus);
-            const usersFromContact = getContacts(contactList);
-            setContacts(usersFromContact);
-        });
-    }, []);
+    // This is necessary to prevent showing the Manager McTest when there are multiple transactions being created
+    const hasMultipleTransactions = (optimisticTransactions ?? []).length > 1;
+    const canShowManagerMcTest = useMemo(() => !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT, [hasBeenAddedToNudgeMigration, action]) && !hasMultipleTransactions;
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -153,13 +155,6 @@ function MoneyRequestParticipantsSelector(
         // e.g. if the approver was changed in the policy, we need to update the options list
         initializeOptions();
     }, [initializeOptions]);
-
-    useContactPermissions({
-        importAndSaveContacts,
-        setContacts,
-        contactPermissionState,
-        setContactPermissionState,
-    });
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
@@ -189,8 +184,8 @@ function MoneyRequestParticipantsSelector(
                 // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
                 excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
 
-                // Per diem expenses should only be submitted to workspaces, not individual users
-                includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest,
+                // Per diem expenses and corporate card transactions should only be submitted to workspaces, not individual users
+                includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isCorporateCardTransaction,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,
                 shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
@@ -221,6 +216,7 @@ function MoneyRequestParticipantsSelector(
         participants,
         isPerDiemRequest,
         canShowManagerMcTest,
+        isCorporateCardTransaction,
     ]);
 
     const chatOptions = useMemo(() => {
@@ -236,7 +232,7 @@ function MoneyRequestParticipantsSelector(
             };
         }
 
-        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {
             canInviteUser: !isCategorizeOrShareAction && !isPerDiemRequest,
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -245,7 +241,7 @@ function MoneyRequestParticipantsSelector(
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action, isPerDiemRequest]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action, isPerDiemRequest, countryCode]);
 
     const inputHelperText = useMemo(
         () =>
@@ -366,7 +362,7 @@ function MoneyRequestParticipantsSelector(
         (option: Participant & Option) => {
             const newParticipants: Participant[] = [
                 {
-                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM', 'text', 'phoneNumber'),
+                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM', 'text', 'phoneNumber', 'displayName'),
                     selected: true,
                     iouType,
                 },
@@ -481,8 +477,9 @@ function MoneyRequestParticipantsSelector(
 
     const initiateContactImportAndSetState = useCallback(() => {
         setContactPermissionState(RESULTS.GRANTED);
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(importAndSaveContacts);
-    }, [importAndSaveContacts]);
+    }, [importAndSaveContacts, setContactPermissionState]);
 
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
@@ -609,7 +606,6 @@ function MoneyRequestParticipantsSelector(
                 onDeny={setContactPermissionState}
                 onFocusTextInput={() => {
                     setTextInputAutoFocus(true);
-                    selectionListRef.current?.focusTextInput?.();
                 }}
             />
             <SelectionList
@@ -639,16 +635,20 @@ function MoneyRequestParticipantsSelector(
                 canSelectMultiple={isIOUSplit && isAllowedToSplit}
                 isLoadingNewOptions={!!isSearchingForReports}
                 shouldShowListEmptyContent={shouldShowListEmptyContent}
-                textInputAutoFocus={!isNative}
+                textInputAutoFocus={textInputAutoFocus}
                 ref={selectionListRef}
             />
         </>
     );
 }
 
-MoneyRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
+MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
 
 export default memo(
-    forwardRef(MoneyRequestParticipantsSelector),
-    (prevProps, nextProps) => deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType,
+    MoneyRequestParticipantsSelector,
+    (prevProps, nextProps) =>
+        deepEqual(prevProps.participants, nextProps.participants) &&
+        prevProps.iouType === nextProps.iouType &&
+        prevProps.onParticipantsAdded === nextProps.onParticipantsAdded &&
+        prevProps.onFinish === nextProps.onFinish,
 );

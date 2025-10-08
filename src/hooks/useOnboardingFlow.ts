@@ -1,17 +1,21 @@
+import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
+import {emailSelector} from '@selectors/Session';
 import {useEffect, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import {startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import CONFIG from '@src/CONFIG';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useOnyx from './useOnyx';
+import useSearchTypeMenuSections from './useSearchTypeMenuSections';
 
 /**
  * Hook to handle redirection to the onboarding flow based on the user's onboarding status
@@ -30,7 +34,7 @@ function useOnboardingFlowRouter() {
     const isOnboardingInitialPathLoading = isLoadingOnyxValue(onboardingInitialPathResult);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (session) => session?.email});
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const isLoggingInAsNewSessionUser = isLoggingInAsNewUser(currentUrl, sessionEmail);
     const startedOnboardingFlowRef = useRef(false);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
@@ -41,10 +45,12 @@ function useOnboardingFlowRouter() {
 
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
-    const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: (hybridApp) => hybridApp?.isSingleNewDotEntry, canBeMissing: true});
+    const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector, canBeMissing: true});
+    const {typeMenuSections} = useSearchTypeMenuSections();
 
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             // Prevent starting the onboarding flow if we are logging in as a new user with short lived token
             if (currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS) && isLoggingInAsNewSessionUser) {
@@ -61,11 +67,21 @@ function useOnboardingFlowRouter() {
             if (CONFIG.IS_HYBRID_APP && isLoadingOnyxValue(isSingleNewDotEntryMetadata)) {
                 return;
             }
+
+            if (currentUrl.endsWith('/r')) {
+                // Don't trigger onboarding if we are in the middle of a redirect to a report
+                return;
+            }
+
             if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining)) {
-                const defaultCannedQuery = buildCannedSearchQuery();
-                const query = defaultCannedQuery;
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
-                Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute(true));
+                const navigationState = navigationRef.getRootState();
+                const lastRoute = navigationState.routes.at(-1);
+                // Prevent duplicate navigation if the migrated user modal is already shown.
+                if (lastRoute?.name !== NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR) {
+                    const nonExploreTypeQuery = typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: nonExploreTypeQuery ?? buildCannedSearchQuery()}));
+                    Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute(true));
+                }
                 return;
             }
 
@@ -73,7 +89,7 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
-            const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboardingValues);
+            const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboardingValues) && onboardingValues?.testDriveModalDismissed !== false;
 
             if (CONFIG.IS_HYBRID_APP) {
                 // For single entries, such as using the Travel feature from OldDot, we don't want to show onboarding
@@ -134,6 +150,7 @@ function useOnboardingFlowRouter() {
         currentOnboardingPurposeSelected,
         onboardingInitialPath,
         isOnboardingInitialPathLoading,
+        typeMenuSections,
     ]);
 
     return {isOnboardingCompleted: hasCompletedGuidedSetupFlowSelector(onboardingValues), isHybridAppOnboardingCompleted};

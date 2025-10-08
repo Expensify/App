@@ -17,4 +17,4 @@ Distance rates make it easy to pay employees when they use their personal vehicl
 
 ---
 
-You can learn more about managing distance rates here ➡️ **[Set Distance Rates](https://help.expensify.com/articles/new-expensify/workspaces/Set-distance-rates)**.
+You can learn more about managing distance rates here ➡️ [Set Distance Rates](https://help.expensify.com/articles/new-expensify/workspaces/Set-distance-rates).

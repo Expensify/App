@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getDefaultApprover} from '@libs/PolicyUtils';
 import {calculateApprovers, convertApprovalWorkflowToPolicyEmployees} from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -13,14 +14,6 @@ import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy} from '@src/types
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-let currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
-Onyx.connect({
-    key: ONYXKEYS.APPROVAL_WORKFLOW,
-    callback: (approvalWorkflow) => {
-        currentApprovalWorkflow = approvalWorkflow;
-    },
-});
 
 let allPolicies: OnyxCollection<Policy>;
 Onyx.connect({
@@ -44,6 +37,18 @@ Onyx.connect({
         personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
     },
 });
+
+type SetApprovalWorkflowApproverParams = {
+    approver: Approver;
+    approverIndex: number;
+    policyID: string;
+    currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
+};
+
+type ClearApprovalWorkflowApproverParams = {
+    approverIndex: number;
+    currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
+};
 
 function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
@@ -93,7 +98,7 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                employeeList: Object.fromEntries(Object.keys(updatedEmployees).map((key) => [key, {pendingAction: null}])),
+                employeeList: Object.fromEntries(Object.keys(updatedEmployees).map((key) => [key, {pendingAction: null, pendingFields: null}])),
             },
         },
     ];
@@ -109,7 +114,7 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         return;
     }
 
-    const previousDefaultApprover = policy.approver ?? policy.owner;
+    const previousDefaultApprover = getDefaultApprover(policy);
     const newDefaultApprover = approvalWorkflow.isDefault ? approvalWorkflow.approvers.at(0)?.email : undefined;
     const previousEmployeeList = Object.fromEntries(Object.entries(policy.employeeList ?? {}).map(([key, value]) => [key, {...value, pendingAction: null}]));
     const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({
@@ -118,6 +123,7 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         type: CONST.APPROVAL_WORKFLOW.TYPE.UPDATE,
         membersToRemove,
         approversToRemove,
+        defaultApprover: newDefaultApprover ?? previousDefaultApprover ?? '',
     });
 
     // If there are no changes to the employees list, we can exit early
@@ -183,7 +189,7 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.REMOVE});
     const updatedEmployeeList = {...previousEmployeeList, ...updatedEmployees};
 
-    const defaultApprover = policy.approver ?? policy.owner;
+    const defaultApprover = getDefaultApprover(policy);
     // If there is more than one workflow, we need to keep the advanced approval mode (first workflow is the default)
     const hasMoreThanOneWorkflow = Object.values(updatedEmployeeList).some((employee) => !!employee.submitsTo && employee.submitsTo !== defaultApprover);
 
@@ -239,7 +245,7 @@ function setApprovalWorkflowMembers(members: Member[]) {
  * @param approverIndex - The index of the approver to set
  * @param policyID - The ID of the policy
  */
-function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, policyID: string) {
+function setApprovalWorkflowApprover({approver, approverIndex, policyID, currentApprovalWorkflow}: SetApprovalWorkflowApproverParams) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
     if (!currentApprovalWorkflow || !policy?.employeeList) {
@@ -281,7 +287,7 @@ function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, 
 }
 
 /** Clear one approver at the specified index in the approval workflow that is currently edited */
-function clearApprovalWorkflowApprover(approverIndex: number) {
+function clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow}: ClearApprovalWorkflowApproverParams) {
     if (!currentApprovalWorkflow) {
         return;
     }

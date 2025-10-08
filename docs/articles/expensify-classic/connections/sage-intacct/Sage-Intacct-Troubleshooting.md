@@ -4,7 +4,6 @@ description: Learn how to troubleshoot common synchronization and export errors 
 keywords: [Sage Intacct, troubleshooting, sync errors, export errors, Expensify Classic]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Synchronizing and exporting data between Expensify and Sage Intacct streamlines financial processes, but errors can occasionally occur due to incorrect settings, missing data, or configuration issues. This guide outlines solutions to common issues, ensuring a seamless connection between your systems.
 
@@ -205,4 +204,3 @@ Expensify cannot find a matching employee record in Sage Intacct.
 3. **Sync Expensify**  
    - Go to **Settings > Workspaces > [Workspace Name] > Accounting > Sync Now**.
 
-</div>

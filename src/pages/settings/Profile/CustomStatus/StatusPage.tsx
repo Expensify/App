@@ -10,6 +10,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -20,10 +21,15 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobileChrome} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import focusAfterModalClose from '@libs/focusAfterModalClose';
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {clearCustomStatus, clearDraftCustomStatus, updateCustomStatus, updateDraftCustomStatus} from '@userActions/User';
+import {clearVacationDelegateError} from '@userActions/VacationDelegate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,6 +47,11 @@ function StatusPage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const formRef = useRef<FormRef>(null);
     const [brickRoadIndicator, setBrickRoadIndicator] = useState<ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>>();
+
+    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
+    const hasVacationDelegate = !!vacationDelegate?.delegate;
+    const vacationDelegatePersonalDetails = getPersonalDetailByEmail(vacationDelegate?.delegate ?? '');
+    const formattedDelegateLogin = formatPhoneNumber(vacationDelegatePersonalDetails?.login ?? '');
 
     const currentUserEmojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const currentUserStatusText = currentUserPersonalDetails?.status?.text ?? '';
@@ -71,9 +82,13 @@ function StatusPage() {
 
     const navigateBackToPreviousScreenTask = useRef<{
         then: (
+            // eslint-disable-next-line deprecation/deprecation
             onfulfilled?: () => typeof InteractionManager.runAfterInteractions,
+            // eslint-disable-next-line deprecation/deprecation
             onrejected?: () => typeof InteractionManager.runAfterInteractions,
+            // eslint-disable-next-line deprecation/deprecation
         ) => Promise<typeof InteractionManager.runAfterInteractions>;
+        // eslint-disable-next-line deprecation/deprecation
         done: (...args: Array<typeof InteractionManager.runAfterInteractions>) => typeof InteractionManager.runAfterInteractions;
         cancel: () => void;
     } | null>(null);
@@ -107,8 +122,9 @@ function StatusPage() {
                 emojiCode: !emojiCode && statusText ? initialEmoji : emojiCode,
                 clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
             });
-            clearDraftCustomStatus();
+            // eslint-disable-next-line deprecation/deprecation
             navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
+                clearDraftCustomStatus();
                 navigateBackToPreviousScreen();
             });
         },
@@ -127,6 +143,7 @@ function StatusPage() {
         });
         formRef.current?.resetForm({[INPUT_IDS.EMOJI_CODE]: ''});
 
+        // eslint-disable-next-line deprecation/deprecation
         navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
             navigateBackToPreviousScreen();
         });
@@ -163,6 +180,7 @@ function StatusPage() {
     );
 
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
+    const fallbackVacationDelegateLogin = formattedDelegateLogin === '' ? vacationDelegate?.delegate : formattedDelegateLogin;
 
     return (
         <ScreenWrapper
@@ -190,7 +208,7 @@ function StatusPage() {
                 <View style={[styles.mh5, styles.mv1]}>
                     <Text style={[styles.textNormal, styles.mt2]}>{translate('statusPage.statusExplanation')}</Text>
                 </View>
-                <View style={[styles.mb2, styles.mt4]}>
+                <View style={[styles.mt4]}>
                     <View style={[styles.mb4, styles.ph5]}>
                         <InputWrapper
                             InputComponent={EmojiPickerButtonDropdown}
@@ -199,7 +217,15 @@ function StatusPage() {
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={defaultEmoji}
                             style={styles.mb3}
-                            onModalHide={() => focusAfterModalClose(inputRef.current)}
+                            onModalHide={() => {
+                                // On mobile Chrome, the input will blur immediately upon focus if the focus function is called right after the modal closes, even though the modal has fully closed.
+                                // Therefore, use the `focusComposerWithDelay` helper as used in `ComposerWithSuggestions` for this case.
+                                if (isMobileChrome()) {
+                                    focusComposerWithDelay(inputRef.current)(true);
+                                } else {
+                                    focusAfterModalClose(inputRef.current);
+                                }
+                            }}
                             // eslint-disable-next-line @typescript-eslint/no-unused-vars
                             onInputChange={(emoji: string): void => {}}
                         />
@@ -224,12 +250,42 @@ function StatusPage() {
                     {(!!currentUserEmojiCode || !!currentUserStatusText) && (
                         <MenuItem
                             title={translate('statusPage.clearStatus')}
-                            titleStyle={styles.ml0}
                             icon={Expensicons.Trashcan}
                             onPress={clearStatus}
-                            iconFill={theme.danger}
-                            wrapperStyle={[styles.pl2]}
                         />
+                    )}
+                </View>
+                <View style={[styles.mb2, styles.mt6]}>
+                    <Text style={[styles.mh5]}>{translate('statusPage.setVacationDelegate')}</Text>
+                    {hasVacationDelegate && <Text style={[styles.mh5, styles.mt6, styles.mutedTextLabel]}>{translate('statusPage.vacationDelegate')}</Text>}
+                    {hasVacationDelegate ? (
+                        <OfflineWithFeedback
+                            pendingAction={vacationDelegate?.pendingAction}
+                            errors={vacationDelegate?.errors}
+                            errorRowStyles={styles.mh5}
+                            onClose={() => clearVacationDelegateError(vacationDelegate?.previousDelegate)}
+                        >
+                            <MenuItem
+                                title={vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin}
+                                description={fallbackVacationDelegateLogin}
+                                avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                                icon={vacationDelegatePersonalDetails?.avatar ?? Expensicons.FallbackAvatar}
+                                iconType={CONST.ICON_TYPE_AVATAR}
+                                numberOfLinesDescription={1}
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
+                                containerStyle={styles.pr2}
+                            />
+                        </OfflineWithFeedback>
+                    ) : (
+                        <View style={[styles.mt1]}>
+                            <MenuItem
+                                description={translate('statusPage.vacationDelegate')}
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
+                                containerStyle={styles.pr2}
+                            />
+                        </View>
                     )}
                 </View>
             </FormProvider>

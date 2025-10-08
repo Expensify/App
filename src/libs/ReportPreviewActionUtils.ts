@@ -3,15 +3,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import {getCurrentUserAccountID} from './actions/Report';
-import {
-    arePaymentsEnabled,
-    getCorrectedAutoReportingFrequency,
-    getSubmitToAccountID,
-    getValidConnectedIntegration,
-    hasIntegrationAutoSync,
-    isPolicyAdmin,
-    isPreferredExporter,
-} from './PolicyUtils';
+import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasIntegrationAutoSync, isPolicyAdmin, isPreferredExporter} from './PolicyUtils';
 import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
     getMoneyRequestSpendBreakdown,
@@ -19,6 +11,8 @@ import {
     getReportTransactions,
     hasAnyViolations as hasAnyViolationsUtil,
     hasMissingSmartscanFields,
+    hasReportBeenReopened as hasReportBeenReopenedUtils,
+    hasReportBeenRetracted as hasReportBeenRetractedUtils,
     isClosedReport,
     isCurrentUserSubmitter,
     isExpenseReport,
@@ -31,6 +25,7 @@ import {
     isReportApproved,
     isReportManuallyReimbursed,
     isSettled,
+    requiresManualSubmission,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isPending, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
@@ -45,8 +40,7 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
     const isOpen = isOpenReport(report);
     const isManager = report.managerID === getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const hasBeenReopened = report.hasReportBeenReopened ?? false;
-    const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
+    const hasBeenRetracted = hasReportBeenReopenedUtils(report) || hasReportBeenRetractedUtils(report);
 
     if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
         return false;
@@ -63,12 +57,12 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
 
     const baseCanSubmit = isExpense && (isSubmitter || isManager || isAdmin) && isOpen && !hasAnyViolations && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
 
-    // If a report has been reopened, we allow submission regardless of the auto reporting frequency.
-    if (baseCanSubmit && hasBeenReopened) {
+    // If a report has been retracted, we allow submission regardless of the auto reporting frequency.
+    if (baseCanSubmit && hasBeenRetracted) {
         return true;
     }
 
-    return baseCanSubmit && isManualSubmitEnabled;
+    return baseCanSubmit && requiresManualSubmission(report, policy);
 }
 
 function canApprove(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[], shouldConsiderViolations = true) {
@@ -225,9 +219,19 @@ function getReportPreviewAction(
     policy?: Policy,
     transactions?: Transaction[],
     invoiceReceiverPolicy?: Policy,
+    isPaidAnimationRunning?: boolean,
+    isSubmittingAnimationRunning?: boolean,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
+    }
+
+    if (isPaidAnimationRunning) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
+    }
+
+    if (isSubmittingAnimationRunning) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (isAddExpenseAction(report, transactions ?? [], isReportArchived)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;

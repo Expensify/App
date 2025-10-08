@@ -45,6 +45,19 @@ function isChildOfNode(tnode: TNode, predicate: Predicate): boolean {
 }
 
 /**
+ * Check if a node is a child of a specific tag name by traversing up the parent chain.
+ */
+function isChildOfTagName(tnode: TNode, tagName: string): boolean {
+    if (!tnode.parent) {
+        return false;
+    }
+    if (tnode.parent.tagName === tagName) {
+        return true;
+    }
+    return isChildOfTagName(tnode.parent, tagName);
+}
+
+/**
  * Check if there is an ancestor node with name 'comment'.
  * Finding node with name 'comment' flags that we are rendering a comment.
  */
@@ -76,13 +89,7 @@ function isDeletedNode(tnode: TNode): boolean {
  * @returns Whether the node is a child of RBR
  */
 function isChildOfRBR(tnode: TNode): boolean {
-    if (!tnode.parent) {
-        return false;
-    }
-    if (tnode.parent.tagName === 'rbr') {
-        return true;
-    }
-    return isChildOfRBR(tnode.parent);
+    return isChildOfTagName(tnode, 'rbr');
 }
 
 function getFontSizeOfRBRChild(tnode: TNode): number {
@@ -98,4 +105,50 @@ function getFontSizeOfRBRChild(tnode: TNode): number {
     return 0;
 }
 
-export {computeEmbeddedMaxWidth, isChildOfComment, isChildOfH1, isDeletedNode, isChildOfTaskTitle, isChildOfRBR, isCommentTag, getFontSizeOfRBRChild};
+/**
+ * @returns Whether the node is a child of muted-text-label
+ */
+function isChildOfMutedTextLabel(tnode: TNode): boolean {
+    return isChildOfTagName(tnode, 'muted-text-label');
+}
+
+function isChildOfLabelText(tnode: TNode): boolean {
+    return isChildOfTagName(tnode, 'label-text');
+}
+
+/**
+ * @returns Whether the node is a child of muted-text-xs
+ */
+function isChildOfMutedTextXS(tnode: TNode): boolean {
+    return isChildOfTagName(tnode, 'muted-text-xs');
+}
+
+/**
+ * @returns Whether the node is a child of muted-text-micro
+ */
+function isChildOfMutedTextMicro(tnode: TNode): boolean {
+    return isChildOfTagName(tnode, 'muted-text-micro');
+}
+
+/**
+ * @returns Whether the node is a child of alert-text
+ */
+function isChildOfAlertText(tnode: TNode): boolean {
+    return isChildOfTagName(tnode, 'alert-text');
+}
+
+export {
+    computeEmbeddedMaxWidth,
+    isChildOfComment,
+    isChildOfH1,
+    isDeletedNode,
+    isChildOfTaskTitle,
+    isChildOfRBR,
+    isCommentTag,
+    getFontSizeOfRBRChild,
+    isChildOfMutedTextLabel,
+    isChildOfLabelText,
+    isChildOfMutedTextXS,
+    isChildOfMutedTextMicro,
+    isChildOfAlertText,
+};

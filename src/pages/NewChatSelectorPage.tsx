@@ -1,4 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
@@ -11,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setNewRoomFormLoading} from '@libs/actions/Report';
+import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,7 +20,6 @@ import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
 function NewChatSelectorPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const navigation = useNavigation();
     // The focus trap container elements of the header and back button, tab bar, and active tab
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
@@ -32,7 +31,7 @@ function NewChatSelectorPage() {
 
     // Theoretically, the focus trap container element can be null (due to component unmount/remount), so we filter out the null elements
     const containerElements = useMemo(() => {
-        return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element) as HTMLElement[];
+        return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
     const onTabFocusTrapContainerElementChanged = useCallback((activeTabElement?: HTMLElement | null) => {
@@ -44,6 +43,7 @@ function NewChatSelectorPage() {
     const onTabSelectFocusHandler = ({index}: {index: number}) => {
         // We runAfterInteractions since the function is called in the animate block on web-based
         // implementation, this fixes an animation glitch and matches the native internal delay
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             // Chat tab (0) / Room tab (1) according to OnyxTabNavigator (see below)
             if (index === 0) {
@@ -52,6 +52,10 @@ function NewChatSelectorPage() {
                 roomPageInputRef.current?.focus();
             }
         });
+    };
+
+    const navigateBack = () => {
+        Navigation.closeRHPFlow();
     };
 
     useEffect(() => {
@@ -73,7 +77,7 @@ function NewChatSelectorPage() {
             >
                 <HeaderWithBackButton
                     title={translate('sidebarScreen.fabNewChat')}
-                    onBackButtonPress={navigation.goBack}
+                    onBackButtonPress={navigateBack}
                 />
             </FocusTrapContainerElement>
 

@@ -6,6 +6,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {PolicyTagLists} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomTransaction from '../utils/collections/transaction';
+import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('TagsOptionsListUtils', () => {
@@ -335,22 +336,22 @@ describe('TagsOptionsListUtils', () => {
             },
         ];
 
-        const smallResult = getTagListSections({searchValue: emptySearch, tags: smallTagsList});
+        const smallResult = getTagListSections({searchValue: emptySearch, tags: smallTagsList, localeCompare});
         expect(smallResult).toStrictEqual(smallResultList);
 
-        const smallSearchResult = getTagListSections({searchValue: search, tags: smallTagsList});
+        const smallSearchResult = getTagListSections({searchValue: search, tags: smallTagsList, localeCompare});
         expect(smallSearchResult).toStrictEqual(smallSearchResultList);
 
-        const employeeSearchResult = getTagListSections({searchValue: employeeSearch, tags: smallTagsList});
+        const employeeSearchResult = getTagListSections({searchValue: employeeSearch, tags: smallTagsList, localeCompare});
         expect(employeeSearchResult).toStrictEqual(employeeSearchResultList);
 
-        const smallWrongSearchResult = getTagListSections({searchValue: wrongSearch, tags: smallTagsList});
+        const smallWrongSearchResult = getTagListSections({searchValue: wrongSearch, tags: smallTagsList, localeCompare});
         expect(smallWrongSearchResult).toStrictEqual(smallWrongSearchResultList);
 
-        const largeResult = getTagListSections({searchValue: emptySearch, selectedOptions, tags: largeTagsList, recentlyUsedTags});
+        const largeResult = getTagListSections({searchValue: emptySearch, selectedOptions, tags: largeTagsList, recentlyUsedTags, localeCompare});
         expect(largeResult).toStrictEqual(largeResultList);
 
-        const largeSearchResult = getTagListSections({searchValue: search, selectedOptions, tags: largeTagsList, recentlyUsedTags});
+        const largeSearchResult = getTagListSections({searchValue: search, selectedOptions, tags: largeTagsList, recentlyUsedTags, localeCompare});
         expect(largeSearchResult).toStrictEqual(largeSearchResultList);
 
         const largeWrongSearchResult = getTagListSections({
@@ -358,6 +359,7 @@ describe('TagsOptionsListUtils', () => {
             selectedOptions,
             tags: largeTagsList,
             recentlyUsedTags,
+            localeCompare,
         });
         expect(largeWrongSearchResult).toStrictEqual(largeWrongSearchResultList);
     });
@@ -369,13 +371,13 @@ describe('TagsOptionsListUtils', () => {
         const expectedOrderNames = ['!', '@', '#', '$', '0', '0a', '1', '2', '3', '10', '10bc', '20', '20a', 'a', 'a1', 'a20', 'b', 'b1', 'b10', 'c', '中国', '日本'];
         const unorderedTags = createTagObjects(unorderedTagNames);
         const expectedOrder = createTagObjects(expectedOrderNames);
-        expect(sortTags(unorderedTags)).toStrictEqual(expectedOrder);
+        expect(sortTags(unorderedTags, localeCompare)).toStrictEqual(expectedOrder);
 
         const unorderedTagNames2 = ['0', 'a1', '1', 'b1', '3', '10', 'b10', 'a', '2', 'c', '20', 'a20', 'b'];
         const expectedOrderNames2 = ['0', '1', '2', '3', '10', '20', 'a', 'a1', 'a20', 'b', 'b1', 'b10', 'c'];
         const unorderedTags2 = createTagObjects(unorderedTagNames2);
         const expectedOrder2 = createTagObjects(expectedOrderNames2);
-        expect(sortTags(unorderedTags2)).toStrictEqual(expectedOrder2);
+        expect(sortTags(unorderedTags2, localeCompare)).toStrictEqual(expectedOrder2);
 
         const unorderedTagNames3 = [
             '61',
@@ -583,7 +585,7 @@ describe('TagsOptionsListUtils', () => {
         ];
         const unorderedTags3 = createTagObjects(unorderedTagNames3);
         const expectedOrder3 = createTagObjects(expectedOrderNames3);
-        expect(sortTags(unorderedTags3)).toStrictEqual(expectedOrder3);
+        expect(sortTags(unorderedTags3, localeCompare)).toStrictEqual(expectedOrder3);
     });
 
     it('sortTags by object works the same', () => {
@@ -607,7 +609,7 @@ describe('TagsOptionsListUtils', () => {
             },
         };
 
-        const sorted = sortTags(tagsObject.tags);
+        const sorted = sortTags(tagsObject.tags, localeCompare);
         expect(Array.isArray(sorted)).toBe(true);
         // Expect to be sorted alphabetically
         expect(sorted.at(0)?.name).toBe('Car');

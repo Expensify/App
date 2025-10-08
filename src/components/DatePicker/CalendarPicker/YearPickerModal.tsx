@@ -3,8 +3,8 @@ import {Keyboard} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -56,7 +56,6 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
             shouldUseCustomBackdrop
             onBackdropPress={onClose}
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={[styles.pb0]}

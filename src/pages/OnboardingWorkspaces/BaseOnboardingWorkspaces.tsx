@@ -5,8 +5,8 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/UserListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -47,8 +47,9 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [onboardingPersonalDetails] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {canBeMissing: true});
 
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
 
-    const isValidated = isCurrentUserValidated(loginList);
+    const isValidated = isCurrentUserValidated(loginList, session?.email);
 
     const {isBetaEnabled} = usePermissions();
 
@@ -68,6 +69,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
                 firstName: onboardingPersonalDetails?.firstName ?? '',
                 lastName: onboardingPersonalDetails?.lastName ?? '',
+                shouldSkipTestDriveModal: !!(policy.automaticJoiningEnabled ? policy.policyID : undefined),
             });
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID(policy.policyID);

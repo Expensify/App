@@ -13,6 +13,10 @@ export default {
         height: '100%',
     },
 
+    h7: {
+        height: 28,
+    },
+
     h10: {
         height: 40,
     },
@@ -39,6 +43,10 @@ export default {
 
     mh100: {
         maxHeight: '100%',
+    },
+
+    mh45vh: {
+        maxHeight: '45vh',
     },
 
     mh65vh: {
@@ -138,9 +146,11 @@ export default {
     mw100: {
         maxWidth: '100%',
     },
+
     wAuto: {
         width: 'auto',
     },
+
     wFitContent: {
         width: 'fit-content',
     },

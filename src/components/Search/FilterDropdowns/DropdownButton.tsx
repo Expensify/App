@@ -1,12 +1,14 @@
+import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
 import type {ReactNode} from 'react';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import type {View} from 'react-native';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import Text from '@components/Text';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
 import useOnyx from '@hooks/useOnyx';
+import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,13 +50,16 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
     const triggerRef = useRef<View | null>(null);
+    const anchorRef = useRef<View | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+    const {calculatePopoverPosition} = usePopoverPosition();
+
     const [popoverTriggerPosition, setPopoverTriggerPosition] = useState({
         horizontal: 0,
         vertical: 0,
     });
 
-    const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => modal?.willAlertModalBecomeVisible, canBeMissing: true});
+    const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector, canBeMissing: true});
 
     /**
      * Toggle the overlay between open & closed
@@ -73,15 +78,11 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
      * Calculate popover position and toggle overlay
      */
     const calculatePopoverPositionAndToggleOverlay = useCallback(() => {
-        triggerRef.current?.measureInWindow((x, y, _, height) => {
-            setPopoverTriggerPosition({
-                horizontal: x,
-                vertical: y + height + PADDING_MODAL,
-            });
+        calculatePopoverPosition(anchorRef, ANCHOR_ORIGIN).then((pos) => {
+            setPopoverTriggerPosition({...pos, vertical: pos.vertical + PADDING_MODAL});
             toggleOverlay();
         });
-    }, [toggleOverlay]);
-
+    }, [calculatePopoverPosition, toggleOverlay]);
     /**
      * When no items are selected, render the label, otherwise, render the
      * list of selected items as well
@@ -103,16 +104,13 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
     }, [isSmallScreenWidth, styles]);
 
     const popoverContent = useMemo(() => {
-        if (!isOverlayVisible) {
-            return null;
-        }
         return PopoverComponent({closeOverlay: toggleOverlay});
         // PopoverComponent is stable so we don't need it here as a dep.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isOverlayVisible, toggleOverlay]);
+    }, [toggleOverlay]);
 
     return (
-        <>
+        <View ref={anchorRef}>
             {/* Dropdown Trigger */}
             <Button
                 small
@@ -154,7 +152,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
             >
                 {popoverContent}
             </PopoverWithMeasuredContent>
-        </>
+        </View>
     );
 }
 

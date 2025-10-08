@@ -1,8 +1,7 @@
 import {Str} from 'expensify-common';
 import lodashMapValues from 'lodash/mapValues';
 import lodashSortBy from 'lodash/sortBy';
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
@@ -14,18 +13,18 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
+import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
 import {canReportBeMentionedWithinPolicy, doesReportBelongToWorkspace, isGroupChat, isReportParticipant} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {compareUserInList, trimLeadingSpace} from '@libs/SuggestionUtils';
+import {getSortedPersonalDetails, trimLeadingSpace} from '@libs/SuggestionUtils';
 import {isValidRoomName} from '@libs/ValidationUtils';
 import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
-import type {SuggestionsRef} from './ReportActionCompose';
 import type {SuggestionProps} from './Suggestions';
 
 type SuggestionValues = {
@@ -57,14 +56,23 @@ type SuggestionPersonalDetailsList = Record<
     | null
 >;
 
-function SuggestionMention(
-    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainerAndReportCursor, isComposerFocused, isGroupPolicyReport, policyID}: SuggestionProps,
-    ref: ForwardedRef<SuggestionsRef>,
-) {
+function SuggestionMention({
+    value,
+    selection,
+    setSelection,
+    updateComment,
+    isAutoSuggestionPickerLarge,
+    measureParentContainerAndReportCursor,
+    isComposerFocused,
+    isGroupPolicyReport,
+    policyID,
+    ref,
+}: SuggestionProps) {
     const personalDetails = usePersonalDetails();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
+    const policy = usePolicy(policyID);
     // eslint-disable-next-line react-compiler/react-compiler
     suggestionValuesRef.current = suggestionValues;
 
@@ -89,7 +97,7 @@ function SuggestionMention(
         [currentReport],
     );
     const weightedPersonalDetails: PersonalDetailsList | SuggestionPersonalDetailsList | undefined = useMemo(() => {
-        const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policyID);
+        const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, currentUserPersonalDetails.accountID);
         if (!isGroupChat(currentReport) && !doesReportBelongToWorkspace(currentReport, policyEmployeeAccountIDs, policyID)) {
             return personalDetails;
         }
@@ -101,7 +109,7 @@ function SuggestionMention(
                   }
                 : null,
         );
-    }, [policyID, currentReport, personalDetails, getPersonalDetailsWeight]);
+    }, [policyID, policy, currentReport, personalDetails, getPersonalDetailsWeight, currentUserPersonalDetails]);
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,
@@ -303,7 +311,7 @@ function SuggestionMention(
             }) as Array<PersonalDetails & {weight: number}>;
 
             // At this point we are sure that the details are not null, since empty user details have been filtered in the previous step
-            const sortedPersonalDetails = filteredPersonalDetails.sort(compareUserInList);
+            const sortedPersonalDetails = getSortedPersonalDetails(filteredPersonalDetails, localeCompare);
 
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
@@ -324,7 +332,7 @@ function SuggestionMention(
 
             return suggestions;
         },
-        [translate, formatPhoneNumber, formatLoginPrivateDomain],
+        [translate, formatPhoneNumber, formatLoginPrivateDomain, localeCompare],
     );
 
     const getRoomMentionOptions = useCallback(
@@ -480,4 +488,4 @@ function SuggestionMention(
 
 SuggestionMention.displayName = 'SuggestionMention';
 
-export default forwardRef(SuggestionMention);
+export default SuggestionMention;

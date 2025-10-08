@@ -1,14 +1,16 @@
 import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
-import type {SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import {search} from '@libs/actions/Search';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
+import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
 
 type UseSearchHighlightAndScroll = {
@@ -38,6 +40,7 @@ function useSearchHighlightAndScroll({
     shouldCalculateTotals,
 }: UseSearchHighlightAndScroll) {
     const isFocused = useIsFocused();
+    const {isOffline} = useNetwork();
     // Ref to track if the search was triggered by this hook
     const triggeredByHookRef = useRef(false);
     const searchTriggeredRef = useRef(false);
@@ -55,6 +58,25 @@ function useSearchHighlightAndScroll({
         }
         return isChat ? extractReportActionIDsFromSearchResults(searchResults.data) : extractTransactionIDsFromSearchResults(searchResults.data);
     }, [searchResults?.data, isChat]);
+
+    const newTransactions = useMemo(() => {
+        const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
+
+        if (previousTransactionsIDs.length === 0) {
+            return [];
+        }
+
+        const previousIDs = new Set(previousTransactionsIDs);
+        const result: Transaction[] = [];
+
+        for (const [id, transaction] of Object.entries(transactions ?? {})) {
+            if (!previousIDs.has(id) && transaction) {
+                result.push(transaction);
+            }
+        }
+
+        return result;
+    }, [previousTransactions, transactions]);
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
@@ -81,8 +103,8 @@ function useSearchHighlightAndScroll({
 
         // Check if there is a change in the transactions or report actions list
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange || hasPendingSearchRef.current) {
-            // If we're not focused, don't trigger search
-            if (!isFocused) {
+            // If we're not focused or offline, don't trigger search
+            if (!isFocused || isOffline) {
                 hasPendingSearchRef.current = true;
                 return;
             }
@@ -110,7 +132,10 @@ function useSearchHighlightAndScroll({
             triggeredByHookRef.current = true;
 
             // Trigger the search
-            search({queryJSON, searchKey, offset, shouldCalculateTotals});
+            // eslint-disable-next-line deprecation/deprecation
+            InteractionManager.runAfterInteractions(() => {
+                search({queryJSON, searchKey, offset, shouldCalculateTotals});
+            });
 
             // Set the ref to prevent further triggers until reset
             searchTriggeredRef.current = true;
@@ -128,6 +153,7 @@ function useSearchHighlightAndScroll({
         isChat,
         searchResults?.data,
         existingSearchResultIDs,
+        isOffline,
     ]);
 
     // Initialize the set with existing IDs only once
@@ -241,7 +267,7 @@ function useSearchHighlightAndScroll({
         [newSearchResultKey, isChat],
     );
 
-    return {newSearchResultKey, handleSelectionListScroll};
+    return {newSearchResultKey, handleSelectionListScroll, newTransactions};
 }
 
 /**

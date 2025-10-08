@@ -4,10 +4,11 @@ import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from '
 import {View} from 'react-native';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
+import Button from '@components/Button';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
-import {Gallery} from '@components/Icon/Expensicons';
+import {ArrowCircleClockwise, Gallery} from '@components/Icon/Expensicons';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -24,7 +25,7 @@ import {add as addCachedPDFPaths} from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {getFileResolution, isHighResolutionImage} from '@libs/fileDownload/FileUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {hasEReceipt, hasReceiptSource, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
+import {hasEReceipt, hasReceiptSource, isDistanceRequest, isManualDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -244,8 +245,12 @@ function AttachmentView({
         );
     }
 
-    if (isDistanceRequest(transaction) && transaction) {
-        return <DistanceEReceipt transaction={transaction} />;
+    if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && transaction) {
+        // Distance eReceipts are now generated as a PDF, but to keep it backwards compatible we still show the old eReceipt view for image receipts
+        const isImageReceiptSource = checkIsFileImage(source, file?.name);
+        if (!hasReceiptSource(transaction) || isImageReceiptSource) {
+            return <DistanceEReceipt transaction={transaction} />;
+        }
     }
 
     // For this check we use both source and file.name since temporary file source is a blob
@@ -271,6 +276,16 @@ function AttachmentView({
                     <View>
                         <Text style={[styles.notFoundTextHeader]}>{translate('attachmentView.attachmentNotFound')}</Text>
                     </View>
+                    <Button
+                        text={translate('attachmentView.retry')}
+                        icon={ArrowCircleClockwise}
+                        onPress={() => {
+                            if (isOffline) {
+                                return;
+                            }
+                            setImageError(false);
+                        }}
+                    />
                 </View>
             );
         }
@@ -316,7 +331,11 @@ function AttachmentView({
                         }}
                     />
                 </View>
-                <View style={safeAreaPaddingBottomStyle}>{isHighResolution && <HighResolutionInfo isUploaded={isUploaded} />}</View>
+                {isHighResolution && (
+                    <View style={safeAreaPaddingBottomStyle}>
+                        <HighResolutionInfo isUploaded={isUploaded} />
+                    </View>
+                )}
             </>
         );
     }
