@@ -16,16 +16,18 @@ This philosophy guides our approach to beta releases by emphasizing small increm
 ### - Betas SHOULD be avoided in favor of small incremental releases
 Our primary strategy is shipping small, complete features directly to production rather than releasing large, incomplete features in beta. This approach provides faster feedback, reduces complexity, and delivers value immediately.
 
-### - Betas MUST only be used when incremental release is not possible
-Use beta controls only when:
-- The feature cannot be meaningfully decomposed into smaller shippable units
-- There are significant technical risks that require validation before full release
+Use betas only when:
+- The feature cannot be meaningfully decomposed into smaller units
+- There are significant business or technical risks that require validation before full release
 - Gradual rollout is needed to monitor performance or system impact
 
-### - Beta rollouts MUST be time-boxed and have clear removal criteria
+### - Beta rollouts MUST have clear removal criteria
 Every beta MUST have:
-- A defined maximum duration
 - Specific criteria for removing the beta and fully releasing the feature
+- A GH that clearly defines when and how a beta will be removed
+
+### - Betas MUST NOT be used for an excuse to roll out low-quality code
+Bad Example: A feature is built with a lot of bugs, but it's OK because it's behind a beta and therefore won't impact users or QA.
 
 ## When Beta Controls Are Appropriate
 
@@ -44,13 +46,6 @@ When changes could significantly affect core user workflows and you need to vali
 - Extended timeline delays value delivery
 - Creates complexity for minimal benefit
 
-### ✅ Alternative Incremental Approach
-**Better approach**: Release form improvements incrementally without beta controls
-- Week 1: Improve date picker component
-- Week 2: Add receipt attachment preview  
-- Week 3: Enhance category selection
-Each change delivers immediate value and gets real user feedback.
-
 ### ✅ Appropriate Beta Usage
 **Scenario**: New AI-powered expense categorization system
 **Beta approach**: Beta control with gradual rollout over 3 weeks
@@ -61,9 +56,9 @@ Each change delivers immediate value and gets real user feedback.
 - Requires real usage data to validate accuracy
 
 **Rollout plan**:
-- Week 1: 5% of users, monitor accuracy and performance
-- Week 2: 25% of users if metrics meet thresholds
-- Week 3: 100% rollout if success criteria met
+- 5% of users, monitor accuracy and performance
+- 25% of users if metrics meet thresholds
+- 100% rollout if success criteria met
 
 **Success criteria**:
 - 85% categorization accuracy
@@ -75,6 +70,8 @@ Each change delivers immediate value and gets real user feedback.
 
 ### - Define removal criteria upfront
 Before adding a new beta beta, establish quantifiable criteria for full rollout or feature termination.
+
+Create GHs to track what needs to happen for a given beta.
 
 ### - Plan for three outcomes
 1. **Removal**: Remove beta control and enable for all users
