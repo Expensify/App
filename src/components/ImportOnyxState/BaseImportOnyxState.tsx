@@ -6,7 +6,7 @@ import MenuItem from '@components/MenuItem';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 function BaseImportOnyxState({
     onFileRead,

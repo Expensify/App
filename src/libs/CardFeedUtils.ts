@@ -186,7 +186,7 @@ function getWorkspaceCardFeedData(cardFeed: WorkspaceCardsList | undefined, repe
     const isBankRepeating = repeatingBanks.includes(bank);
     const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1] ?? '';
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const correspondingPolicy = getPolicy(policyID?.toUpperCase());
     const cardFeedLabel = isBankRepeating ? correspondingPolicy?.name : undefined;
     const isPlaid = !!getPlaidInstitutionId(bank);

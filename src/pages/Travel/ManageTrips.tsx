@@ -39,7 +39,7 @@ function ManageTrips() {
     const scrollViewRef = useRef<RNScrollView>(null);
 
     const scrollToBottom = () => {
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             scrollViewRef.current?.scrollToEnd({animated: true});
         });

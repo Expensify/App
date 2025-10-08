@@ -145,7 +145,7 @@ function IOURequestStepMerchant({
             </FormProvider>
             <DiscardChangesConfirmation
                 onCancel={() => {
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         inputRef.current?.focus();
                     });

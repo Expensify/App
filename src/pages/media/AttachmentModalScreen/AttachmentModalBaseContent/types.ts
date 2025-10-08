@@ -4,11 +4,11 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
 import type {AvatarSource} from '@libs/UserUtils';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type OnValidateFileCallback = (file: FileObject | undefined, setFile: (file: FileObject | undefined) => void) => void;
 

@@ -276,7 +276,7 @@ function ReportActionsView({
         } else {
             // After navigating to the linked reportAction, apply this to correctly set
             // `autoscrollToTopThreshold` prop when linking to a specific reportAction.
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 // Using a short delay to ensure the view is updated after interactions
                 timerID = setTimeout(() => setNavigatingToLinkedMessage(false), 10);

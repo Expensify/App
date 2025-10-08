@@ -5,9 +5,9 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {clearErrors} from '@userActions/FormActions';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
+import type {FileObject} from '@src/types/utils/Attachment';
 import UploadPowerform from './subSteps/UploadPowerform';
 
 type DocusignFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {

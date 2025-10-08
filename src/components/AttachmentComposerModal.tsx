@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanFileName} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type ModalType from '@src/types/utils/ModalType';
 import viewRef from '@src/types/utils/viewRef';
 import AttachmentCarouselView from './Attachments/AttachmentCarousel/AttachmentCarouselView';
@@ -21,17 +22,6 @@ import HeaderGap from './HeaderGap';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Modal from './Modal';
 import SafeAreaConsumer from './SafeAreaConsumer';
-
-type ImagePickerResponse = {
-    height?: number;
-    name: string;
-    size?: number | null;
-    type: string;
-    uri: string;
-    width?: number;
-};
-
-type FileObject = Partial<File | ImagePickerResponse>;
 
 type ChildrenProps = {
     displayFilesInModal: (data: FileObject[], items?: DataTransferItem[]) => void;
@@ -170,11 +160,13 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
 
             const validIndices: number[] = [];
             const fileObjects = data
-                .map((item, index) => {
-                    let fileObject = item;
-                    if ('getAsFile' in item && typeof item.getAsFile === 'function') {
-                        fileObject = item.getAsFile() as FileObject;
+                .map((file, index) => {
+                    let fileObject = file;
+                    const fileConverted = file.getAsFile?.();
+                    if (fileConverted) {
+                        fileObject = fileConverted;
                     }
+
                     const cleanedFileObject = cleanFileObjectName(fileObject);
                     if (cleanedFileObject !== null) {
                         validIndices.push(index);
@@ -299,5 +291,3 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
 AttachmentComposerModal.displayName = 'AttachmentComposerModal';
 
 export default memo(AttachmentComposerModal);
-
-export type {FileObject, ImagePickerResponse};

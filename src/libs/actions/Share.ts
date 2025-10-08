@@ -1,8 +1,8 @@
 import Onyx from 'react-native-onyx';
-import type {FileObject} from '@components/AttachmentModal';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ShareTempFile} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 /**
 Function for clearing old saved data before at the start of share-extension flow

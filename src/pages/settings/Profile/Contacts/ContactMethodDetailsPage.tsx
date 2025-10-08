@@ -134,7 +134,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      */
     const toggleDeleteModal = useCallback((isOpen: boolean) => {
         if (canUseTouchScreen() && isOpen) {
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 setIsDeleteModalOpen(isOpen);
             });
@@ -219,7 +219,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             onConfirm={confirmDeleteAndHideModal}
             onCancel={() => toggleDeleteModal(false)}
             onModalHide={() => {
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     validateCodeFormRef.current?.focusLastSelected?.();
                 });
@@ -283,7 +283,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         <ScreenWrapper
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => {
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     validateCodeFormRef.current?.focus?.();
                 });

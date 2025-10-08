@@ -62,7 +62,7 @@ function PlaidLink({token, onSuccess = () => {}, onError = () => {}, onExit = ()
         if (!isPlaidLoaded) {
             return;
         }
-
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         open();
     }, [ready, error, isPlaidLoaded, open, onError]);
 

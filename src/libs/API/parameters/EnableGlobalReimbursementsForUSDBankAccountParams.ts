@@ -1,4 +1,4 @@
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type EnableGlobalReimbursementsForUSDBankAccountParams = {
     inputs: string;

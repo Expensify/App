@@ -10,17 +10,6 @@ import type {AttachmentModalBaseContentProps} from './AttachmentModalBaseContent
  * to display a full size image or PDF modally with optional confirmation button.
  */
 
-type ImagePickerResponse = {
-    height?: number;
-    name: string;
-    size?: number | null;
-    type: string;
-    uri: string;
-    width?: number;
-};
-
-type FileObject = Partial<File | ImagePickerResponse>;
-
 type AttachmentModalContainerModalProps = {
     modalType?: ModalType;
     onShow?: () => void;
@@ -28,6 +17,7 @@ type AttachmentModalContainerModalProps = {
     shouldHandleNavigationBack?: boolean;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const ATTACHMENT_MODAL_SCREENS = [
     SCREENS.ATTACHMENTS,
     SCREENS.REPORT_AVATAR,
@@ -42,4 +32,4 @@ type AttachmentModalScreenBaseParams = AttachmentModalBaseContentProps & Attachm
 
 type AttachmentModalScreenProps<Screen extends AttachmentModalScreenType> = PlatformStackScreenProps<RootNavigatorParamList, Screen>;
 
-export type {AttachmentModalScreenType, AttachmentModalScreenBaseParams, AttachmentModalContainerModalProps, AttachmentModalScreenProps, FileObject, ImagePickerResponse};
+export type {AttachmentModalScreenType, AttachmentModalScreenBaseParams, AttachmentModalContainerModalProps, AttachmentModalScreenProps};
