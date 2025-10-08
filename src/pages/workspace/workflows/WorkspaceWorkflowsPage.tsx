@@ -347,6 +347,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 badgeText={isAccountInSetupState ? translate('common.actionRequired') : undefined}
                                 badgeIcon={isAccountInSetupState ? Expensicons.DotIndicator : undefined}
                                 badgeSuccess={isAccountInSetupState ? true : undefined}
+                                shouldShowRightIcon={isAccountInSetupState}
                                 shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                                 displayInDefaultIconColor={shouldShowBankAccount}
