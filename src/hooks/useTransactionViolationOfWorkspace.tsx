@@ -1,9 +1,11 @@
+import {extractCollectionItemID} from '@libs/CollectionUtils';
 import {getReportTransactions, isChatRoom, isPolicyExpenseChat, isPolicyRelatedReport, isTaskReport} from '@libs/ReportUtils';
+import type {OnyxCollectionKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
-function useTransactionViolationInRemovedWorkspace(policyID?: string) {
+function useTransactionViolationOfWorkspace(policyID?: string) {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const reportsToArchive = Object.values(allReports ?? {}).filter(
         (report): report is Report => report != null && isPolicyRelatedReport(report, policyID) && (isChatRoom(report) || isPolicyExpenseChat(report) || isTaskReport(report)),
@@ -27,7 +29,7 @@ function useTransactionViolationInRemovedWorkspace(policyID?: string) {
                 }
 
                 const filteredViolationKeys = Object.keys(violations).filter((violationKey) => {
-                    const transactionID = violationKey.slice(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS.length);
+                    const transactionID = extractCollectionItemID(violationKey as `${OnyxCollectionKey}${string}`);
                     return transactionIDSet.has(transactionID);
                 });
 
@@ -52,4 +54,4 @@ function useTransactionViolationInRemovedWorkspace(policyID?: string) {
     };
 }
 
-export default useTransactionViolationInRemovedWorkspace;
+export default useTransactionViolationOfWorkspace;
