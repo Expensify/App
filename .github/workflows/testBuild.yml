@@ -348,7 +348,8 @@ jobs:
           keystore-store-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
           keystore-key-alias: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
           keystore-key-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
-          keystore-path: 'tools/buildtools/upload-key.keystore'
+          # Specify the path (relative to the Android source directory) where the keystore should be placed.
+          keystore-path: '../tools/buildtools/upload-key.keystore'
           comment-bot: false
           rock-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
 
@@ -447,7 +448,7 @@ jobs:
           re-sign: true
           ad-hoc: true
           scheme: 'Expensify AdHoc'
-          configuration: 'DebugAdHoc'
+          configuration: 'AdHoc'
           certificate-file: './Certificates.p12'
           provisioning-profiles: |
             [
