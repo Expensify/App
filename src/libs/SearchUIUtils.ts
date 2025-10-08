@@ -1374,10 +1374,19 @@ function getReportSections(
     const queryJSON = getCurrentSearchQueryJSON();
     const reportIDToTransactions: Record<string, TransactionReportGroupListItemType> = {};
 
-    const listKeys = Object.keys(data);
-    const reportKeys = listKeys.filter(isReportEntry);
-    const transactionKeys = listKeys.filter(isTransactionEntry);
-    const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
+    const { reportKeys, transactionKeys } = Object.keys(data).reduce(
+  (acc, key) => {
+    if (isReportEntry(key)) {
+      acc.reportKeys.push(key);
+    } else if (isTransactionEntry(key)) {
+      acc.transactionKeys.push(key);
+    }
+    return acc;
+  },
+  { reportKeys: [] as string[], transactionKeys: [] as string[] }
+);
+
+const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
 
     for (const key of orderedKeys) {
         if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
