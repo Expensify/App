@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {validateDateTimeIsAtLeastOneMinuteInFuture} from '@libs/ValidationUtils';
-import {updateDraftCustomStatus} from '@userActions/User';
+import {updateDraftCustomStatus, updateDraftCustomStatusCustomMode} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -76,6 +76,7 @@ function StatusClearAfterPage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const clearAfter = currentUserPersonalDetails.status?.clearAfter ?? '';
     const [customStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT, {canBeMissing: true});
+    const [CustomStatusCustomMode] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT_CUSTOM_MODE, {canBeMissing: true});
 
     const draftClearAfter = customStatus?.clearAfter ?? '';
     const [draftPeriod, setDraftPeriod] = useState(() => getSelectedStatusType(draftClearAfter || clearAfter));
@@ -108,22 +109,19 @@ function StatusClearAfterPage() {
             setDraftPeriod(mode.value);
 
             if (mode.value === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
-                updateDraftCustomStatus({clearAfter: DateUtils.getOneHourFromNow()});
+                updateDraftCustomStatusCustomMode(DateUtils.getOneHourFromNow());
             }
         },
         [draftPeriod],
     );
 
     useEffect(() => {
-        updateDraftCustomStatus({
-            clearAfter: draftClearAfter || clearAfter,
-        });
-
+        updateDraftCustomStatusCustomMode(draftClearAfter || clearAfter);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const customStatusDate = DateUtils.extractDate(draftClearAfter);
-    const customStatusTime = DateUtils.extractTime12Hour(draftClearAfter);
+    const customStatusDate = DateUtils.extractDate(CustomStatusCustomMode ?? '');
+    const customStatusTime = DateUtils.extractTime12Hour(CustomStatusCustomMode ?? '');
 
     const listFooterContent = useMemo(() => {
         if (draftPeriod !== CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
@@ -153,21 +151,26 @@ function StatusClearAfterPage() {
                 />
             </>
         );
-    }, [translate, styles.pr2, styles.flex1, customStatusDate, customStatusTime, draftPeriod, redBrickDateIndicator, redBrickTimeIndicator, customDateError, customTimeError]);
+    }, [translate, styles.pr2, styles.flex1, draftPeriod, customStatusDate, customStatusTime, redBrickDateIndicator, redBrickTimeIndicator, customDateError, customTimeError]);
 
     const saveAndGoBack = useCallback(() => {
         if (!draftPeriod) {
             return;
         }
 
-        if (draftPeriod !== CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
+        let calculatedDraftDate = '';
+
+        if (draftPeriod === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
+            calculatedDraftDate = CustomStatusCustomMode ?? DateUtils.getOneHourFromNow();
+        } else {
             const selectedRange = statusType.find((item) => item.value === draftPeriod);
-            const calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange?.value ?? CONST.CUSTOM_STATUS_TYPES.NEVER);
-            updateDraftCustomStatus({clearAfter: calculatedDraftDate});
+            calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange?.value ?? CONST.CUSTOM_STATUS_TYPES.NEVER);
         }
 
+        updateDraftCustomStatus({clearAfter: calculatedDraftDate});
+
         Navigation.goBack(ROUTES.SETTINGS_STATUS);
-    }, [draftPeriod, statusType]);
+    }, [draftPeriod, statusType, CustomStatusCustomMode]);
 
     const timePeriodOptions = useCallback(
         () => (
