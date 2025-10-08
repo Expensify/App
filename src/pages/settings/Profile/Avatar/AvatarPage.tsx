@@ -90,7 +90,7 @@ function ProfileAvatar() {
             return;
         }
         openPublicProfilePage(accountID);
-    }, [accountID, avatarURL]);
+    }, [accountID]);
 
     const onImageSelected = useCallback(
         (file: File | CustomRNImageManipulatorResult) => {
@@ -196,6 +196,7 @@ function ProfileAvatar() {
                                     <Button
                                         icon={Expensicons.Upload}
                                         text="Upload a photo"
+                                        accessibilityLabel="Upload a photo"
                                         onPress={() => {
                                             if (isSafari()) {
                                                 return;
@@ -222,15 +223,15 @@ function ProfileAvatar() {
                         }}
                     </AttachmentPicker>
                 </View>
+                {!!errorData.validationError && (
+                    <DotIndicatorMessage
+                        style={styles.mt6}
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
+                        type="error"
+                    />
+                )}
             </ScrollView>
-            {!!errorData.validationError && (
-                <DotIndicatorMessage
-                    style={styles.mt6}
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
-                    type="error"
-                />
-            )}
             <AvatarCropModal
                 onClose={() => {
                     setIsAvatarCropModalOpen(false);

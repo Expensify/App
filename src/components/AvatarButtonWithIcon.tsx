@@ -63,6 +63,9 @@ type AvatarButtonWithIconProps = {
     editIcon?: IconAsset;
 };
 
+/**
+ * Avatar button with an edit icon overlay
+ */
 function AvatarButtonWithIcon({
     DefaultAvatar = () => null,
     disabledStyle,
