@@ -87,6 +87,9 @@ type UseSearchSelectorReturn = {
     /** Function to update search term */
     setSearchTerm: (value: string) => void;
 
+    /** Debounced search term */
+    debouncedSearchTerm: string;
+
     /** Filtered and optimized search options with selection state */
     searchOptions: Options;
 
@@ -298,6 +301,7 @@ function useSearchSelectorBase({
         contactState: undefined,
         onListEndReached,
         selectedOptionsForDisplay,
+        debouncedSearchTerm,
     };
 }
 

@@ -70,6 +70,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         initialSelected: initialSelectedOptions,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         includeUserToInvite: false,
         includeCurrentUser: true,
     });

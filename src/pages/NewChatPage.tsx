@@ -16,30 +16,20 @@ import type {ListItem, SelectionListHandle} from '@components/SelectionListWithS
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useContactImport from '@hooks/useContactImport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useSearchSelector from '@hooks/useSearchSelector';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
-import memoize from '@libs/memoize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {Option, Section} from '@libs/OptionsListUtils';
-import {
-    filterAndOrderOptions,
-    filterSelectedOptions,
-    formatSectionsFromSearchTerm,
-    getFirstKeyForList,
-    getHeaderMessage,
-    getPersonalDetailSearchTerms,
-    getUserToInviteOption,
-    getValidOptions,
-} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, formatSectionsFromSearchTerm, getFirstKeyForList, getHeaderMessage, getPersonalDetailSearchTerms, getUserToInviteOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -55,46 +45,38 @@ type SelectedOption = ListItem &
         reportID?: string;
     };
 
-const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'NewChatPage.getValidOptions'});
-
 function useOptions() {
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    // const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    // const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const personalData = useCurrentUserPersonalDetails();
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const {contacts} = useContactImport();
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
+    const {contacts} = useContactImport();
 
-    const defaultOptions = useMemo(() => {
-        const filteredOptions = memoizedGetValidOptions(
-            {
-                reports: listOptions.reports ?? [],
-                personalDetails: (listOptions.personalDetails ?? []).concat(contacts),
-            },
-            {
-                betas: betas ?? [],
-                includeSelfDM: true,
-            },
-        );
-        return filteredOptions;
-    }, [betas, listOptions.personalDetails, listOptions.reports, contacts]);
-
-    const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
+    const {selectedOptions, setSelectedOptions, searchTerm, setSearchTerm, availableOptions, debouncedSearchTerm} = useSearchSelector({
+        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+        includeCurrentUser: true,
+        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        shouldInitialize: didScreenTransitionEnd,
+        includeUserToInvite: true,
+        contactOptions: contacts,
+    });
 
     const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, {
+        const filteredOptions = filterAndOrderOptions(availableOptions, searchTerm, countryCode, {
             selectedOptions,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
 
         return filteredOptions;
-    }, [debouncedSearchTerm, unselectedOptions, selectedOptions, countryCode]);
+    }, [availableOptions, searchTerm, countryCode, selectedOptions]);
+
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const headerMessage = useMemo(() => {
         return getHeaderMessage(
@@ -147,7 +129,7 @@ function useOptions() {
             });
         });
         setSelectedOptions(newSelectedOptions);
-    }, [newGroupDraft?.participants, listOptions.personalDetails, personalData.accountID]);
+    }, [newGroupDraft?.participants, listOptions.personalDetails, personalData.accountID, setSelectedOptions]);
 
     return {
         ...options,
