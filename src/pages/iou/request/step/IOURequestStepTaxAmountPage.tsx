@@ -8,14 +8,7 @@ import {setDraftSplitTransaction, setMoneyRequestCurrency, setMoneyRequestPartic
 import {convertToBackendAmount, isValidCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import {
-    calculateTaxAmount,
-    getAmount,
-    getDefaultTaxCode,
-    getTaxValue,
-    getTaxAmount as getTransactionTaxAmount,
-    isExpenseUnreported as isExpenseUnreportedTransactionUtils,
-} from '@libs/TransactionUtils';
+import {calculateTaxAmount, getAmount, getDefaultTaxCode, getTaxValue, getTaxAmount as getTransactionTaxAmount} from '@libs/TransactionUtils';
 import type {CurrentMoney} from '@pages/iou/MoneyRequestAmountForm';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import CONST from '@src/CONST';
@@ -55,18 +48,9 @@ function IOURequestStepTaxAmountPage({
     transaction,
     report,
 }: IOURequestStepTaxAmountPageProps) {
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
-        canBeMissing: true,
-        selector: (policy) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined),
-    });
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-    const isExpenseUnreported = isExpenseUnreportedTransactionUtils(transaction);
-    const taxPolicy = isExpenseUnreported ? activePolicy : policy;
-    const taxPolicyID = isExpenseUnreported ? activePolicyID : report?.policyID;
-
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${taxPolicyID}`, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${taxPolicyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -125,7 +109,7 @@ function IOURequestStepTaxAmountPage({
                 navigateBack();
                 return;
             }
-            updateMoneyRequestTaxAmount(transactionID, report?.reportID, taxAmountInSmallestCurrencyUnits, taxPolicy, policyTags, policyCategories);
+            updateMoneyRequestTaxAmount(transactionID, report?.reportID, taxAmountInSmallestCurrencyUnits, policy, policyTags, policyCategories);
             navigateBack();
             return;
         }
@@ -167,7 +151,7 @@ function IOURequestStepTaxAmountPage({
                 isEditing={!!(backTo || isEditing)}
                 currency={currency}
                 amount={Math.abs(transactionDetails?.taxAmount ?? 0)}
-                taxAmount={getTaxAmount(currentTransaction, taxPolicy, currency, !!(backTo || isEditing))}
+                taxAmount={getTaxAmount(currentTransaction, policy, currency, !!(backTo || isEditing))}
                 ref={(e) => {
                     textInput.current = e;
                 }}

@@ -107,6 +107,7 @@ import type {
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -294,6 +295,7 @@ import type {
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
+    WalletAgreementParams,
     WalletProgramParams,
     WelcomeEnterMagicCodeParams,
     WelcomeToRoomParams,
@@ -611,7 +613,7 @@ const translations = {
         disabled: '禁用',
         import: '导入',
         offlinePrompt: '您现在无法执行此操作。',
-        outstanding: '优秀',
+        outstanding: '未完成的',
         chats: '聊天',
         tasks: '任务',
         unread: '未读',
@@ -656,8 +658,6 @@ const translations = {
         reschedule: '重新安排',
         general: '常规',
         workspacesTabTitle: '工作区',
-        getTheApp: '获取应用程序',
-        scanReceiptsOnTheGo: '用手机扫描收据',
         headsUp: '注意！',
         submitTo: '提交到',
         forwardTo: '转发到',
@@ -672,7 +672,11 @@ const translations = {
     },
     supportalNoAccess: {
         title: '慢一点',
-        description: '当支持人员登录时，您无权执行此操作。',
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) => `当支持人员登录时，您无权执行此操作（命令：${command ?? ''}）。如果您认为 Success 应该能够执行此操作，请在 Slack 中开始对话。`,
     },
     lockedAccount: {
         title: '账户已锁定',
@@ -1026,12 +1030,16 @@ const translations = {
     receipt: {
         upload: '上传收据',
         uploadMultiple: '上传收据',
-        dragReceiptBeforeEmail: '将收据拖到此页面上，转发收据到',
-        dragReceiptsBeforeEmail: '将收据拖到此页面上，转发收据到',
-        dragReceiptAfterEmail: '或选择下面的文件上传。',
-        dragReceiptsAfterEmail: '或选择下面的文件上传。',
+        desktopSubtitleSingle: `或将其拖放到此处`,
+        desktopSubtitleMultiple: `或将它们拖放到此处`,
         chooseReceipt: '选择要上传的收据或转发收据到',
         chooseReceipts: '选择要上传的收据或转发收据到',
+        alternativeMethodsTitle: '添加收据的其他方式：',
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">下载应用</a>以通过手机扫描</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>将收据转发到 <a href="mailto:${email}">${email}</a></label-text>`,
+        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: {phoneNumber: string; contactMethodsUrl: string}) =>
+            `<label-text><a href="${contactMethodsUrl}">添加您的号码</a>以将收据短信发送至 ${phoneNumber}</label-text>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>将收据短信发送至 ${phoneNumber}（仅限美国号码）</label-text>`,
         takePhoto: '拍照',
         cameraAccess: '需要相机权限来拍摄收据照片。',
         deniedCameraAccess: '相机访问权限仍未授予，请按照以下步骤操作',
@@ -1086,10 +1094,14 @@ const translations = {
         splitExpense: '拆分费用',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `来自${merchant}的${amount}`,
         addSplit: '添加分账',
+        editSplits: '编辑拆分',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `总金额比原始费用多${amount}。`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `总金额比原始费用少 ${amount}。`,
         splitExpenseZeroAmount: '请在继续之前输入有效金额。',
         splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `为${merchant}编辑${amount}`,
+        splitExpenseOneMoreSplit: '没有添加分割。至少添加一个来保存。',
+        splitExpenseCannotBeEditedModalTitle: '此费用无法编辑',
+        splitExpenseCannotBeEditedModalDescription: '已批准或已支付的费用无法编辑',
         removeSplit: '移除拆分',
         paySomeone: ({name}: PaySomeoneParams = {}) => `支付${name ?? '某人'}`,
         expense: '费用',
@@ -1217,7 +1229,6 @@ const translations = {
         nextStep: '下一步',
         finished: '完成',
         sendInvoice: ({amount}: RequestAmountParams) => `发送 ${amount} 发票`,
-        submitAmount: ({amount}: RequestAmountParams) => `提交 ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `对于${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `已提交${memo ? `, 备注 ${memo}` : ''}`,
         automaticallySubmitted: `通过<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">延迟提交</a>提交`,
@@ -1977,6 +1988,7 @@ const translations = {
         submissionFrequency: '提交频率',
         submissionFrequencyDateOfMonth: '月份日期',
         addApprovalsTitle: '添加审批',
+        disableApprovalPromptDescription: '禁用审批将删除所有现有的审批工作流程。',
         addApprovalButton: '添加审批工作流程',
         addApprovalTip: '此默认工作流程适用于所有成员，除非存在更具体的工作流程。',
         approver: '审批人',
@@ -2849,10 +2861,10 @@ const translations = {
     termsStep: {
         headerTitle: '条款和费用',
         headerTitleRefactor: '费用和条款',
-        haveReadAndAgree: '我已阅读并同意接收',
-        electronicDisclosures: '电子披露',
-        agreeToThe: '我同意',
-        walletAgreement: '钱包协议',
+        haveReadAndAgreePlain: '我已阅读并同意接收电子披露信息。',
+        haveReadAndAgree: `我已阅读并同意接收<a href="${CONST.ELECTRONIC_DISCLOSURES_URL}">电子披露信息</a>。`,
+        agreeToThePlain: '我同意隐私和钱包协议。',
+        agreeToThe: ({walletAgreementUrl}: WalletAgreementParams) => `我同意<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私</a>和<a href="${walletAgreementUrl}">钱包协议</a>。`,
         enablePayments: '启用支付',
         monthlyFee: '月费',
         inactivity: '不活跃',
@@ -2869,17 +2881,14 @@ const translations = {
             cashReload: '现金充值',
             inNetwork: '网络内',
             outOfNetwork: '网络外',
-            atmBalanceInquiry: 'ATM余额查询',
-            inOrOutOfNetwork: '（网络内或网络外）',
-            customerService: '客户服务',
-            automatedOrLive: '（自动或人工客服）',
-            afterTwelveMonths: '（12个月没有交易后）',
+            atmBalanceInquiry: 'ATM余额查询（网络内或网络外）',
+            customerService: '客户服务（自动或人工客服）',
+            inactivityAfterTwelveMonths: '不活跃（12个月没有交易后）',
             weChargeOneFee: '我们收取另外一种费用。它是：',
             fdicInsurance: '您的资金符合FDIC保险资格。',
-            generalInfo: '有关预付账户的一般信息，请访问',
-            conditionsDetails: '有关所有费用和服务的详细信息和条件，请访问',
-            conditionsPhone: '或拨打 +1 833-400-0904。',
-            instant: '(instant)',
+            generalInfo: `有关预付账户的一般信息，请访问 <a href="${CONST.CFPB_PREPAID_URL}">${CONST.TERMS.CFPB_PREPAID}</a>。`,
+            conditionsDetails: `有关所有费用和服务的详细信息和条件，请访问 <a href="${CONST.FEES_URL}">${CONST.FEES_URL}</a> 或致电 +1 833-400-0904。`,
+            electronicFundsWithdrawalInstant: '电子资金提取（即时）',
             electronicFundsInstantFeeMin: ({amount}: TermsParams) => `(min ${amount})`,
         },
         longTermsForm: {
@@ -2895,24 +2904,15 @@ const translations = {
             inactivityDetails: '没有不活动费用。',
             sendingFundsTitle: '将资金发送到另一个账户持有人',
             sendingFundsDetails: '使用您的余额、银行账户或借记卡向其他账户持有人发送资金是免费的。',
-            electronicFundsStandardDetails:
-                "There's no fee to transfer funds from your Expensify Wallet " +
-                'to your bank account using the standard option. This transfer usually completes within 1-3 business' +
-                ' days.',
+            electronicFundsStandardDetails: '使用标准选项从您的 Expensify 钱包向您的银行账户转账不收取任何费用。转账通常在 1-3 个工作日内完成。',
             electronicFundsInstantDetails: ({percentage, amount}: ElectronicFundsParams) =>
-                "There's a fee to transfer funds from your Expensify Wallet to " +
-                'your linked debit card using the instant transfer option. This transfer usually completes within ' +
-                `several minutes. The fee is ${percentage}% of the transfer amount (with a minimum fee of ${amount}).`,
+                `使用即时转账选项将资金从 Expensify 钱包转入关联的借记卡需要支付一定费用。转账通常在几分钟内完成。费用为转账金额的 ${percentage}%（最低费用为 ${amount}）。`,
             fdicInsuranceBancorp: ({amount}: TermsParams) =>
-                'Your funds are eligible for FDIC insurance. Your funds will be held at or ' +
-                `transferred to ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, an FDIC-insured institution. Once there, your funds are insured up ` +
-                `to ${amount} by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails, if specific deposit insurance requirements ` +
-                `are met and your card is registered. See`,
-            fdicInsuranceBancorp2: '详情。',
-            contactExpensifyPayments: `通过拨打 +1 833-400-0904 或发送电子邮件联系 ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}`,
-            contactExpensifyPayments2: '或登录在',
-            generalInformation: '有关预付账户的一般信息，请访问',
-            generalInformation2: '如果您对预付账户有投诉，请致电消费者金融保护局 1-855-411-2372 或访问',
+                `您的资金可享受 FDIC 保险。您的资金将存放在或转入由 FDIC 提供保险的机构 ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}。` +
+                `一旦 ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} 倒闭，您的资金将由 FDIC 提供最高 ${amount} 的保险，前提是满足特定的存款保险要求并注册了您的银行卡。` +
+                `详见 ${CONST.TERMS.FDIC_PREPAID}。`,
+            contactExpensifyPayments: `请致电 +1 833-400-0904、发送电子邮件至 ${CONST.EMAIL.CONCIERGE} 或登录 ${CONST.NEW_EXPENSIFY_URL} 与 ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} 联系。`,
+            generalInformation: `有关预付费账户的一般信息，请访问 ${CONST.TERMS.CFPB_PREPAID}。如果您对预付费账户有任何投诉，请致电 1-855-411-2372 联系消费者金融保护局，或访问 ${CONST.TERMS.CFPB_COMPLAINT}。`,
             printerFriendlyView: '查看打印友好版本',
             automated: '自动化的',
             liveAgent: '实时客服代理',
@@ -4579,6 +4579,10 @@ const translations = {
                         automaticImport: '自动交易导入',
                     },
                 },
+                bankConnectionError: '银行连接问题',
+                connectWithPlaid: '通过 Plaid 连接',
+                connectWithExpensifyCard: '尝试使用 Expensify 卡',
+                bankConnectionDescription: '请尝试重新添加您的卡。否则，您可以',
                 disableCardTitle: '禁用公司卡',
                 disableCardPrompt: '您无法禁用公司卡，因为此功能正在使用中。请联系Concierge以获取下一步指导。',
                 disableCardButton: '与Concierge聊天',
@@ -5012,8 +5016,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: '在 Expensify Classic 中设置的连接出现错误。',
-            goToODToFix: '请前往 Expensify Classic 解决此问题。',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `在 Expensify Classic 中设置的连接出现错误。[请前往 Expensify Classic 解决此问题。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '请前往 Expensify Classic 管理您的设置。',
             setup: '连接',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `上次同步时间为${relativeDate}`,
@@ -5456,11 +5460,6 @@ const translations = {
                 title: '旅行',
                 description: 'Expensify Travel 是一个新的企业差旅预订和管理平台，允许会员预订住宿、航班、交通等。',
                 onlyAvailableOnPlan: '旅行功能在 Collect 计划中提供，起价为',
-            },
-            reports: {
-                title: '报告',
-                description: '创建有序的费用报告来跟踪您的商业开支，提交审批，并简化您的报销流程。',
-                onlyAvailableOnPlan: '报告功能在 Collect 计划中提供，起价为 ',
             },
             multiLevelTags: {
                 title: '多级标签',

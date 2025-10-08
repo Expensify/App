@@ -26,6 +26,7 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
 
     const [freeTrialText, setFreeTrialText] = useState<string | undefined>(undefined);
@@ -35,8 +36,8 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
         if (!privateSubscription && !isOffline) {
             return;
         }
-        setFreeTrialText(getFreeTrialText(policies));
-    }, [isOffline, privateSubscription, policies, firstDayFreeTrial, lastDayFreeTrial]);
+        setFreeTrialText(getFreeTrialText(policies, introSelected));
+    }, [isOffline, privateSubscription, policies, firstDayFreeTrial, lastDayFreeTrial, introSelected]);
 
     if (!freeTrialText) {
         return null;

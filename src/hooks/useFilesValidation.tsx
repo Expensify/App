@@ -90,6 +90,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
 
     const hideModalAndReset = useCallback(() => {
         setIsErrorModalVisible(false);
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             resetValidationState();
         });
@@ -305,6 +306,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         // the error modal is dismissed before opening the attachment modal
         if (!isValidatingReceipts && fileError) {
             setIsErrorModalVisible(false);
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => {
                 if (sortedFiles.length !== 0) {
                     proceedWithFilesAction(sortedFiles);
