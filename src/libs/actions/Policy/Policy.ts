@@ -175,9 +175,8 @@ type BuildPolicyDataOptions = {
     shouldAddOnboardingTasks?: boolean;
     companySize?: OnboardingCompanySize;
     userReportedIntegration?: OnboardingAccounting;
-    featuresMap?: Feature[];
+    featuresMap?: Array<Pick<Feature, 'id' | 'enabled' | 'enabledByDefault' | 'requiresUpdate'>>;
     lastUsedPaymentMethod?: LastPaymentMethodType;
-    areDistanceRatesEnabled?: boolean;
     adminParticipant?: Participant;
 };
 
@@ -1971,7 +1970,6 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         userReportedIntegration,
         featuresMap,
         lastUsedPaymentMethod,
-        areDistanceRatesEnabled,
         adminParticipant,
     } = options;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
@@ -2005,6 +2003,8 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     const isCorporateFeature = featuresMap?.some((feature) => !feature.enabledByDefault && feature.enabled && feature.requiresUpdate) ?? false;
     const isCorporateIntegration = userReportedIntegration && (CONST.POLICY.CONNECTIONS.CORPORATE as readonly string[]).includes(userReportedIntegration);
     const workspaceType = isCorporateFeature || isCorporateIntegration ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
+
+    const areDistanceRatesEnabled = !!featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED && feature.enabled);
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
     const optimisticData: OnyxUpdate[] = [
@@ -2341,7 +2341,6 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         file: clonedFile,
         companySize,
         userReportedIntegration: userReportedIntegration ?? undefined,
-        areDistanceRatesEnabled,
         features: features ? JSON.stringify(features) : undefined,
     };
 
