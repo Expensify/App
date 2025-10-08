@@ -95,7 +95,7 @@ function MoneyRequestReportTransactionsNavigation({currentReportID, parentReport
                 if (!nextReport) {
                     setOptimisticTransactionThread(nextReportID, parentReportID, nextParentReportActionID, policyID);
                 }
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true});
+                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true}));
             }}
             onPrevious={(e) => {
                 const backTo = Navigation.getActiveRoute();
@@ -106,7 +106,7 @@ function MoneyRequestReportTransactionsNavigation({currentReportID, parentReport
                 if (!prevReport) {
                     setOptimisticTransactionThread(prevReportID, parentReportID, prevParentReportActionID, policyID);
                 }
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, backTo}), {forceReplace: true});
+                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, backTo}), {forceReplace: true}));
             }}
         />
     );
