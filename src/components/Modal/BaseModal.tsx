@@ -38,7 +38,6 @@ function BaseModal({
     onModalShow = () => {},
     onModalWillShow,
     onModalWillHide,
-    fullscreen = true,
     animationIn,
     animationOut,
     hideModalContentWhileAnimating = false,
@@ -62,7 +61,6 @@ function BaseModal({
     shouldPreventScrollOnFocus = false,
     enableEdgeToEdgeBottomSafeAreaPadding,
     shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-    hasBackdrop,
     backdropOpacity,
     shouldDisableBottomSafeAreaPadding = false,
     shouldIgnoreBackHandlerDuringTransition = false,
@@ -294,6 +292,20 @@ function BaseModal({
             ? 0
             : backdropOpacity;
 
+    const onModalWillShowCallback = useCallback(() => {
+        saveFocusState();
+        onModalWillShow?.();
+    }, [saveFocusState, onModalWillShow]);
+
+    const onModalWillHideCallback = useCallback(() => {
+        // Reset willAlertModalBecomeVisible when modal is about to hide
+        // This ensures it's cleared before any other components check its value
+        if (areAllModalsHidden()) {
+            willAlertModalBecomeVisible(false);
+        }
+        onModalWillHide?.();
+    }, [onModalWillHide]);
+
     return (
         <ModalContext.Provider value={modalContextValue}>
             <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
@@ -314,18 +326,8 @@ function BaseModal({
                         onBackButtonPress={closeTop}
                         onModalShow={handleShowModal}
                         onModalHide={hideModal}
-                        onModalWillShow={() => {
-                            saveFocusState();
-                            onModalWillShow?.();
-                        }}
-                        onModalWillHide={() => {
-                            // Reset willAlertModalBecomeVisible when modal is about to hide
-                            // This ensures it's cleared before any other components check its value
-                            if (areAllModalsHidden()) {
-                                willAlertModalBecomeVisible(false);
-                            }
-                            onModalWillHide?.();
-                        }}
+                        onModalWillShow={onModalWillShowCallback}
+                        onModalWillHide={onModalWillHideCallback}
                         onDismiss={handleDismissModal}
                         onSwipeComplete={onClose}
                         swipeDirection={swipeDirection}
@@ -336,8 +338,6 @@ function BaseModal({
                         backdropColor={theme.overlay}
                         backdropOpacity={backdropOpacityAdjusted}
                         backdropTransitionOutTiming={0}
-                        hasBackdrop={hasBackdrop ?? fullscreen}
-                        coverScreen={fullscreen}
                         style={modalStyle}
                         deviceHeight={windowHeight}
                         deviceWidth={windowWidth}

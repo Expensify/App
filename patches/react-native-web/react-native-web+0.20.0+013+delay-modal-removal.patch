@@ -1,0 +1,16 @@
+diff --git a/node_modules/react-native-web/dist/exports/Modal/ModalPortal.js b/node_modules/react-native-web/dist/exports/Modal/ModalPortal.js
+index 2cd1a69..296b44c 100644
+--- a/node_modules/react-native-web/dist/exports/Modal/ModalPortal.js
++++ b/node_modules/react-native-web/dist/exports/Modal/ModalPortal.js
+@@ -25,7 +25,10 @@ function ModalPortal(props) {
+     if (canUseDOM) {
+       return () => {
+         if (document.body && elementRef.current) {
+-          document.body.removeChild(elementRef.current);
++          const element = elementRef.current;
++          setTimeout(() => {
++            document.body.removeChild(element)
++          }, 1000);
+           elementRef.current = null;
+         }
+       };
