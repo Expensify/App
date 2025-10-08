@@ -1,6 +1,6 @@
-import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView, ScrollViewProps} from 'react-native';
+import type {ScrollViewProps} from 'react-native';
 import {DeviceEventEmitter} from 'react-native';
 import Reanimated, {useAnimatedRef, useAnimatedStyle} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,7 +8,7 @@ import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewPr
 import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
 import useActionSheetKeyboardSpacing from './useActionSheetKeyboardSpacing';
 
-const ActionSheetAwareScrollView = forwardRef<ScrollView, ActionSheetAwareScrollViewProps>(({style, children, shouldAddTopSpacing = false, data, ...rest}, ref) => {
+function ActionSheetAwareScrollView({style, children, shouldAddTopSpacing = false, data, ref, ...restProps}: ActionSheetAwareScrollViewProps) {
     const scrollViewAnimatedRef = useAnimatedRef<Reanimated.ScrollView>();
     const spacerRef = useAnimatedRef<Reanimated.View>();
     const styles = useThemeStyles();
@@ -59,14 +59,14 @@ const ActionSheetAwareScrollView = forwardRef<ScrollView, ActionSheetAwareScroll
         <Reanimated.ScrollView
             ref={onRef}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...rest}
+            {...restProps}
             style={[style, animatedStyle]}
         >
             {topSpacingComponent}
             {children}
         </Reanimated.ScrollView>
     );
-});
+}
 
 export default ActionSheetAwareScrollView;
 
