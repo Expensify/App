@@ -37,11 +37,22 @@ type PaymentMethodItem = PaymentMethod & {
 } & BankIcon;
 
 type PaymentMethodListItemProps = {
+    /** The payment method item to render */
     item: PaymentMethodItem;
+
+    /** Whether to show the default badge for this payment method */
     shouldShowDefaultBadge: boolean;
+
+    /** Optional array of menu items to be displayed in the three dots menu */
     threeDotsMenuItems?: PopoverMenuItem[];
+
+    /** Callback for when the three dots menu is pressed */
     onThreeDotsMenuPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
+
+    /** List item style */
     listItemStyle?: StyleProp<ViewStyle>;
+
+    /** ID of selected payment method */
     selectedMethodID?: string | number;
 };
 
@@ -91,8 +102,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     };
 
     const getBadgeText = useCallback(
-        (item: PaymentMethodItem) => {
-            if (isAccountInSetupState(item)) {
+        (listItem: PaymentMethodItem) => {
+            if (isAccountInSetupState(listItem)) {
                 return translate('common.actionRequired');
             }
             return shouldShowDefaultBadge ? translate('paymentMethodList.defaultPaymentMethod') : undefined;
@@ -128,10 +139,10 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 shouldShowRightIcon={!threeDotsMenuItems && item.shouldShowRightIcon}
                 shouldShowRightComponent={!!threeDotsMenuItems}
                 rightComponent={
-                    threeDotsMenuItems && item.onThreeDotsMenuPress ? (
+                    threeDotsMenuItems ? (
                         <ThreeDotsMenu
                             shouldSelfPosition
-                            onIconPress={item.onThreeDotsMenuPress}
+                            onIconPress={item.onThreeDotsMenuPress ?? item.onPress}
                             menuItems={threeDotsMenuItems}
                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                             shouldOverlay

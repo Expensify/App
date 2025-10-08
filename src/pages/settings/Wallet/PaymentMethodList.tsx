@@ -20,7 +20,8 @@ import {getAssignedCardSortKey, getCardFeedIcon, getPlaidInstitutionIconUrl, isE
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
-import PaymentMethodListItem, {PaymentMethodItem} from '@pages/settings/Wallet/PaymentMethodListItem';
+import type {PaymentMethodItem} from '@pages/settings/Wallet/PaymentMethodListItem';
+import PaymentMethodListItem from '@pages/settings/Wallet/PaymentMethodListItem';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,9 +38,11 @@ type PaymentMethodPressHandler = ({event, accountType, accountData, methodID, ic
 type CardPressHandler = ({event, cardID, cardData, icon}: CardPressHandlerParams) => void;
 
 type PaymentMethodListProps = {
+    // TODO: can be removed after WorkspaceInvoiceVBASection refactor
     /** Type of active/highlighted payment method */
     actionPaymentMethodType?: string;
 
+    // TODO: can be removed after WorkspaceInvoiceVBASection refactor
     /** ID of active/highlighted payment method */
     activePaymentMethodID?: string | number;
 
