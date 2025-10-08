@@ -9,7 +9,6 @@ import CarouselItem from '@components/Attachments/AttachmentCarousel/CarouselIte
 import useCarouselContextEvents from '@components/Attachments/AttachmentCarousel/useCarouselContextEvents';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import shouldUseNewPager from '@libs/shouldUseNewPager';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import usePageScrollHandler from './usePageScrollHandler';
 
@@ -50,14 +49,11 @@ type AttachmentCarouselPagerProps = {
     /** Callback for attachment errors */
     onAttachmentError?: (source: AttachmentSource) => void;
 
-    /** Callback for attachment loaded */
-    onAttachmentLoaded?: (source: AttachmentSource) => void;
+    /** Reference to the outer element */
+    ref?: ForwardedRef<AttachmentCarouselPagerHandle>;
 };
 
-function AttachmentCarouselPager(
-    {items, activeAttachmentID, initialPage, setShouldShowArrows, onPageSelected, onClose, reportID, onAttachmentError, onAttachmentLoaded}: AttachmentCarouselPagerProps,
-    ref: ForwardedRef<AttachmentCarouselPagerHandle>,
-) {
+function AttachmentCarouselPager({items, activeAttachmentID, initialPage, setShouldShowArrows, onPageSelected, onClose, reportID, onAttachmentError, ref}: AttachmentCarouselPagerProps) {
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
     const styles = useThemeStyles();
     const pagerRef = useRef<PagerView>(null);
@@ -100,10 +96,9 @@ function AttachmentCarouselPager(
             onSwipeDown: onClose,
             onScaleChanged: handleScaleChange,
             onAttachmentError,
-            onAttachmentLoaded,
             externalGestureHandler: nativeGestureHandler,
         }),
-        [pagerItems, activePageIndex, isPagerScrolling, isScrollEnabled, handleTap, onClose, handleScaleChange, nativeGestureHandler, onAttachmentError, onAttachmentLoaded],
+        [pagerItems, activePageIndex, isPagerScrolling, isScrollEnabled, handleTap, onClose, handleScaleChange, nativeGestureHandler, onAttachmentError],
     );
 
     const animatedProps = useAnimatedProps(() => ({
@@ -147,7 +142,6 @@ function AttachmentCarouselPager(
                     onPageSelected={onPageSelected}
                     style={styles.flex1}
                     initialPage={initialPage}
-                    useNext={shouldUseNewPager()}
                     animatedProps={animatedProps}
                     ref={pagerRef}
                 >
@@ -159,5 +153,5 @@ function AttachmentCarouselPager(
 }
 AttachmentCarouselPager.displayName = 'AttachmentCarouselPager';
 
-export default React.forwardRef(AttachmentCarouselPager);
+export default AttachmentCarouselPager;
 export type {AttachmentCarouselPagerHandle};

@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
@@ -16,7 +16,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
-import useAttachmentLoaded from '@hooks/useAttachmentLoaded';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -38,6 +37,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
+import {AttachmentStateContext} from './AttachmentStateContextProvider';
 import type {AttachmentModalBaseContentProps} from './types';
 
 function AttachmentModalBaseContent({
@@ -234,6 +234,7 @@ function AttachmentModalBaseContent({
                 text: translate('common.replace'),
                 onSelected: () => {
                     const goToScanScreen = () => {
+                        // eslint-disable-next-line deprecation/deprecation
                         InteractionManager.runAfterInteractions(() => {
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
@@ -276,15 +277,12 @@ function AttachmentModalBaseContent({
     // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.
     const headerTitle = useMemo(() => headerTitleProp ?? translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment'), [headerTitleProp, isReceiptAttachment, translate]);
     const shouldShowThreeDotsButton = useMemo(() => isReceiptAttachment && threeDotsMenuItems.length !== 0, [isReceiptAttachment, threeDotsMenuItems.length]);
-    const {setAttachmentLoaded, isAttachmentLoaded} = useAttachmentLoaded();
 
+    const {isAttachmentLoaded} = useContext(AttachmentStateContext);
     const shouldShowDownloadButton = useMemo(() => {
-        const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH;
-
-        if (isValidContext && !isErrorInAttachment(sourceState)) {
-            return allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource && isAttachmentLoaded(sourceState);
+        if ((!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) && !isErrorInAttachment(sourceState)) {
+            return allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource && isAttachmentLoaded?.(sourceState);
         }
-
         return false;
     }, [
         allowDownload,
@@ -326,9 +324,8 @@ function AttachmentModalBaseContent({
             onScaleChanged: () => {},
             onSwipeDown: onClose,
             onAttachmentError: setAttachmentError,
-            onAttachmentLoaded: setAttachmentLoaded,
         }),
-        [onClose, falseSV, sourceForAttachmentView, setAttachmentError, setAttachmentLoaded],
+        [onClose, falseSV, sourceForAttachmentView, setAttachmentError],
     );
 
     return (
@@ -384,7 +381,6 @@ function AttachmentModalBaseContent({
                                 setDownloadButtonVisibility={setDownloadButtonVisibility}
                                 attachmentLink={currentAttachmentLink}
                                 onAttachmentError={setAttachmentError}
-                                onAttachmentLoaded={setAttachmentLoaded}
                             />
                         ) : (
                             !!sourceForAttachmentView && (

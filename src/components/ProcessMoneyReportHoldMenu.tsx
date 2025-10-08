@@ -3,14 +3,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import Navigation from '@libs/Navigation/Navigation';
-import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
-import {isOnHold as isOnHoldTransactionUtils} from '@libs/TransactionUtils';
 import {approveMoneyRequest, payMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -67,11 +62,7 @@ function ProcessMoneyReportHoldMenu({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const linkedTransactionID = getLinkedTransactionID(Navigation.getTopmostReportActionId(), moneyRequestReport?.reportID);
-    const [isOnHold] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {
-        selector: (transaction) => isOnHoldTransactionUtils(transaction),
-        canBeMissing: true,
-    });
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
 
     const onSubmit = (full: boolean) => {
         if (isApprove) {
@@ -79,14 +70,11 @@ function ProcessMoneyReportHoldMenu({
                 startAnimation();
             }
             approveMoneyRequest(moneyRequestReport, full);
-            if (!full && isOnHold) {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport?.reportID));
-            }
         } else if (chatReport && paymentType) {
             if (startAnimation) {
                 startAnimation();
             }
-            payMoneyRequest(paymentType, chatReport, moneyRequestReport, undefined, full);
+            payMoneyRequest(paymentType, chatReport, moneyRequestReport, introSelected, undefined, full);
         }
         onClose();
     };
