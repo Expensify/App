@@ -2346,22 +2346,21 @@ const translations = {
                 description: ({testDriveURL}) => `[テストドライブ](${testDriveURL})を行い、チームに *3 か月間の Expensify 無料クーポン*を手に入れましょう！`,
             },
             addExpenseApprovalsTask: {
-                title: 'Add expense approvals',
+                title: '経費承認を追加',
                 description: ({workspaceMoreFeaturesLink}) =>
-                    `*Add expense approvals* to review your team's spend and keep it under control.\n` +
+                    `チームの支出を確認し、管理するために*経費承認を追加*しましょう。\n` +
                     '\n' +
-                    `Here's how to add expense approvals:\n` +
+                    `手順は以下の通りです：\n` +
                     '\n' +
-                    '1. Click *Settings*.\n' +
-                    '2. Go to *Workspaces*.\n' +
-                    '3. Select your workspace.\n' +
-                    '4. Click *More features*.\n' +
-                    '5. Enable *Workflows*.\n' +
-                    '6. Navigate to *Workflows* in the workspace editor.\n' +
-                    '7. Enable *Add approvals*.\n' +
-                    `8. You'll be set as the expense approver. You can change this to any admin once you invite your team.\n` +
+                    '1. *ワークスペース* に移動します。\n' +
+                    '2. 自分のワークスペースを選択します。\n' +
+                    '3. *その他の機能* をクリックします。\n' +
+                    '4. *ワークフロー* を有効にします。\n' +
+                    '5. ワークスペースエディターで *ワークフロー* に移動します。\n' +
+                    '6. *承認を追加* を有効にします。\n' +
+                    `7. あなたが経費承認者として設定されます。チームを招待した後、管理者に変更することもできます。\n` +
                     '\n' +
-                    `[Take me to more features](${workspaceMoreFeaturesLink}).`,
+                    `[その他の機能に移動](${workspaceMoreFeaturesLink})。`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[ワークスペースの作成](${workspaceConfirmationLink})`,

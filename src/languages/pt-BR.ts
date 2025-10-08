@@ -2354,23 +2354,22 @@ const translations = {
                 description: ({testDriveURL}) => `[Faça um test drive](${testDriveURL}) conosco e sua equipe ganha *3 meses grátis de Expensify!*`,
             },
             addExpenseApprovalsTask: {
-                title: 'Add expense approvals',
+                title: 'Adicionar aprovações de despesas',
                 description: ({workspaceMoreFeaturesLink}) =>
-                    `*Add expense approvals* to review your team's spend and keep it under control.\n` +
+                    `*Adicione aprovações de despesas* para revisar os gastos da sua equipe e mantê-los sob controle.\n` +
                     '\n' +
-                    `Here's how to add expense approvals:\n` +
+                    `Veja como fazer:\n` +
                     '\n' +
-                    '1. Click *Settings*.\n' +
-                    '2. Go to *Workspaces*.\n' +
-                    '3. Select your workspace.\n' +
-                    '4. Click *More features*.\n' +
-                    '5. Enable *Workflows*.\n' +
-                    '6. Navigate to *Workflows* in the workspace editor.\n' +
-                    '7. Enable *Add approvals*.\n' +
-                    `8. You'll be set as the expense approver. You can change this to any admin once you invite your team.\n` +
+                    '1. Vá para *Espaços de trabalho*.\n' +
+                    '2. Selecione seu espaço de trabalho.\n' +
+                    '3. Clique em *Mais recursos*.\n' +
+                    '4. Ative *Fluxos de trabalho*.\n' +
+                    '5. Vá para *Fluxos de trabalho* no editor do espaço de trabalho.\n' +
+                    '6. Ative *Adicionar aprovações*.\n' +
+                    `7. Você será definido como o aprovador de despesas. Pode alterar isso para qualquer administrador após convidar sua equipe.\n` +
                     '\n' +
-                    `[Take me to more features](${workspaceMoreFeaturesLink}).`,
-            },
+                    `[Ir para mais recursos](${workspaceMoreFeaturesLink}).`,
+            },            
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Crie](${workspaceConfirmationLink}) um espaço de trabalho`,
                 description: 'Crie um espaço de trabalho e configure as definições com a ajuda do seu especialista em configuração!',

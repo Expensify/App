@@ -2351,23 +2351,22 @@ const translations = {
                 description: ({testDriveURL}) => `Neem ons mee voor een [proefrit](${testDriveURL}) en uw team krijgt *3 maanden Expensify gratis!*`,
             },
             addExpenseApprovalsTask: {
-                title: 'Add expense approvals',
+                title: 'Dodaj zatwierdzanie wydatków',
                 description: ({workspaceMoreFeaturesLink}) =>
-                    `*Add expense approvals* to review your team's spend and keep it under control.\n` +
+                    `*Dodaj zatwierdzanie wydatków*, aby kontrolować wydatki swojego zespołu i utrzymać je pod kontrolą.\n` +
                     '\n' +
-                    `Here's how to add expense approvals:\n` +
+                    `Jak to zrobić:\n` +
                     '\n' +
-                    '1. Click *Settings*.\n' +
-                    '2. Go to *Workspaces*.\n' +
-                    '3. Select your workspace.\n' +
-                    '4. Click *More features*.\n' +
-                    '5. Enable *Workflows*.\n' +
-                    '6. Navigate to *Workflows* in the workspace editor.\n' +
-                    '7. Enable *Add approvals*.\n' +
-                    `8. You'll be set as the expense approver. You can change this to any admin once you invite your team.\n` +
+                    '1. Przejdź do *Obszary robocze*.\n' +
+                    '2. Wybierz swój obszar roboczy.\n' +
+                    '3. Kliknij *Więcej funkcji*.\n' +
+                    '4. Włącz *Przepływy pracy*.\n' +
+                    '5. Przejdź do *Przepływy pracy* w edytorze obszaru roboczego.\n' +
+                    '6. Włącz *Dodaj zatwierdzenia*.\n' +
+                    `7. Zostaniesz ustawiony jako osoba zatwierdzająca wydatki. Możesz to zmienić na dowolnego administratora po zaproszeniu zespołu.\n` +
                     '\n' +
-                    `[Take me to more features](${workspaceMoreFeaturesLink}).`,
-            },
+                    `[Przejdź do więcej funkcji](${workspaceMoreFeaturesLink}).`,
+            },            
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Maak](${workspaceConfirmationLink}) een werkruimte`,
                 description: 'Maak een werkruimte en configureer de instellingen met de hulp van uw setup specialist!',

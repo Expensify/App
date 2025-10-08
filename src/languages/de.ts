@@ -2369,22 +2369,21 @@ const translations = {
                 description: ({testDriveURL}) => `Probiere uns in einer [Probefahrt](${testDriveURL}) aus und sichere deinem Team *3 Monate Expensify gratis!*`,
             },
             addExpenseApprovalsTask: {
-                title: 'Add expense approvals',
+                title: 'Ausgabengenehmigungen hinzufügen',
                 description: ({workspaceMoreFeaturesLink}) =>
-                    `*Add expense approvals* to review your team's spend and keep it under control.\n` +
+                    `*Füge Ausgabengenehmigungen hinzu*, um die Ausgaben deines Teams zu überprüfen und unter Kontrolle zu halten.\n` +
                     '\n' +
-                    `Here's how to add expense approvals:\n` +
+                    `So geht’s:\n` +
                     '\n' +
-                    '1. Click *Settings*.\n' +
-                    '2. Go to *Workspaces*.\n' +
-                    '3. Select your workspace.\n' +
-                    '4. Click *More features*.\n' +
-                    '5. Enable *Workflows*.\n' +
-                    '6. Navigate to *Workflows* in the workspace editor.\n' +
-                    '7. Enable *Add approvals*.\n' +
-                    `8. You'll be set as the expense approver. You can change this to any admin once you invite your team.\n` +
+                    '1. Gehe zu *Arbeitsbereiche*.\n' +
+                    '2. Wähle deinen Arbeitsbereich aus.\n' +
+                    '3. Klicke auf *Weitere Funktionen*.\n' +
+                    '4. Aktiviere *Workflows*.\n' +
+                    '5. Navigiere im Arbeitsbereich-Editor zu *Workflows*.\n' +
+                    '6. Aktiviere *Genehmigungen hinzufügen*.\n' +
+                    `7. Du wirst als Ausgabengenehmiger festgelegt. Du kannst dies nach dem Einladen deines Teams auf einen beliebigen Administrator ändern.\n` +
                     '\n' +
-                    `[Take me to more features](${workspaceMoreFeaturesLink}).`,
+                    `[Zu weiteren Funktionen](${workspaceMoreFeaturesLink}).`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Erstelle](${workspaceConfirmationLink}) einen Workspace`,

@@ -2324,23 +2324,22 @@ const translations = {
                 description: ({testDriveURL}) => `进行[试驾](${testDriveURL})即可获得团队 *3 个月的 Expensify 免费使用权！*`,
             },
             addExpenseApprovalsTask: {
-                title: 'Add expense approvals',
+                title: '添加费用审批',
                 description: ({workspaceMoreFeaturesLink}) =>
-                    `*Add expense approvals* to review your team's spend and keep it under control.\n` +
+                    `*添加费用审批*，以便查看团队支出并保持控制。\n` +
                     '\n' +
-                    `Here's how to add expense approvals:\n` +
+                    `操作步骤如下：\n` +
                     '\n' +
-                    '1. Click *Settings*.\n' +
-                    '2. Go to *Workspaces*.\n' +
-                    '3. Select your workspace.\n' +
-                    '4. Click *More features*.\n' +
-                    '5. Enable *Workflows*.\n' +
-                    '6. Navigate to *Workflows* in the workspace editor.\n' +
-                    '7. Enable *Add approvals*.\n' +
-                    `8. You'll be set as the expense approver. You can change this to any admin once you invite your team.\n` +
+                    '1. 前往 *工作区*。\n' +
+                    '2. 选择你的工作区。\n' +
+                    '3. 点击 *更多功能*。\n' +
+                    '4. 启用 *工作流*。\n' +
+                    '5. 在工作区编辑器中进入 *工作流*。\n' +
+                    '6. 启用 *添加审批*。\n' +
+                    `7. 你将被设置为费用审批人。邀请团队后，你可以将其更改为任意管理员。\n` +
                     '\n' +
-                    `[Take me to more features](${workspaceMoreFeaturesLink}).`,
-            },
+                    `[前往更多功能](${workspaceMoreFeaturesLink})。`,
+            },            
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[创建](${workspaceConfirmationLink})一个工作区`,
                 description: '创建一个工作区，并在您的设置专家的帮助下配置各项设置！',
