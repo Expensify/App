@@ -40,10 +40,7 @@ import KeyboardUtils from '@src/utils/keyboard';
 
 const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
-type SelectedOption = ListItem &
-    Omit<OptionData, 'reportID'> & {
-        reportID?: string;
-    };
+type SelectedOption = ListItem & OptionData;
 
 function useOptions() {
     // const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -61,11 +58,11 @@ function useOptions() {
     const {selectedOptions, setSelectedOptions, searchTerm, setSearchTerm, availableOptions, debouncedSearchTerm} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        includeCurrentUser: true,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         shouldInitialize: didScreenTransitionEnd,
         includeUserToInvite: true,
         contactOptions: contacts,
+        includeSelfDM: true,
     });
 
     const options = useMemo(() => {
@@ -178,7 +175,7 @@ function NewChatPage({ref}: NewChatPageProps) {
 
         const formatResults = formatSectionsFromSearchTerm(
             debouncedSearchTerm,
-            selectedOptions as OptionData[],
+            selectedOptions,
             recentReports,
             personalDetails,
             undefined,
@@ -236,7 +233,8 @@ function NewChatPage({ref}: NewChatPageProps) {
             if (isOptionInList) {
                 newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
             } else {
-                newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID}];
+                // eslint-disable-next-line rulesdir/no-default-id-values
+                newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? '-1'}];
                 selectionListRef?.current?.scrollToIndex(0, true);
             }
 

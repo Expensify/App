@@ -41,6 +41,9 @@ type UseSearchSelectorConfig = {
     /** Enable phone contacts integration */
     enablePhoneContacts?: boolean;
 
+    /** Whether to include self DM */
+    includeSelfDM?: boolean;
+
     /** Additional configuration for getValidOptions function */
     getValidOptionsConfig?: Partial<GetOptionsConfig>;
 
@@ -145,6 +148,7 @@ function useSearchSelectorBase({
     shouldInitialize = true,
     contactOptions,
     includeCurrentUser = false,
+    includeSelfDM = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {options: defaultOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize,
@@ -194,6 +198,7 @@ function useSearchSelectorBase({
                     searchString: computedSearchTerm,
                     includeUserToInvite,
                     includeCurrentUser,
+                    includeSelfDM,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(optionsWithContacts, {
@@ -205,6 +210,7 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                     loginsToExclude: excludeLogins,
                     includeCurrentUser,
+                    includeSelfDM,
                 });
             default:
                 return getEmptyOptions();
@@ -222,6 +228,7 @@ function useSearchSelectorBase({
         includeCurrentUser,
         maxRecentReportsToShow,
         getValidOptionsConfig,
+        includeSelfDM,
     ]);
 
     const isOptionSelected = useMemo(() => {
