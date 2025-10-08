@@ -103,6 +103,7 @@ export default {
     receiptPaneRHPMaxWidth: 465,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
+    chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
     navigationTabBarSize: 72,
     pdfPageMaxWidth: 992,
@@ -372,4 +373,9 @@ export default {
     // Chat-specific item heights (rounded to nearest integer). The values was measured on the screen
     searchChatReportPreviewHeight: 434,
     searchChatStandardItemHeight: 97,
+
+    // Uber employee invite button width
+    uberEmployeeInviteButtonWidth: 62,
+    uberEmptyListIconWidth: 190,
+    uberEmptyListIconHeight: 136,
 } as const;

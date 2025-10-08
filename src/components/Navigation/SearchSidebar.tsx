@@ -1,4 +1,5 @@
 import type {ParamListBase} from '@react-navigation/native';
+import {searchResultsSelector} from '@selectors/Snapshot';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderGap from '@components/HeaderGap';
@@ -43,7 +44,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchResultsKey}`, {
         canBeMissing: true,
-        selector: (snapshot) => snapshot?.search,
+        selector: searchResultsSelector,
     });
 
     useEffect(() => {
