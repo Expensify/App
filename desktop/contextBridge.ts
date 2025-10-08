@@ -1,11 +1,6 @@
 import {contextBridge, ipcRenderer} from 'electron';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
-
-type SecureStoreApi = {
-    set: (key: string, value: string) => void;
-    get: (key: string) => string | null;
-    delete: (key: string) => void;
-};
+import type {SecureStoreAPI} from './secureStoreTypes';
 
 type ContextBridgeApi = {
     send: (channel: string, data?: unknown) => void;
@@ -13,7 +8,7 @@ type ContextBridgeApi = {
     invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
     on: (channel: string, func: (...args: unknown[]) => void) => void;
     removeAllListeners: (channel: string) => void;
-    secureStore?: SecureStoreApi;
+    secureStore?: SecureStoreAPI;
 };
 
 const WHITELIST_CHANNELS_RENDERER_TO_MAIN = [
@@ -44,7 +39,7 @@ const WHITELIST_CHANNELS_MAIN_TO_RENDERER = [
 const getErrorMessage = (channel: string): string => `Electron context bridge cannot be used with channel '${channel}'`;
 
 // SecureStore API using IPC to communicate with main process
-const secureStore: SecureStoreApi = {
+const secureStore: SecureStoreAPI = {
     set: (key: string, value: string): void => {
         console.log(`[SecureStore Renderer] Calling SET for key: ${key}`);
         ipcRenderer.invoke(ELECTRON_EVENTS.SECURE_STORE_SET, key, value).catch((error) => {

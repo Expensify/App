@@ -31,6 +31,7 @@ import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
 import {getFullSizeAvatar, getLoginListBrickRoadIndicator, isDefaultAvatar} from '@libs/UserUtils';
 import {clearAvatarErrors, deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
+import type {ElectronWindow} from '@desktop/secureStoreTypes';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,20 +74,7 @@ function ProfilePage() {
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
-    type SecureStoreAPI = {
-        set: (key: string, value: string) => void;
-        get: (key: string) => string | null;
-        delete: (key: string) => void;
-    };
-
-    type ElectronWindow = Window &
-        typeof globalThis & {
-            electron?: {
-                secureStore?: SecureStoreAPI;
-            };
-        };
-
-    const getSecureStore = (): SecureStoreAPI | null => {
+    const getSecureStore = () => {
         const electronWindow = window as ElectronWindow;
         return electronWindow.electron?.secureStore ?? null;
     };

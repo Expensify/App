@@ -18,28 +18,15 @@ import type {Locale} from '@src/types/onyx';
 import type {CreateDownloadQueueModule, DownloadItem} from './createDownloadQueue';
 import serve from './electron-serve';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
+import type {SecureStoreAddonNative, SecureStoreAPI} from './secureStoreTypes';
 
 const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownloadQueue').default;
 
-// Load SecureStore addon (only available on macOS)
-type SecureStoreAddonNative = {
-    SecureStoreAddon: new () => {
-        set: (key: string, value: string) => void;
-        get: (key: string) => string | null;
-        delete: (key: string) => void;
-    };
-};
-type SecureStoreType = {
-    set: (key: string, value: string) => void;
-    get: (key: string) => string | null;
-    delete: (key: string) => void;
-};
-
-interface NodeModule {
-    _load(request: string, parent: NodeModule, isMain: boolean): unknown;
+interface NodeModuleLoader {
+    _load(request: string, parent: unknown, isMain: boolean): unknown;
 }
 
-function loadSecureStoreAddon(): SecureStoreType | null {
+function loadSecureStoreAddon(): SecureStoreAPI | null {
     if (process.platform !== 'darwin') {
         return null;
     }
@@ -52,7 +39,7 @@ function loadSecureStoreAddon(): SecureStoreType | null {
             `${app.getAppPath()}/secure-store/build/Release/secure_store_addon.node`,
         ];
 
-        const nodeModule = require('module') as NodeModule;
+        const nodeModule = require('module') as NodeModuleLoader;
 
         for (const path of addonPaths) {
             try {
