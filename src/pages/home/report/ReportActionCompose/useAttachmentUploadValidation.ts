@@ -81,38 +81,39 @@ function useAttachmentUploadValidation({
         if (shouldAddOrReplaceReceipt && transactionID) {
             const source = URL.createObjectURL(files.at(0) as Blob);
             replaceReceipt({transactionID, file: files.at(0) as File, source});
-        } else {
-            const initialTransaction = initMoneyRequest({
-                reportID,
-                newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
-                report,
-                parentReport: newParentReport,
-                currentDate,
-            });
-
-            files.forEach((file, index) => {
-                const source = URL.createObjectURL(file as Blob);
-                const newTransaction =
-                    index === 0
-                        ? (initialTransaction as Partial<OnyxTypes.Transaction>)
-                        : buildOptimisticTransactionAndCreateDraft({
-                              initialTransaction: initialTransaction as Partial<OnyxTypes.Transaction>,
-                              currentUserPersonalDetails,
-                              reportID,
-                          });
-                const newTransactionID = newTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-                setMoneyRequestReceipt(newTransactionID, source, file.name ?? '', true);
-                setMoneyRequestParticipantsFromReport(newTransactionID, report);
-            });
-            Navigation.navigate(
-                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                    CONST.IOU.ACTION.CREATE,
-                    isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT,
-                    CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                    reportID,
-                ),
-            );
+            return;
         }
+
+        const initialTransaction = initMoneyRequest({
+            reportID,
+            newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            report,
+            parentReport: newParentReport,
+            currentDate,
+        });
+
+        files.forEach((file, index) => {
+            const source = URL.createObjectURL(file as Blob);
+            const newTransaction =
+                index === 0
+                    ? (initialTransaction as Partial<OnyxTypes.Transaction>)
+                    : buildOptimisticTransactionAndCreateDraft({
+                          initialTransaction: initialTransaction as Partial<OnyxTypes.Transaction>,
+                          currentUserPersonalDetails,
+                          reportID,
+                      });
+            const newTransactionID = newTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+            setMoneyRequestReceipt(newTransactionID, source, file.name ?? '', true);
+            setMoneyRequestParticipantsFromReport(newTransactionID, report);
+        });
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                CONST.IOU.ACTION.CREATE,
+                isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT,
+                CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                reportID,
+            ),
+        );
     };
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(onFilesValidated, false);
