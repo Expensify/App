@@ -453,15 +453,15 @@ jobs:
           provisioning-profiles: |
             [
               {
-                "name": "OldApp_AdHoc",
+                "name": "(OldApp) AdHoc",
                 "file": "./OldApp_AdHoc.mobileprovision"
               },
               {
-                "name": "OldApp_AdHoc_Share_Extension",
+                "name": "(OldApp) AdHoc: Share Extension",
                 "file": "./OldApp_AdHoc_Share_Extension.mobileprovision"
               },
               {
-                "name": "OldApp_AdHoc_Notification_Service",
+                "name": "(OldApp) AdHoc: Notification Service",
                 "file": "./OldApp_AdHoc_Notification_Service.mobileprovision"
               }
             ]
