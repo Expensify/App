@@ -47,6 +47,7 @@ import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
 import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
+import ExpensifyCardContextProvider from './pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardContextProvider';
 import './setup/backgroundTask';
 import './setup/fraudProtection';
 import './setup/hybridApp';
@@ -121,6 +122,7 @@ function App() {
                                         FullScreenBlockingViewContextProvider,
                                         FullScreenLoaderContextProvider,
                                         SidePanelContextProvider,
+                                        ExpensifyCardContextProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />
