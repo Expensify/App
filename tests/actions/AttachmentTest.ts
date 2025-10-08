@@ -1,8 +1,8 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import {rand64} from '@libs/NumberUtils';
-import {getCachedAttachment} from '@userActions/Attachment';
-import {addAttachment, addComment, deleteReportComment} from '@userActions/Report';
+import {clearCachedAttachments, getCachedAttachment} from '@userActions/Attachment';
+import {addAttachmentWithComment, addComment, deleteReportComment} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {Attachment, ReportAction} from '@src/types/onyx';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -70,7 +70,7 @@ describe('AttachmentStorage', () => {
         };
 
         // Then upload the attachment
-        addAttachment(reportID, reportID, fileData, CONST.DEFAULT_TIME_ZONE);
+        addAttachmentWithComment(reportID, reportID, fileData);
 
         await waitForBatchedUpdates();
 
@@ -283,7 +283,7 @@ describe('AttachmentStorage', () => {
         await waitForBatchedUpdates();
 
         // Then upload the attachment
-        addAttachment(reportID, reportID, fileData, CONST.DEFAULT_TIME_ZONE);
+        addAttachmentWithComment(reportID, reportID, fileData);
 
         await waitForBatchedUpdates();
 
@@ -366,5 +366,77 @@ describe('AttachmentStorage', () => {
 
         // Then the attachment should be removed
         expect(removedAttachment).toBeUndefined();
+    });
+    it('should clear all markdown/attachment files when clearCachedAttachments is invoked', async () => {
+        // Given the markdown & attachment files data consisting of sourceURL and markdown comment text
+        const markdownAttachments = ['https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500', 'https://images.pexels.com/photos/577585/pexels-photo-577585.jpeg'];
+        const markdownCommentText = markdownAttachments.map((url) => `![](${url})`).join('\n');
+        const attachmentFiles = [
+            {
+                name: `TEST_ATTACHMENT_FILE`,
+                type: 'image/jpeg',
+                uri: 'file://mock/documents/113134427695441775.jpg',
+            },
+            {
+                name: `TEST_ATTACHMENT_FILE_2`,
+                type: 'image/jpeg',
+                uri: 'file://mock/documents/224234427695441115.jpg',
+            },
+        ];
+
+        let attachments: OnyxCollection<Attachment>;
+
+        Onyx.connect({
+            key: ONYXKEYS.COLLECTION.ATTACHMENT,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                if (!value) {
+                    return;
+                }
+                attachments = value;
+            },
+        });
+
+        await waitForBatchedUpdates();
+
+        // Then send both markdown & attachment files
+        addComment(reportID, reportID, markdownCommentText, CONST.DEFAULT_TIME_ZONE);
+        addAttachmentWithComment(reportID, reportID, attachmentFiles);
+
+        await waitForBatchedUpdates();
+
+        const attachmentLists = Object.values(attachments ?? {});
+        const attachmentLength = markdownAttachments.length + attachmentFiles.length;
+
+        // Then the attachmentID and attachment value should be defined
+        expect(attachmentLists.length).toBe(attachmentLength);
+        attachmentLists.forEach((attachment) => {
+            const attachmentID = attachment?.attachmentID;
+            expect(attachmentID).toBeDefined();
+
+            const isMarkdownAttachment = !!attachment?.remoteSource;
+            if (isMarkdownAttachment) {
+                const remoteSourceIndex = markdownAttachments.indexOf(attachment?.remoteSource ?? '');
+                expect(remoteSourceIndex).toBeDefined();
+                expect(attachment).toEqual({
+                    attachmentID,
+                    source: `/mock/documents/${attachmentID}.jpg`,
+                    remoteSource: markdownAttachments.at(remoteSourceIndex),
+                });
+                return;
+            }
+            expect(attachment).toEqual({
+                attachmentID,
+                source: `/mock/documents/${attachmentID}.jpg`,
+            });
+        });
+
+        // Clear all attachments
+        clearCachedAttachments();
+
+        await waitForBatchedUpdates();
+
+        // Then all attachments should be removed
+        expect(Object.values(attachments ?? {}).length).toBe(0);
     });
 });
