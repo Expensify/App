@@ -1,6 +1,11 @@
 import React from 'react';
+import type {PolicyReportField} from '@src/types/onyx';
 
-function ReportFieldList() {
+type ReportFieldListProps = {
+    field: PolicyReportField;
+};
+
+function ReportFieldList({field}: ReportFieldListProps) {
     return <></>;
 }
 

@@ -1,6 +1,11 @@
 import React from 'react';
+import type {PolicyReportField} from '@src/types/onyx';
 
-function ReportFieldDate() {
+type ReportFieldDateProps = {
+    field: PolicyReportField;
+};
+
+function ReportFieldDate({field}: ReportFieldDateProps) {
     return <></>;
 }
 

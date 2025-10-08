@@ -40,16 +40,46 @@ function SearchFiltersReportFieldPage() {
         },
     });
 
-    if (selectedField?.type === CONST.REPORT_FIELD_TYPES.LIST) {
-        return <ReportFieldList />;
-    }
+    if (selectedField) {
+        const fieldType = selectedField.type as 'text' | 'date' | 'dropdown';
 
-    if (selectedField?.type === CONST.REPORT_FIELD_TYPES.DATE) {
-        return <ReportFieldDate />;
-    }
+        const UpdateReportFieldComponent = {
+            [CONST.REPORT_FIELD_TYPES.LIST]: ReportFieldList,
+            [CONST.REPORT_FIELD_TYPES.DATE]: ReportFieldDate,
+            [CONST.REPORT_FIELD_TYPES.TEXT]: ReportFieldText,
+        }[fieldType];
 
-    if (selectedField?.type === CONST.REPORT_FIELD_TYPES.TEXT) {
-        return <ReportFieldText />;
+        return (
+            <ScreenWrapper
+                testID={SearchFiltersReportFieldPage.displayName}
+                shouldShowOfflineIndicatorInWideScreen
+                offlineIndicatorStyle={styles.mtAuto}
+                includeSafeAreaPaddingBottom
+                shouldEnableMaxHeight
+            >
+                <HeaderWithBackButton
+                    title={selectedField.name}
+                    onBackButtonPress={() => {
+                        setSelectedField(null);
+                    }}
+                />
+                <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                    <UpdateReportFieldComponent field={selectedField} />
+                </ScrollView>
+                <Button
+                    text={translate('common.reset')}
+                    onPress={() => {}}
+                    style={[styles.mh4, styles.mt4]}
+                    large
+                />
+                <FormAlertWithSubmitButton
+                    buttonText={translate('common.save')}
+                    containerStyles={[styles.m4, styles.mt3, styles.mb5]}
+                    onSubmit={() => {}}
+                    enabledWhenOffline
+                />
+            </ScreenWrapper>
+        );
     }
 
     return (
