@@ -68,7 +68,8 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const navigation = useNavigation();
 
     useEffect(() => {
-        if (videoUrl && (getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP)) {
+        const platform = getPlatform();
+        if (videoUrl && (platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP)) {
             const video = document.createElement('video');
             video.onloadedmetadata = () => {
                 if (video.videoWidth === measuredDimensions.width && video.videoHeight === measuredDimensions.height) {
