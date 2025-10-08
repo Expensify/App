@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -52,8 +52,15 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
         [translate, currentCountry],
     );
 
-    const searchResults = searchOptions(debouncedSearchValue, countries);
+    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, countries, [currentCountry]), [countries, debouncedSearchValue, currentCountry]);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
+
+    const onSelectionChange = useCallback(
+        (country: Option) => {
+            onCountrySelected(country);
+        },
+        [onCountrySelected],
+    );
 
     const styles = useThemeStyles();
 
@@ -82,7 +89,7 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
                     textInputValue={searchValue}
                     textInputLabel={translate('common.search')}
                     onChangeText={setSearchValue}
-                    onSelectRow={onCountrySelected}
+                    onSelectRow={onSelectionChange}
                     ListItem={RadioListItem}
                     initiallyFocusedOptionKey={currentCountry}
                     shouldSingleExecuteRowSelect

@@ -76,6 +76,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     footerContentAbovePagination,
     listEmptyContent,
     showScrollIndicator = true,
+    disableScrollOnSelect = false,
     showLoadingPlaceholder = false,
     LoadingPlaceholderComponent = OptionsListSkeletonView,
     showConfirmButton = false,
@@ -482,7 +483,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             }
             // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
             if (canSelectMultiple) {
-                if (sections.length > 1 && !isItemSelected(item)) {
+                if (sections.length > 1 && !isItemSelected(item) && !disableScrollOnSelect) {
                     // If we're selecting an item, scroll to its position at the top, so we can see it
                     scrollToIndex(0, true);
                 }
@@ -517,6 +518,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             shouldPreventDefaultFocusOnSelectRow,
             sections.length,
             isItemSelected,
+            disableScrollOnSelect,
             isSmallScreenWidth,
             scrollToIndex,
             clearInputAfterSelect,

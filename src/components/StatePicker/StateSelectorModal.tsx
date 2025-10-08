@@ -1,5 +1,5 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -56,10 +56,17 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
         [translate, currentState],
     );
 
-    const searchResults = searchOptions(debouncedSearchValue, countryStates);
+    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, countryStates, [currentState]), [countryStates, debouncedSearchValue, currentState]);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const styles = useThemeStyles();
+
+    const onSelectionChange = useCallback(
+        (state: Option) => {
+            onStateSelected(state);
+        },
+        [onStateSelected],
+    );
 
     return (
         <Modal
@@ -86,7 +93,7 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
                     textInputValue={searchValue}
                     textInputLabel={translate('common.search')}
                     onChangeText={setSearchValue}
-                    onSelectRow={onStateSelected}
+                    onSelectRow={onSelectionChange}
                     ListItem={RadioListItem}
                     initiallyFocusedOptionKey={currentState}
                     shouldSingleExecuteRowSelect

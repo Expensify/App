@@ -9,8 +9,8 @@ import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import memoize from '@libs/memoize';
-import {filterAndOrderOptions, filterSelectedOptions, formatSectionsFromSearchTerm, getValidOptions} from '@libs/OptionsListUtils';
-import type {Option, Section} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, filterSelectedOptions, formatSectionsFromSearchTerm, getParticipantsOption, getPolicyExpenseReportOption, getValidOptions} from '@libs/OptionsListUtils';
+import type {Option, SearchOptionData} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -40,7 +40,7 @@ type SearchFiltersParticipantsSelectorProps = {
 };
 
 function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}: SearchFiltersParticipantsSelectorProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const {options, areOptionsInitialized} = useOptionsList({
@@ -70,13 +70,28 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         );
     }, [areOptionsInitialized, options.personalDetails, options.reports]);
 
+    const initialSelectedOptions = useMemo(() => {
+        if (!initialAccountIDs || initialAccountIDs.length === 0 || !personalDetails) {
+            return [];
+        }
+
+        const preSelectedOptions = initialAccountIDs.reduce<OptionData[]>((acc, accountID) => {
+            const participant = personalDetails[accountID];
+            if (participant) {
+                acc.push(getSelectedOptionData(participant));
+            }
+            return acc;
+        }, []);
+
+        return preSelectedOptions;
+    }, [initialAccountIDs, personalDetails]);
+
     const unselectedOptions = useMemo(() => {
         return filterSelectedOptions(defaultOptions, new Set(selectedOptions.map((option) => option.accountID)));
     }, [defaultOptions, selectedOptions]);
 
     const chatOptions = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(unselectedOptions, cleanSearchTerm, countryCode, {
-            selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
@@ -90,10 +105,11 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         }
 
         return filteredOptions;
-    }, [unselectedOptions, cleanSearchTerm, selectedOptions, countryCode]);
+    }, [unselectedOptions, cleanSearchTerm, countryCode]);
 
     const {sections, headerMessage} = useMemo(() => {
-        const newSections: Section[] = [];
+        const sectionData: SearchOptionData[] = [];
+
         if (!areOptionsInitialized) {
             return {sections: [], headerMessage: undefined};
         }
@@ -118,43 +134,63 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         }
 
         // If the current user is not selected, add them to the top of the list
-        if (!selectedCurrentUser && chatOptions.currentUserOption) {
+        if (!selectedCurrentUser && chatOptions.currentUserOption && !initialSelectedOptions.some((option) => option.accountID === chatOptions.currentUserOption?.accountID)) {
             const formattedName = getDisplayNameForParticipant({
                 accountID: chatOptions.currentUserOption.accountID,
                 shouldAddCurrentUserPostfix: true,
                 personalDetailsData: personalDetails,
             });
             chatOptions.currentUserOption.text = formattedName;
-
-            newSections.push({
-                title: '',
-                data: [chatOptions.currentUserOption],
-                shouldShow: true,
-            });
+            sectionData.push(chatOptions.currentUserOption);
         }
 
-        newSections.push(formattedResults.section);
+        const selectedIDsSet = new Set(initialSelectedOptions.map((o) => o.accountID));
+        const unselectedFormattedSectionData = formattedResults.section.data.filter((option) => !selectedIDsSet.has(option.accountID));
+        if (unselectedFormattedSectionData.length) {
+            sectionData.push(...(unselectedFormattedSectionData as SearchOptionData[]));
+        }
 
-        newSections.push({
-            title: '',
-            data: chatOptions.recentReports,
-            shouldShow: chatOptions.recentReports.length > 0,
-        });
+        const unselectedRecentReports = chatOptions.recentReports.filter((report) => !initialSelectedOptions.some((selectedOption) => selectedOption.accountID === report.accountID));
+        if (unselectedRecentReports) {
+            sectionData.push(...unselectedRecentReports);
+        }
 
-        newSections.push({
-            title: '',
-            data: chatOptions.personalDetails,
-            shouldShow: chatOptions.personalDetails.length > 0,
-        });
+        const unselectedPersonalDetails = chatOptions.personalDetails.filter((detail) => !initialSelectedOptions.some((selectedOption) => selectedOption.accountID === detail.accountID));
+        if (unselectedPersonalDetails) {
+            sectionData.push(...unselectedPersonalDetails);
+        }
 
         const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;
         const message = noResultsFound ? translate('common.noResultsFound') : undefined;
+        let sortedSectionData = sectionData.sort((a, b) => {
+            return localeCompare(a?.login?.toLowerCase() ?? '', b?.login?.toLowerCase() ?? '');
+        });
+
+        if (initialSelectedOptions.length) {
+            sortedSectionData = [
+                ...(initialSelectedOptions.map((participant) => {
+                    const participantData = {
+                        ...participant,
+                        selected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
+                    };
+                    const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
+                    return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participantData, reportAttributesDerived) : getParticipantsOption(participantData, personalDetails);
+                }) as SearchOptionData[]),
+                ...sortedSectionData,
+            ];
+        }
 
         return {
-            sections: newSections,
+            sections: [
+                {
+                    title: '',
+                    data: sortedSectionData,
+                    shouldShow: sortedSectionData.length > 0,
+                },
+            ],
             headerMessage: message,
         };
-    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate]);
+    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, initialSelectedOptions, translate, localeCompare]);
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);
@@ -169,26 +205,9 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
 
     // This effect handles setting initial selectedOptions based on accountIDs saved in onyx form
     useEffect(() => {
-        if (!initialAccountIDs || initialAccountIDs.length === 0 || !personalDetails) {
-            return;
-        }
-
-        const preSelectedOptions = initialAccountIDs
-            .map((accountID) => {
-                const participant = personalDetails[accountID];
-                if (!participant) {
-                    return;
-                }
-
-                return getSelectedOptionData(participant);
-            })
-            .filter((option): option is NonNullable<OptionData> => {
-                return !!option;
-            });
-
-        setSelectedOptions(preSelectedOptions);
+        setSelectedOptions(initialSelectedOptions);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- this should react only to changes in form data
-    }, [initialAccountIDs, personalDetails]);
+    }, [initialSelectedOptions]);
 
     const handleParticipantSelection = useCallback(
         (option: Option) => {

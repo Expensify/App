@@ -48,7 +48,7 @@ function StateSelectionPage() {
         [translate, currentState],
     );
 
-    const searchResults = searchOptions(searchValue, countryStates);
+    const searchResults = useMemo(() => searchOptions(searchValue, countryStates, currentState ? [currentState] : []), [countryStates, searchValue, currentState]);
     const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const selectCountryState = useCallback(

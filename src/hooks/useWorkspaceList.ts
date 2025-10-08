@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {ListItem, SectionListDataType} from '@components/SelectionListWithSections/types';
-import {isPolicyAdmin, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
+import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -23,18 +23,31 @@ type UseWorkspaceListParams = {
     currentUserLogin: string | undefined;
     shouldShowPendingDeletePolicy: boolean;
     selectedPolicyIDs: string[] | undefined;
+    initialSelectedPolicyIDs: string[] | undefined;
     searchTerm: string;
     localeCompare: LocaleContextProps['localeCompare'];
     additionalFilter?: (policy: OnyxEntry<Policy>) => boolean;
 };
 
-function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, searchTerm, shouldShowPendingDeletePolicy, localeCompare, additionalFilter}: UseWorkspaceListParams) {
-    const usersWorkspaces = useMemo(() => {
+function useWorkspaceList({
+    policies,
+    currentUserLogin,
+    selectedPolicyIDs,
+    searchTerm,
+    shouldShowPendingDeletePolicy,
+    initialSelectedPolicyIDs = [],
+    localeCompare,
+    additionalFilter,
+}: UseWorkspaceListParams) {
+    const orderedPolicies = useMemo(() => {
         if (!policies || isEmptyObject(policies)) {
             return [];
         }
+        const initialSelectedPolicyIDsSet = new Set(initialSelectedPolicyIDs);
+        const selectedPolicies: Policy[] = [];
+        const unselectedPolicies: Policy[] = [];
 
-        return Object.values(policies)
+        const sortedItems = Object.values(policies)
             .filter(
                 (policy) =>
                     !!policy &&
@@ -42,31 +55,43 @@ function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, search
                     !policy?.isJoinRequestPending &&
                     (additionalFilter ? additionalFilter(policy) : true),
             )
-            .map((policy) => ({
-                text: policy?.name ?? '',
-                policyID: policy?.id,
-                icons: [
-                    {
-                        source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name),
-                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                        name: policy?.name,
-                        type: CONST.ICON_TYPE_WORKSPACE,
-                        id: policy?.id,
-                    },
-                ],
-                keyForList: policy?.id,
-                isPolicyAdmin: isPolicyAdmin(policy),
-                isSelected: policy?.id && selectedPolicyIDs ? selectedPolicyIDs.includes(policy.id) : false,
-            }));
-    }, [policies, shouldShowPendingDeletePolicy, currentUserLogin, additionalFilter, selectedPolicyIDs]);
+            .sort((policy1, policy2) => localeCompare(policy1?.name?.toLowerCase() ?? '', policy2?.name?.toLowerCase() ?? ''));
+        for (const option of sortedItems) {
+            if (!option) {
+                continue;
+            }
 
-    const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
-        () =>
-            tokenizedSearch(usersWorkspaces, searchTerm, (policy) => [policy.text]).sort((policy1, policy2) =>
-                sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, selectedPolicyIDs, localeCompare),
-            ),
-        [searchTerm, usersWorkspaces, selectedPolicyIDs, localeCompare],
-    );
+            if (initialSelectedPolicyIDsSet.has(option.id)) {
+                selectedPolicies.push(option);
+            } else {
+                unselectedPolicies.push(option);
+            }
+        }
+        return [...selectedPolicies, ...unselectedPolicies];
+    }, [policies, shouldShowPendingDeletePolicy, currentUserLogin, additionalFilter, localeCompare, initialSelectedPolicyIDs]);
+
+    const usersWorkspaces = useMemo(() => {
+        const selectedPolicyIDsSet = selectedPolicyIDs ? new Set(selectedPolicyIDs) : undefined;
+
+        return orderedPolicies.map((policy) => ({
+            text: policy?.name ?? '',
+            policyID: policy?.id,
+            icons: [
+                {
+                    source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name),
+                    fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                    name: policy?.name,
+                    type: CONST.ICON_TYPE_WORKSPACE,
+                    id: policy?.id,
+                },
+            ],
+            keyForList: policy?.id,
+            isPolicyAdmin: isPolicyAdmin(policy),
+            isSelected: policy?.id && selectedPolicyIDsSet ? selectedPolicyIDsSet.has(policy.id) : false,
+        }));
+    }, [orderedPolicies, selectedPolicyIDs]);
+
+    const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(() => tokenizedSearch(usersWorkspaces, searchTerm, (policy) => [policy.text]), [searchTerm, usersWorkspaces]);
 
     const sections = useMemo(() => {
         const options: Array<SectionListDataType<WorkspaceListItem>> = [

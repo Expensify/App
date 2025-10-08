@@ -740,6 +740,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom content to display in the footer */
     footerContent?: ReactNode;
 
+    /** Whether to disable the scroll effect on select */
+    disableScrollOnSelect?: boolean;
+
     /** Custom content to display in the footer of list component. If present ShowMore button won't be displayed */
     listFooterContent?: React.JSX.Element | null;
 

@@ -73,6 +73,18 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     const personalDetailLogins = useDeepCompareRef(Object.fromEntries(Object.entries(personalDetails ?? {}).map(([id, details]) => [id, details?.login])));
 
+    const initialSelectedAccountLogins = useMemo(() => {
+        return new Set(
+            approvalWorkflow?.members
+                ?.map((member) => {
+                    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
+                    const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
+                    return personalDetailLogins?.[accountID];
+                })
+                .filter(Boolean) ?? [],
+        );
+    }, [approvalWorkflow?.members, personalDetailLogins, policy?.employeeList]);
+
     useEffect(() => {
         if (!approvalWorkflow?.members) {
             return;
@@ -137,15 +149,41 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             members.push(...availableMembers);
         }
 
-        const filteredMembers =
+        if (members.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
+            const filteredMembers =
+                debouncedSearchTerm !== ''
+                    ? tokenizedSearch(members, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (option) => [option.text ?? '', option.login ?? ''])
+                    : members;
+            return [
+                {
+                    title: undefined,
+                    data: sortAlphabetically(filteredMembers, 'text', localeCompare),
+                    shouldShow: true,
+                },
+            ];
+        }
+
+        const filteredMembers = sortAlphabetically(
             debouncedSearchTerm !== ''
                 ? tokenizedSearch(members, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (option) => [option.text ?? '', option.login ?? ''])
-                : members;
+                : members,
+            'text',
+            localeCompare,
+        );
 
+        const initialMembers: SelectionListMember[] = [];
+        const remainingMembers: SelectionListMember[] = [];
+        filteredMembers.forEach((member) => {
+            if (initialSelectedAccountLogins.has(member.login)) {
+                initialMembers.push(member);
+            } else {
+                remainingMembers.push(member);
+            }
+        });
         return [
             {
                 title: undefined,
-                data: sortAlphabetically(filteredMembers, 'text', localeCompare),
+                data: [...initialMembers, ...remainingMembers],
                 shouldShow: true,
             },
         ];
@@ -160,6 +198,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         policy?.preventSelfApproval,
         personalDetailLogins,
         approversEmail,
+        initialSelectedAccountLogins,
     ]);
 
     const goBack = useCallback(() => {
