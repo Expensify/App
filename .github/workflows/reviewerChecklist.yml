@@ -17,9 +17,9 @@ jobs:
         with:
           filters: |
             should_run:
-              - '**'
               - '!docs/**/*.md'
               - '!docs/**/*.csv'
+              - '**'
 
       - name: reviewerChecklist.js
         if: steps.filter.outputs.should_run == 'true'
