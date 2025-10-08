@@ -1,4 +1,6 @@
 import type {NativeSyntheticEvent, ReturnKeyTypeOptions, TextInputFocusEventData, TextInputSubmitEditingEventData} from 'react-native';
+import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
+import type {ForwardedRef} from 'react';
 
 type RoomNameInputProps = {
     value?: string;
@@ -12,6 +14,7 @@ type RoomNameInputProps = {
     onBlur?: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
     autoFocus?: boolean;
     isFocused: boolean;
+    ref?: ForwardedRef<BaseTextInputRef>;
 };
 
 export default RoomNameInputProps;
