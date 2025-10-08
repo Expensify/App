@@ -38,7 +38,7 @@ const REGEX_PATTERNS = {
 
 type HealthcheckJsonResults = {
     success: string[];
-    failures: CompilerFailure;
+    failures: CompilerFailure[];
 };
 
 type CompilerResults = {
@@ -162,7 +162,24 @@ function parseHealthcheckOutput(output: string): CompilerResults {
             const jsonLines = lines.slice(jsonStart, jsonEnd + 1);
             const jsonStr = jsonLines.join('\n');
             const jsonResult = JSON.parse(jsonStr) as HealthcheckJsonResults;
+
+            // Process successful compilations from JSON
             jsonResult.success.forEach((success) => successSet.add(success));
+
+            // Process failures from JSON
+            jsonResult.failures.forEach((jsonFailure) => {
+                // Skip if this error should be suppressed
+                if (shouldSuppressError(jsonFailure)) {
+                    return;
+                }
+
+                const key = getUniqueFileKey(jsonFailure);
+                // Only add if not already exists, or if existing one has no reason
+                const existing = failure.get(key);
+                if (!existing?.reason) {
+                    failure.set(key, jsonFailure);
+                }
+            });
         } catch (error) {
             warn('Failed to parse JSON from combined output:', error);
         }
