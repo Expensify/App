@@ -190,9 +190,15 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             return;
         }
 
+        // If USD bank account is in pending state, we should navigate straight to the validation step and skip Continue step
+        if (policyCurrency === CONST.CURRENCY.USD && achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
+            setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.VALIDATION);
+            return;
+        }
+
         setShouldShowConnectedVerifiedBankAccount(isNonUSDWorkspace ? achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE);
         setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
-    }, [achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDWorkspace, isPreviousPolicy, achData?.state]);
+    }, [achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDWorkspace, isPreviousPolicy, achData?.state, policyCurrency]);
 
     useEffect(
         () => {
@@ -354,9 +360,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
                 if ([CONST.BANK_ACCOUNT.STATE.VERIFYING, CONST.BANK_ACCOUNT.STATE.SETUP].some((value) => value === achData?.state)) {
                     goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
-                } else if (!isOffline && achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
-                    setShouldShowContinueSetupButton(true);
-                    setUSDBankAccountStep(null);
                 } else {
                     Navigation.goBack();
                 }
@@ -365,7 +368,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             default:
                 Navigation.dismissModal();
         }
-    }, [achData, currentStep, isOffline, onfidoToken]);
+    }, [achData, currentStep, onfidoToken]);
 
     const isLoading =
         (isLoadingApp || (reimbursementAccount?.isLoading && !reimbursementAccount?.isCreateCorpayBankAccount)) &&
