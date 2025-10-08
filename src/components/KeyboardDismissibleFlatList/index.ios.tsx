@@ -4,6 +4,7 @@ import type {FlatList} from 'react-native';
 import {useAnimatedProps, useComposedEventHandler} from 'react-native-reanimated';
 import type {AnimatedFlatListWithCellRendererProps} from '@components/AnimatedFlatListWithCellRenderer';
 import AnimatedFlatListWithCellRenderer from '@components/AnimatedFlatListWithCellRenderer';
+import CONST from '@src/CONST';
 import useKeyboardDismissibleFlatListValues from './useKeyboardDismissibleFlatListValues';
 
 function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, ...restProps}: AnimatedFlatListWithCellRendererProps<T>, ref: ForwardedRef<FlatList>) {
@@ -36,7 +37,7 @@ function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, ...restProps}: 
     });
 
     useEffect(() => {
-        setListBehavior(restProps.inverted ? 'inverted' : 'regular');
+        setListBehavior(restProps.inverted ? CONST.LIST_BEHAVIOR.INVERTED : CONST.LIST_BEHAVIOR.REGULAR);
     }, [restProps.inverted, setListBehavior]);
 
     return (
