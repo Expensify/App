@@ -139,6 +139,12 @@ function ReportActionItemParentAction({
     return (
         <View style={[styles.pRelative]}>
             <AnimatedEmptyStateBackground />
+            <OfflineWithFeedback
+                shouldDisableOpacity
+                errors={report?.errorFields?.createChatThread}
+                errorRowStyles={[styles.ml10, styles.mr2]}
+                onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, undefined, true)}
+            >
             {/* eslint-disable-next-line react-compiler/react-compiler */}
             {ancestors.map((ancestor) => {
                 const {report: ancestorReport, reportAction: ancestorReportAction} = ancestor;
@@ -199,6 +205,8 @@ function ReportActionItemParentAction({
                     </OfflineWithFeedback>
                 );
             })}
+
+            </OfflineWithFeedback>
             {shouldDisplayReplyDivider && <RepliesDivider shouldHideThreadDividerLine={shouldHideThreadDividerLine} />}
         </View>
     );
