@@ -342,6 +342,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           variant: 'Adhoc'
+          sign: true
           re-sign: true
           keystore-file: './upload-key.keystore'
           keystore-store-file: 'upload-key.keystore'
@@ -439,7 +440,7 @@ jobs:
 
       - name: Rock Remote Build - iOS
         id: rock-remote-build-ios
-        uses: callstackincubator/ios@b90708fea39c05315c7bab075352fce395b07112 # v3
+        uses: callstackincubator/ios@29e2f8ca5f70d07f0c255ad03f30c44d1196db85 # v3
         env:
           GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_APP: true
