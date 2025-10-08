@@ -214,8 +214,8 @@ function SearchPage({route}: SearchPageProps) {
                 // If lastPolicyPaymentMethod is not type of CONST.IOU.PAYMENT_TYPE, we're using workspace to pay the IOU
                 // Then we should move it to that workspace.
                 if (typeof lastPolicyPaymentMethod !== typeof CONST.IOU.PAYMENT_TYPE && isIOUReport) {
-                    const admidPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${lastPolicyPaymentMethod}`];
-                    if (!admidPolicy) {
+                    const adminPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${lastPolicyPaymentMethod}`];
+                    if (!adminPolicy) {
                         Navigation.navigate(
                             ROUTES.SEARCH_REPORT.getRoute({
                                 reportID: item.reportID,
@@ -224,9 +224,9 @@ function SearchPage({route}: SearchPageProps) {
                         );
                         return;
                     }
-                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReportID, admidPolicy, formatPhoneNumber);
+                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReportID, adminPolicy, formatPhoneNumber);
                     if (!invite?.policyExpenseChatReportID) {
-                        moveIOUReportToPolicy(itemReportID, admidPolicy);
+                        moveIOUReportToPolicy(itemReportID, adminPolicy);
                     }
                 }
             }
