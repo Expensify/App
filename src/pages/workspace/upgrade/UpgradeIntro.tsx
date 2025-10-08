@@ -30,14 +30,12 @@ type Props = {
     onUpgrade: () => void;
     /** Whether is categorizing the expense */
     isCategorizing?: boolean;
-    /** Whether is adding an unreported expense to a report */
-    isReporting?: boolean;
     isDistanceRateUpgrade?: boolean;
     policyID?: string;
     backTo?: Route;
 };
 
-function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo}: Props) {
+function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, policyID, backTo}: Props) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -70,7 +68,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
      * The "isCategorizing" flag is set to true when the user accesses the "Categorize" option in the Self-DM whisper.
      * In such scenarios, a separate Categories upgrade UI is displayed.
      */
-    if (!feature || (!isCategorizing && !isDistanceRateUpgrade && !isReporting && !policyID)) {
+    if (!feature || (!isCategorizing && !isDistanceRateUpgrade && !policyID)) {
         return (
             <GenericFeaturesView
                 onUpgrade={onUpgrade}
@@ -89,7 +87,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
 
     return (
         <View style={styles.p5}>
-            <View style={styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})}>
+            <View style={[styles.highlightBG, styles.br4, styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})]}>
                 <View style={[styles.mb3, styles.flexRow, styles.justifyContentBetween]}>
                     {!isIllustration ? (
                         <Avatar

@@ -51,6 +51,7 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
                 isEReceipt={isEReceipt}
                 transactionID={transactionItem.transactionID}
                 shouldUseThumbnailImage
+                thumbnailContainerStyles={styles.bgTransparent}
                 isAuthTokenRequired
                 fallbackIcon={Receipt}
                 fallbackIconSize={20}
@@ -58,7 +59,7 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
                 fallbackIconBackground={isSelected ? theme.buttonHoveredBG : undefined}
                 iconSize="x-small"
                 loadingIconSize="small"
-                loadingIndicatorStyles={styles.bgTransparent}
+                loadingIndicatorStyles={styles.receiptCellLoadingContainer}
                 transactionItem={transactionItem}
                 shouldUseInitialObjectPosition
             />

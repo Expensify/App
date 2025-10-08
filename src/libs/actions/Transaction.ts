@@ -32,6 +32,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     PersonalDetails,
     Policy,
+    PolicyCategories,
     RecentWaypoint,
     Report,
     ReportAction,
@@ -45,7 +46,6 @@ import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/type
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
-import {getPolicyCategoriesData} from './Policy/Category';
 import {getPolicyTagsData} from './Policy/Tag';
 
 let recentWaypoints: RecentWaypoint[] = [];
@@ -343,7 +343,6 @@ function getRoute(transactionID: string, waypoints: WaypointCollection, routeTyp
 
     API.read(command, parameters, getOnyxDataForRouteRequest(transactionID, routeType));
 }
-
 /**
  * Updates all waypoints stored in the transaction specified by the provided transactionID.
  *
@@ -614,6 +613,7 @@ function changeTransactionsReport(
     email: string,
     policy?: OnyxEntry<Policy>,
     reportNextStep?: OnyxEntry<ReportNextStep>,
+    policyCategories?: OnyxEntry<PolicyCategories>,
 ) {
     const newReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
@@ -718,7 +718,6 @@ function changeTransactionsReport(
     let shouldFixViolations = false;
 
     const policyTagList = getPolicyTagsData(policy?.id);
-    const policyCategories = getPolicyCategoriesData(policy?.id);
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
 
     transactions.forEach((transaction) => {
@@ -801,7 +800,7 @@ function changeTransactionsReport(
                 currentTransactionViolations[transaction.transactionID] ?? [],
                 policy,
                 policyTagList,
-                policyCategories,
+                policyCategories ?? {},
                 policyHasDependentTags,
                 false,
             );
@@ -1136,7 +1135,7 @@ function changeTransactionsReport(
             currentTransactionViolations[transaction.transactionID] ?? [],
             policy,
             policyTagList,
-            policyCategories,
+            policyCategories ?? {},
             policyHasDependentTags,
             false,
         );
@@ -1156,16 +1155,16 @@ function changeTransactionsReport(
     // 9. Update next step for report
     const nextStepReport = {...newReport, total: updatedReportTotals[reportID] ?? newReport?.total, reportID: newReport?.reportID ?? reportID};
     const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation);
-    const optimisticNextStep = buildNextStepNew(
-        nextStepReport,
+    const optimisticNextStep = buildNextStepNew({
+        report: nextStepReport,
         policy,
-        accountID,
-        email,
+        currentUserAccountIDParam: accountID,
+        currentUserEmailParam: email,
         hasViolations,
         isASAPSubmitBetaEnabled,
-        nextStepReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+        predictedNextStatus: nextStepReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
         shouldFixViolations,
-    );
+    });
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,

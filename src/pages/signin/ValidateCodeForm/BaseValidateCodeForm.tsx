@@ -50,6 +50,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -284,9 +285,9 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
 
         const accountID = credentials?.accountID;
         if (accountID) {
-            signInWithValidateCode(accountID, validateCode, recoveryCodeOr2faCode);
+            signInWithValidateCode(accountID, validateCode, preferredLocale, recoveryCodeOr2faCode);
         } else {
-            signIn(validateCode, recoveryCodeOr2faCode);
+            signIn(validateCode, preferredLocale, recoveryCodeOr2faCode);
         }
     }, [
         account?.isLoading,
@@ -298,6 +299,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         recoveryCode,
         twoFactorAuthCode,
         validateCode,
+        preferredLocale,
     ]);
 
     return (
@@ -373,13 +375,13 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                     {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
                     <View style={[styles.alignItemsStart]}>
                         {timeRemaining > 0 && !isOffline ? (
-                            <Text style={[styles.mt2]}>
+                            <View style={[styles.mt2, styles.flexRow, styles.renderHTML]}>
                                 <RenderHTML
                                     html={translate('validateCodeForm.requestNewCode', {
                                         timeRemaining: `00:${String(timeRemaining).padStart(2, '0')}`,
                                     })}
                                 />
-                            </Text>
+                            </View>
                         ) : (
                             <PressableWithFeedback
                                 style={[styles.mt2]}

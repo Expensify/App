@@ -188,6 +188,7 @@ type GetOptionsConfig = {
     canShowManagerMcTest?: boolean;
     searchString?: string;
     maxElements?: number;
+    maxRecentReportElements?: number;
     includeUserToInvite?: boolean;
 } & GetValidReportsConfig;
 

@@ -21,7 +21,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {IntroSelectedTask} from '@src/types/onyx/IntroSelected';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -80,24 +79,6 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
-    },
-});
-
-let introSelected: OnyxEntry<OnyxTypes.IntroSelected> = {};
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (val) => (introSelected = val),
-});
-
-let allReportNameValuePair: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        allReportNameValuePair = value;
     },
 });
 
@@ -352,6 +333,7 @@ function createTaskAndNavigate(
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
     if (!isCreatedUsingMarkdown) {
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             clearOutTaskInfo();
         });
@@ -1312,13 +1294,8 @@ function clearTaskErrors(reportID: string | undefined) {
     });
 }
 
-function getFinishOnboardingTaskOnyxData(taskName: IntroSelectedTask): OnyxData {
-    const taskReportID = introSelected?.[taskName];
-    const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReport?.parentReportID}`];
-    const parentReportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`];
-    const isParentReportArchived = ReportUtils.isArchivedReport(parentReportNameValuePairs);
-    if (taskReportID && canActionTask(taskReport, currentUserAccountID, parentReport, isParentReportArchived)) {
+function getFinishOnboardingTaskOnyxData(taskReport: OnyxEntry<OnyxTypes.Report>, taskParentReport: OnyxEntry<OnyxTypes.Report>, isParentReportArchived: boolean): OnyxData {
+    if (taskReport && canActionTask(taskReport, currentUserAccountID, taskParentReport, isParentReportArchived)) {
         if (taskReport) {
             if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
                 return completeTask(taskReport);
@@ -1328,9 +1305,14 @@ function getFinishOnboardingTaskOnyxData(taskName: IntroSelectedTask): OnyxData 
 
     return {};
 }
-function completeTestDriveTask(shouldUpdateSelfTourViewedOnlyLocally = false) {
+function completeTestDriveTask(
+    viewTourTaskReport: OnyxEntry<OnyxTypes.Report>,
+    viewTourTaskParentReport: OnyxEntry<OnyxTypes.Report>,
+    isViewTourTaskParentReportArchived: boolean,
+    shouldUpdateSelfTourViewedOnlyLocally = false,
+) {
     setSelfTourViewed(shouldUpdateSelfTourViewedOnlyLocally);
-    getFinishOnboardingTaskOnyxData(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
+    getFinishOnboardingTaskOnyxData(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived);
 }
 
 export {

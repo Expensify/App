@@ -1,7 +1,10 @@
 import {createPoliciesSelector} from '@selectors/Policy';
 import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Permissions from '@libs/Permissions';
+import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
@@ -40,7 +43,7 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
  * currently focused search, based on the hash
  */
 const useSearchTypeMenuSections = () => {
-    const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
+    const {defaultCardFeed, cardFeedsByPolicy, defaultExpensifyCard} = useCardFeedsForDisplay();
 
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
@@ -48,6 +51,10 @@ const useSearchTypeMenuSections = () => {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
 
     const typeMenuSections = useMemo(
         () =>
@@ -55,14 +62,30 @@ const useSearchTypeMenuSections = () => {
                 currentUserLoginAndAccountID?.email,
                 currentUserLoginAndAccountID?.accountID,
                 cardFeedsByPolicy,
-                defaultCardFeed,
+                defaultCardFeed ?? defaultExpensifyCard,
                 allPolicies,
                 activePolicyID,
                 savedSearches,
                 isOffline,
+                defaultExpensifyCard,
+                isASAPSubmitBetaEnabled,
+                hasViolations,
                 reports,
             ),
-        [currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, cardFeedsByPolicy, defaultCardFeed, allPolicies, activePolicyID, savedSearches, isOffline, reports],
+        [
+            currentUserLoginAndAccountID?.email,
+            currentUserLoginAndAccountID?.accountID,
+            cardFeedsByPolicy,
+            defaultCardFeed,
+            defaultExpensifyCard,
+            allPolicies,
+            activePolicyID,
+            savedSearches,
+            isOffline,
+            isASAPSubmitBetaEnabled,
+            hasViolations,
+            reports,
+        ],
     );
 
     return {typeMenuSections};

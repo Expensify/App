@@ -2,23 +2,35 @@ import Onyx from 'react-native-onyx';
 import {INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {generatePolicyID} from '@src/libs/actions/Policy/Policy';
-import {clearApprovalWorkflowApprover, setApprovalWorkflowApprover} from '@src/libs/actions/Workflow';
+import {clearApprovalWorkflowApprover, createApprovalWorkflow, setApprovalWorkflowApprover} from '@src/libs/actions/Workflow';
 import {calculateApprovers} from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ApprovalWorkflowOnyx, Policy as PolicyType} from '@src/types/onyx';
+import type {ApprovalWorkflowOnyx, Policy, Policy as PolicyType} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import createRandomPolicy from '../utils/collections/policies';
-import {getGlobalFetchMock} from '../utils/TestHelper';
+import {getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-jest.mock('@src/libs/WorkflowUtils', () => ({
-    calculateApprovers: jest.fn(),
-}));
+jest.mock('@src/libs/WorkflowUtils', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@src/libs/WorkflowUtils');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        ...actual,
+        calculateApprovers: jest.fn(),
+    };
+});
 
 const calculateApproversMock = calculateApprovers as jest.Mock;
 
 OnyxUpdateManager();
+
+const employee1Email = 'test1@gmail.com';
+const employee2Email = 'test2@gmail.com';
+const employee3Email = 'test3@gmail.com';
+const ownerEmail = 'owner@gmail.com';
 
 describe('actions/Workflow', () => {
     function getApprovalWorkflowState(): Promise<ApprovalWorkflowOnyx | null> {
@@ -116,6 +128,105 @@ describe('actions/Workflow', () => {
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
+        });
+    });
+
+    describe('createApprovalWorkflow', () => {
+        it('should clear pendingFields when the API is success', async () => {
+            mockFetch.pause();
+
+            const policy = {
+                id: '123456789',
+                name: "Mkzie2+bnmsn@gmail.com's Workspace",
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                employeeList: {
+                    [ownerEmail]: {
+                        email: ownerEmail,
+                        forwardsTo: '',
+                        role: 'admin',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee1Email]: {
+                        email: employee1Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee2Email]: {
+                        email: employee2Email,
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                        forwardsTo: '',
+                    },
+                    [employee3Email]: {
+                        email: employee3Email,
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                        forwardsTo: '',
+                    },
+                },
+            } as unknown as Policy;
+
+            const approvalWorkflow = {
+                members: [
+                    {
+                        displayName: employee1Email,
+                        email: employee1Email,
+                    },
+                ],
+                approvers: [
+                    {
+                        email: employee1Email,
+                        displayName: employee1Email,
+                        isCircularReference: false,
+                    },
+                    {
+                        email: employee2Email,
+                        displayName: employee2Email,
+                        isCircularReference: false,
+                    },
+                ],
+                availableMembers: [
+                    {
+                        email: ownerEmail,
+                        displayName: ownerEmail,
+                    },
+                    {
+                        email: employee1Email,
+                        displayName: employee1Email,
+                    },
+                    {
+                        email: employee2Email,
+                        displayName: employee2Email,
+                    },
+                    {
+                        email: employee3Email,
+                        displayName: employee3Email,
+                    },
+                ],
+                usedApproverEmails: [ownerEmail],
+                isDefault: false,
+                action: 'create',
+                originalApprovers: [],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            createApprovalWorkflow(policy.id, approvalWorkflow);
+            await mockFetch.resume();
+
+            let updatedPolicy: Policy | undefined;
+            await getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                callback: (val) => (updatedPolicy = val),
+            });
+
+            expect(updatedPolicy?.employeeList?.[employee1Email]?.pendingFields).toBeUndefined();
+            expect(updatedPolicy?.employeeList?.[employee2Email]?.pendingFields).toBeUndefined();
         });
     });
 });

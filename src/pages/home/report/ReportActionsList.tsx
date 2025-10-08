@@ -39,6 +39,7 @@ import {
     isMoneyRequestAction,
     isReportPreviewAction,
     isReversedTransaction,
+    isSentMoneyReportAction,
     isTransactionThread,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
@@ -53,6 +54,7 @@ import {
     isExpenseReport,
     isInvoiceReport,
     isIOUReport,
+    isMoneyRequestReport,
     isTaskReport,
     isUnread,
 } from '@libs/ReportUtils';
@@ -183,8 +185,16 @@ function ReportActionsList({
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: false});
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
-    const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(false);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
+
+    // Display the new message indicator when comment linking and not close to the newest message.
+    const reportActionID = route?.params?.reportActionID;
+
+    const isTransactionThreadReport = useMemo(() => isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction), [parentReportAction]);
+    const isMoneyRequestOrInvoiceReport = useMemo(() => isMoneyRequestReport(report) || isInvoiceReport(report), [report]);
+    const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
+    const topReportAction = sortedVisibleReportActions.at(-1);
+    const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount && !reportActionID);
 
     useEffect(() => {
         const unsubscribe = Visibility.onVisibilityChange(() => {
@@ -330,9 +340,6 @@ function ReportActionsList({
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
 
-    // Display the new message indicator when comment linking and not close to the newest message.
-    const reportActionID = route?.params?.reportActionID;
-
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report.reportID,
         currentVerticalScrollingOffsetRef: scrollingVerticalOffset,
@@ -342,6 +349,9 @@ function ReportActionsList({
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
             onScroll?.(event);
+            if (shouldScrollToEndAfterLayout) {
+                setShouldScrollToEndAfterLayout(false);
+            }
         },
     });
 
@@ -391,17 +401,11 @@ function ReportActionsList({
             return;
         }
 
-        const shouldScrollToEnd =
-            (isExpenseReport(report) || isTransactionThread(parentReportAction)) && isSearchTopmostFullScreenRoute() && hasNewestReportAction && !unreadMarkerReportActionID;
-
-        if (shouldScrollToEnd) {
-            setShouldScrollToEndAfterLayout(true);
-        }
-
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             setIsFloatingMessageCounterVisible(false);
 
-            if (!shouldScrollToEnd) {
+            if (!shouldScrollToEndAfterLayout) {
                 reportScrollManager.scrollToBottom();
             }
         });
@@ -416,6 +420,7 @@ function ReportActionsList({
         }
         const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER && !prevSorted) {
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => {
                 reportScrollManager.scrollToBottom();
             });
@@ -424,6 +429,7 @@ function ReportActionsList({
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => {
                 // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
                 // they are now in the list.
@@ -514,6 +520,7 @@ function ReportActionsList({
         if (lastIOUActionWithError?.reportActionID === prevLastIOUActionWithError?.reportActionID) {
             return;
         }
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             reportScrollManager.scrollToBottom();
         });
@@ -719,8 +726,9 @@ function ReportActionsList({
                 setIsScrollToBottomEnabled(false);
             }
             if (shouldScrollToEndAfterLayout) {
-                reportScrollManager.scrollToEnd();
-                setShouldScrollToEndAfterLayout(false);
+                requestAnimationFrame(() => {
+                    reportScrollManager.scrollToEnd();
+                });
             }
         },
         [isScrollToBottomEnabled, onLayout, reportScrollManager, shouldScrollToEndAfterLayout],
@@ -756,12 +764,27 @@ function ReportActionsList({
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }, [shouldShowSkeleton]);
 
+    const renderTopReportActions = useCallback(() => {
+        const previewItems = sortedVisibleReportActions.slice(initialNumToRender ? -initialNumToRender : 0).reverse();
+        return (
+            <>
+                {!shouldShowReportRecipientLocalTime && !hideComposer ? <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} /> : undefined}
+                <View style={[styles.overflowScroll, styles.overflowXHidden, styles.pt4]}>
+                    {previewItems.map((action) => (
+                        <View key={action.reportActionID}>{renderItem({item: action, index: sortedVisibleReportActions.indexOf(action)} as ListRenderItemInfo<OnyxTypes.ReportAction>)}</View>
+                    ))}
+                </View>
+            </>
+        );
+    }, [hideComposer, initialNumToRender, renderItem, shouldShowReportRecipientLocalTime, sortedVisibleReportActions, styles]);
+
     const onStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
             loadNewerChats(false);
             return;
         }
 
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
     }, [loadNewerChats]);
 
@@ -780,6 +803,7 @@ function ReportActionsList({
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
             >
+                {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportActions() : undefined}
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
@@ -788,7 +812,12 @@ function ReportActionsList({
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={styles.chatContentScrollView}
+                    contentContainerStyle={[
+                        styles.chatContentScrollView,
+                        shouldScrollToEndAfterLayout ? styles.opacity0 : styles.opacity1,
+                        shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined,
+                    ]}
+                    shouldDisableVisibleContentPosition={shouldScrollToEndAfterLayout}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
                     onEndReached={onEndReached}

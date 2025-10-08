@@ -243,7 +243,7 @@ PODS:
   - FirebaseSharedSwift (11.15.0)
   - fmt (11.0.2)
   - ForkInputMask (7.3.3)
-  - FullStory (1.61.0)
+  - FullStory (1.64.2)
   - fullstory_react-native (1.7.6):
     - DoubleConversion
     - FullStory (~> 1.14)
@@ -490,7 +490,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -509,7 +508,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -527,7 +525,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -547,7 +544,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -566,7 +562,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -585,7 +580,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -604,7 +598,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -623,7 +616,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -642,7 +634,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -661,7 +652,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -680,7 +670,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -699,7 +688,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -718,7 +706,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -737,7 +724,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -2096,32 +2082,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-pager-view (6.5.3):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.11.18.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-hermes
-    - React-ImageManager
-    - React-jsi
-    - react-native-pager-view/common (= 6.5.3)
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
-  - react-native-pager-view/common (6.5.3):
+  - react-native-pager-view (6.9.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2341,7 +2302,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-wallet (0.1.5):
+  - react-native-wallet (0.1.11):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2761,7 +2722,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNCPicker (2.9.0):
+  - RNCPicker (2.11.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3280,7 +3241,7 @@ DEPENDENCIES:
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
-  - "FullStory (from `{:http=>\"https://ios-releases.fullstory.com/fullstory-1.61.0-xcframework.tar.gz\"}`)"
+  - "FullStory (from `{:http=>\"https://ios-releases.fullstory.com/fullstory-1.64.2-xcframework.tar.gz\"}`)"
   - "fullstory_react-native (from `../node_modules/@fullstory/react-native`)"
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - group-ib-fp (from `../node_modules/group-ib-fp`)
@@ -3492,7 +3453,7 @@ EXTERNAL SOURCES:
   fmt:
     :podspec: "../node_modules/react-native/third-party-podspecs/fmt.podspec"
   FullStory:
-    :http: https://ios-releases.fullstory.com/fullstory-1.61.0-xcframework.tar.gz
+    :http: https://ios-releases.fullstory.com/fullstory-1.64.2-xcframework.tar.gz
   fullstory_react-native:
     :path: "../node_modules/@fullstory/react-native"
   glog:
@@ -3733,7 +3694,7 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   FullStory:
-    :http: https://ios-releases.fullstory.com/fullstory-1.61.0-xcframework.tar.gz
+    :http: https://ios-releases.fullstory.com/fullstory-1.64.2-xcframework.tar.gz
 
 SPEC CHECKSUMS:
   Airship: aa8a8f48805425d1a292db60d79235d4a4afa1cb
@@ -3741,7 +3702,7 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
-  boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
+  boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXAV: 13d43af15268a3f448a6b994e91574c939f065e6
   EXConstants: 26f334022fc0b454b7ecdc7c12d36ffa68c7c397
@@ -3772,7 +3733,7 @@ SPEC CHECKSUMS:
   FirebaseSharedSwift: e17c654ef1f1a616b0b33054e663ad1035c8fd40
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
-  FullStory: 3bf0840584001b8fba01e90f9f660db43025521d
+  FullStory: c381e701f709f5185471800bbb626f079d93fc0d
   fullstory_react-native: eea992f5f335d6b73cb5c3cc06942660388ef92f
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
   GoogleAppMeasurement: 0dfca1a4b534d123de3945e28f77869d10d0d600
@@ -3810,7 +3771,7 @@ SPEC CHECKSUMS:
   React: c2d3aa44c49bb34e4dfd49d3ee92da5ebacc1c1c
   React-callinvoker: 1bdfb7549b5af266d85757193b5069f60659ef9d
   React-Codegen: 4b8b4817cea7a54b83851d4c1f91f79aa73de30a
-  React-Core: 7e3642ef83e1032df3d25ebc840868c0c54381ca
+  React-Core: 7150cf9b6a5af063b37003062689f1691e79c020
   React-CoreModules: 15a85e6665d61678942da6ae485b351f4c699049
   React-cxxreact: 74f9de59259ac951923f5726aa14f0398f167af9
   React-debug: a9861ea2196e886642887e29fd1d86c6eee93454
@@ -3849,18 +3810,18 @@ SPEC CHECKSUMS:
   react-native-keyboard-controller: be15b0f8fdfd9ee0370f5bc7dab5ed2cfc3ef5e5
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: b8577cba87fbe7b7740c279ee23d25d7c5d87666
-  react-native-pager-view: 12c1b7b6f50efb3e5d57d62ea5c601cba0585bfd
+  react-native-pager-view: 0f1489fdcdfa56677aa1492e342c9216cbf468a0
   react-native-pdf: 1fee221a1bdb66bb5dc14718e0687dd34f33a823
   react-native-performance: ed312c0ee791c50077b7ad22b01685fe5a0e3db6
   react-native-plaid-link-sdk: 017d025be9fdb05151e03453bb191e0518e3fe6a
   react-native-release-profiler: 3c899b04a88a63735e74beb1d1010ec8c8616347
   react-native-safe-area-context: 6cec90ce53951d3b52dc73e873323a4a7662fc0c
   react-native-view-shot: 70a8e604c289cc67324011554c63ee87dca04a06
-  react-native-wallet: 9d31bca007c1d11766fa420f5509cf9513d3b7d9
+  react-native-wallet: 4151b1bfb7b322caf7e1e31b402a69fc7ab46349
   react-native-webview: 9cf95bd9b16cde5d9bbae452a9cf55631b62028d
   React-NativeModulesApple: 1b5e6bf9164371771e553f744da801f5d9f5c7e5
   React-oscompat: ef5df1c734f19b8003e149317d041b8ce1f7d29c
-  React-perflogger: 005c6dfd4aa335fd527c94cc4591ed9b509f0486
+  React-perflogger: 6fd2f6811533e9c19a61e855c3033eecbf4ad2a0
   React-performancetimeline: df331d0764cc54204a73960408371111efbd34b7
   React-RCTActionSheet: a499b0d6d9793886b67ba3e16046a3fef2cdbbc3
   React-RCTAnimation: 2595dcb10a82216a511b54742f8c28d793852ac6
@@ -3875,7 +3836,7 @@ SPEC CHECKSUMS:
   React-RCTSettings: a060c7e381a3896104761b8eed7e284d95e37df3
   React-RCTText: 4f272b72dbb61f390d8c8274528f9fdbff983806
   React-RCTVibration: 0e5326220719aca12473d703aa46693e3b4ce67a
-  React-rendererconsistency: 4e8e3fd5e90ec9594a4bd5950496eb8006c72f7e
+  React-rendererconsistency: 68db5a64f0c42b0337e25ba7b0e9513caae1389d
   React-renderercss: eeb482d2790028a9b47ce9c214397ae2f4e2a7c5
   React-rendererdebug: c6e3b7583c2f0802cb3b4cf19f714853fa9ac670
   React-rncore: 0f64cacb1becc6f89c99018ca920d012f9044ebd
@@ -3892,7 +3853,7 @@ SPEC CHECKSUMS:
   ReactNativeHybridApp: 47a9e32fe897d22240b69714a25da8b0dcdf53b4
   RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
   RNCClipboard: cc758c52da06b146344ceff63b4dfcf255a693c0
-  RNCPicker: 86d8ea4068120e5bc5f0392543ddb82fb2846c8d
+  RNCPicker: c4e7ce9d70bfffb1f4b9e210af64af9160c571bb
   RNDeviceInfo: f649855d9132da878fa8b9d4b04ec30de85f5b54
   RNFBAnalytics: 921718282c3326adb23f1eb732898e31804be5a3
   RNFBApp: df5caad9f64b6bc87f8a0b110e6bc411fb00a12b
@@ -3922,6 +3883,6 @@ SPEC CHECKSUMS:
   VisionCamera: 2230ecfd78a1f6cddd8be0fe4e6589f21a6385e1
   Yoga: 50518ade05048235d91a78b803336dbb5b159d5d
 
-PODFILE CHECKSUM: 94a51eec89bb8279467c6b11f974ad6af2e4b74c
+PODFILE CHECKSUM: 0ec3e492ca9e978556a039fa0ab1537bf3d8541f
 
 COCOAPODS: 1.15.2

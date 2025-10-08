@@ -94,6 +94,7 @@ import type {
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -282,6 +283,7 @@ import type {
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
+    WalletAgreementParams,
     WalletProgramParams,
     WelcomeEnterMagicCodeParams,
     WelcomeToRoomParams,
@@ -310,7 +312,7 @@ const translations = {
         count: 'Contar',
         cancel: 'Cancelar',
         dismiss: 'Descartar',
-        proceed: 'Proceed',
+        proceed: 'Proceder',
         yes: 'Sí',
         no: 'No',
         ok: 'OK',
@@ -638,8 +640,6 @@ const translations = {
         reschedule: 'Reprogramar',
         general: 'General',
         workspacesTabTitle: 'Espacios',
-        getTheApp: 'Descarga la app',
-        scanReceiptsOnTheGo: 'Escanea recibos desde tu teléfono',
         headsUp: '¡Atención!',
         submitTo: 'Enviar a',
         forwardTo: 'Reenviar a',
@@ -654,7 +654,8 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'No tan rápido',
-        description: 'No estás autorizado para realizar esta acción mientras estás conectado como soporte.',
+        descriptionWithCommand: ({command}: {command?: string} = {}) =>
+            `No estás autorizado para realizar esta acción cuando el soporte ha iniciado sesión (comando: ${command ?? ''}). Si crees que Success debería poder realizar esta acción, inicia una conversación en Slack.`,
     },
     lockedAccount: {
         title: 'Cuenta Bloqueada',
@@ -1019,12 +1020,17 @@ const translations = {
     receipt: {
         upload: 'Subir recibo',
         uploadMultiple: 'Subir recibos',
-        dragReceiptBeforeEmail: 'Arrastra un recibo a esta página, reenvíalo a ',
-        dragReceiptsBeforeEmail: 'Arrastra recibos a esta página, reenvíalos a ',
-        dragReceiptAfterEmail: ' o elije un archivo para subir a continuación.',
-        dragReceiptsAfterEmail: ' o elije archivos para subir a continuación.',
+        desktopSubtitleSingle: 'o arrastra y suéltalo aquí',
+        desktopSubtitleMultiple: 'o arrástralos y suéltalos aquí',
         chooseReceipt: 'Elige un recibo para subir o reenvía un recibo a ',
         chooseReceipts: 'Elige recibos para subir o reenvía recibos a ',
+        alternativeMethodsTitle: 'Otras formas de añadir recibos:',
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
+            `<label-text><a href="${downloadUrl}">Descarga la aplicación</a> para escanear desde tu teléfono</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Reenvía recibos a <a href="mailto:${email}">${email}</a></label-text>`,
+        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: {phoneNumber: string; contactMethodsUrl: string}) =>
+            `<label-text><a href="${contactMethodsUrl}">Añade tu número</a> para enviar recibos por SMS a ${phoneNumber}</label-text>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Envía recibos por SMS a ${phoneNumber} (solo números de EE.UU.)</label-text>`,
         takePhoto: 'Haz una foto',
         cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
         deniedCameraAccess: 'No se ha concedido el acceso a la cámara, siga ',
@@ -1075,11 +1081,15 @@ const translations = {
         splitExpense: 'Dividir gasto',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} de ${merchant}`,
         addSplit: 'Añadir división',
+        editSplits: 'Editar divisiones',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `El importe total es ${amount} mayor que el gasto original.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `El importe total es ${amount} menor que el gasto original.`,
         splitExpenseZeroAmount: 'Por favor, introduce un importe válido antes de continuar.',
+        splitExpenseOneMoreSplit: 'No se han añadido divisiones. Añade al menos una para guardar.',
         splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `Editar ${amount} para ${merchant}`,
         removeSplit: 'Eliminar división',
+        splitExpenseCannotBeEditedModalTitle: 'Este gasto no se puede editar',
+        splitExpenseCannotBeEditedModalDescription: 'Los gastos aprobados o pagados no se pueden editar',
         addExpense: 'Agregar gasto',
         expense: 'Gasto',
         categorize: 'Categorizar',
@@ -1206,7 +1216,6 @@ const translations = {
         nextStep: 'Pasos siguientes',
         finished: 'Finalizado',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
-        submitAmount: ({amount}: RequestAmountParams) => `Solicitar ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `enviado${memo ? `, dijo ${memo}` : ''}`,
         automaticallySubmitted: `envió mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>`,
@@ -1980,6 +1989,7 @@ const translations = {
         delaySubmissionTitle: 'Retrasar envíos',
         delaySubmissionDescription: 'Elige una frecuencia para enviar los gastos, o dejalo desactivado para recibir actualizaciones en tiempo real sobre los gastos.',
         submissionFrequency: 'Frecuencia de envíos',
+        disableApprovalPromptDescription: 'Deshabilitar las aprobaciones borrará todos los flujos de trabajo de aprobación existentes.',
         submissionFrequencyDateOfMonth: 'Fecha del mes',
         addApprovalsTitle: 'Aprobaciones',
         addApprovalButton: 'Añadir flujo de aprobación',
@@ -2858,10 +2868,11 @@ const translations = {
     termsStep: {
         headerTitle: 'Condiciones y tarifas',
         headerTitleRefactor: 'Tarifas y condiciones',
-        haveReadAndAgree: 'He leído y acepto recibir ',
-        electronicDisclosures: 'divulgaciones electrónicas',
-        agreeToThe: 'Estoy de acuerdo con el ',
-        walletAgreement: 'Acuerdo de la billetera',
+        haveReadAndAgreePlain: 'He leído y acepto recibir divulgaciones electrónicas.',
+        haveReadAndAgree: `He leído y acepto recibir <a href="${CONST.ELECTRONIC_DISCLOSURES_URL}">divulgaciones electrónicas</a>.`,
+        agreeToThePlain: 'Estoy de acuerdo con el Privacidad y Acuerdo de la billetera.',
+        agreeToThe: ({walletAgreementUrl}: WalletAgreementParams) =>
+            `Estoy de acuerdo con el <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidad</a> y <a href="${walletAgreementUrl}">Acuerdo de la billetera</a>.`,
         enablePayments: 'Habilitar pagos',
         monthlyFee: 'Cuota mensual',
         inactivity: 'Inactividad',
@@ -2878,17 +2889,14 @@ const translations = {
             cashReload: 'Recarga de efectivo',
             inNetwork: 'en la red',
             outOfNetwork: 'fuera de la red',
-            atmBalanceInquiry: 'Consulta de saldo en cajeros automáticos',
-            inOrOutOfNetwork: '(dentro o fuera de la red)',
-            customerService: 'Servicio al cliente',
-            automatedOrLive: '(agente automatizado o en vivo)',
-            afterTwelveMonths: '(después de 12 meses sin transacciones)',
+            atmBalanceInquiry: 'Consulta de saldo en cajeros automáticos (dentro o fuera de la red)',
+            customerService: 'Servicio al cliente (agente automatizado o en vivo)',
+            inactivityAfterTwelveMonths: 'Inactividad (después de 12 meses sin transacciones)',
             weChargeOneFee: 'Cobramos otro tipo de tarifa. Es:',
             fdicInsurance: 'Tus fondos pueden acogerse al seguro de la FDIC.',
-            generalInfo: 'Para obtener información general sobre cuentas de prepago, visite',
-            conditionsDetails: 'Encuentra detalles y condiciones para todas las tarifas y servicios visitando',
-            conditionsPhone: 'o llamando al +1 833-400-0904.',
-            instant: '(instantáneo)',
+            generalInfo: `Para obtener información general sobre cuentas de prepago, visite <a href="${CONST.CFPB_PREPAID_URL}">${CONST.TERMS.CFPB_PREPAID}</a>.`,
+            conditionsDetails: `Encuentra detalles y condiciones para todas las tarifas y servicios visitando <a href="${CONST.FEES_URL}">${CONST.FEES_URL}</a> o llamando al +1 833-400-0904.`,
+            electronicFundsWithdrawalInstant: 'Retiro electrónico de fondos (instantáneo)',
             electronicFundsInstantFeeMin: ({amount}: TermsParams) => `(mínimo ${amount})`,
         },
         longTermsForm: {
@@ -2905,24 +2913,17 @@ const translations = {
             sendingFundsTitle: 'Enviar fondos a otro titular de cuenta',
             sendingFundsDetails: 'No se aplica ningún cargo por enviar fondos a otro titular de cuenta utilizando tu saldo cuenta bancaria o tarjeta de débito',
             electronicFundsStandardDetails:
-                'No hay cargo por transferir fondos desde tu Billetera Expensify ' +
-                'a tu cuenta bancaria utilizando la opción estándar. Esta transferencia generalmente se completa en' +
-                '1-3 días laborables.',
+                "'No hay cargo por transferir fondos desde tu Billetera Expensify a tu cuenta bancaria utilizando la opción estándar. Esta transferencia generalmente se completa en 1-3 días laborables.",
             electronicFundsInstantDetails: ({percentage, amount}: ElectronicFundsParams) =>
-                'Hay una tarifa para transferir fondos desde tu Billetera Expensify a ' +
-                'la tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia ' +
-                `generalmente se completa dentro de varios minutos. La tarifa es el ${percentage}% del importe de la ` +
-                `transferencia (con una tarifa mínima de ${amount}). `,
+                'Hay una tarifa para transferir fondos desde tu Billetera Expensify a la tarjeta de débito vinculada utilizando la opción de transferencia instantánea.' +
+                ' Esta transferencia generalmente se completa dentro de varios minutos.' +
+                ` La tarifa es el ${percentage}% del importe de la transferencia (con una tarifa mínima de ${amount}).`,
             fdicInsuranceBancorp: ({amount}: TermsParams) =>
-                'Tus fondos pueden acogerse al seguro de la FDIC. Tus fondos se mantendrán o serán ' +
-                `transferidos a ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, una institución asegurada por la FDIC. Una vez allí, tus fondos ` +
-                `están asegurados hasta ${amount} por la FDIC en caso de que ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} quiebre, si se cumplen ` +
-                `los requisitos específicos del seguro de depósitos y tu tarjeta está registrada. Ver`,
-            fdicInsuranceBancorp2: 'para más detalles.',
-            contactExpensifyPayments: `Comunícate con ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} llamando al + 1833-400-0904, o por correo electrónico a`,
-            contactExpensifyPayments2: 'o inicie sesión en',
-            generalInformation: 'Para obtener información general sobre cuentas de prepago, visite',
-            generalInformation2: 'Si tienes alguna queja sobre una cuenta de prepago, llama al Consumer Financial Oficina de Protección al 1-855-411-2372 o visita',
+                `Tus fondos pueden acogerse al seguro de la FDIC. Tus fondos se mantendrán o serán transferidos a ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, una institución asegurada por la FDIC.` +
+                ` Una vez allí, tus fondos están asegurados hasta ${amount} por la FDIC en caso de que ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} quiebre, ` +
+                `si se cumplen los requisitos específicos del seguro de depósitos y tu tarjeta está registrada. Ver ${CONST.TERMS.FDIC_PREPAID} para más detalles.`,
+            contactExpensifyPayments: `Comunícate con ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} llamando al + 1833-400-0904, o por correo electrónico a ${CONST.EMAIL.CONCIERGE} o inicie sesión en ${CONST.NEW_EXPENSIFY_URL}.`,
+            generalInformation: `Para obtener información general sobre cuentas de prepago, visite ${CONST.TERMS.CFPB_PREPAID}. Si tienes alguna queja sobre una cuenta de prepago, llama al Consumer Financial Oficina de Protección al 1-855-411-2372 o visita ${CONST.TERMS.CFPB_COMPLAINT}.`,
             printerFriendlyView: 'Ver versión para imprimir',
             automated: 'Automatizado',
             liveAgent: 'Agente en vivo',
@@ -4647,6 +4648,10 @@ const translations = {
                         automaticImport: 'Importación automática de transacciones',
                     },
                 },
+                bankConnectionError: 'Problema de conexión bancaria',
+                connectWithPlaid: 'Conectarse a través de Plaid',
+                connectWithExpensifyCard: 'Pruebe la tarjeta Expensify',
+                bankConnectionDescription: 'Intente agregar sus tarjetas de nuevo. De lo contrario, puede',
                 disableCardTitle: 'Deshabilitar tarjetas de empresa',
                 disableCardPrompt: 'No puedes deshabilitar las tarjetas de empresa porque esta función está en uso. Por favor, contacta a Concierge para los próximos pasos.',
                 disableCardButton: 'Chatear con Concierge',
@@ -5046,8 +5051,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Hay un error con una conexión que se ha configurado en Expensify Classic. ',
-            goToODToFix: 'Ve a Expensify Classic para solucionar este problema.',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Hay un error con una conexión que se ha configurado en Expensify Classic. [Ve a Expensify Classic para solucionar este problema.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Ve a Expensify Classic para gestionar tus configuraciones.',
             setup: 'Configurar',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Recién sincronizado ${relativeDate}`,
@@ -5560,11 +5565,6 @@ const translations = {
                 description:
                     'Expensify Travel es una nueva plataforma corporativa de reserva y gestión de viajes que permite a los miembros reservar alojamientos, vuelos, transporte y mucho más.',
                 onlyAvailableOnPlan: 'Los viajes están disponibles en el plan Recopilar, a partir de ',
-            },
-            reports: {
-                title: 'Informes',
-                description: 'Crea informes de gastos organizados para hacer seguimiento de tus gastos comerciales, enviarlos para aprobación y optimizar tu proceso de reembolso.',
-                onlyAvailableOnPlan: 'Los informes están disponibles en el plan Recopilar, a partir de ',
             },
             multiLevelTags: {
                 title: 'Etiquetas multinivel',

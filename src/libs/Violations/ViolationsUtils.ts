@@ -8,7 +8,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
-import {getDistanceRateCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -292,8 +292,10 @@ const ViolationsUtils = {
 
         const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID;
         if (customUnitRateID && customUnitRateID.length > 0) {
-            const distanceRateCustomRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-            if (distanceRateCustomRate) {
+            const isPerDiem = TransactionUtils.isPerDiemRequest(updatedTransaction);
+            const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policy, customUnitRateID);
+
+            if (customRate) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
             } else {
                 newTransactionViolations.push({
