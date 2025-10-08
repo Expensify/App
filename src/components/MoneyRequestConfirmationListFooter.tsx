@@ -1,3 +1,4 @@
+import {emailSelector} from '@selectors/Session';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
@@ -73,6 +74,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** The distance of the transaction */
     distance: number;
+
+    /** The raw numeric amount of the transaction */
+    rawAmount: number;
 
     /** The formatted amount of the transaction */
     formattedAmount: string;
@@ -242,6 +246,7 @@ function MoneyRequestConfirmationListFooter({
     onToggleBillable,
     policy,
     policyTags,
+    rawAmount,
     policyTagLists,
     rate,
     receiptFilename,
@@ -268,6 +273,7 @@ function MoneyRequestConfirmationListFooter({
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
+
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
@@ -275,7 +281,7 @@ function MoneyRequestConfirmationListFooter({
         canBeMissing: true,
     });
 
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
 
     const allOutstandingReports = useMemo(() => {
         const outstandingReports = Object.values(outstandingReportsByPolicyID ?? {}).flatMap((outstandingReportsPolicy) => Object.values(outstandingReportsPolicy ?? {}));
@@ -320,7 +326,7 @@ function MoneyRequestConfirmationListFooter({
     );
     const iouReportID = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.iouReportID;
     const outstandingReportID = isPolicyExpenseChat ? (iouReportID ?? availableOutstandingReports.at(0)?.reportID) : reportID;
-    const selectedReportID = shouldUseTransactionReport ? transactionReport.reportID : outstandingReportID;
+    let selectedReportID = shouldUseTransactionReport ? transactionReport.reportID : outstandingReportID;
     const selectedReport = useMemo(() => {
         if (!selectedReportID) {
             return;
@@ -330,8 +336,15 @@ function MoneyRequestConfirmationListFooter({
     let reportName = getReportName(selectedReport, selectedPolicy);
 
     if (!reportName) {
-        const optimisticReport = buildOptimisticExpenseReport(reportID, selectedPolicy?.id, selectedPolicy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
-        reportName = populateOptimisticReportFormula(selectedPolicy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, selectedPolicy);
+        const optimisticReport = buildOptimisticExpenseReport(
+            reportID,
+            selectedPolicy?.id,
+            selectedPolicy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            rawAmount ?? transaction?.amount ?? 0,
+            currency,
+        );
+        selectedReportID = !selectedReportID ? optimisticReport.reportID : selectedReportID;
+        reportName = populateOptimisticReportFormula(selectedPolicy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, selectedPolicy, true);
     }
 
     // When creating an expense in an individual report, the report field becomes read-only
@@ -472,6 +485,11 @@ function MoneyRequestConfirmationListFooter({
                             return;
                         }
 
+                        if (isManualDistanceRequest) {
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                            return;
+                        }
+
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                     }}
                     disabled={didConfirm}
@@ -484,7 +502,7 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
-                    shouldShowRightIcon={!!rate && !isReadOnly && isPolicyExpenseChat}
+                    shouldShowRightIcon={!!rate && !isReadOnly}
                     title={DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
@@ -494,11 +512,25 @@ function MoneyRequestConfirmationListFooter({
                             return;
                         }
 
+                        if (!isPolicyExpenseChat) {
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                    action,
+                                    iouType,
+                                    transactionID,
+                                    reportID,
+                                    upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                                    backTo: Navigation.getActiveRoute(),
+                                    shouldSubmitExpense: true,
+                                }),
+                            );
+                            return;
+                        }
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                     }}
                     brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     disabled={didConfirm}
-                    interactive={!!rate && !isReadOnly && isPolicyExpenseChat}
+                    interactive={!!rate && !isReadOnly}
                 />
             ),
             shouldShow: isDistanceRequest,
@@ -992,6 +1024,7 @@ export default memo(
         prevProps.currency === nextProps.currency &&
         prevProps.didConfirm === nextProps.didConfirm &&
         prevProps.distance === nextProps.distance &&
+        prevProps.rawAmount === nextProps.rawAmount &&
         prevProps.formattedAmount === nextProps.formattedAmount &&
         prevProps.formError === nextProps.formError &&
         prevProps.hasRoute === nextProps.hasRoute &&
