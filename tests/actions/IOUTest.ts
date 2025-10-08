@@ -7,7 +7,6 @@ import {deepEqual} from 'fast-equals';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import useAncestors from '@hooks/useAncestors';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import type {PerDiemExpenseTransactionParams, RequestMoneyParticipantParams} from '@libs/actions/IOU';
 import {
@@ -3413,9 +3412,7 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    const {result} = renderHook(() => useAncestors(iouReport));
-
-                    putOnHold(transaction1.transactionID, 'comment', result.current, iouReport.reportID);
+                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -5099,10 +5096,8 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    const {result} = renderHook(() => useAncestors(iouReport));
-
                     // When an expense is put on hold
-                    putOnHold(transaction.transactionID, comment, result.current, transactionThread.reportID);
+                    putOnHold(transaction.transactionID, comment, transactionThread.reportID);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -5162,10 +5157,8 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    const {result} = renderHook(() => useAncestors(iouReport));
-
                     // When an expense is put on hold without existing transaction thread (undefined initialReportID)
-                    putOnHold(transaction.transactionID, comment, result.current, undefined);
+                    putOnHold(transaction.transactionID, comment, undefined);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -5220,8 +5213,7 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    const {result} = renderHook(() => useAncestors(iouReport));
-                    putOnHold(transaction.transactionID, comment, result.current, transactionThread.reportID);
+                    putOnHold(transaction.transactionID, comment, transactionThread.reportID);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -5287,8 +5279,7 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    const {result} = renderHook(() => useAncestors(iouReport));
-                    putOnHold(transaction.transactionID, comment, result.current, transactionThread.reportID);
+                    putOnHold(transaction.transactionID, comment, transactionThread.reportID);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -6710,6 +6701,7 @@ describe('actions/IOU', () => {
             expect(draftTransaction?.amount).toBe(100);
             expect(draftTransaction?.currency).toBe('USD');
             expect(draftTransaction?.merchant).toBe('Test Merchant');
+            expect(draftTransaction?.reportID).toBe(transaction.reportID);
 
             expect(splitExpenses?.[0].amount).toBe(50);
             expect(splitExpenses?.[0].description).toBe('Test comment');

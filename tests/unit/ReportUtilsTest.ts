@@ -4,7 +4,6 @@ import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import useAncestors from '@hooks/useAncestors';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
@@ -3310,11 +3309,7 @@ describe('ReportUtils', () => {
 
             expect(canHoldUnholdReportAction(expenseCreatedAction)).toEqual({canHoldRequest: true, canUnholdRequest: false});
 
-            const {
-                result: {current: ancestors},
-            } = renderHook(() => useAncestors(expenseReport, shouldExcludeAncestorReportAction));
-
-            putOnHold(expenseTransaction.transactionID, 'hold', ancestors, transactionThreadReport.reportID);
+            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID);
             await waitForBatchedUpdates();
 
             // canUnholdRequest should be true after the transaction is held.
@@ -7345,7 +7340,7 @@ describe('ReportUtils', () => {
             expect(result).toBe(true);
         });
 
-        it('should return false for trip preview actions when no ancestors exist', () => {
+        it('should return false for trip preview actions', () => {
             const tripPreviewAction: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW,
