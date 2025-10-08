@@ -1,30 +1,15 @@
 import {findFocusedRoute, useFocusEffect, useNavigationState} from '@react-navigation/native';
 import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import HighlightableMenuItem from '@components/HighlightableMenuItem';
-import {ExpensifyAppIcon} from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {isConnectionInProgress} from '@libs/actions/connections';
@@ -42,13 +27,12 @@ import {
     shouldShowEmployeeListError,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar, getPolicyExpenseChat, getReportName, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import type WORKSPACE_TO_RHP from '@navigation/linkingConfig/RELATIONS/WORKSPACE_TO_RHP';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
@@ -56,6 +40,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import WorkspaceInitialPageContent from './WorkspaceInitialPageContent';
 import getWorkspaceMenuItems from './WorkspaceMenuItems';
 
 type WorkspaceTopLevelScreens = keyof typeof WORKSPACE_TO_RHP;
@@ -86,7 +71,6 @@ function dismissError(policyID: string | undefined, pendingAction: PendingAction
 }
 
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
-    const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
@@ -104,8 +88,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isUberForBusinessEnabled = isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS);
     const {isOffline} = useNetwork();
@@ -116,7 +98,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(currentUserPolicyExpenseChat);
     const isPolicyExpenseChatEnabled = !!policy?.isPolicyExpenseChatEnabled;
     const prevPendingFields = usePrevious(policy?.pendingFields);
-    const shouldDisplayLHB = !shouldUseNarrowLayout;
     const policyFeatureStates = useMemo(
         () => ({
             [CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]: policy?.areDistanceRatesEnabled,
@@ -150,9 +131,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             fetchPolicyData();
         }, [fetchPolicyData]),
     );
-
-    const policyID = policy?.id;
-    const policyName = policy?.name ?? '';
 
     const hasMembersError = shouldShowEmployeeListError(policy);
     const hasPolicyCategoryError = hasPolicyCategoriesError(policyCategories);
@@ -266,102 +244,25 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         });
     }, [canAccessRoute, shouldShowNotFoundPage]);
 
-    const policyAvatar = useMemo(() => {
-        if (!policy) {
-            return {source: ExpensifyAppIcon, name: CONST.EXPENSIFY_ICON_NAME, type: CONST.ICON_TYPE_AVATAR};
-        }
-
-        const avatar = policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name);
-        return {
-            source: avatar,
-            name: policy?.name ?? '',
-            type: CONST.ICON_TYPE_WORKSPACE,
-            id: policy.id,
-        };
-    }, [policy]);
-
-    const shouldShowNavigationTabBar = !shouldShowNotFoundPage;
-
     return (
-        <ScreenWrapper
-            testID={WorkspaceInitialPage.displayName}
-            enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={shouldShowNavigationTabBar && !shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
-        >
-            <FullPageNotFoundView
-                onBackButtonPress={Navigation.dismissModal}
-                onLinkPress={Navigation.goBackToHome}
-                shouldShow={shouldShowNotFoundPage}
-                subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
-                addBottomSafeAreaPadding
-                shouldForceFullScreen
-                shouldDisplaySearchRouter
-            >
-                <HeaderWithBackButton
-                    title={policyName}
-                    onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)}
-                    policyAvatar={policyAvatar}
-                    shouldDisplayHelpButton={shouldUseNarrowLayout}
-                />
-
-                <ScrollView contentContainerStyle={[styles.flexColumn]}>
-                    <OfflineWithFeedback
-                        pendingAction={policy?.pendingAction}
-                        onClose={() => dismissError(policyID, policy?.pendingAction)}
-                        errors={policy?.errors}
-                        errorRowStyles={[styles.ph5, styles.pv2]}
-                        shouldDisableStrikeThrough={false}
-                        shouldHideOnDelete={false}
-                        shouldShowErrorMessages={false}
-                    >
-                        <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-                            {/*
-                                Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
-                                In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
-                            */}
-                            {workspaceMenuItems.map((item) => (
-                                <HighlightableMenuItem
-                                    key={item.translationKey}
-                                    disabled={hasPolicyCreationError || isExecuting}
-                                    interactive={!hasPolicyCreationError}
-                                    title={translate(item.translationKey)}
-                                    icon={item.icon}
-                                    onPress={item.action}
-                                    brickRoadIndicator={item.brickRoadIndicator}
-                                    wrapperStyle={styles.sectionMenuItem}
-                                    highlighted={!!item?.highlighted}
-                                    focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
-                                    badgeText={item.badgeText}
-                                    shouldIconUseAutoWidthStyle
-                                />
-                            ))}
-                        </View>
-                    </OfflineWithFeedback>
-                    {isPolicyExpenseChatEnabled && !!currentUserPolicyExpenseChatReportID && (
-                        <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-                            <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph2]}>{translate('workspace.common.submitExpense')}</Text>
-                            <OfflineWithFeedback
-                                pendingAction={reportPendingAction}
-                                shouldShowErrorMessages={false}
-                            >
-                                <MenuItem
-                                    title={getReportName(currentUserPolicyExpenseChat)}
-                                    description={translate('workspace.common.workspace')}
-                                    onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID))}
-                                    shouldShowRightIcon
-                                    wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}
-                                    iconReportID={currentUserPolicyExpenseChatReportID}
-                                />
-                            </OfflineWithFeedback>
-                        </View>
-                    )}
-                </ScrollView>
-                {shouldShowNavigationTabBar && shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+        <WorkspaceInitialPageContent
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
+            shouldShowPolicy={shouldShowPolicy}
+            policy={policy}
+            workspaceMenuItems={workspaceMenuItems}
+            hasPolicyCreationError={hasPolicyCreationError}
+            isExecuting={isExecuting}
+            route={route}
+            isPolicyExpenseChatEnabled={isPolicyExpenseChatEnabled}
+            currentUserPolicyExpenseChatReportID={currentUserPolicyExpenseChatReportID}
+            reportPendingAction={reportPendingAction}
+            activeRoute={activeRoute}
+            dismissError={dismissError}
+        />
     );
 }
 
 WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
+export type {WorkspaceMenuItem};
 export default withPolicyAndFullscreenLoading(WorkspaceInitialPage);
