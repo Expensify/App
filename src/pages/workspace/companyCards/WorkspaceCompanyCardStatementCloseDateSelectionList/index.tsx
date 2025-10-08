@@ -9,8 +9,8 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -114,6 +114,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
+            shouldShowOfflineIndicatorInWideScreen={!enabledWhenOffline}
         >
             <HeaderWithBackButton
                 title={title}

@@ -20,6 +20,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollBlocker from '@hooks/useScrollBlocker';
@@ -41,7 +42,7 @@ import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
 import {getReportActionHtml, isDeletedAction} from '@libs/ReportActionsUtils';
-import {getCommentLength} from '@libs/ReportUtils';
+import {getCommentLength, getOriginalReportID} from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -143,6 +144,10 @@ function ReportActionItemMessageEdit({
     const emojiPickerSelectionRef = useRef<Selection | undefined>(undefined);
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
+    const isOriginalReportArchived = useReportIsArchived(originalReportID);
+    const originalParentReportID = getOriginalReportID(originalReportID, action);
+    const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
 
     useEffect(() => {
         draftMessageVideoAttributeCache.clear();
@@ -270,6 +275,7 @@ function ReportActionItemMessageEdit({
         if (isActive()) {
             ReportActionComposeFocusManager.clear(true);
             // Wait for report action compose re-mounting on mWeb
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => ReportActionComposeFocusManager.focus());
         }
 
@@ -299,9 +305,9 @@ function ReportActionItemMessageEdit({
             ReportActionContextMenu.showDeleteModal(originalReportID ?? reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        editReportComment(originalReportID ?? reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
+        editReportComment(originalReport, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache), isOriginalReportArchived, isOriginalParentReportArchived);
         deleteDraft();
-    }, [action, deleteDraft, draft, originalReportID, reportID]);
+    }, [reportID, action, deleteDraft, draft, originalReportID, isOriginalReportArchived, originalReport, isOriginalParentReportArchived]);
 
     /**
      * @param emoji
@@ -497,6 +503,7 @@ function ReportActionItemMessageEdit({
                                     ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
                                 }
                                 startScrollBlock();
+                                // eslint-disable-next-line deprecation/deprecation
                                 InteractionManager.runAfterInteractions(() => {
                                     requestAnimationFrame(() => {
                                         reportScrollManager.scrollToIndex(index, true);

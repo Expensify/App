@@ -8,6 +8,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 * [Beta Usage Philosophy](/contributingGuides/philosophies/BETAS.md)
 * [Cross-Platform Philosophy](/contributingGuides/philosophies/CROSS-PLATFORM.md)
 * [Data Flow Philosophy](/contributingGuides/philosophies/DATA-FLOW.md)
+* [Async vs. Sync Code](/contributingGuides/philosophies/ASYNC.md)
 * [Data Binding Philosophy](/contributingGuides/philosophies/DATA-BINDING.md)
 * [Deploying Philosophy](/contributingGuides/philosophies/DEPLOYING.md)
 * [Directory Structure and File Naming Philosophy](/contributingGuides/philosophies/DIRECTORIES.md)

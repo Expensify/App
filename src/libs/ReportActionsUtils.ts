@@ -34,7 +34,6 @@ import {getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByI
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {isOnHoldByTransactionID} from './TransactionUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
 
 type LastVisibleMessage = {
@@ -710,14 +709,14 @@ function canActionsBeGrouped(currentAction?: ReportAction, adjacentAction?: Repo
         return false;
     }
 
-    if (isSubmittedAction(currentAction)) {
+    if (isSubmittedAction(currentAction) || isSubmittedAndClosedAction(currentAction)) {
         const currentActionAdminAccountID = currentAction.adminAccountID;
         return typeof currentActionAdminAccountID === 'number'
             ? currentActionAdminAccountID === adjacentAction.actorAccountID
             : currentAction.actorAccountID === adjacentAction.actorAccountID;
     }
 
-    if (isSubmittedAction(adjacentAction)) {
+    if (isSubmittedAction(adjacentAction) || isSubmittedAndClosedAction(adjacentAction)) {
         return typeof adjacentAction.adminAccountID === 'number'
             ? currentAction.actorAccountID === adjacentAction.adminAccountID
             : currentAction.actorAccountID === adjacentAction.actorAccountID;
@@ -1135,8 +1134,7 @@ function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): NonNu
 /**
  * Find the transaction associated with this reportAction, if one exists.
  */
-function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportAction> | undefined, reportID?: string): string | undefined {
-    const reportAction = typeof reportActionOrID === 'string' ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionOrID] : reportActionOrID;
+function getLinkedTransactionID(reportAction: OnyxEntry<ReportAction> | undefined): string | undefined {
     if (!reportAction || !isMoneyRequestAction(reportAction)) {
         return undefined;
     }
@@ -1149,20 +1147,6 @@ function getReportAction(reportID: string | undefined, reportActionID: string | 
     }
 
     return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID];
-}
-
-/**
- * @returns The report preview action or `null` if one couldn't be found
- */
-function getReportPreviewAction(chatReportID: string | undefined, iouReportID: string | undefined): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> {
-    if (!chatReportID || !iouReportID) {
-        return;
-    }
-
-    return Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {}).find(
-        (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> =>
-            reportAction && isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) && getOriginalMessage(reportAction)?.linkedReportID === iouReportID,
-    );
 }
 
 /**
@@ -2004,14 +1988,6 @@ function getDismissedViolationMessageText(originalMessage: ReportAction<typeof C
     return translateLocal(`violationDismissal.${violationName}.${reason}` as TranslationPaths);
 }
 
-/**
- * Check if the linked transaction is on hold
- */
-function isLinkedTransactionHeld(reportActionID: string | undefined, reportID: string | undefined): boolean {
-    const linkedTransactionID = getLinkedTransactionID(reportActionID, reportID);
-    return linkedTransactionID ? isOnHoldByTransactionID(linkedTransactionID) : false;
-}
-
 function getMentionedAccountIDsFromAction(reportAction: OnyxInputOrEntry<ReportAction>) {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) ? (getOriginalMessage(reportAction)?.mentionedAccountIDs ?? []) : [];
 }
@@ -2221,7 +2197,7 @@ function getPolicyChangeLogUpdateEmployee(reportAction: OnyxInputOrEntry<ReportA
     }
 
     const originalMessage = getOriginalMessage(reportAction);
-    const email = originalMessage?.email ?? '';
+    const email = formatPhoneNumber(originalMessage?.email ?? '');
     const field = originalMessage?.field;
     const customFieldType = Object.values(CONST.CUSTOM_FIELD_KEYS).find((value) => value === field);
     if (customFieldType) {
@@ -2756,7 +2732,7 @@ function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<Re
         return '';
     }
     const originalMessage = getOriginalMessage(reportAction);
-    const email = originalMessage?.email ?? '';
+    const email = formatPhoneNumber(originalMessage?.email ?? '');
     const role = translateLocal('workspace.common.roleName', {role: originalMessage?.role ?? ''}).toLowerCase();
     return translateLocal('report.actions.type.removeMember', {email, role});
 }
@@ -2998,10 +2974,6 @@ function getRoomChangeLogMessage(reportAction: ReportAction) {
     return `${actionText} ${targetAccountIDs.length} ${userText}`;
 }
 
-function getReportActions(report: Report) {
-    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
-}
-
 /**
  * @private
  */
@@ -3049,16 +3021,6 @@ function wasMessageReceivedWhileOffline(
     return !wasByCurrentUser && wasCreatedOffline && !(action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || action.isOptimisticAction);
 }
 
-function getReportActionFromExpensifyCard(cardID: number) {
-    return Object.values(allReportActions ?? {})
-        .map((reportActions) => Object.values(reportActions ?? {}))
-        .flat()
-        .find((reportAction) => {
-            const cardIssuedActionOriginalMessage = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL) ? getOriginalMessage(reportAction) : undefined;
-            return cardIssuedActionOriginalMessage?.cardID === cardID;
-        });
-}
-
 function getIntegrationSyncFailedMessage(action: OnyxEntry<ReportAction>, policyID?: string, shouldShowOldDotLink = false): string {
     const {label, errorMessage} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED>) ?? {label: '', errorMessage: ''};
 
@@ -3081,7 +3043,7 @@ function getManagerOnVacation(action: OnyxEntry<ReportAction>): string | undefin
 }
 
 function getVacationer(action: OnyxEntry<ReportAction>): string | undefined {
-    if (!isSubmittedAction(action)) {
+    if (!isSubmittedAction(action) && !isSubmittedAndClosedAction(action)) {
         return;
     }
 
@@ -3089,7 +3051,7 @@ function getVacationer(action: OnyxEntry<ReportAction>): string | undefined {
 }
 
 function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
-    if (!isSubmittedAction(action)) {
+    if (!isSubmittedAction(action) && !isSubmittedAndClosedAction(action)) {
         return;
     }
 
@@ -3133,7 +3095,6 @@ export {
     getReportActionMessage,
     getReportActionMessageText,
     getReportActionText,
-    getReportPreviewAction,
     getSortedReportActions,
     getSortedReportActionsForDisplay,
     getTextFromHtml,
@@ -3164,7 +3125,6 @@ export {
     isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
-    isLinkedTransactionHeld,
     isMemberChangeAction,
     isExportIntegrationAction,
     isIntegrationMessageAction,
@@ -3256,11 +3216,9 @@ export {
     getTagListNameUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
     getRoomChangeLogMessage,
-    getReportActions,
     getReopenedMessage,
     getLeaveRoomMessage,
     getRetractedMessage,
-    getReportActionFromExpensifyCard,
     isReopenedAction,
     isRetractedAction,
     getIntegrationSyncFailedMessage,

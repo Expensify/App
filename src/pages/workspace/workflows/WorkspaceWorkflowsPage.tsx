@@ -29,7 +29,7 @@ import {
     openPolicyWorkflowsPage,
     setIsForcedToChangeCurrency,
     setWorkspaceApprovalMode,
-    setWorkspaceAutoReportingFrequency,
+    setWorkspaceAutoHarvesting,
     setWorkspaceReimbursement,
     updateGeneralSettings,
 } from '@libs/actions/Policy/Policy';
@@ -56,7 +56,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
-import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyPage';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
@@ -141,6 +140,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     useEffect(() => {
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             fetchData();
         });
@@ -192,30 +192,24 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
         return [
             {
-                title: translate('workflowsPage.delaySubmissionTitle'),
-                subtitle: translate('workflowsPage.delaySubmissionDescription'),
-                switchAccessibilityLabel: translate('workflowsPage.delaySubmissionDescription'),
-                onToggle: (isEnabled: boolean) => {
-                    setWorkspaceAutoReportingFrequency(route.params.policyID, isEnabled ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
-                },
+                title: translate('workflowsPage.submissionFrequency'),
+                subtitle: translate('workflowsPage.submissionFrequencyDescription'),
+                switchAccessibilityLabel: translate('workflowsPage.submissionFrequencyDescription'),
+                onToggle: (isEnabled: boolean) => (policy ? setWorkspaceAutoHarvesting(policy, isEnabled) : undefined),
                 subMenuItems: (
                     <MenuItemWithTopDescription
-                        title={
-                            getAutoReportingFrequencyDisplayNames(translate)[
-                                (getCorrectedAutoReportingFrequency(policy) as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
-                            ]
-                        }
+                        title={getAutoReportingFrequencyDisplayNames(translate)[getCorrectedAutoReportingFrequency(policy) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]}
                         titleStyle={styles.textNormalThemeText}
                         descriptionTextStyle={styles.textLabelSupportingNormal}
                         onPress={onPressAutoReportingFrequency}
                         // Instant submit is the equivalent of delayed submissions being turned off, so we show the feature as disabled if the frequency is instant
-                        description={translate('workflowsPage.submissionFrequency')}
+                        description={translate('common.frequency')}
                         shouldShowRightIcon
                         wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                         brickRoadIndicator={hasDelayedSubmissionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 ),
-                isActive: (policy?.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT && !hasDelayedSubmissionError) ?? false,
+                isActive: (policy?.autoReporting && !hasDelayedSubmissionError) ?? false,
                 pendingAction: policy?.pendingFields?.autoReporting ?? policy?.pendingFields?.autoReportingFrequency,
                 errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
                 onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
