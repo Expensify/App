@@ -11,7 +11,6 @@ type MeasuredElements = {
     frameY?: number;
     popoverHeight?: number;
     height?: number;
-    composerHeight?: number;
 };
 
 type Context = {
@@ -55,7 +54,6 @@ const Actions = {
     CLOSE_POPOVER: 'CLOSE_POPOVER',
     TRANSITION_POPOVER: 'TRANSITION_POPOVER',
     MEASURE_POPOVER: 'MEASURE_POPOVER',
-    MEASURE_COMPOSER: 'MEASURE_COMPOSER',
     POPOVER_ANY_ACTION: 'POPOVER_ANY_ACTION',
     HIDE_WITHOUT_ANIMATION: 'HIDE_WITHOUT_ANIMATION',
     END_TRANSITION: 'END_TRANSITION',
@@ -82,12 +80,10 @@ const STATE_MACHINE: StateMachine<ValueOf<typeof States>, ValueOf<typeof Actions
         [Actions.OPEN_POPOVER]: States.POPOVER_OPEN,
         [Actions.OPEN_KEYBOARD]: States.KEYBOARD_OPEN,
         [Actions.MEASURE_POPOVER]: States.IDLE,
-        [Actions.MEASURE_COMPOSER]: States.IDLE,
     },
     [States.POPOVER_OPEN]: {
         [Actions.CLOSE_POPOVER]: States.POPOVER_CLOSED,
         [Actions.MEASURE_POPOVER]: States.POPOVER_OPEN,
-        [Actions.MEASURE_COMPOSER]: States.POPOVER_OPEN,
         [Actions.POPOVER_ANY_ACTION]: States.POPOVER_CLOSED,
         [Actions.HIDE_WITHOUT_ANIMATION]: States.IDLE,
         [Actions.TRANSITION_POPOVER]: States.TRANSITIONING_POPOVER,
@@ -99,7 +95,6 @@ const STATE_MACHINE: StateMachine<ValueOf<typeof States>, ValueOf<typeof Actions
         [Actions.OPEN_KEYBOARD]: States.KEYBOARD_OPEN,
         [Actions.OPEN_POPOVER]: States.KEYBOARD_POPOVER_OPEN,
         [Actions.CLOSE_KEYBOARD]: States.IDLE,
-        [Actions.MEASURE_COMPOSER]: States.KEYBOARD_OPEN,
     },
     [States.KEYBOARD_POPOVER_OPEN]: {
         [Actions.MEASURE_POPOVER]: States.KEYBOARD_POPOVER_OPEN,
@@ -123,7 +118,6 @@ const STATE_MACHINE: StateMachine<ValueOf<typeof States>, ValueOf<typeof Actions
     [States.TRANSITIONING_POPOVER_DONE]: {
         [Actions.CLOSE_POPOVER]: States.POPOVER_CLOSED,
         [Actions.MEASURE_POPOVER]: States.POPOVER_OPEN,
-        [Actions.MEASURE_COMPOSER]: States.POPOVER_OPEN,
         [Actions.POPOVER_ANY_ACTION]: States.POPOVER_CLOSED,
         [Actions.HIDE_WITHOUT_ANIMATION]: States.IDLE,
     },
