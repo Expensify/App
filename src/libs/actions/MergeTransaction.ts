@@ -183,6 +183,7 @@ function getOnyxTargetTransactionData(
             policyCategories,
             violations,
             undefined,
+            undefined,
             shouldBuildModifiedReportAction,
         );
     }
