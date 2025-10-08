@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {act, render} from '@testing-library/react-native';
+import {render} from '@testing-library/react-native';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -39,7 +39,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
 import {localeCompare} from '../utils/TestHelper';
-import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@rnmapbox/maps', () => {
     return {
@@ -74,513 +74,513 @@ const renderLocaleContextProvider = () => {
     );
 };
 
-const policyID = 'ABC123';
-
-const POLICY: Policy = {
-    id: policyID,
-    name: 'Hero Policy',
-    role: 'user',
-    type: CONST.POLICY.TYPE.TEAM,
-    owner: 'reedrichards@expensify.com',
-    outputCurrency: '',
-    isPolicyExpenseChatEnabled: false,
-    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-};
-
-const COUNTRY_CODE = 1;
-
-// Given a set of reports with both single participants and multiple participants some pinned and some not
-const REPORTS: OnyxCollection<Report> = {
-    '1': {
-        lastReadTime: '2021-01-14 11:25:39.295',
-        lastVisibleActionCreated: '2022-11-22 03:26:02.015',
-        isPinned: false,
-        reportID: '1',
-        participants: {
-            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            5: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        },
-        reportName: 'Iron Man, Mister Fantastic, Invisible Woman',
-        type: CONST.REPORT.TYPE.CHAT,
-    },
-    '2': {
-        lastReadTime: '2021-01-14 11:25:39.296',
-        lastVisibleActionCreated: '2022-11-22 03:26:02.016',
-        isPinned: false,
-        reportID: '2',
-        participants: {
-            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        },
-        reportName: 'Spider-Man',
-        type: CONST.REPORT.TYPE.CHAT,
-    },
-
-    // This is the only report we are pinning in this test
-    '3': {
-        lastReadTime: '2021-01-14 11:25:39.297',
-        lastVisibleActionCreated: '2022-11-22 03:26:02.170',
-        isPinned: true,
-        reportID: '3',
-        participants: {
-            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        },
-        reportName: 'Mister Fantastic',
-        type: CONST.REPORT.TYPE.CHAT,
-    },
-    '4': {
-        lastReadTime: '2021-01-14 11:25:39.298',
-        lastVisibleActionCreated: '2022-11-22 03:26:02.180',
-        isPinned: false,
-        reportID: '4',
-        participants: {
-            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        },
-        reportName: 'Black Panther',
-        type: CONST.REPORT.TYPE.CHAT,
-    },
-    '5': {
-        lastReadTime: '2021-01-14 11:25:39.299',
-        lastVisibleActionCreated: '2022-11-22 03:26:02.019',
-        isPinned: false,
-        reportID: '5',
-        participants: {
-            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            5: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        },
-        reportName: 'Invisible Woman',
-        type: CONST.REPORT.TYPE.CHAT,
-    },
-    '6': {
-        lastReadTime: '2021-01-14 11:25:39.300',
-        lastVisibleActionCreated: '2022-11-22 03:26:02.020',
-        isPinned: false,
-        reportID: '6',
-        participants: {
-            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            6: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        },
-        reportName: 'Thor',
-        type: CONST.REPORT.TYPE.CHAT,
-    },
-
-    // Note: This report has the largest lastVisibleActionCreated
-    '7': {
-        lastReadTime: '2021-01-14 11:25:39.301',
-        lastVisibleActionCreated: '2022-11-22 03:26:03.999',
-        isPinned: false,
-        reportID: '7',
-        participants: {
-            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            7: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        },
-        reportName: 'Captain America',
-        type: CONST.REPORT.TYPE.CHAT,
-    },
-
-    // Note: This report has no lastVisibleActionCreated
-    '8': {
-        lastReadTime: '2021-01-14 11:25:39.301',
-        lastVisibleActionCreated: '2022-11-22 03:26:02.000',
-        isPinned: false,
-        reportID: '8',
-        participants: {
-            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            12: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        },
-        reportName: 'Silver Surfer',
-        type: CONST.REPORT.TYPE.CHAT,
-    },
-
-    // Note: This report has an IOU
-    '9': {
-        lastReadTime: '2021-01-14 11:25:39.302',
-        lastVisibleActionCreated: '2022-11-22 03:26:02.998',
-        isPinned: false,
-        reportID: '9',
-        participants: {
-            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            8: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        },
-        reportName: 'Mister Sinister',
-        iouReportID: '100',
-        type: CONST.REPORT.TYPE.CHAT,
-    },
-
-    // This report is an archived room – it does not have a name and instead falls back on oldPolicyName
-    '10': {
-        lastReadTime: '2021-01-14 11:25:39.200',
-        lastVisibleActionCreated: '2022-11-22 03:26:02.001',
-        reportID: '10',
-        isPinned: false,
-        participants: {
-            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            7: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        },
-        reportName: '',
-        oldPolicyName: "SHIELD's workspace",
-        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-        isOwnPolicyExpenseChat: true,
-        type: CONST.REPORT.TYPE.CHAT,
-        lastActorAccountID: 2,
-    },
-    '11': {
-        lastReadTime: '2021-01-14 11:25:39.200',
-        lastVisibleActionCreated: '2022-11-22 03:26:02.001',
-        reportID: '11',
-        isPinned: false,
-        participants: {
-            10: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
-        },
-        reportName: '',
-        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-        isOwnPolicyExpenseChat: true,
-        type: CONST.REPORT.TYPE.CHAT,
-        policyID,
-        policyName: POLICY.name,
-    },
-
-    // Thread report with notification preference = hidden
-    '12': {
-        lastReadTime: '2021-01-14 11:25:39.200',
-        lastVisibleActionCreated: '2022-11-22 03:26:02.001',
-        reportID: '11',
-        isPinned: false,
-        participants: {
-            10: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
-        },
-        reportName: '',
-        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-        isOwnPolicyExpenseChat: true,
-        type: CONST.REPORT.TYPE.CHAT,
-        policyID,
-        policyName: POLICY.name,
-        parentReportActionID: '123',
-        parentReportID: '123',
-    },
-};
-
-const REPORTS_WITH_CONCIERGE: OnyxCollection<Report> = {
-    ...REPORTS,
-
-    '11': {
-        lastReadTime: '2021-01-14 11:25:39.302',
-        lastVisibleActionCreated: '2022-11-22 03:26:02.022',
-        isPinned: false,
-        reportID: '11',
-        participants: {
-            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            999: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        },
-        reportName: 'Concierge',
-        type: CONST.REPORT.TYPE.CHAT,
-    },
-};
-
-const REPORTS_WITH_CHRONOS: OnyxCollection<Report> = {
-    ...REPORTS,
-    '12': {
-        lastReadTime: '2021-01-14 11:25:39.302',
-        lastVisibleActionCreated: '2022-11-22 03:26:02.022',
-        isPinned: false,
-        reportID: '12',
-        participants: {
-            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            1000: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        },
-        reportName: 'Chronos',
-        type: CONST.REPORT.TYPE.CHAT,
-    },
-};
-
-const REPORTS_WITH_RECEIPTS: OnyxCollection<Report> = {
-    ...REPORTS,
-    '13': {
-        lastReadTime: '2021-01-14 11:25:39.302',
-        lastVisibleActionCreated: '2022-11-22 03:26:02.022',
-        isPinned: false,
-        reportID: '13',
-        participants: {
-            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            1001: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        },
-        reportName: 'Receipts',
-        type: CONST.REPORT.TYPE.CHAT,
-    },
-};
-
-const REPORTS_WITH_WORKSPACE_ROOMS: OnyxCollection<Report> = {
-    ...REPORTS,
-    '14': {
-        lastReadTime: '2021-01-14 11:25:39.302',
-        lastVisibleActionCreated: '2022-11-22 03:26:02.022',
-        isPinned: false,
-        reportID: '14',
-        participants: {
-            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            10: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        },
-        reportName: '',
-        oldPolicyName: 'Avengers Room',
-        chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-        isOwnPolicyExpenseChat: true,
-        type: CONST.REPORT.TYPE.CHAT,
-    },
-};
-
-const REPORTS_WITH_CHAT_ROOM: OnyxCollection<Report> = {
-    ...REPORTS,
-    15: {
-        lastReadTime: '2021-01-14 11:25:39.301',
-        lastVisibleActionCreated: '2022-11-22 03:26:02.000',
-        isPinned: false,
-        reportID: '15',
-        participants: {
-            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        },
-        reportName: 'Spider-Man, Black Panther',
-        type: CONST.REPORT.TYPE.CHAT,
-        chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
-    },
-};
-
-const REPORTS_WITH_SELF_DM: OnyxCollection<Report> = {
-    16: {
-        lastReadTime: '2021-01-14 11:25:39.302',
-        lastVisibleActionCreated: '2022-11-22 03:26:02.022',
-        isPinned: false,
-        reportID: '16',
-        participants: {
-            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        },
-        reportName: 'Expense Report',
-        type: CONST.REPORT.TYPE.EXPENSE,
-    },
-    17: {
-        lastReadTime: '2021-01-14 11:25:39.302',
-        lastVisibleActionCreated: '2022-11-22 03:26:02.022',
-        isPinned: false,
-        reportID: '17',
-        participants: {
-            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        },
-        reportName: '',
-        type: CONST.REPORT.TYPE.CHAT,
-        chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
-    },
-};
-
-const activePolicyID = 'DEF456';
-
-// And a set of personalDetails some with existing reports and some without
-const PERSONAL_DETAILS: PersonalDetailsList = {
-    // These exist in our reports
-    '1': {
-        accountID: 1,
-        displayName: 'Mister Fantastic',
-        login: 'reedrichards@expensify.com',
-        isSelected: true,
-        reportID: '1',
-    },
-    '2': {
-        accountID: 2,
-        displayName: 'Iron Man',
-        login: 'tonystark@expensify.com',
-        reportID: '1',
-    },
-    '3': {
-        accountID: 3,
-        displayName: 'Spider-Man',
-        login: 'peterparker@expensify.com',
-        reportID: '1',
-    },
-    '4': {
-        accountID: 4,
-        displayName: 'Black Panther',
-        login: 'tchalla@expensify.com',
-        reportID: '1',
-    },
-    '5': {
-        accountID: 5,
-        displayName: 'Invisible Woman',
-        login: 'suestorm@expensify.com',
-        reportID: '1',
-    },
-    '6': {
-        accountID: 6,
-        displayName: 'Thor',
-        login: 'thor@expensify.com',
-        reportID: '1',
-    },
-    '7': {
-        accountID: 7,
-        displayName: 'Captain America',
-        login: 'steverogers@expensify.com',
-        reportID: '1',
-    },
-    '8': {
-        accountID: 8,
-        displayName: 'Mr Sinister',
-        login: 'mistersinister@marauders.com',
-        reportID: '1',
-    },
-
-    // These do not exist in reports at all
-    '9': {
-        accountID: 9,
-        displayName: 'Black Widow',
-        login: 'natasharomanoff@expensify.com',
-        reportID: '',
-    },
-    '10': {
-        accountID: 10,
-        displayName: 'The Incredible Hulk',
-        login: 'brucebanner@expensify.com',
-        reportID: '',
-    },
-    '11': {
-        accountID: 11,
-        displayName: 'Timothée',
-        login: 'chalamet@expensify.com',
-        reportID: '',
-    },
-};
-
-const PERSONAL_DETAILS_WITH_CONCIERGE: PersonalDetailsList = {
-    ...PERSONAL_DETAILS,
-    '999': {
-        accountID: 999,
-        displayName: 'Concierge',
-        login: 'concierge@expensify.com',
-        reportID: '',
-    },
-};
-
-const PERSONAL_DETAILS_WITH_CHRONOS: PersonalDetailsList = {
-    ...PERSONAL_DETAILS,
-
-    '1000': {
-        accountID: 1000,
-        displayName: 'Chronos',
-        login: 'chronos@expensify.com',
-        reportID: '',
-    },
-};
-
-const PERSONAL_DETAILS_WITH_RECEIPTS: PersonalDetailsList = {
-    ...PERSONAL_DETAILS,
-
-    '1001': {
-        accountID: 1001,
-        displayName: 'Receipts',
-        login: 'receipts@expensify.com',
-        reportID: '',
-    },
-};
-
-const PERSONAL_DETAILS_WITH_MANAGER_MCTEST: PersonalDetailsList = {
-    ...PERSONAL_DETAILS,
-    '1003': {
-        accountID: 1003,
-        displayName: 'Manager McTest',
-        login: CONST.EMAIL.MANAGER_MCTEST,
-        reportID: '',
-    },
-};
-
-const PERSONAL_DETAILS_WITH_PERIODS: PersonalDetailsList = {
-    ...PERSONAL_DETAILS,
-
-    '1002': {
-        accountID: 1002,
-        displayName: 'The Flash',
-        login: 'barry.allen@expensify.com',
-        reportID: '',
-    },
-};
-
-const WORKSPACE_CHATS: OptionData[] = [
-    {
-        reportID: '1',
-        text: 'Google Workspace',
-        policyID: '11',
-        isPolicyExpenseChat: true,
-    },
-    {
-        reportID: '2',
-        text: 'Google Drive Workspace',
-        policyID: '22',
-        isPolicyExpenseChat: false,
-    },
-    {
-        reportID: '3',
-        text: 'Slack Team Workspace',
-        policyID: '33',
-        isPolicyExpenseChat: false,
-    },
-    {
-        reportID: '4',
-        text: 'Slack Development Workspace',
-        policyID: '44',
-        isPolicyExpenseChat: true,
-    },
-    {
-        reportID: '5',
-        text: 'Microsoft Teams Workspace',
-        policyID: '55',
-        isPolicyExpenseChat: false,
-    },
-    {
-        reportID: '6',
-        text: 'Microsoft Project Workspace',
-        policyID: '66',
-        isPolicyExpenseChat: false,
-    },
-    {
-        reportID: '7',
-        text: 'Notion Design Workspace',
-        policyID: '77',
-        isPolicyExpenseChat: false,
-    },
-    {
-        reportID: '8',
-        text: 'Notion Workspace for Marketing',
-        policyID: activePolicyID,
-        isPolicyExpenseChat: true,
-    },
-    {
-        reportID: '9',
-        text: 'Adana Task Workspace',
-        policyID: '99',
-        isPolicyExpenseChat: false,
-    },
-    {
-        reportID: '10',
-        text: 'Adana Project Management',
-        policyID: '1010',
-        isPolicyExpenseChat: true,
-    },
-];
-
-const reportNameValuePairs = {
-    private_isArchived: DateUtils.getDBTime(),
-};
-
-let OPTIONS: OptionList;
-let OPTIONS_WITH_CONCIERGE: OptionList;
-let OPTIONS_WITH_CHRONOS: OptionList;
-let OPTIONS_WITH_RECEIPTS: OptionList;
-let OPTIONS_WITH_WORKSPACE_ROOM: OptionList;
-let OPTIONS_WITH_MANAGER_MCTEST: OptionList;
-
 describe('OptionsListUtils', () => {
+    const policyID = 'ABC123';
+
+    const POLICY: Policy = {
+        id: policyID,
+        name: 'Hero Policy',
+        role: 'user',
+        type: CONST.POLICY.TYPE.TEAM,
+        owner: 'reedrichards@expensify.com',
+        outputCurrency: '',
+        isPolicyExpenseChatEnabled: false,
+        approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+    };
+
+    const COUNTRY_CODE = 1;
+
+    // Given a set of reports with both single participants and multiple participants some pinned and some not
+    const REPORTS: OnyxCollection<Report> = {
+        '1': {
+            lastReadTime: '2021-01-14 11:25:39.295',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.015',
+            isPinned: false,
+            reportID: '1',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                5: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: 'Iron Man, Mister Fantastic, Invisible Woman',
+            type: CONST.REPORT.TYPE.CHAT,
+        },
+        '2': {
+            lastReadTime: '2021-01-14 11:25:39.296',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.016',
+            isPinned: false,
+            reportID: '2',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: 'Spider-Man',
+            type: CONST.REPORT.TYPE.CHAT,
+        },
+
+        // This is the only report we are pinning in this test
+        '3': {
+            lastReadTime: '2021-01-14 11:25:39.297',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.170',
+            isPinned: true,
+            reportID: '3',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: 'Mister Fantastic',
+            type: CONST.REPORT.TYPE.CHAT,
+        },
+        '4': {
+            lastReadTime: '2021-01-14 11:25:39.298',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.180',
+            isPinned: false,
+            reportID: '4',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: 'Black Panther',
+            type: CONST.REPORT.TYPE.CHAT,
+        },
+        '5': {
+            lastReadTime: '2021-01-14 11:25:39.299',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.019',
+            isPinned: false,
+            reportID: '5',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                5: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: 'Invisible Woman',
+            type: CONST.REPORT.TYPE.CHAT,
+        },
+        '6': {
+            lastReadTime: '2021-01-14 11:25:39.300',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.020',
+            isPinned: false,
+            reportID: '6',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                6: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: 'Thor',
+            type: CONST.REPORT.TYPE.CHAT,
+        },
+
+        // Note: This report has the largest lastVisibleActionCreated
+        '7': {
+            lastReadTime: '2021-01-14 11:25:39.301',
+            lastVisibleActionCreated: '2022-11-22 03:26:03.999',
+            isPinned: false,
+            reportID: '7',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                7: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: 'Captain America',
+            type: CONST.REPORT.TYPE.CHAT,
+        },
+
+        // Note: This report has no lastVisibleActionCreated
+        '8': {
+            lastReadTime: '2021-01-14 11:25:39.301',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.000',
+            isPinned: false,
+            reportID: '8',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                12: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: 'Silver Surfer',
+            type: CONST.REPORT.TYPE.CHAT,
+        },
+
+        // Note: This report has an IOU
+        '9': {
+            lastReadTime: '2021-01-14 11:25:39.302',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.998',
+            isPinned: false,
+            reportID: '9',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                8: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: 'Mister Sinister',
+            iouReportID: '100',
+            type: CONST.REPORT.TYPE.CHAT,
+        },
+
+        // This report is an archived room – it does not have a name and instead falls back on oldPolicyName
+        '10': {
+            lastReadTime: '2021-01-14 11:25:39.200',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.001',
+            reportID: '10',
+            isPinned: false,
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                7: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: '',
+            oldPolicyName: "SHIELD's workspace",
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            isOwnPolicyExpenseChat: true,
+            type: CONST.REPORT.TYPE.CHAT,
+            lastActorAccountID: 2,
+        },
+        '11': {
+            lastReadTime: '2021-01-14 11:25:39.200',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.001',
+            reportID: '11',
+            isPinned: false,
+            participants: {
+                10: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+            },
+            reportName: '',
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            isOwnPolicyExpenseChat: true,
+            type: CONST.REPORT.TYPE.CHAT,
+            policyID,
+            policyName: POLICY.name,
+        },
+
+        // Thread report with notification preference = hidden
+        '12': {
+            lastReadTime: '2021-01-14 11:25:39.200',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.001',
+            reportID: '11',
+            isPinned: false,
+            participants: {
+                10: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+            },
+            reportName: '',
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            isOwnPolicyExpenseChat: true,
+            type: CONST.REPORT.TYPE.CHAT,
+            policyID,
+            policyName: POLICY.name,
+            parentReportActionID: '123',
+            parentReportID: '123',
+        },
+    };
+
+    const REPORTS_WITH_CONCIERGE: OnyxCollection<Report> = {
+        ...REPORTS,
+
+        '11': {
+            lastReadTime: '2021-01-14 11:25:39.302',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+            isPinned: false,
+            reportID: '11',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                999: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: 'Concierge',
+            type: CONST.REPORT.TYPE.CHAT,
+        },
+    };
+
+    const REPORTS_WITH_CHRONOS: OnyxCollection<Report> = {
+        ...REPORTS,
+        '12': {
+            lastReadTime: '2021-01-14 11:25:39.302',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+            isPinned: false,
+            reportID: '12',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1000: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: 'Chronos',
+            type: CONST.REPORT.TYPE.CHAT,
+        },
+    };
+
+    const REPORTS_WITH_RECEIPTS: OnyxCollection<Report> = {
+        ...REPORTS,
+        '13': {
+            lastReadTime: '2021-01-14 11:25:39.302',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+            isPinned: false,
+            reportID: '13',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1001: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: 'Receipts',
+            type: CONST.REPORT.TYPE.CHAT,
+        },
+    };
+
+    const REPORTS_WITH_WORKSPACE_ROOMS: OnyxCollection<Report> = {
+        ...REPORTS,
+        '14': {
+            lastReadTime: '2021-01-14 11:25:39.302',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+            isPinned: false,
+            reportID: '14',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                10: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: '',
+            oldPolicyName: 'Avengers Room',
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+            isOwnPolicyExpenseChat: true,
+            type: CONST.REPORT.TYPE.CHAT,
+        },
+    };
+
+    const REPORTS_WITH_CHAT_ROOM: OnyxCollection<Report> = {
+        ...REPORTS,
+        15: {
+            lastReadTime: '2021-01-14 11:25:39.301',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.000',
+            isPinned: false,
+            reportID: '15',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: 'Spider-Man, Black Panther',
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
+        },
+    };
+
+    const REPORTS_WITH_SELF_DM: OnyxCollection<Report> = {
+        16: {
+            lastReadTime: '2021-01-14 11:25:39.302',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+            isPinned: false,
+            reportID: '16',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: 'Expense Report',
+            type: CONST.REPORT.TYPE.EXPENSE,
+        },
+        17: {
+            lastReadTime: '2021-01-14 11:25:39.302',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+            isPinned: false,
+            reportID: '17',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: '',
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+        },
+    };
+
+    const activePolicyID = 'DEF456';
+
+    // And a set of personalDetails some with existing reports and some without
+    const PERSONAL_DETAILS: PersonalDetailsList = {
+        // These exist in our reports
+        '1': {
+            accountID: 1,
+            displayName: 'Mister Fantastic',
+            login: 'reedrichards@expensify.com',
+            isSelected: true,
+            reportID: '1',
+        },
+        '2': {
+            accountID: 2,
+            displayName: 'Iron Man',
+            login: 'tonystark@expensify.com',
+            reportID: '1',
+        },
+        '3': {
+            accountID: 3,
+            displayName: 'Spider-Man',
+            login: 'peterparker@expensify.com',
+            reportID: '1',
+        },
+        '4': {
+            accountID: 4,
+            displayName: 'Black Panther',
+            login: 'tchalla@expensify.com',
+            reportID: '1',
+        },
+        '5': {
+            accountID: 5,
+            displayName: 'Invisible Woman',
+            login: 'suestorm@expensify.com',
+            reportID: '1',
+        },
+        '6': {
+            accountID: 6,
+            displayName: 'Thor',
+            login: 'thor@expensify.com',
+            reportID: '1',
+        },
+        '7': {
+            accountID: 7,
+            displayName: 'Captain America',
+            login: 'steverogers@expensify.com',
+            reportID: '1',
+        },
+        '8': {
+            accountID: 8,
+            displayName: 'Mr Sinister',
+            login: 'mistersinister@marauders.com',
+            reportID: '1',
+        },
+
+        // These do not exist in reports at all
+        '9': {
+            accountID: 9,
+            displayName: 'Black Widow',
+            login: 'natasharomanoff@expensify.com',
+            reportID: '',
+        },
+        '10': {
+            accountID: 10,
+            displayName: 'The Incredible Hulk',
+            login: 'brucebanner@expensify.com',
+            reportID: '',
+        },
+        '11': {
+            accountID: 11,
+            displayName: 'Timothée',
+            login: 'chalamet@expensify.com',
+            reportID: '',
+        },
+    };
+
+    const PERSONAL_DETAILS_WITH_CONCIERGE: PersonalDetailsList = {
+        ...PERSONAL_DETAILS,
+        '999': {
+            accountID: 999,
+            displayName: 'Concierge',
+            login: 'concierge@expensify.com',
+            reportID: '',
+        },
+    };
+
+    const PERSONAL_DETAILS_WITH_CHRONOS: PersonalDetailsList = {
+        ...PERSONAL_DETAILS,
+
+        '1000': {
+            accountID: 1000,
+            displayName: 'Chronos',
+            login: 'chronos@expensify.com',
+            reportID: '',
+        },
+    };
+
+    const PERSONAL_DETAILS_WITH_RECEIPTS: PersonalDetailsList = {
+        ...PERSONAL_DETAILS,
+
+        '1001': {
+            accountID: 1001,
+            displayName: 'Receipts',
+            login: 'receipts@expensify.com',
+            reportID: '',
+        },
+    };
+
+    const PERSONAL_DETAILS_WITH_MANAGER_MCTEST: PersonalDetailsList = {
+        ...PERSONAL_DETAILS,
+        '1003': {
+            accountID: 1003,
+            displayName: 'Manager McTest',
+            login: CONST.EMAIL.MANAGER_MCTEST,
+            reportID: '',
+        },
+    };
+
+    const PERSONAL_DETAILS_WITH_PERIODS: PersonalDetailsList = {
+        ...PERSONAL_DETAILS,
+
+        '1002': {
+            accountID: 1002,
+            displayName: 'The Flash',
+            login: 'barry.allen@expensify.com',
+            reportID: '',
+        },
+    };
+
+    const WORKSPACE_CHATS: OptionData[] = [
+        {
+            reportID: '1',
+            text: 'Google Workspace',
+            policyID: '11',
+            isPolicyExpenseChat: true,
+        },
+        {
+            reportID: '2',
+            text: 'Google Drive Workspace',
+            policyID: '22',
+            isPolicyExpenseChat: false,
+        },
+        {
+            reportID: '3',
+            text: 'Slack Team Workspace',
+            policyID: '33',
+            isPolicyExpenseChat: false,
+        },
+        {
+            reportID: '4',
+            text: 'Slack Development Workspace',
+            policyID: '44',
+            isPolicyExpenseChat: true,
+        },
+        {
+            reportID: '5',
+            text: 'Microsoft Teams Workspace',
+            policyID: '55',
+            isPolicyExpenseChat: false,
+        },
+        {
+            reportID: '6',
+            text: 'Microsoft Project Workspace',
+            policyID: '66',
+            isPolicyExpenseChat: false,
+        },
+        {
+            reportID: '7',
+            text: 'Notion Design Workspace',
+            policyID: '77',
+            isPolicyExpenseChat: false,
+        },
+        {
+            reportID: '8',
+            text: 'Notion Workspace for Marketing',
+            policyID: activePolicyID,
+            isPolicyExpenseChat: true,
+        },
+        {
+            reportID: '9',
+            text: 'Adana Task Workspace',
+            policyID: '99',
+            isPolicyExpenseChat: false,
+        },
+        {
+            reportID: '10',
+            text: 'Adana Project Management',
+            policyID: '1010',
+            isPolicyExpenseChat: true,
+        },
+    ];
+
+    const reportNameValuePairs = {
+        private_isArchived: DateUtils.getDBTime(),
+    };
+
+    let OPTIONS: OptionList;
+    let OPTIONS_WITH_CONCIERGE: OptionList;
+    let OPTIONS_WITH_CHRONOS: OptionList;
+    let OPTIONS_WITH_RECEIPTS: OptionList;
+    let OPTIONS_WITH_WORKSPACE_ROOM: OptionList;
+    let OPTIONS_WITH_MANAGER_MCTEST: OptionList;
+
     // Set the currently logged in user, report data, and personal details
     beforeAll(async () => {
         IntlStore.load(CONST.LOCALES.EN);
@@ -601,22 +601,12 @@ describe('OptionsListUtils', () => {
         });
 
         Onyx.registerLogger(() => {});
-        return waitForBatchedUpdatesWithAct().then(() =>
-            act(async () => {
-                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
-                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}10`, REPORTS['10'] ?? {});
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
-            }),
-        );
-    });
 
-    beforeEach(async () => {
-        await act(async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
-        });
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}10`, REPORTS['10'] ?? {});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
+        await waitForBatchedUpdates();
 
-        await waitForBatchedUpdatesWithAct();
         OPTIONS = createOptionList(PERSONAL_DETAILS, REPORTS);
         OPTIONS_WITH_CONCIERGE = createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, REPORTS_WITH_CONCIERGE);
         OPTIONS_WITH_CHRONOS = createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, REPORTS_WITH_CHRONOS);
@@ -831,30 +821,28 @@ describe('OptionsListUtils', () => {
             expect(result.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
         });
 
-        it('should exclude Manager McTest from results if user dismissed the tooltip', async () => {
-            await waitForBatchedUpdatesWithAct();
+        it('should exclude Manager McTest from results if user dismissed the tooltip', () => {
+            return waitForBatchedUpdates()
+                .then(() =>
+                    // Given that the user has dismissed the tooltip
+                    Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
+                        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: {
+                            timestamp: DateUtils.getDBTime(new Date().valueOf()),
+                        },
+                    }),
+                )
+                .then(() => {
+                    // When we call getValidOptions()
+                    const optionsWhenUserAlreadySubmittedExpense = getValidOptions(
+                        {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
+                        {includeP2P: true, canShowManagerMcTest: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
+                    );
 
-            // Given that the user has dismissed the tooltip
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: {
-                        timestamp: DateUtils.getDBTime(new Date().valueOf()),
-                    },
+                    // Then the result should include all personalDetails except the currently logged in user and Manager McTest
+                    expect(optionsWhenUserAlreadySubmittedExpense.personalDetails.length).toBe(Object.values(OPTIONS_WITH_MANAGER_MCTEST.personalDetails).length - 2);
+                    // Then the result should not include Manager McTest
+                    expect(optionsWhenUserAlreadySubmittedExpense.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
                 });
-            });
-
-            await waitForBatchedUpdatesWithAct();
-
-            // When we call getValidOptions()
-            const optionsWhenUserAlreadySubmittedExpense = getValidOptions(
-                {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
-                {includeP2P: true, canShowManagerMcTest: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
-            );
-
-            // Then the result should include all personalDetails except the currently logged in user and Manager McTest
-            expect(optionsWhenUserAlreadySubmittedExpense.personalDetails.length).toBe(Object.values(OPTIONS_WITH_MANAGER_MCTEST.personalDetails).length - 2);
-            // Then the result should not include Manager McTest
-            expect(optionsWhenUserAlreadySubmittedExpense.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
         });
 
         it('should keep admin rooms if specified', () => {
@@ -1209,9 +1197,8 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getLastActorDisplayName()', () => {
-        it('should return correct display name', async () => {
+        it('should return correct display name', () => {
             renderLocaleContextProvider();
-            await waitForBatchedUpdatesWithAct();
             // Given two different personal details
             // When we call getLastActorDisplayName
             const result1 = getLastActorDisplayName(PERSONAL_DETAILS['2']);
@@ -1360,9 +1347,8 @@ describe('OptionsListUtils', () => {
             expect(filterOptions.recentReports.at(1)?.isChatRoom).toBe(true);
         });
 
-        it('should put the item with latest lastVisibleActionCreated on top when search value match multiple items', async () => {
+        it('should put the item with latest lastVisibleActionCreated on top when search value match multiple items', () => {
             renderLocaleContextProvider();
-            await waitForBatchedUpdatesWithAct();
             const searchText = 'fantastic';
             // Given a set of options
             const options = getSearchOptions(OPTIONS);
@@ -1694,7 +1680,7 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Spider-Man');
         });
 
-        it('should return latest lastVisibleActionCreated item on top when search value matches multiple items (getSearchOptions)', async () => {
+        it('should return latest lastVisibleActionCreated item on top when search value matches multiple items (getSearchOptions)', () => {
             // Given a set of options
             const options = getSearchOptions(OPTIONS);
             // When we call filterAndOrderOptions with a search value that matches multiple items
@@ -1707,118 +1693,113 @@ describe('OptionsListUtils', () => {
             // Then the second report should match the search text
             expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic, Invisible Woman');
 
-            await waitForBatchedUpdatesWithAct();
+            return waitForBatchedUpdates()
+                .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
+                .then(() => {
+                    // Given a set of options with periods
+                    const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
+                    // When we call getSearchOptions
+                    const results = getSearchOptions(OPTIONS_WITH_PERIODS);
+                    // When we pass the returned options to filterAndOrderOptions with a search value
+                    const filteredResults = filterAndOrderOptions(results, 'barry.allen@expensify.com', COUNTRY_CODE, {sortByReportTypeInSearch: true});
 
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS);
+                    // Then only one report should be returned
+                    expect(filteredResults.recentReports.length).toBe(1);
+                    // Then the returned report should match the search text
+                    expect(filteredResults.recentReports.at(0)?.text).toBe('The Flash');
+                });
+        });
+
+        it('should filter out duplicated entries by login', () => {
+            const login = 'brucebanner@expensify.com';
+
+            // Duplicate personalDetails entries and reassign to OPTIONS
+            OPTIONS.personalDetails = OPTIONS.personalDetails.flatMap((obj) => [obj, {...obj}]);
+
+            // Given a set of options
+            const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
+            // When we call filterAndOrderOptions with a an empty search value
+            const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE);
+            const matchingEntries = filteredOptions.personalDetails.filter((detail) => detail.login === login);
+
+            // Then there should be 2 unique login entries
+            expect(filteredOptions.personalDetails.length).toBe(3);
+            // Then there should be 1 matching entry
+            expect(matchingEntries.length).toBe(1);
+        });
+
+        it('should order self dm always on top if the search matches with the self dm login', () => {
+            const searchTerm = 'tonystark@expensify.com';
+            const OPTIONS_WITH_SELF_DM = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_SELF_DM);
+
+            // Given a set of options with self dm and all betas
+            const options = getSearchOptions(OPTIONS_WITH_SELF_DM, [CONST.BETAS.ALL]);
+            // When we call filterAndOrderOptions with a search value
+            const filteredOptions = filterAndOrderOptions(options, searchTerm, COUNTRY_CODE);
+
+            // Then the self dm should be on top.
+            expect(filteredOptions.recentReports.at(0)?.isSelfDM).toBe(true);
+        });
+    });
+
+    describe('canCreateOptimisticPersonalDetailOption()', () => {
+        const VALID_EMAIL = 'valid@email.com';
+        const currentUserEmail = 'tonystark@expensify.com';
+
+        it('should allow to create optimistic personal detail option if email is valid', () => {
+            const canCreate = canCreateOptimisticPersonalDetailOption({
+                searchValue: VALID_EMAIL,
+                currentUserOption: {
+                    login: currentUserEmail,
+                } as OptionData,
+                // Note: in the past this would check for the existence of the email in the personalDetails list, this has changed.
+                // We expect only filtered lists to be passed to this function, so we don't need to check for the existence of the email in the personalDetails list.
+                // This is a performance optimization.
+                personalDetailsOptions: [],
+                recentReportOptions: [],
             });
 
-            await waitForBatchedUpdatesWithAct();
-
-            // Given a set of options with periods
-            const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
-            // When we call getSearchOptions
-            const results = getSearchOptions(OPTIONS_WITH_PERIODS);
-            // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredResults = filterAndOrderOptions(results, 'barry.allen@expensify.com', COUNTRY_CODE, {sortByReportTypeInSearch: true});
-
-            // Then only one report should be returned
-            expect(filteredResults.recentReports.length).toBe(1);
-            // Then the returned report should match the search text
-            expect(filteredResults.recentReports.at(0)?.text).toBe('The Flash');
-        });
-    });
-
-    it('should filter out duplicated entries by login', () => {
-        const login = 'brucebanner@expensify.com';
-
-        // Duplicate personalDetails entries and reassign to OPTIONS
-        OPTIONS.personalDetails = OPTIONS.personalDetails.flatMap((obj) => [obj, {...obj}]);
-
-        // Given a set of options
-        const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
-        // When we call filterAndOrderOptions with a an empty search value
-        const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE);
-        const matchingEntries = filteredOptions.personalDetails.filter((detail) => detail.login === login);
-
-        // Then there should be 2 unique login entries
-        expect(filteredOptions.personalDetails.length).toBe(3);
-        // Then there should be 1 matching entry
-        expect(matchingEntries.length).toBe(1);
-    });
-
-    it('should order self dm always on top if the search matches with the self dm login', () => {
-        const searchTerm = 'tonystark@expensify.com';
-        const OPTIONS_WITH_SELF_DM = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_SELF_DM);
-
-        // Given a set of options with self dm and all betas
-        const options = getSearchOptions(OPTIONS_WITH_SELF_DM, [CONST.BETAS.ALL]);
-        // When we call filterAndOrderOptions with a search value
-        const filteredOptions = filterAndOrderOptions(options, searchTerm, COUNTRY_CODE);
-
-        // Then the self dm should be on top.
-        expect(filteredOptions.recentReports.at(0)?.isSelfDM).toBe(true);
-    });
-});
-
-describe('canCreateOptimisticPersonalDetailOption()', () => {
-    const VALID_EMAIL = 'valid@email.com';
-    const currentUserEmail = 'tonystark@expensify.com';
-
-    it('should allow to create optimistic personal detail option if email is valid', () => {
-        const canCreate = canCreateOptimisticPersonalDetailOption({
-            searchValue: VALID_EMAIL,
-            currentUserOption: {
-                login: currentUserEmail,
-            } as OptionData,
-            // Note: in the past this would check for the existence of the email in the personalDetails list, this has changed.
-            // We expect only filtered lists to be passed to this function, so we don't need to check for the existence of the email in the personalDetails list.
-            // This is a performance optimization.
-            personalDetailsOptions: [],
-            recentReportOptions: [],
+            expect(canCreate).toBe(true);
         });
 
-        expect(canCreate).toBe(true);
-    });
+        it('should not allow to create option if email is an email of current user', () => {
+            // Given a set of arguments with currentUserOption object
+            // When we call canCreateOptimisticPersonalDetailOption
+            const canCreate = canCreateOptimisticPersonalDetailOption({
+                searchValue: currentUserEmail,
+                recentReportOptions: [],
+                personalDetailsOptions: [],
+                currentUserOption: {
+                    login: currentUserEmail,
+                } as OptionData,
+            });
 
-    it('should not allow to create option if email is an email of current user', () => {
-        // Given a set of arguments with currentUserOption object
-        // When we call canCreateOptimisticPersonalDetailOption
-        const canCreate = canCreateOptimisticPersonalDetailOption({
-            searchValue: currentUserEmail,
-            recentReportOptions: [],
-            personalDetailsOptions: [],
-            currentUserOption: {
-                login: currentUserEmail,
-            } as OptionData,
+            // Then the returned value should be false
+            expect(canCreate).toBe(false);
         });
 
-        // Then the returned value should be false
-        expect(canCreate).toBe(false);
-    });
+        it('createOptionList() localization', () => {
+            renderLocaleContextProvider();
+            // Given a set of reports and personal details
+            // When we call createOptionList and extract the reports
+            const reports = createOptionList(PERSONAL_DETAILS, REPORTS).reports;
 
-    it('createOptionList() localization', async () => {
-        renderLocaleContextProvider();
-        await waitForBatchedUpdatesWithAct();
-        // Given a set of reports and personal details
-        // When we call createOptionList and extract the reports
-        const reports = createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+            // Then the returned reports should match the expected values
+            expect(reports.at(10)?.subtitle).toBe(`Submits to Mister Fantastic`);
 
-        // Then the returned reports should match the expected values
-        expect(reports.at(10)?.subtitle).toBe(`Submits to Mister Fantastic`);
-
-        await waitForBatchedUpdatesWithAct();
-        // When we set the preferred locale to Spanish
-
-        await act(async () => {
-            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES);
+            return (
+                waitForBatchedUpdates()
+                    // When we set the preferred locale to Spanish
+                    .then(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES))
+                    .then(() => {
+                        // When we call createOptionList again
+                        const newReports = createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+                        // Then the returned reports should change to Spanish
+                        // cspell:disable-next-line
+                        expect(newReports.at(10)?.subtitle).toBe('Se envía a Mister Fantastic');
+                    })
+            );
         });
-
-        // When we call createOptionList again
-        const newReports = createOptionList(PERSONAL_DETAILS, REPORTS).reports;
-        // Then the returned reports should change to Spanish
-        // cspell:disable-next-line
-        expect(newReports.at(10)?.subtitle).toBe('Se envía a Mister Fantastic');
     });
 
     describe('filterWorkspaceChats()', () => {
@@ -1884,19 +1865,13 @@ describe('canCreateOptimisticPersonalDetailOption()', () => {
     describe('Alternative text', () => {
         it("The text should not contain the last actor's name at prefix if the report is archived.", async () => {
             renderLocaleContextProvider();
-            await waitForBatchedUpdatesWithAct();
             // When we set the preferred locale to English and create an ADD_COMMENT report action
-            await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.EN,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}10` as const]: {
-                        '1': getFakeAdvancedReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT),
-                    },
-                });
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.EN,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}10` as const]: {
+                    '1': getFakeAdvancedReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT),
+                },
             });
-
-            await waitForBatchedUpdatesWithAct();
-
             // When we call createOptionList
             const reports = createOptionList(PERSONAL_DETAILS, REPORTS).reports;
             const archivedReport = reports.find((report) => report.reportID === '10');
