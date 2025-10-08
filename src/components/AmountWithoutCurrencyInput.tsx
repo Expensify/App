@@ -23,20 +23,10 @@ type AmountFormProps = {
     toggleNegative?: () => void;
 } & Partial<BaseTextInputProps>;
 
-function AmountWithoutCurrencyInput({
-    value: amount,
-    shouldAllowNegative = false,
-    inputID,
-    name,
-    defaultValue,
-    accessibilityLabel,
-    role,
-    label,
-    onInputChange,
-    allowFlippingAmount,
-    toggleNegative,
-    ...rest
-}: AmountFormProps, ref: ForwardedRef<BaseTextInputRef>) {
+function AmountWithoutCurrencyInput(
+    {value: amount, shouldAllowNegative = false, inputID, name, defaultValue, accessibilityLabel, role, label, onInputChange, allowFlippingAmount, toggleNegative, ...rest}: AmountFormProps,
+    ref: ForwardedRef<BaseTextInputRef>,
+) {
     const {toLocaleDigit} = useLocalize();
     const separator = useMemo(
         () =>
