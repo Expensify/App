@@ -174,6 +174,14 @@ function isFeatureEnabledInPolicies(policies: OnyxCollection<Policy>, featureNam
     return Object.values(policies).some((policy) => isPolicyFeatureEnabled(policy, featureName));
 }
 
+const availablePolicyCategoriesSelector = (policyCategories: OnyxCollection<PolicyCategories>) =>
+    Object.fromEntries(
+        Object.entries(policyCategories ?? {}).filter(([, categories]) => {
+            const availableCategories = Object.values(categories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            return availableCategories.length > 0;
+        }),
+    );
+
 function useAdvancedSearchFilters() {
     const {localeCompare} = useLocalize();
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
@@ -187,13 +195,7 @@ function useAdvancedSearchFilters() {
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         canBeMissing: false,
-        selector: (policyCategories) =>
-            Object.fromEntries(
-                Object.entries(policyCategories ?? {}).filter(([, categories]) => {
-                    const availableCategories = Object.values(categories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-                    return availableCategories.length > 0;
-                }),
-            ),
+        selector: availablePolicyCategoriesSelector,
     });
     const selectedPolicyCategories = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, allPolicyCategories);
     const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
