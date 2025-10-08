@@ -1466,6 +1466,7 @@ const translations = {
                 subtitle: 'Wählen Sie einen zusätzlichen Genehmiger für diesen Bericht, bevor wir ihn durch den Rest des Genehmigungs-Workflows leiten.',
             },
         },
+        chooseWorkspace: 'Wählen Sie einen Arbeitsbereich aus',
     },
     transactionMerge: {
         listPage: {

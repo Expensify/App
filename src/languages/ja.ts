@@ -1460,6 +1460,7 @@ const translations = {
                 subtitle: '承認ワークフローの残りの部分を経由する前に、このレポートの追加の承認者を選択してください。',
             },
         },
+        chooseWorkspace: 'ワークスペースを選択',
     },
     transactionMerge: {
         listPage: {

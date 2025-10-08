@@ -1465,6 +1465,7 @@ const translations = {
                 subtitle: "Choisissez un approbateur supplémentaire pour ce rapport avant de le faire passer par le reste du flux de travail d'approbation.",
             },
         },
+        chooseWorkspace: 'Choisissez un espace de travail',
     },
     transactionMerge: {
         listPage: {

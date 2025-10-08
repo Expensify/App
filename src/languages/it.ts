@@ -1459,6 +1459,7 @@ const translations = {
                 subtitle: 'Scegli un approvatore aggiuntivo per questo report prima di instradarlo attraverso il resto del flusso di lavoro di approvazione.',
             },
         },
+        chooseWorkspace: "Scegli un'area di lavoro",
     },
     transactionMerge: {
         listPage: {
