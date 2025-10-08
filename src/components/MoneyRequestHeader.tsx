@@ -113,7 +113,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isDuplicate = isDuplicateTransactionUtils(transaction);
     const reportID = report?.reportID;
     const {removeTransaction} = useSearchContext();
-    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
+    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
@@ -264,8 +264,17 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (!transaction || !parentReportAction || !parentReport) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(currentUserLogin ?? '', parentReport, transaction, originalTransaction, parentReportAction, policy, report, isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS));
-    }, [parentReport, transaction, parentReportAction, currentUserLogin, policy, report, isBetaEnabled]);
+        return getSecondaryTransactionThreadActions(
+            currentUserLogin ?? '',
+            parentReport,
+            transaction,
+            parentReportAction,
+            originalTransaction,
+            policy,
+            report,
+            isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS),
+        );
+    }, [transaction, parentReportAction, parentReport, currentUserLogin, originalTransaction, policy, report, isBetaEnabled]);
 
     const dismissModalAndUpdateUseReject = () => {
         setIsRejectEducationalModalVisible(false);

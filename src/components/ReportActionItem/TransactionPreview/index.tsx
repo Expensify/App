@@ -15,7 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
-import {getTransactionSplitType, isCardTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
+import {getOriginalTransactionWithSplitInfo, isCardTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@navigation/types';
 import {clearWalletTermsError} from '@userActions/PaymentMethods';
@@ -87,7 +87,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     const transactionPreview = transaction;
 
-    const {isBillSplit} = getTransactionSplitType(transaction, originalTransaction);
+    const {isBillSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
     const iouAction = action;
 

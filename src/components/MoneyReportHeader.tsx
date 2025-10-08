@@ -888,7 +888,20 @@ function MoneyReportHeader({
             isChatReportArchived,
             isNewDotUpdateSplitsBeta: isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS),
         });
-    }, [moneyRequestReport, currentUserLogin, chatReport, originalTransaction, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isChatReportArchived, isBetaEnabled]);
+    }, [
+        moneyRequestReport,
+        currentUserLogin,
+        chatReport,
+        originalTransaction,
+        transactions,
+        violations,
+        policy,
+        reportNameValuePairs,
+        reportActions,
+        policies,
+        isChatReportArchived,
+        isBetaEnabled,
+    ]);
 
     const secondaryExportActions = useMemo(() => {
         if (!moneyRequestReport) {

@@ -55,7 +55,7 @@ import {
 import {getSession} from './SessionUtils';
 import {
     allHavePendingRTERViolation,
-    getTransactionSplitType,
+    getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
@@ -74,7 +74,7 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
     return canAddTransaction(report, isReportArchived);
 }
 
-function isSplitAction(report: Report, reportTransactions: Transaction[], originalTransaction: OnyxEntry<Transaction>, policy?: Policy): boolean {
+function isSplitAction(report: Report, reportTransactions: Transaction[], originalTransaction: OnyxEntry<Transaction>, policy?: Policy, isNewDotUpdateSplitsBeta = false): boolean {
     if (Number(reportTransactions?.length) !== 1) {
         return false;
     }
@@ -91,8 +91,12 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], origin
         return false;
     }
 
-    const {isExpenseSplit, isBillSplit} = getTransactionSplitType(reportTransaction, originalTransaction);
-    if (isExpenseSplit || isBillSplit) {
+    const {isBillSplit, isExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
+    if (isBillSplit) {
+        return false;
+    }
+
+    if (isExpenseSplit && !isNewDotUpdateSplitsBeta) {
         return false;
     }
 
@@ -696,8 +700,8 @@ function getSecondaryTransactionThreadActions(
     currentUserEmail: string,
     parentReport: Report,
     reportTransaction: Transaction,
+    reportAction: ReportAction | undefined,
     originalTransaction: OnyxEntry<Transaction>,
-    reportActions: ReportAction[],
     policy: OnyxEntry<Policy>,
     transactionThreadReport?: OnyxEntry<Report>,
     isNewDotUpdateSplitsBeta?: boolean,
