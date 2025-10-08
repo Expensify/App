@@ -74,7 +74,7 @@ function WorkspaceCreateReportFieldsPage({
             });
             Navigation.goBack();
         },
-        [availableListValuesLength, formDraft, policyExpenseReportIDs, policyID],
+        [availableListValuesLength, formDraft, policy, policyExpenseReportIDs],
     );
 
     const validateForm = useCallback(

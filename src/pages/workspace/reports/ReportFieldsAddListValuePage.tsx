@@ -69,7 +69,7 @@ function ReportFieldsAddListValuePage({
             Keyboard.dismiss();
             Navigation.goBack();
         },
-        [formDraft, policyID, reportFieldID],
+        [formDraft, policy, reportFieldID],
     );
 
     return (

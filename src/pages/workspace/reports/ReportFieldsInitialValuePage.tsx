@@ -53,7 +53,7 @@ function ReportFieldsInitialValuePage({
             }
             Navigation.goBack();
         },
-        [policyID, reportFieldID, currentInitialValue],
+        [currentInitialValue, policy, reportFieldID],
     );
 
     const submitListValueUpdate = (value: string) => {

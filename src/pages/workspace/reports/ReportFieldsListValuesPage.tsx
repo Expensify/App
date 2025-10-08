@@ -112,7 +112,7 @@ function ReportFieldsListValuesPage({
                 disabledListValues,
             });
         },
-        [disabledListValues, policyID, reportFieldID],
+        [disabledListValues, policy, reportFieldID],
     );
 
     useSearchBackPress({
