@@ -1,5 +1,4 @@
 import React, {memo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {AttachmentContext} from '@components/AttachmentContext';
 import {getButtonRole} from '@components/Button/utils';
@@ -20,18 +19,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-type ImageRendererWithOnyxProps = {
-    /** Whether we should use the staging version of the secure API server */
-    // Following line is disabled because the onyx prop is only being used on the memo HOC
-    // eslint-disable-next-line react/no-unused-prop-types
-    shouldUseStagingServer: OnyxEntry<boolean>;
-};
-
-type ImageRendererProps = ImageRendererWithOnyxProps & CustomRendererProps<TBlock>;
-
-function ImageRenderer({tnode}: ImageRendererProps) {
+function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    // Re-render this component when account.shouldUseStagingServer changes
+    useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER, {canBeMissing: true});
 
     const htmlAttribs = tnode.attributes;
     const isDeleted = isDeletedNode(tnode);
@@ -147,20 +140,4 @@ function ImageRenderer({tnode}: ImageRendererProps) {
 
 ImageRenderer.displayName = 'ImageRenderer';
 
-const ImageRendererMemorize = memo(
-    ImageRenderer,
-    (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes && prevProps.shouldUseStagingServer === nextProps.shouldUseStagingServer,
-);
-
-function ImageRendererWrapper(props: CustomRendererProps<TBlock>) {
-    const [shouldUseStagingServer] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER, {canBeMissing: true});
-    return (
-        <ImageRendererMemorize
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            shouldUseStagingServer={shouldUseStagingServer}
-        />
-    );
-}
-
-export default ImageRendererWrapper;
+export default memo(ImageRenderer, (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes);

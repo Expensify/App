@@ -43,6 +43,7 @@ function getScrollableNode(flatList: FlatList | null): HTMLElement | undefined {
 
 type CustomFlatListProps<T> = FlatListProps<T> & {
     ref?: ForwardedRef<FlatList>;
+    shouldDisableVisibleContentPosition?: boolean;
 };
 
 function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll, ref, ...props}: CustomFlatListProps<TItem>) {
@@ -94,7 +95,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         }
 
         const contentView = getContentView();
-        if (contentView == null) {
+        if (!(contentView instanceof Node)) {
             return;
         }
 
@@ -141,7 +142,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
 
     const setupMutationObserver = useCallback(() => {
         const contentView = getContentView();
-        if (contentView == null) {
+        if (!(contentView instanceof Node)) {
             return;
         }
 

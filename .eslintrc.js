@@ -13,6 +13,7 @@ const restrictedImportPaths = [
             'Pressable',
             'Text',
             'ScrollView',
+            'ActivityIndicator',
             'Animated',
             'findNodeHandle',
         ],
@@ -23,6 +24,7 @@ const restrictedImportPaths = [
             "For 'StatusBar', please use '@libs/StatusBar' instead.",
             "For 'Text', please use '@components/Text' instead.",
             "For 'ScrollView', please use '@components/ScrollView' instead.",
+            "For 'ActivityIndicator', please use '@components/ActivityIndicator' instead.",
             "For 'Animated', please use 'Animated' from 'react-native-reanimated' instead.",
         ].join('\n'),
     },
@@ -152,6 +154,7 @@ module.exports = {
     },
     rules: {
         // TypeScript specific rules
+        '@lwc/lwc/no-async-await': 'off',
         '@typescript-eslint/prefer-enum-initializers': 'error',
         '@typescript-eslint/no-var-requires': 'off',
         '@typescript-eslint/no-non-null-assertion': 'error',
@@ -386,6 +389,12 @@ module.exports = {
             rules: {
                 'rulesdir/prefer-at': 'error',
                 'rulesdir/boolean-conditional-rendering': 'error',
+            },
+        },
+        {
+            files: ['src/**/*.ts', 'src/**/*.tsx'],
+            rules: {
+                'rulesdir/prefer-locale-compare-from-context': 'error',
             },
         },
     ],

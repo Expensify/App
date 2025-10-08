@@ -69,7 +69,7 @@ const useCardFeeds = (policyID: string | undefined): [CardFeeds | undefined, Res
 
             return acc;
         }, result);
-    }, [allFeeds, policyID, workspaceAccountID]);
+    }, [allFeeds, defaultFeed?.isLoading, defaultFeed?.settings, policyID]);
 
     return [workspaceFeeds, allFeedsResult, defaultFeed];
 };

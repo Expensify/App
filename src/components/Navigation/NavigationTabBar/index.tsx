@@ -1,4 +1,5 @@
 import {findFocusedRoute, StackActions, useNavigationState} from '@react-navigation/native';
+import reportsSelector from '@selectors/Attributes';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -91,7 +92,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
         [navigationState],
     );
 
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(undefined);
@@ -222,9 +223,8 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                                         {!!chatTabBrickRoad && (
                                             <View
                                                 style={[
-                                                    styles.navigationTabBarStatusIndicator(
-                                                        chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger,
-                                                    ),
+                                                    styles.navigationTabBarStatusIndicator,
+                                                    styles.statusIndicatorColor(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger),
                                                     hovered && {borderColor: theme.sidebarHover},
                                                 ]}
                                             />
@@ -292,7 +292,13 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                                             height={variables.iconBottomBar}
                                         />
                                         {!!workspacesTabIndicatorStatus && (
-                                            <View style={[styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor), hovered && {borderColor: theme.sidebarHover}]} />
+                                            <View
+                                                style={[
+                                                    styles.navigationTabBarStatusIndicator,
+                                                    styles.statusIndicatorColor(workspacesTabIndicatorColor),
+                                                    hovered && {borderColor: theme.sidebarHover},
+                                                ]}
+                                            />
                                         )}
                                     </View>
                                     <Text
@@ -348,7 +354,12 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                             height={variables.iconBottomBar}
                         />
                         {!!chatTabBrickRoad && (
-                            <View style={styles.navigationTabBarStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
+                            <View
+                                style={[
+                                    styles.navigationTabBarStatusIndicator,
+                                    styles.statusIndicatorColor(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger),
+                                ]}
+                            />
                         )}
                     </View>
                     <Text
@@ -409,7 +420,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
-                        {!!workspacesTabIndicatorStatus && <View style={styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor)} />}
+                        {!!workspacesTabIndicatorStatus && <View style={[styles.navigationTabBarStatusIndicator, styles.statusIndicatorColor(workspacesTabIndicatorColor)]} />}
                     </View>
                     <Text
                         numberOfLines={1}

@@ -1,8 +1,9 @@
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -199,7 +200,6 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                     )}
                                     {!isTotalUpdated && !isOffline ? (
                                         <ActivityIndicator
-                                            size="small"
                                             style={[styles.moneyRequestLoadingHeight]}
                                             color={theme.textSupporting}
                                         />
