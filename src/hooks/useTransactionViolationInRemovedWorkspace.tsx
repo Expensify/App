@@ -8,14 +8,14 @@ function useTransactionViolationInRemovedWorkspace(policyID?: string) {
     const reportsToArchive = Object.values(allReports ?? {}).filter(
         (report): report is Report => report != null && isPolicyRelatedReport(report, policyID) && (isChatRoom(report) || isPolicyExpenseChat(report) || isTaskReport(report)),
     );
-    const transactionIDs: string[] = [];
+    const transactionIDSet = new Set<string>();
     reportsToArchive.forEach((report) => {
         if (!report?.iouReportID) {
             return;
         }
         const reportTransactions = getReportTransactions(report.iouReportID);
         for (const transaction of reportTransactions) {
-            transactionIDs.push(transaction.transactionID);
+            transactionIDSet.add(transaction.transactionID);
         }
     });
     const [transactionViolations] = useOnyx(
@@ -28,7 +28,7 @@ function useTransactionViolationInRemovedWorkspace(policyID?: string) {
 
                 const filteredViolationKeys = Object.keys(violations).filter((violationKey) => {
                     const transactionID = violationKey.slice(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS.length);
-                    return transactionIDs.includes(transactionID);
+                    return transactionIDSet.has(transactionID);
                 });
 
                 const filteredViolations = filteredViolationKeys.reduce(
@@ -43,7 +43,7 @@ function useTransactionViolationInRemovedWorkspace(policyID?: string) {
             },
             canBeMissing: true,
         },
-        [transactionIDs],
+        [transactionIDSet],
     );
 
     return {
