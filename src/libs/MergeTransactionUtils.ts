@@ -125,10 +125,10 @@ function shouldNavigateToReceiptReview(transactions: Array<OnyxEntry<Transaction
     return transactions.every((transaction) => transaction?.receipt?.receiptID);
 }
 
-// Check if whether merge value is truly "empty" (null, undefined, or empty string)
+// Check if whether merge value is truly "empty" (null, undefined, empty string, or empty array)
 // For boolean fields, false is a valid value, not an empty value
 function isEmptyMergeValue(value: unknown) {
-    return value === null || value === undefined || value === '';
+    return value === null || value === undefined || value === '' || (Array.isArray(value) && value.length === 0);
 }
 
 /**
@@ -244,8 +244,8 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
             const targetAttendeeLogins = ((targetValue as Attendee[] | undefined)?.map((attendee) => attendee.login ?? attendee.email) ?? []).sort(localeCompare);
             const sourceAttendeeLogins = ((sourceValue as Attendee[] | undefined)?.map((attendee) => attendee.login ?? attendee.email) ?? []).sort(localeCompare);
 
-            if (deepEqual(targetAttendeeLogins, sourceAttendeeLogins)) {
-                mergeableData[field] = targetValue;
+            if (isTargetValueEmpty || isSourceValueEmpty || deepEqual(targetAttendeeLogins, sourceAttendeeLogins)) {
+                mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
             } else {
                 conflictFields.push(field);
             }

@@ -293,6 +293,28 @@ describe('MergeTransactionUtils', () => {
             // Then it should return false because the string has content
             expect(result).toBe(false);
         });
+
+        it('should return true for empty array', () => {
+            // Given an empty array
+            const value: unknown[] = [];
+
+            // When we check if it's empty
+            const result = isEmptyMergeValue(value);
+
+            // Then it should return true because empty array is considered empty
+            expect(result).toBe(true);
+        });
+
+        it('should return false for non-empty array', () => {
+            // Given a non-empty array
+            const value: unknown[] = [1, 2, 3];
+
+            // When we check if it's empty
+            const result = isEmptyMergeValue(value);
+
+            // Then it should return false because the array has content
+            expect(result).toBe(false);
+        });
     });
 
     describe('getMergeableDataAndConflictFields', () => {
