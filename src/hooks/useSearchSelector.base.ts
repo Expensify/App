@@ -20,6 +20,9 @@ type UseSearchSelectorConfig = {
     /** Maximum number of results to return (for heap optimization) */
     maxResultsPerPage?: number;
 
+    /** How many recent reports should be returned? The rest count from maxResultsPerPage will be with contacts. null value means no limit */
+    maxRecentReportsToShow?: number;
+
     /** What is the context that we are using this hook for */
     searchContext?: SearchSelectorContext;
 
@@ -116,6 +119,7 @@ type UseSearchSelectorReturn = {
 function useSearchSelectorBase({
     selectionMode,
     maxResultsPerPage = CONST.MAX_SELECTION_LIST_PAGE_LENGTH,
+    maxRecentReportsToShow,
     searchContext = 'search',
     includeUserToInvite = true,
     excludeLogins = CONST.EMPTY_OBJECT,
@@ -181,6 +185,7 @@ function useSearchSelectorBase({
                     excludeLogins,
                     includeRecentReports,
                     maxElements: maxResults,
+                    maxRecentReportElements: maxRecentReportsToShow,
                     searchString: computedSearchTerm,
                     includeUserToInvite,
                 });
@@ -190,6 +195,7 @@ function useSearchSelectorBase({
                     betas: betas ?? [],
                     searchString: computedSearchTerm,
                     maxElements: maxResults,
+                    maxRecentReportElements: maxRecentReportsToShow,
                     includeUserToInvite,
                     loginsToExclude: excludeLogins,
                 });
@@ -207,6 +213,7 @@ function useSearchSelectorBase({
         includeUserToInvite,
         excludeLogins,
         includeRecentReports,
+        maxRecentReportsToShow,
         getValidOptionsConfig,
     ]);
 
