@@ -8567,12 +8567,6 @@ function deleteMoneyRequest(
                     },
                 },
             });
-
-            successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key,
-                value: null,
-            });
         });
     }
 

@@ -29,6 +29,7 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
@@ -47,6 +48,20 @@ type OnyxSearchResponse = {
         hasMoreResults: boolean;
     };
 };
+
+let allSnapshotKeys: OnyxKey[] = [];
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.SNAPSHOT,
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+
+        allSnapshotKeys = Object.keys(val) as OnyxKey[];
+    },
+});
 
 function handleActionButtonPress(
     hash: number,
@@ -554,29 +569,39 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
-    const optimisticData: OnyxUpdate[] = [
-        ...loadingOptimisticData,
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-            value: {
-                data: Object.fromEntries(
-                    transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]),
-                ) as Partial<SearchTransaction>,
-            },
-        },
-    ];
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-            value: {
-                data: Object.fromEntries(
-                    transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {pendingAction: null}]),
-                ) as Partial<SearchTransaction>,
-            },
-        },
-    ];
+    const optimisticData: OnyxUpdate[] = [...loadingOptimisticData];
+    const failureData: OnyxUpdate[] = [];
+
+    if (allSnapshotKeys?.length && allSnapshotKeys.length > 0) {
+        allSnapshotKeys.forEach((key) => {
+            transactionIDList.forEach((transactionID) => {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key,
+                    value: {
+                        data: {
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                            },
+                        },
+                    },
+                });
+
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key,
+                    value: {
+                        data: {
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                                pendingAction: null,
+                            },
+                        },
+                    },
+                });
+            });
+        });
+    }
+
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, failureData, finallyData});
 }
 
