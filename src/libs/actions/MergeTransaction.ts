@@ -169,10 +169,10 @@ function getOnyxTargetTransactionData(
         }),
     );
     filteredTransactionChanges.comment = filteredTransactionChanges.description;
-    const shouldBuildModifiedReportAction = false;
+    const shouldBuildOptimisticModifiedExpenseReportAction = false;
 
     if (isUnreportedExpense) {
-        data = getUpdateTrackExpenseParams(targetTransaction.transactionID, transactionThreadReportID, filteredTransactionChanges, policy, shouldBuildModifiedReportAction);
+        data = getUpdateTrackExpenseParams(targetTransaction.transactionID, transactionThreadReportID, filteredTransactionChanges, policy, shouldBuildOptimisticModifiedExpenseReportAction);
     } else {
         data = getUpdateMoneyRequestParams(
             targetTransaction.transactionID,
@@ -184,7 +184,7 @@ function getOnyxTargetTransactionData(
             violations,
             undefined,
             undefined,
-            shouldBuildModifiedReportAction,
+            shouldBuildOptimisticModifiedExpenseReportAction,
         );
     }
 

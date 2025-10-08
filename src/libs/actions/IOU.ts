@@ -4131,6 +4131,7 @@ function calculateDiffAmount(
  * @param policyTagList
  * @param policyCategories
  * @param newTransactionReportID
+ * @param [shouldBuildOptimisticModifiedExpenseReportAction=true] When true, build an optimistic MODIFIED_EXPENSE report action.
  */
 function getUpdateMoneyRequestParams(
     transactionID: string | undefined,
@@ -4142,7 +4143,7 @@ function getUpdateMoneyRequestParams(
     violations?: OnyxEntry<OnyxTypes.TransactionViolations>,
     hash?: number,
     newTransactionReportID?: string,
-    shouldBuildModifiedReportAction = true,
+    shouldBuildOptimisticModifiedExpenseReportAction = true,
 ): UpdateMoneyRequestData {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -4214,11 +4215,12 @@ function getUpdateMoneyRequestParams(
     // We don't create a modified report action if:
     // - we're updating the waypoints
     // - we're updating the distance rate while the waypoints are still pending
+    // - we're merging two expenses (server does not create MODIFIED_EXPENSE in this flow)
     // In these cases, there isn't a valid optimistic mileage data we can use,
     // and the report action is created on the server with the distance-related response from the MapBox API
-    const updatedReportAction = shouldBuildModifiedReportAction
+    const updatedReportAction = shouldBuildOptimisticModifiedExpenseReportAction
         ? buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction)
-        : undefined;
+        : null;
     if (!hasPendingWaypoints && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction)) && updatedReportAction) {
         params.reportActionID = updatedReportAction.reportActionID;
 
@@ -4593,13 +4595,14 @@ function getUpdateMoneyRequestParams(
  * @param transactionChanges
  * @param [transactionChanges.created] Present when updated the date field
  * @param policy  May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
+ * @param [shouldBuildOptimisticModifiedExpenseReportAction=true] When true, build an optimistic MODIFIED_EXPENSE report action.
  */
 function getUpdateTrackExpenseParams(
     transactionID: string | undefined,
     transactionThreadReportID: string | undefined,
     transactionChanges: TransactionChanges,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    shouldBuildModifiedReportAction = true,
+    shouldBuildOptimisticModifiedExpenseReportAction = true,
 ): UpdateMoneyRequestData {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -4664,11 +4667,12 @@ function getUpdateTrackExpenseParams(
     // We don't create a modified report action if:
     // - we're updating the waypoints
     // - we're updating the distance rate while the waypoints are still pending
+    // - we're merging two expenses (server does not create MODIFIED_EXPENSE in this flow)
     // In these cases, there isn't a valid optimistic mileage data we can use,
     // and the report action is created on the server with the distance-related response from the MapBox API
-    const updatedReportAction = shouldBuildModifiedReportAction
+    const updatedReportAction = shouldBuildOptimisticModifiedExpenseReportAction
         ? buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, false, policy, updatedTransaction)
-        : undefined;
+        : null;
     if (!hasPendingWaypoints && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction)) && updatedReportAction) {
         params.reportActionID = updatedReportAction.reportActionID;
 
