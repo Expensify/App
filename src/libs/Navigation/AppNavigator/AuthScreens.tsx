@@ -2,8 +2,6 @@ import type {RouteProp} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {memo, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -105,6 +103,7 @@ function initializePusher() {
     }).then(() => {
         User.subscribeToUserEvents();
     });
+}
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
@@ -180,8 +179,8 @@ function AuthScreens() {
 
     // eslint-disable-next-line react-compiler/react-compiler
     lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
+    // eslint-disable-next-line react-compiler/react-compiler
     isLoadingAppRef.current = isLoadingApp;
-
 
     const handleNetworkReconnect = () => {
         if (isLoadingAppRef.current) {
