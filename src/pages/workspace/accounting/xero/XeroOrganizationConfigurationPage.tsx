@@ -1,12 +1,11 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateXeroTenantID} from '@libs/actions/connections/Xero';
@@ -37,7 +36,7 @@ function XeroOrganizationConfigurationPage({
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, xeroConfig?.tenantID);
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const {asset: TeleScope} = useMemoizedLazyAsset(() => loadIllustration('Telescope'));
+    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
 
     const sections =
         policy?.connections?.xero?.data?.tenants.map((tenant) => ({
@@ -68,7 +67,7 @@ function XeroOrganizationConfigurationPage({
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={TeleScope}
+                icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.xero.noAccountsFound')}
@@ -76,7 +75,7 @@ function XeroOrganizationConfigurationPage({
                 containerStyle={styles.pb10}
             />
         ),
-        [TeleScope, translate, styles.pb10],
+        [illustrations.Telescope, translate, styles.pb10],
     );
 
     return (

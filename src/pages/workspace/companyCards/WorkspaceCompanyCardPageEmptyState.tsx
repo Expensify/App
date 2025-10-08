@@ -3,9 +3,8 @@ import {View} from 'react-native';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import Text from '@components/Text';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -34,25 +33,22 @@ function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: Wo
     const shouldShowExpensifyCardPromotionBanner = !hasIssuedExpensifyCard(policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID, allWorkspaceCards);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const {asset: CreditCardsIcon} = useMemoizedLazyAsset(() => loadIllustration('CreditCardsNew'));
-    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadIllustration('HandCard'));
-    const {asset: MagnifyingGlassIcon} = useMemoizedLazyAsset(() => loadIllustration('MagnifyingGlassMoney'));
-    const {asset: CompanyCardsEmptyStateIcon} = useMemoizedLazyAsset(() => loadIllustration('CompanyCardsEmptyState'));
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew', 'HandCard', 'MagnifyingGlassMoney', 'CompanyCardsEmptyState'] as const);
 
     const companyCardFeatures = useMemo(() => {
         const features = [
             {
-                icon: CreditCardsIcon,
+                icon: illustrations.CreditCardsNew,
                 translationKey: 'workspace.moreFeatures.companyCards.feed.features.support' as const,
             },
 
             {
-                icon: HandCardIcon,
+                icon: illustrations.HandCard,
                 translationKey: 'workspace.moreFeatures.companyCards.feed.features.assignCards' as const,
             },
 
             {
-                icon: MagnifyingGlassIcon,
+                icon: illustrations.MagnifyingGlassMoney,
                 translationKey: 'workspace.moreFeatures.companyCards.feed.features.automaticImport' as const,
             },
         ];
@@ -62,7 +58,7 @@ function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: Wo
                 icon: feature.icon,
                 translationKey: feature.translationKey,
             }));
-    }, [CreditCardsIcon, HandCardIcon, MagnifyingGlassIcon]);
+    }, [illustrations]);
 
     const handleCtaPress = useCallback(() => {
         if (!policy?.id) {
@@ -87,7 +83,7 @@ function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: Wo
                 ctaAccessibilityLabel={translate('workspace.companyCards.addCards')}
                 onCtaPress={handleCtaPress}
                 illustrationBackgroundColor={colors.blue700}
-                illustration={CompanyCardsEmptyStateIcon}
+                illustration={illustrations.CompanyCardsEmptyState}
                 illustrationStyle={styles.emptyStateCardIllustration}
                 illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart]}
                 titleStyles={styles.textHeadlineH1}

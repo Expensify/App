@@ -1,4 +1,8 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {loadExpensifyIconsChunk} from '@components/Icon/ExpensifyIconLoader';
+import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
+import {loadIllustrationsChunk} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import PlaceholderIcon from '@components/Icon/PlaceholderIcon';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -86,5 +90,97 @@ function useMemoizedLazyAsset<T extends IconAsset>(importFn: () => Promise<{defa
     };
 }
 
-export {useMemoizedLazyAsset, type LazyAssetResult};
+/**
+ * Hook for loading multiple illustrations at once
+ * Loads the illustrations chunk once and returns an object keyed by illustration names
+ * @param names - Array of illustration names (use `as const` for type safety)
+ * @returns Object with illustration names as keys and IconAsset as values
+ */
+function useMemoizedLazyIllustrations<TName extends string>(names: readonly TName[]): Record<TName, IconAsset> {
+    const [assets, setAssets] = useState<Record<string, IconAsset>>({});
+    const namesKey = useMemo(() => names.join(','), [names]);
+    const namesList = useMemo(() => namesKey.split(',') as TName[], [namesKey]);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        loadIllustrationsChunk()
+            .then((chunk) => {
+                if (!isMounted) {
+                    return;
+                }
+
+                const loaded: Record<string, IconAsset> = {};
+                namesList.forEach((name) => {
+                    loaded[name as string] = chunk.getIllustration(name as IllustrationName) ?? PlaceholderIcon;
+                });
+                setAssets(loaded);
+            })
+            .catch(() => {
+                if (!isMounted) {
+                    return;
+                }
+
+                const fallback: Record<string, IconAsset> = {};
+                namesList.forEach((name) => {
+                    fallback[name as string] = PlaceholderIcon;
+                });
+                setAssets(fallback);
+            });
+
+        return () => {
+            isMounted = false;
+        };
+    }, [namesList]);
+
+    return useMemo(() => Object.fromEntries(namesList.map((name) => [name, assets[name as string] ?? PlaceholderIcon])) as Record<TName, IconAsset>, [assets, namesList]);
+}
+
+/**
+ * Hook for loading multiple Expensify icons at once
+ * Loads the Expensify icons chunk once and returns an object keyed by icon names
+ * @param names - Array of Expensify icon names (use `as const` for type safety)
+ * @returns Object with icon names as keys and IconAsset as values
+ */
+function useMemoizedLazyExpensifyIcons<TName extends string>(names: readonly TName[]): Record<TName, IconAsset> {
+    const [assets, setAssets] = useState<Record<string, IconAsset>>({});
+    const namesKey = useMemo(() => names.join(','), [names]);
+    const namesList = useMemo(() => namesKey.split(',') as TName[], [namesKey]);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        loadExpensifyIconsChunk()
+            .then((chunk) => {
+                if (!isMounted) {
+                    return;
+                }
+
+                const loaded: Record<string, IconAsset> = {};
+                namesList.forEach((name) => {
+                    loaded[name as string] = chunk.getExpensifyIcon(name as ExpensifyIconName) ?? PlaceholderIcon;
+                });
+                setAssets(loaded);
+            })
+            .catch(() => {
+                if (!isMounted) {
+                    return;
+                }
+
+                const fallback: Record<string, IconAsset> = {};
+                namesList.forEach((name) => {
+                    fallback[name as string] = PlaceholderIcon;
+                });
+                setAssets(fallback);
+            });
+
+        return () => {
+            isMounted = false;
+        };
+    }, [namesList]);
+
+    return useMemo(() => Object.fromEntries(namesList.map((name) => [name, assets[name as string] ?? PlaceholderIcon])) as Record<TName, IconAsset>, [assets, namesList]);
+}
+
+export {useMemoizedLazyAsset, useMemoizedLazyIllustrations, useMemoizedLazyExpensifyIcons, type LazyAssetResult};
 export default useLazyAsset;

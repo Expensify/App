@@ -1,12 +1,11 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteReimbursementAccountID} from '@libs/actions/connections/NetSuiteCommands';
@@ -25,7 +24,7 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
     const {translate} = useLocalize();
 
     const policyID = policy?.id;
-    const {asset: TeleScope} = useMemoizedLazyAsset(() => loadIllustration('Telescope'));
+    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
 
     const config = policy?.connections?.netsuite?.options.config;
     const netsuiteReimbursableAccountOptions = useMemo<SelectorType[]>(
@@ -48,7 +47,7 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={TeleScope}
+                icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.netsuite.noAccountsFound')}
@@ -56,7 +55,7 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
                 containerStyle={styles.pb10}
             />
         ),
-        [TeleScope, translate, styles.pb10],
+        [illustrations.Telescope, translate, styles.pb10],
     );
 
     const headerContent = useMemo(

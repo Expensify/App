@@ -61,6 +61,6 @@ function loadExpensifyIcon(iconName: ExpensifyIconName): Promise<{default: IconA
         });
 }
 
-export {loadExpensifyIcon};
+export {loadExpensifyIcon, loadExpensifyIconsChunk};
 
 export type {ExpensifyIconName};

@@ -2,10 +2,9 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,7 +18,7 @@ function SubscriptionPlan() {
     const styles = useThemeStyles();
     const subscriptionPlan = useSubscriptionPlan();
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const {asset: HandCard} = useMemoizedLazyAsset(() => loadIllustration('HandCard'));
+    const illustrations = useMemoizedLazyIllustrations(['HandCard'] as const);
 
     const renderTitle = () => {
         return (
@@ -42,7 +41,7 @@ function SubscriptionPlan() {
             <SubscriptionPlanCard subscriptionPlan={subscriptionPlan} />
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6]}>
                 <Icon
-                    src={HandCard}
+                    src={illustrations.HandCard}
                     width={variables.iconHeader}
                     height={variables.iconHeader}
                     additionalStyles={styles.mr2}

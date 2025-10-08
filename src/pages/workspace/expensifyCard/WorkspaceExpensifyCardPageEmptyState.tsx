@@ -4,12 +4,11 @@ import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import Text from '@components/Text';
 import useDismissModalForUSD from '@hooks/useDismissModalForUSD';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -37,11 +36,7 @@ type WorkspaceExpensifyCardPageEmptyStateProps = {
 } & WithPolicyAndFullscreenLoadingProps;
 
 function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensifyCardPageEmptyStateProps) {
-    const {asset: MoneyReceiptsIcon} = useMemoizedLazyAsset(() => loadIllustration('MoneyReceipts'));
-    const {asset: CreditCardsNewIcon} = useMemoizedLazyAsset(() => loadIllustration('CreditCardsNew'));
-    const {asset: MoneyWingsIcon} = useMemoizedLazyAsset(() => loadIllustration('MoneyWings'));
-    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadIllustration('HandCard'));
-    const {asset: ExpensifyCardIllustrationIcon} = useMemoizedLazyAsset(() => loadIllustration('ExpensifyCardIllustration'));
+    const illustrations = useMemoizedLazyIllustrations(['MoneyReceipts', 'CreditCardsNew', 'MoneyWings', 'HandCard', 'ExpensifyCardIllustration'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -70,15 +65,15 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const expensifyCardFeatures: FeatureListItem[] = useMemo(() => {
         const features = [
             {
-                icon: MoneyReceiptsIcon,
+                icon: illustrations.MoneyReceipts,
                 translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.cashBack' as const,
             },
             {
-                icon: CreditCardsNewIcon,
+                icon: illustrations.CreditCardsNew,
                 translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.unlimited' as const,
             },
             {
-                icon: MoneyWingsIcon,
+                icon: illustrations.MoneyWings,
                 translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.spend' as const,
             },
         ];
@@ -88,7 +83,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                 icon: feature.icon,
                 translationKey: feature.translationKey,
             }));
-    }, [CreditCardsNewIcon, MoneyReceiptsIcon, MoneyWingsIcon]);
+    }, [illustrations.CreditCardsNew, illustrations.MoneyReceipts, illustrations.MoneyWings]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
         if (!policy) {
@@ -102,7 +97,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     return (
         <WorkspacePageWithSections
             shouldUseScrollView
-            icon={HandCardIcon}
+            icon={illustrations.HandCard}
             headerText={translate('workspace.common.expensifyCard')}
             route={route}
             showLoadingAsFirstRender={false}
@@ -132,7 +127,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                         startFlow();
                     }}
                     illustrationBackgroundColor={theme.fallbackIconColor}
-                    illustration={ExpensifyCardIllustrationIcon}
+                    illustration={illustrations.ExpensifyCardIllustration}
                     illustrationStyle={styles.expensifyCardIllustrationContainer}
                     titleStyles={styles.textHeadlineH1}
                 />

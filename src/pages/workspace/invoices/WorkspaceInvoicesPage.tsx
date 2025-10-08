@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +19,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {asset: InvoiceBlueIcon} = useMemoizedLazyAsset(() => loadIllustration('InvoiceBlue'));
+    const illustrations = useMemoizedLazyIllustrations(['InvoiceBlue'] as const);
 
     return (
         <AccessOrNotFoundWrapper
@@ -34,7 +33,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 shouldSkipVBBACall={false}
                 route={route}
-                icon={InvoiceBlueIcon}
+                icon={illustrations.InvoiceBlue}
                 addBottomSafeAreaPadding
             >
                 {(_hasVBA?: boolean, policyID?: string) => (

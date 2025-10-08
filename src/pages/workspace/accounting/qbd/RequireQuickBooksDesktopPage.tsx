@@ -3,11 +3,10 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -15,7 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 function RequireQuickBooksDesktopModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {asset: LaptopWithSecondScreenX} = useMemoizedLazyAsset(() => loadIllustration('LaptopWithSecondScreenX'));
+    const illustrations = useMemoizedLazyIllustrations(['LaptopWithSecondScreenX'] as const);
 
     return (
         <ScreenWrapper
@@ -32,7 +31,7 @@ function RequireQuickBooksDesktopModal() {
             <View style={[styles.flex1]}>
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.ph5]}>
                     <View style={[styles.alignSelfCenter, styles.pendingStateCardIllustration]}>
-                        <ImageSVG src={LaptopWithSecondScreenX} />
+                        <ImageSVG src={illustrations.LaptopWithSecondScreenX} />
                     </View>
 
                     <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.pt5]}>{translate('workspace.qbd.requiredSetupDevice.title')}</Text>

@@ -2,11 +2,10 @@ import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,12 +21,12 @@ function SetupMethod() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {canBeMissing: true});
-    const {asset: MoneyWings} = useMemoizedLazyAsset(() => loadIllustration('MoneyWings'));
+    const illustrations = useMemoizedLazyIllustrations(['MoneyWings'] as const);
 
     return (
         <View>
             <Section
-                icon={MoneyWings}
+                icon={illustrations.MoneyWings}
                 title={translate('walletPage.addYourBankAccount')}
                 titleStyles={[styles.textHeadlineLineHeightXXL]}
             >

@@ -7,14 +7,13 @@ import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ImageSVG from '@components/ImageSVG';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,7 +33,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
-    const {asset: LaptopWithSecondScreenSync} = useMemoizedLazyAsset(() => loadIllustration('LaptopWithSecondScreenSync'));
+    const illustrations = useMemoizedLazyIllustrations(['LaptopWithSecondScreenSync'] as const);
     const policyID: string = route.params.policyID;
     const [hasError, setHasError] = useState(false);
     const [codatSetupLink, setCodatSetupLink] = useState<string>('');
@@ -109,7 +108,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                 {!shouldShowError && (
                     <View style={[styles.flex1, styles.ph5]}>
                         <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer, styles.pv6]}>
-                            <ImageSVG src={LaptopWithSecondScreenSync} />
+                            <ImageSVG src={illustrations.LaptopWithSecondScreenSync} />
                         </View>
 
                         <Text style={[styles.textHeadlineH1, styles.pt5]}>{translate('workspace.qbd.setupPage.title')}</Text>

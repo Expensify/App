@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,7 +20,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const {policyID} = route.params;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {asset: RulesIcon} = useMemoizedLazyAsset(() => loadIllustration('Rules'));
+    const illustrations = useMemoizedLazyIllustrations(['Rules'] as const);
 
     return (
         <AccessOrNotFoundWrapper
@@ -35,7 +34,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 headerText={translate('workspace.common.rules')}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
-                icon={RulesIcon}
+                icon={illustrations.Rules}
                 shouldShowNotFoundPage={false}
                 shouldShowLoading={false}
                 addBottomSafeAreaPadding

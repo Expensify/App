@@ -28,12 +28,6 @@ function loadIllustrationsChunk(): Promise<IllustrationsChunk> {
         './chunks/illustrations.chunk'
     )
         .then((chunk) => {
-            // eslint-disable-next-line no-console
-            console.log('Loaded illustrations chunk:', chunk);
-            // eslint-disable-next-line no-console
-            console.log('Module keys:', Object.keys(chunk));
-            // eslint-disable-next-line no-console
-            console.log('getIllustration function:', chunk.getIllustration);
             const typedChunk = chunk as unknown as IllustrationsChunk;
             illustrationsChunk = typedChunk;
             return typedChunk;
@@ -66,6 +60,6 @@ function loadIllustration(illustrationName: IllustrationName): Promise<{default:
         });
 }
 
-export {loadIllustration};
+export {loadIllustration, loadIllustrationsChunk};
 
 export type {IllustrationName};

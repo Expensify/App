@@ -2,10 +2,9 @@ import React, {useCallback, useContext, useEffect, useState} from 'react';
 import ActivityIndicator from '@components/ActivityIndicator';
 import DecisionModal from '@components/DecisionModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -49,7 +48,7 @@ type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNav
 function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {asset: CompanyCard} = useMemoizedLazyAsset(() => loadIllustration('CompanyCard'));
+    const illustrations = useMemoizedLazyIllustrations(['CompanyCard'] as const);
     const policyID = route.params.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -172,7 +171,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
             {!isLoading && (
                 <WorkspacePageWithSections
                     shouldUseScrollView={isNoFeed}
-                    icon={CompanyCard}
+                    icon={illustrations.CompanyCard}
                     headerText={translate('workspace.common.companyCards')}
                     route={route}
                     shouldShowOfflineIndicatorInWideScreen
