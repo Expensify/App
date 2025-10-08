@@ -16,8 +16,8 @@ function checkForPendingDelete(login: string, policy: OnyxEntry<Policy>) {
     return isPolicyMemberWithoutPendingDelete(login, policy);
 }
 
-function isPolicyMemberByRole(login: string, policy: OnyxEntry<Policy>) {
-    return isPolicyAdmin(policy, login) || isPolicyUser(policy, login) || getPolicyRole(policy, login) === CONST.POLICY.ROLE.AUDITOR;
+function isPolicyMemberByRole(policy: OnyxEntry<Policy>) {
+    return !!policy?.role && Object.values(CONST.POLICY.ROLE).includes(policy.role);
 }
 
 function usePolicyForMovingExpenses() {
@@ -32,7 +32,7 @@ function usePolicyForMovingExpenses() {
     const login = session?.email ?? '';
     const userPolicies = Object.values(allPolicies ?? {}).filter(
         (policy) =>
-            checkForPendingDelete(login, policy) && isPolicyMemberByRole(login, policy) && isPaidGroupPolicy(policy) && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            checkForPendingDelete(login, policy) && isPolicyMemberByRole(policy) && isPaidGroupPolicy(policy) && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
     const isMemberOfMoreThanOnePolicy = userPolicies.length > 1;
 
