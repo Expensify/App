@@ -5,7 +5,7 @@ import {useAnimatedScrollHandler, useSharedValue} from 'react-native-reanimated'
 import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {createDummySharedValue} from '@src/utils/SharedValueUtils';
+import createDummySharedValue from '@src/utils/createDummySharedValue';
 import type {KeyboardDismissibleFlatListContextValue, ListBehavior} from './types';
 
 const defaultValue: KeyboardDismissibleFlatListContextValue = {

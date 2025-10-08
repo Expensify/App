@@ -1,6 +1,6 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
-import {createSharedValueMock} from '@src/utils/SharedValueUtils';
+import createSharedValueMock from '../utils/createSharedValueMock';
 
 describe('SearchAutocompleteUtils', () => {
     describe('parseForLiveMarkdown', () => {

@@ -1,7 +1,7 @@
 import type {PropsWithChildren} from 'react';
 import {createContext} from 'react';
 import type {KeyboardDismissibleFlatListContextValue} from '@components/KeyboardDismissibleFlatList/types';
-import {createSharedValueMock} from '@src/utils/SharedValueUtils';
+import createSharedValueMock from '../../../../tests/utils/createSharedValueMock';
 
 const mockSharedValue: KeyboardDismissibleFlatListContextValue = {
     keyboardHeight: createSharedValueMock(0),

@@ -2,7 +2,7 @@ import {createContext} from 'react';
 import type {PropsWithChildren} from 'react';
 import {INITIAL_ACTION_SHEET_STATE} from '@components/ActionSheetAwareScrollView/types';
 import type {ActionSheetAwareScrollViewContextValue} from '@components/ActionSheetAwareScrollView/types';
-import {createSharedValueMock} from '@src/utils/SharedValueUtils';
+import createSharedValueMock from '../../../../tests/utils/createSharedValueMock';
 
 const NOOP = () => {};
 
