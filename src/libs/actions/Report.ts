@@ -1386,19 +1386,19 @@ function createTransactionThreadReport(iouReport: OnyxEntry<Report>, iouReportAc
         Log.warn('Cannot build transaction thread report without iouReportAction parameter');
         return;
     }
-    
+
     let reportToUse = iouReport;
     // For track expenses without iouReport, get the selfDM report
     if (!iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction)) {
         const selfDMReportID = findSelfDMReportID();
         reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
     }
-    
+
     if (!reportToUse) {
         Log.warn('Cannot build transaction thread report without a valid report');
         return;
     }
-    
+
     const optimisticTransactionThreadReportID = generateReportID();
     const optimisticTransactionThread = buildTransactionThread(iouReportAction, reportToUse, undefined, optimisticTransactionThreadReportID);
     openReport(optimisticTransactionThreadReportID, undefined, currentUserEmail ? [currentUserEmail] : [], optimisticTransactionThread, iouReportAction?.reportActionID);
