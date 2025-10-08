@@ -299,7 +299,7 @@ function IOURequestStepConfirmation({
     }, [transactionIDs, defaultBillable]);
 
     useEffect(() => {
-        const defaultReimbursable = isPolicyExpenseChat && isPaidGroupPolicy(policy) ? !!policy?.defaultReimbursable : true;
+        const defaultReimbursable = isPolicyExpenseChat && isPaidGroupPolicy(policy) ? (policy?.defaultReimbursable ?? true) : true;
         transactionIDs.forEach((transactionID) => {
             setMoneyRequestReimbursable(transactionID, defaultReimbursable);
         });
