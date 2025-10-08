@@ -1,6 +1,7 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {useEffect, useMemo} from 'react';
+import React, {useContext, useEffect, useMemo} from 'react';
 import PrevNextButtons from '@components/PrevNextButtons';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useOnyx from '@hooks/useOnyx';
 import {clearActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@navigation/Navigation';
@@ -18,6 +19,8 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
     const [reportIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, {
         canBeMissing: true,
     });
+
+    const {markReportIDAsExpense} = useContext(WideRHPContext);
 
     const {prevReportID, nextReportID} = useMemo(() => {
         if (!reportIDsList || reportIDsList.length < 2) {
@@ -57,11 +60,17 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
             onNext={(e) => {
                 const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
+                if (nextReportID) {
+                    markReportIDAsExpense(nextReportID);
+                }
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true});
             }}
             onPrevious={(e) => {
                 const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
+                if (prevReportID) {
+                    markReportIDAsExpense(prevReportID);
+                }
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, backTo}), {forceReplace: true});
             }}
         />

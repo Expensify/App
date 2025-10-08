@@ -438,7 +438,12 @@ const ROUTES = {
 
     NEW_REPORT_WORKSPACE_SELECTION: {
         route: 'new-report-workspace-selection',
-        getRoute: (isMovingExpenses?: boolean) => `new-report-workspace-selection${isMovingExpenses ? '?isMovingExpenses=true' : ''}` as const,
+        getRoute: (isMovingExpenses?: boolean, backTo?: string) => {
+            const baseRoute = `new-report-workspace-selection${isMovingExpenses ? '?isMovingExpenses=true' : ''}` as const;
+
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(baseRoute, backTo);
+        },
     },
     REPORT: 'r',
     REPORT_WITH_ID: {
@@ -2502,6 +2507,12 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-currency`, backTo),
+    },
+    CURRENCY_SELECTION: {
+        route: 'workspace/confirmation/currency',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation/currency`, backTo),
     },
     ONBOARDING_WORKSPACE_INVITE: {
         route: 'onboarding/workspace-invite',

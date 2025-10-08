@@ -11,7 +11,7 @@ import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
-import {getReportOrDraftReport, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
+import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -51,6 +51,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const session = useSession();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
 
     const handleGoBack = () => {
         if (isEditing) {
@@ -118,7 +120,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                     session?.email ?? '',
                     allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                     undefined,
-                    allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                    allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                 );
                 removeTransaction(transaction.transactionID);
             }
@@ -171,12 +173,11 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const createReport = () => {
         if (shouldSelectPolicy) {
             setSelectedTransactions([transactionID]);
-            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true));
+            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true, backTo));
             return;
         }
-        const createdReportID = createNewReport(currentUserPersonalDetails, policyForMovingExpensesID);
+        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
         handleRegularReportSelection({value: createdReportID});
-        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID}));
     };
 
     return (
@@ -190,7 +191,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             isEditing={isEditing}
             isUnreported={isUnreported}
             shouldShowNotFoundPage={shouldShowNotFoundPage}
-            createReport={createReport}
+            createReport={action === CONST.IOU.ACTION.EDIT ? createReport : undefined}
         />
     );
 }
