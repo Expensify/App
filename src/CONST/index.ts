@@ -2957,6 +2957,7 @@ const CONST = {
             ALWAYS_NON_REIMBURSABLE: 'alwaysNonReimbursable', // Always Non Reimbursable
         },
         ID_FAKE: '_FAKE_',
+        MINUS_ONE_ID: '-1',
         EMPTY: 'EMPTY',
         SECONDARY_ACTIONS: {
             IMPORT_SPREADSHEET: 'importSpreadsheet',
