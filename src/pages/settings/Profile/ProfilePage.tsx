@@ -52,11 +52,11 @@ function ProfilePage() {
     const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
 
-    // SecureStore test state
     const [testKey, setTestKey] = useState('');
     const [testValue, setTestValue] = useState('');
     const [secureStoreResult, setSecureStoreResult] = useState('');
     const [secureStoreError, setSecureStoreError] = useState('');
+
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
         return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPaths) : translate('profilePage.selectYourPronouns');
@@ -73,102 +73,94 @@ function ProfilePage() {
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
+    type SecureStoreAPI = {
+        set: (key: string, value: string) => void;
+        get: (key: string) => string | null;
+        delete: (key: string) => void;
+    };
+
+    type ElectronWindow = Window &
+        typeof globalThis & {
+            electron?: {
+                secureStore?: SecureStoreAPI;
+            };
+        };
+
+    const getSecureStore = (): SecureStoreAPI | null => {
+        const electronWindow = window as ElectronWindow;
+        return electronWindow.electron?.secureStore ?? null;
+    };
+
     const handleSetSecureStore = () => {
+        setSecureStoreError('');
+        setSecureStoreResult('');
+
+        if (!testKey || !testValue) {
+            setSecureStoreError('Key and value are required');
+            return;
+        }
+
+        const secureStore = getSecureStore();
+        if (!secureStore) {
+            setSecureStoreError('SecureStore is only available in Electron desktop app');
+            return;
+        }
+
         try {
-            setSecureStoreError('');
-            setSecureStoreResult('');
-
-            console.log('[ProfilePage] handleSetSecureStore called');
-            console.log('[ProfilePage] window.electron exists:', !!window.electron);
-            console.log('[ProfilePage] window.electron.secureStore exists:', !!(window.electron as any)?.secureStore);
-
-            if (!testKey || !testValue) {
-                setSecureStoreError('Key and value are required');
-                return;
-            }
-
-            // @ts-expect-error - SecureStore is available only in Electron/desktop
-            if (window.electron?.secureStore) {
-                console.log(`[ProfilePage] Calling secureStore.set(${testKey}, ${testValue})`);
-                // @ts-expect-error - SecureStore typing
-                window.electron.secureStore.set(testKey, testValue);
-                setSecureStoreResult(`✓ Successfully stored: ${testKey} = ${testValue}`);
-                console.log('[ProfilePage] SET completed successfully');
-            } else {
-                const errorMsg = 'SecureStore is only available in Electron desktop app';
-                console.error('[ProfilePage]', errorMsg);
-                setSecureStoreError(errorMsg);
-            }
+            secureStore.set(testKey, testValue);
+            setSecureStoreResult(`✓ Successfully stored: ${testKey} = ${testValue}`);
         } catch (error) {
-            const errorMsg = `Error: ${error instanceof Error ? error.message : String(error)}`;
-            console.error('[ProfilePage] SET error:', error);
-            setSecureStoreError(errorMsg);
+            setSecureStoreError(`Error: ${error instanceof Error ? error.message : String(error)}`);
         }
     };
 
     const handleGetSecureStore = () => {
+        setSecureStoreError('');
+        setSecureStoreResult('');
+
+        if (!testKey) {
+            setSecureStoreError('Key is required');
+            return;
+        }
+
+        const secureStore = getSecureStore();
+        if (!secureStore) {
+            setSecureStoreError('SecureStore is only available in Electron desktop app');
+            return;
+        }
+
         try {
-            setSecureStoreError('');
-            setSecureStoreResult('');
-
-            console.log('[ProfilePage] handleGetSecureStore called');
-
-            if (!testKey) {
-                setSecureStoreError('Key is required');
-                return;
-            }
-
-            // @ts-expect-error - SecureStore is available only in Electron/desktop
-            if (window.electron?.secureStore) {
-                console.log(`[ProfilePage] Calling secureStore.get(${testKey})`);
-                // @ts-expect-error - SecureStore typing
-                const value = window.electron.secureStore.get(testKey);
-                console.log(`[ProfilePage] GET returned:`, value);
-                if (value === null) {
-                    setSecureStoreResult(`Key "${testKey}" not found`);
-                } else {
-                    setSecureStoreResult(`✓ Retrieved: ${testKey} = ${value}`);
-                }
+            const value = secureStore.get(testKey);
+            if (value === null) {
+                setSecureStoreResult(`Key "${testKey}" not found`);
             } else {
-                const errorMsg = 'SecureStore is only available in Electron desktop app';
-                console.error('[ProfilePage]', errorMsg);
-                setSecureStoreError(errorMsg);
+                setSecureStoreResult(`✓ Retrieved: ${testKey} = ${value}`);
             }
         } catch (error) {
-            const errorMsg = `Error: ${error instanceof Error ? error.message : String(error)}`;
-            console.error('[ProfilePage] GET error:', error);
-            setSecureStoreError(errorMsg);
+            setSecureStoreError(`Error: ${error instanceof Error ? error.message : String(error)}`);
         }
     };
 
     const handleDeleteSecureStore = () => {
+        setSecureStoreError('');
+        setSecureStoreResult('');
+
+        if (!testKey) {
+            setSecureStoreError('Key is required');
+            return;
+        }
+
+        const secureStore = getSecureStore();
+        if (!secureStore) {
+            setSecureStoreError('SecureStore is only available in Electron desktop app');
+            return;
+        }
+
         try {
-            setSecureStoreError('');
-            setSecureStoreResult('');
-
-            console.log('[ProfilePage] handleDeleteSecureStore called');
-
-            if (!testKey) {
-                setSecureStoreError('Key is required');
-                return;
-            }
-
-            // @ts-expect-error - SecureStore is available only in Electron/desktop
-            if (window.electron?.secureStore) {
-                console.log(`[ProfilePage] Calling secureStore.delete(${testKey})`);
-                // @ts-expect-error - SecureStore typing
-                window.electron.secureStore.delete(testKey);
-                setSecureStoreResult(`✓ Deleted key: ${testKey}`);
-                console.log('[ProfilePage] DELETE completed successfully');
-            } else {
-                const errorMsg = 'SecureStore is only available in Electron desktop app';
-                console.error('[ProfilePage]', errorMsg);
-                setSecureStoreError(errorMsg);
-            }
+            secureStore.delete(testKey);
+            setSecureStoreResult(`✓ Deleted key: ${testKey}`);
         } catch (error) {
-            const errorMsg = `Error: ${error instanceof Error ? error.message : String(error)}`;
-            console.error('[ProfilePage] DELETE error:', error);
-            setSecureStoreError(errorMsg);
+            setSecureStoreError(`Error: ${error instanceof Error ? error.message : String(error)}`);
         }
     };
     const publicOptions = [
@@ -386,6 +378,7 @@ function ProfilePage() {
                                     value={testKey}
                                     onChangeText={setTestKey}
                                     containerStyles={[styles.mb4]}
+                                    accessibilityLabel="Key"
                                 />
                                 <TextInput
                                     label="Value"
@@ -393,6 +386,7 @@ function ProfilePage() {
                                     value={testValue}
                                     onChangeText={setTestValue}
                                     containerStyles={[styles.mb4]}
+                                    accessibilityLabel="Value"
                                 />
                                 <View style={[styles.flexRow, styles.gap2, styles.mb4]}>
                                     <Button
