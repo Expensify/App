@@ -6131,6 +6131,7 @@ function setOptimisticTransactionThread(reportID?: string, parentReportID?: stri
         policyID,
         parentReportID,
         parentReportActionID,
+        chatReportID: parentReportID,
         type: CONST.REPORT.TYPE.CHAT,
         // Add additional fields to ensure complete report structure
         lastReadTime: DateUtils.getDBTime(),
