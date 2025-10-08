@@ -91,8 +91,6 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const {translate} = useLocalize();
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
 
-    console.log({item});
-
     const handleRowPress = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
         if (isAccountInSetupState(item) || !threeDotsMenuItems) {
             item.onPress?.(e);
