@@ -132,17 +132,18 @@ function TimePicker(
     const value = DateUtils.extractTime12Hour(defaultValue, showFullFormat);
     const canUseTouchScreen = canUseTouchScreenDeviceCapabilities();
 
-    const [isError, setError] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
-    const [selectionHour, setSelectionHour] = useState({start: 0, end: 0});
-    const [selectionMinute, setSelectionMinute] = useState(showFullFormat ? {start: 0, end: 0} : {start: 2, end: 2}); // we focus it by default so need  to have selection on the end
-    const [selectionSecond, setSelectionSecond] = useState({start: 0, end: 0});
-    const [selectionMillisecond, setSelectionMillisecond] = useState(showFullFormat ? {start: 6, end: 6} : {start: 0, end: 0});
     const [hours, setHours] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).hour);
     const [minutes, setMinutes] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).minute);
     const [seconds, setSeconds] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).seconds);
     const [milliseconds, setMilliseconds] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).milliseconds);
     const [amPmValue, setAmPmValue] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).period);
+
+    const [isError, setError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [selectionHour, setSelectionHour] = useState({start: 0, end: 0});
+    const [selectionMinute, setSelectionMinute] = useState(showFullFormat ? {start: 0, end: 0} : {start: minutes.length, end: minutes.length}); // we focus it by default so need to have selection on the end
+    const [selectionSecond, setSelectionSecond] = useState({start: 0, end: 0});
+    const [selectionMillisecond, setSelectionMillisecond] = useState(showFullFormat ? {start: milliseconds.length, end: milliseconds.length} : {start: 0, end: 0});
 
     const lastPressedKey = useRef('');
     const hourInputRef = useRef<TextInput | null>(null);
@@ -922,3 +923,5 @@ function TimePicker(
 TimePicker.displayName = 'TimePicker';
 
 export default React.forwardRef(TimePicker);
+
+export type {TimePickerProps, TimePickerRef, TimePickerRefName};
