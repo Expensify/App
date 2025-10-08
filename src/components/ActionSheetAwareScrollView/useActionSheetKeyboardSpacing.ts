@@ -24,19 +24,21 @@ const SPRING_CONFIG = {
 const useAnimatedKeyboard = () => {
     const state = useSharedValue(KeyboardState.UNKNOWN);
     const height = useSharedValue(0);
-    const heightWhenOpened = useSharedValue(0);
+    const maxOpenHeight = useSharedValue(0);
 
     useKeyboardHandler(
         {
             onStart: (e) => {
                 'worklet';
 
-                if (e.height !== 0 && state.get() !== KeyboardState.OPEN) {
-                    heightWhenOpened.set(e.height);
+                if (e.height !== 0) {
+                    if (e.height > maxOpenHeight.get()) {
+                        maxOpenHeight.set(e.height);
+                    }
                     height.set(0);
                 }
                 state.set(e.height > 0 ? KeyboardState.OPENING : KeyboardState.CLOSING);
-                height.set(e.height > 0 ? 0 : heightWhenOpened.get());
+                height.set(e.height > 0 ? 0 : maxOpenHeight.get());
             },
             onMove: (e) => {
                 'worklet';
@@ -53,7 +55,7 @@ const useAnimatedKeyboard = () => {
         [],
     );
 
-    return {state, height, heightWhenOpened};
+    return {state, height, maxOpenHeight};
 };
 
 function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanimated.ScrollView>) {
@@ -106,9 +108,9 @@ function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanim
         const keyboardHeight = keyboard.height.get() === 0 ? 0 : keyboard.height.get() - paddingBottom;
 
         // Sometimes we need to know the last keyboard height
-        const lastKeyboardHeight = keyboard.heightWhenOpened.get() - paddingBottom;
+        const maxOpenKeyboardHeight = keyboard.maxOpenHeight.get() - paddingBottom;
         const {popoverHeight = 0, frameY, height} = current.payload ?? {};
-        const invertedKeyboardHeight = isKeyboardClosed ? lastKeyboardHeight : 0;
+        const invertedKeyboardHeight = isKeyboardClosed ? maxOpenKeyboardHeight : 0;
         const elementOffset = frameY !== undefined && height !== undefined && popoverHeight !== undefined ? frameY + paddingTop + height - (windowHeight - popoverHeight) : 0;
         // when the state is not idle we know for sure we have the previous state
         const previousPayload = previous.payload ?? {};
@@ -126,7 +128,7 @@ function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanim
         switch (current.state) {
             case States.KEYBOARD_OPEN: {
                 if (isClosedKeyboard && elementOffset < 0) {
-                    return lastKeyboardHeight - keyboardHeight;
+                    return maxOpenKeyboardHeight - keyboardHeight;
                 }
 
                 if (isClosedKeyboard || isOpeningKeyboard) {
@@ -134,7 +136,7 @@ function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanim
                 }
 
                 if (previous.state === States.KEYBOARD_CLOSING_POPOVER || (previous.state === States.KEYBOARD_OPEN && elementOffset < 0)) {
-                    const returnValue = Math.max(keyboard.heightWhenOpened.get() - keyboard.height.get() - paddingBottom, 0) + Math.max(elementOffset, 0);
+                    const returnValue = Math.max(keyboard.maxOpenHeight.get() - keyboard.height.get() - paddingBottom, 0) + Math.max(elementOffset, 0);
                     return returnValue;
                 }
                 return withSpring(0, SPRING_CONFIG);
@@ -167,12 +169,14 @@ function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanim
             case States.TRANSITIONING_POPOVER_KEYBOARD_OPEN:
             case States.TRANSITIONING_POPOVER_KEYBOARD_OPEN_DONE:
             case States.KEYBOARD_POPOVER_OPEN: {
-                const nextOffset = elementOffset + lastKeyboardHeight;
+                console.log({maxOpenKeyboardHeight});
+
+                const nextOffset = elementOffset + maxOpenKeyboardHeight;
                 if (isKeyboardOpen) {
                     if (popoverHeight === 0 && nextOffset > invertedKeyboardHeight) {
                         return keyboardHeight;
                     }
-                    return lastKeyboardHeight - keyboardHeight;
+                    return maxOpenKeyboardHeight - keyboardHeight;
                 }
 
                 const scrollOffset = position.get();
@@ -183,11 +187,11 @@ function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanim
                     // Content would go too far up (beyond popover bounds)
                     (nextOffset < -popoverHeight ||
                         // Or content would go below top of screen (only if not significantly scrolled)
-                        (nextOffset > 0 && popoverHeight < lastKeyboardHeight && scrollOffset < popoverHeight) ||
+                        (nextOffset > 0 && popoverHeight < maxOpenKeyboardHeight && scrollOffset < popoverHeight) ||
                         // Or content would create a gap by being positioned above minimum allowed position
-                        (popoverHeight < lastKeyboardHeight && nextOffset > -popoverHeight && scrollOffset < popoverHeight) ||
+                        (popoverHeight < maxOpenKeyboardHeight && nextOffset > -popoverHeight && scrollOffset < popoverHeight) ||
                         // Or there's a significant gap considering scroll position
-                        (popoverHeight < lastKeyboardHeight &&
+                        (popoverHeight < maxOpenKeyboardHeight &&
                             scrollOffset > 0 &&
                             scrollOffset < popoverHeight &&
                             // When scrolled, check if the gap between content and keyboard would be too large
@@ -213,14 +217,14 @@ function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanim
                             return withSequence(withTiming(keyboardHeight, {duration: 0}), withSpring(targetOffset, SPRING_CONFIG));
                         }
 
-                        return lastKeyboardHeight - keyboardHeight;
+                        return maxOpenKeyboardHeight - keyboardHeight;
                     }
 
                     if (hasWhiteGap && heightDifference > paddingTop) {
-                        return withSequence(withTiming(lastKeyboardHeight - keyboardHeight, {duration: 0}), withSpring(Math.max(heightDifference, -popoverHeight), SPRING_CONFIG));
+                        return withSequence(withTiming(maxOpenKeyboardHeight - keyboardHeight, {duration: 0}), withSpring(Math.max(heightDifference, -popoverHeight), SPRING_CONFIG));
                     }
 
-                    return lastKeyboardHeight - keyboardHeight;
+                    return maxOpenKeyboardHeight - keyboardHeight;
                 }
 
                 return withSequence(withTiming(keyboardHeight, {duration: 0}), withSpring(nextOffset, SPRING_CONFIG));
@@ -229,20 +233,20 @@ function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanim
             case States.KEYBOARD_CLOSING_POPOVER: {
                 if (elementOffset < 0) {
                     transition({type: Actions.END_TRANSITION});
-                    return lastKeyboardHeight - keyboardHeight;
+                    return maxOpenKeyboardHeight - keyboardHeight;
                 }
 
                 if (isKeyboardClosed) {
-                    const returnValue = elementOffset + lastKeyboardHeight;
+                    const returnValue = elementOffset + maxOpenKeyboardHeight;
                     return returnValue;
                 }
 
                 if (keyboard.height.get() > 0) {
-                    const returnValue = keyboard.heightWhenOpened.get() - keyboard.height.get();
+                    const returnValue = keyboard.maxOpenHeight.get() - keyboard.height.get();
                     return returnValue;
                 }
 
-                return withTiming(elementOffset + lastKeyboardHeight, {
+                return withTiming(elementOffset + maxOpenKeyboardHeight, {
                     duration: 0,
                 });
             }
