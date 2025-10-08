@@ -2,7 +2,6 @@ import debounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -348,6 +347,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
 
     const shouldShowEnableGlobalReimbursementsButton =
         isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) &&
+        paymentMethod.selectedPaymentMethod?.additionalData?.currency === CONST.CURRENCY.USD &&
         paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
         !paymentMethod.selectedPaymentMethod?.additionalData?.corpay?.achAuthorizationForm;
 
@@ -488,7 +488,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                         shouldIncludeDebitCard={hasActivatedWallet}
                                     >
-                                        {(triggerKYCFlow: (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: PaymentMethodType) => void, buttonRef: RefObject<View | null>) => {
+                                        {(triggerKYCFlow, buttonRef: RefObject<View | null>) => {
                                             if (shouldShowLoadingSpinner) {
                                                 return null;
                                             }
@@ -499,9 +499,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                         ref={buttonRef as ForwardedRef<View>}
                                                         title={translate('common.transferBalance')}
                                                         icon={Expensicons.Transfer}
-                                                        onPress={triggerKYCFlow}
+                                                        onPress={(event) => {
+                                                            triggerKYCFlow({event});
+                                                        }}
                                                         shouldShowRightIcon
-                                                        disabled={network.isOffline}
                                                         wrapperStyle={[
                                                             styles.transferBalance,
                                                             shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
@@ -554,7 +555,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                         }
                                                         Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
                                                     }}
-                                                    disabled={network.isOffline}
                                                     wrapperStyle={[
                                                         styles.transferBalance,
                                                         shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,

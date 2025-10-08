@@ -102,16 +102,21 @@ function useSelectedTransactionsActions({
             }),
         }));
         const deletedTransactionIDs: string[] = [];
+        const deletedTransactionThreadReportIDs = new Set<string>();
         transactionsWithActions.forEach(({transactionID, action}) => {
             if (!action) {
                 return;
             }
 
-            deleteMoneyRequest(transactionID, action, duplicateTransactions, duplicateTransactionViolations, false, deletedTransactionIDs);
+            deleteMoneyRequest(transactionID, action, duplicateTransactions, duplicateTransactionViolations, false, deletedTransactionIDs, selectedTransactionIDs);
             deletedTransactionIDs.push(transactionID);
+            if (action.childReportID) {
+                deletedTransactionThreadReportIDs.add(action.childReportID);
+            }
         });
         clearSelectedTransactions(true);
         setIsDeleteModalVisible(false);
+        Navigation.removeReportScreen(deletedTransactionThreadReportIDs);
     }, [duplicateTransactions, duplicateTransactionViolations, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
 
     const showDeleteModal = useCallback(() => {

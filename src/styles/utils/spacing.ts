@@ -794,4 +794,7 @@ export default {
     maxHeight5: {
         maxHeight: 20,
     },
+    maxHeight100Percentage: {
+        maxHeight: '100%',
+    },
 } satisfies Record<string, ViewStyle>;
