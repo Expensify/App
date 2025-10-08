@@ -42,6 +42,10 @@ function SearchFiltersReportFieldPage() {
         },
     });
 
+    const resetValues = () => {
+        setValues({});
+    };
+
     if (selectedField) {
         const fieldType = selectedField.type as 'text' | 'date' | 'dropdown';
 
@@ -65,20 +69,10 @@ function SearchFiltersReportFieldPage() {
                         setSelectedField(null);
                     }}
                 />
-                <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                    <UpdateReportFieldComponent field={selectedField} />
-                </ScrollView>
-                <Button
-                    text={translate('common.reset')}
-                    onPress={() => {}}
-                    style={[styles.mh4, styles.mt4]}
-                    large
-                />
-                <FormAlertWithSubmitButton
-                    buttonText={translate('common.save')}
-                    containerStyles={[styles.m4, styles.mt3, styles.mb5]}
-                    onSubmit={() => {}}
-                    enabledWhenOffline
+                <UpdateReportFieldComponent
+                    field={selectedField}
+                    values={values}
+                    setValues={setValues}
                 />
             </ScreenWrapper>
         );
@@ -111,10 +105,10 @@ function SearchFiltersReportFieldPage() {
                 ))}
             </ScrollView>
             <Button
-                text={translate('common.reset')}
-                onPress={() => {}}
-                style={[styles.mh4, styles.mt4]}
                 large
+                text={translate('common.reset')}
+                style={[styles.mh4, styles.mt4]}
+                onPress={resetValues}
             />
             <FormAlertWithSubmitButton
                 buttonText={translate('common.save')}
