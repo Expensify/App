@@ -5,13 +5,12 @@
       ['OS=="mac"', {
         "sources": [
           "src/secure_store_addon.mm",
-          "src/SecureStoreBridge.m",
-          "src/SecureStore.swift"
+          "src/SecureStoreBridge.m"
         ],
         "include_dirs": [
           "<!@(node -p \"require('node-addon-api').include\")",
           "include",
-          "build_swift"
+          "<(module_root_dir)/build_swift"
         ],
         "dependencies": [
           "<!(node -p \"require('node-addon-api').gyp\")"
@@ -38,8 +37,6 @@
           ],
           "HEADER_SEARCH_PATHS": [
             "$(SRCROOT)/include",
-            "$(CONFIGURATION_BUILD_DIR)",
-            "$(SRCROOT)/build/Release",
             "$(SRCROOT)/build_swift"
           ]
         },
@@ -47,7 +44,10 @@
           {
             "action_name": "build_swift",
             "inputs": [
-              "src/SecureStore.swift"
+              "src/SecureStore.swift",
+              "src/SecureStoreOptions.swift",
+              "src/SecureStoreAccessible.swift",
+              "src/SecureStoreExceptions.swift"
             ],
             "outputs": [
               "build_swift/libSecureStore.a",
@@ -56,6 +56,9 @@
             "action": [
               "swiftc",
               "src/SecureStore.swift",
+              "src/SecureStoreOptions.swift",
+              "src/SecureStoreAccessible.swift",
+              "src/SecureStoreExceptions.swift",
               "-emit-objc-header-path", "./build_swift/secure_store_addon-Swift.h",
               "-emit-library", "-o", "./build_swift/libSecureStore.a",
               "-emit-module", "-module-name", "secure_store_addon",

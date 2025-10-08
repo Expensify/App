@@ -18,7 +18,7 @@ import type {Locale} from '@src/types/onyx';
 import type {CreateDownloadQueueModule, DownloadItem} from './createDownloadQueue';
 import serve from './electron-serve';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
-import type {SecureStoreAddonNative, SecureStoreAPI} from './secureStoreTypes';
+import type {SecureStoreAddonNative, SecureStoreAPI, SecureStoreOptions} from './secureStoreTypes';
 
 const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownloadQueue').default;
 
@@ -759,15 +759,15 @@ const mainWindow = (): Promise<void> => {
                 });
 
                 // SecureStore IPC handlers
-                ipcMain.handle(ELECTRON_EVENTS.SECURE_STORE_SET, (_event, key: string, value: string) => {
-                    log.info(`[SecureStore] SET request - key: ${key}`);
+                ipcMain.handle(ELECTRON_EVENTS.SECURE_STORE_SET, async (_event, key: string, value: string, options?: SecureStoreOptions) => {
+                    log.info(`[SecureStore] SET request - key: ${key}, options:`, options);
                     if (!secureStore) {
                         const error = 'SecureStore is not available (only works on macOS)';
                         log.error(`[SecureStore] ${error}`);
                         throw new Error(error);
                     }
                     try {
-                        secureStore.set(key, value);
+                        await secureStore.set(key, value, options);
                         log.info(`[SecureStore] SET success - key: ${key}`);
                     } catch (error) {
                         log.error('[SecureStore] SET error:', error);
@@ -776,15 +776,15 @@ const mainWindow = (): Promise<void> => {
                 });
 
                 // Handle both async (invoke) and sync (sendSync) for GET
-                ipcMain.handle(ELECTRON_EVENTS.SECURE_STORE_GET, (_event, key: string) => {
-                    log.info(`[SecureStore] GET request (async) - key: ${key}`);
+                ipcMain.handle(ELECTRON_EVENTS.SECURE_STORE_GET, (_event, key: string, options?: SecureStoreOptions) => {
+                    log.info(`[SecureStore] GET request (async) - key: ${key}, options:`, options);
                     if (!secureStore) {
                         const error = 'SecureStore is not available (only works on macOS)';
                         log.error(`[SecureStore] ${error}`);
                         throw new Error(error);
                     }
                     try {
-                        const value = secureStore.get(key);
+                        const value = secureStore.get(key, options);
                         log.info(`[SecureStore] GET success - key: ${key}, found: ${value !== null}`);
                         return value;
                     } catch (error) {
@@ -793,8 +793,8 @@ const mainWindow = (): Promise<void> => {
                     }
                 });
 
-                ipcMain.on(ELECTRON_EVENTS.SECURE_STORE_GET, (event, key: string) => {
-                    log.info(`[SecureStore] GET request (sync) - key: ${key}`);
+                ipcMain.on(ELECTRON_EVENTS.SECURE_STORE_GET, (event, key: string, options?: SecureStoreOptions) => {
+                    log.info(`[SecureStore] GET request (sync) - key: ${key}, options:`, options);
 
                     const setReturnValue = (value: string | null) => {
                         // eslint-disable-next-line no-param-reassign
@@ -808,7 +808,7 @@ const mainWindow = (): Promise<void> => {
                         return;
                     }
                     try {
-                        const value = secureStore.get(key);
+                        const value = secureStore.get(key, options);
                         log.info(`[SecureStore] GET success - key: ${key}, found: ${value !== null}`);
                         setReturnValue(value);
                     } catch (getError) {
@@ -817,19 +817,41 @@ const mainWindow = (): Promise<void> => {
                     }
                 });
 
-                ipcMain.handle(ELECTRON_EVENTS.SECURE_STORE_DELETE, (_event, key: string) => {
-                    log.info(`[SecureStore] DELETE request - key: ${key}`);
+                ipcMain.handle(ELECTRON_EVENTS.SECURE_STORE_DELETE, (_event, key: string, options?: SecureStoreOptions) => {
+                    log.info(`[SecureStore] DELETE request - key: ${key}, options:`, options);
                     if (!secureStore) {
                         const error = 'SecureStore is not available (only works on macOS)';
                         log.error(`[SecureStore] ${error}`);
                         throw new Error(error);
                     }
                     try {
-                        secureStore.delete(key);
+                        secureStore.delete(key, options);
                         log.info(`[SecureStore] DELETE success - key: ${key}`);
                     } catch (error) {
                         log.error('[SecureStore] DELETE error:', error);
                         throw error;
+                    }
+                });
+
+                ipcMain.on(ELECTRON_EVENTS.SECURE_STORE_CAN_USE_AUTH, (event) => {
+                    log.info('[SecureStore] canUseAuthentication request');
+                    const setReturnValue = (value: boolean) => {
+                        // eslint-disable-next-line no-param-reassign
+                        event.returnValue = value;
+                    };
+
+                    if (!secureStore) {
+                        log.info('[SecureStore] SecureStore not available, returning false');
+                        setReturnValue(false);
+                        return;
+                    }
+                    try {
+                        const canUse = secureStore.canUseAuthentication();
+                        log.info(`[SecureStore] canUseAuthentication result: ${canUse}`);
+                        setReturnValue(canUse);
+                    } catch (error) {
+                        log.error('[SecureStore] canUseAuthentication error:', error);
+                        setReturnValue(false);
                     }
                 });
 

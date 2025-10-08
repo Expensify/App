@@ -21,9 +21,74 @@
 
 #### Table of Contents
 
+* [Quick Start](#quick-start)
+* [Secure Store Setup](#secure-store-setup)
 * [Architecture](#architecture)
 * [Testing Electron Auto-Update](#testing-electron-auto-update)
 * [Packaging](#packaging)
+
+# Quick Start
+
+Run the desktop app in development mode:
+
+```bash
+npm run desktop
+```
+
+This will automatically:
+1. Build the secure-store native addon
+2. Set up Info.plist with required biometric authentication keys
+3. Start the Electron development server
+
+## After npm install
+
+If you run `npm install` or `npm ci`, the Electron package will be reinstalled and you may need to re-run the setup:
+
+```bash
+npm run desktop:setup
+# Or just run npm run desktop again
+```
+
+# Secure Store Setup
+
+The desktop app uses a native macOS Keychain addon that requires biometric authentication by default. This requires `NSFaceIDUsageDescription` in the app's Info.plist.
+
+## Automatic Setup (Recommended)
+
+The `npm run desktop` command automatically:
+1. Runs `desktop/setup-dev-plist.sh` which:
+   - Backs up the original Electron Info.plist
+   - Merges NSFaceIDUsageDescription keys into Electron's bundle
+   - Creates entitlements file with `keychain-access-groups`
+2. Uses `@electron/osx-sign` to sign the Electron app with proper entitlements before launching
+
+## Manual Setup
+
+If needed, you can manually set up Info.plist:
+
+```bash
+./desktop/setup-dev-plist.sh
+```
+
+## Troubleshooting
+
+If you see "NSFaceIDUsageDescription" error:
+
+```bash
+# Re-run the setup
+npm run desktop:setup
+
+# Or just restart
+npm run desktop
+```
+
+To restore original Electron Info.plist:
+```bash
+cp node_modules/electron/dist/Electron.app/Contents/Info.plist.original \
+   node_modules/electron/dist/Electron.app/Contents/Info.plist
+```
+
+For more details, see [Secure Store Development Guide](./secure-store/DEVELOPMENT.md).
 
 # Architecture
 The New Expensify desktop app is built using [Electron.js](https://www.electronjs.org/). We try our best to maintain Electron best practices, particularly when it comes to [security](https://www.electronjs.org/docs/latest/tutorial/security). 

@@ -94,12 +94,14 @@ function ProfilePage() {
             return;
         }
 
-        try {
-            secureStore.set(testKey, testValue);
-            setSecureStoreResult(`✓ Successfully stored: ${testKey} = ${testValue}`);
-        } catch (error) {
-            setSecureStoreError(`Error: ${error instanceof Error ? error.message : String(error)}`);
-        }
+        secureStore
+            .set(testKey, testValue)
+            .then(() => {
+                setSecureStoreResult(`✓ Successfully stored: ${testKey} = ${testValue}`);
+            })
+            .catch((error) => {
+                setSecureStoreError(`Error: ${error instanceof Error ? error.message : String(error)}`);
+            });
     };
 
     const handleGetSecureStore = () => {

@@ -2,15 +2,32 @@
 
 Secure storage addon for Electron using native Swift implementation on macOS.
 
+## ⚠️ Important: NSFaceIDUsageDescription Required
+
+This addon **requires authentication by default** and uses biometric authentication (Touch ID/Face ID). Your application **MUST** include `NSFaceIDUsageDescription` in its Info.plist file.
+
+### For Electron Apps
+
+The `desktop/Info.plist` file has been configured with the required keys:
+- `NSFaceIDUsageDescription` - Required for Face ID/Touch ID authentication
+- `NSIdentityUsageDescription` - Fallback description for older macOS versions
+
+When building with electron-builder, this Info.plist will be automatically merged into your app bundle via the `extendInfo` configuration in `config/electronBuilder.config.js`.
+
+### Development Mode
+
+For development mode (running with `npm run desktop`), the Info.plist keys should be automatically available through the Electron app bundle. If you encounter authentication errors in development, you may need to rebuild the app.
+
 ## Overview
 
-This native addon provides secure storage capabilities for the Expensify Electron application. Currently implements a mock in-memory storage, which can be replaced with macOS Keychain implementation in the future.
+This native addon provides secure storage capabilities for the Expensify Electron application using macOS Keychain.
 
 ## Features
 
 - **Platform**: macOS only (Swift-based)
-- **Storage**: Currently uses in-memory storage (mock implementation)
-- **API**: Simple set/get/delete interface
+- **Storage**: macOS Keychain (persistent and encrypted)
+- **API**: Simple async set/get/delete interface
+- **Security**: Uses macOS Security framework for secure storage
 - **Bridge**: Swift → Objective-C → C++ → Node.js
 
 ## Installation
@@ -26,12 +43,18 @@ This will automatically build the native addon using `node-gyp`.
 ```typescript
 import secureStore from '@expensify/secure-store';
 
-// Store a value
-secureStore.set('myKey', 'mySecretValue');
+// Store a value (REQUIRES AUTHENTICATION by default)
+// User will be prompted with Touch ID/Face ID or device password
+await secureStore.set('myKey', 'mySecretValue');
 
-// Retrieve a value
+// Retrieve a value (REQUIRES AUTHENTICATION by default)
 const value = secureStore.get('myKey');
 console.log(value); // 'mySecretValue'
+
+// To disable authentication (NOT RECOMMENDED for sensitive data)
+await secureStore.set('publicKey', 'value', {
+    requireAuthentication: false
+});
 
 // Delete a value
 secureStore.delete('myKey');
@@ -41,25 +64,28 @@ const deleted = secureStore.get('myKey');
 console.log(deleted); // null
 ```
 
+For detailed usage examples and options, see [USAGE_EXAMPLE.md](./USAGE_EXAMPLE.md).
+
 ## API
 
-### `set(key: string, value: string): void`
+### `set(key: string, value: string): Promise<void>`
 
-Stores a value securely.
+Stores a value securely in the macOS Keychain.
 
 - **key**: The key to store the value under (must be a string)
 - **value**: The value to store (must be a string)
+- **Returns**: Promise that resolves when the value is stored
 
 ### `get(key: string): string | null`
 
-Retrieves a value from secure storage.
+Retrieves a value from the macOS Keychain.
 
 - **key**: The key to retrieve (must be a string)
 - **Returns**: The stored value as a string, or `null` if not found
 
 ### `delete(key: string): void`
 
-Deletes a value from secure storage.
+Deletes a value from the macOS Keychain.
 
 - **key**: The key to delete (must be a string)
 
@@ -109,37 +135,24 @@ To clean build artifacts:
 npm run clean
 ```
 
-## Current Implementation
+## Implementation Details
 
-The current implementation uses a simple in-memory dictionary for storage:
+The implementation uses the macOS Keychain via the Security framework for persistent, encrypted storage:
 
-```swift
-private static var mockStorage: [String: String] = [:]
-```
+- **Keychain Service**: Configurable service identifier (defaults to "app")
+- **Authentication**: Optional biometric/device password authentication
+- **Accessibility**: Configurable accessibility levels (default: `whenUnlocked`)
+- **Legacy Support**: Backwards compatible with older keychain entries
 
-This is intentionally simple for initial testing and development.
+### Security Features
+
+- All data is stored encrypted in the macOS Keychain
+- Supports biometric authentication (Touch ID/Face ID)
+- Supports device password/PIN as authentication fallback
+- Data persists across app restarts
+- Platform-specific security implementation
 
 ## Future Enhancements
-
-### macOS Keychain Integration
-
-The mock storage can be replaced with actual macOS Keychain storage using the Security framework:
-
-```swift
-import Security
-
-// Example keychain implementation (not included yet)
-public static func setItem(_ key: String, value: String) {
-    let query: [String: Any] = [
-        kSecClass as String: kSecClassGenericPassword,
-        kSecAttrAccount as String: key,
-        kSecValueData as String: value.data(using: .utf8)!
-    ]
-
-    SecItemDelete(query as CFDictionary)
-    SecItemAdd(query as CFDictionary, nil)
-}
-```
 
 ### Cross-Platform Support
 
