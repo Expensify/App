@@ -3,10 +3,20 @@ import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useOnyx from '@hooks/useOnyx';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
-import {clearPolicyTagErrors, createPolicyTag, deletePolicyTags, renamePolicyTag, renamePolicyTagList, setPolicyRequiresTag, setWorkspaceTagEnabled} from '@libs/actions/Policy/Tag';
+import {
+    buildOptimisticPolicyRecentlyUsedTags,
+    clearPolicyTagErrors,
+    clearPolicyTagListErrorField,
+    createPolicyTag,
+    deletePolicyTags,
+    renamePolicyTag,
+    renamePolicyTagList,
+    setPolicyRequiresTag,
+    setWorkspaceTagEnabled,
+} from '@libs/actions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagLists, PolicyTags} from '@src/types/onyx';
+import type {PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyTags from '../utils/collections/policyTags';
 import * as TestHelper from '../utils/TestHelper';
@@ -1010,6 +1020,366 @@ describe('actions/Policy', () => {
             expect(updatedPolicyTags?.[tagListName]?.tags[tagName].enabled).toBe(true);
             expect(updatedPolicyTags?.[tagListName]?.tags[tagName].errors).toBeUndefined();
             expect(updatedPolicyTags?.[tagListName]?.tags[tagName].pendingAction).toBeUndefined();
+        });
+    });
+
+    describe('ClearPolicyTagListErrorField', () => {
+        it('should clear specific error field from tag list', async () => {
+            // Given a policy with a tag list that has multiple error fields
+            const fakePolicy = createRandomPolicy(0);
+            const tagListName = 'Test tag list';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
+
+            fakePolicyTags[tagListName] = {
+                ...fakePolicyTags[tagListName],
+                errorFields: {
+                    name: {genericError: 'Name error'},
+                    required: {genericError: 'Required error'},
+                    maxTagsSelected: {genericError: 'Max tags error'},
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            // When clearing only the 'required' error field from the tag list
+            clearPolicyTagListErrorField({policyID: fakePolicy.id, tagListIndex: 0, errorField: 'required', policyTags: fakePolicyTags});
+            await waitForBatchedUpdates();
+
+            let updatedPolicyTags: PolicyTagLists | undefined;
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                callback: (val) => (updatedPolicyTags = val),
+            });
+
+            // Then only the 'required' error field should be cleared while other error fields remain
+            expect(updatedPolicyTags?.[tagListName]).toBeDefined();
+            expect(updatedPolicyTags?.[tagListName].errorFields?.required).toBeUndefined();
+            expect(updatedPolicyTags?.[tagListName].errorFields?.name).toEqual({genericError: 'Name error'});
+            expect(updatedPolicyTags?.[tagListName].errorFields?.maxTagsSelected).toEqual({genericError: 'Max tags error'});
+        });
+
+        it('should not modify Onyx data when tag list does not exist', async () => {
+            // Given a policy with no tag lists
+            const fakePolicy = createRandomPolicy(0);
+            const fakePolicyTags = {};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            // When attempting to clear an error field from a non-existent tag list
+            expect(() => {
+                clearPolicyTagListErrorField({policyID: fakePolicy.id, tagListIndex: 0, errorField: 'required', policyTags: fakePolicyTags});
+            }).not.toThrow();
+
+            let updatedPolicyTags: PolicyTagLists | undefined;
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                callback: (val) => (updatedPolicyTags = val),
+            });
+
+            // Then the policy tags should remain unchanged because the tag list does not exist
+            expect(updatedPolicyTags).toEqual(fakePolicyTags);
+        });
+
+        it('should not modify Onyx data when tag list has no name', async () => {
+            // Given a policy with a tag list that has an empty name and error fields
+            const fakePolicy = createRandomPolicy(0);
+            const tagListName = 'Test tag list';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 1);
+
+            fakePolicyTags[tagListName] = {
+                ...fakePolicyTags[tagListName],
+                name: '',
+                errorFields: {
+                    required: {genericError: 'This error should not be cleared'},
+                    name: {genericError: 'This error should also remain'},
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            // When attempting to clear an error field from a tag list with no name
+            expect(() => {
+                clearPolicyTagListErrorField({policyID: fakePolicy.id, tagListIndex: 0, errorField: 'required', policyTags: fakePolicyTags});
+            }).not.toThrow();
+
+            await waitForBatchedUpdates();
+
+            let updatedPolicyTags: PolicyTagLists | undefined;
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                callback: (val) => (updatedPolicyTags = val),
+            });
+
+            // Then the error fields should remain unchanged because the tag list name is empty
+            expect(updatedPolicyTags?.[tagListName].errorFields?.required).toEqual({genericError: 'This error should not be cleared'});
+            expect(updatedPolicyTags?.[tagListName].errorFields?.name).toEqual({genericError: 'This error should also remain'});
+            expect(updatedPolicyTags?.[tagListName].name).toBe('');
+        });
+
+        it('should work with data from useOnyx hook', async () => {
+            // Given a policy with a tag list that has error fields and is accessed via useOnyx hook
+            const fakePolicy = createRandomPolicy(0);
+            const tagListName = 'Test tag list';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 1);
+
+            fakePolicyTags[tagListName] = {
+                ...fakePolicyTags[tagListName],
+                errorFields: {
+                    required: {genericError: 'Required field error'},
+                    name: {genericError: 'Name field error'},
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            const {result} = renderHook(() => useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`));
+
+            await waitFor(() => {
+                expect(result.current[0]).toBeDefined();
+            });
+
+            // When clearing the 'name' error field using data from the useOnyx hook
+            clearPolicyTagListErrorField({policyID: fakePolicy.id, tagListIndex: 0, errorField: 'name', policyTags: result.current[0]});
+            await waitForBatchedUpdates();
+
+            let updatedPolicyTags: PolicyTagLists | undefined;
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                callback: (val) => (updatedPolicyTags = val),
+            });
+
+            // Then only the 'name' error field should be cleared while the 'required' error field remains
+            expect(updatedPolicyTags?.[tagListName].errorFields?.name).toBeUndefined();
+            expect(updatedPolicyTags?.[tagListName].errorFields?.required).toEqual({genericError: 'Required field error'});
+        });
+    });
+
+    describe('buildOptimisticPolicyRecentlyUsedTags', () => {
+        it('should return empty object when transactionTags is undefined', () => {
+            const result = buildOptimisticPolicyRecentlyUsedTags({
+                policyTags: {},
+                policyRecentlyUsedTags: {},
+                transactionTags: undefined,
+            });
+            expect(result).toEqual({});
+        });
+
+        it('should return empty object when transactionTags is empty string', () => {
+            const result = buildOptimisticPolicyRecentlyUsedTags({
+                policyTags: {
+                    Tag: {
+                        name: 'Tag',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                            Marketing: {name: 'Marketing', enabled: true},
+                            Sales: {name: 'Sales', enabled: true},
+                        },
+                    },
+                },
+                policyRecentlyUsedTags: {
+                    Tag: ['Marketing', 'Sales'],
+                },
+                transactionTags: '',
+            });
+            expect(result).toEqual({});
+        });
+
+        it('should build optimistic recently used tags', () => {
+            const result = buildOptimisticPolicyRecentlyUsedTags({
+                policyTags: {
+                    Tag: {
+                        name: 'Tag',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                            Marketing: {name: 'Marketing', enabled: true},
+                            Sales: {name: 'Sales', enabled: true},
+                        },
+                    },
+                },
+                policyRecentlyUsedTags: {
+                    Tag: ['Marketing', 'Sales'],
+                },
+                transactionTags: 'Engineering',
+            });
+
+            expect(result).toEqual({
+                Tag: ['Engineering', 'Marketing', 'Sales'],
+            });
+        });
+
+        it('should handle multi-level tags', () => {
+            const result = buildOptimisticPolicyRecentlyUsedTags({
+                policyTags: {
+                    Tag: {
+                        name: 'Tag',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                            Marketing: {name: 'Marketing', enabled: true},
+                        },
+                    },
+                    Team: {
+                        name: 'Team',
+                        orderWeight: 1,
+                        required: false,
+                        tags: {
+                            Frontend: {name: 'Frontend', enabled: true},
+                            Backend: {name: 'Backend', enabled: true},
+                        },
+                    },
+                },
+                policyRecentlyUsedTags: {
+                    Tag: ['Marketing'],
+                    Team: ['Backend', 'DevOps'],
+                },
+                transactionTags: 'Engineering:Frontend',
+            });
+
+            expect(result).toEqual({
+                Tag: ['Engineering', 'Marketing'],
+                Team: ['Frontend', 'Backend', 'DevOps'],
+            });
+        });
+
+        it('should handle missing recently used tags', () => {
+            const result = buildOptimisticPolicyRecentlyUsedTags({
+                policyTags: {
+                    Tag: {
+                        name: 'Tag',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                        },
+                    },
+                },
+                policyRecentlyUsedTags: {},
+                transactionTags: 'Engineering',
+            });
+
+            expect(result).toEqual({
+                Tag: ['Engineering'],
+            });
+        });
+
+        it('should prevent duplicate tags in recently used array', () => {
+            const result = buildOptimisticPolicyRecentlyUsedTags({
+                policyTags: {
+                    Tag: {
+                        name: 'Tag',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                        },
+                    },
+                },
+                policyRecentlyUsedTags: {
+                    Tag: ['Engineering', 'Marketing', 'Sales'],
+                },
+                transactionTags: 'Engineering',
+            });
+
+            expect(result).toEqual({
+                Tag: ['Engineering', 'Marketing', 'Sales'],
+            });
+        });
+
+        it('should handle mismatched recently used tags keys', () => {
+            const result = buildOptimisticPolicyRecentlyUsedTags({
+                policyTags: {
+                    Tag: {
+                        name: 'Tag',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                        },
+                    },
+                    Team: {
+                        name: 'Team',
+                        orderWeight: 1,
+                        required: false,
+                        tags: {
+                            Frontend: {name: 'Frontend', enabled: true},
+                        },
+                    },
+                },
+                policyRecentlyUsedTags: {
+                    OldTag: ['Marketing'],
+                    Team: ['Backend'],
+                    AnotherOldList: ['SomeTag'],
+                },
+                transactionTags: 'Engineering:Frontend',
+            });
+
+            expect(result).toEqual({
+                Tag: ['Engineering'],
+                Team: ['Frontend', 'Backend'],
+            });
+        });
+
+        it('should handle empty policy tags', () => {
+            const result = buildOptimisticPolicyRecentlyUsedTags({
+                policyTags: {},
+                policyRecentlyUsedTags: {},
+                transactionTags: 'Engineering',
+            });
+
+            expect(result).toEqual({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '': ['Engineering'],
+            });
+        });
+
+        it('should work with useOnyx data integration', async () => {
+            const policyID = 'policy123';
+            const transactionTags = 'Engineering';
+
+            const policyTags: PolicyTagLists = {
+                Tag: {
+                    name: 'Tag',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true},
+                        Marketing: {name: 'Marketing', enabled: true},
+                        Sales: {name: 'Sales', enabled: true},
+                    },
+                },
+            };
+
+            const existingRecentlyUsedTags: RecentlyUsedTags = {
+                Tag: ['Marketing', 'Sales'],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, policyTags);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, existingRecentlyUsedTags);
+            await waitForBatchedUpdates();
+
+            function useTestHook() {
+                const [policyTagsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+                const [policyRecentlyUsedTagsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {canBeMissing: true});
+
+                return buildOptimisticPolicyRecentlyUsedTags({
+                    policyTags: policyTagsFromOnyx ?? {},
+                    policyRecentlyUsedTags: policyRecentlyUsedTagsFromOnyx ?? {},
+                    transactionTags,
+                });
+            }
+
+            const {result} = renderHook(() => useTestHook());
+
+            await waitFor(() => {
+                expect(result.current).toEqual({
+                    Tag: ['Engineering', 'Marketing', 'Sales'],
+                });
+            });
         });
     });
 });
