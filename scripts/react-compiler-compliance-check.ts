@@ -16,6 +16,12 @@ import {bold, info, log, error as logError, success as logSuccess, note, warn} f
 
 const DEFAULT_REPORT_FILENAME = 'react-compiler-report.json';
 
+const SUPPRESSED_COMPILER_ERRORS = [
+    // This error is caused by an internal limitation of React Compiler
+    // https://github.com/facebook/react/issues/29583
+    '(BuildHIR::lowerExpression) Expected Identifier, got MemberExpression key in ObjectExpression',
+] as const satisfies string[];
+
 type HealthcheckJsonResults = {
     success: string[];
     failures: CompilerFailure;
@@ -172,6 +178,12 @@ function parseCombinedOutput(output: string): CompilerResults {
                 reason: failureWithReasonMatch[4],
             };
 
+            // Skip if this error should be suppressed
+            if (shouldSuppressError(newFailure)) {
+                currentFailure = null;
+                continue;
+            }
+
             const key = getUniqueFileKey(newFailure);
             // Only add if not already exists, or if existing one has no reason
             const existing = failure.get(key);
@@ -226,6 +238,13 @@ function parseCombinedOutput(output: string): CompilerResults {
             // Only update reason if it's not already set
             if (!currentFailure.reason) {
                 currentFailure.reason = reasonMatch[1];
+
+                // Check if this error should be suppressed after we have the reason
+                if (shouldSuppressError(currentFailure)) {
+                    currentFailure = null;
+                    continue;
+                }
+
                 failure.set(getUniqueFileKey(currentFailure), currentFailure);
             }
             currentFailure = null;
@@ -243,6 +262,11 @@ function parseCombinedOutput(output: string): CompilerResults {
     }
 
     return {success: successSet, failures: failure};
+}
+
+function shouldSuppressError(failure: CompilerFailure): boolean {
+    // Check if the error reason matches any of the suppressed error patterns
+    return SUPPRESSED_COMPILER_ERRORS.some((suppressedError) => failure.reason.includes(suppressedError));
 }
 
 function getUniqueFileKey(failure: CompilerFailure): string {
