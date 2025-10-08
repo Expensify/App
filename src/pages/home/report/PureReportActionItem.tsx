@@ -449,7 +449,6 @@ function PureReportActionItem({
     shouldHighlight = false,
     isTryNewDotNVPDismissed = false,
     currentUserAccountID,
-    reportActions,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate} = useLocalize();
@@ -1137,12 +1136,6 @@ function PureReportActionItem({
                 );
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
-            }
-        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-            if (!reportActions.some((reportAction) => isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU))) {
-                children = <ReportActionItemBasicMessage message={translate('iou.paidElsewhere')} />;
-            } else {
-                children = emptyHTML;
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             const wasAutoPaid = getOriginalMessage(action)?.automaticAction ?? false;
