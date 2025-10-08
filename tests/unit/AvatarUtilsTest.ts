@@ -38,7 +38,7 @@ describe('AvatarUtils', () => {
             expect(isValidExtension(image)).toBe(false);
         });
 
-        it('should return false for file without extension', () => {
+        it('should return false for file without an extension', () => {
             const image: FileObject = {name: 'test'};
             expect(isValidExtension(image)).toBe(false);
         });
@@ -55,23 +55,18 @@ describe('AvatarUtils', () => {
     });
 
     describe('isValidSize', () => {
-        it('should return true for files within size limit', () => {
-            const validSizes = [0, 1000, 1024 * 1024, CONST.AVATAR_MAX_ATTACHMENT_SIZE - 1];
-
-            validSizes.forEach((size) => {
-                const image: FileObject = {size};
-                expect(isValidSize(image)).toBe(true);
-            });
+        it.each([0, 1000, 1024 * 1024, CONST.AVATAR_MAX_ATTACHMENT_SIZE - 1])('should return true for files within size limit: %i bytes', (size) => {
+            const image: FileObject = {size};
+            expect(isValidSize(image)).toBe(true);
         });
 
-        it('should return false for files exceeding size limit', () => {
-            const invalidSizes = [CONST.AVATAR_MAX_ATTACHMENT_SIZE, CONST.AVATAR_MAX_ATTACHMENT_SIZE + 1, CONST.AVATAR_MAX_ATTACHMENT_SIZE * 2];
-
-            invalidSizes.forEach((size) => {
+        it.each([CONST.AVATAR_MAX_ATTACHMENT_SIZE, CONST.AVATAR_MAX_ATTACHMENT_SIZE + 1, CONST.AVATAR_MAX_ATTACHMENT_SIZE * 2])(
+            'should return false for files exceeding size limit: %i bytes',
+            (size) => {
                 const image: FileObject = {size};
                 expect(isValidSize(image)).toBe(false);
-            });
-        });
+            },
+        );
 
         it('should handle undefined size as 0', () => {
             const image: FileObject = {};
@@ -82,84 +77,34 @@ describe('AvatarUtils', () => {
             const image: FileObject = {size: null};
             expect(isValidSize(image)).toBe(true);
         });
-
-        it('should return true for exactly the maximum allowed size minus 1 byte', () => {
-            const image: FileObject = {size: CONST.AVATAR_MAX_ATTACHMENT_SIZE - 1};
-            expect(isValidSize(image)).toBe(true);
-        });
-
-        it('should return false for exactly the maximum allowed size', () => {
-            const image: FileObject = {size: CONST.AVATAR_MAX_ATTACHMENT_SIZE};
-            expect(isValidSize(image)).toBe(false);
-        });
     });
 
     describe('isValidResolution', () => {
-        it('should return true for valid resolution within bounds', () => {
-            mockGetImageResolution.default.mockResolvedValue({
-                width: 800,
-                height: 800,
-            });
+        it.each([
+            {width: 800, height: 800, description: 'valid resolution within bounds'},
+            {width: CONST.AVATAR_MIN_WIDTH_PX, height: CONST.AVATAR_MIN_HEIGHT_PX, description: 'minimum valid resolution'},
+            {width: CONST.AVATAR_MAX_WIDTH_PX, height: CONST.AVATAR_MAX_HEIGHT_PX, description: 'maximum valid resolution'},
+            {
+                width: 1000,
+                height: 500,
+                description: 'rectangular images within bounds',
+            },
+        ])('should return true for $description', ({width, height}) => {
+            mockGetImageResolution.default.mockResolvedValue({width, height});
 
             const image: FileObject = {name: 'test.jpg'};
             return expect(isValidResolution(image)).resolves.toBe(true);
         });
 
-        it('should return true for minimum valid resolution', () => {
-            mockGetImageResolution.default.mockResolvedValue({
-                width: CONST.AVATAR_MIN_WIDTH_PX,
-                height: CONST.AVATAR_MIN_HEIGHT_PX,
-            });
-
-            const image: FileObject = {name: 'test.jpg'};
-            return expect(isValidResolution(image)).resolves.toBe(true);
-        });
-
-        it('should return true for maximum valid resolution', () => {
-            mockGetImageResolution.default.mockResolvedValue({
-                width: CONST.AVATAR_MAX_WIDTH_PX,
-                height: CONST.AVATAR_MAX_HEIGHT_PX,
-            });
-
-            const image: FileObject = {name: 'test.jpg'};
-            return expect(isValidResolution(image)).resolves.toBe(true);
-        });
-
-        it('should return false for height below minimum', () => {
-            mockGetImageResolution.default.mockResolvedValue({
-                width: CONST.AVATAR_MIN_WIDTH_PX,
-                height: CONST.AVATAR_MIN_HEIGHT_PX - 1,
-            });
-
-            const image: FileObject = {name: 'test.jpg'};
-            return expect(isValidResolution(image)).resolves.toBe(false);
-        });
-
-        it('should return false for width below minimum', () => {
-            mockGetImageResolution.default.mockResolvedValue({
-                width: CONST.AVATAR_MIN_WIDTH_PX - 1,
-                height: CONST.AVATAR_MIN_HEIGHT_PX,
-            });
-
-            const image: FileObject = {name: 'test.jpg'};
-            return expect(isValidResolution(image)).resolves.toBe(false);
-        });
-
-        it('should return false for height above maximum', () => {
-            mockGetImageResolution.default.mockResolvedValue({
-                width: CONST.AVATAR_MAX_WIDTH_PX,
-                height: CONST.AVATAR_MAX_HEIGHT_PX + 1,
-            });
-
-            const image: FileObject = {name: 'test.jpg'};
-            return expect(isValidResolution(image)).resolves.toBe(false);
-        });
-
-        it('should return false for width above maximum', () => {
-            mockGetImageResolution.default.mockResolvedValue({
-                width: CONST.AVATAR_MAX_WIDTH_PX + 1,
-                height: CONST.AVATAR_MAX_HEIGHT_PX,
-            });
+        it.each([
+            {width: CONST.AVATAR_MIN_WIDTH_PX, height: CONST.AVATAR_MIN_HEIGHT_PX - 1, description: 'height below minimum'},
+            {width: CONST.AVATAR_MIN_WIDTH_PX - 1, height: CONST.AVATAR_MIN_HEIGHT_PX, description: 'width below minimum'},
+            {width: CONST.AVATAR_MAX_WIDTH_PX, height: CONST.AVATAR_MAX_HEIGHT_PX + 1, description: 'height above maximum'},
+            {width: CONST.AVATAR_MAX_WIDTH_PX + 1, height: CONST.AVATAR_MAX_HEIGHT_PX, description: 'width above maximum'},
+            {width: 1, height: 1, description: 'very small images'},
+            {width: 10000, height: 10000, description: 'very large images'},
+        ])('should return false for $description', ({width, height}) => {
+            mockGetImageResolution.default.mockResolvedValue({width, height});
 
             const image: FileObject = {name: 'test.jpg'};
             return expect(isValidResolution(image)).resolves.toBe(false);
@@ -170,36 +115,6 @@ describe('AvatarUtils', () => {
 
             const image: FileObject = {name: 'test.jpg'};
             return expect(isValidResolution(image)).resolves.toBe(false);
-        });
-
-        it('should handle very small images', () => {
-            mockGetImageResolution.default.mockResolvedValue({
-                width: 1,
-                height: 1,
-            });
-
-            const image: FileObject = {name: 'test.jpg'};
-            return expect(isValidResolution(image)).resolves.toBe(false);
-        });
-
-        it('should handle very large images', () => {
-            mockGetImageResolution.default.mockResolvedValue({
-                width: 10000,
-                height: 10000,
-            });
-
-            const image: FileObject = {name: 'test.jpg'};
-            return expect(isValidResolution(image)).resolves.toBe(false);
-        });
-
-        it('should handle rectangular images within bounds', () => {
-            mockGetImageResolution.default.mockResolvedValue({
-                width: 1000,
-                height: 500,
-            });
-
-            const image: FileObject = {name: 'test.jpg'};
-            return expect(isValidResolution(image)).resolves.toBe(true);
         });
     });
 
@@ -349,49 +264,9 @@ describe('AvatarUtils', () => {
             expect(mockGetImageResolution.default).toHaveBeenCalledWith(image);
         });
 
-        it('should handle PNG images', async () => {
+        it.each(['png', 'gif', 'bmp', 'svg', 'jpeg', 'JPG', 'JpG'])('should handle %s images', async (extension) => {
             const image: FileObject = {
-                name: 'avatar.png',
-                size: 1024 * 1024,
-            };
-
-            const result = await validateAvatarImage(image);
-            expect(result.isValid).toBe(true);
-        });
-
-        it('should handle GIF images', async () => {
-            const image: FileObject = {
-                name: 'avatar.gif',
-                size: 1024 * 1024,
-            };
-
-            const result = await validateAvatarImage(image);
-            expect(result.isValid).toBe(true);
-        });
-
-        it('should handle BMP images', async () => {
-            const image: FileObject = {
-                name: 'avatar.bmp',
-                size: 1024 * 1024,
-            };
-
-            const result = await validateAvatarImage(image);
-            expect(result.isValid).toBe(true);
-        });
-
-        it('should handle SVG images', async () => {
-            const image: FileObject = {
-                name: 'avatar.svg',
-                size: 1024 * 1024,
-            };
-
-            const result = await validateAvatarImage(image);
-            expect(result.isValid).toBe(true);
-        });
-
-        it('should handle JPEG images', async () => {
-            const image: FileObject = {
-                name: 'avatar.jpeg',
+                name: `avatar.${extension}`,
                 size: 1024 * 1024,
             };
 
@@ -448,26 +323,6 @@ describe('AvatarUtils', () => {
                     maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
                 },
             });
-        });
-
-        it('should handle image with uppercase extension', async () => {
-            const image: FileObject = {
-                name: 'avatar.JPG',
-                size: 1024 * 1024,
-            };
-
-            const result = await validateAvatarImage(image);
-            expect(result.isValid).toBe(true);
-        });
-
-        it('should handle image with mixed case extension', async () => {
-            const image: FileObject = {
-                name: 'avatar.JpG',
-                size: 1024 * 1024,
-            };
-
-            const result = await validateAvatarImage(image);
-            expect(result.isValid).toBe(true);
         });
 
         it('should handle image with zero size', async () => {

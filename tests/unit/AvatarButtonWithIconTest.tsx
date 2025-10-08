@@ -11,6 +11,8 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 const DEFAULT_AVATAR_ID = 'default-avatar';
 const ICON_TEST_ID = 'avatar-button-edit-icon';
 const MOCK_TEST_ID = 'mock-edit-icon';
+const AVATAR_ID = 'Avatar';
+
 function DefaultAvatar() {
     return <View testID={DEFAULT_AVATAR_ID} />;
 }
@@ -54,6 +56,7 @@ describe('AvatarButtonWithIcon', () => {
                     DefaultAvatar={DefaultAvatar}
                 />,
             );
+            expect(screen.queryByTestId(AVATAR_ID)).toBeNull();
             expect(screen.getByTestId(DEFAULT_AVATAR_ID)).toBeTruthy();
         });
 
@@ -65,6 +68,7 @@ describe('AvatarButtonWithIcon', () => {
                     DefaultAvatar={DefaultAvatar}
                 />,
             );
+            expect(screen.getByTestId(AVATAR_ID)).toBeTruthy();
             expect(screen.queryByTestId(DEFAULT_AVATAR_ID)).toBeNull();
         });
 
@@ -80,6 +84,7 @@ describe('AvatarButtonWithIcon', () => {
                     disabled
                 />,
             );
+
             // The component should still render but without the edit icon
             expect(screen.getByLabelText(defaultProps.text)).toBeTruthy();
             expect(screen.queryByTestId(ICON_TEST_ID)).toBeNull();
@@ -149,6 +154,7 @@ describe('AvatarButtonWithIcon', () => {
                 />,
             );
 
+            expect(screen.getByTestId(AVATAR_ID)).toBeTruthy();
             expect(screen.getByLabelText('Change Workspace Avatar')).toBeTruthy();
             fireEvent.press(screen.getByLabelText('Change Workspace Avatar'));
             expect(onPressMock).toHaveBeenCalledTimes(1);
