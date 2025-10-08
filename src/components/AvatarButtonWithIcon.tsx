@@ -16,7 +16,7 @@ import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip';
 
-type AvatarWithImagePickerProps = {
+type AvatarButtonWithIconProps = {
     /** Text to be used as a tooltip */
     text: string;
 
@@ -79,7 +79,7 @@ function AvatarButtonWithIcon({
     disabled = false,
     editIcon = Expensicons.Pencil,
     anchorRef,
-}: AvatarWithImagePickerProps) {
+}: AvatarButtonWithIconProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -131,3 +131,4 @@ function AvatarButtonWithIcon({
 AvatarButtonWithIcon.displayName = 'AvatarButtonWithIcon';
 
 export default AvatarButtonWithIcon;
+export type {AvatarButtonWithIconProps};

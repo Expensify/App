@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,6 +17,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import AttachmentModal from './AttachmentModal';
 import AttachmentPicker from './AttachmentPicker';
 import AvatarButtonWithIcon from './AvatarButtonWithIcon';
+import type {AvatarButtonWithIconProps} from './AvatarButtonWithIcon';
 import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as Expensicons from './Icon/Expensicons';
@@ -40,21 +41,9 @@ type MenuItem = {
     shouldCallAfterModalHide?: boolean;
 };
 
-type AvatarWithImagePickerProps = {
-    /** Avatar source to display */
-    source?: AvatarSource;
-
-    /** Account id of user for which avatar is displayed  */
-    avatarID?: number | string;
-
+type AvatarWithImagePickerProps = Omit<AvatarButtonWithIconProps, 'text' | 'onPress' | 'anchorRef'> & {
     /** Additional style props */
     style?: StyleProp<ViewStyle>;
-
-    /** Additional style props for disabled picker */
-    disabledStyle?: StyleProp<ViewStyle>;
-
-    /** Additional style props for the edit icon */
-    editIconStyle?: StyleProp<ViewStyle>;
 
     /** Executed once an image has been selected */
     onImageSelected?: (file: File | CustomRNImageManipulatorResult) => void;
@@ -62,20 +51,8 @@ type AvatarWithImagePickerProps = {
     /** Execute when the user taps "remove" */
     onImageRemoved?: () => void;
 
-    /** A default avatar component to display when there is no source */
-    DefaultAvatar?: () => React.ReactNode;
-
     /** Whether we are using the default avatar */
     isUsingDefaultAvatar?: boolean;
-
-    /** Size of Indicator */
-    size?: typeof CONST.AVATAR_SIZE.X_LARGE | typeof CONST.AVATAR_SIZE.LARGE | typeof CONST.AVATAR_SIZE.DEFAULT;
-
-    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon?: AvatarSource;
-
-    /** Denotes whether it is an avatar or a workspace avatar */
-    type?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
 
     /** Image crop vector mask */
     editorMaskImage?: IconAsset;
@@ -85,9 +62,6 @@ type AvatarWithImagePickerProps = {
 
     /** A function to run when the X button next to the error is clicked */
     onErrorClose?: () => void;
-
-    /** The type of action that's pending  */
-    pendingAction?: OnyxCommon.PendingAction;
 
     /** The errors to display  */
     errors?: OnyxCommon.Errors | null;
@@ -101,12 +75,6 @@ type AvatarWithImagePickerProps = {
     /** File name of the avatar */
     originalFileName?: string;
 
-    /** Style applied to the avatar */
-    avatarStyle: StyleProp<ViewStyle & ImageStyle>;
-
-    /** Indicates if picker feature should be disabled */
-    disabled?: boolean;
-
     /** Executed once click on view photo option */
     onViewPhotoPress?: () => void;
 
@@ -115,9 +83,6 @@ type AvatarWithImagePickerProps = {
 
     /** Hard disables the "View photo" option */
     shouldDisableViewPhoto?: boolean;
-
-    /** Optionally override the default "Edit" icon */
-    editIcon?: IconAsset;
 };
 
 const anchorAlignment = {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP};
