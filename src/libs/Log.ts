@@ -8,6 +8,7 @@ import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import CONFIG from '@src/CONFIG';
 import pkg from '../../package.json';
 import {addLog, flushAllLogsOnAppLaunch} from './actions/Console';
 import {shouldAttachLog} from './Console';
@@ -84,7 +85,8 @@ const Log = new Logger({
 });
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
 
-AppLogs.configure({appGroupName: 'group.com.expensify.new', interval: -1});
+const appGroupName = CONFIG.IS_HYBRID_APP ? 'group.com.expensify' : 'group.com.expensify.new';
+AppLogs.configure({appGroupName, interval: -1});
 AppLogs.registerHandler({
     filter: '[NotificationService]',
     handler: ({filter, logs}) => {
