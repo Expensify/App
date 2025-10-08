@@ -199,9 +199,6 @@ function ProfileAvatar() {
                                         accessibilityLabel={translate('avatarPage.uploadPhoto')}
                                         isDisabled={isAvatarCropModalOpen}
                                         onPress={() => {
-                                            if (isSafari()) {
-                                                return;
-                                            }
                                             openPicker({
                                                 onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
                                             });
