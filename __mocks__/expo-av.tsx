@@ -1,4 +1,3 @@
-import type {ViewProps} from 'react-native';
 import {View} from 'react-native';
 
 const ResizeMode = {
@@ -8,10 +7,9 @@ const ResizeMode = {
     CENTER: 'center',
 };
 
-function Video(props: ViewProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    return <View {...props} />;
-}
+const Video = class extends View {
+    setStatusAsync = jest.fn(() => Promise.resolve());
+};
 
 const VideoFullscreenUpdate = {
     PLAYER_WILL_PRESENT: 0,
@@ -20,4 +18,12 @@ const VideoFullscreenUpdate = {
     PLAYER_DID_DISMISS: 3,
 };
 
-export {ResizeMode, Video, VideoFullscreenUpdate};
+const Audio = {
+    getPermissionsAsync: jest.fn(() => Promise.resolve({granted: true})),
+    requestPermissionsAsync: jest.fn(() => Promise.resolve()),
+    setAudioModeAsync: jest.fn(() => Promise.resolve()),
+    setIsEnabledAsync: jest.fn(() => Promise.resolve()),
+};
+
+export {ResizeMode, Audio, Video, VideoFullscreenUpdate};
+export default {ResizeMode, Audio, Video, VideoFullscreenUpdate};
