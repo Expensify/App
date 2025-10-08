@@ -6,7 +6,8 @@
   "scripts": {
     "clean": "rm -rf build build_swift",
     "build": "node-gyp configure && node-gyp build",
-    "rebuild": "npm run clean && npm run build"
+    "rebuild": "npm run clean && npm run build",
+    "install": "node-gyp configure && node-gyp build"
   },
   "license": "MIT",
   "dependencies": {
