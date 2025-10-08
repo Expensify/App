@@ -15,7 +15,6 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data) => {
         }
 
         validateFormDataParameter(command, key, value);
-
         formData.append(key, value as string | Blob);
     });
 

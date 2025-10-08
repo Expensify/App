@@ -45,18 +45,22 @@ type Item = {
 /**
  * Ensures asset has proper fileName and type properties
  */
-const processAssetWithFallbacks = (asset: Asset): Asset => ({
-    ...asset,
-    fileName:
-        asset.fileName ??
-        (asset.uri
-            ? asset.uri
-                  .substring(asset.uri.lastIndexOf('/') + 1)
-                  .split('?')
-                  .at(0)
-            : `image_${Date.now()}.jpeg`),
-    type: asset.type ?? 'image/jpeg',
-});
+const processAssetWithFallbacks = (asset: Asset): Asset => {
+    // Generate fallback name: extract from URI if available, otherwise use timestamped default
+    const fallbackName = asset.uri
+        ? asset.uri
+              .substring(asset.uri.lastIndexOf('/') + 1)
+              .split('?')
+              .at(0)
+        : `image_${Date.now()}.jpeg`;
+    const fileName = asset.fileName ?? fallbackName;
+    return {
+        ...asset,
+        fileName,
+        // Default to JPEG if no type specified
+        type: asset.type ?? 'image/jpeg',
+    };
+};
 
 /**
  * Return imagePickerOptions based on the type

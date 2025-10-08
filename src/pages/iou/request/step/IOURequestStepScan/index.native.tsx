@@ -571,8 +571,7 @@ function IOURequestStepScan({
             if (!file) {
                 return;
             }
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            setMoneyRequestReceipt(initialTransactionID, file.uri || '', file.name || '', !isEditing, file.type);
+            setMoneyRequestReceipt(initialTransactionID, file.uri ?? '', file.name ?? '', !isEditing, file.type);
             updateScanAndNavigate(file, file.uri ?? '');
             return;
         }
@@ -589,8 +588,7 @@ function IOURequestStepScan({
 
             const transactionID = transaction.transactionID ?? initialTransactionID;
             newReceiptFiles.push({file, source: file.uri ?? '', transactionID});
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            setMoneyRequestReceipt(transactionID, file.uri || '', file.name || '', true, file.type);
+            setMoneyRequestReceipt(transactionID, file.uri ?? '', file.name ?? '', true, file.type);
         });
 
         if (shouldSkipConfirmation) {
@@ -689,7 +687,8 @@ function IOURequestStepScan({
                         const transactionID = transaction?.transactionID ?? initialTransactionID;
                         const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
                         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height).then(({filename, source}) => {
-                            // Ensure camera receipts have proper type (camera captures are always JPEG)
+                            // react-native-vision-camera always returns JPEG format for camera captures
+                            // See: https://github.com/mrousavy/react-native-vision-camera/issues/2357#issuecomment-1882633998
                             setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
 
                             if (isEditing) {
