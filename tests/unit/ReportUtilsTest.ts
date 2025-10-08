@@ -7332,24 +7332,24 @@ describe('ReportUtils', () => {
     });
 
     describe('shouldExcludeAncestorReportAction', () => {
-        it('should return true for trip preview actions when it is the youngest descendant', () => {
+        it('should return false for trip preview actions when it is the youngest descendant', () => {
             const tripPreviewAction: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW,
             };
 
             const result = shouldExcludeAncestorReportAction(tripPreviewAction, true);
-            expect(result).toBe(true);
+            expect(result).toBe(false);
         });
 
-        it('should return false for trip preview actions', () => {
+        it('should return true for trip preview actions', () => {
             const tripPreviewAction: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW,
             };
 
             const result = shouldExcludeAncestorReportAction(tripPreviewAction, false);
-            expect(result).toBe(false);
+            expect(result).toBe(true);
         });
 
         it('should return true for transaction thread CREATE actions', () => {
