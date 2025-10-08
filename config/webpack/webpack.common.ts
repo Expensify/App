@@ -150,9 +150,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                       new IgnorePlugin({
                           resourceRegExp: /@welldone-software\/why-did-you-render/,
                       }),
-                      new IgnorePlugin({
-                          resourceRegExp: /react-is/,
-                      }),
                   ]
                 : []),
             ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),

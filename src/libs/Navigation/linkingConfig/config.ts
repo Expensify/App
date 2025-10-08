@@ -218,6 +218,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
+                            path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: {
                             path: ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT,
                             exact: true,
@@ -228,6 +232,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: {
                             path: ROUTES.SETTINGS_REPORT_FRAUD_CONFIRMATION.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_MAGIC_CODE]: {
+                            path: ROUTES.SETTINGS_REPORT_FRAUD_VERIFY_ACCOUNT.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: {
@@ -946,8 +954,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: {
                             path: ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.route,
                         },
-                        [SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT]: {
-                            path: ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.route,
+                        [SCREENS.WORKSPACE.WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.route,
                             exact: true,
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
@@ -1081,7 +1089,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION]: {
                     screens: {
-                        [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: ROUTES.NEW_REPORT_WORKSPACE_SELECTION,
+                        [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: ROUTES.NEW_REPORT_WORKSPACE_SELECTION.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: {
@@ -1255,6 +1263,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION]: {
                     screens: {
                         [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: ROUTES.WORKSPACE_CONFIRMATION.route,
+                        [SCREENS.CURRENCY.SELECTION]: ROUTES.CURRENCY_SELECTION.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.WORKSPACE_DUPLICATE]: {

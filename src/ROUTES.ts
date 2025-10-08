@@ -162,10 +162,6 @@ const ROUTES = {
             return `bank-account/enter-signer-info?policyID=${policyID}&bankAccountID=${bankAccountID}&isCompleted=${isCompleted}` as const;
         },
     },
-    BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT: {
-        route: 'bank-account/connect-existing-business-bank-account',
-        getRoute: (policyID: string) => `bank-account/connect-existing-business-bank-account?policyID=${policyID}` as const,
-    },
     PUBLIC_CONSOLE_DEBUG: {
         route: 'troubleshoot/console',
 
@@ -263,15 +259,21 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID?',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
     },
+    SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE: {
+        route: 'settings/wallet/card/:cardID/confirm-magic-code',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/confirm-magic-code` as const,
+    },
     SETTINGS_DOMAIN_CARD_DETAIL: {
         route: 'settings/card/:cardID?',
         getRoute: (cardID: string) => `settings/card/${cardID}` as const,
     },
     SETTINGS_REPORT_FRAUD: {
         route: 'settings/wallet/card/:cardID/report-virtual-fraud',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${cardID}/report-virtual-fraud`, backTo),
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud` as const,
+    },
+    SETTINGS_REPORT_FRAUD_VERIFY_ACCOUNT: {
+        route: `settings/wallet/card/:cardID/report-virtual-fraud/${VERIFY_ACCOUNT}`,
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud/${VERIFY_ACCOUNT}` as const,
     },
     SETTINGS_REPORT_FRAUD_CONFIRMATION: {
         route: 'settings/wallet/card/:cardID/report-virtual-fraud-confirm',
@@ -434,7 +436,10 @@ const ROUTES = {
     NEW_CHAT_EDIT_NAME: 'new/chat/confirm/name/edit',
     NEW_ROOM: 'new/room',
 
-    NEW_REPORT_WORKSPACE_SELECTION: 'new-report-workspace-selection',
+    NEW_REPORT_WORKSPACE_SELECTION: {
+        route: 'new-report-workspace-selection',
+        getRoute: (isMovingExpenses?: boolean) => `new-report-workspace-selection${isMovingExpenses ? '?isMovingExpenses=true' : ''}` as const,
+    },
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
@@ -1554,6 +1559,10 @@ const ROUTES = {
             return `workspaces/${policyID}/workflows` as const;
         },
     },
+    WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT: {
+        route: 'workspaces/:policyID/workflows/connect-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/connect-account` as const,
+    },
     WORKSPACE_WORKFLOWS_APPROVALS_NEW: {
         route: 'workspaces/:policyID/workflows/approvals/new',
         getRoute: (policyID: string) => `workspaces/${policyID}/workflows/approvals/new` as const,
@@ -2493,6 +2502,12 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-currency`, backTo),
+    },
+    CURRENCY_SELECTION: {
+        route: 'workspace/confirmation/currency',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation/currency`, backTo),
     },
     ONBOARDING_WORKSPACE_INVITE: {
         route: 'onboarding/workspace-invite',
