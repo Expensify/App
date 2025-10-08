@@ -191,6 +191,7 @@ import {
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceTagUpdateMessage,
     getWorkspaceUpdateFieldMessage,
+    isActionableCardFraudAlert,
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
@@ -3822,6 +3823,20 @@ type ReasonAndReportActionThatRequiresAttention = {
     reportAction?: OnyxEntry<ReportAction>;
 };
 
+function getUnresolvedCardFraudAlertAction(reportID: string): OnyxEntry<ReportAction> {
+    const reportActions = getAllReportActions(reportID);
+    return Object.values(reportActions).find(
+        (action): action is ReportAction => isActionableCardFraudAlert(action) && !getOriginalMessage(action)?.resolution
+    );
+}
+
+function hasUnresolvedCardFraudAlert(reportOrOption: OnyxEntry<Report> | OptionData): boolean {
+    if (!reportOrOption?.reportID) {
+        return false;
+    }
+    return !!getUnresolvedCardFraudAlertAction(reportOrOption.reportID);
+}
+
 function getReasonAndReportActionThatRequiresAttention(
     optionOrReport: OnyxEntry<Report> | OptionData,
     parentReportAction?: OnyxEntry<ReportAction>,
@@ -3837,6 +3852,13 @@ function getReasonAndReportActionThatRequiresAttention(
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_JOIN_REQUEST,
             reportAction: getActionableJoinRequestPendingReportAction(optionOrReport.reportID),
+        };
+    }
+
+    if (hasUnresolvedCardFraudAlert(optionOrReport)) {
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_UNRESOLVED_CARD_FRAUD_ALERT,
+            reportAction: getUnresolvedCardFraudAlertAction(optionOrReport.reportID),
         };
     }
 
@@ -12292,6 +12314,8 @@ export {
     excludeParticipantsForDisplay,
     getReportName,
     doesReportContainRequestsFromMultipleUsers,
+    hasUnresolvedCardFraudAlert,
+    getUnresolvedCardFraudAlertAction,
 };
 export type {
     Ancestor,
