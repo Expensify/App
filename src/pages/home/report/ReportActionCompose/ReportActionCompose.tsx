@@ -647,6 +647,7 @@ function ReportActionCompose({
                                             isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
                                             raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                             reportID={reportID}
+                                            key={reportID}
                                             policyID={report?.policyID}
                                             includeChronos={chatIncludesChronos(report)}
                                             isGroupPolicyReport={isGroupPolicyReport}
