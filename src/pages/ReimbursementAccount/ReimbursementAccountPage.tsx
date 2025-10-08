@@ -190,13 +190,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             return;
         }
 
+        // If USD bank account is in pending state, we should navigate straight to the validation step and skip Continue step
+        if (policyCurrency === CONST.CURRENCY.USD && achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
+            setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.VALIDATION);
+            return;
+        }
+
         setShouldShowConnectedVerifiedBankAccount(isNonUSDWorkspace ? achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE);
         setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
-
-        // If we shouldn't show the continue button and USD bank account is in pending state, we should navigate straight to the validation step and skip Continue step
-        if (!shouldShowContinueSetupButtonValue && policyCurrency === CONST.CURRENCY.USD && achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
-            setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.VALIDATION);
-        }
     }, [achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDWorkspace, isPreviousPolicy, achData?.state, policyCurrency]);
 
     useEffect(
