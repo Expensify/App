@@ -101,7 +101,7 @@ function runCompilerHealthcheck(src?: string): CompilerResults {
     });
 
     // Parse and then normalize via Set/Map to ensure true uniqueness
-    const parsed = parseCombinedOutput(output);
+    const parsed = parseHealthcheckOutput(output);
 
     // Use Set to deduplicate success entries
     const successSet = new Set(parsed.success);
@@ -124,7 +124,7 @@ function runCompilerHealthcheck(src?: string): CompilerResults {
     return {success: successSet, failures: failureMap};
 }
 
-function parseCombinedOutput(output: string): CompilerResults {
+function parseHealthcheckOutput(output: string): CompilerResults {
     const lines = output.split('\n');
     const successSet = new Set<string>();
     const failure = new Map<string, CompilerFailure>();
