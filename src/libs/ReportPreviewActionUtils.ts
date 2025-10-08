@@ -220,13 +220,14 @@ function getReportPreviewAction(
     transactions?: Transaction[],
     invoiceReceiverPolicy?: Policy,
     isPaidAnimationRunning?: boolean,
+    isApprovedAnimationRunning?: boolean,
     isSubmittingAnimationRunning?: boolean,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
 
-    if (isPaidAnimationRunning) {
+    if (isPaidAnimationRunning || isApprovedAnimationRunning) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
 

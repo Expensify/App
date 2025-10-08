@@ -62,6 +62,7 @@ type GetReportPrimaryActionParams = {
     isChatReportArchived: boolean;
     invoiceReceiverPolicy?: Policy;
     isPaidAnimationRunning?: boolean;
+    isApprovedAnimationRunning?: boolean;
     isSubmittingAnimationRunning?: boolean;
 };
 
@@ -333,10 +334,11 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         chatReport,
         invoiceReceiverPolicy,
         isPaidAnimationRunning,
+        isApprovedAnimationRunning,
         isSubmittingAnimationRunning,
     } = params;
 
-    if (isPaidAnimationRunning) {
+    if (isPaidAnimationRunning || isApprovedAnimationRunning) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
     if (isSubmittingAnimationRunning) {
