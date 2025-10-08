@@ -36,7 +36,7 @@ function getRouteForCurrentStep(currentStep: ReimbursementAccountStep): Reimburs
 }
 
 /**
- * Returns true if a VBBA exists in any state other than OPEN, LOCKED or PENDING
+ * Returns true if a VBBA exists in any state other than OPEN or LOCKED
  */
 const hasInProgressUSDVBBA = (achData?: ACHDataReimbursementAccount): boolean => {
     return !!achData?.bankAccountID && !!achData?.state && achData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN && achData?.state !== CONST.BANK_ACCOUNT.STATE.LOCKED;
