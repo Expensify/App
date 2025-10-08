@@ -70,6 +70,10 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             ];
         }
 
+        if (HTMLEngineUtils.isChildOfLabelText(tnode)) {
+            linkStyle = [styles.textLabel, styles.textLineHeightNormal, styles.link];
+        }
+
         // Special handling for links in label font to maintain consistent font size
         if (HTMLEngineUtils.isChildOfMutedTextLabel(tnode)) {
             linkStyle = [styles.mutedNormalTextLabel, styles.link];
