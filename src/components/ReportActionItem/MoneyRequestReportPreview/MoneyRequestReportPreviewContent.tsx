@@ -22,6 +22,7 @@ import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropd
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -39,6 +40,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
+import Permissions from '@libs/Permissions';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getReportPreviewAction} from '@libs/ReportPreviewActionUtils';
 import {
@@ -58,6 +60,7 @@ import {
     hasReportBeenReopened as hasReportBeenReopenedUtils,
     hasReportBeenRetracted as hasReportBeenRetractedUtils,
     hasUpdatedTotal,
+    hasViolations as hasViolationsReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
@@ -66,7 +69,6 @@ import {
     isSettled,
     isTripRoom as isTripRoomReportUtils,
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
-    hasViolations as hasViolationsReportUtils,
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -81,8 +83,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import Permissions from '@libs/Permissions';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
 import type {MoneyRequestReportPreviewContentProps} from './types';
 
