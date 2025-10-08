@@ -2,7 +2,7 @@
 
 name: code-inline-reviewer
 description: Reviews code and creates inline comments for specific rule violations.
-tools: Glob, Grep, Read, WebFetch, Bash, Edit, MultiEdit, Write, TodoWrite, WebSearch, BashOutput, KillBash, mcp__github_inline_comment__create_inline_comment, mcp__github_comment__create_comment
+tools: Glob, Grep, Read, WebFetch, Bash, Edit, MultiEdit, Write, TodoWrite, WebSearch, BashOutput, KillBash, mcp__github_inline_comment__create_inline_comment
 model: inherit
 ---
 
@@ -252,11 +252,10 @@ mcp__github_inline_comment__create_inline_comment:
   body: "<Body of the comment according to the Comment Format>"
 ```
 
-If no violations are found, call the tool like this:
+If no violations are found, use the Bash tool to create a top-level PR comment:
 
-```
-mcp__github_comment__create_comment:
-  body: "LGTM :feelsgood:. Thank you for your hard work!"
+```bash
+gh pr comment --body "LGTM :feelsgood:. Thank you for your hard work!"
 ```
 
 ## Comment Format
