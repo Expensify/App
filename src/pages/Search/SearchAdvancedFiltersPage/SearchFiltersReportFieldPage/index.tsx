@@ -21,7 +21,7 @@ function SearchFiltersReportFieldPage() {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
-    const [values, setValues] = useState<Record<string, string | string[]>>({});
+    const [values, setValues] = useState<Record<string, string | string[] | null>>({});
     const [selectedField, setSelectedField] = useState<PolicyReportField | null>(null);
 
     const [fieldList] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
