@@ -99,7 +99,11 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
                     reportNextStep,
                 );
-                clearSelectedTransactions(true);
+                if (selectedTransactionIDs.length) {
+                    clearSelectedTransactions(true);
+                } else if (selectedTransactionsKeys.length) {
+                    clearSelectedTransactions();
+                }
                 Navigation.dismissModal();
                 Navigation.goBack(backTo ?? ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
                 return;
