@@ -152,7 +152,7 @@ describe('getSecondaryAction', () => {
         jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValue('12345');
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(true);
 
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [transaction], violations: {}, policy});
+        const result = getSecondaryReportActions({currentUserEmail: EMPLOYEE_EMAIL, report, chatReport, reportTransactions: [transaction], violations: {}, policy});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
 
