@@ -292,7 +292,7 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
               },
           ]
         : [];
-    const successData: OnyxUpdate[] = [...successSourceReportActionData];
+
     const failureSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
         ? [
               {
@@ -350,7 +350,7 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
         ...failureTransactionViolations,
         ...failureSourceReportActionData,
     ];
-    const successData: OnyxUpdate[] = onyxTargetTransactionData.successData ?? [];
+    const successData: OnyxUpdate[] = [...successSourceReportActionData, ...(onyxTargetTransactionData.successData ?? [])];
 
     API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData});
 }
