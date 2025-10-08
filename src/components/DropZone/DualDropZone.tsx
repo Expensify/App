@@ -43,7 +43,11 @@ function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop, shouldAcceptS
                             dropStyles={styles.attachmentDropOverlay(isDraggingOver)}
                             dropTextStyles={styles.attachmentDropText}
                             dropWrapperStyles={shouldStackVertically ? styles.pb0 : styles.pr0}
-                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, isDraggingOver)}
+                            dashedBorderStyles={[
+                                styles.dropzoneArea,
+                                styles.easeInOpacityTransition,
+                                styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, isDraggingOver),
+                            ]}
                         />
                     )}
                 </DropZoneWrapper>
@@ -54,7 +58,7 @@ function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop, shouldAcceptS
                             dropTitle={translate(isEditing ? 'dropzone.replaceReceipt' : scanReceiptsText)}
                             dropStyles={styles.receiptDropOverlay(isDraggingOver)}
                             dropTextStyles={styles.receiptDropText}
-                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, isDraggingOver)}
+                            dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, isDraggingOver)]}
                         />
                     )}
                 </DropZoneWrapper>

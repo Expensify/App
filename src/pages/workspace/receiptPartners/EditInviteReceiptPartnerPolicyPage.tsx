@@ -7,9 +7,9 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import type {ListItem} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import type {ListItem} from '@components/SelectionListWithSections/types';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -17,7 +17,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {inviteWorkspaceEmployeesToUber} from '@libs/actions/Policy/Policy';
+import {clearUberEmployeeError, inviteWorkspaceEmployeesToUber} from '@libs/actions/Policy/Policy';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
@@ -69,6 +69,16 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
         [policyID],
     );
 
+    const dismissError = useCallback(
+        (item: MemberForList) => {
+            if (!policyID || !item.login) {
+                return;
+            }
+            clearUberEmployeeError(policyID, item.login);
+        },
+        [policyID],
+    );
+
     // Maintain independent search state per tab to avoid carryover across tabs
     const [allSearchTerm, allDebouncedSearchTerm, setAllSearchTerm] = useDebouncedState('');
     const [linkedSearchTerm, linkedDebouncedSearchTerm, setLinkedSearchTerm] = useDebouncedState('');
@@ -97,11 +107,11 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
         ],
     );
 
-    const uberEmployeesByEmail = useMemo<Record<string, {status?: string; pendingAction?: PendingAction}>>(() => {
+    const uberEmployeesByEmail = useMemo<Record<string, {status?: string; pendingAction?: PendingAction; errors?: Record<string, string | null>}>>(() => {
         const policyWithEmployees = policy as typeof policy & {
             receiptPartners?: {
                 uber?: {
-                    employees?: Record<string, {status?: string; pendingAction?: PendingAction}>;
+                    employees?: Record<string, {status?: string; pendingAction?: PendingAction; errors?: Record<string, string | null>}>;
                 };
             };
         };
@@ -188,7 +198,13 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                 pendingAction: uberEmployeesByEmail[email]?.pendingAction,
             });
 
-            list.push({...option, rightElement} as MemberForList & ListItem);
+            const optionWithErrorsAndRightElement = {
+                ...option,
+                rightElement,
+                errors: uberEmployeesByEmail[email]?.errors,
+            };
+
+            list.push(optionWithErrorsAndRightElement as MemberForList & ListItem);
         });
         return sortAlphabetically(list, 'text', localeCompare);
     }, [policy?.employeeList, styles, StyleUtils, localeCompare, isOffline, deriveStatus, uberEmployeesByEmail, translate, inviteOrResend]);
@@ -252,17 +268,18 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.ToddBehindCloud}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
+                icon={Illustrations.SewerDino}
+                iconWidth={variables.uberEmptyListIconWidth}
+                iconHeight={variables.uberEmptyListIconHeight}
                 title={translate('workspace.receiptPartners.uber.emptyContent.title')}
                 subtitle={translate('workspace.receiptPartners.uber.emptyContent.subtitle')}
                 subtitleStyle={styles.textSupporting}
-                containerStyle={styles.pb10}
+                titleStyles={styles.mb2}
+                containerStyle={[styles.pb5, styles.ph5]}
                 contentFitImage="contain"
             />
         ),
-        [translate, styles.textSupporting, styles.pb10],
+        [translate, styles.textSupporting, styles.mb2, styles.pb5, styles.ph5],
     );
 
     return (
@@ -309,6 +326,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                                         <SelectionList
                                             ListItem={UserListItem}
                                             onSelectRow={() => {}}
+                                            onDismissError={dismissError}
                                             listItemWrapperStyle={styles.cursorDefault}
                                             addBottomSafeAreaPadding
                                             shouldShowTextInput={shouldShowTextInput}

@@ -27,6 +27,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -70,6 +71,7 @@ type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamLi
 
 function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -102,6 +104,8 @@ function SearchPage({route}: SearchPageProps) {
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
     const selectedTransactionReportIDs = useMemo(() => [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))], [selectedTransactions]);
     const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
+
+    const isBetaBulkPayEnabled = isBetaEnabled(CONST.BETAS.PAYMENT_BUTTONS);
 
     // Collate a list of policyIDs from the selected transactions
     const selectedPolicyIDs = useMemo(
@@ -271,9 +275,12 @@ function SearchPage({route}: SearchPageProps) {
             const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
             const groupByReports = queryJSON?.groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
             const typeInvoice = queryJSON?.type === CONST.REPORT.TYPE.INVOICE;
+            const typeExpense = queryJSON?.type === CONST.REPORT.TYPE.EXPENSE;
+            const isAllOneTransactionReport = Object.values(selectedTransactions).every((transaction) => transaction.isFromOneTransactionReport);
 
-            // If we're grouping by invoice or report, and all the expenses on the report are selected, include the report level export option
-            const includeReportLevelExport = (groupByReports || typeInvoice) && areFullReportsSelected;
+            // If we're grouping by invoice or report, and all the expenses on the report are selected, or if all
+            // the selected expenses are the only expenses of their parent expense report include the report level export option.
+            const includeReportLevelExport = ((groupByReports || typeInvoice) && areFullReportsSelected) || (typeExpense && !groupByReports && isAllOneTransactionReport);
 
             // Collect a list of export templates available to the user from their account, policy, and custom integrations templates
             const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
@@ -334,15 +341,27 @@ function SearchPage({route}: SearchPageProps) {
                         ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
                         : (selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? []);
                     approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
                     });
                 },
             });
         }
+        const shouldEnableExpenseBulk = selectedReports.length
+            ? selectedReports.every(
+                  (report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
+              )
+            : selectedTransactionsKeys.every(
+                  (id) =>
+                      selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY &&
+                      selectedTransactions[id].policyID &&
+                      getLastPolicyPaymentMethod(selectedTransactions[id].policyID, lastPaymentMethods),
+              );
+
         const {shouldEnableBulkPayOption, isFirstTimePayment} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs);
 
-        const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && shouldEnableBulkPayOption;
+        const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && (isBetaBulkPayEnabled ? shouldEnableBulkPayOption : shouldEnableExpenseBulk);
 
         if (shouldShowPayOption) {
             const payButtonOption = {
@@ -393,6 +412,7 @@ function SearchPage({route}: SearchPageProps) {
                     }
 
                     unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
                     });
@@ -427,6 +447,7 @@ function SearchPage({route}: SearchPageProps) {
                     }
 
                     // Use InteractionManager to ensure this runs after the dropdown modal closes
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => {
                         setIsDeleteExpensesConfirmModalVisible(true);
                     });
@@ -478,6 +499,7 @@ function SearchPage({route}: SearchPageProps) {
         selectedPolicyIDs,
         selectedReportIDs,
         selectedTransactionReportIDs,
+        isBetaBulkPayEnabled,
     ]);
 
     const handleDeleteExpenses = () => {
@@ -489,6 +511,7 @@ function SearchPage({route}: SearchPageProps) {
 
         // Translations copy for delete modal depends on amount of selected items,
         // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
             clearSelectedTransactions();
@@ -672,7 +695,7 @@ function SearchPage({route}: SearchPageProps) {
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTextStyles={styles.receiptDropText}
                             dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
-                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
+                            dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
                         />
                     </DragAndDropConsumer>
                     {ErrorModal}
@@ -793,7 +816,11 @@ function SearchPage({route}: SearchPageProps) {
                                         dropTitle={translate('dropzone.scanReceipts')}
                                         dropStyles={styles.receiptDropOverlay(true)}
                                         dropTextStyles={styles.receiptDropText}
-                                        dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
+                                        dashedBorderStyles={[
+                                            styles.dropzoneArea,
+                                            styles.easeInOpacityTransition,
+                                            styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true),
+                                        ]}
                                     />
                                 </DragAndDropConsumer>
                             </DragAndDropProvider>

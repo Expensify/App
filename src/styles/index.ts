@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
+import type {RefObject} from 'react';
 import type {LineLayer} from 'react-map-gl';
 import type {ImageStyle, TextStyle, ViewStyle} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -1161,6 +1162,15 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        cannotBeEditedSplitInputContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 4,
+            marginVertical: 15,
+            borderWidth: 1,
+            borderColor: 'transparent',
+        },
+
         outlinedButton: {
             backgroundColor: 'transparent',
             borderColor: theme.border,
@@ -1423,7 +1433,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         signInPageGradientMobile: {
             height: 300,
-            width: 800,
+            width: '100%',
             position: 'absolute',
             top: 0,
             left: 0,
@@ -1743,6 +1753,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         optionRow: {
             minHeight: variables.optionRowHeight,
+            paddingTop: 12,
+            paddingBottom: 12,
+        },
+
+        optionRowWithPadding: {
             paddingTop: 12,
             paddingBottom: 12,
         },
@@ -3277,6 +3292,10 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: 10,
         },
 
+        height4: {
+            height: 16,
+        },
+
         searchListContentContainerStyles: {
             paddingTop: variables.searchListContentMarginTop,
         },
@@ -3375,6 +3394,10 @@ const staticStyles = (theme: ThemeColors) =>
             left: 0,
             right: 0,
             bottom: 0,
+        },
+
+        overlayBackground: {
+            backgroundColor: theme.overlay,
         },
 
         invisibleOverlay: {
@@ -4921,6 +4944,12 @@ const staticStyles = (theme: ThemeColors) =>
             height: 190,
         },
 
+        errorStateCardIllustration: {
+            width: 254,
+            height: 165,
+            marginBottom: 12,
+        },
+
         emptyStateMoneyRequestReport: {
             maxHeight: 85,
             minHeight: 85,
@@ -5221,6 +5250,138 @@ const staticStyles = (theme: ThemeColors) =>
             right: 0,
             width: Animated.add(variables.sideBarWidth, receiptPaneRHPWidth),
         },
+
+        flexibleHeight: {
+            height: 'auto',
+            minHeight: 200,
+        },
+
+        receiptCellLoadingContainer: {
+            backgroundColor: theme.activeComponentBG,
+        },
+
+        wideRHPMoneyRequestReceiptViewContainer: {
+            backgroundColor: theme.appBG,
+            width: receiptPaneRHPWidth,
+            height: '100%',
+            borderRightWidth: 1,
+            borderColor: theme.border,
+        },
+
+        wideRHPMoneyRequestReceiptViewScrollViewContainer: {
+            ...spacing.pt3,
+            ...spacing.pb2,
+            minHeight: '100%',
+        },
+
+        uploadFileView: {
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderColor: theme.borderFocus,
+            borderStyle: 'dotted',
+            marginBottom: variables.uploadViewMargin,
+            marginLeft: variables.uploadViewMargin,
+            marginRight: variables.uploadViewMargin,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingVertical: 40,
+            gap: 4,
+            flex: 1,
+        },
+
+        textInputAndIconContainer: {
+            zIndex: -1,
+            flexDirection: 'row',
+        },
+        statusIndicator: {
+            borderColor: theme.sidebar,
+            borderRadius: 8,
+            borderWidth: 2,
+            position: 'absolute',
+            right: -4,
+            top: -3,
+            height: 12,
+            width: 12,
+            zIndex: 10,
+        },
+        navigationTabBarStatusIndicator: {
+            borderColor: theme.sidebar,
+            borderRadius: 8,
+            borderWidth: 2,
+            position: 'absolute',
+            right: -2,
+            top: -3,
+            height: 12,
+            width: 12,
+            zIndex: 10,
+        },
+        modalStackNavigatorContainer: {
+            height: '100%',
+            right: 0,
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+        },
+        animatedRHPNavigatorContainer: {
+            height: '100%',
+            right: 0,
+            position: 'absolute',
+            overflow: 'hidden',
+        },
+        twoFactorAuthCodesBox: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: theme.highlightBG,
+            paddingVertical: 28,
+            borderRadius: 16,
+            marginTop: 32,
+        },
+        anonymousRoomFooter: {
+            padding: 20,
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            overflow: 'hidden',
+        },
+        dropzoneArea: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100%',
+            height: '100%',
+        },
+        easeInOpacityTransition: {
+            transition: 'opacity 0.2s ease-in',
+        },
+        overscrollSpacerPosition: {
+            position: 'absolute',
+            left: 0,
+            right: 0,
+        },
+        emptyStateHeader: {
+            borderTopLeftRadius: variables.componentBorderRadiusLarge,
+            borderTopRightRadius: variables.componentBorderRadiusLarge,
+            minHeight: 200,
+        },
+        sidePanelOverlay: {
+            ...positioning.pFixed,
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: -variables.sideBarWidth,
+            backgroundColor: theme.overlay,
+        },
+        sidePanelContent: {
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            top: 0,
+            bottom: 0,
+            right: 0,
+            height: '100%',
+            backgroundColor: theme.modalBackground,
+            borderLeftColor: theme.border,
+        },
+        searchBarMargin: {
+            marginHorizontal: 20,
+            marginBottom: 20,
+        },
     }) satisfies StaticStyles;
 
 const dynamicStyles = (theme: ThemeColors) =>
@@ -5233,26 +5394,17 @@ const dynamicStyles = (theme: ThemeColors) =>
             pointerEvents: shouldDisplayTopLevelNavigationTabBar ? 'auto' : 'none',
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWithLHBWidth,
             paddingBottom: bottomSafeAreaOffset,
-
-            // There is a missing border right on the wide layout
-            borderRightWidth: shouldUseNarrowLayout ? 0 : 1,
-            borderColor: theme.border,
         }),
 
-        uploadFileView: (isSmallScreenWidth: boolean) =>
+        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number) => ({
+            marginLeft: inputMarginLeft,
+            width: amountWidth,
+            marginRight: 4,
+        }),
+
+        uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>
             ({
-                borderRadius: variables.componentBorderRadiusLarge,
                 borderWidth: isSmallScreenWidth ? 0 : 2,
-                borderColor: theme.borderFocus,
-                borderStyle: 'dotted',
-                marginBottom: variables.uploadViewMargin,
-                marginLeft: variables.uploadViewMargin,
-                marginRight: variables.uploadViewMargin,
-                justifyContent: 'center',
-                alignItems: 'center',
-                paddingVertical: 40,
-                gap: 4,
-                flex: 1,
             }) satisfies ViewStyle,
 
         autoGrowHeightInputContainer: (textInputHeight: number, minHeight: number, maxHeight: number) =>
@@ -5283,74 +5435,31 @@ const dynamicStyles = (theme: ThemeColors) =>
             } satisfies TextStyle;
         },
 
-        textInputAndIconContainer: (isMarkdownEnabled: boolean) => {
-            if (isMarkdownEnabled) {
-                return {zIndex: -1, flexDirection: 'row'};
-            }
-            return {
-                flex: 1,
-                zIndex: -1,
-                flexDirection: 'row',
-            };
-        },
-
-        statusIndicator: (backgroundColor: string = theme.danger) =>
+        statusIndicatorColor: (backgroundColor: string = theme.danger) =>
             ({
-                borderColor: theme.sidebar,
                 backgroundColor,
-                borderRadius: 8,
-                borderWidth: 2,
-                position: 'absolute',
-                right: -4,
-                top: -3,
-                height: 12,
-                width: 12,
-                zIndex: 10,
             }) satisfies ViewStyle,
-
-        navigationTabBarStatusIndicator: (backgroundColor: string = theme.danger) => ({
-            borderColor: theme.sidebar,
-            backgroundColor,
-            borderRadius: 8,
-            borderWidth: 2,
-            position: 'absolute',
-            right: -2,
-            top: -3,
-            height: 12,
-            width: 12,
-            zIndex: 10,
-        }),
 
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
                 ...modalNavigatorContainer(isSmallScreenWidth),
-                right: 0,
             }) satisfies ViewStyle,
 
-        modalStackNavigatorContainer: (isSmallScreenWidth: boolean) =>
+        modalStackNavigatorContainerWidth: (isSmallScreenWidth: boolean) =>
             ({
                 width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-                height: '100%',
-                right: 0,
-                position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             }) satisfies ViewStyle,
 
-        animatedRHPNavigatorContainer: (shouldUseNarrowLayout: boolean, expandedRHPProgress: Animated.Value) =>
+        animatedRHPNavigatorContainerWidth: (shouldUseNarrowLayout: boolean, expandedRHPProgress: Animated.Value) =>
             ({
-                height: '100%',
                 width: shouldUseNarrowLayout ? '100%' : Animated.add(variables.sideBarWidth, Animated.multiply(expandedRHPProgress, receiptPaneRHPWidth)),
-                right: 0,
-                position: 'absolute',
-                overflow: 'hidden',
             }) satisfies ViewStyle,
 
         OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
             ({
                 width: shouldUseNarrowLayout ? variables.onboardingModalWidth : '100%',
                 height: shouldUseNarrowLayout ? 732 : '100%',
-                maxHeight: '100%',
                 borderRadius: shouldUseNarrowLayout ? 16 : 0,
-                overflow: 'hidden',
             }) satisfies ViewStyle,
 
         createMenuPositionSidebar: (windowHeight: number) =>
@@ -5374,15 +5483,21 @@ const dynamicStyles = (theme: ThemeColors) =>
                 vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             }) satisfies AnchorPosition,
 
-        overlayStyles: ({progress, hasMarginRight = false, hasMarginLeft = false}: {progress: OverlayStylesParams; hasMarginRight?: boolean; hasMarginLeft?: boolean}) =>
+        overlayStyles: ({
+            progress,
+            hasMarginRight = false,
+            hasMarginLeft = false,
+            sidePanelTranslateX,
+        }: {
+            progress: OverlayStylesParams;
+            hasMarginRight?: boolean;
+            hasMarginLeft?: boolean;
+            sidePanelTranslateX?: RefObject<Animated.Value>;
+        }) =>
             ({
-                ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: hasMarginLeft ? variables.receiptPaneRHPMaxWidth : -2 * variables.sideBarWidth,
-                top: 0,
-                bottom: 0,
-                right: hasMarginRight ? variables.sideBarWidth : 0,
-                backgroundColor: theme.overlay,
+                left: hasMarginLeft ? receiptPaneRHPWidth : -2 * variables.sideBarWidth,
+                right: hasMarginRight ? Animated.add(variables.sideBarWidth, sidePanelTranslateX ? Animated.subtract(variables.sideBarWidth, sidePanelTranslateX.current) : 0) : 0,
                 opacity: progress.interpolate({
                     inputRange: [0, 1],
                     outputRange: [0, variables.overlayOpacity],
@@ -5404,7 +5519,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 marginHorizontal: isSmallScreenWidth ? 0 : 20,
             }) satisfies ViewStyle,
 
-        twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}: TwoFactorAuthCodesBoxParams) => {
+        twoFactorAuthCodesBoxPadding: ({isExtraSmallScreenWidth, isSmallScreenWidth}: TwoFactorAuthCodesBoxParams) => {
             let paddingHorizontal = spacing.ph9;
 
             if (isSmallScreenWidth) {
@@ -5416,32 +5531,20 @@ const dynamicStyles = (theme: ThemeColors) =>
             }
 
             return {
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: theme.highlightBG,
-                paddingVertical: 28,
-                borderRadius: 16,
-                marginTop: 32,
                 ...paddingHorizontal,
             } satisfies ViewStyle;
         },
 
-        anonymousRoomFooter: (isSmallSizeLayout: boolean) =>
+        anonymousRoomFooterFlexDirection: (isSmallSizeLayout: boolean) =>
             ({
                 flexDirection: isSmallSizeLayout ? 'column' : 'row',
                 ...(!isSmallSizeLayout && {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                 }),
-                padding: 20,
-                backgroundColor: theme.cardBG,
-                borderRadius: variables.componentBorderRadiusLarge,
-                overflow: 'hidden',
             }) satisfies ViewStyle & TextStyle,
         anonymousRoomFooterWordmarkAndLogoContainer: (isSmallSizeLayout: boolean) =>
             ({
-                flexDirection: 'row',
-                alignItems: 'center',
                 ...(isSmallSizeLayout && {
                     justifyContent: 'space-between',
                     marginTop: 16,
@@ -5458,8 +5561,6 @@ const dynamicStyles = (theme: ThemeColors) =>
             }
 
             return {
-                backgroundColor: theme.highlightBG,
-                borderRadius: 16,
                 ...paddingVertical,
                 ...paddingHorizontal,
             } satisfies ViewStyle;
@@ -5483,15 +5584,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             const isSafariOrChromeBrowser = getPlatform() === CONST.PLATFORM.WEB && (browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.CHROME);
 
             return {
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                width: '100%',
-                height: '100%',
                 opacity: isActive ? 1 : 0,
-                transition: 'opacity 0.2s ease-in',
                 ...(isSafariOrChromeBrowser && {
                     backgroundImage: `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect x='1' y='1' width='calc(100%25 - 3px)' height='calc(100%25 - 3px)' fill='none' stroke='${encodeURIComponent(borderColor)}' stroke-width='2' stroke-dasharray='8' stroke-dashoffset='4 8' stroke-linecap='round' rx='8' ry='8' /%3e%3c/svg%3e")`,
                     backgroundSize: '100% 100%',
@@ -5519,7 +5612,6 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         fileUploadImageWrapper: (fileTopPosition: number) =>
             ({
-                position: 'absolute',
                 top: fileTopPosition,
             }) satisfies ViewStyle,
 
@@ -5549,31 +5641,22 @@ const dynamicStyles = (theme: ThemeColors) =>
             ({
                 backgroundColor,
                 height,
-                width: '100%',
-                position: 'absolute',
                 top: -height,
-                left: 0,
-                right: 0,
             }) satisfies ViewStyle,
 
         justSignedInModalAnimation: (is2FARequired: boolean) => ({
             height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
         }),
 
-        screenWrapperContainer: (minHeight: number | undefined) => ({
-            flex: 1,
+        screenWrapperContainerMinHeight: (minHeight: number | undefined) => ({
             minHeight,
-            backgroundColor: theme.appBG,
         }),
 
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
 
-        emptyStateHeader: (isIllustration: boolean) => ({
-            borderTopLeftRadius: variables.componentBorderRadiusLarge,
-            borderTopRightRadius: variables.componentBorderRadiusLarge,
-            minHeight: 200,
+        emptyStateHeaderPosition: (isIllustration: boolean) => ({
             alignItems: isIllustration ? 'center' : undefined,
             justifyContent: isIllustration ? 'center' : undefined,
         }),
@@ -5583,31 +5666,18 @@ const dynamicStyles = (theme: ThemeColors) =>
                 width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
             }) satisfies ViewStyle,
 
-        sidePanelOverlay: (isOverlayVisible: boolean) => ({
-            ...positioning.pFixed,
-            top: 0,
-            bottom: 0,
-            left: 0,
-            right: -variables.sideBarWidth,
-            backgroundColor: theme.overlay,
+        sidePanelOverlayOpacity: (isOverlayVisible: boolean) => ({
             opacity: isOverlayVisible ? 0 : variables.overlayOpacity,
         }),
-        sidePanelContent: (shouldUseNarrowLayout: boolean, isExtraLargeScreenWidth: boolean): ViewStyle => ({
-            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
-            top: 0,
-            bottom: 0,
-            right: 0,
+        sidePanelContentWidth: (shouldUseNarrowLayout: boolean): ViewStyle => ({
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
-            height: '100%',
-            backgroundColor: theme.modalBackground,
+        }),
+        sidePanelContentBorderWidth: (isExtraLargeScreenWidth: boolean): ViewStyle => ({
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
-            borderLeftColor: theme.border,
         }),
 
-        getSearchBarStyle: (shouldUseNarrowLayout: boolean) => ({
+        searchBarWidth: (shouldUseNarrowLayout: boolean) => ({
             maxWidth: shouldUseNarrowLayout ? '100%' : 300,
-            marginHorizontal: 20,
-            marginBottom: 20,
         }),
 
         getSelectionListPopoverHeight: (itemCount: number, windowHeight: number, isSearchable: boolean) => {
@@ -5650,10 +5720,18 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: shouldUseNarrowLayout ? undefined : 500,
         }),
 
+        getMoneyRequestViewImage: (showBorderless: boolean) => ({
+            ...spacing.mh5,
+            overflow: 'hidden',
+            borderWidth: showBorderless ? 0 : 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusLarge,
+            height: 180,
+            maxWidth: '100%',
+        }),
+
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
-            flex: 1,
             justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
-            alignItems: 'center',
         }),
 
         getTestToolsNavigatorInnerView: (shouldUseNarrowLayout: boolean, isAuthenticated: boolean) => {
