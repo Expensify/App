@@ -175,6 +175,45 @@ describe('getViolationsOnyxData', () => {
         });
     });
 
+    describe('per diem rate validation', () => {
+        beforeEach(() => {
+            transactionViolations = [customUnitOutOfPolicyViolation];
+
+            const customUnitRateID = 'per_diem_rate_id';
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    customUnitRateID,
+                },
+            };
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
+            policy.customUnits = {
+                perDiemUnitId: {
+                    customUnitID: 'perDiemUnitId',
+                    defaultCategory: '',
+                    enabled: true,
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    rates: {
+                        [customUnitRateID]: {
+                            currency: 'USD',
+                            customUnitRateID,
+                            enabled: true,
+                            name: 'Spain',
+                            rate: 0,
+                        },
+                    },
+                },
+            };
+        });
+
+        it('should remove the customUnitOutOfPolicy violation if the per diem rate is valid for the policy', () => {
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).not.toContainEqual(customUnitOutOfPolicyViolation);
+        });
+    });
+
     describe('controlPolicyViolations', () => {
         beforeEach(() => {
             policy.type = 'corporate';
