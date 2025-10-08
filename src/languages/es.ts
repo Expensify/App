@@ -312,7 +312,7 @@ const translations = {
         count: 'Contar',
         cancel: 'Cancelar',
         dismiss: 'Descartar',
-        proceed: 'Proceed',
+        proceed: 'Proceder',
         yes: 'Sí',
         no: 'No',
         ok: 'OK',
