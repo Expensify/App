@@ -1,6 +1,68 @@
 # iOS Setup Instructions
 
-## Prerequisites
+## Running the mobile application using Rock 🪨
+
+This project uses [Rock](https://rockjs.dev/) to manage native builds. Rather than compiling native code locally when running commands like `npm run ios`, Rock first attempts to download remote builds (artifacts prebuilt on CI) from a server. If a matching remote build isn’t available, it automatically falls back to building locally.
+
+By storing complete native build artifacts remotely, Rock reduces the need for local compilation and simplifies setup through automated downloads.
+
+**Note:** Any changes to files involved in generating a fingerprint (e.g., `package.json`) will trigger a local build.
+
+The following steps describe how to configure the project to fully utilize Rock.
+
+### Generating GitHub Personal Access Token
+
+To take advantage of remote builds, setup your GitHub Personal Access Token (PAT) in your `.env` file:
+
+1. Create a GitHub Personal Access Token:
+   - Go to [GitHub Settings > Developer Settings > Personal Access Tokens](https://github.com/settings/tokens)
+   - Click "Generate new token (classic)"
+   - Select the following scope:
+     - `repo`
+   - Copy the generated token
+
+2. Add `GITHUB_TOKEN` to `.env` file with your generated token
+
+### Running the mobile application 📱
+* To install project dependencies run: `npm install`
+* To start metro server run: `npm run start`
+**Note:** For now this is a required step — metro needs to be called manually in a separate terminal.
+* To run application on a **Development Simulator**:
+    - For standalone `npm run ios-standalone`
+    - For hybrid app `npm run ios` 
+
+After completing these steps, you should be able to start both mobile platform apps using the remote build.
+
+### Troubleshooting
+If you haven't done any intentional edits outside of `src/` (like adding new dependencies) but your app is still running into a full build, remember that it's way easier to debug and address a remote cache miss rather than any compilation error.
+
+* Try re-installing dependencies:
+    - `npm run i-standalone` for the standalone app
+    - `npm install` for the hybrid app
+
+* Try running:
+    - For standalone `npm run ios-standalone`
+    - For hybrid app `npm run ios`
+
+* If you’re still encountering errors, you can try running:
+    - `git clean -fdx ios/` when running standalone app
+    - `git clean -fdx ./Mobile-Expensify` when running hybrid app
+
+* Then try running again: 
+    - For standalone `npm run ios-standalone`
+    - For hybrid app `npm run ios`
+
+* If the issue persists, verify that both workflows in the GitHub repository have completed successfully:
+    - [iOS builds](https://github.com/Expensify/App/actions/workflows/remote-build-ios.yml)
+    If the workflows are still running, open them and verify they match your fingerprint. Once complete, Rock should download the remote build. If not, check whether the last main commit hash merged into your branch has the same fingerprint as yours.
+
+    If the fingerprints do not match, run:
+    - `npx rock fingerprint -p ios --verbose`
+    Compare the results with the GitHub Actions output to see which files have different fingerprints.
+
+* In the event of workflow failures, it is recommended to have the option to manually build the application. The following steps will cover the manual build process.  
+
+## Running the mobile application using manual builds
 
 ### iOS-Specific Prerequisites
 For an M1 Mac, read this [Stack Overflow post](https://stackoverflow.com/questions/64901180/how-to-run-cocoapods-on-apple-silicon-m1) for installing cocoapods.
