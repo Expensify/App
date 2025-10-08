@@ -226,7 +226,6 @@ function useSearchSelectorBase({
         maxRecentReportsToShow,
         getValidOptionsConfig,
         selectedOptions,
-        ,
     ]);
 
     const isOptionSelected = useMemo(() => {
