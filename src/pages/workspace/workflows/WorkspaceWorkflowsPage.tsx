@@ -81,6 +81,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [isDisableApprovalsConfirmModalOpen, setIsDisableApprovalsConfirmModalOpen] = useState(false);
     const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
@@ -150,6 +151,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+    const confirmDisableApprovals = useCallback(() => {
+        setIsDisableApprovalsConfirmModalOpen(false);
+        setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+    }, [route.params.policyID, policy?.owner]);
 
     useFocusEffect(fetchData);
 
@@ -207,6 +212,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subtitle: translate('workflowsPage.delaySubmissionDescription'),
                 switchAccessibilityLabel: translate('workflowsPage.delaySubmissionDescription'),
                 onToggle: (isEnabled: boolean) => {
+                    if (!isEnabled) {
+                        setIsDisableApprovalsConfirmModalOpen(true);
+                        return;
+                    }
                     setWorkspaceAutoReportingFrequency(route.params.policyID, isEnabled ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
                 },
                 subMenuItems: (
@@ -236,6 +245,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subtitle: isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
                 switchAccessibilityLabel: isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
                 onToggle: (isEnabled: boolean) => {
+                    const hasCustomApprovalWorkflows = policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED;
+                    if (!isEnabled && hasCustomApprovalWorkflows) {
+                        setIsDisableApprovalsConfirmModalOpen(true);
+                        return;
+                    }
                     setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL);
                 },
                 subMenuItems: (
@@ -461,6 +475,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         />
                     )}
                 </View>
+                <ConfirmModal
+                    title={translate('workspace.bankAccount.areYouSure')}
+                    isVisible={isDisableApprovalsConfirmModalOpen}
+                    onConfirm={confirmDisableApprovals}
+                    onCancel={() => setIsDisableApprovalsConfirmModalOpen(false)}
+                    prompt={translate('workflowsPage.disableApprovalPromptDescription')}
+                    confirmText={translate('common.disable')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
     );
