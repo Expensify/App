@@ -176,7 +176,6 @@ function AuthScreens() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
     const isLoadingAppRef = useRef(isLoadingApp);
-
     // eslint-disable-next-line react-compiler/react-compiler
     lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
     // eslint-disable-next-line react-compiler/react-compiler
