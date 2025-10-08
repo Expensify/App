@@ -176,7 +176,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                             !shouldUseNarrowLayout
                                 ? {
                                       ...styles.sidebarPopover,
-                                      ...styles.pv6
+                                      ...styles.pv6,
                                       ...styles.pv4,
                                   }
                                 : styles.pt5,
