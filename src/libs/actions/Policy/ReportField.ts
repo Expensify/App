@@ -83,8 +83,6 @@ type UpdateReportFieldInitialValueParams = {
     newInitialValue: string;
     reportFieldID: string;
     policy: OnyxEntry<Policy>;
-    policyID: string;
-    policyExpenseReportIDs: Array<string | undefined> | undefined;
 };
 
 function openPolicyReportFieldsPage(policyID: string) {
