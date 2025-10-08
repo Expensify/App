@@ -1,4 +1,3 @@
-import {activePolicySelector} from '@selectors/Policy';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
@@ -24,7 +23,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getTransactionDetails, isGroupPolicy, isReportInGroupPolicy} from '@libs/ReportUtils';
-import {isExpenseUnreported as isExpenseUnreportedTransactionUtils} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -53,13 +51,7 @@ function IOURequestStepCategory({
     const policyIdDraft = getIOURequestPolicyID(transaction, reportDraft);
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyIdReal}`, {canBeMissing: true});
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyIdDraft}`, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
-        canBeMissing: true,
-        selector: activePolicySelector,
-    });
-    const isExpenseUnreported = isExpenseUnreportedTransactionUtils(transaction);
-    const policy = isExpenseUnreported ? activePolicy : (policyReal ?? policyDraft);
+    const policy = policyReal ?? policyDraft;
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
@@ -79,7 +71,7 @@ function IOURequestStepCategory({
     const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
 
     const shouldShowCategory =
-        (isExpenseUnreported || isReportInGroupPolicy(report) || isGroupPolicy(policy?.type ?? '')) &&
+        (isReportInGroupPolicy(report) || isGroupPolicy(policy?.type ?? '')) &&
         // The transactionCategory can be an empty string, so to maintain the logic we'd like to keep it in this shape until utils refactor
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (!!categoryForDisplay || hasEnabledOptions(Object.values(policyCategories ?? {})));
