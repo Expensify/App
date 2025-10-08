@@ -1,5 +1,6 @@
 import React, {useCallback, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -51,9 +52,6 @@ type PaymentMethodListItemProps = {
 
     /** List item style */
     listItemStyle?: StyleProp<ViewStyle>;
-
-    /** ID of selected payment method */
-    selectedMethodID?: string | number;
 };
 
 function dismissError(item: PaymentMethodItem) {
@@ -88,10 +86,12 @@ function isAccountInSetupState(account: PaymentMethodItem) {
     return !!(account.accountData && 'state' in account.accountData && account.accountData.state === CONST.BANK_ACCOUNT.STATE.SETUP);
 }
 
-function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems, listItemStyle, selectedMethodID}: PaymentMethodListItemProps) {
+function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems, listItemStyle}: PaymentMethodListItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
+
+    console.log({item});
 
     const handleRowPress = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
         if (isAccountInSetupState(item) || !threeDotsMenuItems) {
@@ -140,18 +140,19 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 shouldShowRightComponent={!!threeDotsMenuItems}
                 rightComponent={
                     threeDotsMenuItems ? (
-                        <ThreeDotsMenu
-                            shouldSelfPosition
-                            onIconPress={item.onThreeDotsMenuPress ?? item.onPress}
-                            menuItems={threeDotsMenuItems}
-                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                            shouldOverlay
-                            isNested
-                            threeDotsMenuRef={threeDotsMenuRef}
-                        />
+                        <View style={styles.alignSelfCenter}>
+                            <ThreeDotsMenu
+                                shouldSelfPosition
+                                onIconPress={item.onThreeDotsMenuPress ?? item.onPress}
+                                menuItems={threeDotsMenuItems}
+                                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                                shouldOverlay
+                                isNested
+                                threeDotsMenuRef={threeDotsMenuRef}
+                            />
+                        </View>
                     ) : undefined
                 }
-                isSelected={selectedMethodID?.toString() === item.methodID?.toString()}
                 interactive={item.interactive}
                 brickRoadIndicator={item.brickRoadIndicator}
                 success={item.isMethodActive}

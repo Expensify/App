@@ -20,8 +20,6 @@ import {getAssignedCardSortKey, getCardFeedIcon, getPlaidInstitutionIconUrl, isE
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
-import type {PaymentMethodItem} from '@pages/settings/Wallet/PaymentMethodListItem';
-import PaymentMethodListItem from '@pages/settings/Wallet/PaymentMethodListItem';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,6 +29,8 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import type {PaymentMethodItem} from './PaymentMethodListItem';
+import PaymentMethodListItem from './PaymentMethodListItem';
 import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './WalletPage/types';
 
 type PaymentMethodPressHandler = ({event, accountType, accountData, methodID, icon, description, isDefault}: PaymentMethodPressHandlerParams) => void;
@@ -45,9 +45,6 @@ type PaymentMethodListProps = {
     // TODO: can be removed after WorkspaceInvoiceVBASection refactor
     /** ID of active/highlighted payment method */
     activePaymentMethodID?: string | number;
-
-    /** ID of selected payment method */
-    selectedMethodID?: string | number;
 
     /** Content for the FlatList header component */
     listHeaderComponent?: ReactElement;
@@ -129,7 +126,6 @@ function PaymentMethodList({
     onPress,
     shouldShowAddBankAccount = true,
     shouldShowAssignedCards = false,
-    selectedMethodID = '',
     onListContentSizeChange = () => {},
     style = {},
     listItemStyle = {},
@@ -301,6 +297,7 @@ function PaymentMethodList({
             };
             return {
                 ...paymentMethod,
+                title: paymentMethod.title?.includes(CONST.MASKED_PAN_PREFIX) ? paymentMethod.accountData?.additionalData?.bankName : paymentMethod.title,
                 onPress: (e: GestureResponderEvent) =>
                     pressHandler({
                         event: e,
@@ -404,7 +401,6 @@ function PaymentMethodList({
                         shouldHideDefaultBadge,
                     )}
                     listItemStyle={listItemStyle}
-                    selectedMethodID={selectedMethodID}
                     threeDotsMenuItems={threeDotsMenuItems}
                 />
             );
@@ -415,7 +411,6 @@ function PaymentMethodList({
             userWallet?.walletLinkedAccountID,
             shouldHideDefaultBadge,
             listItemStyle,
-            selectedMethodID,
             threeDotsMenuItems,
             styles.mt4,
             styles.mt6,
