@@ -185,7 +185,7 @@ function IOURequestEditReportCommon({
         const isSubmitter = isReportOwner(selectedReport);
         // If the report is Open, then only submitters, admins can move expenses
         return isOpen && !isAdmin && !isSubmitter;
-    }, [createReport, selectedReport, reportPolicy, shouldShowNotFoundPageFromProps]);
+    }, [createReport, expenseReports.length, shouldShowNotFoundPageFromProps, selectedReport, reportPolicy]);
 
     return (
         <StepScreenWrapper
