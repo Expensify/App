@@ -18,7 +18,7 @@ function processWithMiddleware(request: Request, isFromSequentialQueue = false):
     return middlewares.reduce((last, middleware) => middleware(last, request, isFromSequentialQueue), makeXHR(request));
 }
 
-function use(middleware: Middleware) {
+function addMiddleware(middleware: Middleware) {
     middlewares.push(middleware);
 }
 
@@ -26,5 +26,5 @@ function clearMiddlewares() {
     middlewares = [];
 }
 
-export {clearMiddlewares, processWithMiddleware, use};
+export {clearMiddlewares, processWithMiddleware, addMiddleware};
 export type {Middleware};
