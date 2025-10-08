@@ -670,6 +670,7 @@ const translations = {
         link: 'リンク',
         pinned: '固定済み',
         read: '既読',
+        copyToClipboard: 'クリップボードにコピー',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -854,7 +855,7 @@ const translations = {
         expand: '展開する',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'クリップボードにコピー',
+        copyMessage: 'メッセージをコピー',
         copied: 'コピーしました！',
         copyLink: 'リンクをコピー',
         copyURLToClipboard: 'URLをクリップボードにコピー',

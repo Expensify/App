@@ -665,6 +665,7 @@ const translations = {
         link: 'Link',
         pinned: 'Pinned',
         read: 'Read',
+        copyToClipboard: 'Copy to clipboard',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -844,7 +845,7 @@ const translations = {
         expand: 'Expand',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'Copy to clipboard',
+        copyMessage: 'Copy message',
         copied: 'Copied!',
         copyLink: 'Copy link',
         copyURLToClipboard: 'Copy URL to clipboard',

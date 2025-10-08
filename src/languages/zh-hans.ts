@@ -669,6 +669,7 @@ const translations = {
         link: '链接',
         pinned: '已固定',
         read: '已读',
+        copyToClipboard: '复制到剪贴板',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -851,7 +852,7 @@ const translations = {
         expand: '展开',
     },
     reportActionContextMenu: {
-        copyToClipboard: '复制到剪贴板',
+        copyMessage: '复制消息',
         copied: '已复制！',
         copyLink: '复制链接',
         copyURLToClipboard: '复制网址到剪贴板',

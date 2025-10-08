@@ -670,6 +670,7 @@ const translations = {
         link: 'Lien',
         pinned: 'Épinglé',
         read: 'Lu',
+        copyToClipboard: 'Copier dans le presse-papiers',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -856,7 +857,7 @@ const translations = {
         expand: 'Développer',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'Copier dans le presse-papiers',
+        copyMessage: 'Copier le message',
         copied: 'Copié !',
         copyLink: 'Copier le lien',
         copyURLToClipboard: "Copier l'URL dans le presse-papiers",
