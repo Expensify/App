@@ -2339,7 +2339,7 @@ const translations = {
                     `7. 你将被设置为费用审批人。邀请团队后，你可以将其更改为任意管理员。\n` +
                     '\n' +
                     `[前往更多功能](${workspaceMoreFeaturesLink})。`,
-            },            
+            },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[创建](${workspaceConfirmationLink})一个工作区`,
                 description: '创建一个工作区，并在您的设置专家的帮助下配置各项设置！',

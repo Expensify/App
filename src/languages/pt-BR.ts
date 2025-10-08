@@ -2369,7 +2369,7 @@ const translations = {
                     `7. Você será definido como o aprovador de despesas. Pode alterar isso para qualquer administrador após convidar sua equipe.\n` +
                     '\n' +
                     `[Ir para mais recursos](${workspaceMoreFeaturesLink}).`,
-            },            
+            },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Crie](${workspaceConfirmationLink}) um espaço de trabalho`,
                 description: 'Crie um espaço de trabalho e configure as definições com a ajuda do seu especialista em configuração!',

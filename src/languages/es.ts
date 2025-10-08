@@ -2346,7 +2346,7 @@ const translations = {
                     `7. Serás asignado como aprobador de gastos. Podrás cambiarlo a cualquier administrador una vez que lo invites a tu equipo.\n` +
                     '\n' +
                     `[Llévame a más funciones](${workspaceMoreFeaturesLink}).`,
-            },          
+            },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Crea](${workspaceConfirmationLink}) un espacio de trabajo`,
                 description: 'Crea un espacio de trabajo y configura los ajustes con la ayuda de tu especialista asignado.',
