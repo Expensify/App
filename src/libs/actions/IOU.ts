@@ -4142,6 +4142,7 @@ function getUpdateMoneyRequestParams(
     policyCategories: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyCategories>,
     violations?: OnyxEntry<OnyxTypes.TransactionViolations>,
     hash?: number,
+    allowNegative?: boolean,
     newTransactionReportID?: string,
     shouldBuildOptimisticModifiedExpenseReportAction = true,
 ): UpdateMoneyRequestData {
@@ -4169,7 +4170,8 @@ function getUpdateMoneyRequestParams(
               policy,
           })
         : undefined;
-    const transactionDetails = getTransactionDetails(updatedTransaction);
+
+    const transactionDetails = getTransactionDetails(updatedTransaction, undefined, undefined, allowNegative);
 
     if (transactionDetails?.waypoints) {
         // This needs to be a JSON string since we're sending this to the MapBox API
@@ -4218,9 +4220,15 @@ function getUpdateMoneyRequestParams(
     // - we're merging two expenses (server does not create MODIFIED_EXPENSE in this flow)
     // In these cases, there isn't a valid optimistic mileage data we can use,
     // and the report action is created on the server with the distance-related response from the MapBox API
-    const updatedReportAction = shouldBuildOptimisticModifiedExpenseReportAction
-        ? buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction)
-        : null;
+    const updatedReportAction = shouldBuildOptimisticModifiedExpenseReportAction ? buildOptimisticModifiedExpenseReportAction(
+        transactionThread,
+        transaction,
+        transactionChanges,
+        isFromExpenseReport,
+        policy,
+        updatedTransaction,
+        allowNegative,
+    ) : null;
     if (!hasPendingWaypoints && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction)) && updatedReportAction) {
         params.reportActionID = updatedReportAction.reportActionID;
 
@@ -7916,6 +7924,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     taxCode: string;
+    allowNegative?: boolean;
     transactions: OnyxCollection<OnyxTypes.Transaction>;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
 };
@@ -7931,6 +7940,7 @@ function updateMoneyRequestAmountAndCurrency({
     policyTagList,
     policyCategories,
     taxCode,
+    allowNegative = false,
     transactions,
     transactionViolations,
 }: UpdateMoneyRequestAmountAndCurrencyParams) {
@@ -7940,13 +7950,24 @@ function updateMoneyRequestAmountAndCurrency({
         taxCode,
         taxAmount,
     };
+
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
     let data: UpdateMoneyRequestData;
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, policy);
     } else {
-        data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList ?? null, policyCategories ?? null);
+        data = getUpdateMoneyRequestParams(
+            transactionID,
+            transactionThreadReportID,
+            transactionChanges,
+            policy,
+            policyTagList ?? null,
+            policyCategories ?? null,
+            undefined,
+            undefined,
+            allowNegative,
+        );
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
     const {params, onyxData} = data;
@@ -10026,7 +10047,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
 
     // Remove duplicates violations if we approve the report
     if (hasDuplicates) {
-        const transactions = getReportTransactions(expenseReport.reportID).filter((transaction) => isDuplicate(transaction, true));
+        const transactions = getReportTransactions(expenseReport.reportID).filter((transaction) => isDuplicate(transaction));
         if (!full) {
             transactions.filter((transaction) => !isOnHold(transaction));
         }
@@ -13196,6 +13217,7 @@ function saveSplitTransactions(
                     policy,
                     policyTags ?? null,
                     policyCategories ?? null,
+                    undefined,
                     undefined,
                     undefined,
                     splitExpense?.reportID,

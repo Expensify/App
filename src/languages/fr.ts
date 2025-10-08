@@ -1246,6 +1246,7 @@ const translations = {
         invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Compte professionnel • ${lastFour}`,
         nextStep: 'Étapes suivantes',
         finished: 'Terminé',
+        flip: 'Inverser',
         sendInvoice: ({amount}: RequestAmountParams) => `Envoyer une facture de ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `pour ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `soumis${memo ? `, en disant ${memo}` : ''}`,
@@ -2025,7 +2026,6 @@ const translations = {
         delaySubmissionDescription:
             'Choisissez un calendrier personnalisé pour soumettre les dépenses, ou laissez cette option désactivée pour des mises à jour en temps réel sur les dépenses.',
         submissionFrequency: 'Fréquence de soumission',
-        disableApprovalPromptDescription: "Désactiver les approbations effacera tous les flux de travail d'approbation existants.",
         submissionFrequencyDateOfMonth: 'Date du mois',
         addApprovalsTitle: 'Ajouter des approbations',
         addApprovalButton: "Ajouter un flux de travail d'approbation",

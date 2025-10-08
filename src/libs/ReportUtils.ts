@@ -1838,6 +1838,54 @@ function doesReportBelongToWorkspace(report: OnyxEntry<Report>, policyMemberAcco
 }
 
 /**
+ * Checks if a report is a self-DM or belongs to a self-DM context
+ * (including moved reports and threads within self-DMs)
+ */
+function isSelfDMOrSelfDMThread(report: OnyxEntry<Report>): boolean {
+    if (!report || !currentUserAccountID) {
+        return false;
+    }
+
+    // Standard self-DM check
+    if (isSelfDM(report)) {
+        return true;
+    }
+
+    // Check if it's a chat with only the current user as participant
+    // BUT only if it's not a thread report (threads should be checked against parent)
+    if (report.type === CONST.REPORT.TYPE.CHAT && report.participants && !report.parentReportID) {
+        const participantIds = Object.keys(report.participants).map(Number);
+        const otherParticipants = participantIds.filter((id) => id !== currentUserAccountID);
+
+        // If only current user is participant, it's a self-DM
+        if (otherParticipants.length === 0 && participantIds.includes(currentUserAccountID)) {
+            return true;
+        }
+    }
+
+    // For thread reports, check the parent
+    if (report.parentReportID) {
+        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
+        return isSelfDMOrSelfDMThread(parentReport);
+    }
+
+    return false;
+}
+
+/**
+ * Returns true if the report is an expense report, a group policy, a self-DM, or the iouType is create, and the iouType is not split or invoice.
+ */
+function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, iouType?: string) {
+    const isSelfDMReport = isSelfDMOrSelfDMThread(report);
+
+    return (
+        (isExpenseReport(report) || isGroupPolicy(policy?.type ?? '') || isSelfDMReport || iouType === CONST.IOU.TYPE.CREATE) &&
+        iouType !== CONST.IOU.TYPE.SPLIT &&
+        iouType !== CONST.IOU.TYPE.INVOICE
+    );
+}
+
+/**
  * Given an array of reports, return them filtered by a policyID and policyMemberAccountIDs.
  */
 function filterReportsByPolicyIDAndMemberAccountIDs(reports: Array<OnyxEntry<Report>>, policyMemberAccountIDs: number[] = [], policyID?: string) {
@@ -4115,6 +4163,8 @@ function getTransactionDetails(
     transaction: OnyxInputOrEntry<Transaction>,
     createdDateFormat: string = CONST.DATE.FNS_FORMAT_STRING,
     policy: OnyxEntry<Policy> = undefined,
+    allowNegativeAmount = false,
+    disableOppositeConversion = false,
 ): TransactionDetails | undefined {
     if (!transaction) {
         return;
@@ -4124,7 +4174,13 @@ function getTransactionDetails(
 
     return {
         created: getFormattedCreated(transaction, createdDateFormat),
-        amount: getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID),
+        amount: getTransactionAmount(
+            transaction,
+            !isEmptyObject(report) && isExpenseReport(report),
+            transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID,
+            allowNegativeAmount,
+            disableOppositeConversion,
+        ),
         attendees: getAttendees(transaction),
         taxAmount: getTaxAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
         taxCode: getTaxCode(transaction),
@@ -4911,6 +4967,7 @@ function getModifiedExpenseOriginalMessage(
     isFromExpenseReport: boolean,
     policy: OnyxInputOrEntry<Policy>,
     updatedTransaction?: OnyxInputOrEntry<Transaction>,
+    allowNegative = false,
 ): OriginalMessageModifiedExpense {
     const originalMessage: OriginalMessageModifiedExpense = {};
     // Remark: Comment field is the only one which has new/old prefixes for the keys (newComment/ oldComment),
@@ -4936,7 +4993,7 @@ function getModifiedExpenseOriginalMessage(
     // to match how we handle the modified expense action in oldDot
     const didAmountOrCurrencyChange = 'amount' in transactionChanges || 'currency' in transactionChanges;
     if (didAmountOrCurrencyChange) {
-        originalMessage.oldAmount = getTransactionAmount(oldTransaction, isFromExpenseReport);
+        originalMessage.oldAmount = getTransactionAmount(oldTransaction, isFromExpenseReport, false, allowNegative);
         originalMessage.amount = transactionChanges?.amount ?? transactionChanges.oldAmount;
         originalMessage.oldCurrency = getCurrency(oldTransaction);
         originalMessage.currency = transactionChanges?.currency ?? transactionChanges.oldCurrency;
@@ -4985,7 +5042,7 @@ function getModifiedExpenseOriginalMessage(
         ('customUnitRateID' in transactionChanges && updatedTransaction?.comment?.customUnit?.customUnitRateID) ||
         ('distance' in transactionChanges && updatedTransaction?.comment?.customUnit?.quantity)
     ) {
-        originalMessage.oldAmount = getTransactionAmount(oldTransaction, isFromExpenseReport);
+        originalMessage.oldAmount = getTransactionAmount(oldTransaction, isFromExpenseReport, false, true);
         originalMessage.oldCurrency = getCurrency(oldTransaction);
         originalMessage.oldMerchant = getMerchant(oldTransaction);
 
@@ -6389,7 +6446,7 @@ function getWorkspaceNameUpdatedMessage(action: ReportAction) {
 
 function getDeletedTransactionMessage(action: ReportAction) {
     const deletedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION>) ?? {};
-    const amount = Math.abs(deletedTransactionOriginalMessage.amount ?? 0);
+    const amount = -(deletedTransactionOriginalMessage.amount ?? 0);
     const currency = deletedTransactionOriginalMessage.currency ?? '';
     const formattedAmount = convertToDisplayString(amount, currency) ?? '';
     const message = translateLocal('iou.deletedTransaction', {
@@ -7036,8 +7093,9 @@ function buildOptimisticModifiedExpenseReportAction(
     isFromExpenseReport: boolean,
     policy: OnyxInputOrEntry<Policy>,
     updatedTransaction?: OnyxInputOrEntry<Transaction>,
+    allowNegative = false,
 ): OptimisticModifiedExpenseReportAction {
-    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction);
+    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction, allowNegative);
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
 
     return {
@@ -9836,10 +9894,25 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, shouldExcludeNonR
         unheldTotal -= iouReport?.unheldNonReimbursableTotal ?? 0;
     }
 
+    const adjustedUnheldTotal = unheldTotal * coefficient;
+    const adjustedTotal = total * coefficient;
+
+    // For the "approve unheld" option to be valid, we need:
+    // 1. There should be held expenses (unheld amount != total amount)
+    // 2. For expense reports with negative totals, we need to ensure the unheld amount is valid
+    //    by checking that the absolute values are meaningful and different
+    const hasHeldExpensesLocal = unheldTotal !== total;
+    const hasValidNonHeldAmount =
+        hasHeldExpensesLocal &&
+        // For normal cases (positive amounts or IOU reports)
+        (adjustedUnheldTotal >= 0 ||
+            // For expense reports with negative amounts, check if amounts are meaningful
+            (isExpenseReport(iouReport) && Math.abs(adjustedUnheldTotal) > 0 && Math.abs(adjustedUnheldTotal) !== Math.abs(adjustedTotal)));
+
     return {
-        nonHeldAmount: convertToDisplayString(unheldTotal * coefficient, iouReport?.currency),
-        fullAmount: convertToDisplayString(total * coefficient, iouReport?.currency),
-        hasValidNonHeldAmount: unheldTotal * coefficient >= 0,
+        nonHeldAmount: convertToDisplayString(adjustedUnheldTotal, iouReport?.currency),
+        fullAmount: convertToDisplayString(adjustedTotal, iouReport?.currency),
+        hasValidNonHeldAmount,
     };
 }
 
@@ -11899,6 +11972,7 @@ export {
     chatIncludesConcierge,
     createDraftTransactionAndNavigateToParticipantSelector,
     doesReportBelongToWorkspace,
+    shouldEnableNegative,
     findLastAccessedReport,
     findSelfDMReportID,
     formatReportLastMessageText,
@@ -12081,6 +12155,7 @@ export {
     isReportOwner,
     isReportParticipant,
     isSelfDM,
+    isSelfDMOrSelfDMThread,
     isSettled,
     isSystemChat,
     isTaskReport,
