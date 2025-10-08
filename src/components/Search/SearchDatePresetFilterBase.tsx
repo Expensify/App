@@ -43,7 +43,7 @@ type SearchDatePresetFilterBaseProps = {
     presets?: SearchDatePreset[];
 
     /** Whether the search advanced filters form Onyx data is loading or not */
-    isSearchAdvancedFiltersFormLoading: boolean;
+    isSearchAdvancedFiltersFormLoading?: boolean;
 
     /** The ref handle */
     ref: Ref<SearchDatePresetFilterBaseHandle>;
