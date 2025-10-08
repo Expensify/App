@@ -33,7 +33,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
-import {searchInServer} from '@libs/actions/Report';
+import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     deleteMoneyRequestOnSearch,
@@ -53,7 +53,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
+import {generateReportID, getPolicyExpenseChat, isExpenseReport as isExpenseReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -71,7 +71,7 @@ import SearchPageNarrow from './SearchPageNarrow';
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
 function SearchPage({route}: SearchPageProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -184,9 +184,24 @@ function SearchPage({route}: SearchPageProps) {
 
             for (const item of selectedOptions) {
                 const itemPolicyID = item.policyID;
+                const itemReportID = item.reportID;
+                const isExpenseReport = isExpenseReportUtil(itemReportID);
+                const isIOUReport = isIOUReportUtil(itemReportID);
                 const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(itemPolicyID, lastPaymentMethods) ?? paymentMethod;
 
                 if (!lastPolicyPaymentMethod) {
+                    Navigation.navigate(
+                        ROUTES.SEARCH_REPORT.getRoute({
+                            reportID: itemReportID,
+                            backTo: activeRoute,
+                        }),
+                    );
+                    return;
+                }
+
+                const hasPolicyVBBA = hasVBBA(itemPolicyID);
+
+                if (isExpenseReport && lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasPolicyVBBA) {
                     Navigation.navigate(
                         ROUTES.SEARCH_REPORT.getRoute({
                             reportID: item.reportID,
@@ -196,16 +211,24 @@ function SearchPage({route}: SearchPageProps) {
                     return;
                 }
 
-                const hasPolicyVBBA = hasVBBA(itemPolicyID);
-
-                if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasPolicyVBBA) {
-                    Navigation.navigate(
-                        ROUTES.SEARCH_REPORT.getRoute({
-                            reportID: item.reportID,
-                            backTo: activeRoute,
-                        }),
-                    );
-                    return;
+                // If lastPolicyPaymentMethod is not type of CONST.IOU.PAYMENT_TYPE, we're using workspace to pay the IOU
+                // Then we should move it to that workspace.
+                if (typeof lastPolicyPaymentMethod !== typeof CONST.IOU.PAYMENT_TYPE && isIOUReport) {
+                    const admidPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${lastPolicyPaymentMethod}`];
+                    if (!admidPolicy) {
+                        Navigation.navigate(
+                            ROUTES.SEARCH_REPORT.getRoute({
+                                reportID: item.reportID,
+                                backTo: activeRoute,
+                            }),
+                        );
+                        return;
+                    }
+                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReportID, admidPolicy, formatPhoneNumber);
+                    console.log('invite', invite);
+                    if (!invite?.policyExpenseChatReportID) {
+                        moveIOUReportToPolicy(itemReportID, admidPolicy);
+                    }
                 }
             }
 
@@ -228,7 +251,7 @@ function SearchPage({route}: SearchPageProps) {
                 clearSelectedTransactions();
             });
         },
-        [clearSelectedTransactions, hash, isOffline, lastPaymentMethods, selectedReports, selectedTransactions],
+        [clearSelectedTransactions, hash, isOffline, lastPaymentMethods, selectedReports, selectedTransactions, policies],
     );
 
     const headerButtonsOptions = useMemo(() => {
