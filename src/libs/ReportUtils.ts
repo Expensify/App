@@ -8360,9 +8360,8 @@ function isReportNotFound(report: OnyxEntry<Report>): boolean {
  * @returns boolean - true if the ancestor report action should be excluded, false otherwise
  */
 function shouldExcludeAncestorReportAction(ancestorReportAction: ReportAction, isFirstAncestor: boolean): boolean {
-    // If there aren't any ancestors, we need to show the trip-preview action.
     if (isTripPreview(ancestorReportAction)) {
-        return isFirstAncestor;
+        return !isFirstAncestor;
     }
 
     // Exclude transaction threads except sent-money actions

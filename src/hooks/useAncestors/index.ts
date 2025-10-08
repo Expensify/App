@@ -31,20 +31,20 @@ function useAncestors(report: OnyxEntry<Report>, shouldExcludeAncestorReportActi
             const currentReportAction = reportActionsCollection[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReport.parentReportID}`]?.[`${currentReport.parentReportActionID}`];
 
             // As we traverse up the report hierarchy, we need to reassign `currentReport`
-            // to the parent's own report. Otherwise, the loop continue forever and
-            // the same report and report actions will be pushed to `ancestors` continuously.
+            // to the parent's own report.
             currentReport =
                 reportCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReport.parentReportID}`] ??
                 reportDraftCollection?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${currentReport.parentReportID}`];
-            if (!!currentReport && !!currentReportAction && !shouldExcludeAncestorReportActionCallback(currentReportAction, ancestors.length === 0)) {
-                // To maintain the order from the top-most ancestor down to the immediate parent
-                // we `unshift` (push) each ancestor to the start of the array.
-                ancestors.unshift({
-                    report: currentReport,
-                    reportAction: currentReportAction,
-                    shouldDisplayNewMarker: isCurrentActionUnread(currentReport, currentReportAction),
-                });
+            if (!currentReport || !currentReportAction || shouldExcludeAncestorReportActionCallback(currentReportAction, ancestors.length === 0)) {
+                break;
             }
+            // To maintain the order from the top-most ancestor down to the immediate parent
+            // we `unshift` (push) each ancestor to the start of the array.
+            ancestors.unshift({
+                report: currentReport,
+                reportAction: currentReportAction,
+                shouldDisplayNewMarker: isCurrentActionUnread(currentReport, currentReportAction),
+            });
         }
         return ancestors;
     }, [report, reportCollection, reportDraftCollection, reportActionsCollection, shouldExcludeAncestorReportActionCallback]);
