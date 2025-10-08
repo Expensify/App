@@ -129,6 +129,43 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
 
+    it('include SUBMIT option if the report is retracted', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            hasReportBeenReopened: true,
+        } as unknown as Report;
+        const policy = {
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL,
+            harvesting: {
+                enabled: true,
+            },
+            role: CONST.POLICY.ROLE.USER,
+        } as unknown as Policy;
+
+        const transaction = {
+            transactionID: 'TRANSACTION_ID',
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+            comment: {
+                hold: 'hold',
+            },
+        } as unknown as Transaction;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValue('12345');
+        jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(true);
+
+        const result = getSecondaryReportActions({currentUserEmail: EMPLOYEE_EMAIL, report, chatReport, reportTransactions: [transaction], violations: {}, policy});
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
+    });
+
     it('should not include SUBMIT option for the user who is not submitter/admin/manager', async () => {
         const report: Report = {
             reportID: '1',
@@ -593,6 +630,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Report;
 
         const transaction = {
+            transactionID: 'TRANSACTION_ID_R14932',
             comment: {},
         } as unknown as Transaction;
         const policy = {} as unknown as Policy;
@@ -864,7 +902,7 @@ describe('getSecondaryAction', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, {} as Transaction, [], policy);
+        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, {} as Transaction, undefined, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 
@@ -1068,6 +1106,48 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({currentUserEmail: EMPLOYEE_EMAIL, report, chatReport, reportTransactions: [transaction], violations: {}, policy});
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
+    });
+
+    it('does not include DELETE option for unreported card expense imported with deleting disabled', async () => {
+        // Given the unreported card expense imported with deleting disabled
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+        } as unknown as Report;
+
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            managedCard: true,
+            comment: {
+                liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT,
+            },
+        } as unknown as Transaction;
+
+        const reportActions = [
+            {
+                reportActionID: '1',
+                actorAccountID: EMPLOYEE_ACCOUNT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: TRANSACTION_ID,
+                    IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                },
+            },
+        ] as unknown as ReportAction[];
+
+        const policy = {} as unknown as Policy;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // Then it should return false since the unreported card expense is imported with deleting disabled
+        const result = getSecondaryReportActions({currentUserEmail: EMPLOYEE_EMAIL, report, chatReport, reportTransactions: [transaction], violations: {}, policy, reportActions});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
 
@@ -1408,7 +1488,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         const policy = {} as unknown as Policy;
 
         const result = [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS];
-        expect(getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, {} as Transaction, [], policy)).toEqual(result);
+        expect(getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, {} as Transaction, undefined, policy)).toEqual(result);
     });
 
     it('includes HOLD option', () => {
@@ -1427,7 +1507,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         const policy = {} as unknown as Policy;
 
         jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: true, canUnholdRequest: true});
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, transaction, [actionR14932], policy);
+        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, transaction, actionR14932, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
 
@@ -1444,12 +1524,12 @@ describe('getSecondaryTransactionThreadActions', () => {
         } as unknown as Transaction;
 
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, transaction, [], policy, transactionThreadReport);
+        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, transaction, undefined, policy, transactionThreadReport);
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
 
         // Do not show if admin is the holder
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(true);
-        const result2 = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, transaction, [], policy, transactionThreadReport);
+        const result2 = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, transaction, undefined, policy, transactionThreadReport);
         expect(result2).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
 
@@ -1466,7 +1546,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, {} as Transaction, [], policy);
+        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, {} as Transaction, undefined, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 
@@ -1542,7 +1622,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, transaction, [actionR14932], policy);
+        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, transaction, actionR14932, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
 
@@ -1578,7 +1658,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, transaction, [actionR14932], policy);
+        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, transaction, actionR14932, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 
@@ -1615,7 +1695,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, transaction, [actionR14932], policy);
+        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, transaction, actionR14932, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 });
