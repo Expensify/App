@@ -1,6 +1,5 @@
-import type {ForwardedRef} from 'react';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
-import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
 type DatePickerBaseProps = {
@@ -54,11 +53,6 @@ type DateInputWithPickerProps = DatePickerBaseProps &
          * @default false
          */
         shouldHideClearButton?: boolean;
-
-        /**
-         * Reference to the outer element
-         */
-        ref?: ForwardedRef<BaseTextInputRef>;
     };
 
 type DatePickerProps = {
