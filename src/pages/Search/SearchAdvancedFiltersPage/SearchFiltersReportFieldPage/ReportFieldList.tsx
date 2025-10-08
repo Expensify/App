@@ -10,6 +10,7 @@ import type {PolicyReportField} from '@src/types/onyx';
 type ReportFieldListProps = {
     field: PolicyReportField;
     values: Record<string, string | string[] | null>;
+    close: () => void;
     setValues: React.Dispatch<React.SetStateAction<Record<string, string | string[] | null>>>;
 };
 
@@ -20,7 +21,7 @@ type ListItem = {
     isSelected: boolean;
 };
 
-function ReportFieldList({field, values, setValues}: ReportFieldListProps) {
+function ReportFieldList({field, values, close, setValues}: ReportFieldListProps) {
     const styles = useThemeStyles();
 
     const [selectedItem, setSelectedItem] = useState(() => {
@@ -51,7 +52,9 @@ function ReportFieldList({field, values, setValues}: ReportFieldListProps) {
             ...prevValues,
             [field.fieldID]: selectedItem ?? null,
         }));
-    }, [field.fieldID, selectedItem, setValues]);
+
+        close();
+    }, [field.fieldID, selectedItem, setValues, close]);
 
     return (
         <>

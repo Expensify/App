@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -42,6 +42,13 @@ function SearchFiltersReportFieldPage() {
         },
     });
 
+    const fieldMenuItems = useMemo(() => {
+        return Object.values(fieldList ?? {}).map((field) => ({
+            ...field,
+            value: values[field.fieldID] ? [values[field.fieldID]].flat().join(', ') : undefined,
+        }));
+    }, [fieldList, values]);
+
     const resetValues = () => {
         setValues({});
     };
@@ -73,6 +80,7 @@ function SearchFiltersReportFieldPage() {
                     field={selectedField}
                     values={values}
                     setValues={setValues}
+                    close={() => setSelectedField(null)}
                 />
             </ScreenWrapper>
         );
@@ -93,14 +101,14 @@ function SearchFiltersReportFieldPage() {
                 }}
             />
             <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                {Object.values(fieldList ?? {}).map((value) => (
+                {fieldMenuItems.map((field) => (
                     <MenuItem
-                        key={value.fieldID}
+                        key={field.fieldID}
                         shouldShowRightIcon
                         viewMode={CONST.OPTION_MODE.COMPACT}
-                        title={value.name}
-                        description={undefined}
-                        onPress={() => setSelectedField(value)}
+                        title={field.name}
+                        description={field.value}
+                        onPress={() => setSelectedField(field)}
                     />
                 ))}
             </ScrollView>
