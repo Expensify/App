@@ -225,7 +225,6 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
                     const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReportID, admidPolicy, formatPhoneNumber);
-                    console.log('invite', invite);
                     if (!invite?.policyExpenseChatReportID) {
                         moveIOUReportToPolicy(itemReportID, admidPolicy);
                     }
