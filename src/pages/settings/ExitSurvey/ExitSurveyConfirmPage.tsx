@@ -24,11 +24,15 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ExitSurveyReasonForm} from '@src/types/form/ExitSurveyReasonForm';
 import EXIT_SURVEY_REASON_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
+import type {ExitSurveyResponseForm} from '@src/types/form/ExitSurveyResponseForm';
 import RESPONSE_INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
 type ExitSurveyConfirmPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM>;
+
+const exitReasonSelector = (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[EXIT_SURVEY_REASON_INPUT_IDS.REASON] ?? null;
+const exitResponseSelector = (value: OnyxEntry<ExitSurveyResponseForm>) => value?.[RESPONSE_INPUT_IDS.RESPONSE];
 
 function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) {
     const {translate} = useLocalize();
@@ -36,11 +40,11 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
     const styles = useThemeStyles();
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const [exitReason] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM, {
-        selector: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[EXIT_SURVEY_REASON_INPUT_IDS.REASON] ?? null,
+        selector: exitReasonSelector,
         canBeMissing: true,
     });
     const [exitSurveyResponse] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {
-        selector: (value) => value?.[RESPONSE_INPUT_IDS.RESPONSE],
+        selector: exitResponseSelector,
         canBeMissing: true,
     });
     const shouldShowQuickTips =
