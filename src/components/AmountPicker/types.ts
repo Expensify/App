@@ -18,7 +18,17 @@ type AmountSelectorModalProps = {
 } & Pick<MenuItemBaseProps, 'description'> &
     Pick<
         NumberWithSymbolFormProps,
-        'decimals' | 'maxLength' | 'symbol' | 'symbolPosition' | 'isSymbolPressable' | 'style' | 'containerStyle' | 'touchableInputWrapperStyle' | 'autoGrowExtraSpace' | 'autoGrowMarginSide'
+        | 'decimals'
+        | 'maxLength'
+        | 'symbol'
+        | 'currency'
+        | 'symbolPosition'
+        | 'isSymbolPressable'
+        | 'style'
+        | 'containerStyle'
+        | 'touchableInputWrapperStyle'
+        | 'autoGrowExtraSpace'
+        | 'autoGrowMarginSide'
     >;
 
 type AmountPickerProps = {

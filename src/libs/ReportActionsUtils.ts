@@ -868,6 +868,12 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
+    // Ignore markedAsReimbursed action here since we're already display message that explains the expense was paid
+    // elsewhere in the IOU reportAction
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) {
+        return false;
+    }
+
     if (isWhisperActionTargetedToOthers(reportAction)) {
         return false;
     }
@@ -2968,10 +2974,6 @@ function getRoomChangeLogMessage(reportAction: ReportAction) {
     return `${actionText} ${targetAccountIDs.length} ${userText}`;
 }
 
-function getReportActions(report: Report) {
-    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
-}
-
 /**
  * @private
  */
@@ -3214,7 +3216,6 @@ export {
     getTagListNameUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
     getRoomChangeLogMessage,
-    getReportActions,
     getReopenedMessage,
     getLeaveRoomMessage,
     getRetractedMessage,
