@@ -44,16 +44,14 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
 
     const openEmojiPicker = () => {
         onPressOpenPicker();
-        showEmojiPicker(
-            onEmojiPickerClosed,
-            (emojiCode, emojiObject) => {
+        showEmojiPicker({
+            onModalHide: onEmojiPickerClosed,
+            onEmojiSelected: (_emojiCode, emojiObject) => {
                 onEmojiSelected(emojiObject, emojiReactions);
             },
-            ref,
-            undefined,
-            () => {},
-            reportAction.reportActionID,
-        );
+            emojiPopoverAnchor: ref,
+            id: reportAction.reportActionID,
+        });
     };
 
     return (
