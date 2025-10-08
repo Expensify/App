@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import type {AppStateStatus, TargetedEvent} from 'react-native';
+import type {TargetedEvent} from 'react-native';
 import type {BootSplashModule} from '@libs/BootSplash/types';
 import type {EnvironmentCheckerModule} from '@libs/Environment/betaChecker/types';
 import type {NavBarButtonStyle, NavigationBarType} from '@libs/NavBarManager/types';
@@ -8,19 +8,28 @@ import type {ShortcutManagerModule} from '@libs/ShortcutManager';
 import type StartupTimer from '@libs/StartupTimer/types';
 
 type AppStateTrackerModule = {
-    getApplicationState: () => Promise<{
-        currentState: AppStateStatus;
-        prevState: AppStateStatus;
-    }>;
+    getWasAppRelaunchedFromIcon: () => Promise<boolean>;
 };
 
 type RNTextInputResetModule = {
-    resetKeyboardInput: (nodeHandle: number | null) => void;
+    resetKeyboardInput: (nativeId: string) => void;
 };
 
 type RNNavBarManagerModule = {
     setButtonStyle: (style: NavBarButtonStyle) => void;
     getType(): NavigationBarType;
+};
+
+type TestToolsBridge = {
+    /**
+     * "Soft" kills the app so that it can still run in the background
+     */
+    softKillApp: () => void;
+};
+
+type PushNotificationBridge = {
+    /** Signal to native code that we're done processing a push notification. */
+    finishBackgroundProcessing: () => void;
 };
 
 declare module 'react-native' {
@@ -54,6 +63,8 @@ declare module 'react-native' {
         EnvironmentChecker: EnvironmentCheckerModule;
         ShortcutManager: ShortcutManagerModule;
         ShareActionHandler: ShareActionHandlerModule;
+        TestToolsBridge: TestToolsBridge;
+        PushNotificationBridge: PushNotificationBridge;
     }
 
     namespace Animated {

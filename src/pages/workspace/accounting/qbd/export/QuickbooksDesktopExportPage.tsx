@@ -1,10 +1,10 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
@@ -14,7 +14,6 @@ import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/t
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import {openExternalLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -116,15 +115,9 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
                     />
                 </OfflineWithFeedback>
             ))}
-            <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, styles.mt2]}>
-                <Text style={[styles.mutedNormalTextLabel]}>{translate('workspace.qbd.deepDiveExpensifyCard')}</Text>
-                <TextLink
-                    onPress={() => openExternalLink(CONST.DEEP_DIVE_EXPENSIFY_CARD)}
-                    style={[styles.mutedNormalTextLabel, styles.link]}
-                >
-                    {` ${translate('workspace.qbd.deepDiveExpensifyCardIntegration')}`}
-                </TextLink>
-            </Text>
+            <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.mt2]}>
+                <RenderHTML html={translate('workspace.common.deepDiveExpensifyCard')} />
+            </View>
         </ConnectionLayout>
     );
 }

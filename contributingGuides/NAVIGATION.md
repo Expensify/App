@@ -65,7 +65,7 @@ Navigation.navigate(ROUTES.HOME);
 // Navigation with parameters
 Navigation.navigate(
     ROUTES.SEARCH_ROOT.getRoute({
-        query: 'type:expense status:all search',
+        query: 'type:expense search',
         // additional parameters...
     }),
 );
@@ -111,7 +111,12 @@ Navigation.goBack();
 > [!NOTE]
 > This function should be used mainly with the `backToRoute` param. If you want to use it, make sure there is a screen to which you should always go back in a given case and pass its route as a param.
 
-It also allows dynamic setting of `backToRoute` which is pretty handy when RHP can be opened from multiple pages. Then we should set `backTo` parameter in the URL, so it is possible to go to the previous page even after refreshing! More information on how to use backTo route param can be found [here](#how-to-use-backto-route-param).
+It also allows dynamic setting of `backToRoute` which is pretty handy when RHP can be opened from multiple pages. Then we should set `backTo` parameter in the URL, so it is possible to go to the previous page even after refreshing! 
+
+> [!WARNING]
+> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team.
+
+More information on how to use backTo route param can be found [here](#how-to-use-backto-route-param).
 
 ```ts
 // src/pages/NewSettingsScreen.tsx
@@ -431,6 +436,9 @@ The easiest way to find the piece of code from which the navigation method was c
 
 ## Using `backTo` route param
 
+> [!WARNING]
+> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team.
+
 When a particular screen can be opened from two or more different pages, we can use `backTo` route parameter to handle such case.
 
 1. Define `backTo` route param for the target screen in `ROUTES.ts`.
@@ -503,7 +511,7 @@ In Expensify, we use an extended implementation of this function because:
 
 Here are examples how the state is generated based on route:
 
--   `settings/workspaces/1/overview`
+-   `workspaces/1/overview`
 
 ```json
 {
@@ -536,7 +544,7 @@ Here are examples how the state is generated based on route:
                         "params": {
                             "policyID": "1"
                         },
-                        "path": "/settings/workspaces/1/overview",
+                        "path": "workspaces/1/overview",
                         "key": "Workspace_Overview-key"
                     }
                 ]
@@ -617,6 +625,9 @@ In the above example, we can see that when building a state from a link leading 
 
 RHP screens can usually be opened from a specific central screen. Of course there are cases where one RHP screen can be used in different tabs (then using `backTo` parameter comes in handy). However, most often one RHP screen has a specific central screen assigned underneath.
 
+> [!WARNING]
+> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team.
+
 To assign RHP to the appropriate central screen, you need to add it to the proper relation (`src/libs/Navigation/linkingConfig/RELATIONS`)
 
 For example, if you want to display `SCREENS.SETTINGS.PROFILE.ROOT` in the Account tab under RHP screen, then you need to add the screen to `SETTINGS_TO_RHP`, etc.
@@ -654,7 +665,7 @@ function useCustomRootStackNavigatorState({state}: CustomStateHookProps) {
 }
 ```
 
-To optimize the number of routes rendered in `RootStackNavigator` we limit the number of `FullScreenNavigators` rendered to 2 (we need to render the previous fullscreen too for the transition animations to work well). 
+To optimize the number of routes rendered in `RootStackNavigator` we limit the number of `FullScreenNavigators` rendered to 2 (we need to render the previous fullscreen too for the transition animations to work well). There's an exception for `SearchFullscreenNavigator` where we render only last route when possible due to performance implications. The idea stays the same.
 
 -   `src/libs/Navigation/AppNavigator/createSearchFullscreenNavigator/index.tsx`
 
@@ -664,10 +675,9 @@ function useCustomEffects(props: CustomEffectsHookProps) {
     usePreserveNavigatorState(props.state, props.parentRoute);
 }
 
-// This is a custom state hook that is used to render the last two routes in the stack.
-// We do this to improve the performance of the search results screen.
-function useCustomState({state}: CustomStateHookProps) {
-    const routesToRender = [...state.routes.slice(-2)];
+// For web we only render last route in SearchFullscreenNavigator. Other navigators are keep last two routes mounted. The idea stays the same.
+export default function useCustomState({state}: CustomStateHookProps) {
+    const routesToRender = state.routes.slice(-1);
     return {...state, routes: routesToRender, index: routesToRender.length - 1};
 }
 ```

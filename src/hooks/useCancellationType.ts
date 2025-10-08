@@ -1,11 +1,11 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {CancellationType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 
 function useCancellationType(): CancellationType | undefined {
-    const [cancellationDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS);
+    const [cancellationDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS, {canBeMissing: true});
 
     const [cancellationType, setCancellationType] = useState<CancellationType | undefined>();
 
@@ -18,6 +18,12 @@ function useCancellationType(): CancellationType | undefined {
         // There is a pending manual cancellation - return manual cancellation type
         if (pendingManualCancellation) {
             return CONST.CANCELLATION_TYPE.MANUAL;
+        }
+
+        // Check for cancellation with type "none"
+        const noneCancellation = cancellationDetails?.find((detail) => detail.cancellationType === CONST.CANCELLATION_TYPE.NONE);
+        if (noneCancellation) {
+            return CONST.CANCELLATION_TYPE.NONE;
         }
 
         // There are no new items in the cancellation details NVP

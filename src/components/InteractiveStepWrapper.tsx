@@ -1,4 +1,5 @@
-import React, {forwardRef} from 'react';
+import type {ForwardedRef} from 'react';
+import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,6 +36,9 @@ type InteractiveStepWrapperProps = {
     // Should show offline indicator
     shouldShowOfflineIndicator?: boolean;
 
+    // Should show offline indicator in wide screen
+    shouldShowOfflineIndicatorInWideScreen?: boolean;
+
     // Should enable picker avoiding
     shouldEnablePickerAvoiding?: boolean;
 
@@ -53,26 +57,28 @@ type InteractiveStepWrapperProps = {
      * This flag can be removed, once all components/screens have switched to edge-to-edge safe area handling.
      */
     enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
+
+    // Reference to the outer element
+    ref?: ForwardedRef<View>;
 };
 
-function InteractiveStepWrapper(
-    {
-        children,
-        wrapperID,
-        handleBackButtonPress,
-        headerTitle,
-        headerSubtitle,
-        startStepIndex,
-        stepNames,
-        shouldEnableMaxHeight,
-        shouldShowOfflineIndicator,
-        shouldEnablePickerAvoiding = false,
-        offlineIndicatorStyle,
-        shouldKeyboardOffsetBottomSafeAreaPadding,
-        enableEdgeToEdgeBottomSafeAreaPadding,
-    }: InteractiveStepWrapperProps,
-    ref: React.ForwardedRef<View>,
-) {
+function InteractiveStepWrapper({
+    children,
+    wrapperID,
+    handleBackButtonPress,
+    headerTitle,
+    headerSubtitle,
+    startStepIndex,
+    stepNames,
+    shouldEnableMaxHeight,
+    shouldShowOfflineIndicator,
+    shouldShowOfflineIndicatorInWideScreen,
+    shouldEnablePickerAvoiding = false,
+    offlineIndicatorStyle,
+    shouldKeyboardOffsetBottomSafeAreaPadding,
+    enableEdgeToEdgeBottomSafeAreaPadding,
+    ref,
+}: InteractiveStepWrapperProps) {
     const styles = useThemeStyles();
 
     return (
@@ -84,6 +90,7 @@ function InteractiveStepWrapper(
             shouldEnablePickerAvoiding={shouldEnablePickerAvoiding}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
             shouldShowOfflineIndicator={shouldShowOfflineIndicator}
+            shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
             offlineIndicatorStyle={offlineIndicatorStyle}
             shouldKeyboardOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding}
         >
@@ -107,4 +114,4 @@ function InteractiveStepWrapper(
 
 InteractiveStepWrapper.displayName = 'InteractiveStepWrapper';
 
-export default forwardRef(InteractiveStepWrapper);
+export default InteractiveStepWrapper;

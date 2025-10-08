@@ -1,10 +1,9 @@
-import React, {forwardRef} from 'react';
+import React from 'react';
 import type {Role} from 'react-native';
-import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import GenericPressable from './BaseGenericPressable';
 
-function WebGenericPressable({focusable = true, ...props}: PressableProps, ref: PressableRef) {
+function WebGenericPressable({focusable = true, ref, ...props}: PressableProps) {
     const accessible = (props.accessible ?? props.accessible === undefined) ? true : props.accessible;
 
     return (
@@ -30,4 +29,4 @@ function WebGenericPressable({focusable = true, ...props}: PressableProps, ref: 
 
 WebGenericPressable.displayName = 'WebGenericPressable';
 
-export default forwardRef(WebGenericPressable);
+export default WebGenericPressable;

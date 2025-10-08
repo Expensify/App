@@ -1,7 +1,7 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import {Str} from 'expensify-common';
 import React, {useCallback, useContext} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
@@ -14,6 +14,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -35,7 +36,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const navigateBackTo = route?.params?.backTo;
 
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: false});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: false});
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods.

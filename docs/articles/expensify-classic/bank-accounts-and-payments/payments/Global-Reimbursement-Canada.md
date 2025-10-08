@@ -3,7 +3,6 @@ title: Global Reimbursement - Canada
 description: Learn how to enable international reimbursements if your business bank account is in Canada.
 keywords: [Expensify Classic, global reimbursement, Canada, CAD, international payments, direct deposit, DocuSign, compliance]
 ---
-<div id="expensify-classic" markdown="1">
 
 If your business bank account is based in Canada, you can send global reimbursements to employees worldwide. This guide explains how to set up and verify your Canadian account in Expensify.
 
@@ -78,4 +77,3 @@ Yes. Once the bank account is verified, it can be shared with other workspace ad
 ## What is required for “Proof of Beneficial Ownership”?
 This typically includes a shareholder register or declaration showing who owns 25% or more of the business.
 
-</div>

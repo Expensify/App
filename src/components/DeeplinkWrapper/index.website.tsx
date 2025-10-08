@@ -1,6 +1,8 @@
+import {isActingAsDelegateSelector} from '@selectors/Account';
+import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import {useEffect, useRef, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import {isMobile} from '@libs/Browser';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import shouldPreventDeeplinkPrompt from '@libs/Navigation/helpers/shouldPreventDeeplinkPrompt';
@@ -46,11 +48,11 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState, initialUrl}:
     const [hasShownPrompt, setHasShownPrompt] = useState(false);
     const removeListener = useRef<(() => void) | undefined>(undefined);
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: (account) => !!account?.delegatedAccess?.delegate,
+        selector: isActingAsDelegateSelector,
         canBeMissing: true,
     });
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {
-        selector: (session) => session?.accountID,
+        selector: accountIDSelector,
         canBeMissing: true,
     });
     const isActingAsDelegateRef = useRef(isActingAsDelegate);

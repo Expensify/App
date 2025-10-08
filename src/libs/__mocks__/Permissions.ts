@@ -10,5 +10,5 @@ import type Beta from '@src/types/onyx/Beta';
 
 export default {
     ...jest.requireActual<typeof Permissions>('../Permissions'),
-    isBetaEnabled: (beta: Beta, betas: Beta[]) => betas.includes(beta),
+    isBetaEnabled: (beta: Beta, betas: Beta[]) => !!betas?.includes(beta),
 };

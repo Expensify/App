@@ -1,9 +1,9 @@
 import type {NavigationState} from '@react-navigation/native';
 import React, {createContext, useCallback, useContext, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportIDFromLink} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 
 type CurrentReportIDContextValue = {
     updateCurrentReportID: (state: NavigationState) => void;
@@ -14,13 +14,18 @@ type CurrentReportIDContextValue = {
 type CurrentReportIDContextProviderProps = {
     /** Actual content wrapped by this component */
     children: React.ReactNode;
+    /** Optional callback invoked whenever `currentReportID` is explicitly updated.
+     * This is intended only for unit testing, to detect when the hook
+     * actually attempts to change the `currentReportID` value.
+     */
+    onSetCurrentReportID?: (reportID: string | undefined) => void;
 };
 
 const CurrentReportIDContext = createContext<CurrentReportIDContextValue | null>(null);
 
 function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderProps) {
     const [currentReportID, setCurrentReportID] = useState<string | undefined>('');
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
     const lastAccessReportFromPath = getReportIDFromLink(lastVisitedPath ?? null);
 
     /**
@@ -39,9 +44,22 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
             if (params && 'screen' in params && typeof params.screen === 'string' && params.screen.indexOf('Settings_') !== -1) {
                 return;
             }
+            // Prevent unnecessary updates when the report ID hasn't changed
+            if (currentReportID === reportID) {
+                return;
+            }
+
+            // Also prevent updates when both are undefined/null (no report context)
+            if (!currentReportID && !reportID) {
+                return;
+            }
+
+            props.onSetCurrentReportID?.(reportID);
             setCurrentReportID(reportID);
         },
-        [setCurrentReportID],
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to re-render when onSetCurrentReportID changes
+        [setCurrentReportID, currentReportID],
     );
 
     /**

@@ -39,6 +39,7 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
             return;
         }
 
+        // eslint-disable-next-line deprecation/deprecation
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             setIsInteractionComplete(true);
         });
@@ -94,7 +95,14 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
     // we'll just render an empty view as the fallback to prevent
     // 1. heavy rendering, see issues: https://github.com/Expensify/App/issues/34696 and https://github.com/Expensify/App/issues/47273
     // 2. lag on react navigation transitions, see issue: https://github.com/Expensify/App/issues/44812
-    if (isError || appState.isBackground || !animationFile || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || (!isInteractionComplete && shouldLoadAfterInteractions)) {
+    if (
+        isError ||
+        appState.isBackground ||
+        !animationFile ||
+        hasNavigatedAway ||
+        splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN ||
+        (!isInteractionComplete && shouldLoadAfterInteractions)
+    ) {
         return (
             <View
                 style={[aspectRatioStyle, props.style]}

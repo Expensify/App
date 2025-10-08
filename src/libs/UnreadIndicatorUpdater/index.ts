@@ -46,7 +46,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
         const nameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
         const isReportArchived = ReportUtils.isArchivedReport(nameValuePairs);
         return (
-            ReportUtils.isUnread(report, oneTransactionThreadReport) &&
+            ReportUtils.isUnread(report, oneTransactionThreadReport, isReportArchived) &&
             ReportUtils.shouldReportBeInOptionList({
                 report,
                 chatReport,

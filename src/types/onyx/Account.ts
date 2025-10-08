@@ -80,9 +80,6 @@ type Account = {
     /** Is this account having trouble receiving emails? */
     hasEmailDeliveryFailure?: boolean;
 
-    /** URL to the assigned guide's appointment booking calendar */
-    guideCalendarLink?: string;
-
     /** User recovery codes for setting up 2-FA */
     recoveryCodes?: string;
 
@@ -205,8 +202,8 @@ type Account = {
     /** Whether or not the user is subscribed to news updates */
     isSubscribedToNewsletter?: boolean;
 
-    /** Whether we should use the staging version of the secure API server */
-    shouldUseStagingServer?: boolean;
+    /** Whether we should block the transaction thread report creation */
+    shouldBlockTransactionThreadReportCreation?: boolean;
 
     /** Whether or not the user is on a public domain email account or not */
     isFromPublicDomain?: boolean;
@@ -225,9 +222,6 @@ type Account = {
 
     /** Whether the user is an Expensify Guide */
     isGuide?: boolean;
-
-    /** Whether the debug mode is currently enabled */
-    isDebugModeEnabled?: boolean;
 
     /** If user has accessible policies on a private domain */
     hasAccessibleDomainPolicies?: boolean;

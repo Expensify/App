@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import CommonConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getSubstepValues from '@pages/EnablePayments/utils/getSubstepValues';

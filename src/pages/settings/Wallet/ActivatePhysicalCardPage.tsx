@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
@@ -10,21 +9,23 @@ import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import * as CardSettings from '@userActions/Card';
+import {activatePhysicalExpensifyCard, clearCardListErrors} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {CardList} from '@src/types/onyx';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ActivatePhysicalCardPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_ACTIVATE>;
 
@@ -41,7 +42,7 @@ function ActivatePhysicalCardPage({
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [cardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
 
     const [formError, setFormError] = useState('');
     const [lastFourDigits, setLastFourDigits] = useState('');
@@ -49,7 +50,7 @@ function ActivatePhysicalCardPage({
     const [canShowError, setCanShowError] = useState<boolean>(false);
 
     const inactiveCard = cardList?.[cardID];
-    const cardError = ErrorUtils.getLatestErrorMessage(inactiveCard ?? {});
+    const cardError = getLatestErrorMessage(inactiveCard ?? {});
 
     const activateCardCodeInputRef = useRef<MagicCodeInputHandle>(null);
 
@@ -68,13 +69,13 @@ function ActivatePhysicalCardPage({
         if (!inactiveCard?.cardID) {
             return;
         }
-        CardSettings.clearCardListErrors(inactiveCard?.cardID);
+        clearCardListErrors(inactiveCard?.cardID);
 
         return () => {
             if (!inactiveCard?.cardID) {
                 return;
             }
-            CardSettings.clearCardListErrors(inactiveCard?.cardID);
+            clearCardListErrors(inactiveCard?.cardID);
         };
     }, [inactiveCard?.cardID]);
 
@@ -93,7 +94,7 @@ function ActivatePhysicalCardPage({
         setFormError('');
 
         if (cardError && inactiveCard?.cardID) {
-            CardSettings.clearCardListErrors(inactiveCard?.cardID);
+            clearCardListErrors(inactiveCard?.cardID);
         }
 
         setLastFourDigits(text);
@@ -111,7 +112,7 @@ function ActivatePhysicalCardPage({
             return;
         }
 
-        CardSettings.activatePhysicalExpensifyCard(lastFourDigits, inactiveCard?.cardID);
+        activatePhysicalExpensifyCard(lastFourDigits, inactiveCard?.cardID);
     }, [lastFourDigits, inactiveCard?.cardID, translate]);
 
     if (isEmptyObject(inactiveCard)) {
@@ -127,6 +128,7 @@ function ActivatePhysicalCardPage({
             scrollViewContainerStyles={[styles.mnh100]}
             childrenContainerStyles={[styles.flex1]}
             testID={ActivatePhysicalCardPage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
         >
             <Text style={[styles.mh5, styles.textHeadline]}>{translate('activateCardPage.pleaseEnterLastFour')}</Text>
             <View style={[styles.mh5, {minHeight: MAGIC_INPUT_MIN_HEIGHT}]}>
@@ -143,9 +145,7 @@ function ActivatePhysicalCardPage({
                     ref={activateCardCodeInputRef}
                 />
             </View>
-            <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pv0]}>
-                {DeviceCapabilities.canUseTouchScreen() && <BigNumberPad numberPressed={updateLastPressedDigit} />}
-            </View>
+            <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pv0]}>{canUseTouchScreen() && <BigNumberPad numberPressed={updateLastPressedDigit} />}</View>
             <Button
                 success
                 isDisabled={isOffline}

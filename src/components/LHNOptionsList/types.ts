@@ -1,8 +1,8 @@
-import type {ContentStyle} from '@shopify/flash-list';
 import type {RefObject} from 'react';
 import type {LayoutChangeEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
 import type {Locale, OnboardingPurpose, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -15,7 +15,7 @@ type CustomLHNOptionsListProps = {
     style?: StyleProp<ViewStyle>;
 
     /** Extra styles for the section list container */
-    contentContainerStyles?: StyleProp<ContentStyle>;
+    contentContainerStyles?: StyleProp<ViewStyle>;
 
     /** List of reports */
     data: Report[];
@@ -124,6 +124,20 @@ type OptionRowLHNDataProps = {
 
     /** Whether the screen is focused */
     isScreenFocused?: boolean;
+
+    /** Function to compare locale strings */
+    localeCompare: LocaleContextProps['localeCompare'];
+
+    /** TestID of the row, indicating order */
+    testID: number;
+
+    /** Whether the report is archived */
+    isReportArchived: boolean;
+
+    /** The last action should be displayed */
+    lastAction: ReportAction | undefined;
+
+    lastActionReport: OnyxEntry<Report> | undefined;
 };
 
 type OptionRowLHNProps = {
@@ -148,9 +162,6 @@ type OptionRowLHNProps = {
     /** The item that should be rendered */
     optionItem?: OptionData;
 
-    /** The active policy ID */
-    activePolicyID?: string;
-
     /** The onboarding purpose */
     onboardingPurpose?: OnboardingPurpose;
 
@@ -170,8 +181,11 @@ type OptionRowLHNProps = {
 
     /** Whether the screen is focused */
     isScreenFocused?: boolean;
+
+    /** The testID of the row */
+    testID: number;
 };
 
-type RenderItemProps = {item: Report};
+type RenderItemProps = {item: Report; index: number};
 
 export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, RenderItemProps};

@@ -1,8 +1,8 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {GetGuideCallAvailabilityScheduleParams} from '@libs/API/parameters';
-import {READ_COMMANDS} from '@libs/API/types';
+import type {GetGuideCallAvailabilityScheduleParams, SendScheduleCallNudgeParams} from '@libs/API/parameters';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, ScheduleCallDraft} from '@src/types/onyx';
@@ -94,4 +94,12 @@ function cancelBooking(call: CalendlyCall) {
     openExternalLink(cancelURL);
 }
 
-export {getGuideCallAvailabilitySchedule, saveBookingDraft, clearBookingDraft, confirmBooking, rescheduleBooking, cancelBooking};
+function sendScheduleCallNudge(accountID: number, reportID: string) {
+    const params: SendScheduleCallNudgeParams = {
+        accountID,
+        reportID,
+    };
+    API.write(WRITE_COMMANDS.SEND_SCHEDULE_CALL_NUDGE, params);
+}
+
+export {getGuideCallAvailabilitySchedule, saveBookingDraft, clearBookingDraft, confirmBooking, rescheduleBooking, cancelBooking, sendScheduleCallNudge};

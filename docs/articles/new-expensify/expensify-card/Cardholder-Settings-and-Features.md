@@ -3,7 +3,6 @@ title: Using Your Expensify Card in New Expensify
 description: Learn how to activate, use, and manage your physical and virtual Expensify Card, including Smart Limits, notifications, and troubleshooting.
 keywords: [New Expensify, Expensify Card, Smart Limit, activate card, virtual card, card notifications, card declined]
 ---
-<div id="new-expensify" markdown="1">
 
 Once you receive your Expensify Visa® Commercial Card, you can activate it and start using it immediately. When you use your Expensify Card, expenses are automatically created, and SmartScanned receipts are matched to the corresponding transactions. For most purchases, excluding lodging, Expensify also generates IRS-compliant eReceipts. If your organization doesn't require itemized receipts, you can rely on eReceipts to meet documentation requirements.
 
@@ -11,7 +10,7 @@ Once you receive your Expensify Visa® Commercial Card, you can activate it and 
 
 # Activate your Expensify Card
 
-1. In the left-hand menu, select **Reports > Tasks**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Reports > Tasks**.
 2. Complete the task labeled **Activate your Expensify Card**.
 3. Enter the last 4 digits of your physical card to activate it.
 
@@ -21,10 +20,10 @@ Once activated, your card is ready to use!
 
 # View Your Smart Limit
 
-Your **Smart Limit** is the amount you're allowed to spend without approved expenses. This limit is set and managed by your workspace admin. 
+Your **Smart Limit** is the amount you're allowed to spend without approved expenses. This limit is set and managed by your workspace admin.
 
 **To view your current limit:**
-1. From the left-hand menu, select **Account > Wallet**.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Account > Wallet**.
 2. Click your Expensify Card to view your Smart Limit.
 
 If you try to make a purchase that exceeds this limit, the transaction will be declined.
@@ -50,7 +49,7 @@ Get real-time alerts for purchases and declines by enabling push notifications.
 4. Toggle notifications **On**.
 5. Customize your alert style based on your preferences.
 
-See this guide for more information on [setting up Expensify Card notifications](https://help.expensify.com/articles/new-expensify/expensify-card/Enable-Expensify-Card-notifications). 
+See this guide for more information on [setting up Expensify Card notifications](https://help.expensify.com/articles/new-expensify/expensify-card/Enable-Expensify-Card-notifications).
 
 ---
 
@@ -78,7 +77,7 @@ A virtual card is a secure, flexible way to manage online spending:
 
 ## View your virtual card details
 
-1. From the left-hand menu, go to **Account > Wallet**.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Account > Wallet**.
 2. Click your Expensify Card.
 3. Click **Reveal Details** to view the card number, expiration date, CVV, and billing address.
 
@@ -101,9 +100,9 @@ For more details on adding a card to Apple or Android Pay, see this [guide](http
 
 ## What if I haven’t received my Expensify Card?
 
-If your physical card hasn't arrived within a week, you'll want to double-check your mailing address and order a new card. See this guide for requesting a new Expensify Card. 
+If your physical card hasn't arrived within a week, you'll want to double-check your mailing address and order a new card. See this guide for requesting a new Expensify Card.
 
-## Why did my card get declined? 
+## Why did my card get declined?
 
 Common reasons for Expensify card declines include:
 - **Smart Limit exceeded**: Check your available limit under **Account > Wallet**.
@@ -115,10 +114,9 @@ Common reasons for Expensify card declines include:
 ## How do I deactivate my card and request a replacement?
 
 If your card is lost, stolen, or damaged:
-1. Go to **Account > Wallet** from the left-hand menu.
+1. Go to **Account > Wallet** from the navigation tabs (on the left on web, and at the bottom on mobile).
 2. Locate your physical card and click **Report card lost or damaged**.
 3. Choose the reason for the card replacement.
 4. Enter your updated address under **Please confirm the mailing address for your new card** and click **Save**.
-5. Update your mailing address and click **Deactivate card** to complete the card replacement process. 
+5. Update your mailing address and click **Deactivate card** to complete the card replacement process.
 
-</div>

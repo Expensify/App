@@ -1,16 +1,18 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import TagPicker from '@components/TagPicker';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as IOUUtils from '@libs/IOUUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
+import {getTagLists} from '@libs/PolicyUtils';
+import {getTagArrayFromName} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
 
 type DebugTagPickerProps = {
     /** The policyID we are getting tags for */
@@ -23,25 +25,28 @@ type DebugTagPickerProps = {
     onSubmit: (item: ListItem) => void;
 };
 
+const policyHasMultipleTagListsSelector = (policy: OnyxEntry<Policy>) => policy?.hasMultipleTagLists;
+
 function DebugTagPicker({policyID, tagName = '', onSubmit}: DebugTagPickerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [newTagName, setNewTagName] = useState(tagName);
-    const selectedTags = useMemo(() => TransactionUtils.getTagArrayFromName(newTagName), [newTagName]);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    const selectedTags = useMemo(() => getTagArrayFromName(newTagName), [newTagName]);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
+    const [hasMultipleTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true, selector: policyHasMultipleTagListsSelector});
     const updateTagName = useCallback(
         (index: number) =>
             ({text}: ListItem) => {
                 const newTag = text === selectedTags.at(index) ? undefined : text;
-                const updatedTagName = IOUUtils.insertTagIntoTransactionTagsString(newTagName, newTag ?? '', index);
+                const updatedTagName = insertTagIntoTransactionTagsString(newTagName, newTag ?? '', index, hasMultipleTagLists ?? false);
                 if (policyTagLists.length === 1) {
                     return onSubmit({text: updatedTagName});
                 }
                 setNewTagName(updatedTagName);
             },
-        [newTagName, onSubmit, policyTagLists.length, selectedTags],
+        [newTagName, onSubmit, policyTagLists.length, selectedTags, hasMultipleTagLists],
     );
 
     const submitTag = useCallback(() => {
@@ -52,7 +57,7 @@ function DebugTagPicker({policyID, tagName = '', onSubmit}: DebugTagPickerProps)
         <View style={styles.gap5}>
             <View style={styles.gap5}>
                 {policyTagLists.map(({name}, index) => (
-                    <View>
+                    <View key={name}>
                         {policyTagLists.length > 1 && <Text style={[styles.textLabelSupportingNormal, styles.ph5, styles.mb3]}>{name}</Text>}
                         <TagPicker
                             policyID={policyID}

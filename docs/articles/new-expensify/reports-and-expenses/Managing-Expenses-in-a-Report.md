@@ -3,7 +3,6 @@ title: Managing Expenses in a Report
 description: Learn how to add, remove, and move expenses in a report in New Expensify, including how comments and system messages interact with them.
 keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, expense table, expense comments, report audit history, report troubleshooting]
 ---
-<div id="new-expensify" markdown="1">
 
 Easily manage expenses inside reports in New Expensify. This guide covers how to add, delete, or move expenses, and how they interact with comments, system messages, and audit trails.
 
@@ -15,7 +14,7 @@ You can add expenses to a report in two ways:
 
 ### Create a new expense
 1. Open the draft report.
-2. Select **Add expense** > **Create new expense**.
+2. Select **Add expense** > **Create expense**.
 3. Enter the expense details and click **Save**.
 4. The new expense appears instantly in the report.
 
@@ -156,4 +155,3 @@ You’re not a member of a workspace.
 - Ask a workspace admin to unapprove the report.
 - Retract the report if you submitted it.
 
-</div>

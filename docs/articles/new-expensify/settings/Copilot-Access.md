@@ -3,7 +3,6 @@ title: Copilot Access
 description: How to add a Copilot or act as a Copilot for delegated account access
 keywords: [New Expensify, copilot, delegated access, switch accounts, expense management, account assistant, view user account, expense forwarding]
 ---
-<div id="new-expensify" markdown="1">
 
 You can assign someone access to your Expensify account as a **Copilot**. A Copilot can help manage expenses, review reports, and access your settings without sharing your login details.
 
@@ -29,7 +28,7 @@ Copilots can access another user’s Expensify account to:
 
 To grant someone access to your account:
 
-1. In the left-hand menu, click **Account > Security**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile) (on the left on web, and at the bottom on mobile), click **Account > Security**.
 2. In the **Copilot: Delegated Access** section, click **Add Copilot**.
 3. Search for the user by **name** or **email**.
 4. Choose the access level:
@@ -45,13 +44,13 @@ To grant someone access to your account:
 
 To **remove a Copilot**:
 
-1. In the left-hand menu, click **Account > Security**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile) (on the left on web, and at the bottom on mobile), click **Account > Security**.
 2. In the **Copilot: Delegated Access** section, click the **three-dot menu** next to their name.
 3. Select **Remove Copilot**, then confirm.
 
 To **change a Copilot's access level**:
 
-1. In the left-hand menu, click **Account > Security**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile) (on the left on web, and at the bottom on mobile), click **Account > Security**.
 2. In the **Copilot: Delegated Access** section, click the **three-dot menu** next to their name.
 3. Choose **Change Access Level**.
 4. Select **Full Access** or **Limited Access** and confirm your choice.
@@ -62,9 +61,9 @@ To **change a Copilot's access level**:
 
 If you've been added as a Copilot, you can switch into the other user’s account easily.
 
-1. Click your **profile icon**.
-2. In the top-left corner of the screen, click the **account switcher arrow** beside your name.
-3. Select the account you'd like to act as.
+1. Navigate to the **Account** tab
+2. Click your name or profile icon to access a drop-down that lists the accounts you have Copilot access to
+3. Select the account you want to access
 
 You'll see a **dual avatar** in the bottom-left corner confirming you're in Copilot mode.
 
@@ -95,4 +94,3 @@ Actions taken by a Copilot are clearly labeled as performed “on behalf of” t
 
 Yes! You can add as many Copilots as you like. (You just need to wait one minute between additions.)
 
-</div>

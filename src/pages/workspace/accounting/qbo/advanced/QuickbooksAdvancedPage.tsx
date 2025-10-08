@@ -55,6 +55,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     const AccordionMenuItems = [
         {
+            key: 'qboBillPaymentAccount',
             title: selectedQboAccountName,
             description: translate('workspace.qbo.advancedConfig.qboBillPaymentAccount'),
             onPress: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID))),
@@ -63,6 +64,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             pendingAction: settingsPendingAction(reimbursementOrCollectionAccountIDs, qboConfig?.pendingFields),
         },
         {
+            key: 'qboInvoiceCollectionAccount',
             title: selectedInvoiceCollectionAccountName,
             description: translate('workspace.qbo.advancedConfig.qboInvoiceCollectionAccount'),
             onPress: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID))),
@@ -75,7 +77,10 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const syncReimbursedSubMenuItems = () => (
         <View style={[styles.mt3]}>
             {AccordionMenuItems.map((item) => (
-                <OfflineWithFeedback pendingAction={item.pendingAction}>
+                <OfflineWithFeedback
+                    key={item.key}
+                    pendingAction={item.pendingAction}
+                >
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
                         title={item.title}

@@ -13,7 +13,7 @@ C+ are contributors who are experienced at working with Expensify and have gaine
 - If C+ ever applies to work at Expensify, they’ve got a leg up on the competition because they're familiar with the company and processes.  View job openings at https://we.are.expensify.com.
 
 ## Requirements to join C+
-- Have had 10 PRs deployed to production without regressions.  
+- Have had 30 PRs deployed to production without regressions.  
 - Follow our Code of Conduct, Contributing.md and README.md docs and processes.
 - Comment and fix bugs in a timely manner.
 - Clear communicator

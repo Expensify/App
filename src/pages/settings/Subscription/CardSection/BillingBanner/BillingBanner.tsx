@@ -6,6 +6,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -62,6 +63,7 @@ function BillingBanner({
 }: BillingBannerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const rightIconComponent = useMemo(() => {
         if (rightIcon) {
@@ -107,8 +109,17 @@ function BillingBanner({
                 {typeof title === 'string' ? <Text style={[styles.textStrong, titleStyle]}>{title}</Text> : title}
                 {typeof subtitle === 'string' ? <Text style={subtitleStyle}>{subtitle}</Text> : subtitle}
             </View>
-            {!!rightComponent && rightComponent}
-            {rightIconComponent}
+            {shouldUseNarrowLayout ? (
+                <>
+                    {rightIconComponent}
+                    {!!rightComponent && rightComponent}
+                </>
+            ) : (
+                <>
+                    {!!rightComponent && rightComponent}
+                    {rightIconComponent}
+                </>
+            )}
         </View>
     );
 }

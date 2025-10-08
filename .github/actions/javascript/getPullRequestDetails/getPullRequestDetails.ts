@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import {getJSONInput} from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@github/libs/isEmptyObject';
 
 type PullRequest = Awaited<ReturnType<typeof GithubUtils.octokit.pulls.get>>['data'];
 

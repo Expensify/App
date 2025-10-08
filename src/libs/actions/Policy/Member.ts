@@ -1,6 +1,7 @@
 import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     AddMembersToWorkspaceParams,
@@ -27,11 +28,21 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {
+    ImportedSpreadsheetMemberData,
+    InvitedEmailsToAccountIDs,
+    PersonalDetailsList,
+    Policy,
+    PolicyEmployee,
+    PolicyOwnershipChangeChecks,
+    Report,
+    ReportAction,
+    ReportActions,
+} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
-import type {Participant} from '@src/types/onyx/Report';
+import type {NotificationPreference, Participant} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {createPolicyExpenseChats} from './Policy';
@@ -113,14 +124,19 @@ Onyx.connect({
 });
 
 /** Check if the passed employee is an approver in the policy's employeeList */
-function isApprover(policy: OnyxEntry<Policy>, employeeAccountID: number) {
-    const employeeLogin = allPersonalDetails?.[employeeAccountID]?.login;
+function isApprover(policy: OnyxEntry<Policy>, employeeLogin: string) {
     if (policy?.approver === employeeLogin) {
         return true;
     }
     return Object.values(policy?.employeeList ?? {}).some(
         (employee) => employee?.submitsTo === employeeLogin || employee?.forwardsTo === employeeLogin || employee?.overLimitForwardsTo === employeeLogin,
     );
+}
+
+/** Temporary function alias for isApprover with employeeAccountID */
+function isApproverTemp(policy: OnyxEntry<Policy>, employeeAccountID: number) {
+    const employeeLogin = allPersonalDetails?.[employeeAccountID]?.login;
+    return isApprover(policy, employeeLogin ?? '');
 }
 
 /**
@@ -785,7 +801,11 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
 }
 
-function requestWorkspaceOwnerChange(policyID: string) {
+function requestWorkspaceOwnerChange(policyID: string | undefined) {
+    if (!policyID) {
+        return;
+    }
+
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
@@ -863,7 +883,11 @@ function requestWorkspaceOwnerChange(policyID: string) {
     API.write(WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
 }
 
-function clearWorkspaceOwnerChangeFlow(policyID: string) {
+function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
+    if (!policyID) {
+        return;
+    }
+
     Onyx.merge(ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS, null);
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         errorFields: null,
@@ -873,14 +897,21 @@ function clearWorkspaceOwnerChangeFlow(policyID: string) {
     });
 }
 
-function buildAddMembersToWorkspaceOnyxData(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, policyID: string, policyMemberAccountIDs: number[], role: string) {
+function buildAddMembersToWorkspaceOnyxData(
+    invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    policyID: string,
+    policyMemberAccountIDs: number[],
+    role: string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    policyExpenseChatNotificationPreference?: NotificationPreference,
+) {
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = Object.values(invitedEmailsToAccountIDs);
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
     const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, accountIDs);
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
 
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, accountIDs);
     const adminRoomMembers = buildRoomMembersOnyxData(
@@ -892,7 +923,7 @@ function buildAddMembersToWorkspaceOnyxData(invitedEmailsToAccountIDs: InvitedEm
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
 
     // create onyx data for policy expense chats for each new member
-    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs);
+    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, undefined, policyExpenseChatNotificationPreference);
 
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
@@ -967,12 +998,20 @@ function buildAddMembersToWorkspaceOnyxData(invitedEmailsToAccountIDs: InvitedEm
  * Adds members to the specified workspace/policyID
  * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
-function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, welcomeNote: string, policyID: string, policyMemberAccountIDs: number[], role: string) {
+function addMembersToWorkspace(
+    invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    welcomeNote: string,
+    policyID: string,
+    policyMemberAccountIDs: number[],
+    role: string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+) {
     const {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins} = buildAddMembersToWorkspaceOnyxData(
         invitedEmailsToAccountIDs,
         policyID,
         policyMemberAccountIDs,
         role,
+        formatPhoneNumber,
     );
 
     const params: AddMembersToWorkspaceParams = {
@@ -993,6 +1032,8 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
 type PolicyMember = {
     email: string;
     role: string;
+    submitsTo?: string;
+    forwardsTo?: string;
 };
 
 function importPolicyMembers(policyID: string, members: PolicyMember[]) {
@@ -1003,7 +1044,7 @@ function importPolicyMembers(policyID: string, members: PolicyMember[]) {
         (acc, curr) => {
             const employee = policy?.employeeList?.[curr.email];
             if (employee) {
-                if (curr.role !== employee.role) {
+                if (curr.role !== employee.role || (curr.submitsTo ?? '') !== (employee.submitsTo ?? '') || (curr.forwardsTo ?? '') !== (employee.forwardsTo ?? '')) {
                     acc.updated++;
                 }
             } else {
@@ -1017,7 +1058,7 @@ function importPolicyMembers(policyID: string, members: PolicyMember[]) {
 
     const parameters = {
         policyID,
-        employees: JSON.stringify(members.map((member) => ({email: member.email, role: member.role}))),
+        employees: JSON.stringify(members.map((member) => ({email: member.email, role: member.role, submitsTo: member.submitsTo, forwardsTo: member.forwardsTo}))),
     };
 
     API.write(WRITE_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters, onyxData);
@@ -1314,6 +1355,14 @@ function clearInviteDraft(policyID: string) {
     FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
 }
 
+function setImportedSpreadsheetMemberData(memberData: ImportedSpreadsheetMemberData[]) {
+    Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, memberData);
+}
+
+function clearImportedSpreadsheetMemberData() {
+    Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, null);
+}
+
 export {
     removeMembers,
     buildUpdateWorkspaceMembersRoleOnyxData,
@@ -1339,4 +1388,7 @@ export {
     openPolicyMemberProfilePage,
     setWorkspaceInviteRoleDraft,
     clearWorkspaceInviteRoleDraft,
+    setImportedSpreadsheetMemberData,
+    clearImportedSpreadsheetMemberData,
+    isApproverTemp,
 };

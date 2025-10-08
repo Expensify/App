@@ -1,8 +1,8 @@
 import type {ReactNode} from 'react';
 import type {NativeSyntheticEvent, StyleProp, ViewProps, ViewStyle} from 'react-native';
-import type {ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import type {SharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+import type {FocusTrapOptions} from '@components/Modal/types';
 import type CONST from '@src/CONST';
 
 type GestureProps = {
@@ -13,10 +13,25 @@ type GestureProps = {
     deviceWidth?: number | null;
 };
 
-type AnimationOut = ValueOf<Pick<ReactNativeModalProps, 'animationOut'>>;
+type SwipeDirection = ValueOf<typeof CONST.SWIPE_DIRECTION>;
+
+type GestureHandlerProps = {
+    /** Callback to be fired on swipe gesture. */
+    onSwipeComplete?: () => void;
+
+    /** Threshold for swipe gesture. */
+    swipeThreshold: number;
+
+    /** Threshold for swipe gesture. */
+    swipeDirection?: SwipeDirection | SwipeDirection[];
+};
+
+type AnimationIn = 'fadeIn' | 'slideInUp' | 'slideInRight';
+type AnimationOut = 'fadeOut' | 'slideOutDown' | 'slideOutRight';
 
 type ReanimatedModalProps = ViewProps &
-    GestureProps & {
+    GestureProps &
+    GestureHandlerProps & {
         /** Content inside the modal */
         children: ReactNode;
 
@@ -42,12 +57,8 @@ type ReanimatedModalProps = ViewProps &
         /** The presentation style of the modal */
         presentationStyle?: 'fullScreen' | 'pageSheet' | 'formSheet' | 'overFullScreen';
 
-        /** Default ModalProps Provided */
-        /** Whether to use the native driver for the backdrop animation */
-        useNativeDriverForBackdrop?: boolean;
-
         /** Enum for animation type when modal appears */
-        animationIn?: ValueOf<Pick<ReactNativeModalProps, 'animationIn'>>;
+        animationIn?: AnimationIn;
 
         /** Duration of the animation when modal appears */
         animationInTiming?: number;
@@ -119,6 +130,15 @@ type ReanimatedModalProps = ViewProps &
 
         /** Modal type */
         type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
+
+        /** Whether to prevent scroll on focus */
+        shouldPreventScrollOnFocus?: boolean;
+
+        /** Whether to use a custom backdrop for the modal? (This prevents focus issues on desktop) */
+        initialFocus?: FocusTrapOptions['initialFocus'];
+
+        /** Whether to ignore the back handler during transition */
+        shouldIgnoreBackHandlerDuringTransition?: boolean;
     };
 
 type BackdropProps = {
@@ -156,7 +176,13 @@ type ContainerProps = {
 
     /** Position animated by pan gesture */
     panPosition?: {translateX: SharedValue<number>; translateY: SharedValue<number>};
+
+    /** Animation played when modal shows */
+    animationIn: AnimationIn;
+
+    /** Animation played when modal disappears */
+    animationOut: AnimationOut;
 };
 
 export default ReanimatedModalProps;
-export type {BackdropProps, ContainerProps, AnimationOut};
+export type {BackdropProps, ContainerProps, GestureHandlerProps, AnimationIn, AnimationOut, SwipeDirection};

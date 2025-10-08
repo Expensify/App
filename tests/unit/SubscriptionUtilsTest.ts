@@ -1,5 +1,7 @@
+import {act} from '@testing-library/react-native';
 import {addDays, addMinutes, format as formatDate, getUnixTime, subDays} from 'date-fns';
 import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {
     calculateRemainingFreeTrialDays,
     doesUserHavePaymentCardAdded,
@@ -10,11 +12,14 @@ import {
     PAYMENT_STATUS,
     shouldRestrictUserBillableActions,
     shouldShowDiscountBanner,
+    shouldShowPreTrialBillingBanner,
 } from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BillingGraceEndPeriod, BillingStatus, FundList, StripeCustomerID} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, BillingStatus, FundList, IntroSelected, StripeCustomerID} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
+import {STRIPE_CUSTOMER_ID} from '../utils/TestHelper';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const billingGraceEndPeriod: BillingGraceEndPeriod = {
     value: 0,
@@ -24,12 +29,8 @@ const GRACE_PERIOD_DATE = new Date().getTime() + 1000 * 3600;
 const GRACE_PERIOD_DATE_OVERDUE = new Date().getTime() - 1000;
 
 const AMOUNT_OWED = 100;
-const STRIPE_CUSTOMER_ID: StripeCustomerID = {
-    paymentMethodID: '1',
-    intentsID: '2',
-    currency: 'USD',
-    status: 'authentication_required',
-};
+const stripeCustomerId = STRIPE_CUSTOMER_ID;
+
 const BILLING_STATUS_INSUFFICIENT_FUNDS: BillingStatus = {
     action: 'action',
     periodMonth: 'periodMonth',
@@ -339,7 +340,9 @@ describe('SubscriptionUtils', () => {
         });
 
         it('should return undefined by default', () => {
-            expect(getSubscriptionStatus()).toBeUndefined();
+            const stripeCustomerIdForDefault: Partial<OnyxEntry<StripeCustomerID>> = {};
+            // @ts-expect-error - This is a test case
+            expect(getSubscriptionStatus(stripeCustomerIdForDefault)).toBeUndefined();
         });
 
         it('should return POLICY_OWNER_WITH_AMOUNT_OWED status', async () => {
@@ -348,7 +351,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId)).toEqual({
                 status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED,
                 isError: true,
             });
@@ -360,7 +363,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId)).toEqual({
                 status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
                 isError: true,
             });
@@ -372,7 +375,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId)).toEqual({
                 status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
                 isError: true,
             });
@@ -383,7 +386,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: GRACE_PERIOD_DATE,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId)).toEqual({
                 status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
                 isError: true,
             });
@@ -395,7 +398,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 1,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId)).toEqual({
                 status: PAYMENT_STATUS.BILLING_DISPUTE_PENDING,
                 isError: true,
             });
@@ -408,7 +411,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: STRIPE_CUSTOMER_ID,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId)).toEqual({
                 status: PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED,
                 isError: true,
             });
@@ -421,7 +424,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: BILLING_STATUS_INSUFFICIENT_FUNDS,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId)).toEqual({
                 status: PAYMENT_STATUS.INSUFFICIENT_FUNDS,
                 isError: true,
             });
@@ -432,7 +435,14 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: BILLING_STATUS_EXPIRED_CARD,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            const stripeCustomerIdForCardExpired: Partial<OnyxEntry<StripeCustomerID>> = {
+                paymentMethodID: '1',
+                intentsID: '2',
+                currency: 'USD',
+            };
+
+            // @ts-expect-error - This is a test case
+            expect(getSubscriptionStatus(stripeCustomerIdForCardExpired)).toEqual({
                 status: PAYMENT_STATUS.CARD_EXPIRED,
                 isError: true,
             });
@@ -445,7 +455,14 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.FUND_LIST]: FUND_LIST,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            const stripeCustomerIdForCardExpireSoon: Partial<OnyxEntry<StripeCustomerID>> = {
+                paymentMethodID: '1',
+                intentsID: '2',
+                currency: 'USD',
+            };
+
+            // @ts-expect-error - This is a test case
+            expect(getSubscriptionStatus(stripeCustomerIdForCardExpireSoon)).toEqual({
                 status: PAYMENT_STATUS.CARD_EXPIRE_SOON,
             });
         });
@@ -456,7 +473,13 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: true,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            const stripeCustomerIdForRetryBillingSuccess: Partial<OnyxEntry<StripeCustomerID>> = {
+                paymentMethodID: '1',
+                intentsID: '2',
+                currency: 'USD',
+            };
+            // @ts-expect-error - This is a test case
+            expect(getSubscriptionStatus(stripeCustomerIdForRetryBillingSuccess)).toEqual({
                 status: PAYMENT_STATUS.RETRY_BILLING_SUCCESS,
                 isError: false,
             });
@@ -469,7 +492,13 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: true,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            const stripeCustomerIdForRetryBillingError: Partial<OnyxEntry<StripeCustomerID>> = {
+                paymentMethodID: '1',
+                intentsID: '2',
+                currency: 'USD',
+            };
+            // @ts-expect-error - This is a test case
+            expect(getSubscriptionStatus(stripeCustomerIdForRetryBillingError)).toEqual({
                 status: PAYMENT_STATUS.RETRY_BILLING_ERROR,
                 isError: true,
             });
@@ -596,6 +625,38 @@ describe('SubscriptionUtils', () => {
             });
 
             expect(getEarlyDiscountInfo()).toBeNull();
+        });
+    });
+    describe('shouldShowPreTrialBillingBanner', () => {
+        it('should return true if the user is NOT on a free trial and trial has not ended', async () => {
+            // Free trial starts in the future → user is not currently on trial
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 5), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                    [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                });
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            const introSelected: OnyxEntry<IntroSelected> = {
+                choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+            };
+
+            expect(shouldShowPreTrialBillingBanner(introSelected)).toBeTruthy();
+        });
+
+        it('should return false if the free trial has ended', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 20), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 5), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+            });
+
+            const introSelected: OnyxEntry<IntroSelected> = {
+                choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+            };
+
+            expect(shouldShowPreTrialBillingBanner(introSelected)).toBeFalsy();
         });
     });
 });

@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import Computer from '@assets/images/laptop-with-second-screen-sync.svg';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
@@ -9,20 +10,19 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ImageSVG from '@components/ImageSVG';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setConnectionError} from '@libs/actions/connections';
-import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyAction from '@userActions/Policy/Policy';
+import {setConnectionError} from '@userActions/connections';
+import {getQuickbooksDesktopCodatSetupLink} from '@userActions/connections/QuickbooksDesktop';
+import {enablePolicyTaxes} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -31,7 +31,6 @@ type RequireQuickBooksDesktopModalProps = PlatformStackScreenProps<SettingsNavig
 
 function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalProps) {
     const {translate} = useLocalize();
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const policyID: string = route.params.policyID;
@@ -46,7 +45,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
     const fetchSetupLink = useCallback(() => {
         setHasError(false);
         // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-        QuickbooksDesktop.getQuickbooksDesktopCodatSetupLink(policyID).then((response) => {
+        getQuickbooksDesktopCodatSetupLink(policyID).then((response) => {
             if (!response?.jsonCode) {
                 return;
             }
@@ -62,7 +61,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
 
     useEffect(() => {
         // Since QBD doesn't support Taxes, we should disable them from the LHN when connecting to QBD
-        PolicyAction.enablePolicyTaxes(policyID, false);
+        enablePolicyTaxes(policyID, false);
 
         fetchSetupLink();
         // disabling this rule, as we want this to run only on the first render
@@ -100,16 +99,9 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                             height={168}
                         />
                         <Text style={[styles.textHeadlineLineHeightXXL, styles.mt3]}>{translate('workspace.qbd.setupPage.setupErrorTitle')}</Text>
-                        <Text style={[styles.textSupporting, styles.ph5, styles.mv3, styles.textAlignCenter]}>
-                            {translate('workspace.qbd.setupPage.setupErrorBody1')}{' '}
-                            <TextLink
-                                href={`${environmentURL}/${ROUTES.CONCIERGE}`}
-                                style={styles.link}
-                            >
-                                {translate('workspace.qbd.setupPage.setupErrorBodyContactConcierge')}
-                            </TextLink>{' '}
-                            {translate('workspace.qbd.setupPage.setupErrorBody2')}
-                        </Text>
+                        <View style={[styles.renderHTML, styles.ph5, styles.mv3]}>
+                            <RenderHTML html={translate('workspace.qbd.setupPage.setupErrorBody', {conciergeLink: `${environmentURL}/${ROUTES.CONCIERGE}`})} />
+                        </View>
                     </View>
                 )}
                 {!shouldShowError && (
@@ -122,10 +114,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                         <Text style={[styles.textSupporting, styles.textNormal, styles.pt4]}>{translate('workspace.qbd.setupPage.body')}</Text>
                         <View style={[styles.qbdSetupLinkBox, styles.mt5]}>
                             {!hasResultOfFetchingSetupLink ? (
-                                <ActivityIndicator
-                                    color={theme.spinner}
-                                    size="small"
-                                />
+                                <ActivityIndicator />
                             ) : (
                                 <CopyTextToClipboard
                                     text={codatSetupLink}

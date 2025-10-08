@@ -1,8 +1,11 @@
+import {Str} from 'expensify-common';
 import type {ComponentType} from 'react';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getInitialSubStepForBusinessInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBusinessInfoStep';
@@ -30,6 +33,9 @@ type BusinessInfoProps = {
 
     /** Handles submit button press */
     onSubmit: () => void;
+
+    /** Array of step names */
+    stepNames?: readonly string[];
 };
 
 const bodyContent: Array<ComponentType<SubStepProps>> = [
@@ -64,10 +70,13 @@ const INPUT_KEYS = {
     ANNUAL_VOLUME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANNUAL_VOLUME,
     TRADE_VOLUME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.TRADE_VOLUME,
     TAX_ID_EIN_NUMBER: INPUT_IDS.ADDITIONAL_DATA.CORPAY.TAX_ID_EIN_NUMBER,
+    BUSINESS_TYPE_ID: INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_TYPE_ID,
 };
 
-function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
+function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProps) {
     const {translate} = useLocalize();
+    const {isProduction} = useEnvironment();
+    const {isBetaEnabled} = usePermissions();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
@@ -80,6 +89,7 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
     const startFrom = useMemo(() => getInitialSubStepForBusinessInfoStep(businessInfoStepValues), [businessInfoStepValues]);
 
     const country = reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
+    const isBusinessTypeRequired = country !== CONST.COUNTRY.CA;
 
     useEffect(() => {
         getCorpayOnboardingFields(country);
@@ -89,14 +99,20 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
         saveCorpayOnboardingCompanyDetails(
             {
                 ...businessInfoStepValues,
+                // Corpay does not accept emails with a "+" character and will not let us connect account at the end of whole flow
+                businessConfirmationEmail:
+                    !isProduction && isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND)
+                        ? Str.replaceAll(businessInfoStepValues.businessConfirmationEmail, '+', '')
+                        : businessInfoStepValues.businessConfirmationEmail,
                 fundSourceCountries: country,
                 fundDestinationCountries: country,
                 currencyNeeded: currency,
                 purposeOfTransactionId: CONST.NON_USD_BANK_ACCOUNT.PURPOSE_OF_TRANSACTION_ID,
+                businessTypeId: isBusinessTypeRequired ? businessInfoStepValues.businessTypeId : undefined,
             },
             bankAccountID,
         );
-    }, [country, currency, bankAccountID, businessInfoStepValues]);
+    }, [businessInfoStepValues, isProduction, isBetaEnabled, country, currency, isBusinessTypeRequired, bankAccountID]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -135,7 +151,7 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
             wrapperID={BusinessInfo.displayName}
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('businessInfoStep.businessInfoTitle')}
-            stepNames={CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES}
+            stepNames={stepNames}
             startStepIndex={2}
         >
             <SubStep

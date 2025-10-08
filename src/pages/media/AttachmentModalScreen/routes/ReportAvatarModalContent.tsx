@@ -1,18 +1,19 @@
 import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import {getDefaultGroupAvatar, getPolicyName, getReportName, getWorkspaceIcon, isGroupChat, isThread} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
-import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
+import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 
-function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProps) {
+function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.REPORT_AVATAR>) {
     const {reportID, policyID} = route.params;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true, canBeMissing: true});
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
     const attachment = useMemo(() => {
         if (isGroupChat(report) && !isThread(report)) {
@@ -32,13 +33,12 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
         };
     }, [policy, report]);
 
-    const contentProps = useMemo(
-        () =>
-            ({
-                ...attachment,
-                shouldShowNotFoundPage: !report?.reportID && !isLoadingApp,
-                isLoading: (!report?.reportID || !policy?.id) && !!isLoadingApp,
-            }) satisfies Partial<AttachmentModalBaseContentProps>,
+    const contentProps = useMemo<AttachmentModalBaseContentProps>(
+        () => ({
+            ...attachment,
+            shouldShowNotFoundPage: !report?.reportID && !isLoadingApp,
+            isLoading: (!report?.reportID || !policy?.id) && !!isLoadingApp,
+        }),
         [attachment, isLoadingApp, policy?.id, report?.reportID],
     );
 

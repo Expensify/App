@@ -4,7 +4,6 @@ description: Learn how to configure automatic report submissions in Expensify Cl
 keywords: [Expensify Classic, automatic report submission, delay submissions, submission frequency, expense report schedule}
 ---
 
-<div id="expensify-classic" markdown="1">
 
 By setting a submission schedule for your workspace, expenses are automatically added to a report and submitted for approval based on the schedule you choose. This ensures employee expenses are collected without requiring manual submission each time.
 
@@ -14,7 +13,7 @@ By setting a submission schedule for your workspace, expenses are automatically 
 
 When an employee creates an expense, it's automatically added to a report. If no report exists, a new one is created. Reports are then submitted according to the schedule you choose—daily, weekly, monthly, twice per month, by trip, or manually.
 
-**Note:** If you're using **Delayed Submissions** and an expense has a violation, it won't be submitted until the violation is fixed. That expense is removed from the current report and added to a new open report.
+**Note:** If you're using **Delay Submissions** and an expense has a violation, it won't be submitted until the violation is fixed. That expense is removed from the current report and added to a new open report.
 
 ---
 
@@ -56,4 +55,3 @@ If you need reports separated by card:
 - Manually create reports for each card and assign expenses accordingly.
 - Use filters to group expenses by card before assigning them to reports.
 
-</div>

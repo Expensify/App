@@ -8,10 +8,8 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {closeReactNativeApp} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
 import {clearSignInData} from '@userActions/Session';
-import CONFIG from '@src/CONFIG';
 
 function SessionExpiredPage() {
     const styles = useThemeStyles();
@@ -34,12 +32,8 @@ function SessionExpiredPage() {
                         {translate('deeplinkWrapper.expired')}{' '}
                         <TextLink
                             onPress={() => {
-                                if (!CONFIG.IS_HYBRID_APP) {
-                                    clearSignInData();
-                                    Navigation.goBack();
-                                    return;
-                                }
-                                closeReactNativeApp({shouldSignOut: true, shouldSetNVP: false});
+                                clearSignInData();
+                                Navigation.goBack();
                             }}
                         >
                             {translate('deeplinkWrapper.signIn')}

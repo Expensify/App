@@ -18,7 +18,7 @@ export default function () {
 
     // Trigger action to show keyboard shortcuts
     window.electron.on(ELECTRON_EVENTS.KEYBOARD_SHORTCUTS_PAGE, () => {
-        Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS);
+        Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS.getRoute(Navigation.getActiveRoute()));
     });
 
     // Start current date updater

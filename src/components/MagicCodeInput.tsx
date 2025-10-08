@@ -1,8 +1,9 @@
 import type {ForwardedRef, KeyboardEvent} from 'react';
-import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import type {NativeSyntheticEvent, TextInput as RNTextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,6 +16,44 @@ import TextInput from './TextInput';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 const TEXT_INPUT_EMPTY_STATE = '';
+
+/**
+ * Trims whitespace from pasted magic codes
+ */
+const useMagicCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>, onChangeText: (value: string) => void) => {
+    useEffect(() => {
+        if (typeof document === 'undefined') {
+            return;
+        }
+
+        const handlePaste = (event: ClipboardEvent) => {
+            if (!inputRef.current) {
+                return;
+            }
+
+            const isFocused = (inputRef.current as RNTextInput)?.isFocused?.() ?? false;
+            if (!isFocused) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const plainText = event.clipboardData?.getData('text/plain');
+            if (plainText) {
+                const trimmedText = plainText.trim();
+                if (trimmedText && isNumeric(trimmedText)) {
+                    onChangeText(trimmedText);
+                }
+            }
+        };
+
+        document.addEventListener('paste', handlePaste, true);
+
+        return () => {
+            document.removeEventListener('paste', handlePaste, true);
+        };
+    }, [inputRef, onChangeText]);
+};
 
 type AutoCompleteVariant = 'sms-otp' | 'one-time-code' | 'off';
 
@@ -40,6 +79,9 @@ type MagicCodeInputProps = {
     /** Function to call when the input is changed  */
     onChangeText?: (value: string) => void;
 
+    /** Callback that is called when the text input is focused */
+    onFocus?: () => void;
+
     /** Function to call when the input is submitted or fully complete */
     onFulfill?: (value: string) => void;
 
@@ -57,6 +99,9 @@ type MagicCodeInputProps = {
 
     /** TestID for test */
     testID?: string;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<MagicCodeInputHandle>;
 };
 
 type MagicCodeInputHandle = {
@@ -90,29 +135,28 @@ const composeToString = (value: string[]): string => value.map((v) => v ?? CONST
 
 const getInputPlaceholderSlots = (length: number): number[] => Array.from(Array(length).keys());
 
-function MagicCodeInput(
-    {
-        value = '',
-        name = '',
-        autoFocus = true,
-        errorText = '',
-        shouldSubmitOnComplete = true,
-        onChangeText: onChangeTextProp = () => {},
-        maxLength = CONST.MAGIC_CODE_LENGTH,
-        onFulfill = () => {},
-        isDisableKeyboard = false,
-        lastPressedDigit = '',
-        autoComplete,
-        hasError = false,
-        testID = '',
-    }: MagicCodeInputProps,
-    ref: ForwardedRef<MagicCodeInputHandle>,
-) {
+function MagicCodeInput({
+    value = '',
+    name = '',
+    autoFocus = true,
+    errorText = '',
+    shouldSubmitOnComplete = true,
+    onChangeText: onChangeTextProp = () => {},
+    onFocus: onFocusProps,
+    maxLength = CONST.MAGIC_CODE_LENGTH,
+    onFulfill = () => {},
+    isDisableKeyboard = false,
+    lastPressedDigit = '',
+    autoComplete,
+    hasError = false,
+    testID = '',
+    ref,
+}: MagicCodeInputProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const [input, setInput] = useState(TEXT_INPUT_EMPTY_STATE);
-    const [focusedIndex, setFocusedIndex] = useState<number | undefined>(0);
+    const [focusedIndex, setFocusedIndex] = useState<number | undefined>(autoFocus ? 0 : undefined);
     const editIndex = useRef(0);
     const [wasSubmitted, setWasSubmitted] = useState(false);
     const shouldFocusLast = useRef(false);
@@ -120,6 +164,8 @@ function MagicCodeInput(
     const lastFocusedIndex = useRef(0);
     const lastValue = useRef<string | number>(TEXT_INPUT_EMPTY_STATE);
     const valueRef = useRef(value);
+
+    useMagicCodePaste(inputRef, onChangeTextProp);
 
     useEffect(() => {
         lastValue.current = input.length;
@@ -131,6 +177,14 @@ function MagicCodeInput(
         // to not have outdated values.
         valueRef.current = value;
     }, [value]);
+
+    useEffect(() => {
+        // Reset wasSubmitted when code becomes incomplete to allow retry attempts and fix issue where wasSubmitted didn't update on Android
+        if (value.length >= maxLength) {
+            return;
+        }
+        setWasSubmitted(false);
+    }, [value, maxLength]);
 
     const blurMagicCodeInput = () => {
         inputRef.current?.blur();
@@ -156,6 +210,7 @@ function MagicCodeInput(
         },
         focusLastSelected() {
             inputRef.current?.focus();
+            setFocusedIndex(lastFocusedIndex.current);
         },
         resetFocus() {
             setInput(TEXT_INPUT_EMPTY_STATE);
@@ -207,6 +262,7 @@ function MagicCodeInput(
             lastValue.current = TEXT_INPUT_EMPTY_STATE;
             setInputAndIndex(lastFocusedIndex.current);
         }
+        onFocusProps?.();
         event.preventDefault();
     };
 
@@ -381,9 +437,23 @@ function MagicCodeInput(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [lastPressedDigit, isDisableKeyboard]);
 
+    const cursorOpacity = useSharedValue(1);
+
+    useEffect(() => {
+        cursorOpacity.set(withRepeat(withSequence(withDelay(500, withTiming(0, {duration: 0})), withDelay(500, withTiming(1, {duration: 0}))), -1, false));
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
+
+    const animatedCursorStyle = useAnimatedStyle(() => ({
+        opacity: cursorOpacity.get(),
+    }));
+
     return (
         <>
-            <View style={[styles.magicCodeInputContainer]}>
+            <View
+                style={[styles.magicCodeInputContainer]}
+                fsClass={CONST.FULLSTORY.CLASS.MASK}
+            >
                 <GestureDetector gesture={tapGesture}>
                     {/* Android does not handle touch on invisible Views so I created a wrapper around invisible TextInput just to handle taps */}
                     <View
@@ -419,29 +489,45 @@ function MagicCodeInput(
                             inputStyle={[styles.inputTransparent]}
                             role={CONST.ROLE.PRESENTATION}
                             style={[styles.inputTransparent]}
-                            textInputContainerStyles={[styles.borderNone]}
+                            textInputContainerStyles={[styles.borderTransparent, styles.bgTransparent]}
                             testID={testID}
                         />
                     </View>
                 </GestureDetector>
-                {getInputPlaceholderSlots(maxLength).map((index) => (
-                    <View
-                        key={index}
-                        style={maxLength === CONST.MAGIC_CODE_LENGTH ? [styles.w15] : [styles.flex1, index !== 0 && styles.ml3]}
-                    >
+                {getInputPlaceholderSlots(maxLength).map((index) => {
+                    const char = decomposeString(value, maxLength).at(index)?.trim() ?? '';
+                    const cursorMargin = char ? {marginLeft: 2} : {};
+                    const isFocused = focusedIndex === index;
+
+                    return (
                         <View
-                            style={[
-                                styles.textInputContainer,
-                                StyleUtils.getHeightOfMagicCodeInput(),
-                                hasError || errorText ? styles.borderColorDanger : {},
-                                focusedIndex === index ? styles.borderColorFocus : {},
-                                styles.pt0,
-                            ]}
+                            key={index}
+                            style={maxLength === CONST.MAGIC_CODE_LENGTH ? [styles.w15] : [styles.flex1, index !== 0 && styles.ml3]}
                         >
-                            <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(value, maxLength).at(index) ?? ''}</Text>
+                            <View
+                                style={[
+                                    styles.textInputContainer,
+                                    StyleUtils.getHeightOfMagicCodeInput(),
+                                    hasError || errorText ? styles.borderColorDanger : {},
+                                    focusedIndex === index ? styles.borderColorFocus : {},
+                                    styles.pt0,
+                                    {position: 'relative'},
+                                ]}
+                            >
+                                <View style={styles.magicCodeInputValueContainer}>
+                                    <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{char}</Text>
+                                    {isFocused && !isDisableKeyboard && (
+                                        <View style={[styles.magicCodeInputCursorContainer]}>
+                                            {!!char && <Text style={[styles.magicCodeInput, styles.textAlignCenter, styles.opacity0]}>{char}</Text>}
+                                            <Text style={[styles.magicCodeInput, {width: 1}]}> </Text>
+                                            <Animated.Text style={[styles.magicCodeInputCursor, animatedCursorStyle, cursorMargin]}>│</Animated.Text>
+                                        </View>
+                                    )}
+                                </View>
+                            </View>
                         </View>
-                    </View>
-                ))}
+                    );
+                })}
             </View>
             {!!errorText && (
                 <FormHelpMessage
@@ -455,5 +541,5 @@ function MagicCodeInput(
 
 MagicCodeInput.displayName = 'MagicCodeInput';
 
-export default forwardRef(MagicCodeInput);
+export default MagicCodeInput;
 export type {AutoCompleteVariant, MagicCodeInputHandle, MagicCodeInputProps};

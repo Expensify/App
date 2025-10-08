@@ -1,8 +1,8 @@
+import toSortedPolyfill from 'array.prototype.tosorted';
 import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import intlPolyfill from '@libs/IntlPolyfill';
 import {setDeviceID} from '@userActions/Device';
-import initLocale from '@userActions/Locale';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,6 +12,8 @@ import telemetry from './telemetry';
 
 export default function () {
     telemetry();
+
+    toSortedPolyfill.shim();
 
     /*
      * Initialize the Onyx store when the app loads for the first time.
@@ -49,12 +51,11 @@ export default function () {
                 isVisible: false,
                 willAlertModalBecomeVisible: false,
             },
+            // Ensure the Supportal permission modal doesn't persist across reloads
+            [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: null,
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
     });
-
-    // Init locale early to avoid rendering translations keys instead of real translations
-    initLocale();
 
     initOnyxDerivedValues();
 

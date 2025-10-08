@@ -10,11 +10,10 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useCancellationType from '@hooks/useCancellationType';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {navigateToConciergeChat} from '@libs/actions/Report';
 import {cancelBillingSubscription} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
 import type {CancellationType, FeedbackSurveyOptionID} from '@src/CONST';
@@ -23,6 +22,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function RequestEarlyCancellationPage() {
+    const {environmentURL} = useEnvironment();
+    const workspacesListRoute = `${environmentURL}/${ROUTES.WORKSPACES_LIST.route}`;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -42,11 +43,9 @@ function RequestEarlyCancellationPage() {
             <View style={[styles.flexGrow1, styles.justifyContentBetween, styles.mh5]}>
                 <View>
                     <Text style={styles.textHeadline}>{translate('subscription.requestEarlyCancellation.requestSubmitted.title')}</Text>
-                    <Text style={[styles.mt1, styles.textNormalThemeText]}>
-                        {translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.part1')}
-                        <TextLink onPress={() => navigateToConciergeChat()}>{translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.link')}</TextLink>
-                        {translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.part2')}
-                    </Text>
+                    <View style={[styles.mt1, styles.renderHTML]}>
+                        <RenderHTML html={translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle')} />
+                    </View>
                 </View>
                 <FixedFooter style={styles.ph0}>
                     <Button
@@ -68,13 +67,8 @@ function RequestEarlyCancellationPage() {
                     <Text style={styles.textHeadline}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.title')}</Text>
                     <Text style={[styles.mt1, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.subtitle')}</Text>
                     <Text style={[styles.mv4, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.info')}</Text>
-                    <Text>
-                        {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.part1')}
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.route)}>
-                            {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.link')}
-                        </TextLink>
-                        {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.part2')}
-                    </Text>
+
+                    <RenderHTML html={translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity', {workspacesListRoute})} />
                 </View>
                 <FixedFooter style={styles.ph0}>
                     <Button
@@ -86,9 +80,8 @@ function RequestEarlyCancellationPage() {
                 </FixedFooter>
             </View>
         ),
-        [styles, translate],
+        [styles, translate, workspacesListRoute],
     );
-
     const surveyContent = useMemo(
         () => (
             <FeedbackSurvey
@@ -109,6 +102,7 @@ function RequestEarlyCancellationPage() {
     const contentMap: Partial<Record<CancellationType, ReactNode>> = {
         [CONST.CANCELLATION_TYPE.MANUAL]: manualCancellationContent,
         [CONST.CANCELLATION_TYPE.AUTOMATIC]: automaticCancellationContent,
+        [CONST.CANCELLATION_TYPE.NONE]: manualCancellationContent,
     };
 
     const screenContent = cancellationType ? contentMap[cancellationType] : surveyContent;
@@ -119,6 +113,7 @@ function RequestEarlyCancellationPage() {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
+            shouldShowOfflineIndicatorInWideScreen={!cancellationType}
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton

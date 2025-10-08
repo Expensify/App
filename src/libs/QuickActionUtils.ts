@@ -32,8 +32,6 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
             return getIconForAction(CONST.IOU.TYPE.TRACK);
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
             return Expensicons.ReceiptScan;
-        case CONST.QUICK_ACTIONS.CREATE_REPORT:
-            return Expensicons.Document;
         default:
             return Expensicons.MoneyCircle;
     }
@@ -84,23 +82,32 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
             return 'quickAction.paySomeone';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return 'quickAction.assignTask';
-        case CONST.QUICK_ACTIONS.CREATE_REPORT:
-            return 'quickAction.createReport';
         default:
             return '' as TranslationPaths;
     }
 };
+const isManagerMcTestQuickActionReport = (report: Report | undefined) => {
+    return !!report?.participants?.[CONST.ACCOUNT_ID.MANAGER_MCTEST];
+};
 
-const isQuickActionAllowed = (quickAction: QuickAction, quickActionReport: Report | undefined, quickActionPolicy: Policy | undefined) => {
+const isQuickActionAllowed = (
+    quickAction: QuickAction,
+    quickActionReport: Report | undefined,
+    quickActionPolicy: Policy | undefined,
+    isReportArchived = false,
+    isRestrictedToPreferredPolicy = false,
+) => {
     const iouType = getIOUType(quickAction?.action);
     if (iouType) {
-        return canCreateRequest(quickActionReport, quickActionPolicy, iouType);
+        // We're disabling QAB for Manager McTest reports to prevent confusion when submitting real data for Manager McTest
+        const isReportHasManagerMCTest = isManagerMcTestQuickActionReport(quickActionReport);
+        if (isReportHasManagerMCTest) {
+            return false;
+        }
+        return canCreateRequest(quickActionReport, quickActionPolicy, iouType, isReportArchived, isRestrictedToPreferredPolicy);
     }
     if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM) {
         return !!quickActionPolicy?.arePerDiemRatesEnabled;
-    }
-    if (quickAction?.action === CONST.QUICK_ACTIONS.CREATE_REPORT) {
-        return !!quickActionPolicy;
     }
     return true;
 };

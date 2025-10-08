@@ -5,7 +5,6 @@ order: 1
 keywords: [Expensify Classic, QuickBooks Desktop connection]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 QuickBooks Desktop is an accounting software developed by Intuit, designed to support small and medium-sized businesses in managing financial and accounting tasks. Integrating Expensify with QuickBooks Desktop streamlines expense management for your organization.
 
@@ -80,4 +79,3 @@ Yes. Each connector corresponds to one company file, but multiple connectors can
   - The export type is **Check**, as the report’s total must be positive.
   - Non-reimbursable expenses are exported as debit card transactions (QuickBooks exports them as non-reimbursable checks, which cannot have negative amounts).
 
-</div>

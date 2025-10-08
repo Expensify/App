@@ -1,6 +1,7 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {InteractionManager, View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -11,6 +12,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
@@ -33,8 +35,9 @@ type VerifyPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList,
 function VerifyPage({route}: VerifyPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const contactMethod = getContactMethod();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const contactMethod = getContactMethod(account?.primaryLogin, session?.email);
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
     useEffect(() => {
@@ -70,6 +73,16 @@ function VerifyPage({route}: VerifyPageProps) {
         return `otpauth://totp/Expensify:${contactMethod}?secret=${account?.twoFactorAuthSecretKey}&issuer=Expensify`;
     }
 
+    const scrollViewRef = useRef<RNScrollView>(null);
+    const handleInputFocus = useCallback(() => {
+        // eslint-disable-next-line deprecation/deprecation
+        InteractionManager.runAfterInteractions(() => {
+            requestAnimationFrame(() => {
+                scrollViewRef.current?.scrollToEnd({animated: true});
+            });
+        });
+    }, []);
+
     return (
         <TwoFactorAuthWrapper
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.VERIFY}
@@ -80,8 +93,10 @@ function VerifyPage({route}: VerifyPageProps) {
                 total: 3,
             }}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_2FA_ROOT.getRoute(route.params?.backTo, route.params?.forwardTo))}
+            shouldEnableViewportOffsetTop
         >
             <ScrollView
+                ref={scrollViewRef}
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={styles.flexGrow1}
             >
@@ -116,11 +131,15 @@ function VerifyPage({route}: VerifyPageProps) {
                     </View>
                     <Text style={styles.mt11}>{translate('twoFactorAuth.enterCode')}</Text>
                 </View>
+                <View style={[styles.mh5, styles.mb4, styles.mt3]}>
+                    <TwoFactorAuthForm
+                        innerRef={formRef}
+                        shouldAutoFocusOnMobile={false}
+                        onFocus={handleInputFocus}
+                    />
+                </View>
             </ScrollView>
             <FixedFooter style={[styles.mt2, styles.pt2]}>
-                <View style={[styles.mh5, styles.mb4]}>
-                    <TwoFactorAuthForm innerRef={formRef} />
-                </View>
                 <Button
                     success
                     large

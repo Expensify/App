@@ -2,10 +2,11 @@ import appleAuth from '@invertase/react-native-apple-authentication';
 import type {AppleError} from '@invertase/react-native-apple-authentication';
 import React from 'react';
 import IconButton from '@components/SignInButtons/IconButton';
-import {setNewDotSignInState} from '@libs/actions/HybridApp';
+import useOnyx from '@hooks/useOnyx';
 import Log from '@libs/Log';
 import {beginAppleSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {AppleSignInProps} from '.';
 
 /**
@@ -35,12 +36,10 @@ function appleSignInRequest(): Promise<string | null | undefined> {
  * Apple Sign In button for iOS.
  */
 function AppleSignIn({onPress = () => {}}: AppleSignInProps) {
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const handleSignIn = () => {
         appleSignInRequest()
-            .then((token) => {
-                setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
-                beginAppleSignIn(token);
-            })
+            .then((token) => beginAppleSignIn(token, preferredLocale))
             .catch((error: {code: AppleError}) => {
                 if (error.code === appleAuth.Error.CANCELED) {
                     return null;

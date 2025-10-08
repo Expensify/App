@@ -1,35 +1,36 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
+import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {getFullSizeAvatar} from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
 
-type WorkspaceAvatarOnyxProps = {
-    policy: OnyxEntry<Policy>;
-    isLoadingApp: OnyxEntry<boolean>;
-};
+type WorkspaceAvatarProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_AVATAR>;
 
-type WorkspaceAvatarProps = WorkspaceAvatarOnyxProps & PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_AVATAR>;
-
-function WorkspaceAvatar({policy, isLoadingApp = true}: WorkspaceAvatarProps) {
-    const avatarURL = (policy?.avatarURL ?? '') ? (policy?.avatarURL ?? '') : ReportUtils.getDefaultWorkspaceAvatar(policy?.name ?? '');
+function WorkspaceAvatar({route}: WorkspaceAvatarProps) {
+    const {policyID, letter: fallbackLetter} = route?.params ?? {};
+    const policy = usePolicy(policyID);
+    const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true, initWithStoredValues: false});
+    const policyAvatarURL = policy?.avatarURL;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const avatarURL = policyAvatarURL || getDefaultWorkspaceAvatar(policy?.name ?? fallbackLetter);
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = !Object.keys(policy ?? {}).length && !isLoadingApp && (!policyID || !fallbackLetter);
 
     return (
         <AttachmentModal
             headerTitle={policy?.name ?? ''}
             defaultOpen
-            source={UserUtils.getFullSizeAvatar(avatarURL, 0)}
+            source={getFullSizeAvatar(avatarURL, 0)}
             onModalClose={Navigation.goBack}
             isWorkspaceAvatar
-            originalFileName={policy?.originalFileName ?? policy?.id}
-            shouldShowNotFoundPage={!Object.keys(policy ?? {}).length && !isLoadingApp}
+            originalFileName={policy?.originalFileName ?? policy?.id ?? policyID}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
             isLoading={!Object.keys(policy ?? {}).length && !!isLoadingApp}
             maybeIcon
         />
@@ -38,11 +39,4 @@ function WorkspaceAvatar({policy, isLoadingApp = true}: WorkspaceAvatarProps) {
 
 WorkspaceAvatar.displayName = 'WorkspaceAvatar';
 
-export default withOnyx<WorkspaceAvatarProps, WorkspaceAvatarOnyxProps>({
-    policy: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID ?? '-1'}`,
-    },
-    isLoadingApp: {
-        key: ONYXKEYS.IS_LOADING_APP,
-    },
-})(WorkspaceAvatar);
+export default WorkspaceAvatar;
