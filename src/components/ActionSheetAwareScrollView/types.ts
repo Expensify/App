@@ -1,10 +1,42 @@
-import type {PropsWithChildren, Ref} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView, ScrollViewProps} from 'react-native';
+import type {ReactNode} from 'react';
+import type {AnimatedRef, AnimatedScrollViewProps, ScrollHandlerProcessed, SharedValue} from 'react-native-reanimated';
+import type Reanimated from 'react-native-reanimated';
+import type {ActionWithPayload, State} from '@hooks/useWorkletStateMachine';
 
-type ActionSheetAwareScrollViewAnimationProps = {
-    ref?: Ref<ScrollView>;
+type ActionSheetAwareScrollViewMeasurements = {
+    frameY?: number;
+    popoverHeight?: number;
+    height?: number;
+    composerHeight?: number;
 };
-type ActionSheetAwareScrollViewProps = PropsWithChildren<ScrollViewProps> & ActionSheetAwareScrollViewAnimationProps;
-type RenderActionSheetAwareScrollViewComponent = ((props: ActionSheetAwareScrollViewProps) => React.ReactElement<ScrollViewProps>) | undefined;
-export type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent};
+
+type ActionSheetAwareScrollViewState = State<ActionSheetAwareScrollViewMeasurements>;
+
+/** Holds all information that is needed to coordinate the state value for the action sheet state machine. */
+const INITIAL_ACTION_SHEET_STATE: ActionSheetAwareScrollViewState = {
+    previous: {
+        state: 'idle',
+        payload: null,
+    },
+    current: {
+        state: 'idle',
+        payload: null,
+    },
+};
+
+type ActionSheetAwareScrollViewContextValue = {
+    currentActionSheetState: SharedValue<ActionSheetAwareScrollViewState>;
+    transitionActionSheetState: (action: ActionWithPayload) => void;
+    transitionActionSheetStateWorklet: (action: ActionWithPayload) => void;
+    resetStateMachine: () => void;
+};
+
+type ActionSheetAwareScrollViewProps = Omit<AnimatedScrollViewProps, 'onScroll'> & {
+    children?: ReactNode | SharedValue<ReactNode>;
+    onScroll?: ScrollHandlerProcessed<Record<string, unknown>>;
+    ref?: React.Ref<Reanimated.ScrollView> | AnimatedRef<Reanimated.ScrollView>;
+};
+
+export type {ActionSheetAwareScrollViewProps, ActionSheetAwareScrollViewContextValue, ActionSheetAwareScrollViewMeasurements, ActionSheetAwareScrollViewState};
+
+export {INITIAL_ACTION_SHEET_STATE};
