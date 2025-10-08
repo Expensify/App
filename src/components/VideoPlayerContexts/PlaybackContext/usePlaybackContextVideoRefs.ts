@@ -82,7 +82,7 @@ function usePlaybackContextVideoRefs(resetCallback: () => void) {
             resumeTryNumberRef: videoResumeTryNumberRef,
             updateRef: updateCurrentVideoPlayerRef,
         }),
-        [checkIfVideoIsPlaying, pauseVideo, playVideo, resetVideoPlayerData,stopVideo],
+        [checkIfVideoIsPlaying, pauseVideo, playVideo, resetVideoPlayerData, stopVideo],
     );
 }
 
