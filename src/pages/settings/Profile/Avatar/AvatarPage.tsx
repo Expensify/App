@@ -168,7 +168,7 @@ function ProfileAvatar() {
             offlineIndicatorStyle={styles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton title="Edit profile picture" />
+            <HeaderWithBackButton title={translate('avatarPage.title')} />
 
             <ScrollView
                 style={[styles.w100, styles.h100, styles.flex1]}
@@ -195,8 +195,9 @@ function ProfileAvatar() {
                                 return (
                                     <Button
                                         icon={Expensicons.Upload}
-                                        text="Upload a photo"
-                                        accessibilityLabel="Upload a photo"
+                                        text={translate('avatarPage.uploadPhoto')}
+                                        accessibilityLabel={translate('avatarPage.uploadPhoto')}
+                                        isDisabled={isAvatarCropModalOpen}
                                         onPress={() => {
                                             if (isSafari()) {
                                                 return;
@@ -213,6 +214,8 @@ function ProfileAvatar() {
                                 <ButtonWithDropdownMenu
                                     success={false}
                                     shouldUseOptionIcon
+                                    isDisabled={isAvatarCropModalOpen}
+                                    // onPress is required but not used - all actions are handled by dropdown options
                                     onPress={() => {}}
                                     anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                                     customText={translate('common.edit')}
@@ -222,15 +225,15 @@ function ProfileAvatar() {
                             );
                         }}
                     </AttachmentPicker>
+                    {!!errorData.validationError && (
+                        <DotIndicatorMessage
+                            style={styles.mt6}
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
+                            type="error"
+                        />
+                    )}
                 </View>
-                {!!errorData.validationError && (
-                    <DotIndicatorMessage
-                        style={styles.mt6}
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
-                        type="error"
-                    />
-                )}
             </ScrollView>
             <AvatarCropModal
                 onClose={() => {
