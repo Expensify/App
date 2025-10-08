@@ -13004,7 +13004,7 @@ function clearSplitTransactionDraftErrors(transactionID: string | undefined) {
 
 function saveSplitTransactions(
     transactions: OnyxCollection<OnyxTypes.Transaction>,
-    reports: OnyxCollection<OnyxTypes.Report>, 
+    reports: OnyxCollection<OnyxTypes.Report>,
     draftTransaction: OnyxEntry<OnyxTypes.Transaction>,
     hash: number,
     policyCategories: OnyxTypes.PolicyCategories | undefined,
@@ -13310,7 +13310,7 @@ function saveSplitTransactions(
     }
 
     if (isReverseSplitOperation) {
-        const parameters = { 
+        const parameters = {
             ...splits.at(0),
             comment: splits.at(0)?.comment?.comment,
         } as RevertSplitTransactionParams;

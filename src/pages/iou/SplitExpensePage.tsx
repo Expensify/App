@@ -154,7 +154,26 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
 
         saveSplitTransactions(allTransactions, allReports, draftTransaction, currentSearchHash, policyCategories, expenseReportPolicy);
-    }, [splitExpenses, childTransactions.length, isBetaEnabled, draftTransaction, sumOfSplitExpenses, transactionDetailsAmount, isPerDiem, isCard, splitFieldDataFromChildTransactions, allTransactions, allReports, currentSearchHash, policyCategories, expenseReportPolicy, splitFieldDataFromOriginalTransaction, translate, transactionID, transactionDetails?.currency]);
+    }, [
+        splitExpenses,
+        childTransactions.length,
+        isBetaEnabled,
+        draftTransaction,
+        sumOfSplitExpenses,
+        transactionDetailsAmount,
+        isPerDiem,
+        isCard,
+        splitFieldDataFromChildTransactions,
+        allTransactions,
+        allReports,
+        currentSearchHash,
+        policyCategories,
+        expenseReportPolicy,
+        splitFieldDataFromOriginalTransaction,
+        translate,
+        transactionID,
+        transactionDetails?.currency,
+    ]);
 
     const onSplitExpenseAmountChange = useCallback(
         (currentItemTransactionID: string, value: number) => {

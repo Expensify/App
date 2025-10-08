@@ -2708,7 +2708,7 @@ describe('actions/IOU', () => {
                     originalTransactionID: transaction.transactionID,
                 },
             };
-            
+
             let allTransactions: OnyxCollection<Transaction>;
             let allReports: OnyxCollection<Report>;
             await getOnyxData({
@@ -2725,7 +2725,7 @@ describe('actions/IOU', () => {
                     allReports = value;
                 },
             });
-            
+
             saveSplitTransactions(allTransactions, allReports, draftTransaction, 1, undefined, undefined);
 
             await waitForBatchedUpdates();
@@ -2786,7 +2786,7 @@ describe('actions/IOU', () => {
 
             // When splitting the expense
             const hash = 1;
-            
+
             let allTransactions: OnyxCollection<Transaction>;
             let allReports: OnyxCollection<Report>;
             await getOnyxData({
@@ -2803,7 +2803,7 @@ describe('actions/IOU', () => {
                     allReports = value;
                 },
             });
-            
+
             saveSplitTransactions(allTransactions, allReports, draftTransaction, hash, undefined, undefined);
 
             await waitForBatchedUpdates();
@@ -2879,7 +2879,7 @@ describe('actions/IOU', () => {
 
             // When splitting the expense
             const hash = 1;
-            
+
             let allTransactions: OnyxCollection<Transaction>;
             let allReports: OnyxCollection<Report>;
             await getOnyxData({
@@ -2896,7 +2896,7 @@ describe('actions/IOU', () => {
                     allReports = value;
                 },
             });
-            
+
             saveSplitTransactions(allTransactions, allReports, draftTransaction, hash, undefined, undefined);
 
             await waitForBatchedUpdates();
@@ -6762,7 +6762,7 @@ describe('actions/IOU', () => {
                     allReports = value;
                 },
             });
-            
+
             initSplitExpense(allTransactions, allReports, transaction);
             await waitForBatchedUpdates();
 
@@ -6805,7 +6805,7 @@ describe('actions/IOU', () => {
                     allReports = value;
                 },
             });
-            
+
             initSplitExpense(allTransactions, allReports, transaction);
             await waitForBatchedUpdates();
 
@@ -6846,7 +6846,7 @@ describe('actions/IOU', () => {
                     allReports = value;
                 },
             });
-            
+
             initSplitExpense(allTransactions, allReports, transaction);
             await waitForBatchedUpdates();
 
@@ -7320,7 +7320,7 @@ describe('actions/IOU', () => {
                         allReports = value;
                     },
                 });
-                
+
                 saveSplitTransactions(allTransactions, allReports, draftTransaction, -2, undefined, undefined);
                 await waitForBatchedUpdates();
 
@@ -7437,7 +7437,7 @@ describe('actions/IOU', () => {
                         allReports = value;
                     },
                 });
-                
+
                 saveSplitTransactions(allTransactions, allReports, draftTransaction, -2, undefined, undefined);
                 await waitForBatchedUpdates();
 
