@@ -60,6 +60,7 @@ function ProfilePage() {
 
     const avatarURL = currentUserPersonalDetails?.avatar ?? '';
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart];
 
     const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, currentUserPersonalDetails?.email);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
@@ -194,7 +195,7 @@ function ProfilePage() {
                                                 avatarID={accountID}
                                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
                                                 size={CONST.AVATAR_SIZE.X_LARGE}
-                                                avatarStyle={[styles.avatarXLarge, styles.alignSelfStart]}
+                                                avatarStyle={avatarStyle}
                                                 pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
                                                 fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
                                                 editIconStyle={styles.profilePageAvatar}
@@ -220,7 +221,7 @@ function ProfilePage() {
                                                     });
                                                 }}
                                                 size={CONST.AVATAR_SIZE.X_LARGE}
-                                                avatarStyle={[styles.avatarXLarge, styles.alignSelfStart]}
+                                                avatarStyle={avatarStyle}
                                                 pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
                                                 errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
                                                 errorRowStyles={styles.mt6}

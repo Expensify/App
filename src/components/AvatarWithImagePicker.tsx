@@ -325,7 +325,7 @@ function AvatarWithImagePicker({
             </View>
             {!!errorData.validationError && (
                 <DotIndicatorMessage
-                    style={[styles.mt6]}
+                    style={styles.mt6}
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
                     type="error"

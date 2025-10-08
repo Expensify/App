@@ -47,7 +47,7 @@ function ProfileAvatar() {
         name: '',
         type: '',
     });
-    const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart];
+    const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart, styles.alignSelfCenter];
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -114,44 +114,50 @@ function ProfileAvatar() {
     /**
      * Create menu items list for avatar menu
      */
-    const createMenuItems = (openPicker: OpenPicker): Array<DropdownOption<null>> => {
-        const menuItems: Array<DropdownOption<null>> = [
-            {
-                icon: Expensicons.Upload,
-                text: translate('avatarWithImagePicker.uploadPhoto'),
-                onSelected: () => {
-                    if (isSafari()) {
-                        return;
-                    }
-                    openPicker({
-                        onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
-                    });
+    const createMenuItems = useCallback(
+        (openPicker: OpenPicker): Array<DropdownOption<null>> => {
+            const menuItems: Array<DropdownOption<null>> = [
+                {
+                    icon: Expensicons.Upload,
+                    text: translate('avatarWithImagePicker.uploadPhoto'),
+                    onSelected: () => {
+                        if (isSafari()) {
+                            return;
+                        }
+                        openPicker({
+                            onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
+                        });
+                    },
+                    value: null,
                 },
-                value: null,
-            },
-        ];
+            ];
 
-        // If current avatar isn't a default avatar, allow Remove Photo option
-        if (!isUsingDefaultAvatar) {
-            menuItems.push({
-                icon: Expensicons.Trashcan,
-                text: translate('avatarWithImagePicker.removePhoto'),
-                value: null,
+            // If current avatar isn't a default avatar, allow Remove Photo option
+            if (isUsingDefaultAvatar) {
+                return menuItems;
+            }
+            return [
+                ...menuItems,
+                {
+                    icon: Expensicons.Trashcan,
+                    text: translate('avatarWithImagePicker.removePhoto'),
+                    value: null,
 
-                onSelected: () => {
-                    setError(null, {});
-                    onImageRemoved();
+                    onSelected: () => {
+                        setError(null, {});
+                        onImageRemoved();
+                    },
                 },
-            });
-            menuItems.push({
-                value: null,
-                icon: Expensicons.Eye,
-                text: translate('avatarWithImagePicker.viewPhoto'),
-                onSelected: () => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID)),
-            });
-        }
-        return menuItems;
-    };
+                {
+                    value: null,
+                    icon: Expensicons.Eye,
+                    text: translate('avatarWithImagePicker.viewPhoto'),
+                    onSelected: () => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID)),
+                },
+            ];
+        },
+        [accountID, isUsingDefaultAvatar, onImageRemoved, showAvatarCropModal, translate],
+    );
 
     return (
         <ScreenWrapper
@@ -171,8 +177,8 @@ function ProfileAvatar() {
             >
                 <View style={[styles.flexColumn, styles.flex1, styles.gap6, styles.alignItemsCenter]}>
                     <Avatar
-                        containerStyles={[avatarStyle, styles.alignSelfCenter]}
-                        imageStyles={[styles.alignSelfCenter, avatarStyle]}
+                        containerStyles={avatarStyle}
+                        imageStyles={avatarStyle}
                         source={avatarURL}
                         avatarID={accountID}
                         fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
@@ -208,7 +214,7 @@ function ProfileAvatar() {
                                     shouldUseOptionIcon
                                     onPress={() => {}}
                                     anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                    customText="Edit"
+                                    customText={translate('common.edit')}
                                     options={createMenuItems(openPicker)}
                                     isSplitButton={false}
                                 />
@@ -219,7 +225,7 @@ function ProfileAvatar() {
             </ScrollView>
             {!!errorData.validationError && (
                 <DotIndicatorMessage
-                    style={[styles.mt6]}
+                    style={styles.mt6}
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
                     type="error"
