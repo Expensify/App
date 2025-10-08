@@ -5,7 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type {Transaction} from '@src/types/onyx';
 import EReceipt from './EReceipt';
-import type {TransactionListItemType} from './SelectionList/types';
+import type {TransactionListItemType} from './SelectionListWithSections/types';
 
 type EReceiptWithSizeCalculationProps = {
     /* TransactionID of the transaction this EReceipt corresponds to */
@@ -16,6 +16,9 @@ type EReceiptWithSizeCalculationProps = {
 
     /** Whether the eReceipt should preserve aspect ratio */
     shouldUseAspectRatio?: boolean;
+
+    /** Callback to be called when the image loads */
+    onLoad?: () => void;
 };
 
 const eReceiptAspectRatio = variables.eReceiptBGHWidth / variables.eReceiptBGHeight;

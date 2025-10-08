@@ -121,6 +121,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.dismissModal();
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => {
                 Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID));
             });
