@@ -1,7 +1,7 @@
 import {activePolicySelector} from '@selectors/Policy';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useSession} from '@components/OnyxListItemProvider';
-import {isPaidGroupPolicy, isPolicyMemberWithoutPendingDelete, isPolicyUser, isUserPolicyAdmin} from '@libs/PolicyUtils';
+import {isPaidGroupPolicy, isPolicyAdmin, isPolicyMemberWithoutPendingDelete, isPolicyUser} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -29,7 +29,7 @@ function usePolicyForMovingExpenses() {
     const userPolicies = Object.values(allPolicies ?? {}).filter(
         (policy) =>
             checkForPendingDelete(login, policy) &&
-            (isUserPolicyAdmin(policy, login) || isPolicyUser(policy, login)) &&
+            (isPolicyAdmin(policy, login) || isPolicyUser(policy, login)) &&
             isPaidGroupPolicy(policy) &&
             policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
