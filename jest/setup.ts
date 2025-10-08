@@ -1,4 +1,5 @@
 /* eslint-disable max-classes-per-file */
+import * as core from '@actions/core';
 import '@shopify/flash-list/jestSetup';
 import type * as RNAppLogs from 'react-native-app-logs';
 import 'react-native-gesture-handler/jestSetup';
@@ -43,25 +44,11 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
 const isVerbose = process.env.JEST_VERBOSE === 'true';
 
 if (!isVerbose) {
-    jest.mock('@actions/core', () => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const originalCore = jest.requireActual('@actions/core'); // this is giving lint error
-
-        const createMockFn = () => {
-            const mockFn = jest.fn(() => {});
-            return mockFn;
-        };
-
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return {
-            ...originalCore,
-            startGroup: createMockFn(),
-            endGroup: createMockFn(),
-            group: jest.fn((_title: unknown, fn: unknown) => fn),
-            info: createMockFn(),
-            setOutput: createMockFn(),
-        };
-    });
+    jest.spyOn(core, 'startGroup').mockImplementation(() => {});
+    jest.spyOn(core, 'endGroup').mockImplementation(() => {});
+    jest.spyOn(core, 'group').mockImplementation(<T>(_title: string, fn: () => T) => fn());
+    jest.spyOn(core, 'info').mockImplementation(() => {});
+    jest.spyOn(core, 'setOutput').mockImplementation(() => {});
 
     // Make them global to override module-level console calls
     global.console = {
