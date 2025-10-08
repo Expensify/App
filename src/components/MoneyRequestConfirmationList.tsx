@@ -623,7 +623,7 @@ function MoneyRequestConfirmationList({
     );
 
     useEffect(() => {
-        if (!isTypeSplit || !transaction?.splitShares) {
+        if (!isTypeSplit || !transaction?.splitShares || !isFocused) {
             return;
         }
 
@@ -720,7 +720,7 @@ function MoneyRequestConfirmationList({
                     onFormatAmount={convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID, Number(value))}
                     maxLength={formattedTotalAmount.length + 1}
-                    contentWidth={(formattedTotalAmount.length + 1) * 8}
+                    contentWidth={(formattedTotalAmount.length + 1) * CONST.CHARACTER_WIDTH}
                     shouldApplyPaddingToContainer
                     shouldUseDefaultLineHeightForPrefix={false}
                     shouldWrapInputInContainer={false}
@@ -813,8 +813,8 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isInteractive: (isCreateExpenseFlow && !isTestReceipt && !isRestrictedToPreferredPolicy) || isTypeInvoice,
-                shouldShowRightIcon: (isCreateExpenseFlow && !isTestReceipt && !isRestrictedToPreferredPolicy) || isTypeInvoice,
+                isInteractive: isCreateExpenseFlow && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+                shouldShowRightIcon: isCreateExpenseFlow && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
             }));
             options.push({
                 title: translate('common.to'),

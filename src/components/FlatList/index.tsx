@@ -43,6 +43,7 @@ function getScrollableNode(flatList: FlatList | null): HTMLElement | undefined {
 
 type CustomFlatListProps<T> = FlatListProps<T> & {
     ref?: ForwardedRef<FlatList>;
+    shouldDisableVisibleContentPosition?: boolean;
 };
 
 function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll, ref, ...props}: CustomFlatListProps<TItem>) {
