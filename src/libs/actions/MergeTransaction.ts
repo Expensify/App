@@ -174,19 +174,16 @@ function getOnyxTargetTransactionData(
     if (isUnreportedExpense) {
         data = getUpdateTrackExpenseParams(targetTransaction.transactionID, transactionThreadReportID, filteredTransactionChanges, policy, shouldBuildOptimisticModifiedExpenseReportAction);
     } else {
-        data = getUpdateMoneyRequestParams(
-            targetTransaction.transactionID,
+        data = getUpdateMoneyRequestParams({
+            transactionID: targetTransaction.transactionID,
             transactionThreadReportID,
-            filteredTransactionChanges,
+            transactionChanges: filteredTransactionChanges,
             policy,
-            policyTags,
+            policyTagList: policyTags,
             policyCategories,
             violations,
-            undefined,
-            undefined,
-            undefined,
             shouldBuildOptimisticModifiedExpenseReportAction,
-        );
+        });
     }
 
     return data.onyxData;
