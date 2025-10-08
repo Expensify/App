@@ -278,6 +278,20 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
               },
           ]
         : [];
+    const successSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceTransaction.reportID}`,
+                  value: {
+                      [iouActionOfSourceTransaction.reportActionID]: {
+                          pendingAction: null,
+                      },
+                  },
+              },
+          ]
+        : [];
+    const successData: OnyxUpdate[] = [...successSourceReportActionData];
     const failureSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
         ? [
               {
