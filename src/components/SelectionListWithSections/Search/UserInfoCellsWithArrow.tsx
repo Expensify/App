@@ -65,10 +65,15 @@ function UserInfoCellsWithArrow({
                             width={variables.iconSizeXXSmall}
                             height={variables.iconSizeXXSmall}
                             fill={theme.icon}
-                            testID="ArrowRightLong Icon"
+                            testID="UserInfoToIndicator"
                         />
                     ) : (
-                        <Text style={[styles.textMicroSupporting]}>{translate('common.conjunctionTo')}</Text>
+                        <Text
+                            testID="UserInfoToIndicator"
+                            style={[styles.textMicroSupporting]}
+                        >
+                            {translate('common.conjunctionTo')}
+                        </Text>
                     )}
                     <UserInfoCell
                         accountID={participantTo.accountID}
@@ -77,7 +82,7 @@ function UserInfoCellsWithArrow({
                         avatarSize={avatarSize}
                         textStyle={infoCellsTextStyle}
                         avatarStyle={infoCellsAvatarStyle}
-                        containerStyle={[styles.mw50, styles.flexShrink1, fromRecipientStyle]}
+                        containerStyle={[styles.mw50, styles.flexShrink1, fromRecipientStyle, styles.mlhalf]}
                     />
                 </>
             )}

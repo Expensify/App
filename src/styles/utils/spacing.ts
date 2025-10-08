@@ -171,6 +171,10 @@ export default {
         marginLeft: 0,
     },
 
+    mlhalf: {
+        marginLeft: 2,
+    },
+
     ml1: {
         marginLeft: 4,
     },
