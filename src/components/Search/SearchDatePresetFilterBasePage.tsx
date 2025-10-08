@@ -15,10 +15,10 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SearchDatePresetFilterBase from './SearchDatePresetFilterBase';
 import type {SearchDatePresetFilterBaseHandle} from './SearchDatePresetFilterBase';
 import type {SearchDateFilterKeys} from './types';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type SearchDatePresetFilterBasePageProps = {
     /** Key used for the date filter */
