@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -12,12 +12,15 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account as AccountOnyx} from '@src/types/onyx';
+import { View } from 'react-native';
+import type { TranslationPaths } from '@src/languages/types';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
 import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
+import EnableBiometricsModal from './EnableBiometricsModal';
 
 const ACCOUNT_DEFAULT: AccountOnyx = {
     isSubscribedToNewsletter: false,
@@ -40,6 +43,10 @@ function TestToolMenu() {
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
+
+    const [showBiometricsModal, setShowBiometricsModal] = useState(false);
+
+    const biometricsTitle = 'initialSettingsPage.troubleshoot.biometrics.biometricsNotRegistered';
 
     return (
         <>
@@ -97,6 +104,21 @@ function TestToolMenu() {
                             onPress={() => expireSessionWithDelay()}
                         />
                     </TestToolRow>
+
+                    {/* Starts Biometrics test flow -> possible only on native */}
+                    <TestToolRow title={translate(biometricsTitle as TranslationPaths)}>
+                        <View style={[styles.flexRow, styles.gap2]}>
+                            <Button
+                                small
+                                text={translate('initialSettingsPage.troubleshoot.biometrics.test')}
+                                onPress={() => setShowBiometricsModal(true)}
+                            />
+                        </View>
+                    </TestToolRow>
+                    <EnableBiometricsModal
+                        isVisible={showBiometricsModal}
+                        onClose={() => setShowBiometricsModal(false)}
+                    />
                 </>
             )}
 

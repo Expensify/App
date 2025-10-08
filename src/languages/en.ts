@@ -1674,6 +1674,17 @@ const translations = {
             recordTroubleshootData: 'Record Troubleshoot Data',
             softKillTheApp: 'Soft kill the app',
             kill: 'Kill',
+            biometrics: {
+                biometricsNotRegistered: 'Biometrics (Not registered)',
+                test: 'Test',
+                notificationTitle: 'Authentication successful',
+                notificationFallbackContent: 'You’ve successfully authenticated using magic code + 2FA.',
+                biometricsTest: 'Biometrics test',
+                fallbackPageTitle: "Let's verify it's you",
+                fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) =>  `Please enter the magic code sent to ${contactMethod}.`,
+                fallbackPage2FAContent: 'Please enter your authenticator code.',
+                fallbackPageSMSotpContent: ({contactMethod}: EnterMagicCodeParams) => `Please enter the code sent to ${contactMethod}.`,
+            },
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -1839,6 +1850,12 @@ const translations = {
             pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code',
             incorrect2fa: 'Incorrect two-factor authentication code. Please try again.',
         },
+    },
+    smsOtpForm: {
+        error: {
+            pleaseFillSmsOtp: 'Please enter the code sent via SMS',
+            incorrectSmsOtp: 'Incorrect code. Please try again.',
+        }
     },
     passwordConfirmationScreen: {
         passwordUpdated: 'Password updated!',
