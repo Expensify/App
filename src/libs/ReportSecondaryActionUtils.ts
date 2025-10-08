@@ -175,7 +175,7 @@ function isSubmitAction(
     }
 
     const hasReportBeenRetracted = hasReportBeenReopenedUtils(report, reportActions) || hasReportBeenRetractedUtils(report, reportActions);
-    const isPrimarySubmitAction = primaryAction === CONST.REPORT.SECONDARY_ACTIONS.SUBMIT;
+    const isPrimarySubmitAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
 
     if (hasReportBeenRetracted && isReportSubmitter && isPrimarySubmitAction) {
         return false;
