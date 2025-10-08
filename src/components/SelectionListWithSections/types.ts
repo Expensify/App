@@ -19,6 +19,7 @@ import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import type {OptionData} from '@libs/ReportUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import type SpendCategorySelectorListItem from '@pages/workspace/categories/SpendCategorySelectorListItem';
@@ -573,6 +574,8 @@ type Section<TItem extends ListItem> = {
     shouldShow?: boolean;
 };
 
+type Sections = Array<SectionListData<OptionData, Section<OptionData>>>;
+
 type LoadingPlaceholderComponentProps = {
     shouldStyleAsTable?: boolean;
     fixedNumItems?: number;
@@ -994,4 +997,5 @@ export type {
     SplitListItemType,
     SearchListItem,
     UnreportedExpenseListItemType,
+    Sections,
 };

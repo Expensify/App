@@ -35,8 +35,14 @@ type UseSearchSelectorConfig = {
     /** Whether to include recent reports (for getMemberInviteOptions) */
     includeRecentReports?: boolean;
 
+    /** Whether to include current user */
+    includeCurrentUser?: boolean;
+
     /** Enable phone contacts integration */
     enablePhoneContacts?: boolean;
+
+    /** Whether to include self DM */
+    includeSelfDM?: boolean;
 
     /** Additional configuration for getValidOptions function */
     getValidOptionsConfig?: Partial<GetOptionsConfig>;
@@ -84,6 +90,9 @@ type UseSearchSelectorReturn = {
     /** Function to update search term */
     setSearchTerm: (value: string) => void;
 
+    /** Debounced search term */
+    debouncedSearchTerm: string;
+
     /** Filtered and optimized search options with selection state */
     searchOptions: Options;
 
@@ -112,6 +121,14 @@ type UseSearchSelectorReturn = {
     onListEndReached: () => void;
 };
 
+const isOptionMatch = (opt1: OptionData, opt2: OptionData) => {
+    return (
+        (opt1.accountID && opt1.accountID === opt2.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
+        (opt1.reportID && opt1.reportID !== '-1' && opt1.reportID === opt2.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
+        (opt1.login && opt1.login === opt2.login)
+    );
+};
+
 /**
  * Base hook that provides search functionality with selection logic for option lists.
  * This contains the core logic without platform-specific dependencies.
@@ -130,6 +147,8 @@ function useSearchSelectorBase({
     initialSelected,
     shouldInitialize = true,
     contactOptions,
+    includeCurrentUser = false,
+    includeSelfDM = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {options: defaultOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize,
@@ -178,6 +197,8 @@ function useSearchSelectorBase({
                     maxRecentReportElements: maxRecentReportsToShow,
                     searchString: computedSearchTerm,
                     includeUserToInvite,
+                    includeCurrentUser,
+                    includeSelfDM,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(optionsWithContacts, {
@@ -188,6 +209,8 @@ function useSearchSelectorBase({
                     maxRecentReportElements: maxRecentReportsToShow,
                     includeUserToInvite,
                     loginsToExclude: excludeLogins,
+                    includeCurrentUser,
+                    includeSelfDM,
                 });
             default:
                 return getEmptyOptions();
@@ -202,18 +225,14 @@ function useSearchSelectorBase({
         includeUserToInvite,
         excludeLogins,
         includeRecentReports,
+        includeCurrentUser,
         maxRecentReportsToShow,
         getValidOptionsConfig,
+        includeSelfDM,
     ]);
 
     const isOptionSelected = useMemo(() => {
-        return (option: OptionData) =>
-            selectedOptions.some(
-                (selected) =>
-                    (selected.accountID && selected.accountID === option.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-                    (selected.reportID && selected.reportID === option.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-                    (selected.login && selected.login === option.login),
-            );
+        return (option: OptionData) => selectedOptions.some((selected) => isOptionMatch(selected, option));
     }, [selectedOptions]);
 
     const searchOptions = useMemo(() => {
@@ -261,23 +280,9 @@ function useSearchSelectorBase({
                 return;
             }
 
-            const isSelected = selectedOptions.some(
-                (selected) =>
-                    (selected.accountID && selected.accountID === option.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-                    (selected.reportID && selected.reportID === option.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-                    (selected.login && selected.login === option.login),
-            );
+            const isSelected = selectedOptions.some((selected) => isOptionMatch(selected, option));
 
-            const newSelected = isSelected
-                ? selectedOptions.filter(
-                      (selected) =>
-                          !(
-                              (selected.accountID && selected.accountID === option.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-                              (selected.reportID && selected.reportID === option.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-                              (selected.login && selected.login === option.login)
-                          ),
-                  )
-                : [...selectedOptions, {...option, isSelected: true}];
+            const newSelected = isSelected ? selectedOptions.filter((selected) => !isOptionMatch(selected, option)) : [...selectedOptions, {...option, isSelected: true}];
 
             setSelectedOptions(newSelected);
             onSelectionChange?.(newSelected);
@@ -303,6 +308,7 @@ function useSearchSelectorBase({
         contactState: undefined,
         onListEndReached,
         selectedOptionsForDisplay,
+        debouncedSearchTerm,
     };
 }
 
