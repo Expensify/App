@@ -15,6 +15,6 @@
     info from React Native changelog, should update to use `target_compile_reactnative_options` inside their `CMakeLists.txt` file
     ```
 
-- Upstream PR/issue: <Please create an upstream PR fixing the patch. Link it here and if no upstream issue or PR exists, explain why>
+- Upstream PR/issue: https://github.com/react-native-picker/picker/pull/648
 - E/App issue: <Please create an E/App issue ([template](./../.github/ISSUE_TEMPLATE/NewPatchTemplate.md)) for each introduced patch. Link it here and if patch won't be removed in the future (no upstream PR exists) explain why>
-- PR introducing patch: <Link to E/App (or Mobile-Expensify) PR that added the patch>
+- PR introducing patch: https://github.com/Expensify/App/pull/69535

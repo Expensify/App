@@ -2849,6 +2849,7 @@ PODS:
     - SocketRocket
     - Yoga
   - react-native-wallet (0.1.11):
+    - boost
     - DoubleConversion
     - fast_float
     - fmt
@@ -4636,14 +4637,14 @@ SPEC CHECKSUMS:
   react-native-keyboard-controller: ef239acc614d5d520b07853be6bfa6e87b7770db
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: 6645bc83721568992c3c981ed057e4048a48006e
-  react-native-pager-view: 0f1489fdcdfa56677aa1492e342c9216cbf468a0
+  react-native-pager-view: e9b3e17cf3222a23fedcf72c969bcbe3640667d2
   react-native-pdf: 182fa857ba09bf5e4010f0fbbeda8e84825850b8
   react-native-performance: f034c3cb6981ee7ca6cd5f5e9a2fda5c91469d32
   react-native-plaid-link-sdk: 270016bf266e89ef8a95280a1696759f516395e9
   react-native-release-profiler: 855b08b38ac0630c7482a0dc87b9385d929b8d0a
   react-native-safe-area-context: 0f0e3b00124df1e2e76f9883ca64a426fd08bc0f
   react-native-view-shot: 211aabbc0a76150531e66d32ffbee0ae0f149144
-  react-native-wallet: 4151b1bfb7b322caf7e1e31b402a69fc7ab46349
+  react-native-wallet: 186bb547928fc3b6ea06f5eb30a7f98b951668d0
   react-native-webview: ad7fa7e61a503d924714c5a5523869528179d349
   React-NativeModulesApple: dcfbe72c5a47baec0699a2935c080b7de0c8657b
   React-oscompat: 93b5535ea7f7dff46aaee4f78309a70979bdde9d
