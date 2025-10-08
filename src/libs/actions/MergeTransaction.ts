@@ -184,6 +184,7 @@ function getOnyxTargetTransactionData(
             violations,
             undefined,
             undefined,
+            undefined,
             shouldBuildOptimisticModifiedExpenseReportAction,
         );
     }
@@ -205,7 +206,7 @@ type MergeTransactionRequestParams = {
  */
 function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, policy, policyTags, policyCategories}: MergeTransactionRequestParams) {
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
- 
+
     // For both unreported expenses and expense reports, negate the display amount when storing
     // This preserves the user's chosen sign while following the storage convention
     const finalAmount = -mergeTransaction.amount;

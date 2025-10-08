@@ -4220,15 +4220,9 @@ function getUpdateMoneyRequestParams(
     // - we're merging two expenses (server does not create MODIFIED_EXPENSE in this flow)
     // In these cases, there isn't a valid optimistic mileage data we can use,
     // and the report action is created on the server with the distance-related response from the MapBox API
-    const updatedReportAction = shouldBuildOptimisticModifiedExpenseReportAction ? buildOptimisticModifiedExpenseReportAction(
-        transactionThread,
-        transaction,
-        transactionChanges,
-        isFromExpenseReport,
-        policy,
-        updatedTransaction,
-        allowNegative,
-    ) : null;
+    const updatedReportAction = shouldBuildOptimisticModifiedExpenseReportAction
+        ? buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction, allowNegative)
+        : null;
     if (!hasPendingWaypoints && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction)) && updatedReportAction) {
         params.reportActionID = updatedReportAction.reportActionID;
 
