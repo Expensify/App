@@ -31,14 +31,19 @@ const useAnimatedKeyboard = () => {
             onStart: (e) => {
                 'worklet';
 
-                if (e.height !== 0) {
+                if (e.height > 0) {
+                    state.set(KeyboardState.OPEN);
+                    height.set(0);
+
                     if (e.height > maxOpenHeight.get()) {
                         maxOpenHeight.set(e.height);
                     }
-                    height.set(0);
+
+                    return;
                 }
-                state.set(e.height > 0 ? KeyboardState.OPENING : KeyboardState.CLOSING);
-                height.set(e.height > 0 ? 0 : maxOpenHeight.get());
+
+                state.set(KeyboardState.CLOSED);
+                height.set(maxOpenHeight.get());
             },
             onMove: (e) => {
                 'worklet';
