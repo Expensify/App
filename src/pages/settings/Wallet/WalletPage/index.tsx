@@ -293,19 +293,19 @@ function WalletPage() {
             ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
             ...(shouldShowMakeDefaultButton
                 ? [
-                    {
-                        text: translate('walletPage.setDefaultConfirmation'),
-                        icon: Expensicons.Star,
-                        onSelected: () => {
-                            if (isAccountLocked) {
-                                closeModal(() => showLockedAccountModal());
-                                return;
-                            }
-                            makeDefaultPaymentMethod();
-                        },
-                        numberOfLinesTitle: 0,
-                    },
-                ]
+                      {
+                          text: translate('walletPage.setDefaultConfirmation'),
+                          icon: Expensicons.Star,
+                          onSelected: () => {
+                              if (isAccountLocked) {
+                                  closeModal(() => showLockedAccountModal());
+                                  return;
+                              }
+                              makeDefaultPaymentMethod();
+                          },
+                          numberOfLinesTitle: 0,
+                      },
+                  ]
                 : []),
             {
                 text: translate('common.delete'),
@@ -320,18 +320,18 @@ function WalletPage() {
             },
             ...(shouldShowEnableGlobalReimbursementsButton
                 ? [
-                    {
-                        text: translate('common.enableGlobalReimbursements'),
-                        icon: Expensicons.Globe,
-                        onSelected: () => {
-                            if (isAccountLocked) {
-                                closeModal(() => showLockedAccountModal());
-                                return;
-                            }
-                            closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
-                        },
-                    },
-                ]
+                      {
+                          text: translate('common.enableGlobalReimbursements'),
+                          icon: Expensicons.Globe,
+                          onSelected: () => {
+                              if (isAccountLocked) {
+                                  closeModal(() => showLockedAccountModal());
+                                  return;
+                              }
+                              closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
+                          },
+                      },
+                  ]
                 : []),
         ],
         [
