@@ -13,6 +13,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PolicyReportField} from '@src/types/onyx';
+import ReportFieldDate from './ReportFieldDate';
+import ReportFieldList from './ReportFieldList';
+import ReportFieldText from './ReportFieldText';
 
 function SearchFiltersReportFieldPage() {
     const styles = useThemeStyles();
@@ -37,36 +40,16 @@ function SearchFiltersReportFieldPage() {
         },
     });
 
-    if (selectedField) {
-        return (
-            <ScreenWrapper
-                testID={SearchFiltersReportFieldPage.displayName}
-                shouldShowOfflineIndicatorInWideScreen
-                offlineIndicatorStyle={styles.mtAuto}
-                includeSafeAreaPaddingBottom
-                shouldEnableMaxHeight
-            >
-                <HeaderWithBackButton
-                    title={selectedField.name}
-                    onBackButtonPress={() => {
-                        setSelectedField(null);
-                    }}
-                />
-                <ScrollView contentContainerStyle={[styles.flexGrow1]}></ScrollView>
-                <Button
-                    text={translate('common.reset')}
-                    onPress={() => {}}
-                    style={[styles.mh4, styles.mt4]}
-                    large
-                />
-                <FormAlertWithSubmitButton
-                    buttonText={translate('common.save')}
-                    containerStyles={[styles.m4, styles.mt3, styles.mb5]}
-                    onSubmit={() => {}}
-                    enabledWhenOffline
-                />
-            </ScreenWrapper>
-        );
+    if (selectedField?.type === CONST.REPORT_FIELD_TYPES.LIST) {
+        return <ReportFieldList />;
+    }
+
+    if (selectedField?.type === CONST.REPORT_FIELD_TYPES.DATE) {
+        return <ReportFieldDate />;
+    }
+
+    if (selectedField?.type === CONST.REPORT_FIELD_TYPES.TEXT) {
+        return <ReportFieldText />;
     }
 
     return (
