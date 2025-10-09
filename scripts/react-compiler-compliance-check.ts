@@ -190,7 +190,7 @@ function parseJsonOutput(lines: string[], results: CompilerResults): CompilerRes
 }
 
 function parseVerboseOutput(lines: string[], results: CompilerResults): CompilerResults {
-    let currentFailureWithoutReason: CompilerFailure;
+    let currentFailureWithoutReason: CompilerFailure | null = null;
 
     for (const line of lines) {
         // Parse successful file paths
@@ -253,15 +253,14 @@ function parseVerboseOutput(lines: string[], results: CompilerResults): Compiler
         if (reasonMatch && currentFailureWithoutReason) {
             const reason = reasonMatch[1];
 
-            // After we have parsed a file with reason only, we can always clear the current failure
-            currentFailureWithoutReason = null;
-
             // Only update reason if it's not already set
             if (currentFailureWithoutReason.reason) {
+                currentFailureWithoutReason = null;
                 continue;
             }
 
             if (shouldSuppressCompilerError(reason)) {
+                currentFailureWithoutReason = null;
                 continue;
             }
 
@@ -274,6 +273,7 @@ function parseVerboseOutput(lines: string[], results: CompilerResults): Compiler
 
             results.failures.set(getUniqueFileKey(newFailure), newFailure);
 
+            currentFailureWithoutReason = null;
             continue;
         }
     }
@@ -281,7 +281,7 @@ function parseVerboseOutput(lines: string[], results: CompilerResults): Compiler
     return results;
 }
 
-function shouldSuppressCompilerError(reason: string): boolean {
+function shouldSuppressCompilerError(reason: string | undefined): boolean {
     // Check if the error reason matches any of the suppressed error patterns
     return SUPPRESSED_COMPILER_ERRORS.some((suppressedError) => reason.includes(suppressedError));
 }
