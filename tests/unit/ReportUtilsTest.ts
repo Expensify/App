@@ -7332,7 +7332,7 @@ describe('ReportUtils', () => {
     });
 
     describe('shouldExcludeAncestorReportAction', () => {
-        it('should return false for trip preview actions when it is the youngest descendant', () => {
+        it('should return false for trip preview action when it is the youngest descendant', () => {
             const tripPreviewAction: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW,
@@ -7342,7 +7342,7 @@ describe('ReportUtils', () => {
             expect(result).toBe(false);
         });
 
-        it('should return true for trip preview actions', () => {
+        it('should return true for trip preview action when it is not the youngest descendant', () => {
             const tripPreviewAction: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW,
