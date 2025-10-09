@@ -276,7 +276,15 @@ const ALLOWED_TYPE_FILTERS = {
     ],
 };
 
-type SearchAdvancedFiltersKey = ValueOf<typeof FILTER_KEYS>;
+// Report fields are dynamic keys, that policies can configure. They match:
+// reportField-<key> : Normal report field
+// reportField<modifier>-<key> : Report field with a modifier, such as On, After, Before, so that we can handle Dates
+type ReportFieldKey =
+    | `reportField-${string}`
+    | `reportField${ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>}-${string}`
+    | `reportField${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}-${string}`;
+
+type SearchAdvancedFiltersKey = ValueOf<typeof FILTER_KEYS> | ReportFieldKey;
 
 type SearchAdvancedFiltersForm = Form<
     SearchAdvancedFiltersKey,
@@ -344,7 +352,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.ATTENDEE]: string[];
         [FILTER_KEYS.IS]: string[];
         [FILTER_KEYS.HAS]: string[];
-    }
+    } & Record<ReportFieldKey, string>
 >;
 
 export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey};
