@@ -915,9 +915,9 @@ function updateChatName(reportID: string, reportName: string, type: typeof CONST
  * when updating or removing a report's avatar.
  *
  * @param reportID - The report ID of the policy room.
- * @param file - The selected image file to update the avatar with.
+ * @param [file] - (Optional) The selected image file to update the avatar with.
+ * If not provided, the existing avatar will be removed.
  */
-
 function buildUpdateReportAvatarOnyxData(reportID: string, file?: File | CustomRNImageManipulatorResult) {
     // If we have no file that means we are removing the avatar.
     const optimisticData: OnyxUpdate[] = [
