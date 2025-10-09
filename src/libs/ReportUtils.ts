@@ -3415,20 +3415,17 @@ function getIconsForUserCreatedPolicyRoom(report: OnyxInputOrEntry<Report>, poli
     if (!report) {
         return [];
     }
-    const roomName = getReportName(report);
-    const workspaceIcon = getWorkspaceIcon(report, policy);
-
     if (report?.avatarUrl) {
         return [
             {
                 source: report.avatarUrl,
                 type: CONST.ICON_TYPE_WORKSPACE,
-                name: roomName,
+                name: getReportName(report),
                 id: report?.policyID,
             },
         ];
     }
-    return [workspaceIcon];
+    return [getWorkspaceIcon(report, policy)];
 }
 
 /**
