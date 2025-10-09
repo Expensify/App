@@ -1136,6 +1136,14 @@ function MoneyReportHeader({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionThreadReportID]);
 
+    useEffect(() => {
+        if(!isPDFModalVisible || !reportPDFFilename || reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR || isDownloadingPDF) {
+            return;
+        }
+        downloadReportPDF(reportPDFFilename, moneyRequestReport?.reportName ?? '');
+        setIsPDFModalVisible(false);
+    }, [isPDFModalVisible, reportPDFFilename, isDownloadingPDF, moneyRequestReport?.reportName]);
+
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 
     const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
@@ -1477,37 +1485,29 @@ function MoneyReportHeader({
                 innerContainerStyle={styles.pv0}
             >
                 <View style={[styles.m5]}>
-                    <View>
-                        <View style={[styles.flexRow, styles.mb4]}>
+                    <View style={[styles.flexRow]}>
+                        <View style={[styles.dFlex, styles.mb4, styles.flex1]}>
                             <Header
                                 title={translate('reportDetailsPage.generatingPDF')}
                                 containerStyles={[styles.alignItemsCenter]}
                             />
+                            <Text style={[styles.mt3]}>{messagePDF}</Text>
                         </View>
-                        <View>
-                            <Text>{messagePDF}</Text>
-                            {!reportPDFFilename && (
+                        <View style={[styles.dFlex, styles.justifyContentCenter]}>
+                            {true && (
                                 <ActivityIndicator
-                                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                    size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
                                     color={theme.textSupporting}
-                                    style={styles.mt3}
+                                    style={styles.ml3}
                                 />
                             )}
                         </View>
                     </View>
-                    {!!reportPDFFilename && reportPDFFilename !== 'error' && (
-                        <Button
-                            isLoading={isDownloadingPDF}
-                            style={[styles.mt3, styles.noSelect]}
-                            onPress={() => downloadReportPDF(reportPDFFilename ?? '', moneyRequestReport?.reportName ?? '')}
-                            text={translate('common.download')}
-                        />
-                    )}
                     {(!reportPDFFilename || reportPDFFilename === 'error') && (
                         <Button
                             style={[styles.mt3, styles.noSelect]}
                             onPress={() => setIsPDFModalVisible(false)}
-                            text={translate('common.close')}
+                            text={translate('common.cancel')}
                         />
                     )}
                 </View>
