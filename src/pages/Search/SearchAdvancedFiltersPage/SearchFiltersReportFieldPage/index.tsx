@@ -43,10 +43,17 @@ function SearchFiltersReportFieldPage() {
     });
 
     const fieldMenuItems = useMemo(() => {
-        return Object.values(fieldList ?? {}).map((field) => ({
-            ...field,
-            value: values[field.fieldID] ? [values[field.fieldID]].flat().join(', ') : undefined,
-        }));
+        return Object.values(fieldList ?? {}).map((field) => {
+            const fieldType = field.type as 'text' | 'date' | 'dropdown';
+
+            let value = values[field.fieldID] ?? undefined;
+
+            if (fieldType === CONST.REPORT_FIELD_TYPES.DATE && value) {
+                value = [value].flat().join(', ');
+            }
+
+            return {...field, value};
+        });
     }, [fieldList, values]);
 
     const resetValues = () => {
