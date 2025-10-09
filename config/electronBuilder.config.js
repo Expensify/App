@@ -26,6 +26,18 @@ if (!isCorrectElectronEnv) {
     throw new Error('Invalid ELECTRON_ENV!');
 }
 
+const getMacBundleIconName = () => {
+    if (process.env.ELECTRON_ENV === 'adhoc') {
+        return 'AppIcon-adhoc';
+    }
+
+    if (process.env.ELECTRON_ENV === 'development') {
+        return 'AppIcon-dev';
+    }
+
+    return 'AppIcon';
+};
+
 /**
  * The configuration for the debug, production and staging Electron builds.
  */
@@ -48,6 +60,9 @@ module.exports = {
                 arch: ['universal'],
             },
         ],
+        extendInfo: {
+            CFBundleIconName: getMacBundleIconName(),
+        },
     },
     dmg: {
         title: 'New Expensify',
@@ -71,4 +86,5 @@ module.exports = {
         name: 'New Expensify',
         schemes: ['new-expensify'],
     },
+    afterPack: 'desktop/dist/afterPack.js',
 };
