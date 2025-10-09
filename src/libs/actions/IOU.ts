@@ -789,8 +789,9 @@ type MoneyRequestStepDistanceNavigationParams = {
     transaction?: OnyxTypes.Transaction;
     reportAttributesDerived?: Record<string, ReportAttributes>;
     personalDetails?: OnyxTypes.PersonalDetailsList;
-    waypoints: WaypointCollection;
+    waypoints?: WaypointCollection;
     customUnitRateID: string;
+    manualDistance?: number;
     currentUserLogin?: string;
     currentUserAccountID: number;
     backTo: Route;
@@ -13975,6 +13976,7 @@ function handleMoneyRequestStepDistanceNavigation({
     personalDetails,
     waypoints,
     customUnitRateID,
+    manualDistance,
     currentUserLogin,
     currentUserAccountID,
     backTo,
@@ -13986,7 +13988,7 @@ function handleMoneyRequestStepDistanceNavigation({
     lastSelectedDistanceRates,
     setDistanceRequestData,
 }: MoneyRequestStepDistanceNavigationParams) {
-    if (transaction?.splitShares) {
+    if (transaction?.splitShares && !manualDistance) {
         resetSplitShares(transaction);
     }
     if (backTo) {
@@ -14026,13 +14028,14 @@ function handleMoneyRequestStepDistanceNavigation({
                     },
                     transactionParams: {
                         amount: 0,
+                        distance: manualDistance,
                         currency: transaction?.currency ?? 'USD',
                         created: transaction?.created ?? '',
                         merchant: fieldPendingText,
                         receipt: {},
                         billable: false,
-                        reimbursable: true,
-                        validWaypoints: getValidWaypoints(waypoints, true),
+                        reimbursable: manualDistance ? undefined : true,
+                        validWaypoints: manualDistance ? undefined : getValidWaypoints(waypoints, true),
                         customUnitRateID,
                         attendees: transaction?.comment?.attendees,
                     },
@@ -14050,13 +14053,14 @@ function handleMoneyRequestStepDistanceNavigation({
                 existingTransaction: transaction,
                 transactionParams: {
                     amount: 0,
+                    distance: manualDistance,
                     comment: '',
                     created: transaction?.created ?? '',
                     currency: transaction?.currency ?? 'USD',
                     merchant: fieldPendingText,
                     billable: !!policy?.defaultBillable,
-                    reimbursable: !!policy?.defaultReimbursable,
-                    validWaypoints: getValidWaypoints(waypoints, true),
+                    reimbursable: manualDistance ? undefined : !!policy?.defaultReimbursable,
+                    validWaypoints: manualDistance ? undefined : getValidWaypoints(waypoints, true),
                     customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates}),
                     splitShares: transaction?.splitShares,
                     attendees: transaction?.comment?.attendees,
