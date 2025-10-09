@@ -36,7 +36,6 @@ function DisableAutoRenewSurveyPage() {
                     title={translate('subscription.subscriptionSettings.helpUsImprove')}
                     description={translate('subscription.subscriptionSettings.whatsMainReason')}
                     onSubmit={handleSubmit}
-                    optionRowStyles={styles.flex1}
                 />
             </ScrollView>
         </ScreenWrapper>

@@ -31,6 +31,7 @@ function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuesti
                 key={currentQuestionIndex}
                 onPress={onInputChange}
                 errorText={errorText}
+                radioButtonStyle={[styles.optionRowCompact, styles.mh5]}
             />
         </>
     );

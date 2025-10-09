@@ -2663,10 +2663,6 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
-        sectionSelectCircle: {
-            backgroundColor: theme.cardBG,
-        },
-
         sectionMenuItemTopDescription: {
             ...spacing.ph8,
             ...spacing.mhn8,

@@ -211,13 +211,12 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                 onPress={() => handleIntegrationSelect(item.keyForList)}
                 accessibilityLabel={item.text}
                 accessible={false}
-                hoverStyle={!item.isSelected ? styles.hoveredComponentBG : undefined}
-                style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100, item.isSelected && styles.activeComponentBG]}
+                hoverStyle={styles.hoveredComponentBG}
+                style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100]}
             >
                 <RadioButtonWithLabel
                     isChecked={!!item.isSelected}
                     onPress={() => handleIntegrationSelect(item.keyForList)}
-                    style={[styles.flexRowReverse]}
                     wrapperStyle={[styles.ml0]}
                     labelElement={
                         <View style={[styles.alignItemsCenter, styles.flexRow]}>

@@ -56,18 +56,18 @@ function YesNoStep({title, description, defaultValue, onSelectedValue, submitBut
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate('common.confirm')}
             onSubmit={handleSubmit}
-            style={[styles.mh5, styles.flexGrow1]}
-            submitButtonStyles={submitButtonStyles}
+            style={[styles.flexGrow1]}
+            submitButtonStyles={[submitButtonStyles, styles.mh5]}
             isLoading={isLoading}
             shouldHideFixErrorsAlert
         >
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{title}</Text>
-            <Text style={[styles.pv3, styles.textSupporting]}>{description}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5]}>{title}</Text>
+            <Text style={[styles.pv3, styles.textSupporting, styles.mh5]}>{description}</Text>
             <RadioButtons
                 items={options}
                 onPress={handleSelectValue}
                 defaultCheckedValue={defaultValue.toString()}
-                radioButtonStyle={[styles.mb6]}
+                radioButtonStyle={[styles.optionRowCompact, styles.mh5]}
             />
         </FormProvider>
     );

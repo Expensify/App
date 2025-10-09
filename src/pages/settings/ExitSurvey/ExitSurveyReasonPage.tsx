@@ -59,7 +59,7 @@ function ExitSurveyReasonPage() {
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM}
-                style={[styles.flex1, styles.mt3, styles.mh5]}
+                style={[styles.flex1, styles.mt3]}
                 validate={() => {
                     const errors: Errors = {};
                     if (!reason) {
@@ -82,10 +82,11 @@ function ExitSurveyReasonPage() {
                 {isOffline && <ExitSurveyOffline />}
                 {!isOffline && (
                     <>
-                        <Text style={styles.headerAnonymousFooter}>{translate('exitSurvey.reasonPage.title')}</Text>
-                        <Text style={styles.mt2}>{translate('exitSurvey.reasonPage.subtitle')}</Text>
+                        <Text style={[styles.headerAnonymousFooter, styles.mh5]}>{translate('exitSurvey.reasonPage.title')}</Text>
+                        <Text style={[styles.mt2, styles.mh5]}>{translate('exitSurvey.reasonPage.subtitle')}</Text>
                         <InputWrapper
                             InputComponent={RadioButtons}
+                            radioButtonStyle={[styles.optionRowCompact, styles.ph5]}
                             inputID={INPUT_IDS.REASON}
                             value={reason as string}
                             items={reasons}
