@@ -315,7 +315,7 @@ function SettlementButton({
                 ];
             };
 
-            if (isIndividualInvoiceRoomUtil(chatReport) || shouldUseShortForm) {
+            if (isIndividualInvoiceRoomUtil(chatReport)) {
                 buttonOptions.push({
                     text: translate('iou.settlePersonal', {formattedAmount}),
                     icon: Expensicons.User,
@@ -387,7 +387,7 @@ function SettlementButton({
                 return;
             }
 
-            const isBusinessInvoice = bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS || isBusinessInvoiceRoom(iouReport);
+            const isBusinessInvoice = bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS || isBusinessInvoiceRoom(chatReport);
             if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 onPress(iouPaymentType, isBusinessInvoice);
                 return;

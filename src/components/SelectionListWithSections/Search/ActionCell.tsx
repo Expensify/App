@@ -125,13 +125,13 @@ function ActionCell({
         ) : null;
     }
 
-    if (action === CONST.SEARCH.ACTION_TYPES.PAY && !isInvoiceReport(iouReport)) {
+    if (action === CONST.SEARCH.ACTION_TYPES.PAY) {
         return (
             <SettlementButton
                 shouldUseShortForm
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                 currency={currency}
-                formattedAmount={convertToDisplayString(iouReport?.total, currency)}
+                formattedAmount={convertToDisplayString(Math.abs(iouReport?.total ?? 0), currency)}
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 policyID={policyID || iouReport?.policyID}
                 iouReport={iouReport}
