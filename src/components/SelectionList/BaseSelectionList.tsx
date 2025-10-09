@@ -290,7 +290,7 @@ function BaseSelectionList<TItem extends ListItem>({
         const isDisabled = item.isDisabled;
         const selected = isItemSelected(item);
         const isItemFocused = (selected ? hasKeyBeenPressed.current : !isDisabled) && focusedIndex === index;
-
+        const accessibilityState = {selected: hasKeyBeenPressed.current ? isItemFocused : selected};
         return (
             <ListItemRenderer
                 ListItem={ListItem}
@@ -314,6 +314,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 wrapperStyle={listItemWrapperStyle}
                 titleStyles={listItemTitleStyles}
                 singleExecution={singleExecution}
+                accessibilityState={accessibilityState}
             />
         );
     };
