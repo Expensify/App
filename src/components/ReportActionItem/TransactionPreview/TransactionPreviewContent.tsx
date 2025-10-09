@@ -7,7 +7,7 @@ import {DotIndicator, Folder, Tag} from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
-import UserInfoCellsWithArrow from '@components/SelectionList/Search/UserInfoCellsWithArrow';
+import UserInfoCellsWithArrow from '@components/SelectionListWithSections/Search/UserInfoCellsWithArrow';
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
 import useLocalize from '@hooks/useLocalize';

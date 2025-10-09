@@ -213,6 +213,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             firstName: currentUserPersonalDetails?.firstName,
             lastName: currentUserPersonalDetails?.lastName,
             selectedInterestedFeatures: featuresMap.filter((feature) => feature.enabled).map((feature) => feature.id),
+            shouldSkipTestDriveModal: !!policyID && !adminsChatReportID,
         });
 
         if (shouldOnboardingRedirectToOldDot(onboardingCompanySize, newUserReportedIntegration)) {
@@ -221,6 +222,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         }
 
         // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID();

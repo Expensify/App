@@ -8,8 +8,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
-import SelectionList from '@components/SelectionList';
-import type {SectionListDataType, SplitListItemType} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
 import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -27,7 +27,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getTransactionDetails} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {isCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -50,6 +50,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const {currentSearchHash} = useSearchContext();
 
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
+    const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
+    const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
+    const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`, {canBeMissing: true});
+    const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`, {canBeMissing: true});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: false});
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: true});
@@ -104,8 +109,20 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        saveSplitTransactions(draftTransaction, currentSearchHash);
-    }, [draftTransaction, sumOfSplitExpenses, transactionDetailsAmount, isPerDiem, isCard, currentSearchHash, transactionID, translate, transactionDetails?.currency]);
+        saveSplitTransactions(draftTransaction, currentSearchHash, policyCategories, expenseReportPolicy);
+    }, [
+        draftTransaction,
+        sumOfSplitExpenses,
+        transactionDetailsAmount,
+        isPerDiem,
+        isCard,
+        currentSearchHash,
+        policyCategories,
+        expenseReportPolicy,
+        transactionID,
+        translate,
+        transactionDetails?.currency,
+    ]);
 
     const onSplitExpenseAmountChange = useCallback(
         (currentItemTransactionID: string, value: number) => {
@@ -240,6 +257,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         )}
                         onSelectRow={(item) => {
                             Keyboard.dismiss();
+                            // eslint-disable-next-line deprecation/deprecation
                             InteractionManager.runAfterInteractions(() => {
                                 initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, reportID);
                             });

@@ -1,5 +1,5 @@
 import React, {useCallback, useContext, useEffect, useState} from 'react';
-import {ActivityIndicator} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import DecisionModal from '@components/DecisionModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -10,7 +10,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     checkIfFeedConnectionIsBroken,
@@ -49,7 +48,6 @@ type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNav
 function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const policyID = route.params.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -167,7 +165,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     style={styles.flex1}
-                    color={theme.spinner}
                 />
             )}
             {!isLoading && (

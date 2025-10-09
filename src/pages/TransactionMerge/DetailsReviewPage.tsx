@@ -1,5 +1,7 @@
+import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -33,12 +35,14 @@ import {createTransactionThreadReport, openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Transaction} from '@src/types/onyx';
+import type {ReportMetadata, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import MergeFieldReview from './MergeFieldReview';
 
 type DetailsReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DETAILS_PAGE>;
+
+const hasOnceLoadedTransactionThreadReportActionsSelector = (value?: OnyxEntry<ReportMetadata>) => value?.hasOnceLoadedReportActions;
 
 function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const {translate} = useLocalize();
@@ -49,8 +53,9 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
         canBeMissing: true,
     });
+
     const [hasOnceLoadedTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${targetTransaction?.reportID}`, {
-        selector: (value) => value?.hasOnceLoadedReportActions,
+        selector: hasOnceLoadedTransactionThreadReportActionsSelector,
         canBeMissing: true,
     });
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
@@ -72,7 +77,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         canBeMissing: true,
     });
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`, {canBeMissing: true});
-    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
+    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
     const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);

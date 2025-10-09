@@ -624,6 +624,27 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 calendlySchedule: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 calendlyCalls: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 agentZeroProcessingRequestIndicator: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                expensify_text_title: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+            });
+        case 'expensify_text_title':
+            return validateObject<ObjectElement<ReportNameValuePairs, 'expensify_text_title'>>(value, {
+                fieldID: 'string',
+                type: 'string',
+                name: 'string',
+                keys: 'array',
+                values: 'array',
+                defaultValue: 'string',
+                orderWeight: 'number',
+                deletable: 'boolean',
+                value: 'string',
+                target: 'string',
+                externalIDs: 'array',
+                disabledOptions: 'array',
+                isTax: 'boolean',
+                externalID: 'string',
+                origin: 'string',
+                defaultExternalID: 'string',
             });
     }
 }
@@ -1253,6 +1274,7 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 message: 'string',
                 field: 'string',
                 prohibitedExpenseRule: 'string',
+                comment: 'string',
             });
         case 'showInReview':
             return validateBoolean(value);

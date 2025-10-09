@@ -37,6 +37,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeed, CurrencyList} from '@src/types/onyx';
+import type {AssignCardData} from '@src/types/onyx/AssignCard';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceCompanyCardsListHeaderButtonsProps = {
@@ -79,6 +80,9 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
 
     const openBankConnection = () => {
         const institutionId = !!getPlaidInstitutionId(selectedFeed);
+        const data: Partial<AssignCardData> = {
+            bankName: selectedFeed,
+        };
         if (institutionId) {
             const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
             setAddNewCompanyCardStepAndData({
@@ -87,13 +91,15 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                 },
             });
             setAssignCardStepAndData({
+                data,
                 currentStep: CONST.COMPANY_CARD.STEP.PLAID_CONNECTION,
             });
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed)));
             return;
         }
 
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute(policyID, bankName, Navigation.getActiveRoute()));
+        setAssignCardStepAndData({data, currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed)));
     };
 
     const secondaryActions = useMemo(

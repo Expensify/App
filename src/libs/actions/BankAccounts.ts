@@ -383,7 +383,7 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
 
         failureData: [
             {
-                onyxMethod: Onyx.METHOD.SET,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
                 value: {
                     [bankAccountID]: bankAccountFailureData,

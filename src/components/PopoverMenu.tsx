@@ -1,10 +1,8 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
 import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import type {ModalProps} from 'react-native-modal';
 import type {SvgProps} from 'react-native-svg';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -77,9 +75,9 @@ type PopoverMenuItem = MenuItemProps & {
     shouldCloseModalOnSelect?: boolean;
 };
 
-type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> & Pick<ReanimatedModalProps, 'animationInDelay'>;
+type ModalAnimationProps = Pick<ReanimatedModalProps, 'animationInDelay' | 'animationIn' | 'animationInTiming' | 'animationOut' | 'animationOutTiming'>;
 
-type PopoverMenuProps = Partial<PopoverModalProps> & {
+type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Callback method fired when the user requests to close the modal */
     onClose: () => void;
 
@@ -173,7 +171,7 @@ const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentConta
         return <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>;
     }
     // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{children}</>;
+    return <View style={contentContainerStyle}>{children}</View>;
 };
 
 function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
@@ -410,14 +408,32 @@ function BasePopoverMenu({
     }, [menuItems, setFocusedIndex]);
 
     const menuContainerStyle = useMemo(() => {
-        if (isSmallScreenWidth) {
-            return shouldEnableMaxHeight ? {maxHeight: windowHeight - 250} : {};
+        const DEFAULT_MAX_HEIGHT_OFFSET = 250;
+        const SAFE_BOTTOM_SPACE = variables.h40;
+
+        if (!shouldEnableMaxHeight) {
+            return isSmallScreenWidth ? [] : [styles.createMenuContainer];
         }
-        return styles.createMenuContainer;
-    }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer]);
 
-    const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
+        if (isSmallScreenWidth) {
+            return [{maxHeight: windowHeight - DEFAULT_MAX_HEIGHT_OFFSET}];
+        }
 
+        const isTopAnchored = anchorAlignment?.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP;
+        const top = anchorPosition?.vertical;
+
+        // Reserve space for footer actions when expanding downward.
+        if (isTopAnchored && typeof top === 'number') {
+            const computed = windowHeight - Math.round(top) - SAFE_BOTTOM_SPACE;
+            const maxHeight = Math.min(CONST.POPOVER_MENU_MAX_HEIGHT, computed);
+            return [styles.createMenuContainer, {maxHeight}];
+        }
+
+        // Fallback for other anchor cases
+        return [styles.createMenuContainer, {maxHeight: windowHeight - DEFAULT_MAX_HEIGHT_OFFSET}];
+    }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer, anchorAlignment, anchorPosition]);
+
+    const {...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
     return (
         <PopoverWithMeasuredContent
             anchorPosition={anchorPosition}
@@ -441,20 +457,18 @@ function BasePopoverMenu({
             withoutOverlay={withoutOverlay}
             shouldSetModalVisibility={shouldSetModalVisibility}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
-            useNativeDriver
             restoreFocusType={restoreFocusType}
             innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}
         >
             <FocusTrapForModal active={isVisible}>
-                <View
-                    onLayout={onLayout}
-                    style={[menuContainerStyle, containerStyles, {paddingTop, paddingBottom, paddingVertical, ...(isWebOrDesktop ? styles.flex1 : styles.flexGrow1)}]}
-                >
-                    {renderHeaderText()}
-                    {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    {renderWithConditionalWrapper(shouldUseScrollView, restScrollContainerStyle, renderedMenuItems)}
+                <View onLayout={onLayout}>
+                    {renderWithConditionalWrapper(
+                        shouldUseScrollView,
+                        [restScrollContainerStyle, menuContainerStyle, containerStyles, {...(isWebOrDesktop ? styles.flex1 : styles.flexGrow1)}],
+                        [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
+                    )}
                 </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
@@ -463,21 +477,5 @@ function BasePopoverMenu({
 
 PopoverMenu.displayName = 'PopoverMenu';
 
-export default React.memo(
-    PopoverMenu,
-    (prevProps, nextProps) =>
-        deepEqual(prevProps.menuItems, nextProps.menuItems) &&
-        prevProps.isVisible === nextProps.isVisible &&
-        deepEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
-        prevProps.anchorRef === nextProps.anchorRef &&
-        prevProps.headerText === nextProps.headerText &&
-        prevProps.fromSidebarMediumScreen === nextProps.fromSidebarMediumScreen &&
-        deepEqual(prevProps.anchorAlignment, nextProps.anchorAlignment) &&
-        prevProps.animationIn === nextProps.animationIn &&
-        prevProps.animationOut === nextProps.animationOut &&
-        prevProps.animationInTiming === nextProps.animationInTiming &&
-        prevProps.disableAnimation === nextProps.disableAnimation &&
-        prevProps.withoutOverlay === nextProps.withoutOverlay &&
-        prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility,
-);
+export default PopoverMenu;
 export type {PopoverMenuItem, PopoverMenuProps};

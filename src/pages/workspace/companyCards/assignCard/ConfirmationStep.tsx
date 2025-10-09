@@ -60,6 +60,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
         }
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
     }, [assignCard, backTo, policyID, currentFullScreenRoute?.state?.routes]);
 
@@ -103,6 +104,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             headerTitle={translate('workspace.companyCards.assignCard')}
             headerSubtitle={cardholderName}
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldShowOfflineIndicatorInWideScreen
         >
             <ScrollView
                 style={styles.pt0}

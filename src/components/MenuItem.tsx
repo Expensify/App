@@ -2,7 +2,7 @@ import type {ImageContentFit} from 'expo-image';
 import type {ReactElement, ReactNode, Ref} from 'react';
 import React, {useContext, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -24,6 +24,7 @@ import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import ActivityIndicator from './ActivityIndicator';
 import Avatar from './Avatar';
 import Badge from './Badge';
 import CopyTextToClipboard from './CopyTextToClipboard';
@@ -777,10 +778,7 @@ function MenuItem({
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
                                                                 ) : (
-                                                                    <ActivityIndicator
-                                                                        size="small"
-                                                                        color={theme.textSupporting}
-                                                                    />
+                                                                    <ActivityIndicator color={theme.textSupporting} />
                                                                 ))}
                                                             {!!icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
                                                                 <Avatar

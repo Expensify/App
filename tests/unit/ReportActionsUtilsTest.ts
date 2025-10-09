@@ -6,9 +6,9 @@ import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMess
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
-import {getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowAction, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
+import {getCardIssuedMessage, getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowAction, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import type {OriginalMessageIOU, Report, ReportAction} from '../../src/types/onyx';
+import type {Card, OriginalMessageIOU, Report, ReportAction} from '../../src/types/onyx';
 import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -1326,6 +1326,58 @@ describe('ReportActionsUtils', () => {
             const report = {...createRandomReport(2), type: CONST.REPORT.TYPE.EXPENSE};
 
             expect(ReportActionsUtils.getRenamedAction(reportAction, isExpenseReport(report), 'John')).toBe('John renamed to "New name" (previously "Old name")');
+        });
+    });
+    describe('getCardIssuedMessage', () => {
+        const mockVirtualCardIssuedAction: ReportAction = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+            reportActionID: 'virtual-card-action-123',
+            actorAccountID: 123,
+            created: '2024-01-01',
+            message: [],
+            originalMessage: {
+                assigneeAccountID: 456,
+                cardID: 789,
+            },
+        } as ReportAction;
+
+        const activeExpensifyCard: Card = {
+            cardID: 789,
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            bank: '',
+            availableSpend: 0,
+            domainName: '',
+            lastFourPAN: '',
+            lastUpdated: '2024-01-01',
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+        } as Card;
+
+        const testPolicyID = 'test-policy-123';
+
+        describe('render virtual card issued messages', () => {
+            it('should render a plain text message without card link when no card data is available', () => {
+                const messageResult = getCardIssuedMessage({
+                    reportAction: mockVirtualCardIssuedAction,
+                    shouldRenderHTML: true,
+                    policyID: testPolicyID,
+                    expensifyCard: undefined,
+                });
+
+                expect(messageResult).toBe('issued <mention-user accountID="456"/> a virtual Expensify Card! The card can be used right away.');
+            });
+
+            it('should render a message with clickable card link when the card is active', () => {
+                const messageResult = getCardIssuedMessage({
+                    reportAction: mockVirtualCardIssuedAction,
+                    shouldRenderHTML: true,
+                    policyID: testPolicyID,
+                    expensifyCard: activeExpensifyCard,
+                });
+
+                expect(messageResult).toBe(
+                    `issued <mention-user accountID="456"/> a virtual <a href='https://dev.new.expensify.com:8082/settings/card/789'>Expensify Card</a>! The card can be used right away.`,
+                );
+            });
         });
     });
 });

@@ -6,6 +6,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {MergeTransaction, Transaction} from '@src/types/onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {convertToDisplayString} from './CurrencyUtils';
+import getReceiptFilenameFromTransaction from './getReceiptFilenameFromTransaction';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
@@ -57,7 +58,7 @@ function getReceiptFileName(receipt?: Receipt) {
  */
 function fillMissingReceiptSource(transaction: Transaction) {
     // If receipt.source already exists, no need to modify
-    if (!transaction.receipt || !!transaction.receipt?.source || !transaction.filename) {
+    if (!transaction.receipt || !!transaction.receipt?.source || !getReceiptFilenameFromTransaction(transaction)) {
         return transaction;
     }
 
@@ -65,7 +66,7 @@ function fillMissingReceiptSource(transaction: Transaction) {
         ...transaction,
         receipt: {
             ...transaction.receipt,
-            source: `${RECEIPT_SOURCE_URL}${transaction.filename}`,
+            source: `${RECEIPT_SOURCE_URL}${getReceiptFilenameFromTransaction(transaction)}`,
         },
     };
 }
@@ -312,12 +313,12 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
  * @param sourceTransaction - The second transaction in the merge operation
  * @returns An object containing the determined targetTransactionID and sourceTransactionID
  */
-function selectTargetAndSourceTransactionIDsForMerge(originalTargetTransaction: OnyxEntry<Transaction>, originalSourceTransaction: OnyxEntry<Transaction>) {
+function selectTargetAndSourceTransactionsForMerge(originalTargetTransaction: OnyxEntry<Transaction>, originalSourceTransaction: OnyxEntry<Transaction>) {
     if (isCardTransaction(originalSourceTransaction)) {
-        return {targetTransactionID: originalSourceTransaction?.transactionID, sourceTransactionID: originalTargetTransaction?.transactionID};
+        return {targetTransaction: originalSourceTransaction, sourceTransaction: originalTargetTransaction};
     }
 
-    return {targetTransactionID: originalTargetTransaction?.transactionID, sourceTransactionID: originalSourceTransaction?.transactionID};
+    return {targetTransaction: originalTargetTransaction, sourceTransaction: originalSourceTransaction};
 }
 
 /**
@@ -404,7 +405,7 @@ export {
     getMergeFieldValue,
     getMergeFieldTranslationKey,
     buildMergedTransactionData,
-    selectTargetAndSourceTransactionIDsForMerge,
+    selectTargetAndSourceTransactionsForMerge,
     isEmptyMergeValue,
     fillMissingReceiptSource,
     getTransactionThreadReportID,

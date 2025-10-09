@@ -146,6 +146,10 @@ type SettingsNavigatorParamList = {
         /** cardID of selected card */
         cardID: string;
     };
+    [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
+        /** cardID of selected card */
+        cardID: string;
+    };
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
         /** cardID of selected card */
         cardID: string;
@@ -162,6 +166,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
         policyID: string;
     };
+    [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: undefined;
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: undefined;
@@ -170,6 +175,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
@@ -520,6 +526,8 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
         policyID: string;
+        transactionID?: string;
+        reportID?: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
         policyID: string;
@@ -920,6 +928,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: undefined;
+    [SCREENS.SETTINGS.DELEGATE.VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: undefined;
     [SCREENS.SETTINGS.DELEGATE.DELEGATE_ROLE]: {
         login: string;
@@ -929,13 +938,19 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE]: {
         login: string;
         currentRole: string;
-        showValidateActionModal?: string;
-        newRole?: ValueOf<typeof CONST.DELEGATE_ROLE>;
+    };
+    [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE]: {
+        login: string;
+        currentRole: string;
+        newRole: string;
     };
     [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM]: {
         login: string;
         role: string;
-        showValidateActionModal?: string;
+    };
+    [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM_MAGIC_CODE]: {
+        login: string;
+        role: string;
     };
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
         /** cardID of selected card */
@@ -970,6 +985,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TAX_CODE]: {
         policyID: string;
         taxID: string;
+    };
+    [SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT]: {
+        policyID: string;
     };
     [SCREENS.WORKSPACE.INVOICES_COMPANY_NAME]: {
         policyID: string;
@@ -1172,6 +1190,10 @@ type TwoFactorAuthNavigatorParamList = {
         backTo?: Routes;
         forwardTo?: string;
     };
+    [SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT]: {
+        backTo?: Routes;
+        forwardTo?: Routes;
+    };
     [SCREENS.TWO_FACTOR_AUTH.VERIFY]: {
         backTo?: Routes;
         forwardTo?: string;
@@ -1207,7 +1229,9 @@ type ProfileNavigatorParamList = {
 };
 
 type NewReportWorkspaceSelectionNavigatorParamList = {
-    [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: undefined;
+    [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: {
+        isMovingExpenses?: boolean;
+    };
 };
 
 type ReportDetailsNavigatorParamList = {
@@ -1420,6 +1444,24 @@ type MoneyRequestNavigatorParamList = {
         backToReport?: string;
         reportActionID?: string;
     };
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+        backToReport?: string;
+        reportActionID?: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+        backToReport?: string;
+        reportActionID?: string;
+    };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
         reportID: string;
@@ -1504,6 +1546,16 @@ type MoneyRequestNavigatorParamList = {
         /** Hash that includes info about what is searched for */
         searchHash?: number;
     };
+    [SCREENS.MONEY_REQUEST.REJECT]: {
+        /** ID of the transaction the page was opened for */
+        transactionID: string;
+
+        /** ID of the report that user is providing hold reason to */
+        reportID: string;
+
+        /** Link to previous page */
+        backTo: ExpensifyRoute;
+    };
     [SCREENS.MONEY_REQUEST.STEP_ATTENDEES]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -1524,6 +1576,8 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: Routes;
+        upgradePath?: ValueOf<typeof CONST.UPGRADE_PATHS>;
+        shouldSubmitExpense?: boolean;
     };
     [SCREENS.MONEY_REQUEST.STEP_DESTINATION]: {
         action: IOUAction;
@@ -1583,27 +1637,13 @@ type MoneyRequestNavigatorParamList = {
         backToReport?: string;
         reportActionID?: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL]: {
-        action: IOUAction;
-        iouType: IOUType;
-        transactionID: string;
-        reportID: string;
-        backTo: Routes;
-        backToReport?: string;
-    };
-    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP]: {
-        action: IOUAction;
-        iouType: IOUType;
-        transactionID: string;
-        reportID: string;
-        backTo: Routes;
-        backToReport?: string;
-        reportActionID?: string;
-    };
 };
 
 type WorkspaceConfirmationNavigatorParamList = {
     [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: {
+        backTo?: Routes;
+    };
+    [SCREENS.CURRENCY.SELECTION]: {
         backTo?: Routes;
     };
 };
@@ -1885,6 +1925,9 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.DOMAIN_SELECTOR]: {
         backTo?: Routes;
     };
+    [SCREENS.TRAVEL.VERIFY_ACCOUNT]: {
+        domain: string;
+    };
 };
 
 type ReportsSplitNavigatorParamList = {
@@ -1980,7 +2023,13 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.INVOICES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBERS]: {

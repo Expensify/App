@@ -18,9 +18,9 @@ namespace margelo::nitro::utils { struct Contact; }
 // Forward declaration of `ContactFields` to properly resolve imports.
 namespace margelo::nitro::utils { enum class ContactFields; }
 
-#include <NitroModules/Promise.hpp>
-#include <vector>
 #include "Contact.hpp"
+#include <vector>
+#include <NitroModules/Promise.hpp>
 #include "ContactFields.hpp"
 
 namespace margelo::nitro::utils {

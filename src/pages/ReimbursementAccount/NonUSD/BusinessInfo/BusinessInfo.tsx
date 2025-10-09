@@ -70,6 +70,7 @@ const INPUT_KEYS = {
     ANNUAL_VOLUME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANNUAL_VOLUME,
     TRADE_VOLUME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.TRADE_VOLUME,
     TAX_ID_EIN_NUMBER: INPUT_IDS.ADDITIONAL_DATA.CORPAY.TAX_ID_EIN_NUMBER,
+    BUSINESS_TYPE_ID: INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_TYPE_ID,
 };
 
 function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProps) {
@@ -88,6 +89,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
     const startFrom = useMemo(() => getInitialSubStepForBusinessInfoStep(businessInfoStepValues), [businessInfoStepValues]);
 
     const country = reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
+    const isBusinessTypeRequired = country !== CONST.COUNTRY.CA;
 
     useEffect(() => {
         getCorpayOnboardingFields(country);
@@ -106,10 +108,11 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
                 fundDestinationCountries: country,
                 currencyNeeded: currency,
                 purposeOfTransactionId: CONST.NON_USD_BANK_ACCOUNT.PURPOSE_OF_TRANSACTION_ID,
+                businessTypeId: isBusinessTypeRequired ? businessInfoStepValues.businessTypeId : undefined,
             },
             bankAccountID,
         );
-    }, [businessInfoStepValues, isProduction, isBetaEnabled, country, currency, bankAccountID]);
+    }, [businessInfoStepValues, isProduction, isBetaEnabled, country, currency, isBusinessTypeRequired, bankAccountID]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
