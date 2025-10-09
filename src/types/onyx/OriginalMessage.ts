@@ -161,6 +161,9 @@ type OriginalMessageCardFraudAlert = {
     /** Merchant name */
     triggerMerchant: string;
 
+    /** Currency of the transaction */
+    currency?: string;
+
     /** Resolution: 'recognized' or 'fraud' */
     resolution?: ValueOf<typeof CONST.CARD_FRAUD_ALERT_RESOLUTION>;
 };

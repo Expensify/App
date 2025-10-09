@@ -1334,8 +1334,7 @@ function PureReportActionItem({
             const fraudMessage = getOriginalMessage(action);
             const cardLastFour = fraudMessage?.maskedCardNumber?.slice(-4) ?? '';
 
-            // USD is hardcoded because Expensify cards operate exclusively in USD
-            const formattedAmount = convertToDisplayString(fraudMessage?.triggerAmount ?? 0, 'USD');
+            const formattedAmount = convertToDisplayString(fraudMessage?.triggerAmount ?? 0, fraudMessage?.currency ?? CONST.CURRENCY.USD);
             const merchant = fraudMessage?.triggerMerchant ?? '';
             const resolution = fraudMessage?.resolution;
             const formattedDate = action.created ? format(getLocalDateFromDatetime(action.created), 'MMM. d - h:mma').replace(/am|pm/i, (match) => match.toUpperCase()) : '';
