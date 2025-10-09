@@ -39,7 +39,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import setTestReceipt from '@libs/actions/setTestReceipt';
-import {setTransactionReport} from '@libs/actions/Transaction';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
@@ -330,6 +329,7 @@ function IOURequestStepScan({
                 defaultExpensePolicy,
                 shouldGenerateTransactionThreadReport,
                 isArchivedExpenseReport: isArchivedReport(reportNameValuePairs),
+                isAutoReporting: !!personalPolicy?.autoReporting,
                 files,
                 isTestTransaction,
                 locationPermissionGranted,

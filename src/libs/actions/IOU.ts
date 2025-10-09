@@ -264,7 +264,7 @@ import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from './Policy
 import type {GuidedSetupData} from './Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
-import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
+import {getRecentWaypoints, sanitizeRecentWaypoints, setTransactionReport} from './Transaction';
 import {removeDraftSplitTransaction, removeDraftTransaction, removeDraftTransactions} from './TransactionEdit';
 import {getOnboardingMessages} from './Welcome/OnboardingFlow';
 
@@ -773,6 +773,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     shouldSkipConfirmation: boolean;
     defaultExpensePolicy?: OnyxEntry<OnyxTypes.Policy> | null;
     isArchivedExpenseReport: boolean;
+    isAutoReporting: boolean;
     files: ReceiptFile[];
     isTestTransaction: boolean;
     locationPermissionGranted: boolean;
@@ -797,6 +798,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     shouldSkipConfirmation: boolean;
     defaultExpensePolicy?: OnyxEntry<OnyxTypes.Policy> | null;
     isArchivedExpenseReport: boolean;
+    isAutoReporting: boolean;
     lastSelectedDistanceRates?: OnyxEntry<OnyxTypes.LastSelectedDistanceRates>;
     setDistanceRequestData?: (participatns: Participant[]) => void;
 };
@@ -13782,6 +13784,7 @@ function handleMoneyRequestStepScanParticipants({
     defaultExpensePolicy,
     shouldGenerateTransactionThreadReport,
     isArchivedExpenseReport,
+    isAutoReporting,
     files,
     isTestTransaction = false,
     locationPermissionGranted = false,
@@ -13923,6 +13926,8 @@ function handleMoneyRequestStepScanParticipants({
         !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
     ) {
         const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails?.accountID, defaultExpensePolicy?.id);
+        const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || isAutoReporting;
+        const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
 
         // If the initial transaction has different participants selected that means that the user has changed the participant in the confirmation step
         if (initialTransaction?.participants && initialTransaction?.participants?.at(0)?.reportID !== activePolicyExpenseChat?.reportID) {
@@ -13940,7 +13945,10 @@ function handleMoneyRequestStepScanParticipants({
             return;
         }
 
-        const setParticipantsPromises = files.map((receiptFile) => setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat));
+        const setParticipantsPromises = files.map((receiptFile) => {
+            setTransactionReport(receiptFile.transactionID, {reportID: transactionReportID}, true);
+            return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat);
+        });
         Promise.all(setParticipantsPromises).then(() =>
             Navigation.navigate(
                 ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
@@ -13974,6 +13982,7 @@ function handleMoneyRequestStepDistanceNavigation({
     shouldSkipConfirmation,
     defaultExpensePolicy,
     isArchivedExpenseReport,
+    isAutoReporting,
     lastSelectedDistanceRates,
     setDistanceRequestData,
 }: MoneyRequestStepDistanceNavigationParams) {
@@ -14077,6 +14086,9 @@ function handleMoneyRequestStepDistanceNavigation({
             policy: defaultExpensePolicy,
             lastSelectedDistanceRates,
         });
+        const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || isAutoReporting;
+        const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
+        setTransactionReport(transactionID, {reportID: transactionReportID}, true);
         setCustomUnitRateID(transactionID, rateID);
         setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
             Navigation.navigate(

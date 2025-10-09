@@ -27,7 +27,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOURequestPolicyID, handleMoneyRequestStepDistanceNavigation, setMoneyRequestAmount, setSplitShares, updateMoneyRequestDistance} from '@libs/actions/IOU';
 import {init, stop} from '@libs/actions/MapboxToken';
 import {openReport} from '@libs/actions/Report';
-import {openDraftDistanceExpense, removeWaypoint, setTransactionReport, updateWaypoints as updateWaypointsUtil} from '@libs/actions/Transaction';
+import {openDraftDistanceExpense, removeWaypoint, updateWaypoints as updateWaypointsUtil} from '@libs/actions/Transaction';
 import {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup} from '@libs/actions/TransactionEdit';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
@@ -284,6 +284,7 @@ function IOURequestStepDistance({
             shouldSkipConfirmation,
             defaultExpensePolicy,
             isArchivedExpenseReport: isArchivedReport(reportNameValuePairs),
+            isAutoReporting: !!personalPolicy?.autoReporting,
             lastSelectedDistanceRates,
             setDistanceRequestData,
         });

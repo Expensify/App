@@ -37,7 +37,6 @@ import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import setTestReceipt from '@libs/actions/setTestReceipt';
-import {setTransactionReport} from '@libs/actions/Transaction';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
@@ -277,6 +276,7 @@ function IOURequestStepScan({
                 defaultExpensePolicy,
                 shouldGenerateTransactionThreadReport,
                 isArchivedExpenseReport: isArchivedReport(reportNameValuePairs),
+                isAutoReporting: !!personalPolicy?.autoReporting,
                 files,
                 isTestTransaction,
                 locationPermissionGranted,
