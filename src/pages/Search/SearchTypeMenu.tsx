@@ -1,9 +1,9 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
+import {View} from 'react-native';
 import Animated, {FadeIn} from 'react-native-reanimated';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -89,7 +89,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     if (!suggestedSearchesReady) {
         return (
             <View style={[styles.flex1]}>
-                <SuggestedSearchSkeleton shouldShowResultsColumn={false} />
+                <SuggestedSearchSkeleton />
             </View>
         );
     }

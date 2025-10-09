@@ -12,96 +12,129 @@ export const SUGGESTED_SEARCH_SKELETON_TEST_ID = 'SuggestedSearchSkeleton';
 const NAV_ITEM_HEIGHT = 52;
 const RESULT_ITEM_HEIGHT = 80;
 
+/** ---- Relative layout tokens ---- */
+const NAV = {
+    icon: {x: 18, y: 18, w: 16, h: 16, r: 4},
+    // label is positioned relative to icon
+    label: {dx: 30, dy: 4, w: 104, h: 8},
+    // header bar in the small loader above each group
+    header: {x: 8, y: 10, w: 36, h: 4},
+};
+
+const RESULT = {
+    // left mini box
+    box: {x: 10, y: 28, w: 20, h: 20, r: 4},
+    // avatar relative to the mini box
+    avatar: {dxFromBox: 25, dyFromBox: -9, w: 40, h: 40, r: 20},
+    // title/subtitle block
+    title: {x: 86, y: 22, wPct: '48%', h: 14, r: 2},
+    subtitle: {x: 86, y: 46, wPct: '36%', h: 12, r: 2},
+    // right side amounts (keep percent so they anchor to the right)
+    amount: {xPct: '78%', y: 26, wPct: '14%', h: 12, r: 2},
+    tag: {xPct: '94%', y: 26, w: 16, h: 12, r: 2},
+};
+
 type SuggestedSearchSkeletonProps = {
     shouldShowNavigationColumn?: boolean;
     shouldShowResultsColumn?: boolean;
 };
 
-function SuggestedSearchSkeleton({shouldShowNavigationColumn = true, shouldShowResultsColumn = true}: SuggestedSearchSkeletonProps) {
+function SuggestedSearchSkeleton() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const renderNavigationItem = () => (
-        <>
-            <Rect
-                x="18"
-                y="18"
-                rx="4"
-                ry="4"
-                width="16"
-                height="16"
-            />
-            <Rect
-                x="48"
-                y="22"
-                width="104"
-                height="8"
-            />
-        </>
-    );
+    const renderNavigationItem = () => {
+        const {icon, label} = NAV;
+        const labelX = icon.x + label.dx;
+        const labelY = icon.y + label.dy;
 
-    const renderResultItem = () => (
-        <>
-            <Rect
-                x="10"
-                y="28"
-                rx="4"
-                ry="4"
-                width="20"
-                height="20"
-            />
-            {/* Left avatar */}
-            <Rect
-                x="35"
-                y="19"
-                rx="20"
-                ry="20"
-                width="40"
-                height="40"
-            />
-            {/* Title + sub line */}
-            <Rect
-                x="86"
-                y="22"
-                rx="2"
-                ry="2"
-                width="48%"
-                height="14"
-            />
-            <Rect
-                x="86"
-                y="46"
-                rx="2"
-                ry="2"
-                width="36%"
-                height="12"
-            />
+        return (
+            <>
+                <Rect
+                    x={icon.x}
+                    y={icon.y}
+                    rx={icon.r}
+                    ry={icon.r}
+                    width={icon.w}
+                    height={icon.h}
+                />
+                <Rect
+                    x={labelX}
+                    y={labelY}
+                    width={label.w}
+                    height={label.h}
+                />
+            </>
+        );
+    };
 
-            {/* Right-side amount + trailing short bar; percentages keep these pinned right on all widths */}
-            <Rect
-                x="78%"
-                y="26"
-                rx="2"
-                ry="2"
-                width="14%"
-                height="12"
-            />
-            <Rect
-                x="94%"
-                y="26"
-                rx="2"
-                ry="2"
-                width="16"
-                height="12"
-            />
-        </>
-    );
+    const renderResultItem = () => {
+        const {box, avatar, title, subtitle, amount, tag} = RESULT;
+        const avatarX = box.x + avatar.dxFromBox;
+        const avatarY = box.y + avatar.dyFromBox;
 
-    const shouldRenderNavigationColumn = shouldShowNavigationColumn && !shouldUseNarrowLayout;
-    const shouldRenderResultsColumn = shouldShowResultsColumn;
+        return (
+            <>
+                {/* left mini box */}
+                <Rect
+                    x={box.x}
+                    y={box.y}
+                    rx={box.r}
+                    ry={box.r}
+                    width={box.w}
+                    height={box.h}
+                />
+                {/* avatar positioned from mini box */}
+                <Rect
+                    x={avatarX}
+                    y={avatarY}
+                    rx={avatar.r}
+                    ry={avatar.r}
+                    width={avatar.w}
+                    height={avatar.h}
+                />
+                {/* title + sub line */}
+                <Rect
+                    x={title.x}
+                    y={title.y}
+                    rx={title.r}
+                    ry={title.r}
+                    width={title.wPct}
+                    height={title.h}
+                />
+                <Rect
+                    x={subtitle.x}
+                    y={subtitle.y}
+                    rx={subtitle.r}
+                    ry={subtitle.r}
+                    width={subtitle.wPct}
+                    height={subtitle.h}
+                />
+                {/* right side */}
+                <Rect
+                    x={amount.xPct}
+                    y={amount.y}
+                    rx={amount.r}
+                    ry={amount.r}
+                    width={amount.wPct}
+                    height={amount.h}
+                />
+                <Rect
+                    x={tag.xPct}
+                    y={tag.y}
+                    rx={tag.r}
+                    ry={tag.r}
+                    width={tag.w}
+                    height={tag.h}
+                />
+            </>
+        );
+    };
 
-    const navigationColumnGroup =
+    const shouldRenderNavigationColumn = !shouldUseNarrowLayout;
+
+    const navigationColumnGroup = (
         <>
             <SkeletonViewContentLoader
                 animate
@@ -111,12 +144,10 @@ function SuggestedSearchSkeleton({shouldShowNavigationColumn = true, shouldShowR
                 style={[styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             >
                 <Rect
-                    x="8"
-                    y="10"
-                    rx="0"
-                    ry="0"
-                    width="36"
-                    height="4"
+                    x={NAV.header.x}
+                    y={NAV.header.y}
+                    width={NAV.header.w}
+                    height={NAV.header.h}
                 />
             </SkeletonViewContentLoader>
 
@@ -127,26 +158,20 @@ function SuggestedSearchSkeleton({shouldShowNavigationColumn = true, shouldShowR
                 renderSkeletonItem={renderNavigationItem}
             />
         </>
+    );
 
     const navigationColumn = shouldRenderNavigationColumn ? (
         <View>
             <View>
-                {[0,1,2].map(i => (
-                    <View key={i} style={[styles.mb4]}>
+                {[0, 1, 2].map((i) => (
+                    <View
+                        key={i}
+                        style={[styles.mb4]}
+                    >
                         {navigationColumnGroup}
                     </View>
                 ))}
             </View>
-        </View>
-    ) : null;
-
-    const resultsColumn = shouldRenderResultsColumn ? (
-        <View style={[styles.flex1, styles.gap4, styles.mr4]}>
-            <ItemListSkeletonView
-                itemViewHeight={RESULT_ITEM_HEIGHT}
-                itemViewStyle={[styles.highlightBG, styles.mb2, styles.br2, styles.mh1]}
-                renderSkeletonItem={renderResultItem}
-            />
         </View>
     ) : null;
 
@@ -156,11 +181,9 @@ function SuggestedSearchSkeleton({shouldShowNavigationColumn = true, shouldShowR
             style={[styles.flex1, styles.flexRow, styles.pb5, styles.pt5, styles.gap4, styles.pl4]}
         >
             {navigationColumn}
-            {resultsColumn}
         </View>
     );
 }
 
 SuggestedSearchSkeleton.displayName = 'SuggestedSearchSkeleton';
-
 export default SuggestedSearchSkeleton;
