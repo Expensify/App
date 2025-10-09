@@ -45,10 +45,11 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
     const targetTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`];
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionThreadReport?.policyID}`, {canBeMissing: true});
 
     // Build the merged transaction data for display
     const mergedTransactionData = useMemo(() => buildMergedTransactionData(targetTransaction, mergeTransaction), [targetTransaction, mergeTransaction]);
+    const mergedTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${mergedTransactionData?.reportID}`];
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${mergedTransactionThreadReport?.policyID ?? targetTransactionThreadReport?.policyID}`, {canBeMissing: true});
 
     const contextValue = useMemo(
         () => ({
