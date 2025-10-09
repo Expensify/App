@@ -3642,6 +3642,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3693,6 +3694,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: true,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3714,6 +3716,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3735,6 +3738,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: 'fake draft',
                 }),
             ).toBeTruthy();
         });
@@ -3756,6 +3760,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3790,6 +3795,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3820,6 +3826,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3850,6 +3857,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3873,6 +3881,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     includeSelfDM,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3898,6 +3907,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3916,6 +3926,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3937,6 +3948,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3978,6 +3990,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3996,6 +4009,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -4016,6 +4030,7 @@ describe('ReportUtils', () => {
                     login: '+@domain.com',
                     excludeEmptyChats: false,
                     includeDomainEmail: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -4060,6 +4075,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -4078,6 +4094,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -4110,6 +4127,7 @@ describe('ReportUtils', () => {
                     betas: [],
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
