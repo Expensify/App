@@ -46,10 +46,7 @@ function CreateDistanceRatePage({
 
     const FullPageBlockingView = !customUnitID ? FullPageOfflineBlockingView : View;
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateRateValue(values, customUnit?.rates ?? {}, toLocaleDigit),
-        [toLocaleDigit, customUnit?.rates],
-    );
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateRateValue(values, toLocaleDigit), [toLocaleDigit]);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
         // A blocking view is shown when customUnitID is undefined, so this function should never be called

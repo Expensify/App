@@ -25,6 +25,7 @@ type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem'
     renderItem: ListRenderItem<T>;
     initialScrollKey?: string | null;
     ref?: ForwardedRef<RNFlatList>;
+    shouldDisableVisibleContentPosition?: boolean;
 };
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 250;

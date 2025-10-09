@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,7 +14,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
@@ -22,6 +21,7 @@ import {checkIfNewFeedConnected, getBankName, isSelectedFeedExpired} from '@libs
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
 import {updateSelectedFeed} from '@userActions/Card';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {getCompanyCardBankConnection} from '@userActions/getCompanyCardBankConnection';
@@ -50,7 +50,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const {translate} = useLocalize();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
-    const theme = useTheme();
     const {bankName: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
     const policyID = policyIDFromProps ?? policyIDFromRoute;
     const [cardFeeds] = useCardFeeds(policyID);
@@ -72,12 +71,14 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.settings?.oAuthAccountDetails?.[feed]) : false;
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
+    const isNewFeedHasError = !!(newFeed && cardFeeds?.settings?.oAuthAccountDetails?.[newFeed]?.errors);
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
 
     const onOpenBankConnectionFlow = useCallback(() => {
         if (!url) {
             return;
         }
+        // eslint-disable-next-line react-compiler/react-compiler
         customWindow = openBankConnection(url);
     }, [url]);
 
@@ -117,7 +118,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     );
 
     useEffect(() => {
-        if ((!url && !isPlaid) || isOffline) {
+        if ((!url && !isPlaid) || isOffline || isNewFeedHasError) {
             return;
         }
 
@@ -187,7 +188,38 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         onImportPlaidAccounts,
         isFeedConnectionBroken,
         updateBrokenConnection,
+        isNewFeedHasError,
     ]);
+
+    const getContent = () => {
+        if (isNewFeedHasError) {
+            return (
+                <WorkspaceCompanyCardsErrorConfirmation
+                    policyID={policyID}
+                    newFeed={newFeed}
+                />
+            );
+        }
+        if (!isPlaid) {
+            return (
+                <BlockingView
+                    icon={PendingBank}
+                    iconWidth={styles.pendingBankCardIllustration.width}
+                    iconHeight={styles.pendingBankCardIllustration.height}
+                    title={translate('workspace.moreFeatures.companyCards.pendingBankTitle')}
+                    CustomSubtitle={CustomSubtitle}
+                    onLinkPress={onOpenBankConnectionFlow}
+                    addBottomSafeAreaPadding
+                />
+            );
+        }
+        return (
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                style={styles.flex1}
+            />
+        );
+    };
 
     return (
         <ScreenWrapper
@@ -198,25 +230,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 title={headerTitle}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <FullPageOfflineBlockingView addBottomSafeAreaPadding>
-                {isPlaid ? (
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={styles.flex1}
-                        color={theme.spinner}
-                    />
-                ) : (
-                    <BlockingView
-                        icon={PendingBank}
-                        iconWidth={styles.pendingBankCardIllustration.width}
-                        iconHeight={styles.pendingBankCardIllustration.height}
-                        title={translate('workspace.moreFeatures.companyCards.pendingBankTitle')}
-                        CustomSubtitle={CustomSubtitle}
-                        onLinkPress={onOpenBankConnectionFlow}
-                        addBottomSafeAreaPadding
-                    />
-                )}
-            </FullPageOfflineBlockingView>
+            <FullPageOfflineBlockingView addBottomSafeAreaPadding>{getContent()}</FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }

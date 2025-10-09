@@ -35,11 +35,13 @@ class ChatGPTTranslator extends Translator {
                     userPrompt: text,
                 });
 
-                if (this.validateTemplatePlaceholders(text, result) && this.validateTemplateHTML(text, result)) {
+                const fixedResult = this.fixChineseBracketsInMarkdown(result);
+
+                if (this.validateTemplatePlaceholders(text, fixedResult) && this.validateTemplateHTML(text, fixedResult)) {
                     if (attempt > 0) {
                         console.log(`🙃 Translation succeeded after ${attempt + 1} attempts`);
                     }
-                    return result;
+                    return fixedResult;
                 }
 
                 console.warn(`⚠️ Translation for "${text}" failed validation (attempt ${attempt + 1}/${ChatGPTTranslator.MAX_RETRIES + 1})`);

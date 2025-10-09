@@ -22,6 +22,9 @@ type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &
 
         /** Updates isMultiScanEnabled flag */
         setIsMultiScanEnabled?: (value: boolean) => void;
+
+        /** Indicates whether users start to create scan request */
+        isStartingScan?: boolean;
     };
 
 type ReceiptFile = {
