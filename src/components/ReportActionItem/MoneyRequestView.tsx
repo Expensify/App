@@ -195,9 +195,12 @@ function MoneyRequestView({
     // Use the updated transaction amount in merge flow to have correct positive/negative sign
     const actualAmount = isFromMergeTransaction && updatedTransaction ? updatedTransaction.amount : transactionAmount;
     const actualCurrency = updatedTransaction ? getCurrency(updatedTransaction) : transactionCurrency;
-    const shouldDisplayTransactionAmount =
-        ((isDistanceRequest && hasRoute) || (!!actualAmount && hasReceipt(updatedTransaction ?? transaction)) || !hasReceipt(updatedTransaction ?? transaction)) &&
-        actualAmount !== undefined;
+    const shouldDisplayTransactionAmount = useMemo(() => {
+        return ((isDistanceRequest && hasRoute) ||
+                (!!actualAmount && hasReceipt(updatedTransaction ?? transaction)) ||
+                !hasReceipt(updatedTransaction ?? transaction)) &&
+            actualAmount !== undefined;
+    }, [isDistanceRequest, hasRoute, actualAmount, updatedTransaction?.receipt, transaction?.receipt]);
     const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency) : '';
     const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount / (transactionAttendees?.length ?? 1), actualCurrency) : '';
 
