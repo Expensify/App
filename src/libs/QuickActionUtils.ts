@@ -32,8 +32,6 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
             return getIconForAction(CONST.IOU.TYPE.TRACK);
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
             return Expensicons.ReceiptScan;
-        case CONST.QUICK_ACTIONS.CREATE_REPORT:
-            return Expensicons.Document;
         default:
             return Expensicons.MoneyCircle;
     }
@@ -92,7 +90,13 @@ const isManagerMcTestQuickActionReport = (report: Report | undefined) => {
     return !!report?.participants?.[CONST.ACCOUNT_ID.MANAGER_MCTEST];
 };
 
-const isQuickActionAllowed = (quickAction: QuickAction, quickActionReport: Report | undefined, quickActionPolicy: Policy | undefined, isReportArchived = false) => {
+const isQuickActionAllowed = (
+    quickAction: QuickAction,
+    quickActionReport: Report | undefined,
+    quickActionPolicy: Policy | undefined,
+    isReportArchived = false,
+    isRestrictedToPreferredPolicy = false,
+) => {
     const iouType = getIOUType(quickAction?.action);
     if (iouType) {
         // We're disabling QAB for Manager McTest reports to prevent confusion when submitting real data for Manager McTest
@@ -100,15 +104,10 @@ const isQuickActionAllowed = (quickAction: QuickAction, quickActionReport: Repor
         if (isReportHasManagerMCTest) {
             return false;
         }
-        return canCreateRequest(quickActionReport, quickActionPolicy, iouType, isReportArchived);
+        return canCreateRequest(quickActionReport, quickActionPolicy, iouType, isReportArchived, isRestrictedToPreferredPolicy);
     }
     if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM) {
         return !!quickActionPolicy?.arePerDiemRatesEnabled;
-    }
-    // We don't want to show this QAB since this is already available in the FloatingActionButtonAndPopover
-    // In the future, we will remove this when the BE no longer returns this action
-    if (quickAction?.action === CONST.QUICK_ACTIONS.CREATE_REPORT) {
-        return false;
     }
     return true;
 };

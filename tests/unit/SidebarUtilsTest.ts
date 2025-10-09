@@ -3,13 +3,11 @@ import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import {translateLocal} from '@libs/Localize';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
-import {formatReportLastMessageText, getAllReportErrors, getDisplayNameForParticipant, getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
+import {formatReportLastMessageText, getAllReportErrors} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
@@ -353,6 +351,7 @@ describe('SidebarUtils', () => {
                 card: undefined,
                 localeCompare,
                 lastAction: undefined,
+                lastActionReport: undefined,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
@@ -365,6 +364,7 @@ describe('SidebarUtils', () => {
                 card: undefined,
                 localeCompare,
                 lastAction: undefined,
+                lastActionReport: undefined,
             });
 
             expect(optionDataPinned?.isPinned).toBe(true);
@@ -874,6 +874,7 @@ describe('SidebarUtils', () => {
                 card: undefined,
                 localeCompare,
                 lastAction,
+                lastActionReport: undefined,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -934,6 +935,7 @@ describe('SidebarUtils', () => {
                 card: undefined,
                 localeCompare,
                 lastAction,
+                lastActionReport: undefined,
             });
 
             // Then the alternate text should show @Hidden.
@@ -977,6 +979,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     localeCompare,
+                    lastActionReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1014,6 +1017,7 @@ describe('SidebarUtils', () => {
                     lastAction: undefined,
                     localeCompare,
                     isReportArchived: true,
+                    lastActionReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1047,12 +1051,13 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     localeCompare,
+                    lastActionReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
             });
 
-            it("For policy expense chat whose last action is a report preview linked to an expense report with non-reimbursable transaction the LHN text should be in the format 'spent $total'", async () => {
+            it('For policy expense chat whose last action is a report preview linked to an expense report with non-reimbursable transaction the LHN text should be the report name', async () => {
                 const policy: Policy = {
                     ...createRandomPolicy(1),
                     role: CONST.POLICY.ROLE.ADMIN,
@@ -1111,7 +1116,7 @@ describe('SidebarUtils', () => {
                     currency: 'ETB',
                     ownerAccountID: 20232605,
                     total: -500,
-                    nonReimbursableTotal: 0,
+                    nonReimbursableTotal: -500,
                     parentReportID: policyExpenseChat.reportID,
                     parentReportActionID: lastReportPreviewAction.reportActionID,
                     chatReportID: policyExpenseChat.reportID,
@@ -1169,15 +1174,10 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     localeCompare,
+                    lastActionReport: undefined,
                 });
-                const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(iouReport);
-                const formattedAmount = convertToDisplayString(totalDisplaySpend, iouReport.currency);
 
-                expect(optionData?.alternateText).toBe(
-                    formatReportLastMessageText(
-                        translateLocal('iou.payerSpentAmount', {payer: getDisplayNameForParticipant({accountID: iouReport.ownerAccountID}) ?? '', amount: formattedAmount}),
-                    ),
-                );
+                expect(optionData?.alternateText).toBe(formatReportLastMessageText(iouReport.reportName));
             });
 
             it('The text should contain the policy name at prefix if we have multiple workspace and the report is related to a workspace', async () => {
@@ -1213,6 +1213,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     localeCompare,
+                    lastActionReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
@@ -1280,6 +1281,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     localeCompare,
                     lastAction,
+                    lastActionReport: undefined,
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -1328,6 +1330,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     localeCompare,
                     lastAction,
+                    lastActionReport: undefined,
                 });
 
                 expect(result?.alternateText).toBe(`You: moved this report to the Three's Workspace workspace`);
@@ -1396,6 +1399,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     localeCompare,
                     lastAction,
+                    lastActionReport: undefined,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
@@ -1509,9 +1513,80 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     localeCompare,
                     lastAction,
+                    lastActionReport: undefined,
                 });
 
                 expect(result?.alternateText).toContain(`${getReportActionMessageText(lastAction)}`);
+            });
+
+            it('uses adminAccountID as actor if last action is an admin-submit report action', async () => {
+                const report: Report = {
+                    ...createRandomReport(0),
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: true,
+                };
+                const lastAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED> = {
+                    ...createRandomReportAction(0),
+                    person: [
+                        {
+                            type: 'TEXT',
+                            style: 'normal',
+                            text: 'Email One (on behalf of ',
+                        },
+                        {
+                            type: 'TEXT',
+                            style: 'strong',
+                            text: 'Email Two',
+                        },
+                        {
+                            type: 'TEXT',
+                            style: 'normal',
+                            text: ' via admin-submit)',
+                        },
+                    ],
+                    actorAccountID: 2,
+                    message: [
+                        {
+                            type: 'TEXT',
+                            style: 'normal',
+                            text: 'submitted $5.00',
+                        },
+                    ],
+                    originalMessage: {
+                        admin: 'email1@test.com',
+                        adminAccountID: 1,
+                        amount: 500,
+                        cc: '',
+                        currency: 'USD',
+                        message: '',
+                        to: 'email1@test.com',
+                    },
+                    previousMessage: undefined,
+                    automatic: false,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                    shouldShow: true,
+                    reportActionID: '6582129439308627259',
+                    adminAccountID: 1,
+                    whisperedToAccountIDs: [],
+                };
+                const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+                const result = SidebarUtils.getOptionData({
+                    report,
+                    reportAttributes: undefined,
+                    reportNameValuePairs: {},
+                    personalDetails: LHNTestUtils.fakePersonalDetails,
+                    policy: undefined,
+                    parentReportAction: undefined,
+                    oneTransactionThreadReport: undefined,
+                    card: undefined,
+                    localeCompare,
+                    lastAction,
+                    lastActionReport: undefined,
+                });
+
+                expect(result?.alternateText).toBe(`One: submitted`);
             });
         });
     });

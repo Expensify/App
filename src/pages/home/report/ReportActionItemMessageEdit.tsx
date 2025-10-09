@@ -1,6 +1,6 @@
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData, TextInputScrollEventData} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
@@ -20,6 +20,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollBlocker from '@hooks/useScrollBlocker';
@@ -41,7 +42,7 @@ import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
 import {getReportActionHtml, isDeletedAction} from '@libs/ReportActionsUtils';
-import {getCommentLength} from '@libs/ReportUtils';
+import {getCommentLength, getOriginalReportID} from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -66,6 +67,9 @@ type ReportActionItemMessageEditProps = {
     /** ReportID that holds the comment we're editing */
     reportID: string | undefined;
 
+    /** ID of the original report from which the given reportAction is first created */
+    originalReportID: string;
+
     /** PolicyID of the policy the report belongs to */
     policyID?: string;
 
@@ -77,6 +81,9 @@ type ReportActionItemMessageEditProps = {
 
     /** Whether report is from group policy */
     isGroupPolicyReport: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>;
 };
 
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
@@ -89,10 +96,17 @@ const DEFAULT_MODAL_VALUE = {
     isVisible: false,
 };
 
-function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
-    forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
-) {
+function ReportActionItemMessageEdit({
+    action,
+    draftMessage,
+    reportID,
+    originalReportID,
+    policyID,
+    index,
+    isGroupPolicyReport,
+    shouldDisableEmojiPicker = false,
+    ref,
+}: ReportActionItemMessageEditProps) {
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -130,6 +144,10 @@ function ReportActionItemMessageEdit(
     const emojiPickerSelectionRef = useRef<Selection | undefined>(undefined);
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
+    const isOriginalReportArchived = useReportIsArchived(originalReportID);
+    const originalParentReportID = getOriginalReportID(originalReportID, action);
+    const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
 
     useEffect(() => {
         draftMessageVideoAttributeCache.clear();
@@ -257,6 +275,7 @@ function ReportActionItemMessageEdit(
         if (isActive()) {
             ReportActionComposeFocusManager.clear(true);
             // Wait for report action compose re-mounting on mWeb
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => ReportActionComposeFocusManager.focus());
         }
 
@@ -283,12 +302,12 @@ function ReportActionItemMessageEdit(
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
             textInputRef.current?.blur();
-            ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
+            ReportActionContextMenu.showDeleteModal(originalReportID ?? reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
+        editReportComment(originalReport, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache), isOriginalReportArchived, isOriginalParentReportArchived);
         deleteDraft();
-    }, [action, deleteDraft, draft, reportID]);
+    }, [reportID, action, deleteDraft, draft, originalReportID, isOriginalReportArchived, originalReport, isOriginalParentReportArchived]);
 
     /**
      * @param emoji
@@ -466,11 +485,11 @@ function ReportActionItemMessageEdit(
                             multiline
                             ref={(el: TextInput & HTMLTextAreaElement) => {
                                 textInputRef.current = el;
-                                if (typeof forwardedRef === 'function') {
-                                    forwardedRef(el);
-                                } else if (forwardedRef) {
+                                if (typeof ref === 'function') {
+                                    ref(el);
+                                } else if (ref) {
                                     // eslint-disable-next-line no-param-reassign
-                                    forwardedRef.current = el;
+                                    ref.current = el;
                                 }
                             }}
                             onChangeText={updateDraft} // Debounced saveDraftComment
@@ -484,6 +503,7 @@ function ReportActionItemMessageEdit(
                                     ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
                                 }
                                 startScrollBlock();
+                                // eslint-disable-next-line deprecation/deprecation
                                 InteractionManager.runAfterInteractions(() => {
                                     requestAnimationFrame(() => {
                                         reportScrollManager.scrollToIndex(index, true);
@@ -585,4 +605,4 @@ function ReportActionItemMessageEdit(
 
 ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
 
-export default forwardRef(ReportActionItemMessageEdit);
+export default ReportActionItemMessageEdit;

@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useState} from 'react';
-import {Linking, View} from 'react-native';
+import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {buildTravelDotURL} from '@libs/actions/Link';
 import * as Report from '@libs/actions/Report';
 import {acceptSpotnanaTerms, cleanupTravelProvisioningSession} from '@libs/actions/Travel';
+import asyncOpenURL from '@libs/asyncOpenURL';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
@@ -51,7 +52,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
     const createTravelEnablementIssue = useCallback(() => {
         const message = translate('travel.verifyCompany.conciergeMessage', {domain: account?.primaryLogin?.split('@')[1] || ''});
-        
+
         if (conciergeReportID) {
             // If we have the Concierge report ID, add the comment directly
             addComment(conciergeReportID, message, CONST.DEFAULT_TIME_ZONE);
@@ -72,13 +73,10 @@ function TravelTerms({route}: TravelTermsPageProps) {
             setShowVerifyCompanyModal(true);
             cleanupTravelProvisioningSession();
         }
-        
+
         if (travelProvisioning?.spotnanaToken) {
             Navigation.closeRHPFlow();
             cleanupTravelProvisioningSession();
-
-            // TravelDot is a standalone white-labeled implementation of Spotnana so it has to be opened in a new tab
-            Linking.openURL(buildTravelDotURL(travelProvisioning.spotnanaToken, travelProvisioning.isTestAccount ?? false));
         }
         if (travelProvisioning?.errors && !travelProvisioning?.error) {
             setErrorMessage(getLatestErrorMessage(travelProvisioning));
@@ -135,7 +133,17 @@ function TravelTerms({route}: TravelTermsPageProps) {
                                     setErrorMessage('');
                                 }
 
-                                acceptSpotnanaTerms(domain);
+                                asyncOpenURL(
+                                acceptSpotnanaTerms(domain).then((response) => {
+                                    if (response?.jsonCode !== 200) {
+                                        return Promise.reject();
+                                    }
+                                    if (response?.spotnanaToken) {
+                                        return buildTravelDotURL(response.spotnanaToken, response.isTestAccount ?? false);
+                                    }
+                                }),
+                                (travelDotURL) => travelDotURL ?? '',
+                            );
                             }}
                             message={errorMessage}
                             isAlertVisible={!!errorMessage}
@@ -145,7 +153,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
                     </ScrollView>
                 </FullPageNotFoundView>
             </ScreenWrapper>
-            
+
             <ConfirmModal
                 isVisible={showVerifyCompanyModal}
                 onConfirm={() => {
