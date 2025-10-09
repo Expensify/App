@@ -14,7 +14,7 @@ codecov:
 
 comment:
     require_changes: false
-    layout: "newheader, files, newfooter"
+    layout: "condensed_header, files, condensed_footer"
     hide_project_coverage: false
     hide_comment_details: false
 
