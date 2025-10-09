@@ -20,14 +20,14 @@ type AvatarButtonWithIconProps = {
     /** Text to be used as a tooltip */
     text: string;
 
-    /** Ref of the anchor */
-    anchorRef: RefObject<View | HTMLDivElement | null>;
-
     /** Style applied to the avatar */
     avatarStyle: StyleProp<ViewStyle & ImageStyle>;
 
     /** Executed on click */
     onPress: () => void;
+
+    /** Ref of the anchor */
+    anchorRef?: RefObject<View | HTMLDivElement | null>;
 
     /** Account id of user for which avatar is displayed  */
     avatarID?: number | string;
