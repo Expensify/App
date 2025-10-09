@@ -39,7 +39,6 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -188,36 +187,27 @@ function SearchList({
     }, [data, groupBy]);
 
     const selectedItemsLength = useMemo(() => {
+        const selectedTransactions = flattenedItems.reduce((acc, item) => {
+            return acc + (item?.isSelected ? 1 : 0);
+        }, 0);
+
         if (groupBy && isTransactionGroupListItemArray(data)) {
             const selectedEmptyReports = emptyReports.reduce((acc, item) => {
                 return acc + (item.isSelected ? 1 : 0);
             }, 0);
 
-            const selectedTransactions = flattenedItems.reduce((acc, item) => {
-                return acc + (item?.isSelected ? 1 : 0);
-            }, 0);
-
             return selectedEmptyReports + selectedTransactions;
         }
 
-        return flattenedItems.reduce((acc, item) => {
-            return acc + (item?.isSelected ? 1 : 0);
-        }, 0);
+        return selectedTransactions;
     }, [data, flattenedItems, groupBy, emptyReports]);
 
     const totalItems = useMemo(() => {
         if (groupBy && isTransactionGroupListItemArray(data)) {
-            const nonPendingTransactions = flattenedItems.filter((transaction) => !isTransactionPendingDelete(transaction as TransactionListItemType));
-            return emptyReports.length + nonPendingTransactions.length;
+            return emptyReports.length + flattenedItems.length;
         }
 
-        return data.reduce((acc, item) => {
-            if ('transactions' in item && item.transactions?.length) {
-                const transactions = item.transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
-                return acc + transactions.length;
-            }
-            return acc + 1;
-        }, 0);
+        return flattenedItems.length;
     }, [data, groupBy, flattenedItems, emptyReports]);
 
     const {translate} = useLocalize();
