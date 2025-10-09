@@ -351,6 +351,7 @@ describe('SidebarUtils', () => {
                 card: undefined,
                 localeCompare,
                 lastAction: undefined,
+                policyTags: {},
                 lastActionReport: undefined,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
@@ -364,6 +365,7 @@ describe('SidebarUtils', () => {
                 card: undefined,
                 localeCompare,
                 lastAction: undefined,
+                policyTags: {},
                 lastActionReport: undefined,
             });
 
@@ -760,7 +762,7 @@ describe('SidebarUtils', () => {
                         }),
                     )
                     .then(() => {
-                        const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
+                        const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare, undefined);
                         expect(result.messageText).toBe('This chat is with One and Two.');
                     })
             );
@@ -787,7 +789,7 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare, isReportArchived.current);
+                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare, undefined, isReportArchived.current);
                     })
 
                     // Then the welcome message should indicate the report is archived
@@ -813,7 +815,7 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare, isReportArchived.current);
+                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare, undefined, isReportArchived.current);
                     })
 
                     // Then the welcome message should explain the purpose of the room
@@ -874,6 +876,7 @@ describe('SidebarUtils', () => {
                 card: undefined,
                 localeCompare,
                 lastAction,
+                policyTags: {},
                 lastActionReport: undefined,
             });
 
@@ -935,6 +938,7 @@ describe('SidebarUtils', () => {
                 card: undefined,
                 localeCompare,
                 lastAction,
+                policyTags: {},
                 lastActionReport: undefined,
             });
 
@@ -979,6 +983,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     localeCompare,
+                    policyTags: {},
                     lastActionReport: undefined,
                 });
 
@@ -1016,6 +1021,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     localeCompare,
+                    policyTags: {},
                     isReportArchived: true,
                     lastActionReport: undefined,
                 });
@@ -1051,6 +1057,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     localeCompare,
+                    policyTags: {},
                     lastActionReport: undefined,
                 });
 
@@ -1174,6 +1181,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     localeCompare,
+                    policyTags: {},
                     lastActionReport: undefined,
                 });
 
@@ -1213,6 +1221,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     localeCompare,
+                    policyTags: {},
                     lastActionReport: undefined,
                 });
 
@@ -1281,6 +1290,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     localeCompare,
                     lastAction,
+                    policyTags: {},
                     lastActionReport: undefined,
                 });
 
@@ -1330,6 +1340,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     localeCompare,
                     lastAction,
+                    policyTags: {},
                     lastActionReport: undefined,
                 });
 
@@ -1399,6 +1410,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     localeCompare,
                     lastAction,
+                    policyTags: {},
                     lastActionReport: undefined,
                 });
 
@@ -1513,6 +1525,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     localeCompare,
                     lastAction,
+                    policyTags: {},
                     lastActionReport: undefined,
                 });
 
@@ -1584,6 +1597,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
+                    policyTags: {},
                 });
 
                 expect(result?.alternateText).toBe(`One: submitted`);
@@ -1601,7 +1615,7 @@ describe('SidebarUtils', () => {
                 const {reports, reportNameValuePairs, reportAttributes} = createSidebarTestData();
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, reportNameValuePairs, reportAttributes);
+                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, reportNameValuePairs, reportAttributes);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
@@ -1637,7 +1651,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, reportAttributes);
+                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, undefined, reportAttributes);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
@@ -1664,7 +1678,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports);
+                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(0);
@@ -1678,7 +1692,7 @@ describe('SidebarUtils', () => {
 
             it('should handle empty reports object', () => {
                 // Given the reports are empty
-                const result = SidebarUtils.categorizeReportsForLHN({});
+                const result = SidebarUtils.categorizeReportsForLHN({}, undefined);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(0);
@@ -1915,7 +1929,7 @@ describe('SidebarUtils', () => {
                 const priorityMode = CONST.PRIORITY_MODE.DEFAULT;
 
                 // When the reports are sorted
-                const result = SidebarUtils.sortReportsToDisplayInLHN(reports, priorityMode, mockLocaleCompare);
+                const result = SidebarUtils.sortReportsToDisplayInLHN(reports, priorityMode, mockLocaleCompare, undefined);
 
                 // Then the reports are sorted in the correct order
                 expect(result).toEqual(['0', '1', '2']); // Pinned first, Error second, Normal third
@@ -1941,10 +1955,10 @@ describe('SidebarUtils', () => {
                 const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
 
                 // When the reports are sorted in default mode
-                const defaultResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.DEFAULT, mockLocaleCompare);
+                const defaultResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.DEFAULT, mockLocaleCompare, undefined);
 
                 // When the reports are sorted in GSD mode
-                const gsdResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.GSD, mockLocaleCompare);
+                const gsdResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.GSD, mockLocaleCompare, undefined);
 
                 // Then the reports are sorted in the correct order
                 expect(defaultResult).toEqual(['1', '0']); // Most recent first (index 1 has later date)

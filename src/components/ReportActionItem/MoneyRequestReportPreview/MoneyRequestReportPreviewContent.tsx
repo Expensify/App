@@ -132,6 +132,7 @@ function MoneyRequestReportPreviewContent({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReport?.policyID}`, {canBeMissing: true});
 
     const {areAllRequestsBeingSmartScanned, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -197,7 +198,7 @@ function MoneyRequestReportPreviewContent({
 
     const currentReportName = iouReport?.reportID ? reportAttributes?.[iouReport.reportID]?.reportName : undefined;
     const reportPreviewName = useMemo(() => {
-        return getMoneyReportPreviewName(action, iouReport, isInvoice, reportAttributes);
+        return getMoneyReportPreviewName(action, iouReport, policyTags, isInvoice, reportAttributes);
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [action, iouReport, isInvoice, currentReportName]);

@@ -129,6 +129,7 @@ function MoneyRequestParticipantsSelector({
     const {options, areOptionsInitialized, initializeOptions} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}`, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
 
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
@@ -282,6 +283,7 @@ function MoneyRequestParticipantsSelector({
             participants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            policyTags,
             personalDetails,
             true,
             undefined,
@@ -301,7 +303,8 @@ function MoneyRequestParticipantsSelector({
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                    const reportPolicyTags = policy?.id ? policyTags?.[policy?.id] : {};
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportPolicyTags, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
@@ -352,14 +355,16 @@ function MoneyRequestParticipantsSelector({
         chatOptions.recentReports,
         chatOptions.personalDetails,
         chatOptions.workspaceChats,
-        chatOptions.selfDMChat,
         chatOptions.userToInvite,
+        chatOptions.selfDMChat,
+        policyTags,
         personalDetails,
+        reportAttributesDerived,
         translate,
         isWorkspacesOnly,
         isPerDiemRequest,
         showImportContacts,
-        reportAttributesDerived,
+        policy?.id,
         inputHelperText,
     ]);
 

@@ -195,6 +195,7 @@ import type {
     PolicyEmployee,
     PolicyEmployeeList,
     PolicyReportField,
+    PolicyTagLists,
     QuickAction,
     RecentlyUsedReportFields,
     Report,
@@ -468,6 +469,17 @@ Onyx.connect({
         }
 
         allTransactions = value;
+    },
+});
+
+let allPolicyTags: OnyxCollection<PolicyTagLists>;
+// We use connectWithoutView here because this is lib-level functionality and
+// we need it for notification functionality
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allPolicyTags = value;
     },
 });
 
@@ -3356,9 +3368,11 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     const onClick = () => close(() => navigateFromNotification(reportID));
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
+        const policyID = report.policyID;
+        const policyTags = policyID ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {}) : {};
         const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
         const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-        LocalNotification.showModifiedExpenseNotification({report, reportAction, onClick, movedFromReport, movedToReport});
+        LocalNotification.showModifiedExpenseNotification({report, reportAction, onClick, movedFromReport, movedToReport, policyTags});
     } else {
         LocalNotification.showCommentNotification(report, reportAction, onClick);
     }
