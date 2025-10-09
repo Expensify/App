@@ -1,15 +1,21 @@
 import type {ForwardedRef} from 'react';
 import React, {useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Role, Text, View} from 'react-native';
+import type {GestureResponderEvent, Role, Text as TextType, View as ViewType} from 'react-native';
+import {View} from 'react-native';
 import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import variables from '@styles/variables';
-import {PressableWithoutFeedback} from './Pressable';
+import CONST from '@src/CONST';
+import Icon from './Icon';
+import {PlusCircle} from './Icon/Expensicons';
+import {PressableWithFeedback, PressableWithoutFeedback} from './Pressable';
+import Text from './Text';
 
 const FAB_PATH = 'M12,3c0-1.1-0.9-2-2-2C8.9,1,8,1.9,8,3v5H3c-1.1,0-2,0.9-2,2c0,1.1,0.9,2,2,2h5v5c0,1.1,0.9,2,2,2c1.1,0,2-0.9,2-2v-5h5c1.1,0,2-0.9,2-2c0-1.1-0.9-2-2-2h-5V3z';
 const SMALL_FAB_PATH =
@@ -35,16 +41,17 @@ type FloatingActionButtonProps = {
     role: Role;
 
     /** Reference to the outer element */
-    ref?: ForwardedRef<HTMLDivElement | View | Text>;
+    ref?: ForwardedRef<HTMLDivElement | ViewType | TextType>;
 };
 
 function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, ref}: FloatingActionButtonProps) {
-    const {success, successHover, buttonDefaultBG, textLight} = useTheme();
+    const {buttonDefaultBG, buttonHoveredBG, icon} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
-    const fabPressable = useRef<HTMLDivElement | View | Text | null>(null);
+    const fabPressable = useRef<HTMLDivElement | ViewType | TextType | null>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isLHBVisible = !shouldUseNarrowLayout;
+    const {translate} = useLocalize();
 
     const fabSize = isLHBVisible ? variables.iconSizeSmall : variables.iconSizeNormal;
 
@@ -61,7 +68,8 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
     }, [isActive, sharedValue]);
 
     const animatedStyle = useAnimatedStyle(() => {
-        const backgroundColor = interpolateColor(sharedValue.get(), [0, 1], [success, buttonDefaultBG]);
+        // const backgroundColor = interpolateColor(sharedValue.get(), [0, 1], [success, buttonDefaultBG]);
+        const backgroundColor = interpolateColor(sharedValue.get(), [0, 1], [buttonDefaultBG, buttonHoveredBG]);
 
         return {
             transform: [{rotate: `${sharedValue.get() * 135}deg`}],
@@ -94,8 +102,8 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                 }
             }}
             style={[
-                styles.h100,
-                styles.navigationTabBarItem,
+                // styles.h100,
+                styles.navigationTabBarFABItem,
 
                 // Prevent text selection on touch devices (e.g. on long press)
                 canUseTouchScreen() && styles.userSelectNone,
@@ -107,22 +115,55 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
             shouldUseHapticsOnLongPress
             testID="floating-action-button"
         >
-            {({hovered}) => (
-                <Animated.View
-                    style={[styles.floatingActionButton, {borderRadius}, isLHBVisible && styles.floatingActionButtonSmall, animatedStyle, hovered && {backgroundColor: successHover}]}
-                    testID="fab-animated-container"
-                >
-                    <Svg
-                        width={fabSize}
-                        height={fabSize}
+            {({hovered}) =>
+                isLHBVisible ? (
+                    <Animated.View
+                        style={[styles.floatingActionButton, {borderRadius}, isLHBVisible && styles.floatingActionButtonSmall, animatedStyle, hovered && {backgroundColor: buttonHoveredBG}]}
+                        testID="fab-animated-container"
                     >
-                        <AnimatedPath
-                            d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}
-                            fill={textLight}
-                        />
-                    </Svg>
-                </Animated.View>
-            )}
+                        <Svg
+                            width={fabSize}
+                            height={fabSize}
+                        >
+                            <AnimatedPath
+                                d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}
+                                fill={icon}
+                            />
+                        </Svg>
+                    </Animated.View>
+                ) : (
+                    <PressableWithFeedback
+                        onPress={toggleFabAction}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('common.create')}
+                        wrapperStyle={styles.flex1}
+                        style={styles.navigationTabBarItem}
+                    >
+                        <View>
+                            <Icon
+                                src={PlusCircle}
+                                // fill={selectedTab === NAVIGATION_TABS.SEARCH ? theme.iconMenu : theme.icon}
+                                fill={icon}
+                                width={variables.iconBottomBar}
+                                height={variables.iconBottomBar}
+                            />
+                        </View>
+                        <Text
+                            numberOfLines={1}
+                            style={[
+                                styles.textSmall,
+                                styles.textAlignCenter,
+                                styles.mt1Half,
+                                // selectedTab === NAVIGATION_TABS.SEARCH ? styles.textBold : styles.textSupporting,
+                                styles.textSupporting,
+                                styles.navigationTabBarLabel,
+                            ]}
+                        >
+                            {translate('common.create')}
+                        </Text>
+                    </PressableWithFeedback>
+                )
+            }
         </PressableWithoutFeedback>
     );
 }

@@ -3,6 +3,7 @@ import reportsSelector from '@selectors/Attributes';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import FloatingCameraButton from '@components/FloatingCameraButton';
 import HeaderGap from '@components/HeaderGap';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -322,7 +323,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                             onPress={navigateToSettings}
                         />
                     </View>
-                    <View style={styles.leftNavigationTabBarItem}>
+                    <View style={styles.leftNavigationTabBarFAB}>
                         <NavigationTabBarFloatingActionButton />
                     </View>
                 </View>
@@ -338,7 +339,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                     chatTabBrickRoad={chatTabBrickRoad}
                 />
             )}
-            <View style={styles.navigationTabBarContainer}>
+            <View style={[styles.navigationTabBarContainer]}>
                 <PressableWithFeedback
                     onPress={navigateToChats}
                     role={CONST.ROLE.BUTTON}
@@ -441,6 +442,13 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                     onPress={navigateToSettings}
                 />
             </View>
+            <FloatingCameraButton
+                accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
+                role={CONST.ROLE.BUTTON}
+                isActive={false}
+                onPress={() => {}}
+                onLongPress={() => {}}
+            />
         </>
     );
 }

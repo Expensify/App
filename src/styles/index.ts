@@ -655,6 +655,13 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 4,
         },
 
+        navigationTabBarFABItem: {
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingHorizontal: 4,
+        },
+
         /**
          * Background style applied to navigation tab bar items when they are hovered.
          * Do not apply for the active/selected state, those already have their own styling.
@@ -676,6 +683,14 @@ const staticStyles = (theme: ThemeColors) =>
 
         leftNavigationTabBarItem: {
             height: variables.navigationTabBarSize,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingHorizontal: 4,
+        },
+
+        leftNavigationTabBarFAB: {
+            height: 1.75 * variables.navigationTabBarSize,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -1559,6 +1574,13 @@ const staticStyles = (theme: ThemeColors) =>
         floatingActionButtonSmall: {
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,
+        },
+
+        floatingCameraButton: {
+            position: 'absolute',
+            top: -variables.componentSizeLarge - 16,
+            right: 12,
+            zIndex: 10,
         },
 
         topBarLabel: {

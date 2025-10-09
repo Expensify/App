@@ -180,6 +180,7 @@ import Phone from '@assets/images/phone.svg';
 import Pin from '@assets/images/pin.svg';
 import Plane from '@assets/images/plane.svg';
 import Play from '@assets/images/play.svg';
+import PlusCircle from '@assets/images/plus-circle.svg';
 import PlusMinus from '@assets/images/plus-minus.svg';
 import Plus from '@assets/images/plus.svg';
 import Printer from '@assets/images/printer.svg';
@@ -496,4 +497,5 @@ export {
     SapExport,
     XeroExport,
     ArrowCircleClockwise,
+    PlusCircle,
 };
