@@ -3,7 +3,7 @@ import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -67,7 +67,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                         Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE.getRoute(login, option?.value));
                     }}
                     sections={[{data: roleOptions}]}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                 />
             </DelegateNoAccessWrapper>
         </ScreenWrapper>

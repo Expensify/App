@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import {TeleScope} from '@components/Icon/Illustrations';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -119,7 +119,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={QuickbooksOutOfPocketExpenseAccountSelectPage.displayName}
             sections={data.length ? [{data}] : []}
-            listItem={RadioListItem}
+            listItem={SingleSelectListItem}
             headerContent={<Text style={[styles.ph5, styles.pb5]}>{description}</Text>}
             onBackButtonPress={goBack}
             onSelectRow={selectExportAccount}

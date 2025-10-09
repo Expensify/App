@@ -4,7 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -83,7 +83,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     showScrollIndicator
                     shouldStopPropagation
                     shouldUseDynamicMaxToRenderPerBatch
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     addBottomSafeAreaPadding
                 />
             </ScreenWrapper>

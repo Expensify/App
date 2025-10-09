@@ -2,7 +2,7 @@ import React, {useCallback, useMemo} from 'react';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -81,7 +81,7 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             onChangeText={setSearchValue}
             headerMessage={headerMessage}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             isRowMultilineSupported
             rightHandSideComponent={itemRightSideComponent}
         />

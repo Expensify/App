@@ -6,7 +6,7 @@ import getBankIcon from '@components/Icon/BankIcons';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useEnvironment from '@hooks/useEnvironment';
@@ -154,7 +154,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                 <SelectionList
                     addBottomSafeAreaPadding
                     sections={[{data}]}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={({value}) => updateSettlementAccount(value ?? 0)}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={paymentBankAccountID?.toString()}

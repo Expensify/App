@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -59,7 +59,7 @@ function NetSuiteJournalEntryApprovalLevelSelectPage({policy}: WithPolicyConnect
             title="workspace.netsuite.advancedConfig.exportJournalsTo.label"
             headerContent={headerContent}
             sections={[{data}]}
-            listItem={RadioListItem}
+            listItem={SingleSelectListItem}
             onSelectRow={(selection: SelectorType) => selectJournalApprovalLevel(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             policyID={policyID}
