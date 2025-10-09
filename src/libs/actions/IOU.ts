@@ -13679,13 +13679,18 @@ function navigateToConfirmationPage(
     backToReport: string | undefined,
     shouldNavigateToSubmit = false,
     reportIDParam: string | undefined = undefined,
+    fromManualDistanceRequest = false,
 ) {
     switch (iouType) {
         case CONST.IOU.TYPE.REQUEST:
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
             break;
         case CONST.IOU.TYPE.SEND:
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
+            if (fromManualDistanceRequest) {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
+            } else {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
+            }
             break;
         default:
             Navigation.navigate(
@@ -14070,7 +14075,7 @@ function handleMoneyRequestStepDistanceNavigation({
             return;
         }
         setMoneyRequestParticipantsFromReport(transactionID, report).then(() => {
-            navigateToConfirmationPage(iouType, transactionID, reportID, backToReport);
+            navigateToConfirmationPage(iouType, transactionID, reportID, backToReport, false, undefined, !!manualDistance);
         });
         return;
     }
