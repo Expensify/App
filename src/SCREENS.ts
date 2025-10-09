@@ -8,6 +8,7 @@ const PROTECTED_SCREENS = {
     HOME: 'Home',
     CONCIERGE: 'Concierge',
     ATTACHMENTS: 'Attachments',
+    REPORT_ADD_ATTACHMENT: 'ReportAddAttachment',
     TRACK_EXPENSE: 'TrackExpense',
     SUBMIT_EXPENSE: 'SubmitExpense',
 } as const;
@@ -111,6 +112,7 @@ const SCREENS = {
             CONTACT_METHODS: 'Settings_ContactMethods',
             CONTACT_METHOD_DETAILS: 'Settings_ContactMethodDetails',
             NEW_CONTACT_METHOD: 'Settings_NewContactMethod',
+            NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: 'Settings_NewContactMethod_ConfirmMagicCode',
             CONTACT_METHOD_VERIFY_ACCOUNT: 'Settings_ContactMethod_Verify_Account',
             STATUS_CLEAR_AFTER: 'Settings_Status_Clear_After',
             STATUS_CLEAR_AFTER_DATE: 'Settings_Status_Clear_After_Date',
@@ -124,6 +126,7 @@ const SCREENS = {
             DATE_OF_BIRTH: 'Settings_DateOfBirth',
             PHONE_NUMBER: 'Settings_PhoneNumber',
             ADDRESS: 'Settings_Address',
+            AVATAR: 'Settings_Avatar',
             ADDRESS_COUNTRY: 'Settings_Address_Country',
             ADDRESS_STATE: 'Settings_Address_State',
         },
@@ -719,6 +722,10 @@ const SCREENS = {
         WORKSPACE_CONFIRMATION: 'Onboarding_Workspace_Confirmation',
         WORKSPACE_CURRENCY: 'Onboarding_Workspace_Currency',
         WORKSPACE_INVITE: 'Onboarding_Workspace_Invite',
+    },
+
+    CURRENCY: {
+        SELECTION: 'Currency_Selection',
     },
 
     EXPLANATION_MODAL: {
