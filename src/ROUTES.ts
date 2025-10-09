@@ -354,6 +354,16 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
     },
+    SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: {
+        route: 'settings/profile/contact-methods/new/:newContactMethod/confirm-magic-code',
+        getRoute: (newContactMethod: string, backTo?: string) => {
+            const encodedMethod = encodeURIComponent(newContactMethod);
+            // TODO this backTo comes from drilling it through settings screens
+            // should be removed once https://github.com/Expensify/App/pull/70980 is resolved
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(`settings/profile/contact-methods/new/${encodedMethod}/confirm-magic-code`, backTo);
+        },
+    },
     SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT: {
         route: 'settings/profile/contact-methods/verify',
         getRoute: (backTo?: string, forwardTo?: string) =>
