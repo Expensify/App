@@ -158,7 +158,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
             },
         })),
     },
-    getActiveRoute: jest.fn(() => 'search?q=type:report'),
 }));
 
 const testDate = DateUtils.getDBTime();

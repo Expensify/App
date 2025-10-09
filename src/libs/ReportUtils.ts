@@ -11929,7 +11929,7 @@ function getReportURLForCurrentContext(reportID: string | undefined): string {
         }
     }
 
-    if (!backToRoute || !backToRoute.startsWith(ROUTES.SEARCH_ROOT.route)) {
+    if (!backToRoute?.startsWith(ROUTES.SEARCH_ROOT.route)) {
         // Fall back to the generic search home when we can't recover a valid route.
         backToRoute = ROUTES.SEARCH_ROOT.route;
     }
