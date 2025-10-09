@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route as RoutePath} from '@src/ROUTES';
-import ROUTES, {VERIFY_ACCOUNT} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import getMatchingNewRoute from './getMatchingNewRoute';
@@ -70,33 +70,29 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         return getMatchingFullScreenRoute(focusedStateForBackToRoute);
     }
 
-    // Handle verify-account routes by extracting the underlying route and matching it to a full screen route
-    if (route.path?.includes(`/${VERIFY_ACCOUNT}`)) {
-        // Remove the verify-account suffix to get the original route path
-        const pathWithoutVerifyAccount = route.path.replace(`/${VERIFY_ACCOUNT}`, '');
-        const stateUnderVerifyAccount = getStateFromPath(pathWithoutVerifyAccount as RoutePath);
-        const lastRoute = stateUnderVerifyAccount?.routes.at(-1);
+    const lastSuffix = route.path?.split('?').at(0)?.split('/').pop() ?? '';
+    if (Object.values(DYNAMIC_ROUTES).includes(lastSuffix)) {
+        const pathWithoutDynamicSuffix = route.path?.replace(`/${lastSuffix}`, '');
+        const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix as RoutePath);
+        const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
 
-        // Ensure we have a valid state and route that's not a 404
-        if (!stateUnderVerifyAccount || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {
+        if (!stateUnderDynamicRoute || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {
             return undefined;
         }
 
         const isLastRouteFullScreen = isFullScreenName(lastRoute.name);
 
-        // If the underlying route is already a full screen route, use it directly
         if (isLastRouteFullScreen) {
             return lastRoute;
         }
 
-        // Otherwise, find the focused route and recursively get its matching full screen route
-        const focusedStateForVerifyAccountRoute = findFocusedRoute(stateUnderVerifyAccount);
+        const focusedStateForDynamicRoute = findFocusedRoute(stateUnderDynamicRoute);
 
-        if (!focusedStateForVerifyAccountRoute) {
+        if (!focusedStateForDynamicRoute) {
             return undefined;
         }
 
-        return getMatchingFullScreenRoute(focusedStateForVerifyAccountRoute);
+        return getMatchingFullScreenRoute(focusedStateForDynamicRoute);
     }
 
     if (RHP_TO_SEARCH[route.name]) {
