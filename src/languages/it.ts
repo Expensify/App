@@ -667,6 +667,7 @@ const translations = {
         unstableInternetConnection: 'Connessione Internet instabile. Controlla la tua rete e riprova.',
         enableGlobalReimbursements: 'Abilita i rimborsi globali',
         purchaseAmount: 'Importo di acquisto',
+        frequency: 'Frequenza',
         link: 'Link',
         pinned: 'Fissato',
         read: 'Letto',
@@ -2012,9 +2013,8 @@ const translations = {
     workflowsPage: {
         workflowTitle: 'Spendere',
         workflowDescription: 'Configura un flusso di lavoro dal momento in cui si verifica una spesa, inclusi approvazione e pagamento.',
-        delaySubmissionTitle: 'Ritarda invii',
-        delaySubmissionDescription: "Scegli un programma personalizzato per l'invio delle spese, oppure lascia disattivato per aggiornamenti in tempo reale sulle spese.",
         submissionFrequency: 'Frequenza di invio',
+        submissionFrequencyDescription: "Scegli un programma personalizzato per l'invio delle spese, oppure lascia disattivato per aggiornamenti in tempo reale sulle spese.",
         submissionFrequencyDateOfMonth: 'Data del mese',
         addApprovalsTitle: 'Aggiungi approvazioni',
         addApprovalButton: 'Aggiungi flusso di lavoro di approvazione',
@@ -2028,7 +2028,7 @@ const translations = {
         },
         frequencyDescription: 'Scegli con quale frequenza desideri che le spese vengano inviate automaticamente, oppure impostale manualmente.',
         frequencies: {
-            instant: 'Istantaneo',
+            instant: 'Immediatamente',
             weekly: 'Settimanale',
             monthly: 'Mensile',
             twiceAMonth: 'Due volte al mese',
@@ -2066,7 +2066,6 @@ const translations = {
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: 'La presentazione ritardata non può essere modificata. Per favore, riprova o contatta il supporto.',
         autoReportingFrequencyErrorMessage: "La frequenza di invio non può essere modificata. Riprova o contatta l'assistenza.",
         monthlyOffsetErrorMessage: 'La frequenza mensile non può essere modificata. Riprova o contatta il supporto.',
     },

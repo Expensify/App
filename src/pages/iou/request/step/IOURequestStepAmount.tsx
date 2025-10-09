@@ -10,8 +10,10 @@ import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactio
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
+import {setTransactionReport} from '@libs/actions/Transaction';
 import {createDraftTransaction, removeDraftTransaction} from '@libs/actions/TransactionEdit';
 import {convertToBackendAmount, isValidCurrencyCode} from '@libs/CurrencyUtils';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
@@ -89,6 +91,7 @@ function IOURequestStepAmount({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const personalPolicy = usePersonalPolicy();
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -265,6 +268,9 @@ function IOURequestStepAmount({
             !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
         ) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
+            const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
+            const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
+            setTransactionReport(transactionID, {reportID: transactionReportID}, true);
             setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
                 Navigation.navigate(
                     ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(

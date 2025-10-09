@@ -667,6 +667,7 @@ const translations = {
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
         enableGlobalReimbursements: 'Activer les remboursements globaux',
         purchaseAmount: "Montant de l'achat",
+        frequency: 'Fréquence',
         link: 'Lien',
         pinned: 'Épinglé',
         read: 'Lu',
@@ -2021,10 +2022,9 @@ const translations = {
     workflowsPage: {
         workflowTitle: 'Dépenser',
         workflowDescription: "Configurez un flux de travail dès que la dépense survient, y compris l'approbation et le paiement.",
-        delaySubmissionTitle: 'Retarder les soumissions',
-        delaySubmissionDescription:
-            'Choisissez un calendrier personnalisé pour soumettre les dépenses, ou laissez cette option désactivée pour des mises à jour en temps réel sur les dépenses.',
         submissionFrequency: 'Fréquence de soumission',
+        submissionFrequencyDescription:
+            'Choisissez un calendrier personnalisé pour soumettre les dépenses, ou laissez cette option désactivée pour des mises à jour en temps réel sur les dépenses.',
         submissionFrequencyDateOfMonth: 'Date du mois',
         addApprovalsTitle: 'Ajouter des approbations',
         addApprovalButton: "Ajouter un flux de travail d'approbation",
@@ -2038,7 +2038,7 @@ const translations = {
         },
         frequencyDescription: 'Choisissez la fréquence à laquelle vous souhaitez que les dépenses soient soumises automatiquement, ou faites-le manuellement.',
         frequencies: {
-            instant: 'Instantané',
+            instant: 'Immédiatement',
             weekly: 'Hebdomadaire',
             monthly: 'Mensuel',
             twiceAMonth: 'Deux fois par mois',
@@ -2076,7 +2076,6 @@ const translations = {
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: "La soumission retardée n'a pas pu être modifiée. Veuillez réessayer ou contacter le support.",
         autoReportingFrequencyErrorMessage: "La fréquence de soumission n'a pas pu être modifiée. Veuillez réessayer ou contacter le support.",
         monthlyOffsetErrorMessage: "La fréquence mensuelle n'a pas pu être modifiée. Veuillez réessayer ou contacter le support.",
     },
