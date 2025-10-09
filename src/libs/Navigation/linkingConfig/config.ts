@@ -25,6 +25,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.SAML_SIGN_IN]: ROUTES.SAML_SIGN_IN,
         [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
         [SCREENS.ATTACHMENTS]: ROUTES.ATTACHMENTS.route,
+        [SCREENS.REPORT_ADD_ATTACHMENT]: ROUTES.REPORT_ADD_ATTACHMENT.route,
         [SCREENS.PROFILE_AVATAR]: ROUTES.PROFILE_AVATAR.route,
         [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
@@ -309,6 +310,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.SHARE_LOG]: ROUTES.SETTINGS_SHARE_LOG.route,
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
                             path: ROUTES.SETTINGS_CONTACT_METHODS.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.PROFILE.AVATAR]: {
+                            path: ROUTES.SETTINGS_AVATAR,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: {
@@ -1089,7 +1094,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION]: {
                     screens: {
-                        [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: ROUTES.NEW_REPORT_WORKSPACE_SELECTION,
+                        [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: ROUTES.NEW_REPORT_WORKSPACE_SELECTION.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: {
@@ -1263,6 +1268,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION]: {
                     screens: {
                         [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: ROUTES.WORKSPACE_CONFIRMATION.route,
+                        [SCREENS.CURRENCY.SELECTION]: ROUTES.CURRENCY_SELECTION.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.WORKSPACE_DUPLICATE]: {
