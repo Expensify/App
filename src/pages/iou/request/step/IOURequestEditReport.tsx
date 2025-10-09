@@ -78,12 +78,15 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     };
 
     const createReport = () => {
+        if (!policyForMovingExpensesID && !shouldSelectPolicy) {
+            return;
+        }
         if (shouldSelectPolicy) {
             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true, backTo));
             return;
         }
-        if (shouldRestrictUserBillableActions(policyForMovingExpensesID ?? '')) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID ?? ''));
+        if (policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
             return;
         }
         const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);

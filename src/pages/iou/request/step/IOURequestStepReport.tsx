@@ -174,13 +174,16 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, reportOrDraftReport, transaction);
 
     const createReport = () => {
+        if (!policyForMovingExpensesID && !shouldSelectPolicy) {
+            return;
+        }
         if (shouldSelectPolicy) {
             setSelectedTransactions([transactionID]);
             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true, backTo));
             return;
         }
-        if (shouldRestrictUserBillableActions(policyForMovingExpensesID ?? '')) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID ?? ''));
+        if (policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
             return;
         }
         const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
