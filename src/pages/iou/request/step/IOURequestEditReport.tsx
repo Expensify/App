@@ -82,12 +82,11 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true, backTo));
             return;
         }
-        const policyID = policyForMovingExpensesID ?? '';
-        if (shouldRestrictUserBillableActions(policyID)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+        if (shouldRestrictUserBillableActions(policyForMovingExpensesID ?? '')) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID ?? ''));
             return;
         }
-        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyID);
+        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
         selectReport({value: createdReportID});
     };
 
