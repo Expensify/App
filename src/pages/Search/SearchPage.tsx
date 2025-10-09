@@ -1,5 +1,6 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
@@ -212,10 +213,10 @@ function SearchPage({route}: SearchPageProps) {
                     );
                     return;
                 }
-
+                const isPolicyPaymentMethod = !Object.values(CONST.IOU.PAYMENT_TYPE).includes(lastPolicyPaymentMethod as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>);
                 // If lastPolicyPaymentMethod is not type of CONST.IOU.PAYMENT_TYPE, we're using workspace to pay the IOU
                 // Then we should move it to that workspace.
-                if (typeof lastPolicyPaymentMethod !== typeof CONST.IOU.PAYMENT_TYPE && isIOUReport) {
+                if (isPolicyPaymentMethod && isIOUReport) {
                     const adminPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${lastPolicyPaymentMethod}`];
                     if (!adminPolicy) {
                         Navigation.navigate(
