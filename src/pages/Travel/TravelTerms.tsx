@@ -42,7 +42,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [showVerifyCompanyModal, setShowVerifyCompanyModal] = useState(false);
-    let [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING, {canBeMissing: true});
+    const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING, {canBeMissing: true});
 
     const isLoading = travelProvisioning?.isLoading;
     const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
@@ -55,7 +55,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
         if (conciergeReportID) {
             // If we have the Concierge report ID, add the comment directly
-            addComment(conciergeReportID, message, CONST.DEFAULT_TIME_ZONE);
+            addComment(conciergeReportID, conciergeReportID, message, CONST.DEFAULT_TIME_ZONE);
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
         } else {
             // If we don't have the Concierge report ID yet, navigate to create it first
@@ -69,9 +69,8 @@ function TravelTerms({route}: TravelTermsPageProps) {
             cleanupTravelProvisioningSession();
         }
 
-        if (travelProvisioning?.error === CONST.TRAVEL.PROVISIONING.ERROR_TRAVEL_ENABLEMENT_FAILED) {
+        if (travelProvisioning?.error === CONST.TRAVEL.PROVISIONING.ERROR_ADDITIONAL_VERIFICATION_REQUIRED) {
             setShowVerifyCompanyModal(true);
-            cleanupTravelProvisioningSession();
         }
 
         if (travelProvisioning?.spotnanaToken) {
@@ -81,7 +80,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
         if (travelProvisioning?.errors && !travelProvisioning?.error) {
             setErrorMessage(getLatestErrorMessage(travelProvisioning));
         }
-    }, [travelProvisioning, domain, setShowVerifyCompanyModal]);
+    }, [travelProvisioning, domain]);
 
     const toggleTravelTerms = () => {
         setHasAcceptedTravelTerms(!hasAcceptedTravelTerms);
