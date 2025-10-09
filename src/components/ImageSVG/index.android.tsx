@@ -22,6 +22,10 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
         onLoadEnd?.();
     }, [isReactComponent, onLoadEnd]);
 
+    if (!src) {
+        return null;
+    }
+
     // Check if src is a React component (from dynamic loading) or a static image source
     if (isReactComponent) {
         // Handle React SVG components (from dynamic loading)

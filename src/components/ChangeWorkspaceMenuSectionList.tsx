@@ -21,7 +21,7 @@ type ChangeWorkspaceMenuSection = {
 function ChangeWorkspaceMenuSectionList() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Workflows'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Workflows']);
 
     const changeWorkspaceMenuSections: ChangeWorkspaceMenuSection[] = [
         {

@@ -32,6 +32,10 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
         );
     }
 
+    if (!src) {
+        return null;
+    }
+
     // Handle static image sources (traditional approach)
     return (
         <Image
