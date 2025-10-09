@@ -38,7 +38,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
+import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {
     calculateBillNewDot,
     clearDeleteWorkspaceError,
@@ -56,15 +56,7 @@ import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePre
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import {
-    getAllSelfApprovers,
-    getDefaultApprover,
-    getPolicyBrickRoadIndicatorStatus,
-    getUberConnectionErrorDirectlyFromPolicy,
-    isPolicyAdmin,
-    isPolicyAuditor,
-    shouldShowPolicy,
-} from '@libs/PolicyUtils';
+import {getDefaultApprover, getPolicyBrickRoadIndicatorStatus, getUberConnectionErrorDirectlyFromPolicy, isPolicyAdmin, isPolicyAuditor, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
@@ -218,6 +210,7 @@ function WorkspacesListPage() {
         const technicalContact = policyToLeave?.technicalContact;
         const isCurrentUserReimburser = isUserReimburserForPolicy(policies, policyIDToLeave, session?.email);
         const userEmail = session?.email ?? '';
+        const isApprover = isApproverUserAction(policyToLeave, userEmail);
 
         if (isCannotLeaveWorkspaceWithPendingReportsModalOpen) {
             return translate('common.cannotLeaveWorkspaceOutstandingReport');
@@ -239,7 +232,7 @@ function WorkspacesListPage() {
             });
         }
 
-        if (getAllSelfApprovers(policyToLeave).includes(userEmail)) {
+        if (isApprover) {
             return translate('common.leaveWorkspaceConfirmationApprover', {
                 workspaceOwner: policyOwnerDisplayName,
             });
@@ -427,7 +420,6 @@ function WorkspacesListPage() {
             styles.ph5,
             styles.mb2,
             styles.mh5,
-            styles.ph5,
             styles.hoveredComponentBG,
             styles.offlineFeedbackDeleted,
             loadingSpinnerIconIndex,
