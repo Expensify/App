@@ -216,7 +216,7 @@ function ExpensifyCardPage({
                                                                 showLockedAccountModal();
                                                                 return;
                                                             }
-                                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(cardID));
+                                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
                                                         }}
                                                         isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
                                                         isLoading={isCardDetailsLoading[card.cardID]}
@@ -268,7 +268,7 @@ function ExpensifyCardPage({
                                                     !isSignedInAsDelegate ? (
                                                         <Button
                                                             text={translate('cardPage.cardDetails.revealCvv')}
-                                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(cardID))}
+                                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)))}
                                                             isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
                                                             isLoading={isCardDetailsLoading[card.cardID]}
                                                         />
@@ -338,7 +338,7 @@ function ExpensifyCardPage({
                 {cardToAdd !== undefined && (
                     <AddToWalletButton
                         card={cardToAdd}
-                        buttonStyle={styles.alignSelfCenter}
+                        style={styles.alignSelfCenter}
                         cardHolderName={displayName ?? ''}
                         cardDescription={expensifyCardTitle}
                     />

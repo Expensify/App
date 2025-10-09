@@ -7,6 +7,7 @@ import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, O
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
+import type {CurrentUserPersonalDetails} from '@components/CurrentUserPersonalDetailsProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
@@ -85,7 +86,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import NetworkConnection from '@libs/NetworkConnection';
-import {buildNextStep} from '@libs/NextStepUtils';
+import {buildNextStepNew} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
@@ -189,7 +190,6 @@ import type {
     NewGroupChatDraft,
     Onboarding,
     OnboardingPurpose,
-    PersonalDetails,
     PersonalDetailsList,
     Policy,
     PolicyEmployee,
@@ -2438,7 +2438,17 @@ function clearReportFieldKeyErrors(reportID: string | undefined, fieldKey: strin
     });
 }
 
-function updateReportField(report: Report, reportField: PolicyReportField, previousReportField: PolicyReportField, policy: Policy, shouldFixViolations = false) {
+function updateReportField(
+    report: Report,
+    reportField: PolicyReportField,
+    previousReportField: PolicyReportField,
+    policy: Policy,
+    isASAPSubmitBetaEnabled: boolean,
+    accountID: number,
+    email: string,
+    hasViolationsParam: boolean,
+    shouldFixViolations = false,
+) {
     const reportID = report.reportID;
     const fieldKey = getReportFieldKey(reportField.fieldID);
     const reportViolations = getReportViolations(reportID);
@@ -2447,7 +2457,17 @@ function updateReportField(report: Report, reportField: PolicyReportField, previ
 
     const optimisticChangeFieldAction = buildOptimisticChangeFieldAction(reportField, previousReportField);
     const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
-    const optimisticNextStep = buildNextStep(report, predictedNextStatus, shouldFixViolations);
+
+    const optimisticNextStep = buildNextStepNew({
+        report,
+        predictedNextStatus,
+        shouldFixViolations,
+        policy,
+        currentUserAccountIDParam: accountID,
+        currentUserEmailParam: email,
+        hasViolations: hasViolationsParam,
+        isASAPSubmitBetaEnabled,
+    });
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2746,8 +2766,16 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
     }
 }
 
-function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: string, reportActionID: string, creatorPersonalDetails: PersonalDetails, reportPreviewReportActionID: string) {
-    const {accountID, login} = creatorPersonalDetails;
+function buildNewReportOptimisticData(
+    policy: OnyxEntry<Policy>,
+    reportID: string,
+    reportActionID: string,
+    creatorPersonalDetails: CurrentUserPersonalDetails,
+    reportPreviewReportActionID: string,
+    hasViolationsParam: boolean,
+    isASAPSubmitBetaEnabled: boolean,
+) {
+    const {accountID, login, email} = creatorPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
     const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, parentReport, reportPreviewReportActionID, policy, timeOfCreation);
@@ -2797,7 +2825,15 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         actorAccountID: accountID,
     };
 
-    const optimisticNextStep = buildNextStep(optimisticReportData, CONST.REPORT.STATUS_NUM.OPEN);
+    const optimisticNextStep = buildNextStepNew({
+        report: optimisticReportData,
+        predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+        policy,
+        currentUserAccountIDParam: accountID,
+        currentUserEmailParam: email ?? '',
+        hasViolations: hasViolationsParam,
+        isASAPSubmitBetaEnabled,
+    });
     const outstandingChildRequest = getOutstandingChildRequest(optimisticReportData);
 
     const optimisticData: OnyxUpdate[] = [
@@ -2901,7 +2937,13 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
     };
 }
 
-function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string, shouldNotifyNewAction = false) {
+function createNewReport(
+    creatorPersonalDetails: CurrentUserPersonalDetails,
+    hasViolationsParam: boolean,
+    isASAPSubmitBetaEnabled: boolean,
+    policyID?: string,
+    shouldNotifyNewAction = false,
+) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
@@ -2915,6 +2957,8 @@ function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: str
         reportActionID,
         creatorPersonalDetails,
         reportPreviewReportActionID,
+        hasViolationsParam,
+        isASAPSubmitBetaEnabled,
     );
 
     API.write(
@@ -5657,7 +5701,17 @@ function navigateToTrainingModal(dismissedProductTrainingNVP: OnyxEntry<Dismisse
     });
 }
 
-function buildOptimisticChangePolicyData(report: Report, policy: Policy, reportNextStep?: ReportNextStep, optimisticPolicyExpenseChatReport?: Report, isReportLastVisibleArchived = false) {
+function buildOptimisticChangePolicyData(
+    report: Report,
+    policy: Policy,
+    accountID: number,
+    email: string,
+    hasViolationsParam: boolean,
+    isASAPSubmitBetaEnabled: boolean,
+    reportNextStep?: ReportNextStep,
+    optimisticPolicyExpenseChatReport?: Report,
+    isReportLastVisibleArchived = false,
+) {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -5700,7 +5754,15 @@ function buildOptimisticChangePolicyData(report: Report, policy: Policy, reportN
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: buildNextStep({...report, policyID: policy.id}, newStatusNum),
+            value: buildNextStepNew({
+                report: {...report, policyID: policy.id},
+                predictedNextStatus: newStatusNum,
+                policy,
+                currentUserAccountIDParam: accountID,
+                currentUserEmailParam: email,
+                hasViolations: hasViolationsParam,
+                isASAPSubmitBetaEnabled,
+            }),
         });
 
         failureData.push({
@@ -5904,7 +5966,16 @@ function buildOptimisticChangePolicyData(report: Report, policy: Policy, reportN
 /**
  * Changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat.
  */
-function changeReportPolicy(report: Report, policy: Policy, reportNextStep?: ReportNextStep, isReportLastVisibleArchived = false) {
+function changeReportPolicy(
+    report: Report,
+    policy: Policy,
+    accountID: number,
+    email: string,
+    hasViolationsParam: boolean,
+    isASAPSubmitBetaEnabled: boolean,
+    reportNextStep?: ReportNextStep,
+    isReportLastVisibleArchived = false,
+) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report)) {
         return;
     }
@@ -5912,6 +5983,10 @@ function changeReportPolicy(report: Report, policy: Policy, reportNextStep?: Rep
     const {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction} = buildOptimisticChangePolicyData(
         report,
         policy,
+        accountID,
+        email,
+        hasViolationsParam,
+        isASAPSubmitBetaEnabled,
         reportNextStep,
         undefined,
         isReportLastVisibleArchived,
@@ -5936,6 +6011,10 @@ function changeReportPolicy(report: Report, policy: Policy, reportNextStep?: Rep
 function changeReportPolicyAndInviteSubmitter(
     report: Report,
     policy: Policy,
+    accountID: number,
+    email: string,
+    hasViolationsParam: boolean,
+    isASAPSubmitBetaEnabled: boolean,
     employeeList: PolicyEmployeeList | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isReportLastVisibleArchived = false,
@@ -5971,7 +6050,17 @@ function changeReportPolicyAndInviteSubmitter(
         failureData: failureChangePolicyData,
         optimisticReportPreviewAction,
         optimisticMovedReportAction,
-    } = buildOptimisticChangePolicyData(report, policy, undefined, membersChats.reportCreationData[submitterEmail], isReportLastVisibleArchived);
+    } = buildOptimisticChangePolicyData(
+        report,
+        policy,
+        accountID,
+        email,
+        hasViolationsParam,
+        isASAPSubmitBetaEnabled,
+        undefined,
+        membersChats.reportCreationData[submitterEmail],
+        isReportLastVisibleArchived,
+    );
     optimisticData.push(...optimisticChangePolicyData);
     successData.push(...successChangePolicyData);
     failureData.push(...failureChangePolicyData);

@@ -8,7 +8,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
-import {buildNextStep} from '@libs/NextStepUtils';
+import {buildNextStepNew} from '@libs/NextStepUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
@@ -37,7 +37,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('@libs/NextStepUtils', () => ({
-    buildNextStep: jest.fn(),
+    buildNextStepNew: jest.fn(),
 }));
 
 jest.mock('@libs/ReportUtils', () => {
@@ -1681,7 +1681,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        const reportID = Report.createNewReport({accountID}, policyID);
+        const reportID = Report.createNewReport({accountID}, true, false, policyID);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
@@ -1757,7 +1757,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        Report.createNewReport({accountID}, policyID);
+        Report.createNewReport({accountID}, true, false, policyID);
 
         // Then the parent report's hasOutstandingChildRequest property should remain unchanged
         await new Promise<void>((resolve) => {
@@ -2069,7 +2069,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             // When moving to another workspace
-            Report.changeReportPolicy(expenseReport, newPolicy);
+            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', true, false);
             await waitForBatchedUpdates();
 
             // Then the expense report should not be archived anymore
@@ -2124,6 +2124,10 @@ describe('actions/Report', () => {
             Report.changeReportPolicyAndInviteSubmitter(
                 expenseReport,
                 createRandomPolicy(Number(2)),
+                1,
+                '',
+                true,
+                false,
                 {
                     [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                 },
@@ -2202,7 +2206,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Call changeReportPolicyAndInviteSubmitter
-            Report.changeReportPolicyAndInviteSubmitter(expenseReport, newPolicy, employeeList, TestHelper.formatPhoneNumber, false);
+            Report.changeReportPolicyAndInviteSubmitter(expenseReport, newPolicy, 1, '', true, false, employeeList, TestHelper.formatPhoneNumber, false);
             await waitForBatchedUpdates();
 
             // Simulate network failure
@@ -2388,8 +2392,17 @@ describe('actions/Report', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-            Report.buildOptimisticChangePolicyData(report, createRandomPolicy(Number(1)));
-            expect(buildNextStep).toHaveBeenCalledWith(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+            const policy = createRandomPolicy(Number(1));
+            Report.buildOptimisticChangePolicyData(report, policy, 1, '', false, true);
+            expect(buildNextStepNew).toHaveBeenCalledWith({
+                report,
+                policy,
+                currentUserAccountIDParam: 1,
+                currentUserEmailParam: '',
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: true,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            });
         });
     });
 
