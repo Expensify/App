@@ -2,7 +2,7 @@
 
 ## Running the mobile application using Rock 🪨
 
-This project uses [Rock](https://rockjs.dev/) to manage native builds. Rather than compiling native code locally when running commands like `npm run android`, Rock first attempts to download remote builds (artifacts prebuilt on CI) from a server. If a matching remote build isn’t available, it automatically falls back to building locally.
+This project uses [Rock](https://rockjs.dev/) to manage native builds. Rather than compiling native code locally when running commands like `npm run android`, Rock first attempts to download remote builds (artifacts prebuilt on CI) from GitHub. If a matching remote build isn’t available, it automatically falls back to building locally.
 
 By storing complete native build artifacts remotely, Rock reduces the need for local compilation and simplifies setup through automated downloads.
 
