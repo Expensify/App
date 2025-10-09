@@ -8,13 +8,14 @@ import tokenizedSearch from './tokenizedSearch';
  *
  * @param reportFieldOptions - an initial report field options array
  */
-function getReportFieldOptions(reportFieldOptions: string[]): Option[] {
+function getReportFieldOptions(reportFieldOptions: string[], isSelected = false): Option[] {
     return reportFieldOptions.map((name) => ({
         text: name,
         keyForList: name,
         searchText: name,
         tooltipText: name,
         isDisabled: false,
+        isSelected,
     }));
 }
 
@@ -59,7 +60,7 @@ function getReportFieldOptionsSection({
             title: '',
             shouldShow: true,
             indexOffset,
-            data: getReportFieldOptions(selectedOptionKeys),
+            data: getReportFieldOptions(selectedOptionKeys, true),
         });
 
         indexOffset += selectedOptionKeys.length;
