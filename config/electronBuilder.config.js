@@ -26,6 +26,18 @@ if (!isCorrectElectronEnv) {
     throw new Error('Invalid ELECTRON_ENV!');
 }
 
+const getMacBundleIconName = () => {
+    if (process.env.ELECTRON_ENV === 'adhoc') {
+        return 'AppIcon-adhoc';
+    }
+
+    if (process.env.ELECTRON_ENV === 'development') {
+        return 'AppIcon-dev';
+    }
+
+    return 'AppIcon';
+};
+
 /**
  * The configuration for the debug, production and staging Electron builds.
  */
@@ -51,9 +63,10 @@ module.exports = {
         ],
         x64ArchFiles: '**/node_modules/node-mac-permissions/bin/**',
         extendInfo: {
+            CFBundleIconName: getMacBundleIconName(),
             NSLocationWhenInUseUsageDescription: 'This app uses location to help you track distance expenses.',
             NSLocationUsageDescription: 'This app uses location to help you track distance expenses.',
-        },
+        }
     },
     dmg: {
         title: 'New Expensify',
@@ -77,4 +90,5 @@ module.exports = {
         name: 'New Expensify',
         schemes: ['new-expensify'],
     },
+    afterPack: 'desktop/dist/afterPack.js',
 };
