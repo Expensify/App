@@ -1025,7 +1025,7 @@ function IOURequestStepConfirmation({
             const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
             const participant = participants?.at(0);
 
-            if (!participant || !transaction?.amount || !currency) {
+            if (!participant || transaction?.amount === null || transaction?.amount === undefined || !currency) {
                 return;
             }
 

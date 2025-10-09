@@ -41,6 +41,7 @@ import {
     isSettled,
     isThread,
 } from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -426,7 +427,7 @@ function isPartialMerchant(merchant: string): boolean {
 }
 
 function isAmountMissing(transaction: OnyxEntry<Transaction>) {
-    return transaction?.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
+    return (transaction?.amount === null || transaction?.amount === undefined) && (transaction?.modifiedAmount === null || transaction?.modifiedAmount === undefined);
 }
 
 function isPartial(transaction: OnyxEntry<Transaction>): boolean {
@@ -683,8 +684,9 @@ function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseRepo
     // Expense report case:
     // The amounts are stored using an opposite sign and negative values can be set,
     // we need to return an opposite sign than is saved in the transaction object
-    let amount = transaction?.modifiedAmount ?? 0;
-    if (amount) {
+    // const amount = transaction?.modifiedAmount ?? transaction?.amount ?? 0;
+    let amount = transaction?.modifiedAmount;
+    if ((typeof amount === 'string' && !StringUtils.isEmptyString(amount)) || (typeof amount === 'number' && !Number.isNaN(amount))) {
         return -amount;
     }
 

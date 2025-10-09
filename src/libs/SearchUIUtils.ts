@@ -779,7 +779,7 @@ function isAmountTooLong(amount: number, maxLength = 8): boolean {
 
 function isTransactionAmountTooLong(transactionItem: TransactionListItemType | SearchTransaction | OnyxTypes.Transaction) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const amount = Math.abs(transactionItem.modifiedAmount || transactionItem.amount);
+    const amount = Math.abs(transactionItem.modifiedAmount ?? transactionItem.amount ?? 0);
     return isAmountTooLong(amount);
 }
 

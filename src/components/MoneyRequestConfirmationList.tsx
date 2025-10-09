@@ -52,6 +52,7 @@ import {
     isMerchantMissing,
     isScanRequest as isScanRequestUtil,
 } from '@libs/TransactionUtils';
+import {isValidAmount} from '@libs/ValidationUtils';
 import {hasInvoicingDetails} from '@userActions/Policy/Policy';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -686,7 +687,7 @@ function MoneyRequestConfirmationList({
                     isInteractive: false,
                     rightElement: (
                         <View style={[styles.flexWrap, styles.pl2]}>
-                            <Text style={[styles.textLabel]}>{amount ? convertToDisplayString(amount, iouCurrencyCode) : ''}</Text>
+                            <Text style={[styles.textLabel]}>{isValidAmount(amount) ? convertToDisplayString(amount, iouCurrencyCode) : ''}</Text>
                         </View>
                     ),
                 };

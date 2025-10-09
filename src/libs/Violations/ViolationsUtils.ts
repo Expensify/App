@@ -320,10 +320,9 @@ const ViolationsUtils = {
         const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
         const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const amount = updatedTransaction.modifiedAmount || updatedTransaction.amount;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const currency = updatedTransaction.modifiedCurrency || updatedTransaction.currency;
+        const amount = updatedTransaction.modifiedAmount ?? updatedTransaction.amount ?? 0;
+        const currency = updatedTransaction.modifiedCurrency ?? updatedTransaction.currency;
+
         const canCalculateAmountViolations = policy.outputCurrency === currency;
 
         const categoryName = updatedTransaction.category;

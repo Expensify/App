@@ -54,7 +54,7 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
     chatReportID?: string;
 };
 
-const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
+const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0;
 const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean, currency: string) =>
     isTaxAmountForm && Number.parseFloat(currentAmount) > convertToFrontendAmountAsInteger(Math.abs(taxAmount), currency);
 
@@ -96,7 +96,7 @@ function MoneyRequestAmountForm({
 
     const initializeAmount = useCallback(
         (newAmount: number) => {
-            const frontendAmount = newAmount ? convertToFrontendAmountAsString(newAmount, currency) : '';
+            const frontendAmount = newAmount != null ? convertToFrontendAmountAsString(newAmount, currency) : '';
             moneyRequestAmountInputRef.current?.updateNumber(frontendAmount);
         },
         [currency],
@@ -141,9 +141,9 @@ function MoneyRequestAmountForm({
         (iouPaymentType?: PaymentMethodType | undefined) => {
             const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
 
-            // Skip the check for tax amount form as 0 is a valid input
+            // Allow 0 as a valid input for all forms
             const currentAmount = moneyRequestAmountInputRef.current?.getNumber() ?? '';
-            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount))) {
+            if (!currentAmount.length || isAmountInvalid(currentAmount)) {
                 setFormError(translate('iou.error.invalidAmount'));
                 return;
             }

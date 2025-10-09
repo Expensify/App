@@ -141,8 +141,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        if (splitExpenses.find((item) => item.amount === 0)) {
-            setErrorMessage(translate('iou.splitExpenseZeroAmount'));
+        // if ((draftTransaction?.comment?.splitExpenses ?? []).find((item) => item.amount < 0)) {
+        //     setErrorMessage(translate('iou.error.invalidAmount'));
+        if (splitExpenses.find((item) => item.amount < 0)) {
+            setErrorMessage(translate('iou.error.invalidAmount'));
             return;
         }
 
