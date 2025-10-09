@@ -1,9 +1,9 @@
 import {exec} from 'child_process';
-import {app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell} from 'electron';
 import type {BaseWindow, BrowserView, MenuItem, MenuItemConstructorOptions, WebContents, WebviewTag} from 'electron';
+import {app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell} from 'electron';
 import contextMenu from 'electron-context-menu';
-import log from 'electron-log';
 import type {ElectronLog} from 'electron-log';
+import log from 'electron-log';
 import {autoUpdater} from 'electron-updater';
 import type {AuthType, PermissionType} from 'node-mac-permissions';
 import {machineId} from 'node-machine-id';
@@ -376,31 +376,36 @@ const mainWindow = (): Promise<void> => {
                     });
                 });
 
-                ipcMain.handle(ELECTRON_EVENTS.CHECK_LOCATION_PERMISSION, () => {
+                ipcMain.handle(ELECTRON_EVENTS.CHECK_LOCATION_PERMISSION, async () => {
                     try {
-                        const {getAuthStatus} = require('node-mac-permissions') as {getAuthStatus: (authType: AuthType) => PermissionType | 'not determined'};
+                        type MacPermissionsModule = {
+                            getAuthStatus?: (authType: AuthType) => PermissionType | 'not determined';
+                        };
+                        const macPermissionsModule = (await import('node-mac-permissions')) as MacPermissionsModule | {default: MacPermissionsModule};
+                        const macPermissions: MacPermissionsModule = ('default' in macPermissionsModule ? macPermissionsModule.default : macPermissionsModule) ?? {};
+                        const {getAuthStatus} = macPermissions;
 
                         if (!getAuthStatus || typeof getAuthStatus !== 'function') {
                             log.warn('node-mac-permissions not available or invalid, defaulting to denied');
-                            return Promise.resolve('denied');
+                            return 'denied';
                         }
 
                         const status = getAuthStatus('location');
 
                         switch (status) {
                             case 'authorized':
-                                return Promise.resolve('granted');
+                                return 'granted';
                             case 'denied':
                             case 'restricted':
-                                return Promise.resolve('denied');
+                                return 'denied';
                             case 'not determined':
-                                return Promise.resolve('prompt');
+                                return 'prompt';
                             default:
-                                return Promise.resolve('denied');
+                                return 'denied';
                         }
                     } catch (error) {
                         log.warn('node-mac-permissions not available, defaulting to denied:', (error as Error)?.message);
-                        return Promise.resolve('denied');
+                        return 'denied';
                     }
                 });
                 /*
