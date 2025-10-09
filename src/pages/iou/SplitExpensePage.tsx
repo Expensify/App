@@ -24,8 +24,8 @@ import {
     clearSplitTransactionDraftErrors,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
-    saveSplitTransactions,
     updateSplitExpenseAmountField,
+    updateSplitTransactions,
 } from '@libs/actions/IOU';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -153,7 +153,19 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        saveSplitTransactions(allTransactions, allReports, draftTransaction, currentSearchHash, policyCategories, expenseReportPolicy);
+        updateSplitTransactions({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            transactionData: {
+                reportID: draftTransaction?.reportID ?? '',
+                originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? '',
+                splitExpenses,
+                splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal ?? 0,
+            },
+            hash: currentSearchHash,
+            policyCategories,
+            policy: expenseReportPolicy,
+        });
     }, [
         splitExpenses,
         childTransactions.length,

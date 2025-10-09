@@ -34,7 +34,6 @@ import {
     replaceReceipt,
     requestMoney,
     resolveDuplicates,
-    saveSplitTransactions,
     sendInvoice,
     setDraftSplitTransaction,
     setMoneyRequestCategory,
@@ -47,6 +46,7 @@ import {
     updateMoneyRequestAttendees,
     updateMoneyRequestCategory,
     updateSplitExpenseAmountField,
+    updateSplitTransactions,
 } from '@libs/actions/IOU';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
@@ -2667,7 +2667,7 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('saveSplitTransactions', () => {
+    describe('updateSplitTransactions', () => {
         it('should delete the original transaction thread report', async () => {
             const expenseReport: Report = {
                 ...createRandomReport(1),
@@ -2726,7 +2726,19 @@ describe('actions/IOU', () => {
                 },
             });
 
-            saveSplitTransactions(allTransactions, allReports, draftTransaction, 1, undefined, undefined);
+            updateSplitTransactions({
+                allTransactionsList: allTransactions,
+                allReportsList: allReports,
+                transactionData: {
+                    reportID: draftTransaction?.reportID ?? '',
+                    originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? '',
+                    splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
+                    splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
+                },
+                hash: 1,
+                policyCategories: undefined,
+                policy: undefined,
+            });
 
             await waitForBatchedUpdates();
 
@@ -2804,7 +2816,19 @@ describe('actions/IOU', () => {
                 },
             });
 
-            saveSplitTransactions(allTransactions, allReports, draftTransaction, hash, undefined, undefined);
+            updateSplitTransactions({
+                allTransactionsList: allTransactions,
+                allReportsList: allReports,
+                transactionData: {
+                    reportID: draftTransaction?.reportID ?? '',
+                    originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? '',
+                    splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
+                    splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
+                },
+                hash,
+                policyCategories: undefined,
+                policy: undefined,
+            });
 
             await waitForBatchedUpdates();
 
@@ -2897,7 +2921,19 @@ describe('actions/IOU', () => {
                 },
             });
 
-            saveSplitTransactions(allTransactions, allReports, draftTransaction, hash, undefined, undefined);
+            updateSplitTransactions({
+                allTransactionsList: allTransactions,
+                allReportsList: allReports,
+                transactionData: {
+                    reportID: draftTransaction?.reportID ?? '',
+                    originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? '',
+                    splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
+                    splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
+                },
+                hash,
+                policyCategories: undefined,
+                policy: undefined,
+            });
 
             await waitForBatchedUpdates();
 
@@ -7212,7 +7248,7 @@ describe('actions/IOU', () => {
             expect(updatedExpenseReport?.unheldNonReimbursableTotal).toBe(-amount);
         });
 
-        describe('saveSplitTransactions', () => {
+        describe('updateSplitTransactions', () => {
             it("should update split transaction's description correctly ", async () => {
                 const amount = 10000;
                 let expenseReport: OnyxEntry<Report>;
@@ -7321,7 +7357,19 @@ describe('actions/IOU', () => {
                     },
                 });
 
-                saveSplitTransactions(allTransactions, allReports, draftTransaction, -2, undefined, undefined);
+                updateSplitTransactions({
+                    allTransactionsList: allTransactions,
+                    allReportsList: allReports,
+                    transactionData: {
+                        reportID: draftTransaction?.reportID ?? '',
+                        originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? '',
+                        splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
+                        splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
+                    },
+                    hash: -2,
+                    policyCategories: undefined,
+                    policy: undefined,
+                });
                 await waitForBatchedUpdates();
 
                 const split1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}235`);
@@ -7438,7 +7486,19 @@ describe('actions/IOU', () => {
                     },
                 });
 
-                saveSplitTransactions(allTransactions, allReports, draftTransaction, -2, undefined, undefined);
+                updateSplitTransactions({
+                    allTransactionsList: allTransactions,
+                    allReportsList: allReports,
+                    transactionData: {
+                        reportID: draftTransaction?.reportID ?? '',
+                        originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? '',
+                        splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
+                        splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
+                    },
+                    hash: -2,
+                    policyCategories: undefined,
+                    policy: undefined,
+                });
                 await waitForBatchedUpdates();
 
                 const split1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}235`);
