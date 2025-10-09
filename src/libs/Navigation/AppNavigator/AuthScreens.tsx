@@ -576,12 +576,6 @@ function AuthScreens() {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
-                    name={SCREENS.REPORT_ADD_ATTACHMENT}
-                    options={attachmentModalScreenOptions}
-                    getComponent={loadAttachmentModalScreen}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
                     name={SCREENS.PROFILE_AVATAR}
                     options={{
                         headerShown: false,
