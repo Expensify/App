@@ -121,7 +121,7 @@ type ClearDelegateRolePendingActionParams = WithEmail & WithDelegatedAccess;
  * Connects the user as a delegate to another account.
  * Returns a Promise that resolves to true on success, false on failure, or undefined if not applicable.
  */
-function connect({email, delegatedAccess, credentials, session,isFromOldDot = false}: ConnectParams) {
+function connect({email, delegatedAccess, credentials, session, isFromOldDot = false}: ConnectParams) {
     if (!delegatedAccess?.delegators && !isFromOldDot) {
         return;
     }
