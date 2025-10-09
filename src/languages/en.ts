@@ -7177,6 +7177,10 @@ const translations = {
         },
         callScheduled: 'Call scheduled',
     },
+    signingOutPage: {
+        title: 'Signing out...',
+        subtitle: 'One moment, please.',
+    },
     autoSubmitModal: {
         title: 'All clear and submitted!',
         description: 'All warnings and violations has been cleared so:',
