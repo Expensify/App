@@ -27,7 +27,7 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
     const {isBetaEnabled} = usePermissions();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
 
-    // Determine if the current URL indicates a transition
+    // Determine if the current URL indicates a transition.
     const isTransitioning = useMemo(() => {
         const currentURL = getCurrentUrl();
         return currentURL.includes(ROUTES.TRANSITION_BETWEEN_APPS);
