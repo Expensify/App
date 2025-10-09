@@ -88,6 +88,12 @@ const keyToUserFriendlyMap = createKeyToUserFriendlyMap();
  * getUserFriendlyKey("taxRate") // returns "tax-rate"
  */
 function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER): UserFriendlyKey {
+    const isReportField = keyName.startsWith(CONST.SEARCH.REPORT_FIELD_PREFIX);
+
+    if (isReportField) {
+        return keyName.replace(CONST.SEARCH.REPORT_FIELD_PREFIX, CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.REPORT_FIELD) as UserFriendlyKey;
+    }
+
     return (keyToUserFriendlyMap.get(keyName) ?? keyName) as UserFriendlyKey;
 }
 
@@ -225,7 +231,8 @@ function getFilters(queryJSON: SearchQueryJSON) {
             return;
         }
 
-        const nodeKey = node.left as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
+        const nodeKey = node.left;
+
         if (!filterKeys.includes(nodeKey) && !nodeKey.startsWith(CONST.SEARCH.REPORT_FIELD_PREFIX)) {
             return;
         }
@@ -995,6 +1002,7 @@ function buildUserReadableQueryString(
                 value: getFilterDisplayValue(key, getUserFriendlyValue(filter.value.toString()), PersonalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID),
             }));
         }
+
         title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);
     }
 

@@ -141,6 +141,16 @@ type QueryFilter = {
     value: string | number;
 };
 
+// Report fields are dynamic keys, that policies can configure. They match:
+// reportField-<key> : Normal report field
+// reportField<modifier>-<key> : Report field with a modifier, such as On, After, Before, so that we can handle Dates
+type ReportFieldKey =
+    | `reportField-${string}`
+    | `reportField${ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>}-${string}`
+    | `reportField${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}-${string}`;
+
+type UserFriendlyReportFieldKey = `reportField-${string}`;
+
 type SearchBooleanFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
 
 type SearchTextFilterKeys =
@@ -173,7 +183,7 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY;
 
-type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
+type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS> | UserFriendlyReportFieldKey;
 type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;
 
 type QueryFilters = Array<{
@@ -241,6 +251,7 @@ export type {
     SearchStatus,
     SearchQueryJSON,
     SearchQueryString,
+    ReportFieldKey,
     SortOrder,
     SearchContextProps,
     SearchContextData,

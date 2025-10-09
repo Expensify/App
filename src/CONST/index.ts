@@ -6652,7 +6652,7 @@ const CONST = {
             IS: 'is',
             REPORT_FIELD: 'reportField',
         },
-        REPORT_FIELD_PREFIX: 'reportField-',
+        REPORT_FIELD_PREFIX: 'reportField',
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
         SEARCH_ROUTER_ITEM_TYPE: {

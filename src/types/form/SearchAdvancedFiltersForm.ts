@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchGroupBy, SearchWithdrawalType} from '@components/Search/types';
+import type {ReportFieldKey, SearchAmountFilterKeys, SearchDateFilterKeys, SearchGroupBy, SearchWithdrawalType} from '@components/Search/types';
 import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type Form from './Form';
@@ -454,14 +454,6 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.DATE_BEFORE,
     ],
 };
-
-// Report fields are dynamic keys, that policies can configure. They match:
-// reportField-<key> : Normal report field
-// reportField<modifier>-<key> : Report field with a modifier, such as On, After, Before, so that we can handle Dates
-type ReportFieldKey =
-    | `reportField-${string}`
-    | `reportField${ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>}-${string}`
-    | `reportField${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}-${string}`;
 
 type SearchAdvancedFiltersKey = ValueOf<typeof FILTER_KEYS> | ReportFieldKey;
 
