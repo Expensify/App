@@ -121,7 +121,7 @@ Best for managers submitting on behalf of a team.
 
 ## How can an Admin take these actions for another employee?
 
-Admins can’t directly create or submit reports on behalf of others. If you need to manage someone else’s reports, ask them to add you as a [Copilot](https://docs.expensify.com/en/articles/6823838-use-Copilot-access-to-manage-someone-else-s-account).
+Admins can’t directly create or submit reports on behalf of others. If you need to manage someone else’s reports, ask them to add you as a [Copilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access).
 
 ## What happens if I forget to submit a report?
 
