@@ -1,10 +1,12 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceConfirmationAvatar from '@hooks/useWorkspaceConfirmationAvatar';
+import {clearDraftValues} from '@libs/actions/FormActions';
 import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -14,10 +16,11 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
-import CurrencyPicker from './CurrencyPicker';
+import CurrencySelector from './CurrencySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from './Form/types';
@@ -81,12 +84,19 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
     const policyID = useMemo(() => generatePolicyID(), []);
     const [session, metadata] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT, {canBeMissing: true});
 
     const defaultWorkspaceName = generateDefaultWorkspaceName(policyOwnerEmail || session?.email);
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
-    const userCurrency = allPersonalDetails?.[session?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.localCurrencyCode ?? CONST.CURRENCY.USD;
+    const userCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
+
+    useEffect(() => {
+        return () => {
+            clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM);
+        };
+    }, []);
 
     const [workspaceAvatar, setWorkspaceAvatar] = useState<{avatarUri: string | null; avatarFileName?: string | null; avatarFileType?: string | null}>({
         avatarUri: null,
@@ -179,10 +189,12 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
 
                         <View style={[styles.mhn5, styles.mt4]}>
                             <InputWrapper
-                                InputComponent={CurrencyPicker}
+                                InputComponent={CurrencySelector}
                                 inputID={INPUT_IDS.CURRENCY}
                                 label={translate('workspace.editor.currencyInputLabel')}
-                                defaultValue={userCurrency}
+                                value={userCurrency}
+                                shouldShowCurrencySymbol
+                                currencySelectorRoute={ROUTES.CURRENCY_SELECTION}
                             />
                         </View>
                     </View>

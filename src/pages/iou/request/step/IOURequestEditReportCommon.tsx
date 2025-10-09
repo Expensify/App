@@ -152,7 +152,7 @@ function IOURequestEditReportCommon({
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions, translate]);
 
     const createReportOption = useMemo(() => {
-        if (!createReport || isUnreported === false) {
+        if (!createReport || isUnreported) {
             return undefined;
         }
 
@@ -185,7 +185,7 @@ function IOURequestEditReportCommon({
         const isSubmitter = isReportOwner(selectedReport);
         // If the report is Open, then only submitters, admins can move expenses
         return isOpen && !isAdmin && !isSubmitter;
-    }, [createReport, selectedReport, reportPolicy, shouldShowNotFoundPageFromProps]);
+    }, [createReport, expenseReports.length, shouldShowNotFoundPageFromProps, selectedReport, reportPolicy]);
 
     return (
         <StepScreenWrapper

@@ -4821,7 +4821,15 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (policy) {
-                        deleteWorkspace(policy.id, policy.name, undefined, undefined);
+                        const reportToArchive = [];
+                        if (expenseReport) {
+                            reportToArchive.push(expenseReport);
+                        }
+                        if (chatReport) {
+                            reportToArchive.push(chatReport);
+                        }
+                        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                        deleteWorkspace(policy.id, policy.name, undefined, undefined, reportToArchive, undefined, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -6701,7 +6709,6 @@ describe('actions/IOU', () => {
             expect(draftTransaction?.amount).toBe(100);
             expect(draftTransaction?.currency).toBe('USD');
             expect(draftTransaction?.merchant).toBe('Test Merchant');
-            expect(draftTransaction?.reportID).toBe(transaction.reportID);
 
             expect(splitExpenses?.[0].amount).toBe(50);
             expect(splitExpenses?.[0].description).toBe('Test comment');

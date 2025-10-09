@@ -512,7 +512,7 @@ function MoneyRequestReportPreviewContent({
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                         return;
                     }
-                    startDistanceRequest(CONST.IOU.TYPE.SUBMIT, iouReport.reportID, lastDistanceExpenseType);
+                    startDistanceRequest(CONST.IOU.TYPE.SUBMIT, iouReport.reportID, lastDistanceExpenseType, false, chatReportID);
                 },
             },
             {
@@ -538,7 +538,7 @@ function MoneyRequestReportPreviewContent({
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (
             <AnimatedSubmitButton
                 success={isWaitingForSubmissionFromCurrentUser}
-                text={translate('iou.submitAmount', {amount: getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction)})}
+                text={translate('common.submit')}
                 onPress={() => {
                     startSubmittingAnimation();
                     submitReport(iouReport);
