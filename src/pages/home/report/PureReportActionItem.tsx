@@ -1139,16 +1139,12 @@ function PureReportActionItem({
                 children = <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-            // when marked as paid from ND, we get both IOU and MARKED_REIMBURSED actions in return, and want to show the MARKED_REIMBURSED action
-            const hasBothIOUAndMarkedReimbursedActions =
-                reportActions.some((reportAction) => isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU)) &&
-                reportActions.some((reportAction) => isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED));
-
-            children = !hasBothIOUAndMarkedReimbursedActions ? emptyHTML : <ReportActionItemBasicMessage message={translate('iou.paidElsewhere')} />;
+            children = <ReportActionItemBasicMessage message={translate('iou.paidElsewhere')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             const wasAutoPaid = getOriginalMessage(action)?.automaticAction ?? false;
             const paymentType = getOriginalMessage(action)?.paymentType;
 
+            // when marked as paid from ND, we get both IOU and MARKED_REIMBURSED actions in return, and don't want to show the IOU action
             if (reportActions.some((reportAction) => isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED))) {
                 children = emptyHTML;
             } else if (paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
