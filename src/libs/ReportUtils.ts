@@ -80,13 +80,13 @@ import {
     canSubmitReport,
     createDraftTransaction,
     getIOUReportActionToApproveOrPay,
-    IOURequestType,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
     startDistanceRequest,
     startMoneyRequest,
     unholdRequest,
 } from './actions/IOU';
+import type {IOURequestType} from './actions/IOU';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
