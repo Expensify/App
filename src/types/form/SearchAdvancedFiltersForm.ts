@@ -79,6 +79,7 @@ const FILTER_KEYS = {
     PURCHASE_CURRENCY: 'purchaseCurrency',
     WITHDRAWAL_ID: 'withdrawalID',
     ATTENDEE: 'attendee',
+    REPORT_FIELD: 'reportField',
 } as const;
 
 const ALLOWED_TYPE_FILTERS = {
@@ -143,6 +144,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.WITHDRAWAL_ID,
         FILTER_KEYS.TITLE,
         FILTER_KEYS.ATTENDEE,
+        FILTER_KEYS.REPORT_FIELD,
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
         FILTER_KEYS.TYPE,
@@ -197,6 +199,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.PURCHASE_CURRENCY,
         FILTER_KEYS.WITHDRAWAL_ID,
         FILTER_KEYS.TITLE,
+        FILTER_KEYS.REPORT_FIELD,
     ],
     [CONST.SEARCH.DATA_TYPES.TRIP]: [
         FILTER_KEYS.TYPE,
@@ -248,6 +251,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN,
         FILTER_KEYS.PURCHASE_CURRENCY,
         FILTER_KEYS.TITLE,
+        FILTER_KEYS.REPORT_FIELD,
     ],
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
         FILTER_KEYS.TYPE,
@@ -352,6 +356,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.ATTENDEE]: string[];
         [FILTER_KEYS.IS]: string[];
         [FILTER_KEYS.HAS]: string[];
+        [FILTER_KEYS.REPORT_FIELD]: string;
     } & Record<ReportFieldKey, string>
 >;
 

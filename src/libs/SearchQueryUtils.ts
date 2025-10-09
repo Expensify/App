@@ -359,7 +359,10 @@ function isSearchDatePreset(date: string | undefined): date is SearchDatePreset 
  * Returns whether a given search filter is supported in a given search data type
  */
 function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTypes) {
-    return ALLOWED_TYPE_FILTERS[type].some((supportedFilter) => supportedFilter === filter);
+    return ALLOWED_TYPE_FILTERS[type].some((supportedFilter) => {
+        const isReportFieldSupported = supportedFilter === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD && filter.startsWith(CONST.SEARCH.REPORT_FIELD_PREFIX);
+        return supportedFilter === filter || isReportFieldSupported;
+    });
 }
 
 /**
@@ -557,15 +560,25 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.HAS ||
                     filterKey === FILTER_KEYS.IS ||
                     filterKey === FILTER_KEYS.EXPORTER ||
-                    filterKey === FILTER_KEYS.ATTENDEE) &&
+                    filterKey === FILTER_KEYS.ATTENDEE ||
+                    filterKey.startsWith(CONST.SEARCH.REPORT_FIELD_PREFIX)) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
             ) {
                 const filterValueArray = [...new Set<string>(filterValue)];
-                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+                const isReportField = filterKey.startsWith(CONST.SEARCH.REPORT_FIELD_PREFIX);
+                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => {
+                    return CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey || isReportField;
+                });
 
                 if (keyInCorrectForm) {
-                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
+                    const key = isReportField
+                        ? filterKey.replace(CONST.SEARCH.REPORT_FIELD_PREFIX, `${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD}-`)
+                        : CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm];
+
+                    const value = filterValueArray.map(sanitizeSearchValue).join(',');
+
+                    return `${key}:${value}`;
                 }
             }
 
