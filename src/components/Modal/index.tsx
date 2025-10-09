@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import StatusBar from '@libs/StatusBar';
@@ -38,17 +38,21 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [rest.onClose]);
 
+    const handlePopState = useCallback(() => {
+        handlePopStateRef.current();
+    }, []);
+
     const showModal = () => {
         if (shouldHandleNavigationBack) {
             window.history.pushState({shouldGoBack: true}, '', null);
-            window.addEventListener('popstate', handlePopStateRef.current);
+            window.addEventListener('popstate', handlePopState);
         }
         onModalShow?.();
     };
 
     useEffect(
         () => () => {
-            window.removeEventListener('popstate', handlePopStateRef.current);
+            window.removeEventListener('popstate', handlePopState);
         },
         [],
     );
