@@ -1196,6 +1196,7 @@ describe('OptionsListUtils', () => {
             // When we call getValidOptions for share destination with an empty search value
             const results = getValidOptions(
                 {reports: filteredReports, personalDetails: OPTIONS.personalDetails},
+                {},
                 {
                     betas: [],
                     includeMultipleParticipantReports: true,
@@ -1230,6 +1231,7 @@ describe('OptionsListUtils', () => {
             // When we call getValidOptions for share destination with an empty search value
             const results = getValidOptions(
                 {reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails},
+                {},
                 {
                     betas: [],
                     includeMultipleParticipantReports: true,
@@ -1542,6 +1544,7 @@ describe('OptionsListUtils', () => {
             // When we call getValidOptions for share destination with the filteredReports
             const options = getValidOptions(
                 {reports: filteredReports, personalDetails: OPTIONS.personalDetails},
+                {},
                 {
                     betas: [],
                     includeMultipleParticipantReports: true,
@@ -1578,6 +1581,7 @@ describe('OptionsListUtils', () => {
             // When we call getValidOptions for share destination with the filteredReports
             const options = getValidOptions(
                 {reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails},
+                {},
                 {
                     betas: [],
                     includeMultipleParticipantReports: true,
@@ -1614,6 +1618,7 @@ describe('OptionsListUtils', () => {
             // When we call getValidOptions for share destination with the filteredReports
             const options = getValidOptions(
                 {reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails},
+                {},
                 {
                     betas: [],
                     includeMultipleParticipantReports: true,

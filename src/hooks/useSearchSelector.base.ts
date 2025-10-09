@@ -203,7 +203,7 @@ function useSearchSelectorBase({
                     loginsToExclude: excludeLogins,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
-                return getValidOptions(optionsWithContacts, {
+                return getValidOptions(optionsWithContacts, draftComments, {
                     betas,
                     selectedOptions,
                     includeMultipleParticipantReports: true,

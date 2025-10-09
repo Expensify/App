@@ -138,6 +138,7 @@ describe('OptionsListUtils', () => {
         await measureFunction(() =>
             getValidOptions(
                 {reports: options.reports, personalDetails: options.personalDetails},
+                {},
                 {
                     betas: mockedBetas,
                     includeMultipleParticipantReports: true,
