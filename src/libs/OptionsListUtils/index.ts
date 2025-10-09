@@ -616,7 +616,7 @@ function getLastMessageTextForReport({
             : undefined;
         // For workspace chats, use the report title
         if (reportUtilsIsPolicyExpenseChat(report) && !isEmptyObject(iouReport)) {
-            lastMessageTextFromReport = formatReportLastMessageText(getReportName(iouReport));
+            lastMessageTextFromReport = formatReportLastMessageText(getReportName({report: iouReport, policyTags}));
         } else {
             const reportPreviewMessage = getReportPreviewMessage(
                 !isEmptyObject(iouReport) ? iouReport : null,
