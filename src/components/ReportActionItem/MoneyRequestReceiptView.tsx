@@ -158,7 +158,9 @@ function MoneyRequestReceiptView({
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 
     const isReceiptAllowed = !isPaidReport && !isInvoice;
-    const shouldShowReceiptEmptyState = isReceiptAllowed && !hasReceipt && !!transaction && !transaction.receipt;
+    const doesTransactionHaveReceipt = !!transaction?.receipt && !isEmptyObject(transaction?.receipt);
+    const shouldShowReceiptEmptyState = isReceiptAllowed && !hasReceipt && !!transaction && !doesTransactionHaveReceipt;
+
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
         const imageViolations = [];
         const allViolations = [];
@@ -233,6 +235,12 @@ function MoneyRequestReceiptView({
     }
 
     const showBorderlessLoading = isLoading && fillSpace;
+
+    const receiptAuditMessagesRow = (
+        <View style={[styles.mt3, isEmptyObject(errors) && isDisplayedInWideRHP && styles.mb3]}>
+            <ReceiptAuditMessages notes={receiptImageViolations} />
+        </View>
+    );
 
     // For empty receipt should be fullHeight
     // For the rest, expand to match the content
@@ -313,14 +321,11 @@ function MoneyRequestReceiptView({
                             />
                         </View>
                     )}
-                    {!!shouldShowAuditMessage && hasReceipt && !isLoading && (
-                        <View style={[styles.mt3, isEmptyObject(errors) && isDisplayedInWideRHP && styles.mb3]}>
-                            <ReceiptAuditMessages notes={receiptImageViolations} />
-                        </View>
-                    )}
+                    {!!shouldShowAuditMessage && hasReceipt && !isLoading && receiptAuditMessagesRow}
                 </OfflineWithFeedback>
             )}
             {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
+            {!!shouldShowAuditMessage && !hasReceipt && receiptAuditMessagesRow}
             <ConfirmModal
                 isVisible={showConfirmDismissReceiptError}
                 onConfirm={() => {

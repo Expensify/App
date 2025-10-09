@@ -228,7 +228,6 @@ const CONST = {
     POPOVER_DROPDOWN_WIDTH: 334,
     POPOVER_DROPDOWN_MIN_HEIGHT: 0,
     POPOVER_DROPDOWN_MAX_HEIGHT: 416,
-    POPOVER_MENU_MAX_HEIGHT: 496,
     POPOVER_DATE_WIDTH: 338,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
@@ -461,6 +460,7 @@ const CONST = {
     },
     SMS: {
         DOMAIN: '@expensify.sms',
+        RECEIPTS_PHONE_NUMBER: '47777',
     },
     DOCUSIGN_POWERFORM_LINK: {
         US: 'https://powerforms.docusign.net/ddc56dcb-9cc7-4b36-997c-fea9327f570e?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
@@ -6756,6 +6756,7 @@ const CONST = {
         SEARCH_CONTEXT_GENERAL: 'general',
         SEARCH_CONTEXT_SEARCH: 'search',
         SEARCH_CONTEXT_MEMBER_INVITE: 'memberInvite',
+        SEARCH_CONTEXT_SHARE_DESTINATION: 'shareDestination',
     },
     EXPENSE: {
         TYPE: {
