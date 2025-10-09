@@ -61,28 +61,54 @@ function push(
             return;
         }
 
-        // We cache these notifications so that we can clear them later
-        const notificationID = Str.guid();
-        notificationCache[notificationID] = new Notification(title, {
-            body,
-            icon: String(icon),
-            data,
-            silent: true,
-            tag,
-        });
+        // Check if Service Worker is active and use appropriate method
+        const createNotification = async () => {
+            if ('serviceWorker' in navigator) {
+                const registration = await navigator.serviceWorker.getRegistration();
+                if (registration?.active && registration.showNotification) {
+                    // Use Service Worker method (required by Chrome when SW is active)
+                    await registration.showNotification(title, {
+                        body,
+                        icon: String(icon),
+                        data,
+                        silent: true,
+                        tag,
+                    });
+                    return;
+                }
+            }
+
+            const notificationID = Str.guid();
+            notificationCache[notificationID] = new Notification(title, {
+                body,
+                icon: String(icon),
+                data,
+                silent: true,
+                tag,
+            });
+
+            notificationCache[notificationID].onclick = () => {
+                onClick();
+                window.parent.focus();
+                window.focus();
+                focusApp();
+                notificationCache[notificationID].close();
+            };
+
+            notificationCache[notificationID].onclose = () => {
+                delete notificationCache[notificationID];
+            };
+        };
+
+        // Play sound if not silent
         if (!silent) {
             playSound(SOUNDS.RECEIVE);
         }
-        notificationCache[notificationID].onclick = () => {
-            onClick();
-            window.parent.focus();
-            window.focus();
-            focusApp();
-            notificationCache[notificationID].close();
-        };
-        notificationCache[notificationID].onclose = () => {
-            delete notificationCache[notificationID];
-        };
+
+        // Create the notification
+        createNotification().catch((error) => {
+            console.error('[BrowserNotification] Notification creation failed:', error);
+        });
     });
 }
 
