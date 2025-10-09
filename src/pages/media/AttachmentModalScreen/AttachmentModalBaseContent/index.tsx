@@ -205,10 +205,9 @@ function AttachmentModalBaseContent({
             isScrollEnabled: falseSV,
             onTap: () => {},
             onScaleChanged: () => {},
-            onSwipeDown: onClose,
             onAttachmentError: setAttachmentError,
         }),
-        [onClose, falseSV, sourceForAttachmentView, setAttachmentError],
+        [falseSV, sourceForAttachmentView, setAttachmentError],
     );
 
     const shouldDisplayContent = !shouldShowNotFoundPage && !isLoading;
@@ -229,7 +228,6 @@ function AttachmentModalBaseContent({
                 attachmentID={attachmentID}
                 report={report}
                 onNavigate={onNavigate}
-                onClose={onClose}
                 source={sourceProp}
                 setDownloadButtonVisibility={setDownloadButtonVisibility}
                 attachmentLink={currentAttachmentLink}
@@ -267,7 +265,6 @@ function AttachmentModalBaseContent({
         isAuthTokenRequiredState,
         isWorkspaceAvatar,
         maybeIcon,
-        onClose,
         onNavigate,
         report,
         reportID,
