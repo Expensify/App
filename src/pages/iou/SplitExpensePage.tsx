@@ -167,6 +167,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         currentSearchHash,
         policyCategories,
         expenseReportPolicy,
+        policyRecentlyUsedCategories,
         splitFieldDataFromOriginalTransaction,
         translate,
         transactionID,
