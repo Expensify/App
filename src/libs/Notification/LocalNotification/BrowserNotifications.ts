@@ -7,6 +7,7 @@ import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 import focusApp from './focusApp';
 import type {LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpensePushParams} from './types';
@@ -113,9 +114,14 @@ export default {
             plainTextMessage = message?.type === 'COMMENT' ? getTextFromHtml(message?.html) : '';
         }
 
-        if (isRoomOrGroupChat) {
-            const roomName = ReportUtils.getReportName(report);
-            title = roomName;
+        if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST) {
+            title = 'Workspace Invitation Request';
+            body = `${plainTextPerson} has requested to join your workspace`;
+        } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_EXPENSE_CHAT_WELCOME_WHISPER) {
+            title = 'Workspace Invitation';
+            body = `You've been invited to join a workspace`;
+        } else if (isRoomOrGroupChat) {
+            title = ReportUtils.getReportName(report);
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
             title = plainTextPerson;
