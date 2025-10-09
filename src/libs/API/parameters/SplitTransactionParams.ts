@@ -23,6 +23,6 @@ type SplitTransactionParams = {
     [key: string]: string | boolean;
 };
 
-type RevertSplitTransactionParams = SplitTransactionSplitParam & {comment?: string};
+type RevertSplitTransactionParams = Omit<SplitTransactionSplitParam, 'comment'> & {comment?: string};
 
 export type {SplitTransactionParams, SplitTransactionSplitsParam, RevertSplitTransactionParams};
