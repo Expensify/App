@@ -79,8 +79,10 @@ import {
     canSubmitReport,
     createDraftTransaction,
     getIOUReportActionToApproveOrPay,
+    IOURequestType,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
+    startDistanceRequest,
     startMoneyRequest,
     unholdRequest,
 } from './actions/IOU';
@@ -2616,6 +2618,7 @@ function getAddExpenseDropdownOptions(
     policy: OnyxEntry<Policy>,
     iouRequestBackToReport?: string,
     unreportedExpenseBackToReport?: string,
+    lastDistanceExpenseType?: IOURequestType,
 ): Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> {
     return [
         {
@@ -2631,6 +2634,21 @@ function getAddExpenseDropdownOptions(
                     return;
                 }
                 startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, undefined, false, iouRequestBackToReport);
+            },
+        },
+        {
+            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
+            text: translateLocal('iou.trackDistance'),
+            icon: Expensicons.Location,
+            onSelected: () => {
+                if (!iouReportID) {
+                    return;
+                }
+                if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                    return;
+                }
+                startDistanceRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, lastDistanceExpenseType, false, iouRequestBackToReport);
             },
         },
         {
