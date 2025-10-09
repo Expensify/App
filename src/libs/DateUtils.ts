@@ -148,6 +148,12 @@ function isTomorrow4(date: Date, timeZone: SelectedTimezone): boolean {
     const tomorrowInTimeZone = toZonedTime(tomorrow, timeZone);
     return isSameDay(date, tomorrowInTimeZone);
 }
+function isTomorrow5(date: Date, timeZone: SelectedTimezone): boolean {
+    const currentDate = new Date();
+    const tomorrow = addDays(currentDate, 1); // Get the date for tomorrow in the current time zone
+    const tomorrowInTimeZone = toZonedTime(tomorrow, timeZone);
+    return isSameDay(date, tomorrowInTimeZone);
+}
 
 /**
  * Checks if a given date is yesterday in the specified time zone.
@@ -956,6 +962,7 @@ const DateUtils = {
     isTomorrow2,
     isTomorrow3,
     isTomorrow4,
+    isTomorrow5,
     isYesterday,
     getMonthNames,
     getDaysOfWeek,
