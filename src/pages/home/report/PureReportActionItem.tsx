@@ -454,7 +454,6 @@ function PureReportActionItem({
     isTryNewDotNVPDismissed = false,
     currentUserAccountID,
     bankAccountList,
-    reportActions,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate} = useLocalize();
