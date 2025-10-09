@@ -575,9 +575,9 @@ function MoneyRequestView({
         return <ReportActionsSkeletonView />;
     }
 
-    function getAttendeesTitle() {
+    const getAttendeesTitle = useMemo(() => {
         return Array.isArray(transactionAttendees) ? transactionAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : '';
-    }
+    }, [transactionAttendees]);
 
     return (
         <View style={styles.pRelative}>
@@ -779,7 +779,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('attendees')}>
                         <MenuItemWithTopDescription
                             key="attendees"
-                            title={getAttendeesTitle()}
+                            title={getAttendeesTitle}
                             description={`${translate('iou.attendees')} ${
                                 Array.isArray(transactionAttendees) && transactionAttendees.length > 1 && formattedPerAttendeeAmount
                                     ? `${CONST.DOT_SEPARATOR} ${formattedPerAttendeeAmount} ${translate('common.perPerson')}`
@@ -793,8 +793,8 @@ function MoneyRequestView({
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             shouldRenderAsHTML
-                            copyValue={!canEdit ? getAttendeesTitle() : undefined}
-                            copyable={!canEdit && !!getAttendeesTitle()}
+                            copyValue={!canEdit ? getAttendeesTitle : undefined}
+                            copyable={!canEdit && !!getAttendeesTitle}
                         />
                     </OfflineWithFeedback>
                 )}
