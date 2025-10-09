@@ -45,7 +45,7 @@ import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import HapticFeedback from '@libs/HapticFeedback';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {findSelfDMReportID, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -124,8 +124,6 @@ function IOURequestStepScan({
     }, [initialTransaction, optimisticTransactions]);
 
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
-
-    const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
 
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({
@@ -283,6 +281,9 @@ function IOURequestStepScan({
         },
         [
             backTo,
+            backToReport,
+            shouldGenerateTransactionThreadReport,
+            transactions,
             initialTransaction?.isFromGlobalCreate,
             initialTransaction?.currency,
             initialTransaction?.participants,
@@ -295,13 +296,10 @@ function IOURequestStepScan({
             shouldSkipConfirmation,
             personalDetails,
             reportAttributesDerived,
-            currentUserPersonalDetails?.login,
-            currentUserPersonalDetails.accountID,
             reportID,
             transactionTaxCode,
             transactionTaxAmount,
             policy,
-            selfDMReportID,
         ],
     );
 

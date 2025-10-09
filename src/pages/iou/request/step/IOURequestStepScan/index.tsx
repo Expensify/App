@@ -45,7 +45,7 @@ import {base64ToFile, isLocalFile as isLocalFileFileUtils} from '@libs/fileDownl
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
 import Navigation from '@libs/Navigation/Navigation';
-import {findSelfDMReportID, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getDefaultTaxCode, hasReceipt} from '@libs/TransactionUtils';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -127,8 +127,6 @@ function IOURequestStepScan({
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
 
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
-
-    const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
 
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({
@@ -336,6 +334,9 @@ function IOURequestStepScan({
         },
         [
             backTo,
+            backToReport,
+            shouldGenerateTransactionThreadReport,
+            transactions,
             initialTransaction?.isFromGlobalCreate,
             initialTransaction?.currency,
             initialTransaction?.participants,
@@ -348,13 +349,10 @@ function IOURequestStepScan({
             shouldSkipConfirmation,
             personalDetails,
             reportAttributesDerived,
-            currentUserPersonalDetails?.login,
-            currentUserPersonalDetails.accountID,
             reportID,
             transactionTaxCode,
             transactionTaxAmount,
             policy,
-            selfDMReportID,
         ],
     );
 
