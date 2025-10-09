@@ -6,14 +6,13 @@ import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, use
 import type {Ref} from 'react';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
+import Checkbox from '@components/Checkbox';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionListWithSections';
+import NewChatListItem from '@components/SelectionListWithSections/NewChatListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useContactImport from '@hooks/useContactImport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -317,18 +316,12 @@ function NewChatPage({ref}: NewChatPageProps) {
 
             if (item.isSelected) {
                 return (
-                    <PressableWithFeedback
-                        onPress={() => toggleOption(item)}
-                        disabled={item.isDisabled}
-                        role={CONST.ROLE.BUTTON}
+                    <Checkbox
+                        disabled={item.isDisabled || item.isDisabledCheckbox}
                         accessibilityLabel={CONST.ROLE.BUTTON}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
-                    >
-                        <SelectCircle
-                            isChecked={item.isSelected}
-                            selectCircleStyles={styles.ml0}
-                        />
-                    </PressableWithFeedback>
+                        isChecked={item.isSelected}
+                        onPress={() => toggleOption(item)}
+                    />
                 );
             }
             const buttonInnerStyles = isFocused ? styles.buttonDefaultHovered : {};
@@ -397,7 +390,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         >
             <SelectionList<Option & ListItem>
                 ref={selectionListRef}
-                ListItem={UserListItem}
+                ListItem={NewChatListItem}
                 sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
                 textInputValue={searchTerm}
                 textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
