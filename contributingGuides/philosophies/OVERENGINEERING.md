@@ -5,9 +5,7 @@ This philosophy guides our approach to solving problems efficiently without addi
 - [Pre-optimizing Philosophy](/contributingGuides/philosophies/PREOPTIMIZING.md)
 
 #### Terminology
-- **Overengineering** - Building more than what is required to solve the stated problem
-- **Oversolving** - Adding extra features, data, or steps beyond the minimum viable solution
-- **Scope creep** - Gradual expansion of work beyond the original requirements
+- **Overengineering**,**Oversolving**,**Scope creep**  - Building more than what is required to solve the stated problem
 
 ## Rules
 
@@ -15,7 +13,7 @@ This philosophy guides our approach to solving problems efficiently without addi
 When implementing a solution, focus exclusively on solving the specific problem at hand. Do not add extra features, data structures, or processing steps that are not explicitly required.
 
 ### Example
-Problem: Store user's name for display
+Solution: Store user's name for display
 ❌ BAD: Creating a comprehensive user profile system
 ✅ GOOD: Just store user's name
 
