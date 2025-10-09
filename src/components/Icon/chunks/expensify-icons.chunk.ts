@@ -161,7 +161,6 @@ import Phone from '@assets/images/phone.svg';
 import Pin from '@assets/images/pin.svg';
 import Plane from '@assets/images/plane.svg';
 import Play from '@assets/images/play.svg';
-import PlusMinus from '@assets/images/plus-minus.svg';
 import Plus from '@assets/images/plus.svg';
 import Printer from '@assets/images/printer.svg';
 import Profile from '@assets/images/profile.svg';
@@ -191,6 +190,7 @@ import Instagram from '@assets/images/social-instagram.svg';
 import Linkedin from '@assets/images/social-linkedin.svg';
 import Podcast from '@assets/images/social-podcast.svg';
 import Twitter from '@assets/images/social-twitter.svg';
+import Youtube from '@assets/images/social-youtube.svg';
 import SpreadsheetComputer from '@assets/images/spreadsheet-computer.svg';
 import Star from '@assets/images/Star.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
@@ -225,7 +225,7 @@ import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
 
-export {
+const Expensicons = {
     ReceiptBody,
     ActiveRoomAvatar,
     AddReaction,
@@ -401,10 +401,11 @@ export {
     Workflows,
     Workspace,
     XeroSquare,
-    SageIntacctSquare as IntacctSquare,
+    IntacctSquare: SageIntacctSquare,
     AdvancedApprovalsSquare,
     Zoom,
     Twitter,
+    Youtube,
     Facebook,
     Podcast,
     Linkedin,
@@ -440,7 +441,6 @@ export {
     GalleryNotFound,
     Train,
     boltSlash,
-    PlusMinus,
     MagnifyingGlassSpyMouthClosed,
     CheckSquare,
     Minus,
@@ -453,3 +453,83 @@ export {
     XeroExport,
     ArrowCircleClockwise,
 };
+
+// Create the ExpensifyIcons object from the imported Expensicons
+const ExpensifyIcons = Expensicons;
+
+/**
+ * Get an ExpensifyIcon by name
+ * @param iconName - The name of the icon to retrieve
+ * @returns The icon component or undefined if not found
+ */
+function getExpensifyIcon(iconName: string): unknown {
+    // Direct return for known icons to preserve React component type
+    switch (iconName) {
+        case 'Building':
+            return Building;
+        case 'CalendarSolid':
+            return CalendarSolid;
+        case 'Car':
+            return Car;
+        case 'Coins':
+            return Coins;
+        case 'CreditCard':
+            return CreditCard;
+        case 'Document':
+            return Document;
+        case 'ExpensifyAppIcon':
+            return ExpensifyAppIcon;
+        case 'ExpensifyCard':
+            return ExpensifyCard;
+        case 'Feed':
+            return Feed;
+        case 'Folder':
+            return Folder;
+        case 'Gear':
+            return Gear;
+        case 'InvoiceGeneric':
+            return InvoiceGeneric;
+        case 'Receipt':
+            return Receipt;
+        case 'Sync':
+            return Sync;
+        case 'Tag':
+            return Tag;
+        case 'Users':
+            return Users;
+        case 'Workflows':
+            return Workflows;
+        case 'FallbackWorkspaceAvatar':
+            return FallbackWorkspaceAvatar;
+        case 'ImageCropSquareMask':
+            return ImageCropSquareMask;
+        case 'QrCode':
+            return QrCode;
+        case 'Transfer':
+            return Transfer;
+        case 'Trashcan':
+            return Trashcan;
+        case 'UserPlus':
+            return UserPlus;
+        case 'ThreeDots':
+            return ThreeDots;
+        default:
+            // Fallback to object lookup for any other cases
+            return (ExpensifyIcons as Record<string, unknown>)[iconName];
+    }
+}
+
+/**
+ * Get all available ExpensifyIcon names
+ * @returns Array of available icon names
+ */
+const AVAILABLE_EXPENSIFY_ICONS = Object.keys(ExpensifyIcons);
+
+/**
+ * Type representing all available ExpensifyIcon names
+ */
+type ExpensifyIconName = keyof typeof ExpensifyIcons;
+
+export default ExpensifyIcons;
+export {getExpensifyIcon, AVAILABLE_EXPENSIFY_ICONS};
+export type {ExpensifyIconName};
