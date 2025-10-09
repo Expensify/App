@@ -1139,7 +1139,7 @@ describe('OptionsListUtils', () => {
             // Given a set of reports and personalDetails with multiple reports
             // When we call getValidOptions with maxRecentReportElements set to 2
             const maxRecentReports = 2;
-            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {maxRecentReportElements: maxRecentReports});
+            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, {maxRecentReportElements: maxRecentReports});
 
             // Then the recent reports should be limited to the specified number
             expect(results.recentReports.length).toBeLessThanOrEqual(maxRecentReports);
@@ -1148,8 +1148,8 @@ describe('OptionsListUtils', () => {
         it('should show all reports when maxRecentReportElements is not specified', () => {
             // Given a set of reports and personalDetails
             // When we call getValidOptions without maxRecentReportElements
-            const resultsWithoutLimit = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
-            const resultsWithLimit = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {maxRecentReportElements: 2});
+            const resultsWithoutLimit = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {});
+            const resultsWithLimit = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, {maxRecentReportElements: 2});
 
             // Then the results without limit should have more or equal reports
             expect(resultsWithoutLimit.recentReports.length).toBeGreaterThanOrEqual(resultsWithLimit.recentReports.length);
@@ -1158,8 +1158,8 @@ describe('OptionsListUtils', () => {
         it('should not affect personalDetails count when maxRecentReportElements is specified', () => {
             // Given a set of reports and personalDetails
             // When we call getValidOptions with and without maxRecentReportElements
-            const resultsWithoutLimit = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
-            const resultsWithLimit = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {maxRecentReportElements: 2});
+            const resultsWithoutLimit = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {});
+            const resultsWithLimit = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, {maxRecentReportElements: 2});
 
             // Then personalDetails should remain the same regardless of maxRecentReportElements
             expect(resultsWithLimit.personalDetails.length).toBe(resultsWithoutLimit.personalDetails.length);
@@ -1170,7 +1170,11 @@ describe('OptionsListUtils', () => {
             // When we call getValidOptions with both maxElements and maxRecentReportElements
             const maxRecentReports = 3;
             const maxTotalElements = 10;
-            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {maxElements: maxTotalElements, maxRecentReportElements: maxRecentReports});
+            const results = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                {},
+                {maxElements: maxTotalElements, maxRecentReportElements: maxRecentReports},
+            );
 
             // Then recent reports should be limited by maxRecentReportElements
             expect(results.recentReports.length).toBeLessThanOrEqual(maxRecentReports);
