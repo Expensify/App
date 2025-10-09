@@ -76,5 +76,7 @@ function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.M
     );
 }
 
+AvatarSelector.displayName = 'AvatarSelector';
+
 export type {AvatarSelectorProps};
 export default AvatarSelector;
