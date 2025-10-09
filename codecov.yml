@@ -18,7 +18,7 @@ codecov:
 
 comment:
   require_changes: "coverage_drop OR uncovered_patch"
-  layout: "header, files, footer"
+  layout: "files"
   behavior: default
   hide_project_coverage: true
 
