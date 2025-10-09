@@ -146,11 +146,21 @@ function handleDismissModalAction(
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
     const lastRoute = state.routes.at(-1);
-    const newAction = StackActions.pop();
 
     if (!lastRoute?.name || !MODAL_ROUTES_TO_DISMISS.includes(lastRoute?.name)) {
         Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
         return null;
+    }
+
+    let newAction = StackActions.pop();
+
+    if (lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        const rhpRoutes = lastRoute?.state?.routes;
+        // This handles closing the modal when wide rhp is visible
+        if (rhpRoutes?.at(0)?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && rhpRoutes?.length > 1) {
+            newAction = {...StackActions.popToTop(), target: lastRoute.state?.key};
+            return;
+        }
     }
 
     return stackRouter.getStateForAction(state, newAction, configOptions);
