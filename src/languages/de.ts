@@ -2022,7 +2022,7 @@ const translations = {
             confirmButtonText: 'Ja, das tue ich.',
             reportFraudButtonText: 'Nein, das war ich nicht.',
             clearedMessage: ({cardLastFour}: {cardLastFour: string}) =>
-                `Die verdächtige Aktivität wurde geklärt und die Karte x${cardLastFour} wurde reaktiviert. Alles bereit, um weiter Ausgaben zu erfassen!`,
+                `die verdächtige Aktivität geklärt und die Karte x${cardLastFour} reaktiviert. Alles bereit, um weiter Ausgaben zu erfassen!`,
             deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `hat die Karte mit den Endziffern ${cardLastFour} deaktiviert`,
             alertMessage: ({
                 cardLastFour,
@@ -2034,7 +2034,7 @@ const translations = {
                 amount: string;
                 merchant: string;
                 date: string;
-            }) => `verdächtige Aktivität auf der Karte mit den Endziffern ${cardLastFour} festgestellt. Erkennen Sie diese Belastung?
+            }) => `verdächtige Aktivitäten auf der Karte mit der Endung ${cardLastFour} festgestellt. Erkennen Sie diese Abbuchung?
 
 ${amount} für ${merchant} - ${date}`,
         },

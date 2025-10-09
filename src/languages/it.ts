@@ -2012,7 +2012,8 @@ const translations = {
         cardFraudAlert: {
             confirmButtonText: 'Sì, lo faccio',
             reportFraudButtonText: 'No, non ero io',
-            clearedMessage: ({cardLastFour}: {cardLastFour: string}) => `ho eliminato l'attività sospetta e riattivato la carta x${cardLastFour}. Tutto pronto per continuare a fare spese!`,
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) =>
+                `abbiamo eliminato l'attività sospetta e riattivato la carta x${cardLastFour}. Tutto pronto per continuare a registrare le spese!`,
             deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `disattivato la carta che termina con ${cardLastFour}`,
             alertMessage: ({
                 cardLastFour,

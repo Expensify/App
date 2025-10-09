@@ -2007,10 +2007,10 @@ const translations = {
             `Proszę wprowadzić magiczny kod wysłany na ${contactMethod}, aby zobaczyć szczegóły swojej karty. Powinien dotrzeć w ciągu minuty lub dwóch.`,
         cardFraudAlert: {
             confirmButtonText: 'Tak, robię',
-            reportFraudButtonText: 'Nie, to nie byłem ja.',
+            reportFraudButtonText: 'Nie, to nie byłem ja',
             clearedMessage: ({cardLastFour}: {cardLastFour: string}) =>
-                `usunięto podejrzaną aktywność i ponownie aktywowano kartę x${cardLastFour}. Wszystko gotowe do dalszego rozliczania wydatków!`,
-            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `dezaktywował kartę kończącą się na ${cardLastFour}`,
+                `usunięto podejrzaną aktywność i ponownie aktywowano kartę x${cardLastFour}. Wszystko gotowe do dalszego rozliczania!`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `dezaktywowano kartę kończącą się na ${cardLastFour}`,
             alertMessage: ({
                 cardLastFour,
                 amount,
@@ -2021,7 +2021,7 @@ const translations = {
                 amount: string;
                 merchant: string;
                 date: string;
-            }) => `zidentyfikowano podejrzaną aktywność na karcie kończącej się na ${cardLastFour}. Czy rozpoznajesz tę transakcję?
+            }) => `zidentyfikowano podejrzaną aktywność na karcie kończącej się na ${cardLastFour}. Czy rozpoznajesz tę opłatę?
 
 ${amount} dla ${merchant} - ${date}`,
         },

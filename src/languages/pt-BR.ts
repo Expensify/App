@@ -2023,7 +2023,7 @@ const translations = {
                 amount: string;
                 merchant: string;
                 date: string;
-            }) => `atividade suspeita identificada no cartão terminando em ${cardLastFour}. Você reconhece esta cobrança?
+            }) => `atividade suspeita identificada no cartão com final ${cardLastFour}. Você reconhece esta cobrança?
 
 ${amount} para ${merchant} - ${date}`,
         },

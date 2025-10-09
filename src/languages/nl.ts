@@ -2010,9 +2010,9 @@ const translations = {
             `Voer de magische code in die naar ${contactMethod} is gestuurd om uw kaartgegevens te bekijken. Het zou binnen een minuut of twee moeten aankomen.`,
         cardFraudAlert: {
             confirmButtonText: 'Ja, dat doe ik.',
-            reportFraudButtonText: 'Nee, ik was het niet.',
+            reportFraudButtonText: 'Nee, dat was ik niet.',
             clearedMessage: ({cardLastFour}: {cardLastFour: string}) =>
-                `heeft de verdachte activiteit gewist en kaart x${cardLastFour} opnieuw geactiveerd. Alles klaar om door te gaan met uitgaven!`,
+                `verdachte activiteit verwijderd en kaart x${cardLastFour} opnieuw geactiveerd. Alles klaar om door te gaan met declareren!`,
             deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `deactiveerde de kaart eindigend op ${cardLastFour}`,
             alertMessage: ({
                 cardLastFour,

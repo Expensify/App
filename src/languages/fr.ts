@@ -2019,7 +2019,7 @@ const translations = {
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Veuillez entrer le code magique envoyé à ${contactMethod} pour voir les détails de votre carte. Il devrait arriver dans une minute ou deux.`,
         cardFraudAlert: {
-            confirmButtonText: 'Oui, je le fais.',
+            confirmButtonText: 'Oui, je le fais',
             reportFraudButtonText: "Non, ce n'était pas moi.",
             clearedMessage: ({cardLastFour}: {cardLastFour: string}) =>
                 `a effacé l'activité suspecte et réactivé la carte x${cardLastFour}. Tout est prêt pour continuer à faire des dépenses !`,
@@ -2034,7 +2034,7 @@ const translations = {
                 amount: string;
                 merchant: string;
                 date: string;
-            }) => `activité suspecte identifiée sur la carte se terminant par ${cardLastFour}. Reconnaissez-vous cette charge ?
+            }) => `activité suspecte identifiée sur la carte se terminant par ${cardLastFour}. Reconnaissez-vous cette transaction ?
 
 ${amount} pour ${merchant} - ${date}`,
         },
