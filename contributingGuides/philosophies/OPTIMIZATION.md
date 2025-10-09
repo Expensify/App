@@ -2,7 +2,7 @@
 This philosophy guides our approach to optimization by focusing on proven problems rather than hypothetical issues across all aspects of development and processes.
 
 #### Related Philosophies
-- [Overengineering Philosophy](/contributingGuides/philosophies/OVERENGINEERING.md)
+- [Over-engineering Philosophy](/contributingGuides/philosophies/OVERENGINEERING.md)
 
 #### Terminology
 - **Optimization** - making something faster, more flexible, or more capable than it needs to be to solve the exact problems agreed upon

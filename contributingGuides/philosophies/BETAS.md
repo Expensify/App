@@ -3,7 +3,7 @@ This philosophy guides our approach to beta releases by emphasizing small increm
 
 #### Related Philosophies
 - [Small Incremental Releases Philosophy](/contributingGuides/philosophies/INCREMENTAL-RELEASES.md)
-- [Overengineering Philosophy](/contributingGuides/philosophies/OVERENGINEERING.md)
+- [Over-engineering Philosophy](/contributingGuides/philosophies/OVERENGINEERING.md)
 
 #### Terminology
 - **Beta** - A mechanism that controls access to new functionality for limited users
@@ -21,7 +21,7 @@ Use betas only when:
 - There are significant business or technical risks that require validation before full release
 - Gradual rollout is needed to monitor performance or system impact
 
-### - Beta rollouts MUST have clear removal criteria
+### - Beta roll-out MUST have clear removal criteria
 Every beta MUST have:
 - Specific criteria for removing the beta and fully releasing the feature
 - A GH that clearly defines when and how a beta will be removed
