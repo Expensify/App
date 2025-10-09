@@ -40,7 +40,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
+import {readFileAsync, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
@@ -698,20 +698,31 @@ function IOURequestStepScan({
                         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height).then(({filename, source}) => {
                             setMoneyRequestReceipt(transactionID, source, filename, !isEditing);
 
-                            if (isEditing) {
-                                updateScanAndNavigate(photo, source);
-                                return;
-                            }
+                            readFileAsync(
+                                source,
+                                filename,
+                                (file) => {
+                                    if (isEditing) {
+                                        updateScanAndNavigate(file, source);
+                                        return;
+                                    }
 
-                            const newReceiptFiles = [...receiptFiles, {file: photo, source, transactionID}];
-                            setReceiptFiles(newReceiptFiles);
+                                    const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
+                                    setReceiptFiles(newReceiptFiles);
 
-                            if (isMultiScanEnabled) {
-                                setDidCapturePhoto(false);
-                                return;
-                            }
+                                    if (isMultiScanEnabled) {
+                                        setDidCapturePhoto(false);
+                                        return;
+                                    }
 
-                            submitReceipts(newReceiptFiles);
+                                    submitReceipts(newReceiptFiles);
+                                },
+                                () => {
+                                    setDidCapturePhoto(false);
+                                    showCameraAlert();
+                                    Log.warn('Error reading photo');
+                                },
+                            );
                         });
                     })
                     .catch((error: string) => {
