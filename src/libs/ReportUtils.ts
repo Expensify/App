@@ -379,6 +379,7 @@ type OptimisticNewReport = Pick<
     | 'managerID'
     | 'pendingFields'
     | 'chatReportID'
+    | 'nextStep'
 > & {reportName: string};
 
 type BuildOptimisticIOUReportActionParams = {
@@ -6426,6 +6427,7 @@ function buildOptimisticEmptyReport(reportID: string, accountID: number, parentR
           }
         : {};
     optimisticEmptyReport.ownerAccountID = accountID;
+
     return optimisticEmptyReport;
 }
 

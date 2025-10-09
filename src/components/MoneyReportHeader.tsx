@@ -188,7 +188,7 @@ function MoneyReportHeader({
     >();
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
+    const [nextStepDeprecated] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${moneyRequestReport?.reportID}`, {canBeMissing: true}) ?? null;
@@ -383,7 +383,14 @@ function MoneyReportHeader({
     // to avoid any flicker during transitions between online/offline states
     const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
     const isSubmitterSameAsNextApprover = isReportOwner(moneyRequestReport) && nextApproverAccountID === moneyRequestReport?.ownerAccountID;
-    const optimisticNextStep = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
+
+    // This can be removed after NextStep (simplified format) is fully migrated
+    // eslint-disable-next-line deprecation/deprecation
+    const optimisticNextStepDeprecated = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStepDeprecated;
+
+    // The NextStep (simplified format) is missing the "submittingToSelf" message key. Will be handled in https://github.com/Expensify/Expensify/issues/555094
+    // For now we need to pass undefined so we fallback to the old format
+    const optimisticNextStep = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? undefined : moneyRequestReport?.nextStep;
 
     const shouldShowNextStep = isFromPaidPolicy && !isInvoiceReport && !shouldShowStatusBar;
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
@@ -1270,8 +1277,13 @@ function MoneyReportHeader({
 
             <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
                 <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
-                    {shouldShowNextStep && !!optimisticNextStep?.message?.length && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
-                    {shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline && <MoneyReportHeaderStatusBarSkeleton />}
+                    {shouldShowNextStep && !!optimisticNextStepDeprecated?.message?.length && (
+                        <MoneyReportHeaderStatusBar
+                            nextStepDeprecated={optimisticNextStepDeprecated}
+                            nextStep={optimisticNextStep}
+                        />
+                    )}
+                    {shouldShowNextStep && !optimisticNextStepDeprecated && !!isLoadingInitialReportActions && !isOffline && <MoneyReportHeaderStatusBarSkeleton />}
                     {!!statusBarProps && (
                         <MoneyRequestHeaderStatusBar
                             icon={statusBarProps.icon}

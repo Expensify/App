@@ -530,6 +530,13 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
             );
         case 'permissions':
             return validateArray<'constantEnum'>(value, CONST.REPORT.PERMISSIONS);
+        case 'nextStep':
+            return validateObject<ObjectElement<Report, 'nextStep'>>(value, {
+                messageKey: 'string',
+                icon: 'string',
+                actorAccountID: 'number',
+                eta: 'object',
+            });
         case 'tripData':
             return validateObject<ObjectElement<Report, 'tripData'>>(value, {
                 startDate: 'string',
@@ -589,6 +596,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 parentReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 parentReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastVisibleActionLastModified: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastMessageHtml: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastActorAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
