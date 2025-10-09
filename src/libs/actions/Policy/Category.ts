@@ -1490,6 +1490,8 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
 export {
     buildOptimisticPolicyCategories,
     buildOptimisticMccGroup,
+    // TODO: Replace buildOptimisticPolicyRecentlyUsedCategories with useOnyx hook (https://github.com/Expensify/App/issues/66557)
+    // eslint-disable-next-line deprecation/deprecation
     buildOptimisticPolicyRecentlyUsedCategories,
     clearCategoryErrors,
     createPolicyCategory,
