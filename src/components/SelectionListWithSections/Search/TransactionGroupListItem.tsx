@@ -4,7 +4,6 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -26,7 +25,6 @@ import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
@@ -36,7 +34,6 @@ import {search} from '@libs/actions/Search';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {canAddTransaction as canAddTransactionUtil, getAddExpenseDropdownOptions, isCurrentUserSubmitter} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getSections} from '@libs/SearchUIUtils';
 import {getTransactionViolations} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -134,7 +131,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const isEmpty = transactions.length === 0;
     const {markReportIDAsExpense} = useContext(WideRHPContext);
     // Currently only the transaction report groups have transactions where the empty view makes sense
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${groupItem.reportID}`, {canBeMissing: true});
     const shouldDisplayEmptyView = isEmpty && isGroupByReports;
     const isDisabledOrEmpty = isEmpty || isDisabled;
     const shouldDisplayShowMoreButton = !isGroupByReports && !!transactionsSnapshotMetadata?.hasMoreResults;
@@ -142,9 +138,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const shouldShowLoadingOnSearch = !!(!transactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
     const shouldDisplayLoadingIndicator = !isGroupByReports && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const policy = usePolicy(groupItem.policyID);
-    const addExpenseDropdownOptions = useMemo(() => getAddExpenseDropdownOptions(groupItem.reportID, policy), [groupItem.reportID, policy]);
-    const canAddTransaction = isCurrentUserSubmitter(iouReport) && canAddTransactionUtil(groupItem as TransactionReportGroupListItemType);
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = transactions.some((transaction) => transaction.isAmountColumnWide);
@@ -344,27 +337,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         expandButtonStyle={[styles.pv4Half]}
                     >
                         {shouldDisplayEmptyView ? (
-                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13, styles.gap3, canAddTransaction && styles.mv3]}>
+                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
                                 <Text
                                     style={[styles.textLabelSupporting]}
                                     numberOfLines={1}
                                 >
                                     {translate('search.moneyRequestReport.emptyStateTitle')}
                                 </Text>
-                                {canAddTransaction && (
-                                    <ButtonWithDropdownMenu
-                                        onPress={() => {}}
-                                        shouldAlwaysShowDropdownMenu
-                                        customText={translate('iou.addExpense')}
-                                        options={addExpenseDropdownOptions}
-                                        isSplitButton={false}
-                                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                                        anchorAlignment={{
-                                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                                        }}
-                                    />
-                                )}
                             </View>
                         ) : (
                             <>
