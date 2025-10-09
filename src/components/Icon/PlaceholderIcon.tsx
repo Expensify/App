@@ -11,7 +11,7 @@ function PlaceholderIcon({width = 24, height = 24, fill, style, testID}: SvgProp
         <Svg
             width={width}
             height={height}
-            viewBox={`0 0 ${width} ${height}`}
+            viewBox="0 0 24 24"
             fill={fill}
             style={style}
             testID={testID}
