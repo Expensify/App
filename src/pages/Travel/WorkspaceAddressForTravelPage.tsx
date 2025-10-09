@@ -26,7 +26,7 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
         if (!policy) {
             return;
         }
-        
+
         // Always validate OTP first before allowing address submission
         if (!isUserValidated) {
             // After OTP validation, redirect back to this address page
@@ -34,7 +34,7 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
             Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(route.params.domain, currentRoute));
             return;
         }
-        
+
         updateAddress(policy?.id, {
             addressStreet: `${values.addressLine1?.trim() ?? ''}\n${values.addressLine2?.trim() ?? ''}`,
             city: values.city.trim(),
