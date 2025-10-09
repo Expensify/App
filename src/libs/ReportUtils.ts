@@ -11824,12 +11824,9 @@ function isWorkspaceMemberLeavingWorkspaceRoom(report: OnyxEntry<Report>, isPoli
     if (!report) {
         return false;
     }
-    return (
-        (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED ||
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            (isPolicyExpenseChat(report) && (report.isOwnPolicyExpenseChat || isPolicyAdminParam))) &&
-        isPolicyEmployee
-    );
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const hasAccessPolicyExpenseChat = isPolicyExpenseChat(report) && (report.isOwnPolicyExpenseChat || isPolicyAdminParam);
+    return (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || hasAccessPolicyExpenseChat) && isPolicyEmployee;
 }
 
 export {
