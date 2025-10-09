@@ -202,7 +202,8 @@ function MoneyRequestView({
         );
     }, [isDistanceRequest, hasRoute, actualAmount, updatedTransaction, transaction]);
     const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency) : '';
-    const formattedPerAttendeeAmount = shouldDisplayTransactionAmount && actualAmount !== undefined ? convertToDisplayString(actualAmount / (transactionAttendees?.length ?? 1), actualCurrency) : '';
+    const formattedPerAttendeeAmount =
+        shouldDisplayTransactionAmount && actualAmount !== undefined ? convertToDisplayString(actualAmount / (transactionAttendees?.length ?? 1), actualCurrency) : '';
 
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
