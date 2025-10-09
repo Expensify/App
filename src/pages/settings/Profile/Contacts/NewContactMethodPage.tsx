@@ -42,8 +42,6 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
             const validateIfNumber = validateNumber(phoneLogin);
             const submitDetail = (validateIfNumber || values.phoneOrEmail).trim().toLowerCase();
             resetValidateActionCodeSent();
-            // Waiting for the action to finish before navigating.
-            // Otherwise it may cause an incorrect state on the confirm screen due to async nature of Onyx.merge
             addPendingContactMethod(submitDetail);
             Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.getRoute(submitDetail, navigateBackTo));
         },
