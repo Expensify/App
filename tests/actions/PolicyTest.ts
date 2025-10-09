@@ -898,13 +898,21 @@ describe('actions/Policy', () => {
                 {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
             ]);
 
-            Policy.deleteWorkspace(policyID, 'test', undefined, undefined, [expenseChatReport], {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                transactionViolations_3: [
-                    {name: 'cashExpenseWithNoReceipt', type: CONST.VIOLATION_TYPES.VIOLATION},
-                    {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
-                ],
-            });
+            Policy.deleteWorkspace(
+                policyID,
+                'test',
+                undefined,
+                undefined,
+                [expenseChatReport],
+                {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    transactionViolations_3: [
+                        {name: 'cashExpenseWithNoReceipt', type: CONST.VIOLATION_TYPES.VIOLATION},
+                        {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
+                    ],
+                },
+                undefined,
+            );
 
             await waitForBatchedUpdates();
 
