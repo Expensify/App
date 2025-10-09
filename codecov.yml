@@ -18,7 +18,7 @@ codecov:
 
 comment:
   require_changes: "coverage_drop OR uncovered_patch"
-  layout: "condensed_header, files, condensed_footer"
+  layout: "condensed_header, files"
   hide_project_coverage: true
   hide_comment_details: false
 
