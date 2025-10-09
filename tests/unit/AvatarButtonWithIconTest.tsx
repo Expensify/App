@@ -98,7 +98,7 @@ describe('AvatarButtonWithIcon', () => {
                 />,
             );
             expect(screen.getByLabelText(defaultProps.text)).toBeTruthy();
-            expect(screen.queryByTestId(MOCK_TEST_ID)).toBeNull();
+            expect(screen.getByTestId(MOCK_TEST_ID)).toBeTruthy();
         });
 
         it.each([CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.X_LARGE])('should render with size: %s', (size) => {
