@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
