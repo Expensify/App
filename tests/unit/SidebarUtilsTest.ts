@@ -3,13 +3,11 @@ import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import {translateLocal} from '@libs/Localize';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
-import {formatReportLastMessageText, getAllReportErrors, getDisplayNameForParticipant, getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
+import {formatReportLastMessageText, getAllReportErrors} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
@@ -1059,7 +1057,7 @@ describe('SidebarUtils', () => {
                 expect(optionData?.alternateText).toBe(`test message`);
             });
 
-            it("For policy expense chat whose last action is a report preview linked to an expense report with non-reimbursable transaction the LHN text should be in the format 'spent $total'", async () => {
+            it('For policy expense chat whose last action is a report preview linked to an expense report with non-reimbursable transaction the LHN text should be the report name', async () => {
                 const policy: Policy = {
                     ...createRandomPolicy(1),
                     role: CONST.POLICY.ROLE.ADMIN,
@@ -1118,7 +1116,7 @@ describe('SidebarUtils', () => {
                     currency: 'ETB',
                     ownerAccountID: 20232605,
                     total: -500,
-                    nonReimbursableTotal: 0,
+                    nonReimbursableTotal: -500,
                     parentReportID: policyExpenseChat.reportID,
                     parentReportActionID: lastReportPreviewAction.reportActionID,
                     chatReportID: policyExpenseChat.reportID,
@@ -1178,14 +1176,8 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                 });
-                const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(iouReport);
-                const formattedAmount = convertToDisplayString(totalDisplaySpend, iouReport.currency);
 
-                expect(optionData?.alternateText).toBe(
-                    formatReportLastMessageText(
-                        translateLocal('iou.payerSpentAmount', {payer: getDisplayNameForParticipant({accountID: iouReport.ownerAccountID}) ?? '', amount: formattedAmount}),
-                    ),
-                );
+                expect(optionData?.alternateText).toBe(formatReportLastMessageText(iouReport.reportName));
             });
 
             it('The text should contain the policy name at prefix if we have multiple workspace and the report is related to a workspace', async () => {

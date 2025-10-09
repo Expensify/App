@@ -155,7 +155,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                         fill={theme.danger}
                         additionalStyles={styles.mr1}
                     />
-                    <Text style={[styles.offlineFeedback.text, styles.pr5]}>
+                    <Text style={[styles.offlineFeedbackText, styles.pr5]}>
                         <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('workspace.companyCards.brokenConnectionErrorFirstPart')}</Text>
                         <TextLink
                             style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}

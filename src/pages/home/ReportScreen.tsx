@@ -830,9 +830,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
+    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, visibleTransactions ?? []);
+
     const shouldShowWideRHP =
         route.name === SCREENS.SEARCH.REPORT_RHP &&
         !isSmallScreenWidth &&
+        !shouldDisplayMoneyRequestActionsList &&
         (isTransactionThread(parentReportAction) ||
             parentReportAction?.childType === CONST.REPORT.TYPE.EXPENSE ||
             parentReportAction?.childType === CONST.REPORT.TYPE.IOU ||
@@ -850,7 +853,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }
 
     // If true reports that are considered MoneyRequest | InvoiceReport will get the new report table view
-    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
     return (
         <ActionListContext.Provider value={actionListValue}>

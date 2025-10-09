@@ -108,6 +108,76 @@ jest.mock('../modules/hybrid-app/src/NativeReactNativeHybridApp', () => ({
     closeReactNativeApp: jest.fn(),
     completeOnboarding: jest.fn(),
     switchAccount: jest.fn(),
+    clearOldDotAfterSignOut: jest.fn(),
+}));
+
+// Mock lazy asset loading to be synchronous in tests
+jest.mock('../src/hooks/useLazyAsset.ts', () => ({
+    useMemoizedLazyAsset: jest.fn(() => {
+        // Return a mock asset immediately to avoid async loading in tests
+        const mockAsset = {
+            src: 'mock-icon',
+            testID: 'mock-asset',
+            // Add common icon properties that tests might expect
+            height: 20,
+            width: 20,
+        };
+
+        return {
+            asset: mockAsset,
+            isLoaded: true,
+            isLoading: false,
+            hasError: false,
+        };
+    }),
+    useMemoizedLazyIllustrations: jest.fn((names: readonly string[]) => {
+        // Return a Record with all requested illustration names
+        const mockIllustrations: Record<string, unknown> = {};
+        names.forEach((name) => {
+            mockIllustrations[name] = {
+                src: `mock-${name}`,
+                testID: `mock-illustration-${name}`,
+                height: 20,
+                width: 20,
+            };
+        });
+        return mockIllustrations;
+    }),
+    useMemoizedLazyExpensifyIcons: jest.fn((names: readonly string[]) => {
+        // Return a Record with all requested icon names
+        const mockIcons: Record<string, unknown> = {};
+        names.forEach((name) => {
+            mockIcons[name] = {
+                src: `mock-${name}`,
+                testID: `mock-expensify-icon-${name}`,
+                height: 20,
+                width: 20,
+            };
+        });
+        return mockIcons;
+    }),
+    default: jest.fn(() => {
+        const mockAsset = {src: 'mock-icon', testID: 'mock-asset'};
+        return {
+            asset: mockAsset,
+            isLoaded: true,
+            isLoading: false,
+            hasError: false,
+        };
+    }),
+}));
+
+// Mock icon loading functions to resolve immediately
+jest.mock('../src/components/Icon/ExpensifyIconLoader.ts', () => ({
+    loadExpensifyIcon: jest.fn((iconName) => {
+        const mockIcon = {
+            src: `mock-${iconName}`,
+            testID: `mock-icon-${iconName}`,
+            height: 20,
+            width: 20,
+        };
+        return Promise.resolve({default: mockIcon});
+    }),
 }));
 
 jest.mock(

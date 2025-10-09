@@ -37,15 +37,14 @@ import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {close} from '@userActions/Modal';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
+import getDecodedContactMethodFromUriParam from './utils';
 
 type ContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
 
@@ -70,24 +69,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     /**
      * Gets the current contact method from the route params
      */
-    const contactMethod: string = useMemo(() => {
-        const contactMethodParam = route.params.contactMethod;
+    const contactMethod: string = useMemo(() => getDecodedContactMethodFromUriParam(route.params.contactMethod), [route.params.contactMethod]);
 
-        // We find the number of times the url is encoded based on the last % sign and remove them.
-        const lastPercentIndex = contactMethodParam.lastIndexOf('%');
-        const encodePercents = contactMethodParam.substring(lastPercentIndex).match(new RegExp('25', 'g'));
-        let numberEncodePercents = encodePercents?.length ?? 0;
-        const beforeAtSign = contactMethodParam.substring(0, lastPercentIndex).replace(CONST.REGEX.ENCODE_PERCENT_CHARACTER, (match) => {
-            if (numberEncodePercents > 0) {
-                numberEncodePercents--;
-                return '%';
-            }
-            return match;
-        });
-        const afterAtSign = contactMethodParam.substring(lastPercentIndex).replace(CONST.REGEX.ENCODE_PERCENT_CHARACTER, '%');
-
-        return addSMSDomainIfPhoneNumber(decodeURIComponent(beforeAtSign + afterAtSign));
-    }, [route.params.contactMethod]);
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
 
     const isDefaultContactMethod = useMemo(() => session?.email === loginData?.partnerUserID, [session?.email, loginData?.partnerUserID]);
@@ -312,6 +295,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             <HeaderWithBackButton
                 title={formattedContactMethod}
                 threeDotsMenuItems={getThreeDotsMenuItems()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
                 shouldShowThreeDotsButton={getThreeDotsMenuItems().length > 0}
                 shouldOverlayDots
                 onThreeDotsButtonPress={() => {

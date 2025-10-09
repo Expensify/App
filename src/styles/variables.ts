@@ -103,6 +103,7 @@ export default {
     receiptPaneRHPMaxWidth: 465,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
+    chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
     navigationTabBarSize: 72,
     pdfPageMaxWidth: 992,
