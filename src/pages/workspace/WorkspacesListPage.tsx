@@ -533,6 +533,7 @@ function WorkspacesListPage() {
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
+            shouldEnableMaxHeight
             shouldShowOfflineIndicatorInWideScreen
             testID={WorkspacesListPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding={false}
