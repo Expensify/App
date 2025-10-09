@@ -301,7 +301,7 @@ function WorkspacesListPage() {
             ];
 
             const defaultApprover = getDefaultApprover(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]);
-            if (!(isAdmin || isOwner) && defaultApprover !== session?.email) {
+            if (!isOwner && defaultApprover !== session?.email) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
