@@ -7251,6 +7251,7 @@ const translations = {
         exportInProgress: 'Exportação em andamento',
         conciergeWillSend: 'Concierge enviará o arquivo em breve.',
     },
+    avatarPage: {title: 'Editar foto de perfil', uploadPhoto: 'Carregar foto'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

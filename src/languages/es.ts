@@ -1501,6 +1501,10 @@ const translations = {
             `Por favor, elige una imagen más grande que ${minHeightInPx}x${minWidthInPx} píxeles y más pequeña que ${maxHeightInPx}x${maxWidthInPx} píxeles.`,
         notAllowedExtension: ({allowedExtensions}: NotAllowedExtensionParams) => `La foto de perfil debe ser de uno de los siguientes tipos: ${allowedExtensions.join(', ')}.`,
     },
+    avatarPage: {
+        title: 'Editar foto de perfil',
+        uploadPhoto: 'Subir foto',
+    },
     modal: {
         backdropLabel: 'Fondo del Modal',
     },
