@@ -532,7 +532,7 @@ function IOURequestStepScan({
         (file: FileObject, source: string) => {
             // Fix for the issue where the navigation state is lost after returning from device settings https://github.com/Expensify/App/issues/65992
             const navigationState = navigationRef.current?.getState();
-            const reportsSplitNavigator = navigationState?.routes?.find((route) => route.name === 'ReportsSplitNavigator');
+            const reportsSplitNavigator = navigationState?.routes?.findLast((route) => route.name === 'ReportsSplitNavigator');
             const hasLostNavigationsState = reportsSplitNavigator && !reportsSplitNavigator.state;
             if (hasLostNavigationsState) {
                 if (backTo) {
