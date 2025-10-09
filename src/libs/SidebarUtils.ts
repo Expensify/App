@@ -1,3 +1,4 @@
+import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -13,6 +14,8 @@ import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import {convertToDisplayString} from './CurrencyUtils';
+import getLocalDateFromDatetime from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
 import {translateLocal} from './Localize';
 import {getLastActorDisplayName, getLastMessageTextForReport, getPersonalDetailsForAccountIDs, shouldShowLastActorDisplayName} from './OptionsListUtils';
@@ -783,6 +786,16 @@ function getOptionData({
             }
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME)) {
             result.alternateText = getWorkspaceNameUpdatedMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT) && getOriginalMessage(lastAction)?.resolution) {
+            const fraudMessage = getOriginalMessage(lastAction);
+            const cardLastFour = fraudMessage?.maskedCardNumber?.slice(-4) ?? '';
+            const resolution = fraudMessage?.resolution;
+
+            if (resolution === CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED) {
+                result.alternateText = translateLocal('cardPage.cardFraudAlert.clearedMessage', {cardLastFour});
+            } else {
+                result.alternateText = translateLocal('cardPage.cardFraudAlert.deactivatedMessage', {cardLastFour});
+            }
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION)) {
             result.alternateText = getWorkspaceDescriptionUpdatedMessage(lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY)) {
