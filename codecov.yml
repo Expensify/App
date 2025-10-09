@@ -18,7 +18,7 @@ codecov:
 
 comment:
   require_changes: "coverage_drop OR uncovered_patch"
-  layout: "files"
+  layout: "reach, diff, files"
   hide_project_coverage: false
 
 flags:
