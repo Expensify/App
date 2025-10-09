@@ -51,8 +51,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import DateUtils from '@libs/DateUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
@@ -825,7 +824,7 @@ function PureReportActionItem({
                 return [];
             }
 
-            const cardID = getOriginalMessage(action)?.cardID ?? 0;
+            const cardID = getOriginalMessage(action)?.cardID;
             return [
                 {
                     text: translate('cardPage.cardFraudAlert.confirmButtonText'),
@@ -1335,7 +1334,7 @@ function PureReportActionItem({
             const cardLastFour = fraudMessage?.maskedCardNumber?.slice(-4) ?? '';
 
             // USD is hardcoded because Expensify cards operate exclusively in USD
-            const formattedAmount = CurrencyUtils.convertToDisplayString(fraudMessage?.triggerAmount ?? 0, 'USD');
+            const formattedAmount = convertToDisplayString(fraudMessage?.triggerAmount ?? 0, 'USD');
             const merchant = fraudMessage?.triggerMerchant ?? '';
             const resolution = fraudMessage?.resolution;
             const formattedDate = action.created ? format(getLocalDateFromDatetime(action.created), 'MMM. d - h:mma').replace(/am|pm/i, (match) => match.toUpperCase()) : '';

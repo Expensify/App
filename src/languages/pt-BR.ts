@@ -7157,6 +7157,7 @@ ${amount} para ${merchant} - ${date}`,
             isWaitingForAssigneeToCompleteAction: 'Está aguardando o responsável concluir a ação',
             hasChildReportAwaitingAction: 'Tem um relatório infantil aguardando ação',
             hasMissingInvoiceBankAccount: 'Falta a conta bancária da fatura',
+            hasUnresolvedCardFraudAlert: 'Tem uma alerta de fraude de cartão não resolvida',
         },
         reasonRBR: {
             hasErrors: 'Tem erros nos dados do relatório ou nas ações do relatório',

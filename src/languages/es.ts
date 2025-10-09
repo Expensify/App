@@ -1994,7 +1994,8 @@ const translations = {
         cardFraudAlert: {
             confirmButtonText: 'Sí, lo hago',
             reportFraudButtonText: 'No, no fui yo',
-            clearedMessage: ({cardLastFour}: {cardLastFour: string}) => `se eliminó la actividad sospechosa anterior y se reactivó la tarjeta x${cardLastFour}. ¡Todo listo para seguir gastando!`,
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) =>
+                `se eliminó la actividad sospechosa anterior y se reactivó la tarjeta x${cardLastFour}. ¡Todo listo para seguir gastando!`,
             deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `la tarjeta terminada en ${cardLastFour} ha sido desactivada`,
             alertMessage: ({
                 cardLastFour,
@@ -7598,7 +7599,7 @@ ${amount} para ${merchant} - ${date}`,
             isWaitingForAssigneeToCompleteAction: 'Esperando a que el asignado complete la acción',
             hasChildReportAwaitingAction: 'Informe secundario pendiente de acción',
             hasMissingInvoiceBankAccount: 'Falta la cuenta bancaria de la factura',
-            hasUnresolvedCardFraudAlert: 'Tiene alerta de fraude de tarjeta sin resolver',
+            hasUnresolvedCardFraudAlert: 'Tiene una alerta de fraude de tarjeta sin resolver',
         },
         reasonRBR: {
             hasErrors: 'Tiene errores en los datos o las acciones del informe',

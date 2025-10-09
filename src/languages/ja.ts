@@ -7104,6 +7104,7 @@ ${date} - ${merchant}に${amount}`,
             isWaitingForAssigneeToCompleteAction: '担当者がアクションを完了するのを待っています',
             hasChildReportAwaitingAction: '子レポートがアクション待ちです。',
             hasMissingInvoiceBankAccount: '請求書の銀行口座がありません',
+            hasUnresolvedCardFraudAlert: '未解決のカード詐欺警告があります',
         },
         reasonRBR: {
             hasErrors: 'レポートまたはレポートアクションデータにエラーがあります',
