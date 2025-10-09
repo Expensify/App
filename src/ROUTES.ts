@@ -438,7 +438,12 @@ const ROUTES = {
 
     NEW_REPORT_WORKSPACE_SELECTION: {
         route: 'new-report-workspace-selection',
-        getRoute: (isMovingExpenses?: boolean) => `new-report-workspace-selection${isMovingExpenses ? '?isMovingExpenses=true' : ''}` as const,
+        getRoute: (isMovingExpenses?: boolean, backTo?: string) => {
+            const baseRoute = `new-report-workspace-selection${isMovingExpenses ? '?isMovingExpenses=true' : ''}` as const;
+
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(baseRoute, backTo);
+        },
     },
     REPORT: 'r',
     REPORT_WITH_ID: {
@@ -472,6 +477,12 @@ const ROUTES = {
     ATTACHMENTS: {
         route: 'attachment',
         getRoute: (params?: ReportAttachmentsRouteParams) => getAttachmentModalScreenRoute('attachment', params),
+    },
+    REPORT_ADD_ATTACHMENT: {
+        route: 'r/:reportID/attachment/add',
+        getRoute: (reportID: string, params?: ReportAddAttachmentRouteParams) => {
+            return getAttachmentModalScreenRoute(`r/${reportID}/attachment/add`, params);
+        },
     },
     EDIT_CURRENCY_REQUEST: {
         route: 'r/:threadReportID/edit/currency',
@@ -3276,11 +3287,13 @@ export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT};
 export default ROUTES;
 
 type ReportAttachmentsRoute = typeof ROUTES.ATTACHMENTS.route;
-type AttachmentRoutes = ReportAttachmentsRoute;
+type ReportAddAttachmentRoute = `r/${string}/attachment/add`;
+type AttachmentRoutes = ReportAttachmentsRoute | ReportAddAttachmentRoute;
 
 type ReportAttachmentsRouteParams = RootNavigatorParamList[typeof SCREENS.ATTACHMENTS];
+type ReportAddAttachmentRouteParams = RootNavigatorParamList[typeof SCREENS.REPORT_ADD_ATTACHMENT];
 
-function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: ReportAttachmentsRouteParams) {
+function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: ReportAttachmentsRouteParams | ReportAddAttachmentRouteParams) {
     if (!params?.source) {
         return url;
     }
