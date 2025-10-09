@@ -70,8 +70,12 @@ function requestTravelAccess() {
     API.write(WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST, null, {optimisticData});
 }
 
+function setTravelProvisioningNextStep(nextStepRoute?: string) {
+    Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {nextStepRoute: nextStepRoute ?? null});
+}
+
 function cleanupTravelProvisioningSession() {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
 }
 
-export {acceptSpotnanaTerms, cleanupTravelProvisioningSession, requestTravelAccess};
+export {acceptSpotnanaTerms, cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep};

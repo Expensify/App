@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import Navigation from '@libs/Navigation/Navigation';
+import {setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import AddressPage from '@pages/AddressPage';
@@ -31,7 +32,8 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
         if (!isUserValidated) {
             // After OTP validation, redirect back to this address page
             const currentRoute = ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(route.params.domain, route.params.backTo);
-            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(route.params.domain, currentRoute));
+            setTravelProvisioningNextStep(currentRoute);
+            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(route.params.domain));
             return;
         }
 

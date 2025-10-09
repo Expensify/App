@@ -1902,7 +1902,6 @@ type TravelNavigatorParamList = {
     };
     [SCREENS.TRAVEL.VERIFY_ACCOUNT]: {
         domain: string;
-        backTo?: Routes;
     };
 };
 

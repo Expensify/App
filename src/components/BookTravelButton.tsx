@@ -10,7 +10,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {cleanupTravelProvisioningSession, requestTravelAccess} from '@libs/actions/Travel';
+import {cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -131,8 +131,11 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
             // Always validate OTP first before proceeding to address details or terms acceptance
             if (!isUserValidated) {
                 // Determine where to redirect after OTP validation
-                const nextStep = isEmptyObject(policy?.address) ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()) : ROUTES.TRAVEL_TCS.getRoute(domain);
-                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, nextStep));
+                const nextStep = isEmptyObject(policy?.address)
+                    ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute())
+                    : ROUTES.TRAVEL_TCS.getRoute(domain);
+                setTravelProvisioningNextStep(nextStep);
+                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain));
                 return;
             }
             if (isEmptyObject(policy?.address)) {

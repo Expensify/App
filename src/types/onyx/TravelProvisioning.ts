@@ -16,6 +16,9 @@ type TravelProvisioning = {
 
     /** Error messages that could be thrown when provisioning travel */
     errors?: Errors;
+
+    /** Post-verification route that should be opened once the user validates their account */
+    nextStepRoute?: string;
 };
 
 export default TravelProvisioning;

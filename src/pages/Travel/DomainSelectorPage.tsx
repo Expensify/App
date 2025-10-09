@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
+import {cleanupTravelProvisioningSession, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/PolicyUtils';
@@ -58,7 +58,8 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
         if (!isUserValidated) {
             // Determine where to redirect after OTP validation
             const nextStep = isEmptyObject(policy?.address) ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()) : ROUTES.TRAVEL_TCS.getRoute(domain);
-            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, nextStep));
+            setTravelProvisioningNextStep(nextStep);
+            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain));
             return;
         }
         if (isEmptyObject(policy?.address)) {
