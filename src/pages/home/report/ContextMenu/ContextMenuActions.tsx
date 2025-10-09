@@ -466,7 +466,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
     {
         isAnonymousAction: true,
-        textTranslateKey: 'reportActionContextMenu.copyMessage',
+        textTranslateKey: 'common.copyToClipboard',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
