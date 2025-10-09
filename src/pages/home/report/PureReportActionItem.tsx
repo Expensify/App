@@ -830,7 +830,7 @@ function PureReportActionItem({
                     text: translate('cardPage.cardFraudAlert.confirmButtonText'),
                     key: `${action.reportActionID}-cardFraudAlert-confirm`,
                     onPress: () => {
-                        resolveFraudAlert(cardID, false, reportID ?? '', action.reportActionID);
+                        resolveFraudAlert(cardID, false, reportID, action?.reportActionID);
                     },
                     isPrimary: true,
                 },
@@ -838,7 +838,7 @@ function PureReportActionItem({
                     text: translate('cardPage.cardFraudAlert.reportFraudButtonText'),
                     key: `${action.reportActionID}-cardFraudAlert-reportFraud`,
                     onPress: () => {
-                        resolveFraudAlert(cardID, true, reportID ?? '', action.reportActionID);
+                        resolveFraudAlert(cardID, true, reportID, action?.reportActionID);
                     },
                 },
             ];
@@ -948,23 +948,24 @@ function PureReportActionItem({
     }, [
         action,
         userBillingFundID,
+        originalReportID,
+        reportID,
         isActionableWhisper,
         report?.policyID,
         policy,
         currentUserAccountID,
-        reportID,
-        originalReportID,
         personalDetail.timezone,
         isBetaEnabled,
         createDraftTransactionAndNavigateToParticipantSelector,
-        dismissTrackExpenseActionableWhisper,
-        resolveActionableReportMentionWhisper,
-        formatPhoneNumber,
-        resolveActionableMentionWhisper,
-        isReportArchived,
-        isOriginalReportArchived,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
+        dismissTrackExpenseActionableWhisper,
+        translate,
+        resolveActionableReportMentionWhisper,
+        isReportArchived,
+        formatPhoneNumber,
+        isOriginalReportArchived,
+        resolveActionableMentionWhisper,
     ]);
 
     /**
