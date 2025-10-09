@@ -6410,7 +6410,7 @@ function getMovedTransactionMessage(toReport: OnyxEntry<Report>, fromReportID?: 
             reportName,
         });
     }
-    if (fromReportID === '0') {
+    if (fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const selfDMReportID = findSelfDMReportID();
         reportUrl = `${environmentURL}/r/${selfDMReportID}`;
         return translateLocal('iou.movedUnreportedTransaction', {
