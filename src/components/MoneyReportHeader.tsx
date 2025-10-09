@@ -1,9 +1,11 @@
 import {useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
+import getArchiveReason from '@selectors/Report';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
@@ -13,6 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePaymentOptions from '@hooks/usePaymentOptions';
+import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
@@ -49,7 +52,6 @@ import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolv
 import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
     changeMoneyRequestHoldStatus,
-    getArchiveReason,
     getIntegrationExportIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
     getNextApproverAccountID,
@@ -70,6 +72,7 @@ import {
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
+    getOriginalTransactionWithSplitInfo,
     hasDuplicateTransactions,
     isDuplicate,
     isExpensifyCardTransaction,
@@ -95,6 +98,7 @@ import {
     payMoneyRequest,
     reopenReport,
     retractReport,
+    startDistanceRequest,
     startMoneyRequest,
     submitReport,
     unapproveExpenseReport,
@@ -138,6 +142,7 @@ import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import {useSearchContext} from './Search/SearchContext';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
 import Text from './Text';
+import {WideRHPContext} from './WideRHPContextProvider';
 
 type MoneyReportHeaderProps = {
     /** The report currently being looked at */
@@ -181,9 +186,8 @@ function MoneyReportHeader({
         | PlatformStackRouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>
         | PlatformStackRouteProp<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>
     >();
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
@@ -194,7 +198,9 @@ function MoneyReportHeader({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const exportTemplates = useMemo(() => getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, policy), [integrationsExportTemplates, csvExportLayouts, policy]);
+    const {isBetaEnabled} = usePermissions();
 
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
@@ -236,6 +242,7 @@ function MoneyReportHeader({
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
 
     const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
     const {showConfirmModal} = useConfirmModal();
@@ -246,6 +253,7 @@ function MoneyReportHeader({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const isOnHold = isOnHoldTransactionUtils(transaction);
+    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
@@ -296,6 +304,9 @@ function MoneyReportHeader({
     const [isRejectEducationalModalVisible, setIsRejectEducationalModalVisible] = useState(false);
 
     const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey} = useSearchContext();
+
+    const {wideRHPRouteKeys} = useContext(WideRHPContext);
+    const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
 
     const showExportProgressModal = useCallback(() => {
         return showConfirmModal({
@@ -397,37 +408,41 @@ function MoneyReportHeader({
                 showDelegateNoAccessModal();
             } else if (isAnyTransactionOnHold) {
                 if (getPlatform() === CONST.PLATFORM.IOS) {
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
                 } else {
                     setIsHoldMenuVisible(true);
                 }
             } else if (isInvoiceReport) {
                 startAnimation();
-                payInvoice(type, chatReport, moneyRequestReport, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod);
+                payInvoice(type, chatReport, moneyRequestReport, introSelected, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod);
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, undefined, true);
+                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true);
                 if (currentSearchQueryJSON) {
                     search({
                         searchKey: currentSearchKey,
                         shouldCalculateTotals: true,
                         offset: 0,
                         queryJSON: currentSearchQueryJSON,
+                        isOffline,
                     });
                 }
             }
         },
         [
             chatReport,
-            isAnyTransactionOnHold,
             isDelegateAccessRestricted,
-            showDelegateNoAccessModal,
+            isAnyTransactionOnHold,
             isInvoiceReport,
-            moneyRequestReport,
+            showDelegateNoAccessModal,
             startAnimation,
+            moneyRequestReport,
+            introSelected,
             existingB2BInvoiceReport,
             currentSearchQueryJSON,
             currentSearchKey,
+            isOffline,
         ],
     );
 
@@ -440,6 +455,15 @@ function MoneyReportHeader({
         } else {
             startApprovedAnimation();
             approveMoneyRequest(moneyRequestReport, true);
+            if (currentSearchQueryJSON) {
+                search({
+                    searchKey: currentSearchKey,
+                    shouldCalculateTotals: true,
+                    offset: 0,
+                    queryJSON: currentSearchQueryJSON,
+                    isOffline,
+                });
+            }
         }
     };
 
@@ -537,6 +561,7 @@ function MoneyReportHeader({
 
     const primaryAction = useMemo(() => {
         return getReportPrimaryAction({
+            currentUserEmail: currentUserLogin ?? '',
             report: moneyRequestReport,
             chatReport,
             reportTransactions: transactions,
@@ -561,6 +586,7 @@ function MoneyReportHeader({
         reportActions,
         isChatReportArchived,
         invoiceReceiverPolicy,
+        currentUserLogin,
     ]);
 
     const confirmExport = useCallback(() => {
@@ -612,6 +638,21 @@ function MoneyReportHeader({
                 },
             },
             {
+                value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
+                text: translate('iou.trackDistance'),
+                icon: Expensicons.Location,
+                onSelected: () => {
+                    if (!moneyRequestReport?.reportID) {
+                        return;
+                    }
+                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                        return;
+                    }
+                    startDistanceRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport.reportID, lastDistanceExpenseType);
+                },
+            },
+            {
                 value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
                 text: translate('iou.addUnreportedExpense'),
                 icon: Expensicons.ReceiptPlus,
@@ -624,7 +665,7 @@ function MoneyReportHeader({
                 },
             },
         ],
-        [moneyRequestReport?.reportID, policy, translate],
+        [moneyRequestReport?.reportID, policy, lastDistanceExpenseType, translate],
     );
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {
@@ -709,6 +750,7 @@ function MoneyReportHeader({
                             shouldCalculateTotals: true,
                             offset: 0,
                             queryJSON: currentSearchQueryJSON,
+                            isOffline,
                         });
                     }
                 }}
@@ -821,15 +863,6 @@ function MoneyReportHeader({
                 }}
             />
         ),
-        [CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE]: (
-            <ButtonWithDropdownMenu
-                onPress={() => {}}
-                shouldAlwaysShowDropdownMenu
-                customText={translate('iou.addExpense')}
-                options={addExpenseDropdownOptions}
-                isSplitButton={false}
-            />
-        ),
     };
 
     const beginPDFExport = (reportID: string) => {
@@ -842,6 +875,7 @@ function MoneyReportHeader({
             return [];
         }
         return getSecondaryReportActions({
+            currentUserEmail: currentUserLogin ?? '',
             report: moneyRequestReport,
             chatReport,
             reportTransactions: transactions,
@@ -851,8 +885,9 @@ function MoneyReportHeader({
             reportActions,
             policies,
             isChatReportArchived,
+            isNewDotUpdateSplitsBeta: isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS),
         });
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, chatReport, isChatReportArchived]);
+    }, [moneyRequestReport, currentUserLogin, chatReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isChatReportArchived, isBetaEnabled]);
 
     const secondaryExportActions = useMemo(() => {
         if (!moneyRequestReport) {
@@ -1005,7 +1040,7 @@ function MoneyReportHeader({
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.SPLIT]: {
-            text: translate('iou.split'),
+            text: isExpenseSplit ? translate('iou.editSplits') : translate('iou.split'),
             icon: Expensicons.ArrowSplit,
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
@@ -1197,6 +1232,12 @@ function MoneyReportHeader({
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
+    useEffect(() => {
+        return () => {
+            turnOffMobileSelectionMode();
+        };
+    }, []);
+
     const showDeleteModal = useCallback(() => {
         showConfirmModal({
             title: translate('iou.deleteExpense', {count: selectedTransactionIDs.length}),
@@ -1259,7 +1300,8 @@ function MoneyReportHeader({
 
     if (isMobileSelectionModeEnabled) {
         // If mobile selection mode is enabled but only one or no transactions remain, turn it off
-        if (transactions.length <= 1) {
+        const visibleTransactions = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        if (visibleTransactions.length <= 1) {
             turnOffMobileSelectionMode();
         }
 
@@ -1325,7 +1367,7 @@ function MoneyReportHeader({
                 shouldShowBorderBottom={false}
                 shouldEnableDetailPageNavigation
             >
-                {!shouldDisplayNarrowVersion && (
+                {shouldDisplayNarrowMoreButton && (
                     <View style={[styles.flexRow, styles.gap2]}>
                         {!!primaryAction && !shouldShowSelectedTransactionsButton && primaryActionsImplementation[primaryAction]}
                         {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && KYCMoreDropdown}
@@ -1343,8 +1385,7 @@ function MoneyReportHeader({
                     </View>
                 )}
             </HeaderWithBackButton>
-
-            {shouldDisplayNarrowVersion &&
+            {!shouldDisplayNarrowMoreButton &&
                 (shouldShowSelectedTransactionsButton ? (
                     <View style={[styles.dFlex, styles.w100, styles.ph5]}>
                         <ButtonWithDropdownMenu

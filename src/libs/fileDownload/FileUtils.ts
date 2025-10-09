@@ -654,6 +654,96 @@ const getConfirmModalPrompt = (attachmentInvalidReason: TranslationPaths | undef
     return translateLocal(attachmentInvalidReason);
 };
 
+const MAX_CANVAS_SIZE = 4096;
+const JPEG_QUALITY = 0.85;
+
+/**
+ * Canvas fallback for converting HEIC to JPEG in web browsers
+ */
+const canvasFallback = (blob: Blob, fileName: string): Promise<File> => {
+    if (typeof createImageBitmap === 'undefined') {
+        return Promise.reject(new Error('Canvas fallback not supported in this browser'));
+    }
+
+    return createImageBitmap(blob).then((imageBitmap) => {
+        const canvas = document.createElement('canvas');
+
+        const scale = Math.min(1, MAX_CANVAS_SIZE / Math.max(imageBitmap.width, imageBitmap.height));
+
+        canvas.width = Math.floor(imageBitmap.width * scale);
+        canvas.height = Math.floor(imageBitmap.height * scale);
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            throw new Error('Could not get canvas context');
+        }
+
+        ctx.drawImage(imageBitmap, 0, 0, canvas.width, canvas.height);
+
+        return new Promise<File>((resolve, reject) => {
+            canvas.toBlob(
+                (convertedBlob) => {
+                    if (!convertedBlob) {
+                        reject(new Error('Canvas conversion failed - returned null blob'));
+                        return;
+                    }
+
+                    const jpegFileName = fileName.replace(/\.(heic|heif)$/i, '.jpg');
+                    const jpegFile = Object.assign(new File([convertedBlob], jpegFileName, {type: CONST.IMAGE_FILE_FORMAT.JPEG}), {uri: URL.createObjectURL(convertedBlob)});
+                    resolve(jpegFile);
+                },
+                CONST.IMAGE_FILE_FORMAT.JPEG,
+                JPEG_QUALITY,
+            );
+        });
+    });
+};
+
+function getFilesFromClipboardEvent(event: DragEvent) {
+    if (event.dataTransfer?.files.length && event.dataTransfer?.files.length > 1) {
+        const files = Array.from(event.dataTransfer?.files).map((file) => {
+            // eslint-disable-next-line no-param-reassign
+            file.uri = URL.createObjectURL(file);
+            return file;
+        });
+        return files;
+    }
+
+    const data = event.dataTransfer?.files[0];
+    if (data) {
+        data.uri = URL.createObjectURL(data);
+        return [data];
+    }
+
+    return [];
+}
+
+function cleanFileObject(fileObject: FileObject): FileObject {
+    if ('getAsFile' in fileObject && typeof fileObject.getAsFile === 'function') {
+        return fileObject.getAsFile() as FileObject;
+    }
+
+    return fileObject;
+}
+
+function cleanFileObjectName(fileObject: FileObject): FileObject {
+    if (fileObject instanceof File) {
+        const cleanName = cleanFileName(fileObject.name);
+        if (fileObject.name !== cleanName) {
+            const updatedFile = new File([fileObject], cleanName, {type: fileObject.type});
+            const inputSource = URL.createObjectURL(updatedFile);
+            updatedFile.uri = inputSource;
+            return updatedFile;
+        }
+        if (!fileObject.uri) {
+            const inputSource = URL.createObjectURL(fileObject);
+            // eslint-disable-next-line no-param-reassign
+            fileObject.uri = inputSource;
+        }
+    }
+    return fileObject;
+}
+
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -682,4 +772,8 @@ export {
     getFileValidationErrorText,
     hasHeicOrHeifExtension,
     getConfirmModalPrompt,
+    canvasFallback,
+    getFilesFromClipboardEvent,
+    cleanFileObject,
+    cleanFileObjectName,
 };
