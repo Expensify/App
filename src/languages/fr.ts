@@ -667,6 +667,7 @@ const translations = {
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
         enableGlobalReimbursements: 'Activer les remboursements globaux',
         purchaseAmount: "Montant de l'achat",
+        frequency: 'Fréquence',
         link: 'Lien',
         pinned: 'Épinglé',
         read: 'Lu',
@@ -1140,6 +1141,7 @@ const translations = {
         canceled: 'Annulé',
         posted: 'Publié',
         deleteReceipt: 'Supprimer le reçu',
+        findExpense: 'Trouver une dépense',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `supprimé une dépense (${amount} pour ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `a déplacé une dépense${reportName ? `de ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `déplacé cette dépense${reportName ? `à <a href="${reportUrl}">${reportName}</a>` : ''}`,
@@ -1247,6 +1249,7 @@ const translations = {
         invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Compte professionnel • ${lastFour}`,
         nextStep: 'Étapes suivantes',
         finished: 'Terminé',
+        flip: 'Inverser',
         sendInvoice: ({amount}: RequestAmountParams) => `Envoyer une facture de ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `pour ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `soumis${memo ? `, en disant ${memo}` : ''}`,
@@ -2021,11 +2024,9 @@ const translations = {
     workflowsPage: {
         workflowTitle: 'Dépenser',
         workflowDescription: "Configurez un flux de travail dès que la dépense survient, y compris l'approbation et le paiement.",
-        delaySubmissionTitle: 'Retarder les soumissions',
-        delaySubmissionDescription:
-            'Choisissez un calendrier personnalisé pour soumettre les dépenses, ou laissez cette option désactivée pour des mises à jour en temps réel sur les dépenses.',
         submissionFrequency: 'Fréquence de soumission',
-        disableApprovalPromptDescription: "Désactiver les approbations effacera tous les flux de travail d'approbation existants.",
+        submissionFrequencyDescription:
+            'Choisissez un calendrier personnalisé pour soumettre les dépenses, ou laissez cette option désactivée pour des mises à jour en temps réel sur les dépenses.',
         submissionFrequencyDateOfMonth: 'Date du mois',
         addApprovalsTitle: 'Ajouter des approbations',
         addApprovalButton: "Ajouter un flux de travail d'approbation",
@@ -2039,7 +2040,7 @@ const translations = {
         },
         frequencyDescription: 'Choisissez la fréquence à laquelle vous souhaitez que les dépenses soient soumises automatiquement, ou faites-le manuellement.',
         frequencies: {
-            instant: 'Instantané',
+            instant: 'Immédiatement',
             weekly: 'Hebdomadaire',
             monthly: 'Mensuel',
             twiceAMonth: 'Deux fois par mois',
@@ -2077,7 +2078,6 @@ const translations = {
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: "La soumission retardée n'a pas pu être modifiée. Veuillez réessayer ou contacter le support.",
         autoReportingFrequencyErrorMessage: "La fréquence de soumission n'a pas pu être modifiée. Veuillez réessayer ou contacter le support.",
         monthlyOffsetErrorMessage: "La fréquence mensuelle n'a pas pu être modifiée. Veuillez réessayer ou contacter le support.",
     },
@@ -3752,6 +3752,18 @@ const translations = {
                 createEntitiesDescription: "Expensify créera automatiquement des fournisseurs dans QuickBooks Desktop s'ils n'existent pas déjà.",
             },
             itemsDescription: 'Choisissez comment gérer les éléments QuickBooks Desktop dans Expensify.',
+            accountingMethods: {
+                label: 'Quand exporter',
+                description: 'Choisissez quand exporter les dépenses :',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Espèces',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Les dépenses hors de la poche seront exportées une fois approuvées définitivement.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: "Les dépenses personnelles seront exportées lorsqu'elles seront payées.",
+                },
+            },
         },
         qbo: {
             connectedTo: 'Connecté à',
@@ -7269,6 +7281,7 @@ const translations = {
         exportInProgress: 'Exportation en cours',
         conciergeWillSend: 'Concierge vous enverra le fichier sous peu.',
     },
+    avatarPage: {title: 'Modifier la photo de profil', uploadPhoto: 'Télécharger une photo'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
