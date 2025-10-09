@@ -666,6 +666,7 @@ const translations = {
         unstableInternetConnection: '互联网连接不稳定。请检查你的网络，然后重试。',
         enableGlobalReimbursements: '启用全球报销',
         purchaseAmount: '购买金额',
+        frequency: '频率',
         link: '链接',
         pinned: '已固定',
         read: '已读',
@@ -1126,6 +1127,7 @@ const translations = {
         canceled: '已取消',
         posted: '已发布',
         deleteReceipt: '删除收据',
+        findExpense: '查找费用',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `删除了一笔费用 (${merchant} 的 ${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `移动了一笔费用${reportName ? `来自${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `移动了此费用${reportName ? `至 <a href="${reportUrl}">${reportName}</a>` : ''}`,
@@ -1984,9 +1986,8 @@ const translations = {
     workflowsPage: {
         workflowTitle: '花费',
         workflowDescription: '配置从支出发生到审批和支付的工作流程。',
-        delaySubmissionTitle: '延迟提交',
-        delaySubmissionDescription: '选择自定义的费用提交时间表，或者关闭此选项以实时更新支出。',
         submissionFrequency: '提交频率',
+        submissionFrequencyDescription: '选择自定义的费用提交时间表，或者关闭此选项以实时更新支出。',
         submissionFrequencyDateOfMonth: '月份日期',
         addApprovalsTitle: '添加审批',
         addApprovalButton: '添加审批工作流程',
@@ -2000,7 +2001,7 @@ const translations = {
         },
         frequencyDescription: '选择您希望自动提交费用的频率，或者选择手动提交',
         frequencies: {
-            instant: '即时',
+            instant: '即刻',
             weekly: '每周',
             monthly: '每月',
             twiceAMonth: '每月两次',
@@ -2038,7 +2039,6 @@ const translations = {
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: '延迟提交无法更改。请重试或联系客服。',
         autoReportingFrequencyErrorMessage: '提交频率无法更改。请重试或联系客服。',
         monthlyOffsetErrorMessage: '无法更改每月频率。请重试或联系支持。',
     },
@@ -7100,6 +7100,7 @@ const translations = {
         exportInProgress: '正在导出',
         conciergeWillSend: 'Concierge 很快会将文件发送给您。',
     },
+    avatarPage: {title: '编辑个人资料图片', uploadPhoto: '上传照片'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

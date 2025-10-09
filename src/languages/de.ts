@@ -667,6 +667,7 @@ const translations = {
         unstableInternetConnection: 'Instabile Internetverbindung. Bitte überprüfe dein Netzwerk und versuche es erneut.',
         enableGlobalReimbursements: 'Globale Rückerstattungen aktivieren',
         purchaseAmount: 'Kaufbetrag',
+        frequency: 'Frequenz',
         link: 'Link',
         pinned: 'Angeheftet',
         read: 'Gelesen',
@@ -1140,6 +1141,7 @@ const translations = {
         canceled: 'Abgebrochen',
         posted: 'Gepostet',
         deleteReceipt: 'Beleg löschen',
+        findExpense: 'Ausgabe finden',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `hat eine Ausgabe gelöscht (${amount} für ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `verschob eine Ausgabe${reportName ? `von ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `verschob diese Ausgabe${reportName ? `to <a href="${reportUrl}">${reportName}</a>` : ''}`,
@@ -2021,9 +2023,8 @@ const translations = {
     workflowsPage: {
         workflowTitle: 'Ausgaben',
         workflowDescription: 'Konfigurieren Sie einen Workflow ab dem Moment, in dem Ausgaben anfallen, einschließlich Genehmigung und Zahlung.',
-        delaySubmissionTitle: 'Einreichungen verzögern',
-        delaySubmissionDescription: 'Wählen Sie einen benutzerdefinierten Zeitplan für die Einreichung von Ausgaben oder lassen Sie dies für Echtzeit-Updates zu Ausgaben aus.',
         submissionFrequency: 'Einreichungshäufigkeit',
+        submissionFrequencyDescription: 'Wählen Sie einen benutzerdefinierten Zeitplan für die Einreichung von Ausgaben oder lassen Sie dies für Echtzeit-Updates zu Ausgaben aus.',
         submissionFrequencyDateOfMonth: 'Datum des Monats',
         addApprovalsTitle: 'Genehmigungen hinzufügen',
         addApprovalButton: 'Genehmigungsworkflow hinzufügen',
@@ -2075,7 +2076,6 @@ const translations = {
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: 'Verspätete Einreichung konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
         autoReportingFrequencyErrorMessage: 'Die Einreichungshäufigkeit konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
         monthlyOffsetErrorMessage: 'Die monatliche Frequenz konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
     },
@@ -7262,6 +7262,7 @@ const translations = {
         exportInProgress: 'Export läuft',
         conciergeWillSend: 'Concierge sendet dir die Datei in Kürze.',
     },
+    avatarPage: {title: 'Profilbild bearbeiten', uploadPhoto: 'Foto hochladen'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

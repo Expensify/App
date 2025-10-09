@@ -66,6 +66,7 @@ import {
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
+    hasReceipt,
     hasReservationList,
     hasRoute as hasRouteTransactionUtils,
     isCardTransaction as isCardTransactionTransactionUtils,
@@ -194,9 +195,15 @@ function MoneyRequestView({
     // Use the updated transaction amount in merge flow to have correct positive/negative sign
     const actualAmount = isFromMergeTransaction && updatedTransaction ? updatedTransaction.amount : transactionAmount;
     const actualCurrency = updatedTransaction ? getCurrency(updatedTransaction) : transactionCurrency;
-    const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!actualAmount) && actualAmount !== undefined;
+    const shouldDisplayTransactionAmount = useMemo(() => {
+        return (
+            ((isDistanceRequest && hasRoute) || (!!actualAmount && hasReceipt(updatedTransaction ?? transaction)) || !hasReceipt(updatedTransaction ?? transaction)) &&
+            actualAmount !== undefined
+        );
+    }, [isDistanceRequest, hasRoute, actualAmount, updatedTransaction, transaction]);
     const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency) : '';
-    const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount / (transactionAttendees?.length ?? 1), actualCurrency) : '';
+    const formattedPerAttendeeAmount =
+        shouldDisplayTransactionAmount && actualAmount !== undefined ? convertToDisplayString(actualAmount / (transactionAttendees?.length ?? 1), actualCurrency) : '';
 
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
@@ -273,7 +280,7 @@ function MoneyRequestView({
     const isCurrentTransactionReimbursableDifferentFromPolicyDefault =
         policy?.defaultReimbursable !== undefined && !!(updatedTransaction?.reimbursable ?? transactionReimbursable) !== policy.defaultReimbursable;
     const shouldShowReimbursable =
-        isPolicyExpenseChat && (!policy?.disabledFields?.reimbursable || isCurrentTransactionReimbursableDifferentFromPolicyDefault) && !isCardTransaction && !isInvoice;
+        isPolicyExpenseChat && (policy?.disabledFields?.reimbursable !== true || isCurrentTransactionReimbursableDifferentFromPolicyDefault) && !isCardTransaction && !isInvoice;
     const canEditReimbursable = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
@@ -298,7 +305,7 @@ function MoneyRequestView({
     const rateToDisplay = isCustomUnitOutOfPolicy ? translate('common.rateOutOfPolicy') : DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
-    let amountTitle = formattedTransactionAmount ? formattedTransactionAmount.toString() : '';
+    let amountTitle = formattedTransactionAmount?.toString() || '';
     if (isTransactionScanning) {
         merchantTitle = translate('iou.receiptStatusTitle');
         amountTitle = translate('iou.receiptStatusTitle');
@@ -371,10 +378,6 @@ function MoneyRequestView({
             // Checks applied when creating a new expense
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
-                amount: {
-                    isError: transactionAmount === 0,
-                    translationPath: canEditAmount ? 'common.error.enterAmount' : 'common.error.missingAmount',
-                },
                 merchant: {
                     isError: !isSettled && !isCancelled && isPolicyExpenseChat && isEmptyMerchant,
                     translationPath: canEditMerchant ? 'common.error.enterMerchant' : 'common.error.missingMerchantName',
@@ -413,7 +416,6 @@ function MoneyRequestView({
             return '';
         },
         [
-            transactionAmount,
             isSettled,
             isCancelled,
             isPolicyExpenseChat,
@@ -424,7 +426,6 @@ function MoneyRequestView({
             hasViolations,
             translate,
             getViolationsForField,
-            canEditAmount,
             canEditDate,
             canEditMerchant,
             canEdit,
