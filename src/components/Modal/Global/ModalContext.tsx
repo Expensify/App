@@ -3,8 +3,6 @@ import React, {useCallback, useContext, useMemo, useState} from 'react';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
-// type ModalAction = 'CONFIRM' | 'CLOSE';
-
 const ModalActions = {
     CONFIRM: 'CONFIRM',
     CLOSE: 'CLOSE',
