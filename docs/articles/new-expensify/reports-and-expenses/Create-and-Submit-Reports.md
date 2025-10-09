@@ -6,7 +6,7 @@ keywords: [New Expensify, create report, submit report, retract report, undo sub
 
 Easily manage your business expenses in New Expensify with our streamlined report-first workflow. This guide walks you through creating, editing, submitting, and even retracting expense reports when needed.
 
-**Note:** Report actions like creating, submitting, or retracting can only be done in your own account. If you need to help a teammate, consider asking them to add you as a CoPilot. 
+**Note:** Report actions like creating, submitting, or retracting can only be done in your own account. If you need to help a teammate, consider asking them to add you as a Copilot. 
 
 # How to create and submit reports in New Expensify
 
@@ -89,7 +89,7 @@ Best for teams organizing expenses by project.
 
 ## Monthly or Periodic Reporting
 
-Best for Employees submitting regular monthly reports.
+Best for employees submitting regular monthly reports.
 
 - At the start of the month, tap **Create report**.
 - Title it (e.g., “March 2025 Expenses”).
@@ -98,7 +98,7 @@ Best for Employees submitting regular monthly reports.
 
 ## Travel-Specific Reporting
 
-Best for Frequent travelers or trip-based expense tracking.
+Best for frequent travelers or trip-based expense tracking.
 
 - Create a report at the start of each trip.
 - Add travel-related expenses during or after the trip.
@@ -107,7 +107,7 @@ Best for Frequent travelers or trip-based expense tracking.
 
 ## Team or Department-Level Reports
 
-Best for Managers submitting on behalf of a team.
+Best for managers submitting on behalf of a team.
 
  - Create a report titled by team or department (e.g., “Marketing – Q2 Events”).
  - SmartScan any team receipts into your own account.
@@ -115,13 +115,13 @@ Best for Managers submitting on behalf of a team.
  - Tag teammates in descriptions if useful.
  - Submit based on your internal process.
 
-**Note:** You can only include expenses captured in your own account — expenses can’t be transferred between teammates. If you need to submit a report from a teammate’s account, they’ll need to add you as a CoPilot
+**Note:** You can only include expenses captured in your own account — expenses can’t be transferred between teammates. If you need to submit a report from a teammate’s account, they’ll need to add you as a Copilot.
 
 # FAQ
 
 ## How can an Admin take these actions for another employee?
 
-Admins can’t directly create or submit reports on behalf of others. If you need to manage someone else’s reports, ask them to add you as a [CoPilot](https://docs.expensify.com/en/articles/6823838-use-copilot-access-to-manage-someone-else-s-account).
+Admins can’t directly create or submit reports on behalf of others. If you need to manage someone else’s reports, ask them to add you as a [Copilot](https://docs.expensify.com/en/articles/6823838-use-Copilot-access-to-manage-someone-else-s-account).
 
 ## What happens if I forget to submit a report?
 
