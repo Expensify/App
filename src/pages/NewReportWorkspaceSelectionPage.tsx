@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -22,7 +23,7 @@ import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigati
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar, getPolicyIDsWithEmptyReportsForAccount, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isRHPOnSearchMoneyRequestReportPage from '@navigation/helpers/isRHPOnSearchMoneyRequestReportPage';
@@ -32,7 +33,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {accountIDSelector} from '@selectors/Session';
 
 type WorkspaceListItem = {
     text: string;
@@ -63,9 +66,25 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const [pendingPolicySelection, setPendingPolicySelection] = useState<{policy: WorkspaceListItem; shouldShowEmptyReportConfirmation: boolean} | null>(null);
-    // Get all reports once to check for empty reports
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
+
+    const policiesWithEmptyReportsSelector = useMemo(() => {
+        if (!accountID) {
+            const emptyLookup: Record<string, boolean> = {};
+            return () => emptyLookup;
+        }
+
+        return (reports: OnyxCollection<OnyxTypes.Report>) => getPolicyIDsWithEmptyReportsForAccount(reports, accountID);
+    }, [accountID]);
+
+    const [policiesWithEmptyReports] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT,
+        {
+            canBeMissing: true,
+            selector: policiesWithEmptyReportsSelector,
+        },
+        [policiesWithEmptyReportsSelector],
+    );
 
     const navigateToNewReport = useCallback(
         (optimisticReportID: string) => {
@@ -173,14 +192,12 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             }
 
             // Capture the decision about whether to show empty report confirmation
-            const hasEmptyReport = hasEmptyReportsForPolicy(reports, policy.policyID, session?.accountID);
-
             setPendingPolicySelection({
                 policy,
-                shouldShowEmptyReportConfirmation: hasEmptyReport,
+                shouldShowEmptyReportConfirmation: !!policiesWithEmptyReports?.[policy.policyID],
             });
         },
-        [reports, session?.accountID],
+        [policiesWithEmptyReports],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {

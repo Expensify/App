@@ -8225,6 +8225,35 @@ function hasEmptyReportsForPolicy(reports: OnyxCollection<Report>, policyID: str
 }
 
 /**
+ * Returns a lookup object containing the policy IDs that have empty (no money) open expense reports for a specific user.
+ * An empty report is defined as having total === 0 and nonReimbursableTotal === 0.
+ * This excludes reports that are being deleted or have errors.
+ */
+function getPolicyIDsWithEmptyReportsForAccount(reports: OnyxCollection<Report>, accountID?: number): Record<string, boolean> {
+    if (!accountID) {
+        return {};
+    }
+
+    return Object.values(reports ?? {}).reduce<Record<string, boolean>>((policyLookup, report) => {
+        if (!report?.policyID) {
+            return policyLookup;
+        }
+
+        if (report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errors) {
+            return policyLookup;
+        }
+
+        const hasNoMoney = (report.total ?? 0) === 0 && (report.nonReimbursableTotal ?? 0) === 0;
+
+        if (isOpenExpenseReport(report) && report.ownerAccountID === accountID && hasNoMoney) {
+            policyLookup[report.policyID] = true;
+        }
+
+        return policyLookup;
+    }, {});
+}
+
+/**
  * Check if the report is empty, meaning it has no visible messages (i.e. only a "created" report action).
  * No cache implementation which bypasses derived value check.
  */
@@ -12015,6 +12044,7 @@ export {
     getInvoicePayerName,
     getInvoicesChatName,
     getPayeeName,
+    getPolicyIDsWithEmptyReportsForAccount,
     hasActionWithErrorsForTransaction,
     hasAutomatedExpensifyAccountIDs,
     hasEmptyReportsForPolicy,

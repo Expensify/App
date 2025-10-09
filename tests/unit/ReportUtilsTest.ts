@@ -51,6 +51,7 @@ import {
     getParticipantsList,
     getPolicyExpenseChat,
     getPolicyExpenseChatName,
+    getPolicyIDsWithEmptyReportsForAccount,
     getReasonAndReportActionThatRequiresAttention,
     getReportActionActorAccountID,
     getReportIDFromLink,
@@ -7561,6 +7562,63 @@ describe('ReportUtils', () => {
             );
 
             expect(hasEmptyReportsForPolicy(reports, policyID, CONST.DEFAULT_NUMBER_ID)).toBe(false);
+        });
+    });
+
+    describe('getPolicyIDsWithEmptyReportsForAccount', () => {
+        const policyID = 'workspace-001';
+        const otherPolicyID = 'workspace-002';
+        const accountID = 555555;
+        const otherAccountID = 999999;
+
+        const buildReport = (overrides: Partial<Report> = {}): Report => ({
+            reportID: overrides.reportID ?? 'report-1',
+            policyID,
+            ownerAccountID: accountID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 0,
+            nonReimbursableTotal: 0,
+            pendingAction: null,
+            errors: undefined,
+            ...overrides,
+        });
+
+        const toCollection = (...reports: Report[]): OnyxCollection<Report> =>
+            reports.reduce<Record<string, Report>>((acc, report, index) => {
+                acc[report.reportID ?? String(index)] = report;
+                return acc;
+            }, {});
+
+        it('returns empty object when accountID is missing', () => {
+            const reports = toCollection(buildReport({reportID: 'empty'}));
+
+            expect(getPolicyIDsWithEmptyReportsForAccount(reports, undefined)).toEqual({});
+        });
+
+        it('marks policy IDs that have empty reports owned by the user', () => {
+            const reports = toCollection(
+                buildReport({reportID: 'policy-a', policyID}),
+                buildReport({reportID: 'policy-b', policyID: otherPolicyID}),
+            );
+
+            expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID)).toEqual({
+                [policyID]: true,
+                [otherPolicyID]: true,
+            });
+        });
+
+        it('ignores reports that do not qualify', () => {
+            const reports = toCollection(
+                buildReport({reportID: 'with-money', total: 100}),
+                buildReport({reportID: 'other-owner', ownerAccountID: otherAccountID}),
+                buildReport({reportID: 'pending-delete', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+                buildReport({reportID: 'with-errors', errors: {message: 'error'}}),
+                buildReport({reportID: 'chat', type: CONST.REPORT.TYPE.CHAT}),
+            );
+
+            expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID)).toEqual({});
         });
     });
 });

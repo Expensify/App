@@ -45,8 +45,9 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {IntroSelected, PersonalDetails, Policy, Transaction} from '@src/types/onyx';
+import type {IntroSelected, PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import {accountIDSelector} from '@selectors/Session';
 
 type EmptySearchViewProps = {
     similarSearchHash: number;
@@ -196,8 +197,24 @@ function EmptySearchViewContent({
 
     const inferredWorkspaceID = inferredWorkspacePolicy?.id;
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
+
+    const hasEmptyReportSelector = useMemo(() => {
+        if (!inferredWorkspaceID || !accountID) {
+            return () => false;
+        }
+
+        return (reports: OnyxCollection<Report>) => hasEmptyReportsForPolicy(reports, inferredWorkspaceID, accountID);
+    }, [accountID, inferredWorkspaceID]);
+
+    const [hasEmptyReport = false] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT,
+        {
+            canBeMissing: true,
+            selector: hasEmptyReportSelector,
+        },
+        [hasEmptyReportSelector],
+    );
 
     const handleCreateWorkspaceReport = useCallback(() => {
         if (!inferredWorkspaceID) {
@@ -208,7 +225,7 @@ function EmptySearchViewContent({
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
         });
-    }, [currentUserPersonalDetails, inferredWorkspaceID]);
+    }, [currentUserPersonalDetails, hasViolations, inferredWorkspaceID, isASAPSubmitBetaEnabled]);
 
     const {openCreateReportConfirmation: openCreateReportFromSearch, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
         policyID: inferredWorkspaceID,
@@ -217,14 +234,12 @@ function EmptySearchViewContent({
     });
 
     const handleCreateReportClick = useCallback(() => {
-        const hasEmptyReport = hasEmptyReportsForPolicy(allReports, inferredWorkspaceID, session?.accountID);
-
         if (hasEmptyReport) {
             openCreateReportFromSearch();
         } else {
             handleCreateWorkspaceReport();
         }
-    }, [allReports, session?.accountID, inferredWorkspaceID, handleCreateWorkspaceReport, openCreateReportFromSearch]);
+    }, [hasEmptyReport, handleCreateWorkspaceReport, openCreateReportFromSearch]);
 
     const typeMenuItems = useMemo(() => {
         return typeMenuSections.map((section) => section.menuItems).flat();
