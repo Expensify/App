@@ -1333,24 +1333,32 @@ function PureReportActionItem({
         } else if (isActionableCardFraudAlert(action)) {
             const fraudMessage = getOriginalMessage(action);
             const cardLastFour = fraudMessage?.maskedCardNumber?.slice(-4) ?? '';
+
+            // USD is hardcoded because Expensify cards operate exclusively in USD
             const formattedAmount = CurrencyUtils.convertToDisplayString(fraudMessage?.triggerAmount ?? 0, 'USD');
             const merchant = fraudMessage?.triggerMerchant ?? '';
             const resolution = fraudMessage?.resolution;
             const formattedDate = action.created ? format(getLocalDateFromDatetime(action.created), 'MMM. d - h:mma').replace(/am|pm/i, (match) => match.toUpperCase()) : '';
 
-            const message = resolution
-                ? (resolution === 'recognized'
-                    ? translate('cardPage.cardFraudAlert.clearedMessage', {cardLastFour})
-                    : translate('cardPage.cardFraudAlert.deactivatedMessage', {cardLastFour}))
-                : translate('cardPage.cardFraudAlert.alertMessage', {
-                      cardLastFour,
-                      amount: formattedAmount,
-                      merchant,
-                      date: formattedDate,
-                  });
+            let message;
+            if (!resolution) {
+                message = translate('cardPage.cardFraudAlert.alertMessage', {
+                    cardLastFour,
+                    amount: formattedAmount,
+                    merchant,
+                    date: formattedDate,
+                });
+            } else if (resolution === CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED) {
+                message = translate('cardPage.cardFraudAlert.clearedMessage', {cardLastFour});
+            } else {
+                message = translate('cardPage.cardFraudAlert.deactivatedMessage', {cardLastFour});
+            }
 
             children = (
-                <View>
+                <View
+                    accessibilityRole="alert"
+                    accessibilityLabel="Card fraud alert"
+                >
                     <ReportActionItemBasicMessage message={message} />
                     {actionableItemButtons.length > 0 && (
                         <ActionableItemButtons

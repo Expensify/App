@@ -147,6 +147,7 @@ type OriginalMessageActionableMentionWhisper = {
     whisperedTo?: number[];
 };
 
+/** Model of `actionable card fraud alert` report action */
 type OriginalMessageCardFraudAlert = {
     /** Card ID */
     cardID: number;
@@ -161,7 +162,7 @@ type OriginalMessageCardFraudAlert = {
     triggerMerchant: string;
 
     /** Resolution: 'recognized' or 'fraud' */
-    resolution?: string;
+    resolution?: ValueOf<typeof CONST.CARD_FRAUD_ALERT_RESOLUTION>;
 };
 
 /** Model of `actionable mention whisper` report action */

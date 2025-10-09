@@ -969,7 +969,7 @@ function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: numb
 }
 
 function resolveFraudAlert(cardID: number, isFraud: boolean, reportID: string, reportActionID: string) {
-    const resolution = isFraud ? 'fraud' : 'recognized';
+    const resolution = isFraud ? CONST.CARD_FRAUD_ALERT_RESOLUTION.FRAUD : CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED;
 
     const optimisticData: OnyxUpdate[] = [
         {

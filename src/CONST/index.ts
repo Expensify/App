@@ -7092,6 +7092,11 @@ const CONST = {
         HAS_UNRESOLVED_CARD_FRAUD_ALERT: 'hasUnresolvedCardFraudAlert',
     },
 
+    CARD_FRAUD_ALERT_RESOLUTION: {
+        RECOGNIZED: 'recognized',
+        FRAUD: 'fraud',
+    },
+
     RBR_REASONS: {
         HAS_ERRORS: 'hasErrors',
         HAS_VIOLATIONS: 'hasViolations',
