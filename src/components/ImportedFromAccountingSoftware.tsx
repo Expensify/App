@@ -10,7 +10,6 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import Icon from './Icon';
-import RenderHTML from './RenderHTML';
 import Text from './Text';
 import TextBlock from './TextBlock';
 import TextLinkBlock from './TextLinkBlock';
@@ -27,31 +26,14 @@ type ImportedFromAccountingSoftwareProps = {
 
     /** The translated text for the "imported from" message */
     translatedText: string;
-
-    /** The custom tag name */
-    customTagName?: string;
-
-    /** Whether we are displaying the tags */
-    isDisplayingTags?: boolean;
 };
 
-function ImportedFromAccountingSoftware({
-    policyID,
-    currentConnectionName,
-    translatedText,
-    connectedIntegration,
-    customTagName,
-    isDisplayingTags = false,
-}: ImportedFromAccountingSoftwareProps) {
+function ImportedFromAccountingSoftware({policyID, currentConnectionName, translatedText, connectedIntegration}: ImportedFromAccountingSoftwareProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const icon = getIntegrationIcon(connectedIntegration);
-
-    if (!customTagName && isDisplayingTags) {
-        return null;
-    }
 
     return (
         <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexWrap]}>
@@ -74,12 +56,7 @@ function ImportedFromAccountingSoftware({
                     ) : undefined
                 }
             />
-            <Text style={[styles.textNormal, styles.colorMuted]}>. </Text>
-            {isDisplayingTags && !!customTagName && (
-                <View style={[styles.renderHTML]}>
-                    <RenderHTML html={translate('workspace.tags.employeesSeeTagsAs', {customTagName})} />
-                </View>
-            )}
+            <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
         </View>
     );
 }
