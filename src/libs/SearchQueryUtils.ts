@@ -209,7 +209,7 @@ function getFilters(queryJSON: SearchQueryJSON) {
         }
 
         const nodeKey = node.left as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
-        if (!filterKeys.includes(nodeKey)) {
+        if (!filterKeys.includes(nodeKey) && !nodeKey.startsWith(CONST.SEARCH.REPORT_FIELD_PREFIX)) {
             return;
         }
 
