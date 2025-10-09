@@ -29,6 +29,7 @@ const getConfiguration = (environment: Environment): Configuration[] => {
         entry: {
             main: './desktop/main.ts',
             contextBridge: './desktop/contextBridge.ts',
+            afterPack: './desktop/afterPack.ts',
         },
         output: {
             filename: '[name].js',
