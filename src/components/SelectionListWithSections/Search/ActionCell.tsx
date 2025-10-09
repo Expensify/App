@@ -4,6 +4,7 @@ import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {PaymentMethod} from '@components/KYCWall/types';
 import SettlementButton from '@components/SettlementButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -20,6 +21,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
+import { PayInvoiceParams } from '@libs/API/parameters';
 
 const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
     view: 'common.view',
@@ -72,14 +74,24 @@ function ActionCell({
     const {currency} = iouReport ?? {};
 
     const confirmPayment = useCallback(
-        (type: ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined) => {
+        (type: ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod | undefined) => {
             if (!type || !reportID || !hash || !amount) {
                 return;
             }
+            const invoiceParams: Record<string, unknown> = {
+                policyID,
+                payAsBusiness,
+            };
+            if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+                invoiceParams.bankAccountID = methodID;
+            }
 
-            payMoneyRequestOnSearch(hash, [{amount, paymentType: type, reportID}]);
+            if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+                invoiceParams.fundID = methodID;
+            }
+            payMoneyRequestOnSearch(hash, [{amount, paymentType: type, reportID, ...(isInvoiceReport(iouReport) ? invoiceParams : {})}]);
         },
-        [hash, amount, reportID],
+        [reportID, hash, amount, policyID, iouReport],
     );
 
     if (!isChildListItem && ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID) || action === CONST.SEARCH.ACTION_TYPES.DONE)) {
@@ -137,7 +149,7 @@ function ActionCell({
                 iouReport={iouReport}
                 chatReportID={iouReport?.chatReportID}
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                onPress={(type) => confirmPayment(type as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>)}
+                onPress={(type, payAsBusiness, methodID, paymentMethod) => confirmPayment(type as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>, payAsBusiness, methodID, paymentMethod)}
                 style={[styles.w100]}
                 wrapperStyle={[styles.w100]}
                 shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
