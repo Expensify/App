@@ -580,8 +580,7 @@ function IOURequestStepScan({
             if (!file) {
                 return;
             }
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            setMoneyRequestReceipt(initialTransactionID, file.uri || '', file.name || '', !isEditing);
+            setMoneyRequestReceipt(initialTransactionID, file.uri ?? '', file.name ?? '', !isEditing);
             updateScanAndNavigate(file, file.uri ?? '');
             return;
         }
