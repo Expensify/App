@@ -17,7 +17,6 @@ import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {buildTravelDotURL} from '@libs/actions/Link';
-import * as Report from '@libs/actions/Report';
 import {addComment} from '@libs/actions/Report';
 import {acceptSpotnanaTerms, cleanupTravelProvisioningSession} from '@libs/actions/Travel';
 import asyncOpenURL from '@libs/asyncOpenURL';
@@ -47,20 +46,18 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const isLoading = travelProvisioning?.isLoading;
     const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     const createTravelEnablementIssue = useCallback(() => {
-        const message = translate('travel.verifyCompany.conciergeMessage', {domain: account?.primaryLogin?.split('@')[1] || ''});
-
-        if (conciergeReportID) {
-            // If we have the Concierge report ID, add the comment directly
-            addComment(conciergeReportID, conciergeReportID, message, CONST.DEFAULT_TIME_ZONE);
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
-        } else {
-            // If we don't have the Concierge report ID yet, navigate to create it first
-            Report.navigateToConciergeChat();
+        if (!conciergeReportID) {
+            return;
         }
+
+        const message = translate('travel.verifyCompany.conciergeMessage', {domain: account?.primaryLogin?.split('@')[1] ?? ''});
+
+        addComment(conciergeReportID, conciergeReportID, message, CONST.DEFAULT_TIME_ZONE);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
     }, [translate, account?.primaryLogin, conciergeReportID]);
 
     useEffect(() => {
