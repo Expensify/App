@@ -81,12 +81,6 @@ type BaseTextInputWithSymbolProps = {
     /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
     shouldApplyPaddingToContainer?: boolean;
 
-    /** Whether the amount is negative */
-    isNegative?: boolean;
-
-    /** Function to toggle the amount to negative */
-    toggleNegative?: () => void;
-
     /** The test ID of TextInput. Used to locate the view in end-to-end tests. */
     testID?: string;
 } & Pick<
