@@ -667,6 +667,7 @@ const translations = {
         unstableInternetConnection: 'Connessione Internet instabile. Controlla la tua rete e riprova.',
         enableGlobalReimbursements: 'Abilita i rimborsi globali',
         purchaseAmount: 'Importo di acquisto',
+        frequency: 'Frequenza',
         link: 'Link',
         pinned: 'Fissato',
         read: 'Letto',
@@ -1135,6 +1136,7 @@ const translations = {
         canceled: 'Annullato',
         posted: 'Pubblicato',
         deleteReceipt: 'Elimina ricevuta',
+        findExpense: 'Trova spesa',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `ha eliminato una spesa (${amount} per ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `ha spostato una spesa${reportName ? `da ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `spostato questa spesa${reportName ? `a <a href="${reportUrl}">${reportName}</a>` : ''}`,
@@ -1241,6 +1243,7 @@ const translations = {
         invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Conto aziendale • ${lastFour}`,
         nextStep: 'Prossimi passi',
         finished: 'Finito',
+        flip: 'Inverti',
         sendInvoice: ({amount}: RequestAmountParams) => `Invia fattura di ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `per ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `inviato${memo ? `, dicendo: ${memo}` : ''}`,
@@ -2012,10 +2015,8 @@ const translations = {
     workflowsPage: {
         workflowTitle: 'Spendere',
         workflowDescription: 'Configura un flusso di lavoro dal momento in cui si verifica una spesa, inclusi approvazione e pagamento.',
-        delaySubmissionTitle: 'Ritarda invii',
-        delaySubmissionDescription: "Scegli un programma personalizzato per l'invio delle spese, oppure lascia disattivato per aggiornamenti in tempo reale sulle spese.",
         submissionFrequency: 'Frequenza di invio',
-        disableApprovalPromptDescription: 'Disabilitare le approvazioni eliminerà tutti i flussi di lavoro di approvazione esistenti.',
+        submissionFrequencyDescription: "Scegli un programma personalizzato per l'invio delle spese, oppure lascia disattivato per aggiornamenti in tempo reale sulle spese.",
         submissionFrequencyDateOfMonth: 'Data del mese',
         addApprovalsTitle: 'Aggiungi approvazioni',
         addApprovalButton: 'Aggiungi flusso di lavoro di approvazione',
@@ -2029,7 +2030,7 @@ const translations = {
         },
         frequencyDescription: 'Scegli con quale frequenza desideri che le spese vengano inviate automaticamente, oppure impostale manualmente.',
         frequencies: {
-            instant: 'Istantaneo',
+            instant: 'Immediatamente',
             weekly: 'Settimanale',
             monthly: 'Mensile',
             twiceAMonth: 'Due volte al mese',
@@ -2067,7 +2068,6 @@ const translations = {
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: 'La presentazione ritardata non può essere modificata. Per favore, riprova o contatta il supporto.',
         autoReportingFrequencyErrorMessage: "La frequenza di invio non può essere modificata. Riprova o contatta l'assistenza.",
         monthlyOffsetErrorMessage: 'La frequenza mensile non può essere modificata. Riprova o contatta il supporto.',
     },
@@ -7272,6 +7272,7 @@ const translations = {
         exportInProgress: 'Esportazione in corso',
         conciergeWillSend: 'Concierge ti invierà il file a breve.',
     },
+    avatarPage: {title: 'Modifica immagine del profilo', uploadPhoto: 'Carica foto'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

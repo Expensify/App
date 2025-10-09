@@ -37,6 +37,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {close as closeModal} from '@userActions/Modal';
@@ -68,6 +69,7 @@ function WalletPage() {
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const {isBetaEnabled} = usePermissions();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -352,7 +354,7 @@ function WalletPage() {
             ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
             {
                 text: translate('workspace.common.viewTransactions'),
-                icon: Expensicons.MoneySearch,
+                icon: expensifyIcons.MoneySearch,
                 onSelected: () => {
                     Navigation.navigate(
                         ROUTES.SEARCH_ROOT.getRoute({
