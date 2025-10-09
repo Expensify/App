@@ -6957,6 +6957,8 @@ function createSplitsAndOnyxData({
         }
 
         // Add category to optimistic policy recently used categories when a participant is a workspace
+        // TODO: Replace buildOptimisticPolicyRecentlyUsedCategories with useOnyx hook (https://github.com/Expensify/App/issues/66557)
+        // eslint-disable-next-line deprecation/deprecation
         const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category) : [];
 
         const optimisticRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
@@ -7509,7 +7511,8 @@ function startSplitBill({
         if (!isPolicyExpenseChat) {
             return;
         }
-
+        // TODO: Replace buildOptimisticPolicyRecentlyUsedCategories with useOnyx hook (https://github.com/Expensify/App/issues/66557)
+        // eslint-disable-next-line deprecation/deprecation
         const optimisticPolicyRecentlyUsedCategories = buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category);
         const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
             policyTags: getPolicyTagsData(participant.policyID),
