@@ -82,9 +82,13 @@ function StatusPage() {
 
     const navigateBackToPreviousScreenTask = useRef<{
         then: (
+            // eslint-disable-next-line deprecation/deprecation
             onfulfilled?: () => typeof InteractionManager.runAfterInteractions,
+            // eslint-disable-next-line deprecation/deprecation
             onrejected?: () => typeof InteractionManager.runAfterInteractions,
+            // eslint-disable-next-line deprecation/deprecation
         ) => Promise<typeof InteractionManager.runAfterInteractions>;
+        // eslint-disable-next-line deprecation/deprecation
         done: (...args: Array<typeof InteractionManager.runAfterInteractions>) => typeof InteractionManager.runAfterInteractions;
         cancel: () => void;
     } | null>(null);
@@ -118,6 +122,7 @@ function StatusPage() {
                 emojiCode: !emojiCode && statusText ? initialEmoji : emojiCode,
                 clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
             });
+            // eslint-disable-next-line deprecation/deprecation
             navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
                 clearDraftCustomStatus();
                 navigateBackToPreviousScreen();
@@ -138,6 +143,7 @@ function StatusPage() {
         });
         formRef.current?.resetForm({[INPUT_IDS.EMOJI_CODE]: ''});
 
+        // eslint-disable-next-line deprecation/deprecation
         navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
             navigateBackToPreviousScreen();
         });
@@ -202,7 +208,7 @@ function StatusPage() {
                 <View style={[styles.mh5, styles.mv1]}>
                     <Text style={[styles.textNormal, styles.mt2]}>{translate('statusPage.statusExplanation')}</Text>
                 </View>
-                <View style={[styles.mb2, styles.mt4]}>
+                <View style={[styles.mt4]}>
                     <View style={[styles.mb4, styles.ph5]}>
                         <InputWrapper
                             InputComponent={EmojiPickerButtonDropdown}
@@ -244,11 +250,8 @@ function StatusPage() {
                     {(!!currentUserEmojiCode || !!currentUserStatusText) && (
                         <MenuItem
                             title={translate('statusPage.clearStatus')}
-                            titleStyle={styles.ml0}
                             icon={Expensicons.Trashcan}
                             onPress={clearStatus}
-                            iconFill={theme.danger}
-                            wrapperStyle={[styles.pl2]}
                         />
                     )}
                 </View>

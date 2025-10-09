@@ -11,7 +11,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import RadioButtonWithLabel from '@components/RadioButtonWithLabel';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -211,12 +211,13 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                 onPress={() => handleIntegrationSelect(item.keyForList)}
                 accessibilityLabel={item.text}
                 accessible={false}
-                hoverStyle={styles.hoveredComponentBG}
-                style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100]}
+                hoverStyle={!item.isSelected ? styles.hoveredComponentBG : undefined}
+                style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100, item.isSelected && styles.activeComponentBG]}
             >
                 <RadioButtonWithLabel
                     isChecked={!!item.isSelected}
                     onPress={() => handleIntegrationSelect(item.keyForList)}
+                    style={[styles.flexRowReverse]}
                     wrapperStyle={[styles.ml0]}
                     labelElement={
                         <View style={[styles.alignItemsCenter, styles.flexRow]}>
@@ -224,6 +225,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                             <Text style={styles.textStrong}>{item.text}</Text>
                         </View>
                     }
+                    shouldBlendOpacity
                 />
             </PressableWithoutFeedback>
         ),
@@ -233,6 +235,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
             styles.alignItemsCenter,
             styles.flexBasis100,
             styles.flexRow,
+            styles.flexRowReverse,
             styles.ml0,
             styles.onboardingAccountingItem,
             styles.textStrong,

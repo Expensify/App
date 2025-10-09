@@ -2,14 +2,14 @@ import React, {useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import {updateSelectedTimezone} from '@userActions/PersonalDetails';
+import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import TIMEZONES from '@src/TIMEZONES';
@@ -39,7 +39,7 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
     const [timezoneOptions, setTimezoneOptions] = useState(allTimezones);
 
     const saveSelectedTimezone = ({text}: {text: string}) => {
-        updateSelectedTimezone(text as SelectedTimezone);
+        PersonalDetails.updateSelectedTimezone(text as SelectedTimezone, currentUserPersonalDetails.accountID);
     };
 
     const filterShownTimezones = (searchText: string) => {
@@ -77,7 +77,7 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
                 initiallyFocusedOptionKey={timezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList}
                 showScrollIndicator
                 shouldShowTooltips={false}
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 shouldPreventActiveCellVirtualization
             />
         </ScreenWrapper>

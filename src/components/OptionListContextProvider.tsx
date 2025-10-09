@@ -55,7 +55,6 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
     const hasInitialData = useMemo(() => Object.keys(personalDetails ?? {}).length > 0, [personalDetails]);
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
 
     const loadOptions = useCallback(() => {
         const optionLists = createOptionList(personalDetails, reports, reportAttributes?.reports);
@@ -165,7 +164,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReportActions, personalDetails, reportAttributes?.reports, transactions]);
+    }, [changedReportActions, personalDetails, reportAttributes?.reports]);
 
     /**
      * This effect is used to update the options list when personal details change.
@@ -270,6 +269,7 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const prevOptions = useRef<OptionList>(null);
     const [areInternalOptionsInitialized, setAreInternalOptionsInitialized] = useState(false);
 
+    const prevIsInitialized = usePrevious(areOptionsInitialized);
     useEffect(() => {
         if (!prevOptions.current) {
             prevOptions.current = optionsList;
@@ -283,12 +283,17 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
          */
         const areOptionsEqual = shallowOptionsListCompare(prevOptions.current, optionsList);
         prevOptions.current = optionsList;
+        const hasInitializedChanged = prevIsInitialized !== areOptionsInitialized;
         if (areOptionsEqual) {
+            if (hasInitializedChanged) {
+                setAreInternalOptionsInitialized(areOptionsInitialized);
+            }
+
             return;
         }
         setInternalOptions(optionsList);
         setAreInternalOptionsInitialized(areOptionsInitialized);
-    }, [optionsList, areOptionsInitialized]);
+    }, [optionsList, areOptionsInitialized, prevIsInitialized]);
 
     useEffect(() => {
         if (!shouldInitialize || areOptionsInitialized) {

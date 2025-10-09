@@ -234,6 +234,100 @@ describe('CustomFormula', () => {
         });
     });
 
+    describe('Function Modifiers', () => {
+        const mockContext: FormulaContext = {
+            report: {
+                reportID: 'report123456789',
+                reportName: '',
+                type: 'expense',
+                total: -10000, // -$100.00
+                currency: 'USD',
+                lastVisibleActionCreated: '2025-01-15T10:30:00Z',
+                policyID: 'policy1',
+            } as Report,
+            policy: {
+                name: 'Engineering Department Rules',
+            } as Policy,
+        };
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        describe('frontpart modifier', () => {
+            test('should extract front part of email', () => {
+                const result = compute('{report:submit:from:email|frontpart}', mockContext);
+                // Submit part extraction not implemented yet; for now, it returns the definition
+                // Once implemented, this should return 'frontpart' of the email
+                expect(result).toBe('{report:submit:from:email|frontpart}');
+            });
+
+            test('should extract first word from non-email text', () => {
+                const result = compute('{report:policyname|frontpart}', mockContext);
+                expect(result).toBe('Engineering'); // First word of "Engineering Department Rules"
+            });
+
+            test('should handle empty strings', () => {
+                const contextWithEmpty: FormulaContext = {
+                    report: {} as Report,
+                    policy: {name: ''} as Policy,
+                };
+                const result = compute('{report:policyname|frontpart}', contextWithEmpty);
+                expect(result).toBe('{report:policyname|frontpart}'); // Falls back to formula definition
+            });
+        });
+
+        describe('domain modifier', () => {
+            test('should extract domain from email', () => {
+                const result = compute('{report:submit:from:email|domain}', mockContext);
+                // Submit part extraction not implemented yet; for now, it returns the definition
+                // Once implemented, this should return 'domain' of the email
+                expect(result).toBe('');
+            });
+
+            test('should return empty for non-email text', () => {
+                const result = compute('{report:policyname|domain}', mockContext);
+                expect(result).toBe(''); // "Engineering Department Rules" has no @ symbol
+            });
+
+            test('should handle empty strings', () => {
+                const contextWithEmpty: FormulaContext = {
+                    report: {} as Report,
+                    policy: {name: ''} as Policy,
+                };
+                const result = compute('{report:policyname|domain}', contextWithEmpty);
+                expect(result).toBe(''); // Empty policy name
+            });
+        });
+
+        describe('substr modifier', () => {
+            test('should extract substring with start and length', () => {
+                const result = compute('{report:policyname|substr:0:11}', mockContext);
+                expect(result).toBe('Engineering'); // First 11 characters of "Engineering Department Rules"
+            });
+
+            test('should extract substring with only start position', () => {
+                const result = compute('{report:policyname|substr:12}', mockContext);
+                expect(result).toBe('Department Rules'); // From position 12 to end
+            });
+
+            test('should handle start position beyond string length', () => {
+                const result = compute('{report:policyname|substr:50:10}', mockContext);
+                expect(result).toBe(''); // Start position 50 is beyond string length
+            });
+
+            test('should handle length larger than remaining string', () => {
+                const result = compute('{report:policyname|substr:23:50}', mockContext);
+                expect(result).toBe('Rules'); // Only remaining characters
+            });
+
+            test('should handle invalid length parameter', () => {
+                const result = compute('{report:policyname|substr:0:abc}', mockContext);
+                expect(result).toBe(''); // Invalid length, returns empty
+            });
+        });
+    });
+
     describe('Edge Cases', () => {
         test('should handle malformed braces', () => {
             const parts = parse('{incomplete');

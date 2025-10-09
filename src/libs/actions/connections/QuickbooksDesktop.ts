@@ -426,13 +426,10 @@ function updateQuickbooksDesktopEnableNewCategories<TSettingValue extends Connec
 }
 
 function updateQuickbooksDesktopSyncClasses<TSettingValue extends Connections['quickbooksDesktop']['config']['mappings']['classes']>(
-    policyID: string | undefined,
+    policyID: string,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
-    if (!policyID) {
-        return;
-    }
     const onyxData = buildOnyxDataForQuickbooksDesktopMappingsConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES, settingValue, oldSettingValue);
     const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
         policyID,
@@ -443,13 +440,10 @@ function updateQuickbooksDesktopSyncClasses<TSettingValue extends Connections['q
 }
 
 function updateQuickbooksDesktopSyncCustomers<TSettingValue extends Connections['quickbooksDesktop']['config']['mappings']['customers']>(
-    policyID: string | undefined,
+    policyID: string,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
-    if (!policyID) {
-        return;
-    }
     const onyxData = buildOnyxDataForQuickbooksDesktopMappingsConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS, settingValue, oldSettingValue);
     const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
         policyID,
@@ -504,13 +498,10 @@ function updateQuickbooksDesktopNonReimbursableExpensesAccount<TSettingValue ext
 }
 
 function updateQuickbooksDesktopNonReimbursableBillDefaultVendor<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['nonReimbursableBillDefaultVendor']>(
-    policyID: string | undefined,
+    policyID: string,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
-    if (!policyID) {
-        return;
-    }
     const onyxData = buildOnyxDataForQuickbooksExportConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, settingValue, oldSettingValue);
 
     const parameters: UpdateQuickbooksDesktopGenericTypeParams = {

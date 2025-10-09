@@ -101,6 +101,7 @@ function signInToOldDotAndChooseExperience(hybridApp: OnyxEntry<HybridApp>, tryN
         email: getCurrentUserEmail() ?? '',
         // eslint-disable-next-line rulesdir/no-default-id-values
         policyID: activePolicyID ?? '',
+        signingInWithSAML: hybridApp?.signingInWithSAML ?? false,
     });
 
     if (tryNewDot !== undefined) {

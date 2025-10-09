@@ -624,6 +624,27 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 calendlySchedule: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 calendlyCalls: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 agentZeroProcessingRequestIndicator: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                expensify_text_title: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+            });
+        case 'expensify_text_title':
+            return validateObject<ObjectElement<ReportNameValuePairs, 'expensify_text_title'>>(value, {
+                fieldID: 'string',
+                type: 'string',
+                name: 'string',
+                keys: 'array',
+                values: 'array',
+                defaultValue: 'string',
+                orderWeight: 'number',
+                deletable: 'boolean',
+                value: 'string',
+                target: 'string',
+                externalIDs: 'array',
+                disabledOptions: 'array',
+                isTax: 'boolean',
+                externalID: 'string',
+                origin: 'string',
+                defaultExternalID: 'string',
             });
     }
 }
@@ -1056,6 +1077,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     accountant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isDemoTransaction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    splitExpensesTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxValue: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
@@ -1096,6 +1118,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 dismissedViolations: 'object',
                 splitExpenses: 'array',
                 isDemoTransaction: 'boolean',
+                splitExpensesTotal: 'number',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {

@@ -11,6 +11,7 @@ const useRestoreInputFocus = (isLostFocus: boolean) => {
         }
 
         if (!isLostFocus && keyboardVisibleBeforeLoosingFocusRef.current) {
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => {
                 KeyboardController.setFocusTo('current');
             });

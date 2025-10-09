@@ -124,14 +124,19 @@ Onyx.connect({
 });
 
 /** Check if the passed employee is an approver in the policy's employeeList */
-function isApprover(policy: OnyxEntry<Policy>, employeeAccountID: number) {
-    const employeeLogin = allPersonalDetails?.[employeeAccountID]?.login;
+function isApprover(policy: OnyxEntry<Policy>, employeeLogin: string) {
     if (policy?.approver === employeeLogin) {
         return true;
     }
     return Object.values(policy?.employeeList ?? {}).some(
         (employee) => employee?.submitsTo === employeeLogin || employee?.forwardsTo === employeeLogin || employee?.overLimitForwardsTo === employeeLogin,
     );
+}
+
+/** Temporary function alias for isApprover with employeeAccountID */
+function isApproverTemp(policy: OnyxEntry<Policy>, employeeAccountID: number) {
+    const employeeLogin = allPersonalDetails?.[employeeAccountID]?.login;
+    return isApprover(policy, employeeLogin ?? '');
 }
 
 /**
@@ -1039,7 +1044,7 @@ function importPolicyMembers(policyID: string, members: PolicyMember[]) {
         (acc, curr) => {
             const employee = policy?.employeeList?.[curr.email];
             if (employee) {
-                if (curr.role !== employee.role || curr.submitsTo !== employee.submitsTo || curr.forwardsTo !== employee.forwardsTo) {
+                if (curr.role !== employee.role || (curr.submitsTo ?? '') !== (employee.submitsTo ?? '') || (curr.forwardsTo ?? '') !== (employee.forwardsTo ?? '')) {
                     acc.updated++;
                 }
             } else {
@@ -1385,4 +1390,5 @@ export {
     clearWorkspaceInviteRoleDraft,
     setImportedSpreadsheetMemberData,
     clearImportedSpreadsheetMemberData,
+    isApproverTemp,
 };

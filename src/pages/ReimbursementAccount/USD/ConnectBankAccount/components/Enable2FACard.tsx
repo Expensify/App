@@ -21,13 +21,13 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
 
     return (
         <Section
-            title={translate('validationStep.enable2FATitle')}
+            title={translate('connectBankAccountStep.enable2FATitle')}
             icon={ShieldYellow}
             titleStyles={styles.mb4}
             containerStyles={styles.mh5}
             menuItems={[
                 {
-                    title: translate('validationStep.secureYourAccount'),
+                    title: translate('connectBankAccountStep.secureYourAccount'),
                     // Assuming user is validated here, validation is checked at the beginning of ConnectBank Flow
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID))),
                     icon: Shield,
@@ -37,7 +37,7 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
             ]}
         >
             <View style={styles.mb6}>
-                <Text>{translate('validationStep.enable2FAText')}</Text>
+                <Text>{translate('connectBankAccountStep.enable2FAText')}</Text>
             </View>
         </Section>
     );

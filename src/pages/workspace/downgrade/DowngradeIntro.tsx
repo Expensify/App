@@ -37,7 +37,7 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}
     ];
 
     return (
-        <View style={[styles.m5, styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})]}>
+        <View style={[styles.m5, styles.highlightBG, styles.br4, styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})]}>
             <View style={[styles.mb3]}>
                 <Icon
                     src={Illustrations.Mailbox}

@@ -26,6 +26,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 import {clearInviteDraft, clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {
     calculateBillNewDot,
@@ -105,6 +106,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         !isEmptyObject(policy) && !isEmptyObject(policy.address)
             ? `${street1?.trim()}, ${street2 ? `${street2.trim()}, ` : ''}${policy.address.city}, ${policy.address.state} ${policy.address.zipCode ?? ''}`
             : '';
+
+    const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policy?.id);
 
     const onPressCurrency = useCallback(() => {
         if (!policy?.id) {
@@ -199,10 +202,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
 
-        deleteWorkspace(policy.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, lastPaymentMethod);
+        deleteWorkspace(policy.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, lastPaymentMethod);
         setIsDeleteModalOpen(false);
         goBackFromInvalidPolicy();
-    }, [policy?.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, lastPaymentMethod]);
+    }, [policy?.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, lastPaymentMethod, reportsToArchive, transactionViolations]);
 
     useEffect(() => {
         if (isLoadingBill) {

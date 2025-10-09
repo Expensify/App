@@ -46,7 +46,6 @@ function ProfilePage() {
     const scrollEnabled = useScrollEnabled();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: false});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
@@ -58,7 +57,7 @@ function ProfilePage() {
     const avatarURL = currentUserPersonalDetails?.avatar ?? '';
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, session?.email);
+    const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, currentUserPersonalDetails?.email);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
@@ -188,17 +187,25 @@ function ProfilePage() {
                                             source={avatarURL}
                                             avatarID={accountID}
                                             onImageSelected={(file) => {
-                                                updateAvatar(file, {avatar: currentUserPersonalDetails?.avatar, avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail});
+                                                updateAvatar(file, {
+                                                    avatar: currentUserPersonalDetails?.avatar,
+                                                    avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
+                                                    accountID: currentUserPersonalDetails?.accountID,
+                                                });
                                             }}
                                             onImageRemoved={() => {
-                                                deleteAvatar({avatar: currentUserPersonalDetails?.avatar, fallbackIcon: currentUserPersonalDetails?.fallbackIcon});
+                                                deleteAvatar({
+                                                    avatar: currentUserPersonalDetails?.avatar,
+                                                    fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
+                                                    accountID: currentUserPersonalDetails?.accountID,
+                                                });
                                             }}
                                             size={CONST.AVATAR_SIZE.X_LARGE}
                                             avatarStyle={[styles.avatarXLarge, styles.alignSelfStart]}
                                             pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
                                             errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
                                             errorRowStyles={styles.mt6}
-                                            onErrorClose={clearAvatarErrors}
+                                            onErrorClose={() => clearAvatarErrors(currentUserPersonalDetails?.accountID)}
                                             onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
                                             previewSource={getFullSizeAvatar(avatarURL, accountID)}
                                             originalFileName={currentUserPersonalDetails.originalFileName}
