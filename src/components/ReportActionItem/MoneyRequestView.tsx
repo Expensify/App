@@ -37,8 +37,8 @@ import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getLengthOfTag, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import type {TransactionDetails} from '@libs/ReportUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
+import type {TransactionDetails} from '@libs/ReportUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
@@ -518,6 +518,10 @@ function MoneyRequestView({
         setCurrentTransactionTag(transactionTag);
     }, [transactionTag, previousTransactionTag]);
 
+    const getAttendeesTitle = useMemo(() => {
+        return Array.isArray(transactionAttendees) ? transactionAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : '';
+    }, [transactionAttendees]);
+
     const previousTagLength = getLengthOfTag(previousTag ?? '');
     const currentTagLength = getLengthOfTag(currentTransactionTag ?? '');
 
@@ -592,10 +596,6 @@ function MoneyRequestView({
     if (!report?.reportID || !transaction?.transactionID) {
         return <ReportActionsSkeletonView />;
     }
-
-    const getAttendeesTitle = useMemo(() => {
-        return Array.isArray(transactionAttendees) ? transactionAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : '';
-    }, [transactionAttendees]);
 
     return (
         <View style={styles.pRelative}>
