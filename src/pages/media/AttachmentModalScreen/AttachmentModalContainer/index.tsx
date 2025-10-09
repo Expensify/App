@@ -2,13 +2,21 @@ import React, {useCallback, useContext, useEffect, useState} from 'react';
 import Modal from '@components/Modal';
 import Navigation from '@libs/Navigation/Navigation';
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
+import AttachmentStateContextProvider from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/AttachmentStateContextProvider';
 import type {AttachmentModalOnCloseOptions} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type {AttachmentModalScreenType} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type AttachmentModalContainerProps from './types';
 
-function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({contentProps, modalType, onShow, onClose, shouldHandleNavigationBack}: AttachmentModalContainerProps<Screen>) {
+function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({
+    contentProps,
+    modalType,
+    onShow,
+    onClose,
+    shouldHandleNavigationBack,
+    ExtraContent,
+}: AttachmentModalContainerProps<Screen>) {
     const [isVisible, setIsVisible] = useState(true);
     const attachmentsContext = useContext(AttachmentModalContext);
 
@@ -39,26 +47,31 @@ function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({con
     }, [onShow]);
 
     return (
-        <Modal
-            isVisible={isVisible}
-            type={modalType ?? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
-            initialFocus={() => {
-                if (!contentProps.submitRef?.current) {
-                    return false;
-                }
-                return contentProps.submitRef.current;
-            }}
-            shouldHandleNavigationBack={shouldHandleNavigationBack}
-            onClose={closeModal}
-            enableEdgeToEdgeBottomSafeAreaPadding
-        >
-            <AttachmentModalBaseContent
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...contentProps}
-                shouldDisplayHelpButton={false}
+        <>
+            <Modal
+                isVisible={isVisible}
+                type={modalType ?? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
+                initialFocus={() => {
+                    if (!contentProps.submitRef?.current) {
+                        return false;
+                    }
+                    return contentProps.submitRef.current;
+                }}
+                shouldHandleNavigationBack={shouldHandleNavigationBack}
                 onClose={closeModal}
-            />
-        </Modal>
+                enableEdgeToEdgeBottomSafeAreaPadding
+            >
+                <AttachmentStateContextProvider>
+                    <AttachmentModalBaseContent
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...contentProps}
+                        shouldDisplayHelpButton={false}
+                        onClose={closeModal}
+                    />
+                </AttachmentStateContextProvider>
+            </Modal>
+            {ExtraContent}
+        </>
     );
 }
 
