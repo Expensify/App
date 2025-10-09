@@ -21,6 +21,7 @@ import {defaultTheme} from './theme';
 import colors from './theme/colors';
 import type {ThemeColors} from './theme/types';
 import addOutlineWidth from './utils/addOutlineWidth';
+import addToWalletButtonStyles from './utils/addToWalletButtonStyles';
 import borders from './utils/borders';
 import chatContentScrollViewPlatformStyles from './utils/chatContentScrollViewPlatformStyles';
 import cursor from './utils/cursor';
@@ -62,6 +63,20 @@ type AnchorPosition = {
     horizontal: number;
     vertical: number;
 };
+
+const getReceiptDropZoneViewStyle = (theme: ThemeColors, margin: number, paddingVertical: number): ViewStyle => ({
+    borderRadius: variables.componentBorderRadiusLarge,
+    borderColor: theme.borderFocus,
+    borderStyle: 'dotted',
+    marginBottom: margin,
+    marginLeft: margin,
+    marginRight: margin,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical,
+    gap: 4,
+    flex: 1,
+});
 
 type WebViewStyle = {
     tagStyles: MixedStyleRecord;
@@ -252,6 +267,7 @@ const staticStyles = (theme: ThemeColors) =>
         ...textDecorationLine,
         editedLabelStyles,
         emojiDefaultStyles,
+        addToWalletButtonStyles,
         autoCompleteSuggestionsContainer: {
             backgroundColor: theme.appBG,
             borderRadius: 8,
@@ -998,6 +1014,7 @@ const staticStyles = (theme: ThemeColors) =>
                 : {}),
             color: theme.textSupporting,
         },
+
         uploadFileViewTextContainer: {
             paddingHorizontal: 40,
             ...sizing.w100,
@@ -1160,6 +1177,15 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: 0,
             borderRadius: 8,
             borderColor: theme.border,
+        },
+
+        cannotBeEditedSplitInputContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 4,
+            marginVertical: 15,
+            borderWidth: 1,
+            borderColor: 'transparent',
         },
 
         outlinedButton: {
@@ -5232,19 +5258,7 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: '100%',
         },
 
-        uploadFileView: {
-            borderRadius: variables.componentBorderRadiusLarge,
-            borderColor: theme.borderFocus,
-            borderStyle: 'dotted',
-            marginBottom: variables.uploadViewMargin,
-            marginLeft: variables.uploadViewMargin,
-            marginRight: variables.uploadViewMargin,
-            justifyContent: 'center',
-            alignItems: 'center',
-            paddingVertical: 40,
-            gap: 4,
-            flex: 1,
-        },
+        uploadFileView: getReceiptDropZoneViewStyle(theme, variables.uploadViewMargin, 40),
 
         textInputAndIconContainer: {
             zIndex: -1,
@@ -5354,8 +5368,20 @@ const dynamicStyles = (theme: ThemeColors) =>
             paddingBottom: bottomSafeAreaOffset,
         }),
 
+        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number) => ({
+            marginLeft: inputMarginLeft,
+            width: amountWidth,
+            marginRight: 4,
+        }),
+
         uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>
             ({
+                borderWidth: isSmallScreenWidth ? 0 : 2,
+            }) satisfies ViewStyle,
+
+        chooseFilesView: (isSmallScreenWidth: boolean) =>
+            ({
+                ...getReceiptDropZoneViewStyle(theme, variables.chooseFilesViewMargin, 20),
                 borderWidth: isSmallScreenWidth ? 0 : 2,
             }) satisfies ViewStyle,
 
