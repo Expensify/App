@@ -40,6 +40,8 @@ type ApproverSelectionListPageProps = {
     shouldShowListEmptyContent?: boolean;
     allowMultipleSelection?: boolean;
     onSelectApprover?: (approvers: SelectionListApprover[]) => void;
+    shouldShowLoadingPlaceholder?: boolean;
+    shouldEnableHeaderMaxHeight?: boolean;
 };
 
 type SelectionListApprover = {
@@ -72,6 +74,8 @@ function ApproverSelectionList({
     shouldShowListEmptyContent: shouldShowListEmptyContentProp = true,
     allowMultipleSelection = false,
     onSelectApprover,
+    shouldShowLoadingPlaceholder,
+    shouldEnableHeaderMaxHeight,
 }: ApproverSelectionListPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -140,6 +144,7 @@ function ApproverSelectionList({
         <ScreenWrapper
             testID={testID}
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldEnableMaxHeight={shouldEnableHeaderMaxHeight}
         >
             <FullPageNotFoundView
                 shouldShow={shouldShowNotFoundView}
@@ -155,6 +160,7 @@ function ApproverSelectionList({
                 />
                 {subtitle}
                 <SelectionList
+                    canSelectMultiple={allowMultipleSelection}
                     sections={sections}
                     ListItem={InviteMemberListItem}
                     textInputLabel={shouldShowListEmptyContent ? undefined : translate('selectionList.findMember')}
@@ -170,6 +176,7 @@ function ApproverSelectionList({
                     shouldUpdateFocusedIndex
                     shouldShowTextInput={shouldShowTextInput}
                     addBottomSafeAreaPadding
+                    showLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     footerContent={footerContent}
                 />
             </FullPageNotFoundView>
