@@ -167,7 +167,7 @@ function MoneyRequestParticipantsSelector({
         () => ({
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            maxRecentReportElements: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT,
             excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
             includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isCorporateCardTransaction,
