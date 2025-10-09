@@ -66,11 +66,13 @@ function getApprovalDropdownOptions({
     onFullApprove,
     translate,
 }: ApprovalDropdownOptionProps): ApprovalDropdownOptions {
+    const APPROVE_PARTIAL = 'approve_partial';
+    const APPROVE_FULL = 'approve_full';
     const options: ApprovalOption[] = [];
 
     if (nonHeldAmount && hasValidNonHeldAmount && !hasOnlyHeldExpenses) {
         options.push({
-            value: 'approve_partial',
+            value: APPROVE_PARTIAL,
             text: `${translate('iou.approveOnly')} ${nonHeldAmount}`,
             icon: Expensicons.ThumbsUp,
             onSelected: onPartialApprove,
@@ -78,7 +80,7 @@ function getApprovalDropdownOptions({
     }
 
     options.push({
-        value: 'approve_full',
+        value: APPROVE_FULL,
         text: `${translate('iou.approve')} ${fullAmount}`,
         icon: Expensicons.DocumentCheck,
         onSelected: onFullApprove,
