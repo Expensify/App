@@ -66,7 +66,7 @@ module.exports = {
             CFBundleIconName: getMacBundleIconName(),
             NSLocationWhenInUseUsageDescription: 'This app uses location to help you track distance expenses.',
             NSLocationUsageDescription: 'This app uses location to help you track distance expenses.',
-        }
+        },
     },
     dmg: {
         title: 'New Expensify',
