@@ -2,7 +2,7 @@
 This philosophy guides our approach to solving problems efficiently without adding unnecessary complexity or features beyond the stated requirements.
 
 #### Related Philosophies
-- [Pre-optimizing Philosophy](/contributingGuides/philosophies/PREOPTIMIZING.md)
+- [Pre-optimizing Philosophy](/contributingGuides/philosophies/OPTIMIZATION.md)
 
 #### Terminology
 - **Overengineering**,**Oversolving**,**Scope creep**  - Building more than what is required to solve the stated problem

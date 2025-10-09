@@ -2,8 +2,8 @@
 This philosophy guides our approach to breaking down large projects into smaller, independently releases that deliver value early and often.
 
 #### Related Philosophies
-- [Overengineering Philosophy](/contributingGuides/philosophies/OVERENGINEERING.md)
-- [Preoptimizing Philosophy](/contributingGuides/philosophies/PREOPTIMIZING.md)
+- [Over-engineering Philosophy](/contributingGuides/philosophies/OVERENGINEERING.md)
+- [Optimization Philosophy](/contributingGuides/philosophies/OPTIMIZATION.md)
 
 #### Terminology
 - **Incremental Release** - A small, independently unit of work that delivers tangible value

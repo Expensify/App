@@ -6,7 +6,7 @@ This philosophy guides our approach to optimization by focusing on proven proble
 
 #### Terminology
 - **Optimization** - making something faster, more flexible, or more capable than it needs to be to solve the exact problems agreed upon
-- **Preoptimizing** - Optimizing a solution before identifying actual problems
+- **Pre-optimizing** - Optimizing a solution before identifying actual problems
 - **Bottleneck** - A confirmed point in the process that limits overall results
 - **Measuring** - Collecting actual data about process performance or outcomes
 
@@ -30,7 +30,7 @@ When implementing process improvements:
 
 ## When to Optimize
 ### - Known issues
-When we have concrete data about existing usage patterns that indicate the current approach will fail. This is distinct from preoptimizing because it's based on actual, measurable constraints rather than hypothetical "what if" scenarios.
+When we have concrete data about existing usage patterns that indicate the current approach will fail. This is distinct from pre-optimizing because it's based on actual, measurable constraints rather than hypothetical "what if" scenarios.
 - Existing customer data volumes that would break the system
 - Known need to expand the feature in the foreseeable future
 
