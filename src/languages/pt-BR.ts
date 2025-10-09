@@ -1243,7 +1243,6 @@ const translations = {
         invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Conta empresarial • ${lastFour}`,
         nextStep: 'Próximos passos',
         finished: 'Concluído',
-        flip: 'Inverter',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar fatura de ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `para ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `enviado${memo ? `, dizendo ${memo}` : ''}`,

@@ -47,9 +47,6 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
     /** Whether the user input should be kept or not */
     shouldKeepUserInput?: boolean;
 
-    /** Whether to allow flipping the amount */
-    allowFlippingAmount?: boolean;
-
     /** The chatReportID of the request */
     chatReportID?: string;
 };
@@ -76,7 +73,6 @@ function MoneyRequestAmountForm({
     shouldKeepUserInput = false,
     chatReportID,
     hideCurrencySymbol = false,
-    allowFlippingAmount = false,
     ref,
 }: MoneyRequestAmountFormProps) {
     const styles = useThemeStyles();
@@ -86,13 +82,9 @@ function MoneyRequestAmountForm({
     const textInput = useRef<BaseTextInputRef | null>(null);
     const moneyRequestAmountInputRef = useRef<NumberWithSymbolFormRef | null>(null);
 
-    const [isNegative, setIsNegative] = useState(false);
-
     const [formError, setFormError] = useState<string>('');
 
     const formattedTaxAmount = convertToDisplayString(Math.abs(taxAmount), currency);
-
-    const absoluteAmount = Math.abs(amount);
 
     const initializeAmount = useCallback(
         (newAmount: number) => {
@@ -102,34 +94,11 @@ function MoneyRequestAmountForm({
         [currency],
     );
 
-    const toggleNegative = useCallback(() => {
-        setIsNegative(!isNegative);
-    }, [isNegative]);
-
-    const clearNegative = useCallback(() => {
-        setIsNegative(false);
-    }, []);
-
-    const initializeIsNegative = useCallback((currentAmount: number) => {
-        if (currentAmount >= 0) {
-            setIsNegative(false);
+    useEffect(() => {
+        if (!currency || typeof amount !== 'number') {
             return;
         }
-        setIsNegative(true);
-    }, []);
-
-    useEffect(() => {
-        initializeIsNegative(amount);
-    }, [amount, initializeIsNegative]);
-
-    useEffect(() => {
-        if (!currency || typeof absoluteAmount !== 'number') {
-            return;
-        }
-
-        initializeAmount(absoluteAmount);
-        initializeIsNegative(amount);
-
+        initializeAmount(amount);
         // we want to re-initialize the state only when the selected tab
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [selectedTab]);
@@ -153,11 +122,9 @@ function MoneyRequestAmountForm({
                 return;
             }
 
-            const newAmount = isNegative ? `-${currentAmount}` : currentAmount;
-
-            onSubmitButtonPress({amount: newAmount, currency, paymentMethod: iouPaymentType});
+            onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount],
+        [taxAmount, onSubmitButtonPress, currency, translate, formattedTaxAmount],
     );
 
     const buttonText: string = useMemo(() => {
@@ -265,10 +232,6 @@ function MoneyRequestAmountForm({
                 containerStyle={styles.iouAmountTextInputContainer}
                 touchableInputWrapperStyle={styles.heightUndefined}
                 testID="moneyRequestAmountInput"
-                isNegative={isNegative}
-                allowFlippingAmount={allowFlippingAmount}
-                toggleNegative={toggleNegative}
-                clearNegative={clearNegative}
                 errorText={formError}
                 footer={footer}
             />

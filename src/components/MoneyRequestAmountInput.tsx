@@ -82,18 +82,6 @@ type MoneyRequestAmountInputProps = {
     /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
     shouldApplyPaddingToContainer?: boolean;
 
-    /** Whether the amount is negative */
-    isNegative?: boolean;
-
-    /** Function to toggle the amount to negative */
-    toggleNegative?: () => void;
-
-    /** Function to clear the negative amount */
-    clearNegative?: () => void;
-
-    /** Whether to allow flipping amount */
-    allowFlippingAmount?: boolean;
-
     /** The testID of the input. Used to locate this view in end-to-end tests. */
     testID?: string;
 
@@ -155,10 +143,6 @@ function MoneyRequestAmountInput({
     shouldApplyPaddingToContainer = false,
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
-    isNegative = false,
-    allowFlippingAmount = false,
-    toggleNegative,
-    clearNegative,
     ref,
     ...props
 }: MoneyRequestAmountInputProps) {
@@ -225,7 +209,6 @@ function MoneyRequestAmountInput({
             }}
             symbol={getLocalizedCurrencySymbol(currency) ?? ''}
             symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}
-            currency={currency}
             hideSymbol={hideCurrencySymbol}
             isSymbolPressable={isCurrencyPressable}
             shouldShowBigNumberPad={shouldShowBigNumberPad}
@@ -242,15 +225,11 @@ function MoneyRequestAmountInput({
             prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
             contentWidth={contentWidth}
-            isNegative={isNegative}
             testID={testID}
             errorText={props.errorText}
             footer={props.footer}
             autoGrowExtraSpace={autoGrowExtraSpace}
             submitBehavior={submitBehavior}
-            allowFlippingAmount={allowFlippingAmount}
-            toggleNegative={toggleNegative}
-            clearNegative={clearNegative}
             onFocus={props.onFocus}
         />
     );

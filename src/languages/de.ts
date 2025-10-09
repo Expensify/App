@@ -1248,7 +1248,6 @@ const translations = {
         invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Geschäftskonto • ${lastFour}`,
         nextStep: 'Nächste Schritte',
         finished: 'Fertiggestellt',
-        flip: 'Umkehren',
         sendInvoice: ({amount}: RequestAmountParams) => `Sende ${amount} Rechnung`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `für ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `eingereicht${memo ? `, sagte ${memo}` : ''}`,
