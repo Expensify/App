@@ -287,6 +287,9 @@ type TransactionListItemType = ListItem &
 
         /** The display name of the purchaser card, if any */
         cardName?: string;
+
+        /** Parent report action id */
+        moneyRequestReportActionID?: string;
     };
 
 type ReportActionListItemType = ListItem &

@@ -585,48 +585,48 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     // We optimistically set the data necessary to show the transaction thread
     const setOptimisticPreviewData = useCallback(
         (item: TransactionListItemType) => {
-            // TODO: use the real report action id when it's deployed
-            const testReportActionID = '1011892442174760029';
+            const {moneyRequestReportActionID, reportID, report, amount, currency, transactionID, created, transactionThreadReportID, policyID} = item;
             const onyxUpdates: OnyxUpdate[] = [];
 
-            if (!reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`]) {
+            if (!reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) {
                 onyxUpdates.push({
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
-                    value: item.report,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: report,
                 });
             }
 
-            if (!reportActionsArray.find((action) => action.reportActionID === testReportActionID)) {
+            if (!reportActionsArray.find((action) => action.reportActionID === moneyRequestReportActionID)) {
                 const optimisticIOUAction = buildOptimisticIOUReportAction({
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                    amount: item.amount,
-                    currency: item.currency,
+                    amount,
+                    currency,
                     comment: '',
                     participants: [],
-                    transactionID: item.transactionID,
-                    iouReportID: item.reportID,
-                    created: item.created,
-                    reportActionID: testReportActionID,
-                    linkedExpenseReportAction: {childReportID: item.transactionThreadReportID} as ReportAction,
+                    transactionID,
+                    iouReportID: reportID,
+                    created,
+                    reportActionID: moneyRequestReportActionID,
+                    linkedExpenseReportAction: {childReportID: transactionThreadReportID} as ReportAction,
                 });
+                optimisticIOUAction.pendingAction = undefined;
                 onyxUpdates.push({
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item.reportID}`,
-                    value: {[testReportActionID]: optimisticIOUAction},
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                    value: {[optimisticIOUAction.reportActionID]: optimisticIOUAction},
                 });
             }
 
-            if (!transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`]) {
+            if (!transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]) {
                 onyxUpdates.push({
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: item,
                 });
             }
 
-            if (!reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.transactionThreadReportID}`]) {
-                setOptimisticTransactionThread(item.transactionThreadReportID, item.reportID, testReportActionID, item.policyID);
+            if (!reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]) {
+                setOptimisticTransactionThread(transactionThreadReportID, reportID, moneyRequestReportActionID, policyID);
             }
 
             Onyx.update(onyxUpdates);
