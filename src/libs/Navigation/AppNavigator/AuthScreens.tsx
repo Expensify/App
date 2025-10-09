@@ -1,7 +1,7 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {memo, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -151,8 +151,7 @@ function AuthScreens() {
     const {toggleSearch} = useSearchRouterContext();
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
-    const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
         canBeMissing: true,
     });
@@ -173,19 +172,28 @@ function AuthScreens() {
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
 
+    const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
+    const isLoadingAppRef = useRef(isLoadingApp);
+    // eslint-disable-next-line react-compiler/react-compiler
+    lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
+    // eslint-disable-next-line react-compiler/react-compiler
+    isLoadingAppRef.current = isLoadingApp;
+
+    const handleNetworkReconnect = () => {
+        if (isLoadingAppRef.current) {
+            App.openApp();
+        } else {
+            Log.info('[handleNetworkReconnect] Sending ReconnectApp');
+            App.reconnectApp(lastUpdateIDAppliedToClientRef.current);
+        }
+    };
+
     // On HybridApp we need to prevent flickering during transition to OldDot
     const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {
         return CONFIG.IS_HYBRID_APP && Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route) && isOnboardingCompleted === true;
     }, [isOnboardingCompleted]);
-
-    const handleNetworkReconnect = useCallback(() => {
-        if (isLoadingApp) {
-            App.openApp();
-        } else {
-            Log.info('[handleNetworkReconnect] Sending ReconnectApp');
-            App.reconnectApp(lastUpdateIDAppliedToClient);
-        }
-    }, [isLoadingApp, lastUpdateIDAppliedToClient]);
 
     const shouldRenderOnboardingExclusively = useMemo(() => {
         return (
@@ -258,7 +266,7 @@ function AuthScreens() {
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
         if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
             if (delegatorEmail) {
-                connect({email: delegatorEmail, delegatedAccess: account?.delegatedAccess, isFromOldDot: true})
+                connect({email: delegatorEmail, delegatedAccess: account?.delegatedAccess, credentials, isFromOldDot: true})
                     ?.then((success) => {
                         App.setAppLoading(!!success);
                     })
@@ -563,6 +571,12 @@ function AuthScreens() {
                 />
                 <RootStack.Screen
                     name={SCREENS.ATTACHMENTS}
+                    options={attachmentModalScreenOptions}
+                    getComponent={loadAttachmentModalScreen}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.REPORT_ADD_ATTACHMENT}
                     options={attachmentModalScreenOptions}
                     getComponent={loadAttachmentModalScreen}
                     listeners={modalScreenListeners}

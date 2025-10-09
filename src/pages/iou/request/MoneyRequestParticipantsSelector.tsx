@@ -64,6 +64,9 @@ type MoneyRequestParticipantsSelectorProps = {
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
 
+    /** Whether the IOU is workspaces only */
+    isWorkspacesOnly?: boolean;
+
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
 
@@ -92,6 +95,7 @@ function MoneyRequestParticipantsSelector({
     iouType,
     action,
     isPerDiemRequest = false,
+    isWorkspacesOnly = false,
     isCorporateCardTransaction = false,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
@@ -219,7 +223,7 @@ function MoneyRequestParticipantsSelector({
                     !isEmptyObject(availableOptions.selfDMChat),
                 !!availableOptions?.userToInvite,
                 searchTerm.trim(),
-                selectedOptions.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
+                participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
             ),
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -228,10 +232,10 @@ function MoneyRequestParticipantsSelector({
             availableOptions.recentReports?.length,
             availableOptions.selfDMChat,
             availableOptions?.userToInvite,
-            availableOptions.workspaceChats?.length,
+            availableOptions.workspaceChats,
             cleanSearchTerm,
             searchTerm,
-            selectedOptions,
+            participants,
         ],
     );
     /**
@@ -254,6 +258,7 @@ function MoneyRequestParticipantsSelector({
             undefined,
             reportAttributesDerived,
         );
+
         newSections.push(formatResults.section);
 
         newSections.push({
@@ -262,25 +267,33 @@ function MoneyRequestParticipantsSelector({
             shouldShow: (availableOptions.workspaceChats ?? []).length > 0,
         });
 
-        newSections.push({
-            title: translate('workspace.invoices.paymentMethods.personal'),
-            data: availableOptions.selfDMChat ? [availableOptions.selfDMChat] : [],
-            shouldShow: !!availableOptions.selfDMChat,
-        });
+        if (!isWorkspacesOnly && availableOptions.userToInvite) {
+            newSections.push({
+                title: undefined,
+                data: [availableOptions.userToInvite].map((participant) => {
+                    const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                }),
+                shouldShow: true,
+            });
+        }
 
-        newSections.push({
-            title: translate('common.recents'),
-            data: isPerDiemRequest ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports,
-            shouldShow: (isPerDiemRequest ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports).length > 0,
-        });
+        if (!isWorkspacesOnly) {
+            newSections.push({
+                title: translate('common.recents'),
+                data: isPerDiemRequest ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports,
+                shouldShow: (isPerDiemRequest ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports).length > 0,
+            });
 
-        newSections.push({
-            title: translate('common.contacts'),
-            data: availableOptions.personalDetails,
-            shouldShow: availableOptions.personalDetails.length > 0 && !isPerDiemRequest,
-        });
+            newSections.push({
+                title: translate('common.contacts'),
+                data: availableOptions.personalDetails,
+                shouldShow: availableOptions.personalDetails.length > 0 && !isPerDiemRequest,
+            });
+        }
 
         if (
+            !isWorkspacesOnly &&
             availableOptions.userToInvite &&
             !isCurrentUser({
                 ...availableOptions.userToInvite,
@@ -290,12 +303,9 @@ function MoneyRequestParticipantsSelector({
             !isPerDiemRequest
         ) {
             newSections.push({
-                title: undefined,
-                data: [availableOptions.userToInvite].map((participant) => {
-                    const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
-                }),
-                shouldShow: true,
+                title: translate('workspace.invoices.paymentMethods.personal'),
+                data: availableOptions.selfDMChat ? [availableOptions.selfDMChat] : [],
+                shouldShow: !!availableOptions.selfDMChat,
             });
         }
 
@@ -308,18 +318,19 @@ function MoneyRequestParticipantsSelector({
     }, [
         areOptionsInitialized,
         didScreenTransitionEnd,
-        translate,
-        availableOptions.workspaceChats,
-        availableOptions.selfDMChat,
-        availableOptions.recentReports,
-        availableOptions.personalDetails,
-        availableOptions.userToInvite,
-        isPerDiemRequest,
-        showImportContacts,
         searchTerm,
         participants,
         personalDetails,
         reportAttributesDerived,
+        translate,
+        availableOptions.workspaceChats,
+        availableOptions.userToInvite,
+        availableOptions.recentReports,
+        availableOptions.personalDetails,
+        availableOptions.selfDMChat,
+        isWorkspacesOnly,
+        isPerDiemRequest,
+        showImportContacts,
         inputHelperText,
     ]);
 
@@ -549,4 +560,12 @@ function MoneyRequestParticipantsSelector({
 
 MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
 
-export default memo(MoneyRequestParticipantsSelector, (prevProps, nextProps) => deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType);
+export default memo(
+    MoneyRequestParticipantsSelector,
+    (prevProps, nextProps) =>
+        deepEqual(prevProps.participants, nextProps.participants) &&
+        prevProps.iouType === nextProps.iouType &&
+        prevProps.isWorkspacesOnly === nextProps.isWorkspacesOnly &&
+        prevProps.onParticipantsAdded === nextProps.onParticipantsAdded &&
+        prevProps.onFinish === nextProps.onFinish,
+);

@@ -8,6 +8,7 @@ const PROTECTED_SCREENS = {
     HOME: 'Home',
     CONCIERGE: 'Concierge',
     ATTACHMENTS: 'Attachments',
+    REPORT_ADD_ATTACHMENT: 'ReportAddAttachment',
     TRACK_EXPENSE: 'TrackExpense',
     SUBMIT_EXPENSE: 'SubmitExpense',
 } as const;
@@ -719,6 +720,10 @@ const SCREENS = {
         WORKSPACE_CONFIRMATION: 'Onboarding_Workspace_Confirmation',
         WORKSPACE_CURRENCY: 'Onboarding_Workspace_Currency',
         WORKSPACE_INVITE: 'Onboarding_Workspace_Invite',
+    },
+
+    CURRENCY: {
+        SELECTION: 'Currency_Selection',
     },
 
     EXPLANATION_MODAL: {

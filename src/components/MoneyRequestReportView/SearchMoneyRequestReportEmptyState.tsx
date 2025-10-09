@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canAddTransaction, isArchivedReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
-import {startMoneyRequest} from '@userActions/IOU';
+import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU';
 import {openUnreportedExpense} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,6 +22,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {canBeMissing: true});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const reportId = report.reportID;
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const canAddTransactionToReport = canAddTransaction(report, isReportArchived);
@@ -39,6 +40,21 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
                     return;
                 }
                 startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportId);
+            },
+        },
+        {
+            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
+            text: translate('iou.trackDistance'),
+            icon: Expensicons.Location,
+            onSelected: () => {
+                if (!reportId) {
+                    return;
+                }
+                if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                    return;
+                }
+                startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportId, lastDistanceExpenseType);
             },
         },
         {
