@@ -95,44 +95,43 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 .map((employee): SelectionListApprover | null => {
                     const email = employee.email;
 
-                    if (!email) {
-                        return null;
+                    if (email) {
+                        if (!isDefault && policy?.preventSelfApproval && membersEmail?.includes(email)) {
+                            return null;
+                        }
+
+                        // Do not allow the same email to be added twice
+                        const isEmailAlreadyInApprovers = approversFromWorkflow?.some((approver, index) => approver?.email === email && index !== approverIndex);
+                        if (isEmailAlreadyInApprovers && selectedApproverEmail !== email) {
+                            return null;
+                        }
+
+                        // Do not allow the default approver to be added as the first approver
+                        if (!isDefault && approverIndex === 0 && defaultApprover === email) {
+                            return null;
+                        }
+
+                        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
+                        const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
+                        const {avatar, displayName = email, login} = personalDetails?.[accountID] ?? {};
+
+                        return {
+                            text: displayName,
+                            alternateText: email,
+                            keyForList: email,
+                            isSelected: selectedApproverEmail === email,
+                            login: email,
+                            icons: [{source: avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
+                            rightElement: (
+                                <MemberRightIcon
+                                    role={employee.role}
+                                    owner={policy?.owner}
+                                    login={login}
+                                />
+                            ),
+                        };
                     }
-
-                    if (!isDefault && policy?.preventSelfApproval && membersEmail?.includes(email)) {
-                        return null;
-                    }
-
-                    // Do not allow the same email to be added twice
-                    const isEmailAlreadyInApprovers = approversFromWorkflow?.some((approver, index) => approver?.email === email && index !== approverIndex);
-                    if (isEmailAlreadyInApprovers && selectedApproverEmail !== email) {
-                        return null;
-                    }
-
-                    // Do not allow the default approver to be added as the first approver
-                    if (!isDefault && approverIndex === 0 && defaultApprover === email) {
-                        return null;
-                    }
-
-                    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
-                    const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
-                    const {avatar, displayName = email, login} = personalDetails?.[accountID] ?? {};
-
-                    return {
-                        text: displayName,
-                        alternateText: email,
-                        keyForList: email,
-                        isSelected: selectedApproverEmail === email,
-                        login: email,
-                        icons: [{source: avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
-                        rightElement: (
-                            <MemberRightIcon
-                                role={employee.role}
-                                owner={policy?.owner}
-                                login={login}
-                            />
-                        ),
-                    };
+                    return null;
                 })
                 .filter((approver): approver is SelectionListApprover => !!approver);
 

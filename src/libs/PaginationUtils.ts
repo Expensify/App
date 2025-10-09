@@ -68,32 +68,31 @@ function getPagesWithIndexes<TResource>(sortedItems: TResource[], pages: Pages, 
             let lastItem = findLastItem(sortedItems, page, getID);
 
             // If all actions in the page are not found it will be removed.
-            if (firstItem === null || lastItem === null) {
-                return null;
-            }
+            if (firstItem !== null && lastItem !== null) {
+                // In case actions were reordered, we need to swap them.
+                if (firstItem.index > lastItem.index) {
+                    const temp = firstItem;
+                    firstItem = lastItem;
+                    lastItem = temp;
+                }
 
-            // In case actions were reordered, we need to swap them.
-            if (firstItem.index > lastItem.index) {
-                const temp = firstItem;
-                firstItem = lastItem;
-                lastItem = temp;
-            }
+                const ids = sortedItems.slice(firstItem.index, lastItem.index + 1).map((item) => getID(item));
+                if (firstItem.id === CONST.PAGINATION_START_ID) {
+                    ids.unshift(CONST.PAGINATION_START_ID);
+                }
+                if (lastItem.id === CONST.PAGINATION_END_ID) {
+                    ids.push(CONST.PAGINATION_END_ID);
+                }
 
-            const ids = sortedItems.slice(firstItem.index, lastItem.index + 1).map((item) => getID(item));
-            if (firstItem.id === CONST.PAGINATION_START_ID) {
-                ids.unshift(CONST.PAGINATION_START_ID);
+                return {
+                    ids,
+                    firstID: firstItem.id,
+                    firstIndex: firstItem.index,
+                    lastID: lastItem.id,
+                    lastIndex: lastItem.index,
+                };
             }
-            if (lastItem.id === CONST.PAGINATION_END_ID) {
-                ids.push(CONST.PAGINATION_END_ID);
-            }
-
-            return {
-                ids,
-                firstID: firstItem.id,
-                firstIndex: firstItem.index,
-                lastID: lastItem.id,
-                lastIndex: lastItem.index,
-            };
+            return null;
         })
         .filter((page): page is PageWithIndex => page !== null);
 }

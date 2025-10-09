@@ -37,19 +37,16 @@ function YesNoStep({title, description, defaultValue, onSelectedValue, submitBut
         onSelectedValue(value);
     };
     const handleSelectValue = (newValue: string) => setValue(newValue === 'true');
-    const options = useMemo<Choice[]>(
-        () => [
-            {
-                label: translate('common.yes'),
-                value: 'true',
-            },
-            {
-                label: translate('common.no'),
-                value: 'false',
-            },
-        ],
-        [translate],
-    );
+    const options = [
+        {
+            label: translate('common.yes'),
+            value: 'true',
+        },
+        {
+            label: translate('common.no'),
+            value: 'false',
+        },
+    ];
 
     return (
         <FormProvider

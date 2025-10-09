@@ -192,14 +192,12 @@ function MoneyRequestReportTransactionList({
 
     const {sortBy, sortOrder} = sortConfig;
 
-    const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
-        return [...transactions]
-            .sort((a, b) => compareValues(getTransactionValue(a, sortBy, report), getTransactionValue(b, sortBy, report), sortOrder, sortBy, localeCompare, true))
-            .map((transaction) => ({
-                ...transaction,
-                shouldBeHighlighted: newTransactions?.includes(transaction),
-            }));
-    }, [newTransactions, sortBy, sortOrder, transactions, localeCompare, report]);
+    const sortedTransactions: TransactionWithOptionalHighlight[] = [...transactions]
+        .sort((a, b) => compareValues(getTransactionValue(a, sortBy, report), getTransactionValue(b, sortBy, report), sortOrder, sortBy, localeCompare, true))
+        .map((transaction) => ({
+            ...transaction,
+            shouldBeHighlighted: newTransactions?.includes(transaction),
+        }));
 
     const columnsToShow = useMemo(() => {
         const columns = getColumnsToShow(session?.accountID, transactions, true);
