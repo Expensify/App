@@ -14,9 +14,9 @@ codecov:
 
 comment:
     require_changes: false
-    layout: "files"
+    layout: "newheader, files, newfooter"
     hide_project_coverage: false
-    hide_comment_details: false  # This controls the "Additional details" dropdown
+    hide_comment_details: false
 
 flags:
   unit:
