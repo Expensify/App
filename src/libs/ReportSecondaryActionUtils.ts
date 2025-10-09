@@ -179,8 +179,14 @@ function isSubmitAction(
     }
 
     const hasReportBeenRetracted = hasReportBeenReopenedUtils(report, reportActions) || hasReportBeenRetractedUtils(report, reportActions);
-    if (hasReportBeenRetracted && isReportSubmitter) {
+    const isPrimarySubmitAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
+
+    if (hasReportBeenRetracted && isReportSubmitter && isPrimarySubmitAction) {
         return false;
+    }
+
+    if (hasReportBeenRetracted && isReportSubmitter && !isPrimarySubmitAction) {
+        return true;
     }
 
     if (isAdmin || isManager) {
@@ -191,7 +197,7 @@ function isSubmitAction(
 
     const isScheduledSubmitEnabled = policy?.harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
 
-    return !!isScheduledSubmitEnabled || primaryAction !== CONST.REPORT.SECONDARY_ACTIONS.SUBMIT;
+    return !!isScheduledSubmitEnabled || !isPrimarySubmitAction;
 }
 
 function isApproveAction(currentUserLogin: string, report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy): boolean {
