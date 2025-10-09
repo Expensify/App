@@ -157,7 +157,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         canBeMissing: true,
         selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
     });
-    const reportID = useMemo(() => generateReportID(), []);
 
     const {
         taskReport: viewTourTaskReport,
@@ -166,6 +165,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
 
     const isReportInSearch = isOnSearchMoneyRequestReportPage();
+
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
     /**
@@ -242,9 +242,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             }
 
             // Start the scan flow directly
-            startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, CONST.IOU.REQUEST_TYPE.SCAN, false, undefined, allTransactionDrafts);
+            startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN, false, undefined, allTransactionDrafts);
         });
-    }, [shouldRedirectToExpensifyClassic, allTransactionDrafts, reportID]);
+    }, [shouldRedirectToExpensifyClassic, allTransactionDrafts]);
 
     /**
      * Check if LHN status changed from active to inactive.
@@ -325,11 +325,20 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                             setModalVisible(true);
                             return;
                         }
-                        startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, undefined, undefined, undefined, allTransactionDrafts);
+                        startMoneyRequest(
+                            CONST.IOU.TYPE.CREATE,
+                            // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                            // for all of the routes in the creation flow.
+                            generateReportID(),
+                            undefined,
+                            undefined,
+                            undefined,
+                            allTransactionDrafts,
+                        );
                     }),
             },
         ];
-    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, allTransactionDrafts, reportID]);
+    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, allTransactionDrafts]);
 
     const quickActionMenuItems = useMemo(() => {
         // Define common properties in baseQuickAction
@@ -379,7 +388,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                         return;
                     }
 
-                    const quickActionReportID = policyChatForActivePolicy?.reportID || reportID;
+                    const quickActionReportID = policyChatForActivePolicy?.reportID || generateReportID();
                     startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, allTransactionDrafts);
                 });
             };
@@ -417,7 +426,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         isReportArchived,
         lastDistanceExpenseType,
         allTransactionDrafts,
-        reportID,
         isRestrictedToPreferredPolicy,
     ]);
 
@@ -452,7 +460,13 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                         return;
                     }
                     // Start the flow to start tracking a distance request
-                    startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, lastDistanceExpenseType);
+                    startDistanceRequest(
+                        CONST.IOU.TYPE.CREATE,
+                        // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                        // for all of the routes in the creation flow.
+                        generateReportID(),
+                        lastDistanceExpenseType,
+                    );
                 });
             },
         },
@@ -526,7 +540,16 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                                   return;
                               }
 
-                              startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, undefined, undefined, undefined, allTransactionDrafts);
+                              startMoneyRequest(
+                                  CONST.IOU.TYPE.INVOICE,
+                                  // When starting to create an invoice from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                                  // for all of the routes in the creation flow.
+                                  generateReportID(),
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  allTransactionDrafts,
+                              );
                           }),
                   },
               ]

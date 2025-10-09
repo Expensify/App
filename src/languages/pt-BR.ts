@@ -667,7 +667,6 @@ const translations = {
         unstableInternetConnection: 'Conexão de internet instável. Verifique sua rede e tente novamente.',
         enableGlobalReimbursements: 'Ativar reembolsos globais',
         purchaseAmount: 'Valor da compra',
-        frequency: 'Freqüência',
         link: 'Link',
         pinned: 'Fixado',
         read: 'Lido',
@@ -2013,8 +2012,9 @@ const translations = {
     workflowsPage: {
         workflowTitle: 'Gastar',
         workflowDescription: 'Configurar um fluxo de trabalho desde o momento em que a despesa ocorre, incluindo aprovação e pagamento.',
+        delaySubmissionTitle: 'Atrasar envios',
+        delaySubmissionDescription: 'Escolha um cronograma personalizado para enviar despesas ou deixe isso desativado para atualizações em tempo real sobre gastos.',
         submissionFrequency: 'Frequência de envio',
-        submissionFrequencyDescription: 'Escolha um cronograma personalizado para enviar despesas ou deixe isso desativado para atualizações em tempo real sobre gastos.',
         submissionFrequencyDateOfMonth: 'Data do mês',
         addApprovalsTitle: 'Adicionar aprovações',
         addApprovalButton: 'Adicionar fluxo de trabalho de aprovação',
@@ -2028,7 +2028,7 @@ const translations = {
         },
         frequencyDescription: 'Escolha com que frequência você gostaria que as despesas fossem enviadas automaticamente ou faça isso manualmente.',
         frequencies: {
-            instant: 'Imediatamente',
+            instant: 'Instantâneo',
             weekly: 'Semanalmente',
             monthly: 'Mensalmente',
             twiceAMonth: 'Duas vezes por mês',
@@ -2066,6 +2066,7 @@ const translations = {
         },
     },
     workflowsDelayedSubmissionPage: {
+        autoReportingErrorMessage: 'A submissão atrasada não pôde ser alterada. Por favor, tente novamente ou entre em contato com o suporte.',
         autoReportingFrequencyErrorMessage: 'A frequência de envio não pôde ser alterada. Por favor, tente novamente ou entre em contato com o suporte.',
         monthlyOffsetErrorMessage: 'A frequência mensal não pôde ser alterada. Por favor, tente novamente ou entre em contato com o suporte.',
     },

@@ -24,7 +24,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type AutoReportingFrequencyKey = ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+type AutoReportingFrequencyKey = Exclude<ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, 'instant'>;
 
 type WorkspaceAutoReportingFrequencyPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY>;
 
@@ -43,7 +43,6 @@ const getAutoReportingFrequencyDisplayNames = (translate: LocaleContextProps['tr
     [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: translate('workflowsPage.frequencies.weekly'),
     [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: translate('workflowsPage.frequencies.twiceAMonth'),
     [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: translate('workflowsPage.frequencies.byTrip'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: translate('workflowsPage.frequencies.instant'),
     [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: translate('workflowsPage.frequencies.manually'),
 });
 
@@ -123,7 +122,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                     addBottomSafeAreaPadding
                 >
                     <HeaderWithBackButton
-                        title={translate('common.frequency')}
+                        title={translate('workflowsPage.submissionFrequency')}
                         onBackButtonPress={Navigation.goBack}
                     />
                     <OfflineWithFeedback

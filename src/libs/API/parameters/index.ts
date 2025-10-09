@@ -196,7 +196,6 @@ export type {default as SetWorkspaceRequiresCategoryParams} from './SetWorkspace
 export type {default as DeleteWorkspaceCategoriesParams} from './DeleteWorkspaceCategoriesParams';
 export type {default as UpdatePolicyCategoryPayrollCodeParams} from './UpdatePolicyCategoryPayrollCodeParams';
 export type {default as UpdatePolicyCategoryGLCodeParams} from './UpdatePolicyCategoryGLCodeParams';
-export type {default as SetWorkspaceAutoHarvestingParams} from './SetWorkspaceAutoHarvestingParams';
 export type {default as SetWorkspaceAutoReportingFrequencyParams} from './SetWorkspaceAutoReportingFrequencyParams';
 export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './SetWorkspaceAutoReportingMonthlyOffsetParams';
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';

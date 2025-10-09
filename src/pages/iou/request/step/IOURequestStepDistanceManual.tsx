@@ -12,7 +12,6 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,7 +26,6 @@ import {
     trackExpense,
     updateMoneyRequestDistance,
 } from '@libs/actions/IOU';
-import {setTransactionReport} from '@libs/actions/Transaction';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {navigateToParticipantPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
@@ -77,7 +75,6 @@ function IOURequestStepDistanceManual({
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`, {canBeMissing: true});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const policy = usePolicy(report?.policyID);
-    const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
@@ -250,9 +247,6 @@ function IOURequestStepDistanceManual({
                     policy: defaultExpensePolicy,
                     lastSelectedDistanceRates,
                 });
-                const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-                const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
-                setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setCustomUnitRateID(transactionID, rateID);
                 setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
                     Navigation.navigate(
@@ -280,7 +274,6 @@ function IOURequestStepDistanceManual({
             currentUserPersonalDetails.accountID,
             reportNameValuePairs,
             isTransactionDraft,
-            personalPolicy?.autoReporting,
             defaultExpensePolicy,
             shouldSkipConfirmation,
             personalDetails,

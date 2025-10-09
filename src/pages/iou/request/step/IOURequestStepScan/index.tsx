@@ -34,13 +34,11 @@ import useIOUUtils from '@hooks/useIOUUtils';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import setTestReceipt from '@libs/actions/setTestReceipt';
-import {setTransactionReport} from '@libs/actions/Transaction';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
@@ -123,7 +121,6 @@ function IOURequestStepScan({
     const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
-    const personalPolicy = usePersonalPolicy();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
@@ -527,8 +524,6 @@ function IOURequestStepScan({
                 !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
             ) {
                 const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
-                const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-                const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
 
                 // If the initial transaction has different participants selected that means that the user has changed the participant in the confirmation step
                 if (initialTransaction?.participants && initialTransaction?.participants?.at(0)?.reportID !== activePolicyExpenseChat?.reportID) {
@@ -545,10 +540,7 @@ function IOURequestStepScan({
                     return;
                 }
 
-                const setParticipantsPromises = files.map((receiptFile) => {
-                    setTransactionReport(receiptFile.transactionID, {reportID: transactionReportID}, true);
-                    return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat);
-                });
+                const setParticipantsPromises = files.map((receiptFile) => setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat));
                 Promise.all(setParticipantsPromises).then(() =>
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
@@ -571,7 +563,6 @@ function IOURequestStepScan({
             initialTransaction?.reportID,
             reportNameValuePairs,
             iouType,
-            personalPolicy?.autoReporting,
             defaultExpensePolicy,
             report,
             initialTransactionID,
