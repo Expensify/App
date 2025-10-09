@@ -1,5 +1,5 @@
 import type {RouteProp} from '@react-navigation/native';
-import {StackActions} from '@react-navigation/native';
+import {StackActions, useNavigation} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {memo, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
@@ -32,7 +32,7 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -355,16 +355,6 @@ function AuthScreens() {
 
                 if (modal?.disableDismissOnEscape) {
                     return;
-                }
-
-                const rootState = navigationRef.getRootState();
-                const lastRoute = rootState.routes.at(-1);
-                if (lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
-                    const rhpRoutes = lastRoute?.state?.routes;
-                    if (rhpRoutes?.at(0)?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && rhpRoutes?.length > 1) {
-                        navigationRef.dispatch({...StackActions.popToTop(), target: lastRoute.state?.key});
-                        return;
-                    }
                 }
 
                 Navigation.dismissModal();
