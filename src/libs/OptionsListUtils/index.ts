@@ -614,16 +614,21 @@ function getLastMessageTextForReport({
                       isMoneyRequestAction(reportAction),
               )
             : undefined;
-        const reportPreviewMessage = getReportPreviewMessage(
-            !isEmptyObject(iouReport) ? iouReport : null,
-            lastIOUMoneyReportAction ?? lastReportAction,
-            true,
-            reportUtilsIsChatReport(report),
-            null,
-            true,
-            lastReportAction,
-        );
-        lastMessageTextFromReport = formatReportLastMessageText(reportPreviewMessage);
+        // For workspace chats, use the report title
+        if (reportUtilsIsPolicyExpenseChat(report) && !isEmptyObject(iouReport)) {
+            lastMessageTextFromReport = formatReportLastMessageText(getReportName(iouReport));
+        } else {
+            const reportPreviewMessage = getReportPreviewMessage(
+                !isEmptyObject(iouReport) ? iouReport : null,
+                lastIOUMoneyReportAction ?? lastReportAction,
+                true,
+                reportUtilsIsChatReport(report),
+                null,
+                true,
+                lastReportAction,
+            );
+            lastMessageTextFromReport = formatReportLastMessageText(reportPreviewMessage);
+        }
     } else if (isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, reportOrID: report});
     } else if (isReimbursementDeQueuedOrCanceledAction(lastReportAction)) {
@@ -2097,42 +2102,6 @@ function getAttendeeOptions(
 }
 
 /**
- * Build the options for the Share Destination for a Task
- */
-
-function getShareDestinationOptions(
-    reports: Array<SearchOption<Report>> = [],
-    personalDetails: Array<SearchOption<PersonalDetails>> = [],
-    betas: OnyxEntry<Beta[]> = [],
-    selectedOptions: Array<Partial<SearchOptionData>> = [],
-    excludeLogins: Record<string, boolean> = {},
-    includeOwnedWorkspaceChats = true,
-    searchString = '',
-    maxElements?: number,
-    includeUserToInvite = false,
-) {
-    return getValidOptions(
-        {reports, personalDetails},
-        {
-            betas,
-            selectedOptions,
-            includeMultipleParticipantReports: true,
-            showChatPreviewLine: true,
-            forcePolicyNamePreview: true,
-            includeThreads: true,
-            includeMoneyRequests: true,
-            includeTasks: true,
-            excludeLogins,
-            includeOwnedWorkspaceChats,
-            includeSelfDM: true,
-            searchString,
-            maxElements,
-            includeUserToInvite,
-        },
-    );
-}
-
-/**
  * Format personalDetails or userToInvite to be shown in the list
  *
  * @param member - personalDetails or userToInvite
@@ -2676,7 +2645,6 @@ export {
     getReportOption,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
-    getShareDestinationOptions,
     getShareLogOptions,
     getUserToInviteContactOption,
     getUserToInviteOption,

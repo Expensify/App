@@ -7,7 +7,6 @@ import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRe
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {InteractionManager} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import Button from '@components/Button';
 import ContactPermissionModal from '@components/ContactPermissionModal';
@@ -59,7 +58,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
-import type {PolicyTagLists} from '@src/types/onyx/PolicyTag';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ImportContactButton from './ImportContactButton';
 
@@ -80,6 +78,9 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
+
+    /** Whether the IOU is workspaces only */
+    isWorkspacesOnly?: boolean;
 
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
@@ -103,6 +104,7 @@ function MoneyRequestParticipantsSelector({
     iouType,
     action,
     isPerDiemRequest = false,
+    isWorkspacesOnly = false,
     isCorporateCardTransaction = false,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
@@ -296,25 +298,34 @@ function MoneyRequestParticipantsSelector({
             shouldShow: (chatOptions.workspaceChats ?? []).length > 0,
         });
 
-        newSections.push({
-            title: translate('workspace.invoices.paymentMethods.personal'),
-            data: chatOptions.selfDMChat ? [chatOptions.selfDMChat] : [],
-            shouldShow: !!chatOptions.selfDMChat,
-        });
+        if (!isWorkspacesOnly && chatOptions.userToInvite) {
+            newSections.push({
+                title: undefined,
+                data: [chatOptions.userToInvite].map((participant) => {
+                    const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
+                    const reportPolicyTags = policy?.id ? policyTags?.[policy?.id] : {};
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportPolicyTags, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                }),
+                shouldShow: true,
+            });
+        }
 
-        newSections.push({
-            title: translate('common.recents'),
-            data: isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports,
-            shouldShow: (isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports).length > 0,
-        });
+        if (!isWorkspacesOnly) {
+            newSections.push({
+                title: translate('common.recents'),
+                data: isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports,
+                shouldShow: (isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports).length > 0,
+            });
 
-        newSections.push({
-            title: translate('common.contacts'),
-            data: chatOptions.personalDetails,
-            shouldShow: chatOptions.personalDetails.length > 0 && !isPerDiemRequest,
-        });
+            newSections.push({
+                title: translate('common.contacts'),
+                data: chatOptions.personalDetails,
+                shouldShow: chatOptions.personalDetails.length > 0 && !isPerDiemRequest,
+            });
+        }
 
         if (
+            !isWorkspacesOnly &&
             chatOptions.userToInvite &&
             !isCurrentUser({
                 ...chatOptions.userToInvite,
@@ -324,18 +335,9 @@ function MoneyRequestParticipantsSelector({
             !isPerDiemRequest
         ) {
             newSections.push({
-                title: undefined,
-                data: [chatOptions.userToInvite].map((participant) => {
-                    let reportPolicyTags: OnyxEntry<PolicyTagLists>;
-                    if (participant.policyID) {
-                        reportPolicyTags = policyTags?.[participant.policyID];
-                    } else {
-                        reportPolicyTags = {};
-                    }
-                    const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportPolicyTags, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
-                }),
-                shouldShow: true,
+                title: translate('workspace.invoices.paymentMethods.personal'),
+                data: chatOptions.selfDMChat ? [chatOptions.selfDMChat] : [],
+                shouldShow: !!chatOptions.selfDMChat,
             });
         }
 
@@ -353,14 +355,16 @@ function MoneyRequestParticipantsSelector({
         chatOptions.recentReports,
         chatOptions.personalDetails,
         chatOptions.workspaceChats,
-        chatOptions.selfDMChat,
         chatOptions.userToInvite,
+        chatOptions.selfDMChat,
+        policyTags,
         personalDetails,
         reportAttributesDerived,
         translate,
+        isWorkspacesOnly,
         isPerDiemRequest,
         showImportContacts,
-        policyTags,
+        policy?.id,
         inputHelperText,
     ]);
 
@@ -660,6 +664,7 @@ export default memo(
     (prevProps, nextProps) =>
         deepEqual(prevProps.participants, nextProps.participants) &&
         prevProps.iouType === nextProps.iouType &&
+        prevProps.isWorkspacesOnly === nextProps.isWorkspacesOnly &&
         prevProps.onParticipantsAdded === nextProps.onParticipantsAdded &&
         prevProps.onFinish === nextProps.onFinish,
 );
