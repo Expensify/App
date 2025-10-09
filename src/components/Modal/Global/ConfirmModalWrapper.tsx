@@ -1,9 +1,10 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {ConfirmModalProps} from '@components/ConfirmModal';
 import ConfirmModal from '@components/ConfirmModal';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import CONST from '@src/CONST';
+import {ModalActions} from './ModalContext';
 import type {ModalProps} from './ModalContext';
 
 type ConfirmModalWrapperProps = ModalProps & Omit<ConfirmModalProps, 'onConfirm' | 'onCancel' | 'isVisible'>;
@@ -15,14 +16,25 @@ type ConfirmModalWrapperProps = ModalProps & Omit<ConfirmModalProps, 'onConfirm'
 
 function ConfirmModalWrapper({closeModal, ...props}: ConfirmModalWrapperProps) {
     const activeElementRole = useActiveElementRole();
+    const [isClosing, setIsClosing] = useState(false);
+    const [closeAction, setCloseAction] = useState<typeof ModalActions.CONFIRM | typeof ModalActions.CLOSE>(ModalActions.CLOSE);
 
     const handleConfirm = useCallback(() => {
-        closeModal({action: 'CONFIRM'});
-    }, [closeModal]);
+        setCloseAction(ModalActions.CONFIRM);
+        setIsClosing(true);
+    }, []);
 
     const handleCancel = useCallback(() => {
-        closeModal({action: 'CLOSE'});
-    }, [closeModal]);
+        setCloseAction(ModalActions.CLOSE);
+        setIsClosing(true);
+    }, []);
+
+    const handleModalHide = useCallback(() => {
+        if (!isClosing) {
+            return;
+        }
+        closeModal({action: closeAction});
+    }, [isClosing, closeModal, closeAction]);
 
     const shortcutConfig = useMemo(
         () => ({
@@ -39,9 +51,10 @@ function ConfirmModalWrapper({closeModal, ...props}: ConfirmModalWrapperProps) {
         <ConfirmModal
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            isVisible
+            isVisible={!isClosing}
             onConfirm={handleConfirm}
             onCancel={handleCancel}
+            onModalHide={handleModalHide}
         />
     );
 }
