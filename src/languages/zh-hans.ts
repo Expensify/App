@@ -1127,6 +1127,7 @@ const translations = {
         canceled: '已取消',
         posted: '已发布',
         deleteReceipt: '删除收据',
+        findExpense: '查找费用',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `删除了一笔费用 (${merchant} 的 ${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `移动了一笔费用${reportName ? `来自${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `移动了此费用${reportName ? `至 <a href="${reportUrl}">${reportName}</a>` : ''}`,
@@ -7099,6 +7100,7 @@ const translations = {
         exportInProgress: '正在导出',
         conciergeWillSend: 'Concierge 很快会将文件发送给您。',
     },
+    avatarPage: {title: '编辑个人资料图片', uploadPhoto: '上传照片'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

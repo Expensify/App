@@ -1137,6 +1137,7 @@ const translations = {
         canceled: 'キャンセルされました',
         posted: '投稿済み',
         deleteReceipt: '領収書を削除',
+        findExpense: '経費を検索',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `経費を削除しました (${merchant}の${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `費用${reportName ? `${reportName} から` : ''}を移動しました`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `この経費${reportName ? `to <a href="${reportUrl}">${reportName}</a>` : ''}を移動しました`,
@@ -7197,6 +7198,7 @@ const translations = {
         exportInProgress: 'エクスポート中',
         conciergeWillSend: 'コンシェルジュがまもなくファイルを送信します。',
     },
+    avatarPage: {title: 'プロフィール写真を編集', uploadPhoto: '写真をアップロード'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
