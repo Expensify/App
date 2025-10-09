@@ -1264,7 +1264,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean | undefined;
     [ONYXKEYS.BILLING_RECEIPT_DETAILS]: OnyxTypes.BillingReceiptDetails;
     [ONYXKEYS.NVP_SIDE_PANEL]: OnyxTypes.SidePanel;
-    [ONYXKEYS.TECHNICAL_CONTACT]: string;
+    [ONYXKEYS.TECHNICAL_CONTACT]: string | undefined;
     [ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION]: boolean;
     [ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE]: OnyxTypes.VacationDelegate;
     [ONYXKEYS.SCHEDULE_CALL_DRAFT]: OnyxTypes.ScheduleCallDraft;
