@@ -518,7 +518,7 @@ function MenuItem({
     const deviceHasHoverSupport = hasHoverSupport();
 
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
-    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
+    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
 
     const combinedTitleTextStyle = StyleUtils.combineStyles(
@@ -531,7 +531,7 @@ function MenuItem({
             numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
             interactive && disabled ? {...styles.userSelectNone} : {},
             styles.ltr,
-            isDeleted ? styles.offlineFeedback.deleted : {},
+            isDeleted ? styles.offlineFeedbackDeleted : {},
             shouldBreakWord ? styles.breakWord : {},
             styles.mw100,
         ],
@@ -544,7 +544,7 @@ function MenuItem({
         title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
         title ? styles.textLineHeightNormal : StyleUtils.getLineHeightStyle(variables.fontSizeNormalHeight),
         (descriptionTextStyle as TextStyle) || styles.breakWord,
-        isDeleted ? styles.offlineFeedback.deleted : {},
+        isDeleted ? styles.offlineFeedbackDeleted : {},
     ]);
 
     const html = useMemo(() => {
