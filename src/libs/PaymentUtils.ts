@@ -7,7 +7,7 @@ import type {PaymentMethod as KYCPaymentMethod} from '@components/KYCWall/types'
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
@@ -18,7 +18,7 @@ import {setPersonalBankAccountContinueKYCOnSuccess} from './actions/BankAccounts
 import {approveMoneyRequest} from './actions/IOU';
 import {translateLocal} from './Localize';
 import BankAccountModel from './models/BankAccount';
-import navigateToVerifyAccount from './Navigation/helpers/navigateToVerifyAccount';
+import createDynamicRoute from './Navigation/helpers/createDynamicRoute';
 import Navigation from './Navigation/Navigation';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 
@@ -135,7 +135,7 @@ const selectPaymentType = (
 
     if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
         if (!isUserValidated) {
-            navigateToVerifyAccount();
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT));
             return;
         }
         triggerKYCFlow(event, iouPaymentType);
