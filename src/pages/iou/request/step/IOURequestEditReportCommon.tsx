@@ -161,7 +161,7 @@ function IOURequestEditReportCommon({
                 onPress={createReport}
                 title={translate('report.newReport.createReport')}
                 description={policyForMovingExpenses?.name}
-                icon={Expensicons.DocumentPlus}
+                icon={Expensicons.Document}
             />
         );
     }, [createReport, isUnreported, translate, policyForMovingExpenses?.name]);
