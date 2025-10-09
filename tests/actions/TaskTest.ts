@@ -24,8 +24,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import {getFakeReport, getFakeReportAction} from '../utils/LHNTestUtils';
 import {getGlobalFetchMock} from '../utils/TestHelper';
-import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Mock API and Navigation
 jest.mock('@libs/API');
