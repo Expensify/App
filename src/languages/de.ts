@@ -7209,7 +7209,7 @@ const translations = {
         book: {
             title: 'Anruf planen',
             description: 'Finden Sie eine Zeit, die für Sie passt.',
-            slots: 'Verfügbare Zeiten für',
+            slots: ({date}: {date: string}) => `<muted-text>Verfügbare Zeiten für <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: 'Anruf bestätigen',

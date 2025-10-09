@@ -7187,7 +7187,7 @@ const translations = {
         book: {
             title: 'Zaplanuj rozmowę',
             description: 'Znajdź czas, który Ci odpowiada.',
-            slots: 'Dostępne godziny dla',
+            slots: ({date}: {date: string}) => `<muted-text>Dostępne godziny dla <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: 'Potwierdź połączenie',
