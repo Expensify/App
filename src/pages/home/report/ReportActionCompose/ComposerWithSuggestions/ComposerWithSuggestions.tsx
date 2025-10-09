@@ -91,8 +91,8 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     /** The placeholder for the input */
     inputPlaceholder: string;
 
-    /** Function to display a file in a modal */
-    displayFilesInModal: (file: FileObject[]) => void;
+    /** Callback when a file is pasted */
+    onPasteFile: (file: FileObject | FileObject[]) => void;
 
     /** Whether the input is disabled, defaults to false */
     disabled?: boolean;
@@ -206,7 +206,7 @@ function ComposerWithSuggestions({
     setIsFullComposerAvailable,
     isMenuVisible,
     inputPlaceholder,
-    displayFilesInModal,
+    onPasteFile,
     disabled,
     setIsCommentEmpty,
     handleSendMessage,
@@ -801,9 +801,9 @@ function ComposerWithSuggestions({
                     }}
                     onBlur={onBlur}
                     onClick={setShouldBlockSuggestionCalcToFalse}
-                    onPasteFile={(file) => {
+                    onPasteFile={(files) => {
                         textInputRef.current?.blur();
-                        displayFilesInModal([file]);
+                        onPasteFile(files);
                     }}
                     onClear={onClear}
                     isDisabled={disabled}
