@@ -5,11 +5,7 @@ coverage:
       default:
         informational: true
         target: auto
-    patch:
-      default:
-        informational: true
-        target: auto
-        threshold: 1%
+    patch: false  # or patch: { default: { enabled: false } }
 
 codecov:
   notify:
