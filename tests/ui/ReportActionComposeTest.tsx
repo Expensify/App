@@ -247,5 +247,59 @@ describe('ReportActionCompose Integration Tests', () => {
             unmount();
             await waitForBatchedUpdatesWithAct();
         });
+
+        it('should format pasted URL as Markdown link when selected text contains square brackets', async () => {
+            const onSubmit = jest.fn();
+            const {unmount} = renderPage(SCREENS.REPORT, {reportID: REPORT_ID, onSubmit});
+            await waitForBatchedUpdatesWithAct();
+
+            const composer = screen.getByTestId('composer');
+            fireEvent.changeText(composer, 'Select]ed[ text');
+            simulateSelection(composer, 0, 15);
+            fireEvent.changeText(composer, 'https://example.com');
+
+            await waitFor(() => {
+                expect(screen.getByTestId('composer').props.value).toBe('[Select&#93;ed&#91; text](https://example.com)');
+            });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should format pasted URL as Markdown link when selected text contains parentheses', async () => {
+            const onSubmit = jest.fn();
+            const {unmount} = renderPage(SCREENS.REPORT, {reportID: REPORT_ID, onSubmit});
+            await waitForBatchedUpdatesWithAct();
+
+            const composer = screen.getByTestId('composer');
+            fireEvent.changeText(composer, 'Selected () text');
+            simulateSelection(composer, 0, 16);
+            fireEvent.changeText(composer, 'https://example.com');
+
+            await waitFor(() => {
+                expect(screen.getByTestId('composer').props.value).toBe('[Selected () text](https://example.com)');
+            });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should format pasted URL as Markdown link when selected text contains curly braces', async () => {
+            const onSubmit = jest.fn();
+            const {unmount} = renderPage(SCREENS.REPORT, {reportID: REPORT_ID, onSubmit});
+            await waitForBatchedUpdatesWithAct();
+
+            const composer = screen.getByTestId('composer');
+            fireEvent.changeText(composer, 'Selec}ted {text');
+            simulateSelection(composer, 0, 15);
+            fireEvent.changeText(composer, 'https://example.com');
+
+            await waitFor(() => {
+                expect(screen.getByTestId('composer').props.value).toBe('[Selec}ted {text](https://example.com)');
+            });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 });
