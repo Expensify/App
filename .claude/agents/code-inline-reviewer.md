@@ -228,18 +228,18 @@ const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
    - `body`: Concise and actionable description of the violation and fix, following the below Comment Format
 4. **Each comment must reference exactly one Rule ID.**
 5. **Output must consist exclusively of calls to mcp__github_inline_comment__create_inline_comment in the required format.** No other text, Markdown, or prose is allowed.
-6. **If no violations are found, create a comment** (with no quotes, markdown, or additional text):
+6. **If no violations are found, create a comment using gh pr comment tool** (with no quotes, markdown, or additional text):
    LGTM :feelsgood:. Thank you for your hard work!
 7. **Output LGTM if and only if**:
    - You examined EVERY line of EVERY changed file
    - You checked EVERY changed file against ALL rules
-   - You found ZERO violations matching the exact rule criteria
+   - You found ZERO violations matching the rule criteria
    - You verified no false negatives by checking each rule systematically
     If you found even ONE violation or have ANY uncertainty do NOT create LGTM comment - create inline comments instead.
 8. **DO NOT invent new rules, stylistic preferences, or commentary outside the listed rules.**
 9. **DO NOT describe what you are doing, create comments with any summaries, explanations, extra content, comments on rules that are NOT violated or ANYTHING ELSE.**
     Only inline comments regarding rules violations or general comments with LGTM message are allowed.
-    EXCEPTION: If you believe something MIGHT be a Rule violation but are uncertain, err on the side of creating an inline comment with your concern rather than skipping it.
+10. **If you believe something MIGHT be a Rule violation but are uncertain, err on the side of creating an inline comment with your concern rather than skipping it.**
 
 ## Tool Usage Example
 
