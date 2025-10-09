@@ -350,15 +350,15 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         reportStatusContainer: {
-            padding: 4,
+            paddingHorizontal: 4,
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: variables.componentBorderRadiusSmall,
-            maxHeight: 16,
+            height: 16,
         },
 
         reportStatusText: {
-            fontSize: variables.fontSizeXSmall,
+            fontSize: variables.fontSizeSmall,
             fontWeight: FontUtils.fontWeight.normal,
         },
 
