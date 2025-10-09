@@ -119,10 +119,12 @@ function IOURequestStepDestination({
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
 
+    const keyboardVerticalOffset = openedFromStartPage ? variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;
+
     return (
         <ScreenWrapper
             includePaddingTop={false}
-            keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
+            keyboardVerticalOffset={keyboardVerticalOffset}
             testID={`${IOURequestStepDestination.displayName}-container`}
         >
             <StepScreenWrapper
