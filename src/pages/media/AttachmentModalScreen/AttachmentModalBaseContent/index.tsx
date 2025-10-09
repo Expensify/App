@@ -81,8 +81,7 @@ function AttachmentModalBaseContent({
 
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
+    const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) ?? CONST.DEFAULT_NUMBER_ID;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
 
@@ -159,8 +158,7 @@ function AttachmentModalBaseContent({
         }
 
         onClose?.();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isConfirmButtonDisabled, onConfirm, files, source]);
+    }, [isConfirmButtonDisabled, onConfirm, onClose, files, source]);
 
     // Close the modal when the escape key is pressed
     useEffect(() => {
