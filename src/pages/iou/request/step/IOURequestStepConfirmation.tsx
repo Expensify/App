@@ -273,7 +273,7 @@ function IOURequestStepConfirmation({
     const [allReportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const getReportOrDraft = useCallback(
-        (id?: string) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`] ?? allReportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${id}`],
+        (id = '') => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`] ?? allReportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${id}`],
         [allReports, allReportDrafts],
     );
     const participants = useMemo(
@@ -282,7 +282,7 @@ function IOURequestStepConfirmation({
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
-                const reportOrDraft = getReportOrDraft(participant?.reportID ?? '');
+                const reportOrDraft = getReportOrDraft(participant?.reportID);
                 return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived, reportOrDraft);
             }) ?? [],
         [transaction?.participants, iouType, personalDetails, reportAttributesDerived, getReportOrDraft],
