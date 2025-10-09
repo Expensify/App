@@ -212,12 +212,17 @@ function getFilters(queryJSON: SearchQueryJSON) {
             return;
         }
 
-        if (typeof node.left === 'object' && node.left) {
+        if (typeof node.left !== 'string' && node.left) {
             traverse(node.left);
         }
 
         if (typeof node.right === 'object' && node.right && !Array.isArray(node.right)) {
             traverse(node.right);
+        }
+
+        // Only process if its a leaf
+        if (typeof node.left !== 'string') {
+            return;
         }
 
         const nodeKey = node.left as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
