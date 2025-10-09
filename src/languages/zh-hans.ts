@@ -1984,8 +1984,7 @@ const translations = {
         cardFraudAlert: {
             confirmButtonText: '是的，我愿意。',
             reportFraudButtonText: '不，不是我',
-            clearedMessage: ({cardLastFour}: {cardLastFour: string}) =>
-                `已清除可疑活动并重新激活卡片 x${cardLastFour}。一切准备就绪，可以继续报销了！`,
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) => `已清除可疑活动并重新激活卡片 x${cardLastFour}。一切准备就绪，可以继续报销了！`,
             deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `已停用以${cardLastFour}结尾的卡片`,
             alertMessage: ({
                 cardLastFour,

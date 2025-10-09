@@ -3825,9 +3825,7 @@ type ReasonAndReportActionThatRequiresAttention = {
 
 function getUnresolvedCardFraudAlertAction(reportID: string): OnyxEntry<ReportAction> {
     const reportActions = getAllReportActions(reportID);
-    return Object.values(reportActions).find(
-        (action): action is ReportAction => isActionableCardFraudAlert(action) && !getOriginalMessage(action)?.resolution
-    );
+    return Object.values(reportActions).find((action): action is ReportAction => isActionableCardFraudAlert(action) && !getOriginalMessage(action)?.resolution);
 }
 
 function hasUnresolvedCardFraudAlert(reportOrOption: OnyxEntry<Report> | OptionData): boolean {

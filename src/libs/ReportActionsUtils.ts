@@ -883,7 +883,10 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     }
 
     if (
-        (isActionableReportMentionWhisper(reportAction) || isActionableJoinRequestPendingReportAction(reportAction) || isActionableMentionWhisper(reportAction) || isActionableCardFraudAlert(reportAction)) &&
+        (isActionableReportMentionWhisper(reportAction) ||
+            isActionableJoinRequestPendingReportAction(reportAction) ||
+            isActionableMentionWhisper(reportAction) ||
+            isActionableCardFraudAlert(reportAction)) &&
         !canUserPerformWriteAction
     ) {
         return false;
