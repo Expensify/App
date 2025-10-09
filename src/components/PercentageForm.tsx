@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import {replaceAllDigits, stripCommaFromAmount, stripSpacesFromAmount, validatePercentage} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
@@ -18,9 +18,12 @@ type PercentageFormProps = {
 
     /** Custom label for the TextInput */
     label?: string;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<BaseTextInputRef>;
 };
 
-function PercentageForm({value: amount, errorText, onInputChange, label, ...rest}: PercentageFormProps, forwardedRef: ForwardedRef<BaseTextInputRef>) {
+function PercentageForm({value: amount, errorText, onInputChange, label, ref, ...rest}: PercentageFormProps) {
     const {toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -56,14 +59,14 @@ function PercentageForm({value: amount, errorText, onInputChange, label, ...rest
             value={formattedAmount}
             onChangeText={setNewAmount}
             placeholder={numberFormat(0)}
-            ref={(ref: BaseTextInputRef | null) => {
-                if (typeof forwardedRef === 'function') {
-                    forwardedRef(ref);
-                } else if (forwardedRef && 'current' in forwardedRef) {
+            ref={(newRef: BaseTextInputRef | null) => {
+                if (typeof ref === 'function') {
+                    ref(newRef);
+                } else if (ref && 'current' in ref) {
                     // eslint-disable-next-line no-param-reassign
-                    forwardedRef.current = ref;
+                    ref.current = newRef;
                 }
-                textInput.current = ref;
+                textInput.current = newRef;
             }}
             suffixCharacter="%"
             keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
@@ -78,4 +81,4 @@ function PercentageForm({value: amount, errorText, onInputChange, label, ...rest
 
 PercentageForm.displayName = 'PercentageForm';
 
-export default forwardRef(PercentageForm);
+export default PercentageForm;
