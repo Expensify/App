@@ -1,4 +1,6 @@
 import Onyx from 'react-native-onyx';
+// TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+// eslint-disable-next-line deprecation/deprecation
 import {buildNextStep} from '@libs/NextStepUtils';
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -752,7 +754,8 @@ describe('libs/NextStepUtils', () => {
                 const originalState = {stateNum: report.stateNum, statusNum: report.statusNum};
                 report.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
                 report.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
-
+                // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                // eslint-disable-next-line deprecation/deprecation
                 const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
                 expect(result).toMatchObject(optimisticNextStep);
