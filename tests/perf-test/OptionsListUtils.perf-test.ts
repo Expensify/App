@@ -2,7 +2,7 @@ import {rand} from '@ngneat/falso';
 import type * as NativeNavigation from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSearchOptions, getShareDestinationOptions, getShareLogOptions, getValidOptions} from '@libs/OptionsListUtils';
+import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSearchOptions, getShareLogOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -132,10 +132,28 @@ describe('OptionsListUtils', () => {
         });
     });
 
-    /* Testing getShareDestinationOptions */
+    /* Testing getValidOptions for share destination */
     test('[OptionsListUtils] getShareDestinationOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getShareDestinationOptions(options.reports, options.personalDetails, mockedBetas));
+        await measureFunction(() =>
+            getValidOptions(
+                {reports: options.reports, personalDetails: options.personalDetails},
+                {
+                    betas: mockedBetas,
+                    includeMultipleParticipantReports: true,
+                    showChatPreviewLine: true,
+                    forcePolicyNamePreview: true,
+                    includeThreads: true,
+                    includeMoneyRequests: true,
+                    includeTasks: true,
+                    excludeLogins: {},
+                    includeOwnedWorkspaceChats: true,
+                    includeSelfDM: true,
+                    searchString: '',
+                    includeUserToInvite: false,
+                },
+            ),
+        );
     });
 
     /* Testing getMemberInviteOptions */
