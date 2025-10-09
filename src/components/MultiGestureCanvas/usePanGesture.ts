@@ -150,6 +150,7 @@ const usePanGesture = ({
             }
         } else {
             const finalTranslateY = offsetY.get() + panVelocityY.get() * 0.2;
+
             if (onSwipeDown && finalTranslateY > SNAP_POINT && zoomScale.get() <= 1) {
                 offsetY.set(
                     withSpring(SNAP_POINT_HIDDEN, SPRING_CONFIG, () => {
@@ -160,15 +161,14 @@ const usePanGesture = ({
                         }
                     }),
                 );
-                return;
+            } else {
+                // Animated back to the boundary
+                offsetY.set(
+                    withSpring(clampedOffset.y, SPRING_CONFIG, () => {
+                        isSwipingDownToClose.set(false);
+                    }),
+                );
             }
-
-            // Animated back to the boundary
-            offsetY.set(
-                withSpring(clampedOffset.y, SPRING_CONFIG, () => {
-                    isSwipingDownToClose.set(false);
-                }),
-            );
         }
 
         // Reset velocity variables after we finished the pan gesture
