@@ -1141,6 +1141,7 @@ const translations = {
         canceled: 'Abgebrochen',
         posted: 'Gepostet',
         deleteReceipt: 'Beleg löschen',
+        findExpense: 'Ausgabe finden',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `hat eine Ausgabe gelöscht (${amount} für ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `verschob eine Ausgabe${reportName ? `von ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `verschob diese Ausgabe${reportName ? `to <a href="${reportUrl}">${reportName}</a>` : ''}`,
