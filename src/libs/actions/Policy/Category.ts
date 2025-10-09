@@ -633,7 +633,7 @@ function importPolicyCategories(policyID: string, categories: PolicyCategory[]) 
         categories: JSON.stringify([...categories.map((category) => ({name: category.name, enabled: category.enabled, 'GL Code': String(category['GL Code'])}))]),
     };
 
-    API.write(WRITE_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET, parameters, onyxData);
+    API.write(WRITE_COMMANDS.POLICY_CATEGORIES_REPLACE, parameters, onyxData);
 }
 
 function renamePolicyCategory(policyID: string, policyCategory: {oldName: string; newName: string}, policyCategories: PolicyCategories = {}) {
