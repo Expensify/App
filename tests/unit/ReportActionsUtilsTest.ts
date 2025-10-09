@@ -1410,7 +1410,8 @@ describe('ReportActionsUtils', () => {
                 reportActionID: '1',
                 created: '2025-09-29',
                 originalMessage: {
-                    fromReportID: report.reportID,
+                    toReportID: report.reportID,
+                    fromReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 },
             };
 
