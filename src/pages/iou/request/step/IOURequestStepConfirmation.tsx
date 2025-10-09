@@ -473,7 +473,7 @@ function IOURequestStepConfirmation({
                 const onFailure = () => {
                     isScanFilesCanBeRead = false;
                     if (initialTransactionID === item.transactionID) {
-                        setMoneyRequestReceipt(item.transactionID, '', '', true, '');
+                        setMoneyRequestReceipt(item.transactionID, '', '', true);
                     }
                 };
 
@@ -1090,7 +1090,7 @@ function IOURequestStepConfirmation({
             return;
         }
         const source = URL.createObjectURL(file as Blob);
-        setMoneyRequestReceipt(currentTransactionID, source, file.name ?? '', true, file.type);
+        setMoneyRequestReceipt(currentTransactionID, source, file.name ?? '', true);
     };
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptOnDrop);
