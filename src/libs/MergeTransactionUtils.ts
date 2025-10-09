@@ -295,6 +295,8 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         comment: {
             ...targetTransaction.comment,
             comment: mergeTransaction.description,
+            customUnit: mergeTransaction.customUnit,
+            waypoints: mergeTransaction.waypoints,
         },
         reimbursable: mergeTransaction.reimbursable,
         billable: mergeTransaction.billable,
