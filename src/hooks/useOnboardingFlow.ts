@@ -47,6 +47,7 @@ function useOnboardingFlowRouter() {
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector, canBeMissing: true});
     const {typeMenuSections} = useSearchTypeMenuSections();
+    const shouldShowRequire2FAPage = !!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth;
 
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
@@ -70,6 +71,11 @@ function useOnboardingFlowRouter() {
 
             if (currentUrl.endsWith('/r')) {
                 // Don't trigger onboarding if we are in the middle of a redirect to a report
+                return;
+            }
+
+            // Don't trigger onboarding if we are showing the require 2FA page
+            if (shouldShowRequire2FAPage) {
                 return;
             }
 
@@ -151,6 +157,8 @@ function useOnboardingFlowRouter() {
         onboardingInitialPath,
         isOnboardingInitialPathLoading,
         typeMenuSections,
+        account?.needsTwoFactorAuthSetup,
+        account,
     ]);
 
     return {isOnboardingCompleted: hasCompletedGuidedSetupFlowSelector(onboardingValues), isHybridAppOnboardingCompleted};
