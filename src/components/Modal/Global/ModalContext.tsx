@@ -10,7 +10,7 @@ const ModalActions = {
     CLOSE: 'CLOSE',
 } as const;
 
-type ModalAction = typeof ModalActions[keyof typeof ModalActions];
+type ModalAction = (typeof ModalActions)[keyof typeof ModalActions];
 
 type ModalStateChangePayload<A extends ModalAction = ModalAction> = {action: A};
 
