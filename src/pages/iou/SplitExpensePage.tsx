@@ -157,8 +157,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             transactionData: {
-                reportID: draftTransaction?.reportID ?? '',
-                originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? '',
+                reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses,
                 splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal ?? 0,
             },
