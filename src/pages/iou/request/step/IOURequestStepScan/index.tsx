@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
+import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import type {LayoutRectangle} from 'react-native';
 import {InteractionManager, PanResponder, StyleSheet, View} from 'react-native';
@@ -15,8 +16,6 @@ import Shutter from '@assets/images/shutter.svg';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
-import CopyTextToClipboard from '@components/CopyTextToClipboard';
-import DownloadAppBanner from '@components/DownloadAppBanner';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -25,6 +24,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import ReceiptAlternativeMethods from '@components/ReceiptAlternativeMethods';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -34,11 +34,13 @@ import useIOUUtils from '@hooks/useIOUUtils';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import setTestReceipt from '@libs/actions/setTestReceipt';
+import {setTransactionReport} from '@libs/actions/Transaction';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
@@ -97,6 +99,7 @@ function IOURequestStepScan({
     currentUserPersonalDetails,
     onLayout,
     isMultiScanEnabled = false,
+    isStartingScan = false,
     setIsMultiScanEnabled,
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const theme = useTheme();
@@ -120,6 +123,7 @@ function IOURequestStepScan({
     const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
+    const personalPolicy = usePersonalPolicy();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
@@ -127,13 +131,13 @@ function IOURequestStepScan({
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const canUseMultiScan = !isEditing && iouType !== CONST.IOU.TYPE.SPLIT && !backTo && !backToReport;
+    const canUseMultiScan = isStartingScan && iouType !== CONST.IOU.TYPE.SPLIT;
     const isReplacingReceipt = (isEditing && hasReceipt(initialTransaction)) || (!!initialTransaction?.receipt && !!backTo);
     const {shouldStartLocationPermissionFlow} = useIOUUtils();
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS) || !account?.shouldBlockTransactionThreadReportCreation;
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: (items) => Object.values(items ?? {}),
+        selector: transactionDraftValuesSelector,
         canBeMissing: true,
     });
     const transactions = useMemo(() => {
@@ -523,6 +527,8 @@ function IOURequestStepScan({
                 !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
             ) {
                 const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
+                const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
+                const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
 
                 // If the initial transaction has different participants selected that means that the user has changed the participant in the confirmation step
                 if (initialTransaction?.participants && initialTransaction?.participants?.at(0)?.reportID !== activePolicyExpenseChat?.reportID) {
@@ -539,7 +545,10 @@ function IOURequestStepScan({
                     return;
                 }
 
-                const setParticipantsPromises = files.map((receiptFile) => setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat));
+                const setParticipantsPromises = files.map((receiptFile) => {
+                    setTransactionReport(receiptFile.transactionID, {reportID: transactionReportID}, true);
+                    return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat);
+                });
                 Promise.all(setParticipantsPromises).then(() =>
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
@@ -562,6 +571,7 @@ function IOURequestStepScan({
             initialTransaction?.reportID,
             reportNameValuePairs,
             iouType,
+            personalPolicy?.autoReporting,
             defaultExpensePolicy,
             report,
             initialTransactionID,
@@ -601,8 +611,7 @@ function IOURequestStepScan({
                 return;
             }
             const source = URL.createObjectURL(file as Blob);
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            setMoneyRequestReceipt(initialTransactionID, source, file.name || '', !isEditing);
+            setMoneyRequestReceipt(initialTransactionID, source, file.name ?? '', !isEditing, file.type);
             updateScanAndNavigate(file, source);
             return;
         }
@@ -620,8 +629,7 @@ function IOURequestStepScan({
 
             const transactionID = transaction.transactionID ?? initialTransactionID;
             newReceiptFiles.push({file, source, transactionID});
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            setMoneyRequestReceipt(transactionID, source, file.name || '', true);
+            setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
         });
 
         if (shouldSkipConfirmation) {
@@ -732,7 +740,7 @@ function IOURequestStepScan({
             const transactionID = transaction?.transactionID ?? initialTransactionID;
             const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
 
-            setMoneyRequestReceipt(transactionID, source, filename, !isEditing);
+            setMoneyRequestReceipt(transactionID, source, filename, !isEditing, file.type);
             setReceiptFiles(newReceiptFiles);
 
             if (isMultiScanEnabled) {
@@ -815,6 +823,7 @@ function IOURequestStepScan({
     );
 
     const dismissMultiScanEducationalPopup = () => {
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL);
             setShouldShowMultiScanEducationalPopup(false);
@@ -1002,9 +1011,10 @@ function IOURequestStepScan({
 
     const [containerHeight, setContainerHeight] = useState(0);
     const [desktopUploadViewHeight, setDesktopUploadViewHeight] = useState(0);
-    const [downloadAppBannerHeight, setDownloadAppBannerHeight] = useState(0);
-    /*  We use isMobile() here to explicitly hide DownloadAppBanner component on both mobile web and native apps */
-    const shouldHideDownloadAppBanner = isMobile() || downloadAppBannerHeight + desktopUploadViewHeight + styles.uploadFileView(isSmallScreenWidth).paddingVertical * 2 > containerHeight;
+    const [alternativeMethodsHeight, setAlternativeMethodsHeight] = useState(0);
+    // We use isMobile() here to explicitly hide the alternative methods component on both mobile web and native apps
+    const chooseFilesPaddingVertical = Number(styles.chooseFilesView(isSmallScreenWidth).paddingVertical);
+    const shouldHideAlternativeMethods = isMobile() || alternativeMethodsHeight + desktopUploadViewHeight + chooseFilesPaddingVertical * 2 > containerHeight;
 
     const desktopUploadView = () => (
         <View
@@ -1023,16 +1033,9 @@ function IOURequestStepScan({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
-                <Text style={[styles.textFileUpload]}>{translate(shouldAcceptMultipleFiles ? 'receipt.uploadMultiple' : 'receipt.upload')}</Text>
-                <Text style={[styles.subTextFileUpload]}>
-                    {isSmallScreenWidth
-                        ? translate(shouldAcceptMultipleFiles ? 'receipt.chooseReceipts' : 'receipt.chooseReceipt')
-                        : translate(shouldAcceptMultipleFiles ? 'receipt.dragReceiptsBeforeEmail' : 'receipt.dragReceiptBeforeEmail')}
-                    <CopyTextToClipboard
-                        text={CONST.EMAIL.RECEIPTS}
-                        textStyles={[styles.textBlue]}
-                    />
-                    {isSmallScreenWidth ? null : translate(shouldAcceptMultipleFiles ? 'receipt.dragReceiptsAfterEmail' : 'receipt.dragReceiptAfterEmail')}
+                <Text style={[styles.textFileUpload, styles.mb2]}>{translate(shouldAcceptMultipleFiles ? 'receipt.uploadMultiple' : 'receipt.upload')}</Text>
+                <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.lineHeightLarge]}>
+                    {translate(shouldAcceptMultipleFiles ? 'receipt.desktopSubtitleMultiple' : 'receipt.desktopSubtitleSingle')}
                 </Text>
             </View>
 
@@ -1042,7 +1045,7 @@ function IOURequestStepScan({
                         success
                         text={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
                         accessibilityLabel={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
-                        style={[styles.p9]}
+                        style={[styles.p5]}
                         onPress={() => {
                             openPicker({
                                 onPicked: (data) => validateFiles(data),
@@ -1070,7 +1073,7 @@ function IOURequestStepScan({
                         }
                         onLayout(setTestReceiptAndNavigate);
                     }}
-                    style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth)]}
+                    style={[styles.flex1, !isMobile() && styles.chooseFilesView(isSmallScreenWidth)]}
                 >
                     <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
                         {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
@@ -1081,10 +1084,10 @@ function IOURequestStepScan({
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTitle={isReplacingReceipt ? translate('dropzone.replaceReceipt') : translate(shouldAcceptMultipleFiles ? 'dropzone.scanReceipts' : 'quickAction.scanReceipt')}
                             dropTextStyles={styles.receiptDropText}
-                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
+                            dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
                         />
                     </DragAndDropConsumer>
-                    {!shouldHideDownloadAppBanner && <DownloadAppBanner onLayout={(e) => setDownloadAppBannerHeight(e.nativeEvent.layout.height)} />}
+                    {!shouldHideAlternativeMethods && <ReceiptAlternativeMethods onLayout={(e) => setAlternativeMethodsHeight(e.nativeEvent.layout.height)} />}
                     {ErrorModal}
                     {startLocationPermissionFlow && !!receiptFiles.length && (
                         <LocationPermissionModal

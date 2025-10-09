@@ -159,8 +159,14 @@ type UberReceiptPartner = {
              * status of the employee
              */
             status?: string;
+            /** A list of errors keyed by microtime */
+            errors?: OnyxCommon.Errors | null;
         }>
     >;
+    /**
+     * Whether credentials are invalid
+     */
+    error?: string;
     /**
      * Collection of errors coming from BE
      */

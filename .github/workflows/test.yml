@@ -75,7 +75,7 @@ jobs:
         with:
           token: ${{ steps.load-codecov-token.outputs.CODECOV_TOKEN }}
           files: coverage/shard-${{ matrix.chunk }}/coverage-final.json,coverage/shard-${{ matrix.chunk }}/lcov.info
-          flags: unit,shard-${{ matrix.chunk }}
+          flags: unit
           name: jest-${{ matrix.chunk }}
           disable_search: true
           fail_ci_if_error: true

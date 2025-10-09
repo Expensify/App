@@ -43,6 +43,26 @@ type Item = {
 };
 
 /**
+ * Ensures asset has proper fileName and type properties
+ */
+const processAssetWithFallbacks = (asset: Asset): Asset => {
+    // Generate fallback name: extract from URI if available, otherwise use timestamped default
+    const fallbackName = asset.uri
+        ? asset.uri
+              .substring(asset.uri.lastIndexOf('/') + 1)
+              .split('?')
+              .at(0)
+        : `image_${Date.now()}.jpeg`;
+    const fileName = asset.fileName ?? fallbackName;
+    return {
+        ...asset,
+        fileName,
+        // Default to JPEG if no type specified
+        type: asset.type ?? 'image/jpeg',
+    };
+};
+
+/**
  * Return imagePickerOptions based on the type
  */
 const getImagePickerOptions = (type: string, fileLimit: number): CameraOptions | ImageLibraryOptions => {
@@ -202,7 +222,9 @@ function AttachmentPicker({
                                                 checkAllProcessed();
                                             });
                                     } else {
-                                        processedAssets.push(asset);
+                                        // Ensure the asset has proper fileName and type for non-HEIC images
+                                        const processedAsset = processAssetWithFallbacks(asset);
+                                        processedAssets.push(processedAsset);
                                         checkAllProcessed();
                                     }
                                 })
@@ -211,7 +233,9 @@ function AttachmentPicker({
                                     checkAllProcessed();
                                 });
                         } else {
-                            processedAssets.push(asset);
+                            // Ensure the asset has proper fileName and type
+                            const processedAsset = processAssetWithFallbacks(asset);
+                            processedAssets.push(processedAsset);
                             checkAllProcessed();
                         }
                     });
@@ -222,7 +246,6 @@ function AttachmentPicker({
     /**
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
      */
-    // eslint-disable-next-line @lwc/lwc/no-async-await
     const showDocumentPicker = useCallback(async (): Promise<LocalCopy[]> => {
         const pickedFiles = await pick({
             type: [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles],
