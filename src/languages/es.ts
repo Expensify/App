@@ -1992,8 +1992,10 @@ const translations = {
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Introduzca el código mágico enviado a ${contactMethod} para ver los datos de su tarjeta. Debería llegar en un par de minutos.`,
         cardFraudAlert: {
-            clearedMessage: "[es] cleared the earlier suspicious activity. The card is reactivated. You're all set to keep on expensin'!",
-            deactivatedMessage: '[es] the card has been deactivated.',
+            confirmButtonText: 'Sí, lo hago',
+            reportFraudButtonText: 'No, no fui yo',
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) => `se eliminó la actividad sospechosa anterior y se reactivó la tarjeta x${cardLastFour}. ¡Todo listo para seguir gastando!`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `la tarjeta terminada en ${cardLastFour} ha sido desactivada`,
             alertMessage: ({
                 cardLastFour,
                 amount,
@@ -2004,9 +2006,9 @@ const translations = {
                 amount: string;
                 merchant: string;
                 date: string;
-            }) => `[es] identified suspicious activity on card ending in ${cardLastFour}. Do you recognize this charge?
+            }) => `se identificó actividad sospechosa en la tarjeta terminada en ${cardLastFour}. ¿Reconoces este cargo?
 
-${amount} for ${merchant} - ${date}`,
+${amount} para ${merchant} - ${date}`,
         },
     },
     workflowsPage: {
@@ -7596,6 +7598,7 @@ ${amount} for ${merchant} - ${date}`,
             isWaitingForAssigneeToCompleteAction: 'Esperando a que el asignado complete la acción',
             hasChildReportAwaitingAction: 'Informe secundario pendiente de acción',
             hasMissingInvoiceBankAccount: 'Falta la cuenta bancaria de la factura',
+            hasUnresolvedCardFraudAlert: 'Tiene alerta de fraude de tarjeta sin resolver',
         },
         reasonRBR: {
             hasErrors: 'Tiene errores en los datos o las acciones del informe',
