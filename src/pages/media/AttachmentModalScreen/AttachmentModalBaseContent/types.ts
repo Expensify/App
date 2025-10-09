@@ -3,35 +3,19 @@ import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {AvatarSource} from '@libs/UserUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {IOUAction, IOUType} from '@src/CONST';
 import type CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
+
+type OnValidateFileCallback = (file: FileObject | undefined, setFile: (file: FileObject | undefined) => void) => void;
 
 type AttachmentModalOnCloseOptions = {
     shouldCallDirectly?: boolean;
     onAfterClose?: () => void;
 };
-
-type AttachmentModalContentData = {
-    source: AvatarSource;
-    file: FileObject | undefined;
-};
-
-type ThreeDotsMenuItemGeneratorProps = AttachmentModalContentData & {
-    isLocalSource: boolean;
-};
-
-type ThreeDotsMenuItemGenerator = (props: ThreeDotsMenuItemGeneratorProps) => PopoverMenuItem[];
-
-type DownloadAttachmentCallback = (props: AttachmentModalContentData) => void;
-
-type AttachmentContentProps = {
-    fileToDisplay: FileObject | undefined;
-    files: FileObject | FileObject[] | undefined;
-};
-type AttachmentContent = React.FC<AttachmentContentProps>;
 
 type AttachmentModalBaseContentProps = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
@@ -44,10 +28,7 @@ type AttachmentModalBaseContentProps = {
     fallbackSource?: AvatarSource;
 
     /** Optional file object to be used for the attachment. If not passed in via props must be specified when modal is opened. */
-    file?: FileObject | FileObject[];
-
-    /** The index of the file to display in the carousel */
-    fileToDisplayIndex?: number;
+    file?: FileObject;
 
     /** Optional original filename when uploading */
     originalFileName?: string;
@@ -55,11 +36,14 @@ type AttachmentModalBaseContentProps = {
     /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;
 
+    /** Determines if download Button should be shown or not */
+    allowDownload?: boolean;
+
+    /** Determines if the receipt comes from track expense action */
+    isTrackExpenseAction?: boolean;
+
     /** Title shown in the header of the modal */
     headerTitle?: string;
-
-    /** The menu items for the three dots button */
-    threeDotsMenuItems?: PopoverMenuItem[] | ThreeDotsMenuItemGenerator;
 
     /** The report that has this attachment */
     report?: OnyxEntry<OnyxTypes.Report>;
@@ -70,11 +54,23 @@ type AttachmentModalBaseContentProps = {
     /** The type of the attachment */
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
 
+    /** The iou action of the expense creation flow of which we are displaying the receipt for. */
+    iouAction?: IOUAction;
+
+    /** The iou type of the expense creation flow of which we are displaying the receipt for. */
+    iouType?: IOUType;
+
+    /** The id of the draft transaction linked to the receipt. */
+    draftTransactionID?: string;
+
     /** If the attachment originates from a note, the accountID will represent the author of that note. */
     accountID?: number;
 
     /** The data is loading or not */
     isLoading?: boolean;
+
+    /** Should display not found page or not */
+    shouldShowNotFoundPage?: boolean;
 
     /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar?: boolean;
@@ -82,48 +78,59 @@ type AttachmentModalBaseContentProps = {
     /** Denotes whether it can be an icon (ex: SVG) */
     maybeIcon?: boolean;
 
-    /** Whether to display not found page */
-    shouldShowNotFoundPage?: boolean;
+    /** Whether it is a receipt attachment or not */
+    isReceiptAttachment?: boolean;
 
-    /** Whether to show an attachment carousel */
-    shouldShowCarousel?: boolean;
+    /** Determines if the user can edit the receipt or not */
+    canEditReceipt?: boolean;
 
-    /** Whether to show download button */
-    shouldShowDownloadButton?: boolean;
+    /** Determines if the user can delete the receipt or not */
+    canDeleteReceipt?: boolean;
 
-    /** Whether to disable send button */
+    /** Determines if the send button should be disabled or not */
     shouldDisableSendButton?: boolean;
 
-    /** Whether to display help button */
+    /** Determines if the help button should be displayed or not */
     shouldDisplayHelpButton?: boolean;
 
     /** The link of the attachment */
     attachmentLink?: string;
 
+    /** Determines if the attachment is invalid or not */
+    isAttachmentInvalid?: boolean;
+
+    /** Determines if the attachment is invalid or not */
+    attachmentInvalidReason?: TranslationPaths | null;
+
+    /** Determines the title of the invalid reason modal */
+    attachmentInvalidReasonTitle?: TranslationPaths | null;
+
     /** Ref to the submit button */
     submitRef?: RefObject<View | HTMLElement | null>;
 
-    AttachmentContent?: AttachmentContent;
-
-    /** Callback triggered when the download button is pressed */
-    onDownloadAttachment?: DownloadAttachmentCallback;
+    /** Determines if the delete receipt confirm modal is visible or not */
+    isDeleteReceiptConfirmModalVisible?: boolean;
 
     /** Optional callback to fire when we want to preview an image and approve it for use. */
-    onConfirm?: (file: FileObject | FileObject[]) => void;
+    onConfirm?: (file: FileObject) => void;
 
     /** Callback triggered when the modal is closed */
     onClose?: (options?: AttachmentModalOnCloseOptions) => void;
 
+    /** Callback triggered when the confirm modal is closed */
+    onConfirmModalClose?: () => void;
+
+    /** Callback triggered when the delete receipt modal is shown */
+    onRequestDeleteReceipt?: () => void;
+
+    /** Callback triggered when the delete receipt is confirmed */
+    onDeleteReceipt?: () => void;
+
     /** Optional callback to fire when we want to do something after attachment carousel changes. */
     onCarouselAttachmentChange?: (attachment: Attachment) => void;
+
+    /** Optional callback to fire when we want to validate the file. */
+    onValidateFile?: OnValidateFileCallback;
 };
 
-export type {
-    AttachmentModalBaseContentProps,
-    AttachmentModalOnCloseOptions,
-    DownloadAttachmentCallback,
-    AttachmentContent,
-    AttachmentContentProps,
-    ThreeDotsMenuItemGenerator,
-    ThreeDotsMenuItemGeneratorProps,
-};
+export type {AttachmentModalBaseContentProps, AttachmentModalOnCloseOptions, OnValidateFileCallback};

@@ -478,12 +478,6 @@ const ROUTES = {
         route: 'attachment',
         getRoute: (params?: ReportAttachmentsRouteParams) => getAttachmentModalScreenRoute('attachment', params),
     },
-    REPORT_ADD_ATTACHMENT: {
-        route: 'r/:reportID/attachment/add',
-        getRoute: (reportID: string, params?: ReportAddAttachmentRouteParams) => {
-            return getAttachmentModalScreenRoute(`r/${reportID}/attachment/add`, params);
-        },
-    },
     EDIT_CURRENCY_REQUEST: {
         route: 'r/:threadReportID/edit/currency',
         getRoute: (threadReportID: string, currency: string, backTo: string) => `r/${threadReportID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
@@ -3287,13 +3281,11 @@ export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT};
 export default ROUTES;
 
 type ReportAttachmentsRoute = typeof ROUTES.ATTACHMENTS.route;
-type ReportAddAttachmentRoute = `r/${string}/attachment/add`;
-type AttachmentRoutes = ReportAttachmentsRoute | ReportAddAttachmentRoute;
+type AttachmentRoutes = ReportAttachmentsRoute;
 
 type ReportAttachmentsRouteParams = RootNavigatorParamList[typeof SCREENS.ATTACHMENTS];
-type ReportAddAttachmentRouteParams = RootNavigatorParamList[typeof SCREENS.REPORT_ADD_ATTACHMENT];
 
-function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: ReportAttachmentsRouteParams | ReportAddAttachmentRouteParams) {
+function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: ReportAttachmentsRouteParams) {
     if (!params?.source) {
         return url;
     }
