@@ -3,6 +3,7 @@ import type {Meta, StoryFn} from '@storybook/react';
 import React, {useState} from 'react';
 import type {AvatarSelectorProps} from '@components/AvatarSelector';
 import AvatarSelector from '@components/AvatarSelector';
+import CONST from '@src/CONST';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -45,13 +46,13 @@ WithPreselectedAvatar.args = {
 const LargeAvatars: AvatarSelectorStory = Template.bind({});
 LargeAvatars.args = {
     selectedID: 'helmet-blue400',
-    size: 'LARGE',
+    size: CONST.AVATAR_SIZE.LARGE,
     label: 'Large avatars',
 };
 
 const SmallAvatars: AvatarSelectorStory = Template.bind({});
 SmallAvatars.args = {
-    size: 'SMALL',
+    size: CONST.AVATAR_SIZE.SMALL,
     label: 'Small avatars',
 };
 

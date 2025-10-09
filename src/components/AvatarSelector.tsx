@@ -4,6 +4,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {ALL_CUSTOM_AVATARS} from '@libs/Avatars/CustomAvatarCatalog';
+import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import Avatar from './Avatar';
 import {PressableWithFeedback} from './Pressable';
@@ -17,7 +18,7 @@ type AvatarSelectorProps = {
     onSelect: (id: keyof typeof ALL_CUSTOM_AVATARS) => void;
 
     /** Optional: size of avatars in grid */
-    size?: keyof typeof CONST.AVATAR_SIZE;
+    size?: AvatarSizeName;
 
     /** Optional label to display above the grid */
     label?: string;
@@ -63,7 +64,7 @@ function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.M
                             <Avatar
                                 type={CONST.ICON_TYPE_AVATAR}
                                 source={url}
-                                size={CONST.AVATAR_SIZE[size]}
+                                size={size}
                                 containerStyles={styles.avatarSelectorContainer}
                                 testID={`AvatarSelector_${id}`}
                             />
