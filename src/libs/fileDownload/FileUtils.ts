@@ -699,23 +699,19 @@ const canvasFallback = (blob: Blob, fileName: string): Promise<File> => {
     });
 };
 
+function getFileWithUri(file: File) {
+    const newFile = file;
+    newFile.uri = URL.createObjectURL(newFile);
+    return newFile as FileObject;
+}
+
 function getFilesFromClipboardEvent(event: DragEvent) {
-    if (event.dataTransfer?.files.length && event.dataTransfer?.files.length > 1) {
-        const files = Array.from(event.dataTransfer?.files).map((file) => {
-            // eslint-disable-next-line no-param-reassign
-            file.uri = URL.createObjectURL(file);
-            return file;
-        });
-        return files;
+    const files = event.dataTransfer?.files;
+    if (!files || files?.length === 0) {
+        return [];
     }
 
-    const data = event.dataTransfer?.files[0];
-    if (data) {
-        data.uri = URL.createObjectURL(data);
-        return [data];
-    }
-
-    return [];
+    return Array.from(files).map((file) => getFileWithUri(file));
 }
 
 function cleanFileObject(fileObject: FileObject): FileObject {
