@@ -3,7 +3,14 @@ import React, {useCallback, useContext, useMemo, useState} from 'react';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
-type ModalAction = 'CONFIRM' | 'CLOSE';
+// type ModalAction = 'CONFIRM' | 'CLOSE';
+
+const ModalActions = {
+    CONFIRM: 'CONFIRM',
+    CLOSE: 'CLOSE',
+} as const;
+
+type ModalAction = typeof ModalActions[keyof typeof ModalActions];
 
 type ModalStateChangePayload<A extends ModalAction = ModalAction> = {action: A};
 
@@ -99,4 +106,4 @@ function PromiseModalProvider({children}: {children: React.ReactNode}) {
 }
 
 export type {ModalProps};
-export {PromiseModalProvider, useModal};
+export {PromiseModalProvider, useModal, ModalActions};

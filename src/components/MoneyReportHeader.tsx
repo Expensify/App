@@ -143,6 +143,7 @@ import {useSearchContext} from './Search/SearchContext';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
 import Text from './Text';
 import {WideRHPContext} from './WideRHPContextProvider';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 type MoneyReportHeaderProps = {
     /** The report currently being looked at */
@@ -324,7 +325,7 @@ function MoneyReportHeader({
             }
 
             showExportProgressModal().then((result) => {
-                if (result.action !== 'CONFIRM') {
+                if (result.action !== ModalActions.CONFIRM) {
                     return;
                 }
                 clearSelectedTransactions(undefined, true);
@@ -980,7 +981,7 @@ function MoneyReportHeader({
                         cancelText: translate('common.cancel'),
                         danger: true,
                     }).then((result) => {
-                        if (result.action !== 'CONFIRM') {
+                        if (result.action !== ModalActions.CONFIRM) {
                             return;
                         }
                         unapproveExpenseReport(moneyRequestReport);
@@ -1003,7 +1004,7 @@ function MoneyReportHeader({
                     cancelText: translate('common.dismiss'),
                     danger: true,
                 }).then((result) => {
-                    if (result.action !== 'CONFIRM' || !chatReport) {
+                    if (result.action !== ModalActions.CONFIRM || !chatReport) {
                         return;
                     }
                     cancelPayment(moneyRequestReport, chatReport);
@@ -1104,7 +1105,7 @@ function MoneyReportHeader({
                         cancelText: translate('common.cancel'),
                         danger: true,
                     }).then((result) => {
-                        if (result.action !== 'CONFIRM') {
+                        if (result.action !== ModalActions.CONFIRM) {
                             return;
                         }
                         let goBackRoute: Route | undefined;
@@ -1133,7 +1134,7 @@ function MoneyReportHeader({
                     cancelText: translate('common.cancel'),
                     danger: true,
                 }).then((result) => {
-                    if (result.action !== 'CONFIRM') {
+                    if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
                     const reportID = moneyRequestReport?.reportID;
@@ -1164,7 +1165,7 @@ function MoneyReportHeader({
                         cancelText: translate('common.cancel'),
                         danger: true,
                     }).then((result) => {
-                        if (result.action !== 'CONFIRM') {
+                        if (result.action !== ModalActions.CONFIRM) {
                             return;
                         }
                         reopenReport(moneyRequestReport);
@@ -1246,7 +1247,7 @@ function MoneyReportHeader({
             cancelText: translate('common.cancel'),
             danger: true,
         }).then((result) => {
-            if (result.action !== 'CONFIRM') {
+            if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
             if (transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length) {
@@ -1269,7 +1270,7 @@ function MoneyReportHeader({
             confirmText: translate('workspace.exportAgainModal.confirmText'),
             cancelText: translate('workspace.exportAgainModal.cancelText'),
         }).then((result) => {
-            if (result.action !== 'CONFIRM') {
+            if (result.action !== ModalActions.CONFIRM) {
                 setExportModalStatus(null);
                 return;
             }
