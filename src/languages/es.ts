@@ -652,6 +652,7 @@ const translations = {
         link: 'Enlace',
         pinned: 'Fijado',
         read: 'Leído',
+        copyToClipboard: 'Copiar al portapapeles',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -832,7 +833,7 @@ const translations = {
         expand: 'Expandir',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'Copiar al portapapeles',
+        copyMessage: 'Copiar mensaje',
         copied: '¡Copiado!',
         copyLink: 'Copiar enlace',
         copyURLToClipboard: 'Copiar URL al portapapeles',

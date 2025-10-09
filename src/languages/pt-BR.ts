@@ -671,6 +671,7 @@ const translations = {
         link: 'Link',
         pinned: 'Fixado',
         read: 'Lido',
+        copyToClipboard: 'Copiar para a área de transferência',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -854,7 +855,7 @@ const translations = {
         expand: 'Expandir',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'Copiar para a área de transferência',
+        copyMessage: 'Copiar mensagem',
         copied: 'Copiado!',
         copyLink: 'Copiar link',
         copyURLToClipboard: 'Copiar URL para a área de transferência',

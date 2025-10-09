@@ -670,6 +670,7 @@ const translations = {
         link: 'Link',
         pinned: 'Vastgezet',
         read: 'Gelezen',
+        copyToClipboard: 'Kopiëren naar klembord',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -853,7 +854,7 @@ const translations = {
         expand: 'Uitbreiden',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'Kopiëren naar klembord',
+        copyMessage: 'Bericht kopiëren',
         copied: 'Gekopieerd!',
         copyLink: 'Kopieer link',
         copyURLToClipboard: 'Kopieer URL naar klembord',

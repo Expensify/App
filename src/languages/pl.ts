@@ -671,6 +671,7 @@ const translations = {
         link: 'Link',
         pinned: 'Przypięte',
         read: 'Przeczytane',
+        copyToClipboard: 'Skopiuj do schowka',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -854,7 +855,7 @@ const translations = {
         expand: 'Rozwiń',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'Skopiuj do schowka',
+        copyMessage: 'Skopiuj wiadomość',
         copied: 'Skopiowano!',
         copyLink: 'Skopiuj link',
         copyURLToClipboard: 'Skopiuj URL do schowka',

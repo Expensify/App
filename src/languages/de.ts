@@ -671,6 +671,7 @@ const translations = {
         link: 'Link',
         pinned: 'Angeheftet',
         read: 'Gelesen',
+        copyToClipboard: 'In die Zwischenablage kopieren',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -858,7 +859,7 @@ const translations = {
         expand: 'Erweitern',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'In die Zwischenablage kopieren',
+        copyMessage: 'Nachricht kopieren',
         copied: 'Kopiert!',
         copyLink: 'Link kopieren',
         copyURLToClipboard: 'URL in die Zwischenablage kopieren',

@@ -671,6 +671,7 @@ const translations = {
         link: 'Link',
         pinned: 'Fissato',
         read: 'Letto',
+        copyToClipboard: 'Copia negli appunti',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -854,7 +855,7 @@ const translations = {
         expand: 'Espandi',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'Copia negli appunti',
+        copyMessage: 'Copia messaggio',
         copied: 'Copiato!',
         copyLink: 'Copia link',
         copyURLToClipboard: 'Copia URL negli appunti',
