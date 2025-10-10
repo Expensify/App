@@ -116,10 +116,6 @@ const SEASON_F1: Record<SeasonF1AvatarIDs, AvatarEntry> = {
     'wrenches-pink600': {local: SeasonF1.WrenchesPink600, url: `${CDN_SEASON_F1}/wrenches-pink600.png`},
 };
 
-const ALL_CUSTOM_AVATARS: Record<CustomAvatarID, AvatarEntry> = {
-    ...DEFAULTS,
-    ...SEASON_F1,
-};
 
 const DISPLAY_ORDER = [
     'car-blue100',
@@ -172,21 +168,22 @@ const DISPLAY_ORDER = [
     'default-avatar_24',
 ] as const satisfies readonly CustomAvatarID[];
 
-const ALL_IDS = Object.keys(ALL_CUSTOM_AVATARS) as CustomAvatarID[];
-const listed = new Set<CustomAvatarID>(DISPLAY_ORDER as readonly CustomAvatarID[]);
-const UNLISTED = ALL_IDS.filter((id) => !listed.has(id));
+const ALL_CUSTOM_AVATARS: Record<CustomAvatarID, AvatarEntry> = {
+    ...DEFAULTS,
+    ...SEASON_F1,
+};
 
-const ALL_CUSTOM_AVATARS_ORDERED: readonly CustomAvatarID[] = [
-    ...DISPLAY_ORDER,
-    ...UNLISTED,
-] as const;
-
-
-
-
+const ALL_CUSTOM_AVATARS_ORDERED: AvatarEntry[] = (() => {
+    const allIds = Object.keys(ALL_CUSTOM_AVATARS) as CustomAvatarID[];
+    const explicit = DISPLAY_ORDER.filter((id) => id in ALL_CUSTOM_AVATARS) as CustomAvatarID[];
+    const explicitSet = new Set(explicit);
+    const leftovers = allIds.filter((id) => !explicitSet.has(id)).sort();
+    const finalOrder = [...explicit, ...leftovers];
+    return finalOrder.map((id) => ALL_CUSTOM_AVATARS[id]);
+})();
 
 const getAvatarLocal = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].local;
 const getAvatarURL = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].url;
 
-export {ALL_CUSTOM_AVATARS, getAvatarLocal, getAvatarURL, DISPLAY_ORDER, ALL_CUSTOM_AVATARS_ORDERED};
+export {ALL_CUSTOM_AVATARS, ALL_CUSTOM_AVATARS_ORDERED, getAvatarLocal, getAvatarURL};
 export type {DefaultAvatarIDs, SeasonF1AvatarIDs, CustomAvatarID};
