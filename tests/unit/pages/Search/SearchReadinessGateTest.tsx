@@ -1,17 +1,17 @@
+import {render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import {Text} from 'react-native';
-import {render, screen, waitFor} from '@testing-library/react-native';
 import type {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import SearchReadinessGate from '@pages/Search/SearchReadinessGate';
-import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import type {SearchQueryJSON} from '@components/Search/types';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import {openSearch} from '@libs/actions/Search';
-import type IconAsset from '@src/types/utils/IconAsset';
-import type {SearchQueryJSON} from '@components/Search/types';
+import Navigation from '@libs/Navigation/Navigation';
+import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
+import SearchReadinessGate from '@pages/Search/SearchReadinessGate';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ROUTES from '@src/ROUTES';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 jest.mock('@hooks/useSearchTypeMenuSections');
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -62,13 +62,7 @@ describe('SearchReadinessGate', () => {
         expect(mockedOpenSearch).not.toHaveBeenCalled();
         const {rerender} = render(
             <SearchReadinessGate queryJSON={undefined}>
-                {({suggestedSearchesReady}) =>
-                    suggestedSearchesReady ? (
-                        <Text>ready</Text>
-                    ) : (
-                        <Text testID={FALLBACK_TEST_ID}>loading</Text>
-                    )
-                }
+                {({suggestedSearchesReady}) => (suggestedSearchesReady ? <Text>ready</Text> : <Text testID={FALLBACK_TEST_ID}>loading</Text>)}
             </SearchReadinessGate>,
         );
 
@@ -86,13 +80,7 @@ describe('SearchReadinessGate', () => {
 
         rerender(
             <SearchReadinessGate queryJSON={undefined}>
-                {({suggestedSearchesReady}) =>
-                    suggestedSearchesReady ? (
-                        <Text>ready</Text>
-                    ) : (
-                        <Text testID={FALLBACK_TEST_ID}>loading</Text>
-                    )
-                }
+                {({suggestedSearchesReady}) => (suggestedSearchesReady ? <Text>ready</Text> : <Text testID={FALLBACK_TEST_ID}>loading</Text>)}
             </SearchReadinessGate>,
         );
 
@@ -107,16 +95,8 @@ describe('SearchReadinessGate', () => {
         expect(screen.getByText('ready')).toBeTruthy();
 
         rerender(
-            <SearchReadinessGate
-                queryJSON={{hash: approveItem.hash, similarSearchHash: approveItem.similarSearchHash} as SearchQueryJSON}
-            >
-                {({suggestedSearchesReady}) =>
-                    suggestedSearchesReady ? (
-                        <Text>ready</Text>
-                    ) : (
-                        <Text testID={FALLBACK_TEST_ID}>loading</Text>
-                    )
-                }
+            <SearchReadinessGate queryJSON={{hash: approveItem.hash, similarSearchHash: approveItem.similarSearchHash} as SearchQueryJSON}>
+                {({suggestedSearchesReady}) => (suggestedSearchesReady ? <Text>ready</Text> : <Text testID={FALLBACK_TEST_ID}>loading</Text>)}
             </SearchReadinessGate>,
         );
 
@@ -138,13 +118,7 @@ describe('SearchReadinessGate', () => {
 
         const {rerender} = render(
             <SearchReadinessGate queryJSON={undefined}>
-                {({suggestedSearchesReady}) =>
-                    suggestedSearchesReady ? (
-                        <Text>ready</Text>
-                    ) : (
-                        <Text testID={FALLBACK_TEST_ID}>loading</Text>
-                    )
-                }
+                {({suggestedSearchesReady}) => (suggestedSearchesReady ? <Text>ready</Text> : <Text testID={FALLBACK_TEST_ID}>loading</Text>)}
             </SearchReadinessGate>,
         );
 
@@ -152,13 +126,7 @@ describe('SearchReadinessGate', () => {
 
         rerender(
             <SearchReadinessGate queryJSON={undefined}>
-                {({suggestedSearchesReady}) =>
-                    suggestedSearchesReady ? (
-                        <Text>ready</Text>
-                    ) : (
-                        <Text testID={FALLBACK_TEST_ID}>loading</Text>
-                    )
-                }
+                {({suggestedSearchesReady}) => (suggestedSearchesReady ? <Text>ready</Text> : <Text testID={FALLBACK_TEST_ID}>loading</Text>)}
             </SearchReadinessGate>,
         );
 

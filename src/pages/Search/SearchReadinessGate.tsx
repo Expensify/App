@@ -79,12 +79,7 @@ function SearchReadinessGate({queryJSON, children}: SearchReadinessGateProps) {
 
         hasNavigatedToDefault.current = true;
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultSuggestedSearch.searchQuery}));
-    }, [
-        activeSuggestedSearchHash,
-        defaultSuggestedSearch,
-        isActiveRouteSuggestedSearch,
-        suggestedSearchesReady,
-    ]);
+    }, [activeSuggestedSearchHash, defaultSuggestedSearch, isActiveRouteSuggestedSearch, suggestedSearchesReady]);
 
     return <>{children({suggestedSearchesReady})}</>;
 }

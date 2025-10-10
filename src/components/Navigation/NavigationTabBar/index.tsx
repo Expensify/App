@@ -30,7 +30,7 @@ import isRoutePreloaded from '@libs/Navigation/helpers/isRoutePreloaded';
 import navigateToWorkspacesPage, {getWorkspaceNavigationRouteState} from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import {type SearchTypeMenuSection} from '@libs/SearchUIUtils';
+import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import navigationRef from '@navigation/navigationRef';
@@ -50,7 +50,7 @@ type NavigationTabBarProps = {
     isTopLevelBar?: boolean;
 };
 
-export function getDefaultTodoSuggestedSearch(typeMenuSections: SearchTypeMenuSection[]) {
+function getDefaultTodoSuggestedSearch(typeMenuSections: SearchTypeMenuSection[]) {
     const todoSection = typeMenuSections.find((section) => section.translationPath === 'common.todo');
     if (!todoSection) {
         return undefined;
@@ -173,9 +173,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
 
             const defaultSuggestedSearch = suggestedSearchesReady ? getDefaultTodoSuggestedSearch(typeMenuSections) : undefined;
             const savedSearchQuery = Object.values(savedSearches ?? {}).at(0)?.query;
-            Navigation.navigate(
-                ROUTES.SEARCH_ROOT.getRoute({query: defaultSuggestedSearch?.searchQuery ?? savedSearchQuery ?? buildCannedSearchQuery()}),
-            );
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultSuggestedSearch?.searchQuery ?? savedSearchQuery ?? buildCannedSearchQuery()}));
         });
     }, [selectedTab, suggestedSearchesReady, typeMenuSections, savedSearches]);
 
@@ -472,3 +470,4 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
 NavigationTabBar.displayName = 'NavigationTabBar';
 
 export default memo(NavigationTabBar);
+export {getDefaultTodoSuggestedSearch};

@@ -211,15 +211,15 @@ function SearchPage({route}: SearchPageProps) {
             const paymentData = (
                 selectedReports.length
                     ? selectedReports.map((report) => ({
-                        reportID: report.reportID,
-                        amount: report.total,
-                        paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods) ?? paymentMethod,
-                    }))
+                          reportID: report.reportID,
+                          amount: report.total,
+                          paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods) ?? paymentMethod,
+                      }))
                     : Object.values(selectedTransactions).map((transaction) => ({
-                        reportID: transaction.reportID,
-                        amount: transaction.amount,
-                        paymentType: getLastPolicyPaymentMethod(transaction.policyID, lastPaymentMethods) ?? paymentMethod,
-                    }))
+                          reportID: transaction.reportID,
+                          amount: transaction.amount,
+                          paymentType: getLastPolicyPaymentMethod(transaction.policyID, lastPaymentMethods) ?? paymentMethod,
+                      }))
             ) as PaymentData[];
 
             payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
@@ -353,14 +353,14 @@ function SearchPage({route}: SearchPageProps) {
         }
         const shouldEnableExpenseBulk = selectedReports.length
             ? selectedReports.every(
-                (report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
-            )
+                  (report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
+              )
             : selectedTransactionsKeys.every(
-                (id) =>
-                    selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY &&
-                    selectedTransactions[id].policyID &&
-                    getLastPolicyPaymentMethod(selectedTransactions[id].policyID, lastPaymentMethods),
-            );
+                  (id) =>
+                      selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY &&
+                      selectedTransactions[id].policyID &&
+                      getLastPolicyPaymentMethod(selectedTransactions[id].policyID, lastPaymentMethods),
+              );
 
         const {shouldEnableBulkPayOption, isFirstTimePayment} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs);
 
@@ -539,10 +539,10 @@ function SearchPage({route}: SearchPageProps) {
                 index === 0
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
-                        initialTransaction: initialTransaction as Partial<Transaction>,
-                        currentUserPersonalDetails,
-                        reportID: newReportID,
-                    });
+                          initialTransaction: initialTransaction as Partial<Transaction>,
+                          currentUserPersonalDetails,
+                          reportID: newReportID,
+                      });
             const transactionID = transaction.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
             newReceiptFiles.push({
                 file,
