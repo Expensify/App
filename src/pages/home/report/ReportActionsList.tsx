@@ -793,8 +793,6 @@ function ReportActionsList({
         loadOlderChats(false);
     }, [loadOlderChats]);
 
-    console.log(`Tescik: reportID: ${report.reportID}`);
-
     return (
         <>
             <FloatingMessageCounter

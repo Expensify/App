@@ -132,9 +132,6 @@ function BaseInvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) 
         ) as RNFlatList;
     });
 
-    console.log('Tescik: ____________');
-    console.log(`Tescik: ${data.length}`);
-
     return (
         <FlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
