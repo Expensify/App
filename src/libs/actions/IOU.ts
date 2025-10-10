@@ -802,7 +802,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     isArchivedExpenseReport: boolean;
     isAutoReporting: boolean;
     lastSelectedDistanceRates?: OnyxEntry<OnyxTypes.LastSelectedDistanceRates>;
-    setDistanceRequestData?: (participatns: Participant[]) => void;
+    setDistanceRequestData?: (participants: Participant[]) => void;
     localeCompare?: (a: string, b: string) => number;
 };
 
