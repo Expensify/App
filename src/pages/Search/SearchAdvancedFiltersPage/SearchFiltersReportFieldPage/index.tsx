@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {isSearchDatePreset} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -24,6 +25,7 @@ function SearchFiltersReportFieldPage() {
     const [values, setValues] = useState<Record<string, string | string[] | null>>({});
     const [selectedField, setSelectedField] = useState<PolicyReportField | null>(null);
 
+    const [advancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
     const [fieldList] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: false,
         selector: (policies) => {
@@ -42,7 +44,36 @@ function SearchFiltersReportFieldPage() {
         },
     });
 
-    const [fieldValues] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const listItems = useMemo(() => {
+        return Object.values(fieldList ?? {}).map((field) => {
+            const suffix = field.name.toLowerCase().replaceAll(' ', '-');
+
+            if (field.type === CONST.REPORT_FIELD_TYPES.DATE) {
+                const dateValues: string[] = [];
+                const onValue = advancedFiltersForm?.[`${CONST.SEARCH.REPORT_FIELD.ON_PREFIX}${suffix}`];
+                const afterValue = advancedFiltersForm?.[`${CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX}${suffix}`];
+                const beforeValue = advancedFiltersForm?.[`${CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX}${suffix}`];
+
+                if (onValue) {
+                    dateValues.push(isSearchDatePreset(onValue) ? translate(`search.filters.date.presets.${onValue}`) : translate('search.filters.date.on', {date: onValue}));
+                }
+
+                if (afterValue) {
+                    dateValues.push(translate('search.filters.date.after', {date: afterValue}));
+                }
+
+                if (beforeValue) {
+                    dateValues.push(translate('search.filters.date.before', {date: beforeValue}));
+                }
+
+                return {key: field.fieldID, name: field.name, value: dateValues.join(', '), field};
+            }
+
+            const formKey = `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${suffix}` as const;
+            const formValue = advancedFiltersForm?.[formKey];
+            return {key: field.fieldID, name: field.name, value: formValue, field};
+        });
+    }, [advancedFiltersForm, fieldList, translate]);
 
     const resetValues = () => {
         setValues({});
@@ -96,14 +127,14 @@ function SearchFiltersReportFieldPage() {
                 }}
             />
             <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                {fieldMenuItems.map((field) => (
+                {listItems.map((item) => (
                     <MenuItem
-                        key={field.fieldID}
+                        key={item.key}
                         shouldShowRightIcon
                         viewMode={CONST.OPTION_MODE.COMPACT}
-                        title={field.name}
-                        description={field.value}
-                        onPress={() => setSelectedField(field)}
+                        title={item.name}
+                        description={item.value}
+                        onPress={() => setSelectedField(item.field)}
                     />
                 ))}
             </ScrollView>
