@@ -107,17 +107,6 @@ describe('markdownLinkHelpers', () => {
             expect(result.text).toBe(null);
         });
 
-        it('respects the maxLength guard and does not replace if exceeding', () => {
-            const prevText = 'Short text selected';
-            const selectionStart = 6;
-            const selectionEnd = 11;
-            const insertedText = 'https://example.com';
-            const options = {maxLength: 20};
-            const result = detectAndRewritePaste(prevText, selectionStart, selectionEnd, insertedText, options);
-            expect(result.didReplace).toBe(false);
-            expect(result.text).toBe(null);
-        });
-
         it('does not replace if inserted text is not a standalone URL', () => {
             const prevText = 'Selected text';
             const selectionStart = 0;

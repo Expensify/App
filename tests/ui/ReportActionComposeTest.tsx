@@ -10,7 +10,6 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import type * as ReportUtils from '@libs/ReportUtils';
 import ReportScreen from '@pages/home/ReportScreen';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,7 +42,8 @@ jest.mock('pusher-js', () => ({
 
 // Mock dependencies
 jest.mock('@libs/ReportUtils', () => ({
-    ...((): typeof ReportUtils => {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+    ...((): typeof import('@libs/ReportUtils') => {
         return jest.requireActual('@libs/ReportUtils');
     })(),
     canUserPerformWriteAction: jest.fn(() => true),
