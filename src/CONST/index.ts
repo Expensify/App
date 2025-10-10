@@ -6654,9 +6654,9 @@ const CONST = {
             REPORT_FIELD: 'reportField',
         },
         REPORT_FIELD: {
-            // All repoort fields start with this, so use this to check if a search key is a report field
-            PREFIX: 'reportField',
-            TEXT_PREFIX: 'reportField-',
+            // All report fields start with this, so use this to check if a search key is a report field
+            GLOBAL_PREFIX: 'reportField',
+            DEFAULT_PREFIX: 'reportField-',
             NOT_PREFIX: 'reportFieldNot-',
             ON_PREFIX: 'reportFieldOn-',
             AFTER_PREFIX: 'reportFieldAfter-',
