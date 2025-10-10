@@ -90,6 +90,9 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** Reference to the outer element */
     ref?: Ref<InputFocusRef>;
+
+    /** Whether the participants selector is being rendered from the share extension */
+    isFromShareExtension?: boolean;
 };
 
 type InputFocusRef = {
@@ -107,6 +110,7 @@ function MoneyRequestParticipantsSelector({
     isWorkspacesOnly = false,
     isCorporateCardTransaction = false,
     ref,
+    isFromShareExtension = false,
 }: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -114,7 +118,7 @@ function MoneyRequestParticipantsSelector({
     const {contactPermissionState, contacts, setContactPermissionState, importAndSaveContacts} = useContactImport();
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
-    const showImportContacts = isNative && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
+    const showImportContacts = isNative && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED) && !isFromShareExtension;
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const referralContentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE;
     const {isOffline} = useNetwork();

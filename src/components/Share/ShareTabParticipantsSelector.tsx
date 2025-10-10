@@ -36,6 +36,7 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
                 }
             }}
             action="create"
+            isFromShareExtension
         />
     );
 }
