@@ -120,7 +120,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                             testID="mention-user"
                             href={`/${navigationRoute}`}
                         >
-                            {(accountID && accountID !== -1) ? `@${mentionDisplayText}` : <TNodeChildrenRenderer tnode={tnodeClone ?? tnode} />}
+                            {accountID && accountID !== -1 ? `@${mentionDisplayText}` : <TNodeChildrenRenderer tnode={tnodeClone ?? tnode} />}
                         </Text>
                     </UserDetailsTooltip>
                 </Text>
