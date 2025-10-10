@@ -292,6 +292,7 @@ type InitMoneyRequestParams = {
     parentReport: OnyxEntry<OnyxTypes.Report>;
     currentDate: string | undefined;
     lastSelectedDistanceRates?: OnyxEntry<OnyxTypes.LastSelectedDistanceRates>;
+    localeCompare?: (a: string, b: string) => number;
 };
 
 type MoneyRequestInformation = {
@@ -986,6 +987,7 @@ function initMoneyRequest({
     parentReport,
     currentDate = '',
     lastSelectedDistanceRates,
+    localeCompare,
 }: InitMoneyRequestParams) {
     // Generate a brand new transactionID
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -1024,7 +1026,7 @@ function initMoneyRequest({
     if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL) {
         if (!isFromGlobalCreate) {
             const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
-            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
+            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates, localeCompare});
             comment.customUnit = {customUnitRateID};
         } else if (hasNoPolicyOtherThanPersonalType()) {
             comment.customUnit = {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID};
@@ -2075,7 +2077,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
 
     // We don't need to compute violations unless we're on a paid policy
-    if (!policy || !isPaidGroupPolicy(policy)) {
+    if (!policy || !isPaidGroupPolicy(policy) || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         return [optimisticData, successData, failureData];
     }
 
@@ -2500,11 +2502,6 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
         if (searchUpdate.successData) {
             successData.push(...searchUpdate.successData);
         }
-    }
-
-    // We don't need to compute violations unless we're on a paid policy
-    if (!policyParams.policy || !isPaidGroupPolicy(policyParams.policy)) {
-        return [optimisticData, successData, failureData];
     }
 
     return [optimisticData, successData, failureData];
@@ -2936,7 +2933,7 @@ function buildOnyxDataForTrackExpense({
     }
 
     // We don't need to compute violations unless we're on a paid policy
-    if (!policy || !isPaidGroupPolicy(policy)) {
+    if (!policy || !isPaidGroupPolicy(policy) || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         return [optimisticData, successData, failureData];
     }
 
@@ -11722,7 +11719,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
     }
 
     const onFailure = () => {
-        setMoneyRequestReceipt(transactionID, '', '', true, '');
+        setMoneyRequestReceipt(transactionID, '', '', true);
         if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
             if (onFailureCallback) {
                 onFailureCallback();

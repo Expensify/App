@@ -178,6 +178,7 @@ const ROUTES = {
     SETTINGS_CHANGE_CURRENCY: 'settings/add-payment-card/change-currency',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
     SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
+    SETTINGS_AVATAR: 'settings/profile/avatar',
     SETTINGS_TIMEZONE: 'settings/profile/timezone',
     SETTINGS_TIMEZONE_SELECT: 'settings/profile/timezone/select',
     SETTINGS_PRONOUNS: 'settings/profile/pronouns',
@@ -352,6 +353,16 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
+    },
+    SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: {
+        route: 'settings/profile/contact-methods/new/:newContactMethod/confirm-magic-code',
+        getRoute: (newContactMethod: string, backTo?: string) => {
+            const encodedMethod = encodeURIComponent(newContactMethod);
+            // TODO this backTo comes from drilling it through settings screens
+            // should be removed once https://github.com/Expensify/App/pull/70980 is resolved
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(`settings/profile/contact-methods/new/${encodedMethod}/confirm-magic-code`, backTo);
+        },
     },
     SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT: {
         route: 'settings/profile/contact-methods/verify',
@@ -1418,6 +1429,26 @@ const ROUTES = {
 
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-desktop/advanced` as const, backTo);
+        },
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC: {
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/advanced/autosync',
+        getRoute: (policyID?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC route');
+            }
+
+            return `workspaces/${policyID}/accounting/quickbooks-desktop/advanced/autosync` as const;
+        },
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD: {
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/advanced/autosync/accounting-method',
+        getRoute: (policyID?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD route');
+            }
+
+            return `workspaces/${policyID}/accounting/quickbooks-desktop/advanced/autosync/accounting-method` as const;
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: {
