@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -16,6 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -118,6 +119,26 @@ function IOURequestStepDestination({
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
+
+    useEffect(() => {
+        if (!isEmptyObject(customUnit?.rates) || isOffline) {
+            return;
+        }
+        fetchPerDiemRates(policy?.id);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isOffline]);
+
+    useEffect(() => {
+        // When the rates are not available for the policy, the transaction does not have valid customUnitID and moneyRequestCategory
+        // So, we set these in the transaction when the rates are fetched in fetchPerDiemRates
+        const perDiemUnit = getPerDiemCustomUnit(policy);
+        if (!perDiemUnit || transaction?.comment?.customUnit?.customUnitID === perDiemUnit.customUnitID || !!transaction?.category) {
+            return;
+        }
+        setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
+        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '');
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [transactionID, policy?.customUnits]);
 
     return (
         <ScreenWrapper
