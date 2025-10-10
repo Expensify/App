@@ -53,6 +53,7 @@ import SCREENS from '@src/SCREENS';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {hasBankAccountInSetupState} from '@libs/BankAccountUtils';
 
 type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 
@@ -117,13 +118,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
-    const hasBankAccountInSetupState = Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.SETUP);
 
     let walletBrickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 
     if (hasPaymentMethodError(bankAccountList, fundList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    } else if (hasBankAccountInSetupState) {
+    } else if (hasBankAccountInSetupState(bankAccountList)) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
@@ -184,7 +184,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 brickRoadIndicator: walletBrickRoadIndicator,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
                 badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance) : undefined,
-                badgeStyle: hasBankAccountInSetupState ? styles.badgeSuccess : undefined,
+                badgeStyle: hasBankAccountInSetupState(bankAccountList) ? styles.badgeSuccess : undefined,
             },
             {
                 translationKey: 'common.preferences',

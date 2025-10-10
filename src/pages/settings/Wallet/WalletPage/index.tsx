@@ -368,7 +368,7 @@ function WalletPage() {
                 },
             },
         ],
-        [bottomMountItem, paymentMethod.methodID, shouldUseNarrowLayout, translate],
+        [bottomMountItem, expensifyIcons.MoneySearch, paymentMethod.methodID, shouldUseNarrowLayout, translate],
     );
 
     if (isLoadingApp) {

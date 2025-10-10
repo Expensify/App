@@ -17,6 +17,7 @@ import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -90,6 +91,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         [personalDetails, policy, localeCompare],
     );
     const {isBetaEnabled} = usePermissions();
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency).length > 0;
 
@@ -194,7 +196,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const state = policy?.achAccount?.state ?? bankAccount?.accountData?.state ?? '';
         const shouldShowBankAccount = (!!bankAccount || !!bankAccountID) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
-        const isAccountInSetupState = state === CONST.BANK_ACCOUNT.STATE.SETUP;
+        const isAccountInSetupState =
+            state === CONST.BANK_ACCOUNT.STATE.SETUP ||
+            state === CONST.BANK_ACCOUNT.STATE.VERIFYING ||
+            (state === CONST.BANK_ACCOUNT.STATE.PENDING && policy?.achAccount?.reimburser === currentUserLogin);
         const bankIcon = getBankIcon({bankName: bankName as BankName, isCard: false, styles});
 
         const hasReimburserError = !!policy?.errorFields?.reimburser;

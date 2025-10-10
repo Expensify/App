@@ -12,7 +12,12 @@ function getLastFourDigits(bankAccountNumber: string): string {
 }
 
 function hasBankAccountInSetupState(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
-    return Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.SETUP);
+    return Object.values(bankAccountList ?? {}).some(
+        (bankAccount) =>
+            bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.SETUP ||
+            bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING ||
+            bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.PENDING,
+    );
 }
 
 export {getDefaultCompanyWebsite, getLastFourDigits, hasBankAccountInSetupState};

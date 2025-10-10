@@ -77,7 +77,7 @@ type MenuItemBaseProps = {
     /** Text to be shown as badge near the right end. */
     badgeText?: string;
 
-    /** Icon to display on the left side of component */
+    /** Icon to display on the left side of the badge */
     badgeIcon?: IconAsset;
 
     /** Whether the badge should be shown as success */
