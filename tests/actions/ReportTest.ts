@@ -2447,4 +2447,42 @@ describe('actions/Report', () => {
             expect(upperCaseRequest?.data?.searchInput).toBe(lowerCaseRequest?.data?.searchInput);
         });
     });
+
+    describe('setOptimisticTransactionThread', () => {
+        it('should set optimistic transaction thread data with the provided parameters', async () => {
+            const reportID = 'report12';
+            const parentReportID = 'parentReport34';
+            const parentReportActionID = 'parentAction56';
+            const policyID = 'policy78';
+
+            Report.setOptimisticTransactionThread(reportID, parentReportID, parentReportActionID, policyID);
+
+            await waitForBatchedUpdates();
+
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+
+            expect(report).toMatchObject({
+                reportID,
+                policyID,
+                parentReportID,
+                parentReportActionID,
+                chatReportID: parentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            });
+            expect(report?.lastReadTime).toBeTruthy();
+            expect(report?.lastVisibleActionCreated).toBeTruthy();
+        });
+
+        it('should not set anything if no reportID was provided', async () => {
+            const reportID = undefined;
+
+            Report.setOptimisticTransactionThread(reportID);
+
+            await waitForBatchedUpdates();
+
+            const reportsCollectionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}`);
+
+            expect(reportsCollectionAfter).toBeUndefined();
+        });
+    });
 });
