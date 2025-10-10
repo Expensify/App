@@ -353,7 +353,7 @@ describe('ReportUtils', () => {
 
         const iouReport = {...createExpenseReport(Number(iouReportID)), policyID: policyID.toString()};
 
-        const policy54 = {
+        const policyWithBank = {
             ...createRandomPolicy(policyID, CONST.POLICY.TYPE.TEAM),
             achAccount: {
                 accountNumber: 'XXXXXXXXXXXX0000',
@@ -361,14 +361,12 @@ describe('ReportUtils', () => {
         };
 
         it('should return the right message when payment type is ACH', async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy54);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithBank);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {[reportAction.reportActionID]: reportAction});
 
-            const last4Digits = policy54.achAccount?.accountNumber.slice(-4);
-            const translationKey = 'iou.businessBankAccount';
-
-            const paidSystemMessage = translateLocal(translationKey, {amount: '', last4Digits});
+            const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
+            const paidSystemMessage = translateLocal('iou.businessBankAccount', {amount: '', last4Digits});
 
             expect(getIOUReportActionDisplayMessage(reportAction, undefined, iouReport)).toBe(paidSystemMessage);
         });
