@@ -552,7 +552,7 @@ function IOURequestStepScan({
                 return;
             }
 
-            setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, "image/png", true);
+            setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, 'image/png', true);
             navigateToConfirmationStep([{file, source: file.uri, transactionID: initialTransactionID}], false, true);
         });
     }, [initialTransactionID, isEditing, navigateToConfirmationStep]);
