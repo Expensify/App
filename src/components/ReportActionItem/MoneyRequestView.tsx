@@ -67,7 +67,6 @@ import {
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
-    hasReceipt,
     hasReservationList,
     hasRoute as hasRouteTransactionUtils,
     isCardTransaction as isCardTransactionTransactionUtils,
