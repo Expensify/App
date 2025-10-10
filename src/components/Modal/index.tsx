@@ -38,6 +38,7 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [rest.onClose]);
 
+    // We need to pass stable version of the function to properly work in eventListener
     const handlePopState = useCallback(() => {
         handlePopStateRef.current();
     }, []);
@@ -54,7 +55,7 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
         () => () => {
             window.removeEventListener('popstate', handlePopState);
         },
-        [],
+        [handlePopState],
     );
 
     const onModalWillShow = () => {
