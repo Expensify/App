@@ -119,7 +119,7 @@ function ReceiptView({route}: ReceiptViewProps) {
                 page={page}
                 setPage={setPage}
                 attachmentID={currentReceipt?.transactionID}
-                onClose={handleGoBack}
+                onSwipeDown={handleGoBack}
                 autoHideArrows={autoHideArrows}
                 cancelAutoHideArrow={cancelAutoHideArrows}
                 setShouldShowArrows={setShouldShowArrows}
