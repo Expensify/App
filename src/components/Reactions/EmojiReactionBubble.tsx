@@ -40,11 +40,13 @@ type EmojiReactionBubbleProps = {
 
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;
+
+    /** Reference to the outer element */
+    ref?: PressableRef;
 };
 
 function EmojiReactionBubble(
-    {onPress, onReactionListOpen = () => {}, emojiCodes, hasUserReacted = false, count = 0, isContextMenu = false, shouldBlockReactions = false}: EmojiReactionBubbleProps,
-    ref: PressableRef,
+    {onPress, onReactionListOpen = () => {}, emojiCodes, hasUserReacted = false, count = 0, isContextMenu = false, shouldBlockReactions = false, ref}: EmojiReactionBubbleProps,
 ) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -90,4 +92,4 @@ function EmojiReactionBubble(
 
 EmojiReactionBubble.displayName = 'EmojiReactionBubble';
 
-export default React.forwardRef(EmojiReactionBubble);
+export default EmojiReactionBubble;

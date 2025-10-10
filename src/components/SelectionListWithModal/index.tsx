@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {CheckSquare} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
@@ -17,6 +17,7 @@ type SelectionListWithModalProps<TItem extends ListItem> = SelectionListProps<TI
     onTurnOnSelectionMode?: (item: TItem | null) => void;
     isSelected?: (item: TItem) => boolean;
     isScreenFocused?: boolean;
+    ref?: ForwardedRef<SelectionListHandle>;
 };
 
 function SelectionListWithModal<TItem extends ListItem>(
@@ -28,9 +29,9 @@ function SelectionListWithModal<TItem extends ListItem>(
         sections,
         isSelected,
         selectedItems: selectedItemsProp,
+        ref,
         ...rest
     }: SelectionListWithModalProps<TItem>,
-    ref: ForwardedRef<SelectionListHandle>,
 ) {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<TItem | null>(null);
@@ -146,4 +147,4 @@ function SelectionListWithModal<TItem extends ListItem>(
 }
 
 export type {SelectionListWithModalProps};
-export default forwardRef(SelectionListWithModal);
+export default SelectionListWithModal;
