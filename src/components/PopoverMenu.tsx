@@ -185,7 +185,7 @@ function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
  * IMPORTANT: the key must be stable and unique across the whole menu tree for the
  * path-resolution algorithm to work reliably when menu arrays change.
  */
-const getItemKey = (item: PopoverMenuItem) => item.key ?? item.text;
+export const getItemKey = (item: PopoverMenuItem) => item.key ?? item.text;
 
 /**
  * Build a key-path (array of keys) by walking the `root` using `indexPath`.
@@ -197,7 +197,7 @@ const getItemKey = (item: PopoverMenuItem) => item.key ?? item.text;
  * for each visited node. If any index is out-of-bounds for a level, we stop
  * and return the keys collected so far (could be empty).
  */
-function buildKeyPathFromIndexPath(root: PopoverMenuItem[], indexPath: readonly number[]): string[] {
+export function buildKeyPathFromIndexPath(root: PopoverMenuItem[], indexPath: readonly number[]): string[] {
     const keys: string[] = [];
     let level: PopoverMenuItem[] | undefined = root;
 
@@ -218,7 +218,7 @@ function buildKeyPathFromIndexPath(root: PopoverMenuItem[], indexPath: readonly 
  *
  * Returns `{found: false}` if any key in keyPath cannot be found at the expected level.
  */
-function resolveIndexPathByKeyPath(root: PopoverMenuItem[], keyPath: string[]) {
+export function resolveIndexPathByKeyPath(root: PopoverMenuItem[], keyPath: string[]) {
     let level: PopoverMenuItem[] = root;
     const indexes: number[] = [];
 
