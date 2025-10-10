@@ -8,7 +8,7 @@ import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackC
 import {translateLocal} from '@libs/Localize';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ONYXKEYS from '@src/ONYXKEYS';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 describe('CarouselItem', () => {
     beforeAll(() => {
@@ -35,7 +35,7 @@ describe('CarouselItem', () => {
                 </LocaleContextProvider>
             </OnyxListItemProvider>,
         );
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // Then initially the attachment should be hidden so the reveal button should be displayed.
         expect(screen.getByTestId('moderationButton')).toHaveTextContent(translateLocal('moderation.revealMessage'));

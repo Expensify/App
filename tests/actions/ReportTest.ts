@@ -40,11 +40,12 @@ jest.mock('@libs/NextStepUtils', () => ({
     buildNextStepNew: jest.fn(),
 }));
 
+const MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID = '1234';
 jest.mock('@libs/ReportUtils', () => {
     const originalModule = jest.requireActual<Report>('@libs/ReportUtils');
     return {
         ...originalModule,
-        getPolicyExpenseChat: jest.fn().mockReturnValue({reportID: '1234', hasOutstandingChildRequest: false}),
+        getPolicyExpenseChat: jest.fn().mockImplementation(() => ({reportID: MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID, hasOutstandingChildRequest: false})),
     };
 });
 
@@ -2096,6 +2097,37 @@ describe('actions/Report', () => {
 
             // Then the new policy data should also be populated on the current search snapshot.
             expect(snapshotData?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]).toBeDefined();
+        });
+
+        it('should update the chatReportID and parentReportID to the new policy expense chat report ID', async () => {
+            // Given an expense report
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+                chatReportID: '2',
+                parentReportID: '2',
+            };
+
+            const newPolicy = createRandomPolicy(2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+
+            // When moving to another workspace
+            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', false, false);
+            await waitForBatchedUpdates();
+
+            // Then the expense report chatReportID and parentReportID should be updated to the new expense chat reportID
+            const expenseReport2 = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+            expect(expenseReport2?.chatReportID).toBe(MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID);
+            expect(expenseReport2?.parentReportID).toBe(MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID);
         });
     });
 

@@ -49,7 +49,7 @@ Get real-time alerts for purchases and declines by enabling push notifications.
 4. Toggle notifications **On**.
 5. Customize your alert style based on your preferences.
 
-See this guide for more information on [setting up Expensify Card notifications](https://help.expensify.com/articles/new-expensify/expensify-card/Enable-Expensify-Card-notifications).
+See this guide for more information on [setting up Expensify Card notifications](https://help.expensify.com/articles/new-expensify/expensify-card/Expensify-Card-Notifications).
 
 ---
 

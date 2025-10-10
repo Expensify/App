@@ -5,7 +5,7 @@ import Onyx from 'react-native-onyx';
 import useCurrentReportID, {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Mock Navigation
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -25,18 +25,22 @@ describe('useCurrentReportID', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
-        return waitForBatchedUpdates();
+        return waitForBatchedUpdatesWithAct();
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllMocks();
-        Onyx.clear();
-        return waitForBatchedUpdates();
+        await act(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 
     afterAll(async () => {
-        Onyx.clear();
-        await waitForBatchedUpdates();
+        await act(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 
     const onSetCurrentReportID = jest.fn();
@@ -45,11 +49,12 @@ describe('useCurrentReportID', () => {
         return <CurrentReportIDContextProvider onSetCurrentReportID={onSetCurrentReportID}>{children}</CurrentReportIDContextProvider>;
     }
 
-    it('should prevent updates when currentReportID === reportID', () => {
+    it('should prevent updates when currentReportID === reportID', async () => {
         // Given the hook is rendered
         const {result} = renderHook(() => useCurrentReportID(), {
             wrapper: TestWrapper,
         });
+        await waitForBatchedUpdatesWithAct();
         // Given the navigation state is set
         const navigationState = {
             index: 0,
@@ -83,11 +88,12 @@ describe('useCurrentReportID', () => {
         expect(onSetCurrentReportID).not.toHaveBeenCalled();
     });
 
-    it('should prevent updates when both currentReportID and reportID are empty/undefined', () => {
+    it('should prevent updates when both currentReportID and reportID are empty/undefined', async () => {
         // Given the hook is rendered
         const {result} = renderHook(() => useCurrentReportID(), {
             wrapper: TestWrapper,
         });
+        await waitForBatchedUpdatesWithAct();
 
         // Given the navigation state is set
         const navigationState = {
@@ -120,11 +126,12 @@ describe('useCurrentReportID', () => {
         expect(onSetCurrentReportID).not.toHaveBeenCalled();
     });
 
-    it('should update when reportID changes', () => {
+    it('should update when reportID changes', async () => {
         // Given the hook is rendered
         const {result} = renderHook(() => useCurrentReportID(), {
             wrapper: CurrentReportIDContextProvider,
         });
+        await waitForBatchedUpdatesWithAct();
 
         // Given the navigation state is set
         const state1 = {
@@ -168,11 +175,12 @@ describe('useCurrentReportID', () => {
         expect(result.current?.currentReportID).toBe('456');
     });
 
-    it('should prevent updates when navigating to Settings screens', () => {
+    it('should prevent updates when navigating to Settings screens', async () => {
         // Given the hook is rendered
         const {result} = renderHook(() => useCurrentReportID(), {
             wrapper: CurrentReportIDContextProvider,
         });
+        await waitForBatchedUpdatesWithAct();
 
         // Given the navigation state is set
         const settingsState = {
@@ -199,11 +207,12 @@ describe('useCurrentReportID', () => {
         expect(result.current?.currentReportID).toBe('');
     });
 
-    it('should update context value when currentReportID changes', () => {
+    it('should update context value when currentReportID changes', async () => {
         // Given the hook is rendered
         const {result} = renderHook(() => useCurrentReportID(), {
             wrapper: CurrentReportIDContextProvider,
         });
+        await waitForBatchedUpdatesWithAct();
 
         // Given the navigation state is set
         const reportState = {
