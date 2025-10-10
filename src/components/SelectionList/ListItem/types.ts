@@ -7,7 +7,6 @@ import type CursorStyles from '@styles/utils/cursor/types';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type BaseListItem from './BaseListItem';
-import type ListItemRenderer from './ListItemRenderer';
 import type MultiSelectListItem from './MultiSelectListItem';
 import type RadioListItem from './RadioListItem';
 import type SingleSelectListItem from './SingleSelectListItem';
@@ -234,7 +233,7 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     shouldUseDefaultRightHandSideCheckmark?: boolean;
 };
 
-type ValidListItem = typeof RadioListItem | typeof BaseListItem | typeof ListItemRenderer | typeof MultiSelectListItem | typeof SingleSelectListItem | typeof SpendCategorySelectorListItem;
+type ValidListItem = typeof RadioListItem | typeof BaseListItem | typeof MultiSelectListItem | typeof SingleSelectListItem | typeof SpendCategorySelectorListItem;
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
