@@ -108,11 +108,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
         if (isExpenseReport) {
             return areAllOptionalColumnsHiddenProp ?? false;
         }
-        const canBeMissingColumns = getExpenseHeaders(groupBy, searchType)
+        const canBeMissingColumns = getExpenseHeaders(groupBy)
             .filter((header) => header.canBeMissing)
             .map((header) => header.columnName);
         return canBeMissingColumns.every((column) => !currentColumns.includes(column));
-    }, [areAllOptionalColumnsHiddenProp, currentColumns, groupBy, searchType, isExpenseReport]);
+    }, [areAllOptionalColumnsHiddenProp, currentColumns, groupBy, isExpenseReport]);
 
     const selectedItemsLength = useMemo(() => {
         return transactions.reduce((acc, transaction) => {

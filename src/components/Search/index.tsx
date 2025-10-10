@@ -703,6 +703,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
+    const isExpenseReport = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled) && groupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
     const ListItem = getListItem(type, status, groupBy);
 
@@ -852,8 +853,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const shouldShowYear = shouldShowYearUtil(searchResults?.data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowSorting = !groupBy;
-    const shouldShowTableHeader = isLargeScreenWidth && !isChat && !groupBy;
-    const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
+    const shouldShowTableHeader = isLargeScreenWidth && !isChat && !groupBy && !isExpenseReport;
+    const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && !groupBy && !isExpenseReport;
 
     return (
         <SearchScopeProvider>
@@ -873,7 +874,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                             <SearchTableHeader
                                 canSelectMultiple={canSelectMultiple}
                                 columns={columnsToShow}
-                                type={searchResults?.search.type}
+                                type={type}
                                 onSortPress={onSortPress}
                                 sortOrder={sortOrder}
                                 sortBy={sortBy}
