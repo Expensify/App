@@ -1200,6 +1200,7 @@ const CONST = {
                 EXPORTED_TO_CSV: 'EXPORTCSV', // OldDot Action
                 EXPORTED_TO_INTEGRATION: 'EXPORTINTEGRATION', // OldDot Action
                 EXPORTED_TO_QUICK_BOOKS: 'EXPORTED', // Deprecated OldDot Action
+                FIX_VIOLATION: 'FIXVIOLATION',
                 FORWARDED: 'FORWARDED', // OldDot Action
                 HOLD: 'HOLD',
                 HOLD_COMMENT: 'HOLDCOMMENT',
@@ -6977,6 +6978,14 @@ const CONST = {
                 title: 'workspace.upgrade.distanceRates.title' as const,
                 description: 'workspace.upgrade.distanceRates.description' as const,
                 icon: 'CarIce',
+            },
+            reports: {
+                id: 'reports' as const,
+                alias: 'reports',
+                name: 'Reports',
+                title: 'workspace.upgrade.reports.title' as const,
+                description: 'workspace.upgrade.reports.description' as const,
+                icon: 'ReportReceipt',
             },
         };
     },

@@ -5579,6 +5579,11 @@ const translations = {
                     'Expensify Travel ist eine neue Plattform für die Buchung und Verwaltung von Geschäftsreisen, die es Mitgliedern ermöglicht, Unterkünfte, Flüge, Transportmittel und mehr zu buchen.',
                 onlyAvailableOnPlan: 'Reisen ist im Collect-Plan verfügbar, beginnend bei',
             },
+            reports: {
+                title: 'Berichte',
+                description: 'Berichte ermöglichen es Ihnen, Ausgaben für eine einfachere Verfolgung und Organisation zu gruppieren.',
+                onlyAvailableOnPlan: 'Berichte sind im Collect-Plan verfügbar, beginnend bei ',
+            },
             multiLevelTags: {
                 title: 'Mehrstufige Tags',
                 description:
