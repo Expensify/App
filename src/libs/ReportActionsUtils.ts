@@ -1583,6 +1583,11 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
             const errorMessage = result?.messages?.join(', ') ?? '';
             const linkText = result?.link?.text ?? '';
             const linkURL = result?.link?.url ?? '';
+            if (errorMessage.includes(CONST.ERROR.INTEGRATION_MESSAGE_INVALID_CREDENTIALS)) {
+                const translateErrorMessage = translateLocal('report.actions.error.invalidCredentials');
+                const translateLinkText = translateLocal('report.connectionSettings');
+                return translateLocal('report.actions.type.integrationsMessage', {errorMessage: translateErrorMessage, label, linkText: translateLinkText, linkURL});
+            }
             return translateLocal('report.actions.type.integrationsMessage', {errorMessage, label, linkText, linkURL});
         }
         case CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT:
