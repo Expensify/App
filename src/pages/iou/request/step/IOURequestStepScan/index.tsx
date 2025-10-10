@@ -381,7 +381,7 @@ function IOURequestStepScan({
                 return;
             }
             const source = URL.createObjectURL(file as Blob);
-            setMoneyRequestReceipt(initialTransactionID, source, file.name ?? '', !isEditing, file.type);
+            setMoneyRequestReceipt(initialTransactionID, source, file.name ?? '', !isEditing);
             updateScanAndNavigate(file, source);
             return;
         }
@@ -399,7 +399,7 @@ function IOURequestStepScan({
 
             const transactionID = transaction.transactionID ?? initialTransactionID;
             newReceiptFiles.push({file, source, transactionID});
-            setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
+            setMoneyRequestReceipt(transactionID, source, file.name ?? '', true);
         });
 
         if (shouldSkipConfirmation) {
@@ -510,7 +510,7 @@ function IOURequestStepScan({
             const transactionID = transaction?.transactionID ?? initialTransactionID;
             const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
 
-            setMoneyRequestReceipt(transactionID, source, filename, !isEditing, file.type);
+            setMoneyRequestReceipt(transactionID, source, filename, !isEditing);
             setReceiptFiles(newReceiptFiles);
 
             if (isMultiScanEnabled) {
