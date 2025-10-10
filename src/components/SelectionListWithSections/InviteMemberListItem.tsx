@@ -55,9 +55,6 @@ function InviteMemberListItem<TItem extends ListItem>({
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
-    const shouldShowCheckBox = canSelectMultiple && !item.isDisabled;
-    const shouldShowRadio = !canSelectMultiple && !item.isDisabled;
-
     const handleCheckboxPress = useCallback(() => {
         if (onCheckboxPress) {
             onCheckboxPress(item);
@@ -94,7 +91,7 @@ function InviteMemberListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            shouldDisplayRBR={!shouldShowCheckBox}
+            shouldDisplayRBR={false}
             testID={item.text}
             shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
             accessibilityState={accessibilityState}
@@ -151,23 +148,14 @@ function InviteMemberListItem<TItem extends ListItem>({
                             )}
                         </View>
                         {!!item.rightElement && item.rightElement}
-                        {!!shouldShowCheckBox && (
+                        {!item.isDisabled && (
                             <Checkbox
                                 style={[styles.ml2]}
-                                disabled={isDisabled || item?.isDisabledCheckbox}
-                                isChecked={item.isSelected ?? false}
-                                accessibilityLabel={CONST.ROLE.CHECKBOX}
-                                onPress={handleCheckboxPress}
-                            />
-                        )}
-                        {!!shouldShowRadio && (
-                            <Checkbox
-                                style={[styles.ml2]}
-                                shouldSelectOnPressEnter
-                                disabled={isDisabled || item?.isDisabledCheckbox}
-                                containerBorderRadius={999}
-                                accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                disabled={isDisabled || item.isDisabledCheckbox}
+                                containerBorderRadius={canSelectMultiple ? 4 : 999}
                                 isChecked={item.isSelected}
+                                accessibilityLabel={CONST.ROLE.CHECKBOX}
                                 onPress={handleCheckboxPress}
                             />
                         )}
