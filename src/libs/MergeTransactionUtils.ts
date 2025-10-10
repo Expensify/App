@@ -4,7 +4,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {MergeTransaction, Transaction} from '@src/types/onyx';
-import type {Receipt} from '@src/types/onyx/Transaction';
+import type {Receipt, Routes} from '@src/types/onyx/Transaction';
 import {convertToDisplayString} from './CurrencyUtils';
 import getReceiptFilenameFromTransaction from './getReceiptFilenameFromTransaction';
 import Parser from './Parser';
@@ -305,6 +305,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         created: mergeTransaction.created,
         modifiedCreated: mergeTransaction.created,
         reportID: mergeTransaction.reportID,
+        routes: mergeTransaction.routes as Routes | undefined,
     };
 }
 
@@ -425,6 +426,7 @@ function getMergeFieldUpdatedValues(transaction: OnyxEntry<Transaction>, field: 
         updatedValues.receipt = transaction?.receipt;
         updatedValues.customUnit = transaction?.comment?.customUnit;
         updatedValues.waypoints = getWaypoints(transaction);
+        updatedValues.routes = transaction?.routes ?? null;
     }
 
     return updatedValues;

@@ -1,5 +1,5 @@
 import type Transaction from './Transaction';
-import type {Comment, Receipt, TransactionCustomUnit, WaypointCollection} from './Transaction';
+import type {Comment, Receipt, Routes, TransactionCustomUnit, WaypointCollection} from './Transaction';
 
 /** Model of transaction merge data */
 type MergeTransaction = {
@@ -56,6 +56,9 @@ type MergeTransaction = {
 
     /** Waypoints for distance requests */
     waypoints?: WaypointCollection;
+
+    /** Routes for distance requests */
+    routes?: Routes | null;
 };
 
 export default MergeTransaction;
