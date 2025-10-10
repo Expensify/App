@@ -403,11 +403,32 @@ class TranslationGenerator {
     }
 
     /**
+     * Extract context annotation value from a string (comment or text).
+     * Returns the context value if found, undefined otherwise.
+     */
+    private extractContextAnnotationFromString(text: string): string | undefined {
+        const match = text.match(TranslationGenerator.CONTEXT_REGEX);
+        return match?.[1].trim();
+    }
+
+    /**
+     * Check if a specific line in the source file contains a context annotation.
+     */
+    private lineContainsContextAnnotation(lineNumber: number, sourceFile: ts.SourceFile): boolean {
+        const lines = sourceFile.getFullText().split('\n');
+        const line = lines.at(lineNumber - 1); // Convert to 0-based index
+        if (!line) {
+            return false;
+        }
+        return this.extractContextAnnotationFromString(line) !== undefined;
+    }
+
+    /**
      * Extract any leading context annotation for a given node.
      */
     private getContextForNode(node: ts.Node): string | undefined {
-        // First, check for an inline context comment.
-        const inlineContext = node.getFullText().match(TranslationGenerator.CONTEXT_REGEX)?.[1].trim();
+        // First, check for an inline context comment
+        const inlineContext = this.extractContextAnnotationFromString(node.getFullText());
         if (inlineContext) {
             return inlineContext;
         }
@@ -423,9 +444,9 @@ class TranslationGenerator {
         const commentRanges = ts.getLeadingCommentRanges(this.sourceFile.getFullText(), nearestPropertyAssignmentAncestor.getFullStart()) ?? [];
         for (const range of commentRanges.reverse()) {
             const commentText = this.sourceFile.getFullText().slice(range.pos, range.end);
-            const match = commentText.match(TranslationGenerator.CONTEXT_REGEX);
-            if (match) {
-                return match[1].trim();
+            const context = this.extractContextAnnotationFromString(commentText);
+            if (context) {
+                return context;
             }
         }
 
@@ -604,7 +625,7 @@ class TranslationGenerator {
             }
 
             // Traverse current en.ts for added and modified paths
-            this.extractPathsFromChangedLines(translationsNode, new Set([...changedLines.addedLines, ...changedLines.modifiedLines]), new Set());
+            this.extractPathsFromChangedLines(translationsNode, new Set([...changedLines.addedLines, ...changedLines.modifiedLines]), changedLines.removedLines);
 
             // For removed paths, we need to traverse the old version of en.ts
             if (changedLines.removedLines.size > 0 || changedLines.modifiedLines.size > 0) {
@@ -670,22 +691,50 @@ class TranslationGenerator {
         const isOnAddedLine = nodeLines.some((lineNumber) => addedLines.has(lineNumber));
         const isOnRemovedLine = nodeLines.some((lineNumber) => removedLines.has(lineNumber));
 
-        if ((isOnAddedLine || isOnRemovedLine) && this.shouldTranslateNode(node)) {
+        // Also check if this node has context annotation changes in its leading comments
+        let hasContextChange = false;
+        if (this.shouldTranslateNode(node)) {
+            // Find the nearest property assignment ancestor (same logic as getContextForNode)
+            const nearestPropertyAssignmentAncestor = TSCompilerUtils.findAncestor(node, (n): n is ts.PropertyAssignment => ts.isPropertyAssignment(n));
+            if (nearestPropertyAssignmentAncestor) {
+                // Get leading comment ranges for this property assignment
+                const commentRanges = ts.getLeadingCommentRanges(sourceFile.getFullText(), nearestPropertyAssignmentAncestor.getFullStart()) ?? [];
+                for (const range of commentRanges) {
+                    const commentStart = sourceFile.getLineAndCharacterOfPosition(range.pos);
+                    const commentEnd = sourceFile.getLineAndCharacterOfPosition(range.end);
+
+                    // Check if any line of this comment is in the changed lines
+                    const commentLines = Array.from({length: commentEnd.line - commentStart.line + 1}, (_, i) => commentStart.line + i + 1);
+                    for (const commentLineNumber of commentLines) {
+                        if ((addedLines.has(commentLineNumber) || removedLines.has(commentLineNumber)) && this.lineContainsContextAnnotation(commentLineNumber, sourceFile)) {
+                            hasContextChange = true;
+                            break;
+                        }
+                    }
+                    if (hasContextChange) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        const hasChanges = isOnAddedLine || isOnRemovedLine || hasContextChange;
+        if (hasChanges && this.shouldTranslateNode(node)) {
             // This node is on a changed line and should be translated
             // Traverse up the tree to build the dot notation path
             const translationsNode = this.findTranslationsNode(node.getSourceFile() ?? this.sourceFile);
             const dotPath = TSCompilerUtils.buildDotNotationPath(node, translationsNode ?? undefined);
             if (dotPath) {
-                if (isOldVersion && isOnRemovedLine) {
+                if (isOldVersion && (isOnRemovedLine || hasContextChange)) {
                     // When traversing old version, removed lines indicate paths to remove
                     this.pathsToRemove.add(dotPath as TranslationPaths);
-                } else if (!isOldVersion && isOnAddedLine) {
+                } else if (!isOldVersion && (isOnAddedLine || hasContextChange)) {
                     // When traversing current version, added lines indicate paths to modify/add
                     this.pathsToModify.add(dotPath as TranslationPaths);
                 }
 
                 if (this.verbose) {
-                    console.log(`🔄 Found changed path: ${dotPath} (added: ${isOnAddedLine}, removed: ${isOnRemovedLine})`);
+                    console.log(`🔄 Found changed path: ${dotPath} (added: ${isOnAddedLine}, removed: ${isOnRemovedLine}, contextChange: ${hasContextChange})`);
                 }
             }
         }

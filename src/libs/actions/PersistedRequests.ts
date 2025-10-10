@@ -6,6 +6,19 @@ import type {Request} from '@src/types/onyx';
 
 let persistedRequests: Request[] = [];
 let ongoingRequest: Request | null = null;
+let pendingSaveOperations: Request[] = [];
+let isInitialized = false;
+let initializationCallback: () => void;
+function triggerInitializationCallback() {
+    if (typeof initializationCallback !== 'function') {
+        return;
+    }
+    return initializationCallback();
+}
+
+function onInitialization(callbackFunction: () => void) {
+    initializationCallback = callbackFunction;
+}
 
 // We have opted for connectWithoutView here as this module is strictly non-UI
 Onyx.connectWithoutView({
@@ -13,6 +26,15 @@ Onyx.connectWithoutView({
     callback: (val) => {
         Log.info('[PersistedRequests] hit Onyx connect callback', false, {isValNullish: val == null});
         persistedRequests = val ?? [];
+
+        // Process any pending save operations that were queued before initialization
+        if (pendingSaveOperations.length > 0) {
+            Log.info(`[PersistedRequests] Processing pending save operations, size: ${pendingSaveOperations.length}`, false);
+            const requests = [...persistedRequests, ...pendingSaveOperations];
+            persistedRequests = requests;
+            Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
+            pendingSaveOperations = [];
+        }
 
         if (ongoingRequest && persistedRequests.length > 0) {
             const nextRequestToProcess = persistedRequests.at(0);
@@ -23,6 +45,12 @@ Onyx.connectWithoutView({
                 persistedRequests = persistedRequests.slice(1);
             }
         }
+
+        if (!isInitialized && persistedRequests.length > 0) {
+            Log.info('[PersistedRequests] Triggering initialization callback', false);
+            triggerInitializationCallback();
+        }
+        isInitialized = true;
     },
 });
 // We have opted for connectWithoutView here as this module is strictly non-UI
@@ -48,6 +76,13 @@ function getLength(): number {
 }
 
 function save(requestToPersist: Request) {
+    // If not initialized yet, queue the request for later processing
+    if (!isInitialized) {
+        Log.info('[PersistedRequests] Queueing request until initialization completes', false);
+        pendingSaveOperations.push(requestToPersist);
+        return;
+    }
+
     // If the command is not in the keepLastInstance array, add the new request as usual
     const requests = [...persistedRequests, requestToPersist];
     persistedRequests = requests;
@@ -121,7 +156,11 @@ function processNextRequest(): Request | null {
         throw new Error('No requests to process');
     }
 
-    ongoingRequest = persistedRequests.shift() ?? null;
+    ongoingRequest = persistedRequests.length > 0 ? (persistedRequests.at(0) ?? null) : null;
+
+    // Create a new array without the first element
+    const newPersistedRequests = persistedRequests.slice(1);
+    persistedRequests = newPersistedRequests;
 
     if (ongoingRequest && ongoingRequest.persistWhenOngoing) {
         Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, ongoingRequest);
@@ -150,4 +189,17 @@ function getOngoingRequest(): Request | null {
     return ongoingRequest;
 }
 
-export {clear, save, getAll, endRequestAndRemoveFromQueue, update, getLength, getOngoingRequest, processNextRequest, updateOngoingRequest, rollbackOngoingRequest, deleteRequestsByIndices};
+export {
+    clear,
+    save,
+    getAll,
+    endRequestAndRemoveFromQueue,
+    update,
+    getLength,
+    getOngoingRequest,
+    processNextRequest,
+    updateOngoingRequest,
+    rollbackOngoingRequest,
+    deleteRequestsByIndices,
+    onInitialization,
+};

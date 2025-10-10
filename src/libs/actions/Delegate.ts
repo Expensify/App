@@ -20,12 +20,6 @@ import {getCurrentUserAccountID} from './Report';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
 
-let credentials: Credentials = {};
-Onyx.connect({
-    key: ONYXKEYS.CREDENTIALS,
-    callback: (value) => (credentials = value ?? {}),
-});
-
 let stashedCredentials: Credentials = {};
 Onyx.connect({
     key: ONYXKEYS.STASHED_CREDENTIALS,
@@ -76,6 +70,10 @@ type WithDelegatedAccess = {
     delegatedAccess: DelegatedAccess | undefined;
 };
 
+type WithCredentials = {
+    credentials: Credentials | undefined;
+};
+
 type WithEmail = {
     email: string;
 };
@@ -116,7 +114,7 @@ type UpdateDelegateRoleParams = WithEmail & WithRole & WithValidateCode & WithDe
 type IsConnectedAsDelegateParams = WithDelegatedAccess;
 
 // Connect as delegate
-type ConnectParams = WithEmail & WithDelegatedAccess & WithOldDotFlag;
+type ConnectParams = WithEmail & WithDelegatedAccess & WithOldDotFlag & WithCredentials;
 
 // Clear pending action for role update
 type ClearDelegateRolePendingActionParams = WithEmail & WithDelegatedAccess;
@@ -125,12 +123,12 @@ type ClearDelegateRolePendingActionParams = WithEmail & WithDelegatedAccess;
  * Connects the user as a delegate to another account.
  * Returns a Promise that resolves to true on success, false on failure, or undefined if not applicable.
  */
-function connect({email, delegatedAccess, isFromOldDot = false}: ConnectParams) {
+function connect({email, delegatedAccess, credentials, isFromOldDot = false}: ConnectParams) {
     if (!delegatedAccess?.delegators && !isFromOldDot) {
         return;
     }
 
-    Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, credentials);
+    Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, credentials ?? {});
     Onyx.set(ONYXKEYS.STASHED_SESSION, session);
 
     const previousAccountID = getCurrentUserAccountID();

@@ -14,7 +14,7 @@ This is how the application manages all the data stored in Onyx.
 ## Rules
 ### - Actions MUST be the only means to write or read data from the server
 ### - Actions SHOULD use `Onyx.merge()` rather than `Onyx.set()`
-This improves performance and lessons the chance that one action will overwrite the changes made by another action.
+This improves performance and lessens the chance that one action will overwrite the changes made by another action.
 
 ### - UI Components MUST NOT call Onyx methods directly and should call an action instead
 ### - Data SHOULD be optimistically stored on disk whenever possible without waiting for a server response
@@ -45,12 +45,7 @@ Onyx.init({
     evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
 });
 
-export default withOnyx({
-    reportActions: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        canEvict: props => !props.isActiveReport,
-    },
-})(ReportActionsView);
+const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canEvict: !isActiveReport});
 ```
 
 ## Onyx Derived Values
@@ -87,8 +82,8 @@ Avoid derived values when:
 
 A derived value config MUST include:
 1. The Onyx key for the derived value
-2. An array of dependent Onyx keys (which can be any keys, including other derived values)
-3. A `compute` function that takes an array of dependent Onyx values and returns a value matching the declared type
+2. An array of Onyx key dependencies (which can be any keys, including other derived values)
+3. A `compute` function that takes an array of Onyx values for the dependencies and returns a derived value matching the declared type
 
 ### - Derived value computations MUST be pure and predictable
 ```typescript

@@ -262,7 +262,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
     const {betas, allReports, betaConfiguration} = context;
 
     // Check if the feature is enabled
-    if (!Permissions.isBetaEnabled(CONST.BETAS.AUTH_AUTO_REPORT_TITLE, betas, betaConfiguration)) {
+    if (!Permissions.isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES, betas, betaConfiguration)) {
         return updates;
     }
 

@@ -1,7 +1,7 @@
 import FullStory, {FSPage} from '@fullstory/react-native';
 import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
-import * as Environment from '@src/libs/Environment/Environment';
+import getEnvironment from '@src/libs/Environment/getEnvironment';
 import getChatFSClass from './common';
 import type {Fullstory} from './types';
 
@@ -33,7 +33,7 @@ const FS: Fullstory = {
             // We only use FullStory in production environment. We need to check this here
             // after the init function since this function is also called on updates for
             // UserMetadata onyx key.
-            Environment.getEnvironment().then((envName: string) => {
+            getEnvironment().then((envName: string) => {
                 const isTestEmail = userMetadata.email !== undefined && userMetadata.email.startsWith('fullstory') && userMetadata.email.endsWith(CONST.EMAIL.QA_DOMAIN);
                 if ((CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) || Str.extractEmailDomain(userMetadata.email ?? '') === CONST.EXPENSIFY_PARTNER_NAME) {
                     return;

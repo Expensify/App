@@ -3,9 +3,9 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import {useState} from 'react';
 import {SectionList} from 'react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import BaseSelectionList from '@components/SelectionList/BaseSelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem, SelectionListProps} from '@components/SelectionList/types';
+import BaseSelectionList from '@components/SelectionListWithSections/BaseSelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem, SelectionListProps} from '@components/SelectionListWithSections/types';
 import type Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 

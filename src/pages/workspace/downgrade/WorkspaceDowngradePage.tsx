@@ -1,4 +1,5 @@
 import React, {useMemo, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -54,13 +55,23 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
         Navigation.dismissModal();
     };
 
+    const dismissModalAndNavigate = (targetPolicyID: string) => {
+        Navigation.dismissModal();
+        Navigation.isNavigationReady().then(() => {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(targetPolicyID));
+            InteractionManager.runAfterInteractions(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(targetPolicyID));
+            });
+        });
+    };
+
     const onMoveToCompanyCardFeeds = () => {
         if (!policyID) {
             return;
         }
+
         setIsDowngradeWarningModalOpen(false);
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID));
+        InteractionManager.runAfterInteractions(() => dismissModalAndNavigate(policyID));
     };
 
     if (!canPerformDowngrade) {

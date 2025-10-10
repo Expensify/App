@@ -14,7 +14,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native');
@@ -63,12 +62,16 @@ describe('NewChatPage', () => {
 
     afterEach(async () => {
         jest.clearAllMocks();
-        await Onyx.clear();
-        await waitForBatchedUpdates();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
     });
 
     it('should scroll to top when adding a user to the group selection', async () => {
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+        });
         render(<NewChatPage />, {wrapper});
         await waitForBatchedUpdatesWithAct();
         act(() => {
@@ -88,9 +91,11 @@ describe('NewChatPage', () => {
 
         it.each(excludedGroupEmails)('%s', async (email) => {
             // Given that a personal details list is initialized in Onyx
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '1': {accountID: 1, login: email},
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '1': {accountID: 1, login: email},
+                });
             });
 
             // And NewChatPage is opened

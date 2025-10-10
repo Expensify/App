@@ -19,7 +19,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportActions} from '@src/types/onyx';
 import {getFetchMockCalls, getGlobalFetchMock, setupGlobalFetchMock, signInWithTestUser} from '../utils/TestHelper';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -154,11 +153,15 @@ describe('ReportAttachments', () => {
     beforeEach(async () => {
         global.fetch = getGlobalFetchMock();
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
-        Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        await waitForBatchedUpdatesWithAct();
 
         // Given a test user is signed in with Onyx setup and some initial data
         await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
     });
 
     afterEach(async () => {
@@ -170,8 +173,12 @@ describe('ReportAttachments', () => {
         jest.clearAllMocks();
     });
     it('should display the attachment if the source link is origin url', async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportAttachmentID}`, reportAttachmentOnyx);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAttachmentID}`, reportActionsAttachmentOnyx);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportAttachmentID}`, reportAttachmentOnyx);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAttachmentID}`, reportActionsAttachmentOnyx);
+        });
+
+        await waitForBatchedUpdatesWithAct();
 
         // Given the report attachments params
         const params: AuthScreensParamList[typeof SCREENS.ATTACHMENTS] = {
@@ -205,7 +212,7 @@ describe('ReportAttachments', () => {
 
         // And ReportAttachments is opened
         renderPage(SCREENS.ATTACHMENTS, params);
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         const openReportRequest = getFetchMockCalls(WRITE_COMMANDS.OPEN_REPORT).find((request) => {
             const body = request[1]?.body;

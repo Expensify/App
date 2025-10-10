@@ -118,9 +118,7 @@ function SignInPageLayout({
                             <View style={styles.signInPageHeroCenter}>
                                 <BackgroundImage
                                     isSmallScreen={false}
-                                    pointerEvents="none"
                                     width={variables.signInHeroBackgroundWidth}
-                                    transitionDuration={CONST.BACKGROUND_IMAGE_TRANSITION_DURATION}
                                 />
                             </View>
                             <View>
@@ -155,21 +153,11 @@ function SignInPageLayout({
                     keyboardShouldPersistTaps="handled"
                     ref={scrollViewRef}
                 >
-                    <View
-                        style={[
-                            styles.flex1,
-                            styles.flexColumn,
-                            isMobileSafari() ? styles.overflowHidden : {},
-                            StyleUtils.getMinimumHeight(backgroundImageHeight),
-                            StyleUtils.getSignInBgStyles(theme),
-                        ]}
-                    >
-                        <View style={[styles.pAbsolute, styles.w100, StyleUtils.getHeight(backgroundImageHeight), StyleUtils.getBackgroundColorStyle(theme.highlightBG)]}>
+                    <View style={[styles.flex1, styles.flexColumn, isMobileSafari() ? styles.overflowHidden : {}, StyleUtils.getMinimumHeight(backgroundImageHeight)]}>
+                        <View style={[styles.pAbsolute, styles.b0, styles.w100, StyleUtils.getHeight(backgroundImageHeight), StyleUtils.getBackgroundColorStyle(theme.highlightBG)]}>
                             <BackgroundImage
                                 isSmallScreen
-                                pointerEvents="none"
                                 width={variables.signInHeroBackgroundWidthMobile}
-                                transitionDuration={CONST.BACKGROUND_IMAGE_TRANSITION_DURATION}
                             />
                         </View>
                         <SignInPageContent

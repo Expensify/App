@@ -55,6 +55,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
             footer={submitButton}
             childrenContainerStyles={[styles.pt3, styles.gap6]}
             keyboardShouldPersistTaps="handled"
+            shouldShowOfflineIndicatorInWideScreen
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <Text style={styles.ph5}>{translate('delegate.confirmCopilot')}</Text>

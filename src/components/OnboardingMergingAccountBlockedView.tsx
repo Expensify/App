@@ -1,9 +1,11 @@
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {setOnboardingErrorMessage} from '@userActions/Welcome';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import BlockingView from './BlockingViews/BlockingView';
 import Button from './Button';
@@ -20,6 +22,16 @@ type OnboardingMergingAccountBlockedViewProps = {
 function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergingAccountBlockedViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, {canBeMissing: true});
+
+    const getErrorSubtitle = () => {
+        if (onboardingErrorMessage) {
+            return onboardingErrorMessage;
+        }
+        // Fallback to generic error message
+        return translate('onboarding.mergeBlockScreen.subtitle', {workEmail});
+    };
+
     return (
         <>
             <BlockingView
@@ -27,7 +39,7 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
                 iconWidth={variables.modalTopIconWidth}
                 iconHeight={variables.modalTopIconHeight}
                 title={translate('onboarding.mergeBlockScreen.title')}
-                subtitle={translate('onboarding.mergeBlockScreen.subtitle', {workEmail})}
+                subtitle={getErrorSubtitle()}
                 subtitleStyle={[styles.colorMuted]}
             />
             <Button

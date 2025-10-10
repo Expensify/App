@@ -4,6 +4,7 @@ import React from 'react';
 import {Animated, View} from 'react-native';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
+import useSidePanel from '@hooks/useSidePanel';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {OverlayStylesParams} from '@styles/index';
 import CONST from '@src/CONST';
@@ -26,11 +27,18 @@ function BaseOverlay({onPress, hasMarginRight = false, progress, hasMarginLeft =
     const styles = useThemeStyles();
     const {current} = useCardAnimation();
     const {translate} = useLocalize();
+    const {sidePanelTranslateX} = useSidePanel();
 
     return (
         <Animated.View
             id="BaseOverlay"
-            style={styles.overlayStyles({progress: progress ?? current.progress, hasMarginRight, hasMarginLeft})}
+            style={[
+                styles.pFixed,
+                styles.t0,
+                styles.b0,
+                styles.overlayBackground,
+                styles.overlayStyles({progress: progress ?? current.progress, hasMarginRight, hasMarginLeft, sidePanelTranslateX}),
+            ]}
         >
             <View style={[styles.flex1, styles.flexColumn]}>
                 {/* In the latest Electron version buttons can't be both clickable and draggable.

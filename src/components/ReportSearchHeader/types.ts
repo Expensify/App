@@ -1,6 +1,6 @@
 import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {TransactionListItemType} from '@components/SelectionList/types';
+import type {TransactionListItemType} from '@components/SelectionListWithSections/types';
 import type {Report} from '@src/types/onyx';
 
 type ReportSearchHeaderProps = {

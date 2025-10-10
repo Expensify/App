@@ -98,6 +98,7 @@ function ReanimatedModal({
     useEffect(
         () => () => {
             if (handleRef.current) {
+                // eslint-disable-next-line deprecation/deprecation
                 InteractionManager.clearInteractionHandle(handleRef.current);
             }
 
@@ -110,12 +111,14 @@ function ReanimatedModal({
 
     useEffect(() => {
         if (isVisible && !isContainerOpen && !isTransitioning) {
+            // eslint-disable-next-line deprecation/deprecation
             handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillShow();
 
             setIsVisibleState(true);
             setIsTransitioning(true);
         } else if (!isVisible && isContainerOpen && !isTransitioning) {
+            // eslint-disable-next-line deprecation/deprecation
             handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillHide();
 
@@ -134,6 +137,7 @@ function ReanimatedModal({
         setIsTransitioning(false);
         setIsContainerOpen(true);
         if (handleRef.current) {
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
         onModalShow();
@@ -143,15 +147,19 @@ function ReanimatedModal({
         setIsTransitioning(false);
         setIsContainerOpen(false);
         if (handleRef.current) {
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
-        // Because on Android, the Modal's onDismiss callback does not work reliably. There's a reported issue at:
+
+        // On the web platform, the Modal's onDismiss callback may not be triggered if the dismiss process is interrupted by other actions such as navigation.
+        // Specifically on Android, the Modal's onDismiss callback does not work reliably. There's a reported issue at:
         // https://stackoverflow.com/questions/58937956/react-native-modal-ondismiss-not-invoked
-        // Therefore, we manually call onModalHide() here for Android.
-        if (getPlatform() === CONST.PLATFORM.ANDROID) {
+        // Therefore, we manually call onDismiss and onModalHide here.
+        if (getPlatform() !== CONST.PLATFORM.IOS) {
+            onDismiss?.();
             onModalHide();
         }
-    }, [onModalHide]);
+    }, [onDismiss, onModalHide]);
 
     const containerView = (
         <Container
@@ -209,10 +217,11 @@ function ReanimatedModal({
                 statusBarTranslucent={statusBarTranslucent}
                 testID={testID}
                 onDismiss={() => {
-                    onDismiss?.();
-                    if (getPlatform() !== CONST.PLATFORM.ANDROID) {
-                        onModalHide();
+                    if (getPlatform() !== CONST.PLATFORM.IOS) {
+                        return;
                     }
+                    onDismiss?.();
+                    onModalHide();
                 }}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}

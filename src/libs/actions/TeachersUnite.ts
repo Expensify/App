@@ -72,6 +72,7 @@ function addSchoolPrincipal(
     localCurrencyCode: string | undefined,
     sessionEmail: string,
     sessionAccountID: number,
+    optimisticReportID: string,
 ) {
     const policyName = CONST.TEACHERS_UNITE.POLICY_NAME;
     const loggedInEmail = addSMSDomainIfPhoneNumber(sessionEmail);
@@ -85,6 +86,7 @@ function addSchoolPrincipal(
         ownerAccountID: sessionAccountID,
         isOwnPolicyExpenseChat: true,
         oldPolicyName: policyName,
+        optimisticReportID,
     });
     const expenseChatReportID = expenseChatData.reportID;
     const expenseReportCreatedAction = buildOptimisticCreatedReportAction(sessionEmail);

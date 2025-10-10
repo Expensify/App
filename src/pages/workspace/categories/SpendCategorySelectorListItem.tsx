@@ -1,7 +1,7 @@
 import React from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import BaseListItem from '@components/SelectionList/BaseListItem';
-import type {BaseListItemProps, ListItem} from '@components/SelectionList/types';
+import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
+import type {BaseListItemProps, ListItem} from '@components/SelectionListWithSections/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRow, isFocused}: BaseListItemProps<TItem>) {

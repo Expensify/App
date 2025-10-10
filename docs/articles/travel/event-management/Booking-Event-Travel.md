@@ -1,67 +1,79 @@
 ---
-title: Booking Event Travel
-description: Learn how employees and guests can book and manage their travel for company events in Expensify.
-keywords: [New Expensify, event travel, group booking, travel itinerary, Trips page, flights, hotels, car rentals, event organizer, central billing card]
+title: Booking Travel for Event Attendees
+description: Learn how to book travel for employees or guests attending an event in New Expensify, including requirements, payment options, and mobile access.
+keywords: [New Expensify, travel, event travel, book flights, group travel, multi-traveler, itinerary, travel dashboard, trips]
 ---
 <div id="new-expensify" markdown="1">
 
-This guide explains how employees and invited guests can use Expensify to book travel for company events.  
+You can book travel for employees or guests attending an event directly from the travel dashboard in New Expensify. This guide outlines what’s required, how to book, and answers to common questions.
+
+# Booking Travel for Event Attendees
+
+## Requirements
+
+Before booking travel, make sure:
+
+- A [trip template](https://help.expensify.com/articles/travel/event-management/Travel-Event-Management#step-1-create-a-trip-template) and event have been created.
+- Travelers are either employees or guests.  
+- Children and infants are not eligible for multi-traveler bookings.  
+- Each traveler’s legal name matches their government-issued ID exactly to avoid airport check-in issues.  
 
 ---
 
-## How to access the travel tool
+## How to Access the Travel Tool
 
-- **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
-- **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
+To get started:
 
-**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+- **In New Expensify:** Click the green **+** button in the bottom-left corner, then select **Book travel**.  
+- **In Classic Expensify:** Go to **Travel** in the left-hand menu, then choose **Book or manage travel**.  
 
----
-
-# Booking travel as an employee
-
-Click on Travel from your Expensify account, select **Trips > My Trips**.  
-
-1. Click the **Upcoming Event**.  
-2. For each travel type (flights, hotels, car rentals), select **Start booking**.  
-3. Follow the prompts in each booking flow.  
-   - Event dates are highlighted in green.  
-   - Event start times may restrict available flights or rentals—try adjusting your search if needed.  
-4. If an organizer provided a central billing card, select it under **Payment method** at checkout.  
+**Haven’t enabled travel yet?**  
+Reach out to your Account Manager or Concierge to schedule a travel demo and enable the feature.
 
 ---
 
-# Booking travel as a guest
+## How to Book Travel for an Employee or Guest
 
-Guests will receive an email invitation from Expensify. If you’re unsure which email address was used, confirm with the event organizer.  
+1. In Expensify, go to **Travel**, then select **Trips**.  
+2. Click the pencil icon next to the attendee’s profile name (near the **Create** button).  
+3. Enter the attendee or guest’s email address.  
+4. Click **Start booking** and choose the type of travel to arrange.  
 
-1. Open the invitation email and select **Book my trip**.  
-2. Enter your email address and click **Next**.  
-3. Enter the verification code sent to your inbox, then click **Log in**.  
-4. You’ll be redirected to your **Trips** page.  
-5. For each travel type (flights, hotels, car rentals), select **Start booking**.  
-   - Event dates are highlighted in green.  
-   - Event start times may restrict available options—broaden your search if needed.  
-6. If an organizer provided a central billing card, select it under **Payment method** at checkout.  
+The attendee’s profile information will auto-fill in the booking form. If central billing is enabled, the company card will appear as the payment method.
 
 ---
 
 # FAQ
 
-## What if I don’t see the event in my Trips page?  
-Confirm with your event organizer that you’ve been invited. Employees should also check that they’re logged in with their company email address.  
+## What if the attendee doesn’t have an Expensify account?
 
-## Can someone else book my travel for me?  
-Yes. Event organizers or designated travel arrangers can book on your behalf.  
+You can still book travel using their email address. They’ll receive their itinerary via email, even without an Expensify account.
 
-## How do I know if a central billing card is available?  
-If one is provided, you’ll see it listed under **Payment method** during checkout. Otherwise, use your own payment method.  
+## How does payment work with central billing?
 
-## What if I need to change or cancel my booking?  
-Go to your **My Trips** page, select the event trip, and manage the booking there. Change and cancellation options vary by airline, hotel, or rental provider.  
+- If **central billing is enabled**, the company card is automatically used at checkout.  
+- If **not enabled**, you’ll be prompted to enter a payment method during booking.
 
-## Can I book outside the event dates?  
-Yes, but organizers may only cover costs during official event dates. Check with your organizer before extending your trip.  
+## Can I edit or cancel a booking made for an attendee?
+
+Yes. Go to **Trips > All Trips**, open the attendee’s trip, and manage the booking details. Any changes or cancellations are automatically emailed to the attendee.
+
+## Can I remove an attendee from an event?
+
+Yes. Go to **Events**, open the event, check the box next to the attendee’s name, and click **Delete**. The attendee will be notified of any changes or cancellations.
+
+## What happens if I enter the wrong traveler details?
+
+Traveler names must match their legal ID. If incorrect details are entered, cancel the booking and rebook with the correct information.
+
+## How can an attendee view their itinerary on mobile?
+
+When a trip is booked through Expensify Travel, an itinerary is automatically created in New Expensify.
+
+To view it:
+
+1. Open the Expensify mobile app.  
+2. Tap **Inbox**.  
+3. Look for the thread named after your upcoming trip.
 
 </div>
-

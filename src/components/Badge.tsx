@@ -62,7 +62,7 @@ function Badge({
     const StyleUtils = useStyleUtils();
     const Wrapper = pressable ? PressableWithoutFeedback : View;
 
-    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
+    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
 
     const iconColor = StyleUtils.getIconColorStyle(success, error);
 
@@ -97,7 +97,7 @@ function Badge({
                 </View>
             )}
             <Text
-                style={[styles.badgeText, styles.textStrong, textStyles, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                style={[styles.badgeText, styles.textStrong, textStyles, isDeleted ? styles.offlineFeedbackDeleted : {}]}
                 numberOfLines={1}
             >
                 {text}

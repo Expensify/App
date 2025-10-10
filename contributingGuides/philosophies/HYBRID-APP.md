@@ -119,4 +119,7 @@ When switching branches, run `git submodule update` to ensure compatibility.
 - Add HybridApp-specific patches: `npx patch-package <PACKAGE_NAME> --patch-dir Mobile-Expensify/patches`
 
 ### Additional Resources
-For extended documentation, troubleshooting, and pro tips, refer to [HYBRID_APP.md](contributingGuides/HYBRID_APP.md).
+For extended documentation, troubleshooting, and pro tips, refer to the platform specific guides:
+
+* **📱 iOS Development**: [iOS Setup Instructions](contributingGuides/SETUP_IOS.md)  
+* **🤖 Android Development**: [Android Setup Instructions](contributingGuides/SETUP_ANDROID.md)

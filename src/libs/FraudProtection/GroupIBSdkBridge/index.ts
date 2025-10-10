@@ -1,4 +1,5 @@
-import {getEnvironment, getOldDotEnvironmentURL} from '@libs/Environment/Environment';
+import {getOldDotEnvironmentURL} from '@libs/Environment/Environment';
+import getEnvironment from '@libs/Environment/getEnvironment';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import cidMap from './cidMap';
@@ -62,14 +63,15 @@ function setAuthenticationData(identity: string, sessionID: string): void {
     });
 }
 
-function setAttribute(key: string, value: string, opts?: {persist?: boolean; encryption?: unknown}) {
+function setAttribute(key: string, value: string, shouldHash?: boolean) {
     fpInstancePromise.then((fp) => {
-        fp?.setAttribute?.(key, value, opts);
+        const options = shouldHash ? {encryption: 'sha1'} : undefined;
+        fp?.setAttribute?.(key, value, options);
     });
 }
 
-function sendEvent(event: string, persist = false, encryption: unknown = null) {
-    setAttribute('event_type', event, {persist, encryption: encryption ?? undefined});
+function sendEvent(event: string) {
+    setAttribute('event_type', event);
 }
 
 export {init, sendEvent, setAttribute, setAuthenticationData};

@@ -214,7 +214,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                             }}
                         />
 
-                        <View style={[styles.flex1, styles.uploadFileView(isSmallScreenWidth)]}>
+                        <View style={[styles.flex1, styles.uploadFileView, styles.uploadFileViewBorderWidth(isSmallScreenWidth)]}>
                             {!(isDraggingOver ?? isDraggingOver) && desktopView}
 
                             <DragAndDropConsumer
@@ -226,7 +226,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                                 }}
                             >
                                 <View style={[styles.fileDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                                    <View style={styles.fileUploadImageWrapper(fileTopPosition)}>
+                                    <View style={[styles.pAbsolute, styles.fileUploadImageWrapper(fileTopPosition)]}>
                                         <ImageSVG
                                             src={Expensicons.SpreadsheetComputer}
                                             contentFit="contain"

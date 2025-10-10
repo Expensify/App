@@ -21,6 +21,7 @@ import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {getCompanyCardBankConnection} from '@userActions/getCompanyCardBankConnection';
 import CONST from '@src/CONST';
@@ -69,6 +70,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
+    const isNewFeedHasError = !!(newFeed && cardFeeds?.settings?.oAuthAccountDetails?.[newFeed]?.errors);
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
 
@@ -96,7 +98,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     };
 
     useEffect(() => {
-        if (!url && !isPlaid) {
+        if ((!url && !isPlaid) || isNewFeedHasError) {
             return;
         }
 
@@ -123,8 +125,9 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             // Direct feeds (except those added via Plaid) are created with default statement period end date.
             // Redirect the user to set a custom date.
             if (policyID && !isPlaid) {
-                Navigation.closeRHPFlow();
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.getRoute(policyID));
+                setAddNewCompanyCardStepAndData({
+                    step: CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE,
+                });
             } else {
                 Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
             }
@@ -132,7 +135,20 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         if (isPlaid) {
             onImportPlaidAccounts();
         }
-    }, [isNewFeedConnected, newFeed, policyID, url, feed, isFeedExpired, assignCard?.data?.dateOption, isPlaid, onImportPlaidAccounts, isFeedConnectionBroken, updateBrokenConnection]);
+    }, [
+        isNewFeedConnected,
+        newFeed,
+        policyID,
+        url,
+        feed,
+        isFeedExpired,
+        assignCard?.data?.dateOption,
+        isPlaid,
+        onImportPlaidAccounts,
+        isFeedConnectionBroken,
+        updateBrokenConnection,
+        isNewFeedHasError,
+    ]);
 
     const checkIfConnectionCompleted = (navState: WebViewNavigation) => {
         if (!navState.url.includes(ROUTES.BANK_CONNECTION_COMPLETE)) {
@@ -145,7 +161,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         <ScreenWrapper
             testID={BankConnection.displayName}
             shouldShowOfflineIndicator={false}
-            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
@@ -154,7 +169,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 onBackButtonPress={handleBackButtonPress}
             />
             <FullPageOfflineBlockingView addBottomSafeAreaPadding>
-                {!!url && !isConnectionCompleted && !isPlaid && (
+                {!!url && !isConnectionCompleted && !isPlaid && !isNewFeedHasError && (
                     <WebView
                         ref={webViewRef}
                         source={{
@@ -170,10 +185,16 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                         renderLoading={renderLoading}
                     />
                 )}
-                {(isConnectionCompleted || isPlaid) && (
+                {(isConnectionCompleted || isPlaid) && !isNewFeedHasError && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}
+                    />
+                )}
+                {isNewFeedHasError && (
+                    <WorkspaceCompanyCardsErrorConfirmation
+                        policyID={policyID}
+                        newFeed={newFeed}
                     />
                 )}
             </FullPageOfflineBlockingView>

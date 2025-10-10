@@ -2,6 +2,7 @@ import * as API from '@libs/API';
 import type {SendPerformanceTimingParams} from '@libs/API/parameters';
 import {READ_COMMANDS} from '@libs/API/types';
 import * as Environment from '@libs/Environment/Environment';
+import getEnvironment from '@libs/Environment/getEnvironment';
 import Firebase from '@libs/Firebase';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
@@ -48,7 +49,7 @@ function end(eventName: string, secondaryName = '', maxExecutionTime = 0) {
         Firebase.stopTrace(eventName);
     }
 
-    Environment.getEnvironment().then((envName) => {
+    getEnvironment().then((envName) => {
         const baseEventName = `${envName}.new.expensify.${eventName}`;
         const grafanaEventName = secondaryName ? `${baseEventName}.${secondaryName}` : baseEventName;
 

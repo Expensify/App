@@ -183,7 +183,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                 // Return a Promise that resolves with the mocked response
                 return Promise.resolve(mockedResponse);
             });
-            Session.signIn(password);
+            Session.signIn(password, undefined);
             return waitForBatchedUpdates();
         })
         .then(() => {

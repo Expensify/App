@@ -1,3 +1,4 @@
+import {act} from '@testing-library/react-native';
 import {addDays, addMinutes, format as formatDate, getUnixTime, subDays} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -11,12 +12,14 @@ import {
     PAYMENT_STATUS,
     shouldRestrictUserBillableActions,
     shouldShowDiscountBanner,
+    shouldShowPreTrialBillingBanner,
 } from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BillingGraceEndPeriod, BillingStatus, FundList, StripeCustomerID} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, BillingStatus, FundList, IntroSelected, StripeCustomerID} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import {STRIPE_CUSTOMER_ID} from '../utils/TestHelper';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const billingGraceEndPeriod: BillingGraceEndPeriod = {
     value: 0,
@@ -622,6 +625,38 @@ describe('SubscriptionUtils', () => {
             });
 
             expect(getEarlyDiscountInfo()).toBeNull();
+        });
+    });
+    describe('shouldShowPreTrialBillingBanner', () => {
+        it('should return true if the user is NOT on a free trial and trial has not ended', async () => {
+            // Free trial starts in the future → user is not currently on trial
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 5), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                    [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                });
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            const introSelected: OnyxEntry<IntroSelected> = {
+                choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+            };
+
+            expect(shouldShowPreTrialBillingBanner(introSelected)).toBeTruthy();
+        });
+
+        it('should return false if the free trial has ended', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 20), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 5), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+            });
+
+            const introSelected: OnyxEntry<IntroSelected> = {
+                choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+            };
+
+            expect(shouldShowPreTrialBillingBanner(introSelected)).toBeFalsy();
         });
     });
 });

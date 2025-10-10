@@ -11,6 +11,7 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -55,6 +56,9 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         )} `;
     }, [preferredCurrency, isCategorizing, isDistanceRateUpgrade]);
 
+    // TODO: check other icons and migrate them to the chunk
+    const illustrationIcons = useMemoizedLazyIllustrations(['ReportReceipt'] as const);
+
     const subscriptionLink = useMemo(() => {
         if (!subscriptionPlan) {
             return CONST.PLAN_TYPES_AND_PRICING_HELP_URL;
@@ -84,12 +88,21 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     }
 
     const isIllustration = feature.icon in Illustrations;
-    const iconSrc = isIllustration ? Illustrations[feature.icon as keyof typeof Illustrations] : Expensicon[feature.icon as keyof typeof Expensicon];
+    const isIllustrationIcon = feature.icon in illustrationIcons;
+    let iconSrc;
+    if (isIllustrationIcon) {
+        iconSrc = illustrationIcons[feature.icon as keyof typeof illustrationIcons];
+    } else if (isIllustration) {
+        iconSrc = Illustrations[feature.icon as keyof typeof Illustrations];
+    } else {
+        iconSrc = Expensicon[feature.icon as keyof typeof Expensicon];
+    }
+
     const iconAdditionalStyles = feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id ? styles.br0 : undefined;
 
     return (
         <View style={styles.p5}>
-            <View style={styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})}>
+            <View style={[styles.highlightBG, styles.br4, styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})]}>
                 <View style={[styles.mb3, styles.flexRow, styles.justifyContentBetween]}>
                     {!isIllustration ? (
                         <Avatar

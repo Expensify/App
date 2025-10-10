@@ -27,6 +27,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {ReportNameValuePairs} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AvailableBookingDay from './AvailableBookingDay';
 
@@ -36,6 +37,10 @@ type TimeSlot = {
     startTime: string;
     scheduleURL: string;
 };
+
+const adminReportNameValuePairsSelector = (data?: ReportNameValuePairs) => ({
+    calendlySchedule: data?.calendlySchedule,
+});
 
 function ScheduleCallPage() {
     const styles = useThemeStyles();
@@ -48,10 +53,9 @@ function ScheduleCallPage() {
 
     const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`, {canBeMissing: true});
     const reportID = route.params?.reportID;
+
     const [adminReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
-        selector: (data) => ({
-            calendlySchedule: data?.calendlySchedule,
-        }),
+        selector: adminReportNameValuePairsSelector,
         canBeMissing: true,
     });
     const calendlySchedule = adminReportNameValuePairs?.calendlySchedule;

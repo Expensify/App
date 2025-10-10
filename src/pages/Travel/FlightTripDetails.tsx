@@ -66,11 +66,15 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                 description={`${translate('travel.flight')} ${CONST.DOT_SEPARATOR} ${flightDuration}`}
                 title={`${reservation.company?.longName} ${CONST.DOT_SEPARATOR} ${reservation.route?.airlineCode}`}
                 copyValue={`${reservation.company?.longName} ${CONST.DOT_SEPARATOR} ${reservation.route?.airlineCode}`}
+                copyable
+                interactive={false}
             />
             <MenuItemWithTopDescription
                 description={translate('common.date')}
                 title={startDate.date}
                 interactive={false}
+                copyValue={startDate.date}
+                copyable
             />
 
             <MenuItemWithTopDescription
@@ -80,6 +84,8 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                 helperText={`${reservation.start.longName} (${reservation.start.shortName})${reservation.arrivalGate?.terminal ? `, ${reservation.arrivalGate?.terminal}` : ''}`}
                 helperTextStyle={[styles.pb3, styles.mtn2]}
                 interactive={false}
+                copyValue={`${startDate.hour} ${reservation.start.longName} (${reservation.start.shortName})${reservation.arrivalGate?.terminal ? `, ${reservation.arrivalGate?.terminal}` : ''}`}
+                copyable
             />
             <MenuItemWithTopDescription
                 description={translate('travel.flightDetails.landing')}
@@ -88,6 +94,8 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                 helperText={`${reservation.end.longName} (${reservation.end.shortName})`}
                 helperTextStyle={[styles.pb3, styles.mtn2]}
                 interactive={false}
+                copyValue={`${endDate.hour} ${reservation.end.longName} (${reservation.end.shortName})`}
+                copyable
             />
 
             <View style={[styles.flexRow, styles.flexWrap]}>
@@ -97,6 +105,8 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                             description={translate('travel.flightDetails.seat')}
                             title={reservation.route?.number}
                             interactive={false}
+                            copyValue={reservation.route?.number}
+                            copyable={!!reservation.route?.number?.length}
                         />
                     </View>
                 )}
@@ -106,15 +116,19 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                             description={translate('travel.flightDetails.class')}
                             title={cabinClassMapping[reservation.route.class] || reservation.route.class}
                             interactive={false}
+                            copyValue={cabinClassMapping[reservation.route.class] || reservation.route.class}
+                            copyable
                         />
                     </View>
                 )}
                 {!!reservation.confirmations?.at(0)?.value && (
-                    <View style={styles.w50}>
+                    <View style={styles.w100}>
                         <MenuItemWithTopDescription
                             description={translate('travel.flightDetails.recordLocator')}
                             title={reservation.confirmations?.at(0)?.value}
                             copyValue={reservation.confirmations?.at(0)?.value}
+                            copyable={!!reservation.confirmations?.at(0)?.value?.length}
+                            interactive={false}
                         />
                     </View>
                 )}
@@ -128,6 +142,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                     description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
                     interactive={false}
                     wrapperStyle={styles.pb3}
+                    labelStyle={styles.mb2}
                 />
             )}
         </>

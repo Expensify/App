@@ -127,7 +127,7 @@ describe('libs/NextStepUtils', () => {
                         text: ' to ',
                     },
                     {
-                        text: 'fix the issue(s)',
+                        text: 'fix the issues',
                     },
                 ];
 

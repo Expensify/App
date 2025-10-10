@@ -5,19 +5,15 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
-import Switch from '@components/Switch';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openExternalLink} from '@libs/actions/Link';
 import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import type {ThemeStyles} from '@styles/index';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -213,44 +209,32 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     </OfflineWithFeedback>
                 ))}
 
-                <View style={[styles.mt3]}>
-                    <OfflineWithFeedback pendingAction={policy?.pendingFields?.eReceipts}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, {minHeight: variables.h40}]}>
-                            <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.eReceipts')}</Text>
-                            <Switch
-                                isOn={areEReceiptsEnabled}
-                                accessibilityLabel={translate('workspace.rules.individualExpenseRules.eReceipts')}
-                                onToggle={() => setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
-                                disabled={policyCurrency !== CONST.CURRENCY.USD}
-                            />
-                        </View>
-                    </OfflineWithFeedback>
-                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.pt1]}>
-                        <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.eReceiptsHint')}</Text>{' '}
-                        <TextLink
-                            style={[styles.textLabel, styles.link]}
-                            onPress={() => openExternalLink(CONST.DEEP_DIVE_ERECEIPTS)}
-                        >
-                            {translate('workspace.rules.individualExpenseRules.eReceiptsHintLink')}
-                        </TextLink>
-                        .
-                    </Text>
-                </View>
-                <View style={[styles.mt3]}>
-                    <OfflineWithFeedback pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, {minHeight: variables.h40}]}>
-                            <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.attendeeTracking')}</Text>
-                            <Switch
-                                isOn={isAttendeeTrackingEnabled}
-                                accessibilityLabel={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
-                                onToggle={() => setPolicyAttendeeTrackingEnabled(policyID, !isAttendeeTrackingEnabled)}
-                            />
-                        </View>
-                    </OfflineWithFeedback>
-                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.pt1]}>
-                        <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.attendeeTrackingHint')}</Text>
-                    </Text>
-                </View>
+                <ToggleSettingOptionRow
+                    title={translate('workspace.rules.individualExpenseRules.eReceipts')}
+                    subtitle={translate('workspace.rules.individualExpenseRules.eReceiptsHint')}
+                    switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.eReceipts')}
+                    shouldParseSubtitle
+                    wrapperStyle={[styles.mt3]}
+                    shouldPlaceSubtitleBelowSwitch
+                    titleStyle={styles.pv2}
+                    subtitleStyle={styles.pt1}
+                    isActive={areEReceiptsEnabled}
+                    disabled={policyCurrency !== CONST.CURRENCY.USD}
+                    onToggle={() => setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
+                    pendingAction={policy?.pendingFields?.eReceipts}
+                />
+                <ToggleSettingOptionRow
+                    title={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
+                    subtitle={translate('workspace.rules.individualExpenseRules.attendeeTrackingHint')}
+                    switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
+                    wrapperStyle={[styles.mt3]}
+                    shouldPlaceSubtitleBelowSwitch
+                    titleStyle={styles.pv2}
+                    subtitleStyle={styles.pt1}
+                    isActive={isAttendeeTrackingEnabled}
+                    onToggle={() => setPolicyAttendeeTrackingEnabled(policyID, !isAttendeeTrackingEnabled)}
+                    pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
+                />
             </View>
         </Section>
     );

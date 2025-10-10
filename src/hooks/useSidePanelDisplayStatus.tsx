@@ -1,3 +1,4 @@
+import {isModalCenteredVisibleSelector} from '@selectors/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useLocalize from './useLocalize';
@@ -13,11 +14,7 @@ function useSidePanelDisplayStatus() {
     const [sidePanelNVP] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL, {canBeMissing: true});
     const [isModalCenteredVisible = false] = useOnyx(ONYXKEYS.MODAL, {
         canBeMissing: true,
-        selector: (modal) =>
-            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT ||
-            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ||
-            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SMALL ||
-            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED,
+        selector: isModalCenteredVisibleSelector,
     });
 
     const isLanguageUnsupported = preferredLocale !== CONST.LOCALES.EN;
