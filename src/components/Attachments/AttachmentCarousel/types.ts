@@ -31,15 +31,12 @@ type AttachmentCarouselProps = {
     accountID?: number;
 
     /** A callback that is called when swipe-down-to-close gesture happens */
-    onClose?: () => void;
+    onSwipeDown?: () => void;
 
     attachmentLink?: string;
 
     /** Callback for attachment errors */
     onAttachmentError?: (source: AttachmentSource, state?: boolean) => void;
-
-    /** Callback for attachment loaded */
-    onAttachmentLoaded?: (source: AttachmentSource, state?: boolean) => void;
 };
 
 export type {AttachmentCarouselProps, UpdatePageProps};

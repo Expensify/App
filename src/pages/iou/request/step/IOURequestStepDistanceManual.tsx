@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {useFocusEffect} from '@react-navigation/native';
+import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -8,8 +9,10 @@ import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,10 +25,12 @@ import {
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestPendingFields,
     trackExpense,
+    updateMoneyRequestDistance,
 } from '@libs/actions/IOU';
+import {setTransactionReport} from '@libs/actions/Transaction';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {navigateToParticipantPage} from '@libs/IOUUtils';
+import {navigateToParticipantPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -59,7 +64,7 @@ function IOURequestStepDistanceManual({
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceManualProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -72,16 +77,17 @@ function IOURequestStepDistanceManual({
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`, {canBeMissing: true});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const policy = usePolicy(report?.policyID);
+    const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: false});
+    const defaultExpensePolicy = useDefaultExpensePolicy();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isCreatingNewRequest = !(backTo || isEditing);
+
+    const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
 
     const customUnitRateID = getRateID(transaction);
     const unit = DistanceRequestUtils.getRate({transaction, policy}).unit;
@@ -95,12 +101,12 @@ function IOURequestStepDistanceManual({
     }, [distance]);
 
     const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (isSplitBill || !skipConfirmation || !report?.reportID) {
+        if (!skipConfirmation || !report?.reportID) {
             return false;
         }
 
         return !(isArchivedReport(reportNameValuePairs) || isPolicyExpenseChatUtils(report));
-    }, [report, isSplitBill, skipConfirmation, reportNameValuePairs]);
+    }, [report, skipConfirmation, reportNameValuePairs]);
 
     useFocusEffect(
         useCallback(() => {
@@ -120,14 +126,11 @@ function IOURequestStepDistanceManual({
 
     const buttonText = useMemo(() => {
         if (shouldSkipConfirmation) {
-            if (iouType === CONST.IOU.TYPE.SPLIT) {
-                return translate('iou.split');
-            }
             return translate('iou.createExpense');
         }
 
         return isCreatingNewRequest ? translate('common.next') : translate('common.save');
-    }, [shouldSkipConfirmation, translate, isCreatingNewRequest, iouType]);
+    }, [shouldSkipConfirmation, translate, isCreatingNewRequest]);
 
     const navigateToConfirmationPage = useCallback(() => {
         switch (iouType) {
@@ -142,7 +145,22 @@ function IOURequestStepDistanceManual({
     const navigateToNextPage = useCallback(
         (amount: string) => {
             const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(amount));
-            setMoneyRequestDistance(transactionID, distanceAsFloat, isCreatingNewRequest);
+            setMoneyRequestDistance(transactionID, distanceAsFloat, isTransactionDraft);
+
+            if (action === CONST.IOU.ACTION.EDIT) {
+                if (distance !== distanceAsFloat) {
+                    updateMoneyRequestDistance({
+                        transactionID: transaction?.transactionID,
+                        transactionThreadReportID: reportID,
+                        distance: distanceAsFloat,
+                        // Not required for manual distance request
+                        transactionBackup: undefined,
+                        policy,
+                    });
+                }
+                Navigation.goBack(backTo);
+                return;
+            }
 
             if (backTo) {
                 Navigation.goBack(backTo);
@@ -203,7 +221,7 @@ function IOURequestStepDistanceManual({
                             currency: transaction?.currency ?? 'USD',
                             merchant: translate('iou.fieldPending'),
                             billable: !!policy?.defaultBillable,
-                            customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates}),
+                            customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates, localeCompare}),
                             splitShares: transaction?.splitShares,
                             attendees: transaction?.comment?.attendees,
                         },
@@ -219,14 +237,23 @@ function IOURequestStepDistanceManual({
 
             // If there was no reportID, then that means the user started this flow from the global menu
             // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-            if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
-                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+            if (
+                iouType === CONST.IOU.TYPE.CREATE &&
+                isPaidGroupPolicy(defaultExpensePolicy) &&
+                defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
+                !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
+            ) {
+                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({
                     reportID: activePolicyExpenseChat?.reportID,
                     isPolicyExpenseChat: true,
-                    policy: activePolicy,
+                    policy: defaultExpensePolicy,
                     lastSelectedDistanceRates,
+                    localeCompare,
                 });
+                const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
+                const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
+                setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setCustomUnitRateID(transactionID, rateID);
                 setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
                     Navigation.navigate(
@@ -253,8 +280,9 @@ function IOURequestStepDistanceManual({
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             reportNameValuePairs,
-            isCreatingNewRequest,
-            activePolicy,
+            isTransactionDraft,
+            personalPolicy?.autoReporting,
+            defaultExpensePolicy,
             shouldSkipConfirmation,
             personalDetails,
             reportAttributesDerived,
@@ -263,12 +291,15 @@ function IOURequestStepDistanceManual({
             customUnitRateID,
             translate,
             navigateToConfirmationPage,
+            action,
+            distance,
+            localeCompare,
         ],
     );
 
     const submitAndNavigateToNextPage = useCallback(() => {
         const value = numberFormRef.current?.getNumber() ?? '';
-        if (!value.length || parseFloat(value) < 0.01) {
+        if (!value.length || parseFloat(value) < 0) {
             setFormError(translate('iou.error.invalidDistance'));
             return;
         }
@@ -332,9 +363,7 @@ function IOURequestStepDistanceManual({
 
 IOURequestStepDistanceManual.displayName = 'IOURequestStepDistanceManual';
 
-const IOURequestStepDistanceManualWithOnyx = IOURequestStepDistanceManual;
-
-const IOURequestStepDistanceManualWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceManualWithOnyx);
+const IOURequestStepDistanceManualWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceManual);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDistanceManualWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceManualWithCurrentUserPersonalDetails, true);
 // eslint-disable-next-line rulesdir/no-negated-variables

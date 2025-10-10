@@ -93,9 +93,10 @@ function EmployeeTestDriveModal() {
                         setMoneyRequestCreated(transactionID, format(new Date(), CONST.DATE.FNS_FORMAT_STRING), true);
 
                         Log.hmmm('[EmployeeTestDriveModal] Running after interactions');
+                        Navigation.goBack();
+                        // eslint-disable-next-line deprecation/deprecation
                         InteractionManager.runAfterInteractions(() => {
                             Log.hmmm('[EmployeeTestDriveModal] Calling Navigation.goBack() and Navigation.navigate()');
-                            Navigation.goBack();
                             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
                         });
                     },

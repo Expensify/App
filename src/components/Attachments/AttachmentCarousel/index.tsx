@@ -23,10 +23,9 @@ function AttachmentCarousel({
     setDownloadButtonVisibility,
     type,
     accountID,
-    onClose,
+    onSwipeDown,
     attachmentLink,
     onAttachmentError,
-    onAttachmentLoaded,
 }: AttachmentCarouselProps) {
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false, canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false, canBeMissing: true});
@@ -117,13 +116,12 @@ function AttachmentCarousel({
             autoHideArrows={autoHideArrows}
             cancelAutoHideArrow={cancelAutoHideArrows}
             setShouldShowArrows={setShouldShowArrows}
-            onClose={onClose}
+            onSwipeDown={onSwipeDown}
             onAttachmentError={onAttachmentError}
             report={report}
             attachmentID={attachmentID}
             source={source}
             onNavigate={onNavigate}
-            onAttachmentLoaded={onAttachmentLoaded}
         />
     );
 }

@@ -1,68 +1,83 @@
 ---
-title: Book a Hotel
-description: Learn how to book a hotel using the integrated travel tool in Classic and New Expensify, with step-by-step instructions.
-keywords: [book a hotel, travel booking, hotel reservations, expensify travel, classic, new expensify]
+title: Book a Hotel in New Expensify
+description: Learn how to search for and book hotels using Expensify’s integrated travel tool, with automatic receipt capture and travel itinerary support.
+keywords: [New Expensify, book hotel, travel booking, hotel receipt, travel itinerary, trip room]
 ---
 
+<div id="new-expensify" markdown="1">
 
-Book hotels in Expensify using the built-in travel tool, available in both Classic and New Expensify.
+Book hotels easily using Expensify’s integrated travel tool. This guide covers how to search for hotels, filter options, complete your booking, and view your travel details in New Expensify.
 
----
+# How to access the travel tool
 
-## How to access the travel tool
+From the left-hand menu, select **Reports > Trips**.  
+Click the green **+** button in the bottom-left corner, then choose **Book travel**.
 
-- **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
-- **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
+If you don’t see this option, reach out to your Account Manager or Concierge to schedule a travel demo and enable the feature for your account.
 
-**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
-
----
-
-## How to search and book a hotel
+# How to search and book a hotel
 
 1. Click the **Hotel** tab in the booking tool.
-2. Enter the search parameters:
+2. Enter the search details:
    - Destination
    - Check-in and check-out dates
    - Rate type
    - Number of rooms and travelers
-3. Click **Search Hotels** to view available options.
-4. Use filters to sort by price, hotel brand, star rating, payment type, or amenities.
-5. Click **View Rooms** to browse room options.
-   - Review the rooms available and leverage the filters to find the right room for you.
-   - **Note:** If you see a red _Out of policy_ notice, click the red exclamation to view the reason.
-6. Click **Select** on your preferred room.
-7. Review hotel details, traveler info, loyalty programs, and payment method on the checkout screen.
-8. Select an existing trip or create a new one for the booking.
-9. Confirm your payment method and click **Book Hotel**.
+3. Click **Search Hotels**.
+   - Use filters to sort by price, brand, star rating, payment type, or amenities.
+4. Click **View Rooms** to see available options.
+   - Use filters again to narrow your choice.
+   - If a red **Out of policy** alert appears, click the red exclamation icon to view the reason.
+5. Click **Select** on your preferred room.
+6. On the checkout screen, review:
+   - Hotel details
+   - Traveler information
+   - Loyalty programs
+   - Payment method
+7. Select an existing trip or create a new one for the booking.
+8. Confirm your payment method and click **Book Hotel**.
 
----
+# What happens next
 
-## What happens next
-
-- Your booking may require approval depending on your company’s travel policy.
-- You’ll receive a confirmation email once your reservation is complete.
-- You’ll need to upload your final hotel receipts on Expensify. Hotel expenses in particular are post-paid and your card is only charged after you complete your stay.
-- If the payment card used is importing into your Expensify account, the receipt will automatically merge with the imported expense.
-
----
+- Your company’s travel policy may require approval before the reservation is finalized.
+- You’ll receive a confirmation email after booking.
+- The hotel receipt will automatically be added to your Expensify account.
+   - Note: If your hotel booking is post-paid, then you'll need to upload your final hotel bill to your Expensify account instead. 
+- If your payment card is connected to Expensify, the receipt will merge with the imported expense.
 
 # FAQ
 
 ## Can I choose specific hotel brands?
+
 Yes! Use filters to narrow down results by brand, price, or amenities.
 
 ## Can I pay at the hotel?
-Yes. You will want to use the payment type filter to select the payment option most suitable for your needs.
+
+Yes. Use the **Payment Type** filter to choose a payment option that works best for your needs.
 
 ## What if my plans change?
-You can cancel or modify the booking if the hotel’s policy allows it. The cancellation policy is displayed during booking. Any changes made through support will include a $25 booking change fee.
 
-You can manage your bookings by clicking **Trips** > **My Trips**.
+You can cancel or modify your booking if the hotel’s policy allows it.  
+Cancellation policies are shown during booking. Changes made via support incur a $25 booking change fee.
+
+Manage bookings by going to **Reports > Trips > My Trips**.
 
 ## Where will my hotel receipt appear?
+
 It will be SmartScanned and added to your next report automatically.
 
 ## Can I add a loyalty number or special request?
-Yes! Most hotels let you enter loyalty numbers or special requests during checkout. You can also store loyalty numbers under **My Profile** > **Loyalty** for air, hotel, car, and rail programs, so it auto-populates during checkout. 
 
+Yes! Most hotels allow loyalty numbers or special requests during checkout.  
+You can also store loyalty numbers under **Account > Profile > Loyalty**, so they auto-fill at checkout.
+
+## Where can I view my hotel itinerary while on the go?
+
+When a traveler books a trip in Expensify Travel, a **trip itinerary** is automatically created in New Expensify. 
+To view your trip:
+
+1. Open the Expensify mobile app.
+2. Tap **Inbox**.
+3. Find a thread named after your upcoming trip.
+
+</div>

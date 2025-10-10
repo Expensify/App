@@ -1,12 +1,12 @@
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator, InteractionManager, View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
+import ActivityIndicator from '@components/ActivityIndicator';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConfirmModal from '@components/ConfirmModal';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
 import {Plus} from '@components/Icon/Expensicons';
-import {Workflows} from '@components/Icon/Illustrations';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -15,12 +15,12 @@ import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     clearPolicyErrorField,
@@ -29,7 +29,7 @@ import {
     openPolicyWorkflowsPage,
     setIsForcedToChangeCurrency,
     setWorkspaceApprovalMode,
-    setWorkspaceAutoReportingFrequency,
+    setWorkspaceAutoHarvesting,
     setWorkspaceReimbursement,
     updateGeneralSettings,
 } from '@libs/actions/Policy/Policy';
@@ -56,7 +56,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
-import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyPage';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
@@ -64,9 +63,8 @@ type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {translate, localeCompare} = useLocalize();
-    const theme = useTheme();
     const styles = useThemeStyles();
-
+    const illustrations = useMemoizedLazyIllustrations(['Workflows'] as const);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -142,6 +140,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     useEffect(() => {
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             fetchData();
         });
@@ -193,30 +192,24 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
         return [
             {
-                title: translate('workflowsPage.delaySubmissionTitle'),
-                subtitle: translate('workflowsPage.delaySubmissionDescription'),
-                switchAccessibilityLabel: translate('workflowsPage.delaySubmissionDescription'),
-                onToggle: (isEnabled: boolean) => {
-                    setWorkspaceAutoReportingFrequency(route.params.policyID, isEnabled ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
-                },
+                title: translate('workflowsPage.submissionFrequency'),
+                subtitle: translate('workflowsPage.submissionFrequencyDescription'),
+                switchAccessibilityLabel: translate('workflowsPage.submissionFrequencyDescription'),
+                onToggle: (isEnabled: boolean) => (policy ? setWorkspaceAutoHarvesting(policy, isEnabled) : undefined),
                 subMenuItems: (
                     <MenuItemWithTopDescription
-                        title={
-                            getAutoReportingFrequencyDisplayNames(translate)[
-                                (getCorrectedAutoReportingFrequency(policy) as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
-                            ]
-                        }
+                        title={getAutoReportingFrequencyDisplayNames(translate)[getCorrectedAutoReportingFrequency(policy) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]}
                         titleStyle={styles.textNormalThemeText}
                         descriptionTextStyle={styles.textLabelSupportingNormal}
                         onPress={onPressAutoReportingFrequency}
                         // Instant submit is the equivalent of delayed submissions being turned off, so we show the feature as disabled if the frequency is instant
-                        description={translate('workflowsPage.submissionFrequency')}
+                        description={translate('common.frequency')}
                         shouldShowRightIcon
                         wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                         brickRoadIndicator={hasDelayedSubmissionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 ),
-                isActive: (policy?.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT && !hasDelayedSubmissionError) ?? false,
+                isActive: (policy?.autoReporting && !hasDelayedSubmissionError) ?? false,
                 pendingAction: policy?.pendingFields?.autoReporting ?? policy?.pendingFields?.autoReportingFrequency,
                 errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
                 onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
@@ -285,7 +278,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     !isOffline && policy?.isLoadingWorkspaceReimbursement === true ? (
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            color={theme.spinner}
                             style={styles.mt7}
                         />
                     ) : (
@@ -364,7 +356,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         isSmartLimitEnabled,
         addApprovalAction,
         isOffline,
-        theme.spinner,
         isPolicyAdmin,
         displayNameForAuthorizedPayer,
         route.params.policyID,
@@ -416,7 +407,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         >
             <WorkspacePageWithSections
                 headerText={translate('workspace.common.workflows')}
-                icon={Workflows}
+                icon={illustrations.Workflows}
                 route={route}
                 shouldShowOfflineIndicatorInWideScreen
                 shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}

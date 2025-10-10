@@ -104,12 +104,20 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.text).toEqual('$0.00');
         });
 
-        it('returns merchant missing and amount missing message when appropriate', () => {
+        it('returns violations.reviewRequired when transaction has receipt with missing merchant and amount', async () => {
+            // Set up a proper expense report in Onyx
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+                reportID: '1',
+                type: 'expense',
+            });
+            await waitForBatchedUpdates();
+
             const functionArgs = {
                 ...basicProps,
-                transaction: {...basicProps.transaction, merchant: '', amount: 0},
+                transaction: {...basicProps.transaction, merchant: '', amount: 0, receipt: {source: 'test-receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE}},
                 originalTransaction: undefined,
                 shouldShowRBR: true,
+                isReportAPolicyExpenseChat: true,
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.RBRMessage.translationPath).toEqual('violations.reviewRequired');
@@ -382,27 +390,27 @@ describe('TransactionPreviewUtils', () => {
             ].slice(0, count);
 
         test('returns translationPath when there is at least one violation and transaction is on hold', () => {
-            expect(getViolationTranslatePath(mockViolations(1), false, message, true)).toEqual(reviewRequired);
+            expect(getViolationTranslatePath(mockViolations(1), false, message, true, false)).toEqual(reviewRequired);
         });
 
         test('returns translationPath if violation message is too long', () => {
-            expect(getViolationTranslatePath(mockViolations(1), false, longMessage, false)).toEqual(reviewRequired);
+            expect(getViolationTranslatePath(mockViolations(1), false, longMessage, false, false)).toEqual(reviewRequired);
         });
 
         test('returns translationPath when there are multiple violations', () => {
-            expect(getViolationTranslatePath(mockViolations(2), false, message, false)).toEqual(reviewRequired);
+            expect(getViolationTranslatePath(mockViolations(2), false, message, false, false)).toEqual(reviewRequired);
         });
 
         test('returns translationPath when there is at least one violation and there are field errors', () => {
-            expect(getViolationTranslatePath(mockViolations(1), true, message, false)).toEqual(reviewRequired);
+            expect(getViolationTranslatePath(mockViolations(1), true, message, false, false)).toEqual(reviewRequired);
         });
 
         test('returns text when there are no violations, no hold, no field errors, and message is short', () => {
-            expect(getViolationTranslatePath(mockViolations(0), false, message, false)).toEqual({text: message});
+            expect(getViolationTranslatePath(mockViolations(0), false, message, false, false)).toEqual({text: message});
         });
 
         test('returns translationPath when there are no violations but message is too long', () => {
-            expect(getViolationTranslatePath(mockViolations(0), false, longMessage, false)).toEqual(reviewRequired);
+            expect(getViolationTranslatePath(mockViolations(0), false, longMessage, false, false)).toEqual(reviewRequired);
         });
     });
 

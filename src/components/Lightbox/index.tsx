@@ -1,7 +1,8 @@
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
+import {PixelRatio, StyleSheet, View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
+import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import Image from '@components/Image';
@@ -13,6 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
+import CONST from '@src/CONST';
 import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
 
 const cachedImageDimensions = new Map<string, ContentSize | undefined>();
@@ -35,15 +37,12 @@ type LightboxProps = {
 
     /** Range of zoom that can be applied to the content by pinching or double tapping. */
     zoomRange?: Partial<ZoomRange>;
-
-    /** Event for when the image is fully loaded and returns the natural dimensions of the image */
-    onLoad?: () => void;
 };
 
 /**
  * On the native layer, we use a image library to handle zoom functionality
  */
-function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChangedProp, onError, style, zoomRange = DEFAULT_ZOOM_RANGE, onLoad}: LightboxProps) {
+function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChangedProp, onError, style, zoomRange = DEFAULT_ZOOM_RANGE}: LightboxProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
 
@@ -239,7 +238,6 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                                     onLoad={(e) => {
                                         updateContentSize(e);
                                         setLightboxImageLoaded(true);
-                                        onLoad?.();
                                     }}
                                     waitForSession={() => {
                                         // only active lightbox should call this function
@@ -265,7 +263,6 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                                 onLoad={(e) => {
                                     updateContentSize(e);
                                     setFallbackImageLoaded(true);
-                                    onLoad?.();
                                 }}
                             />
                         </View>
@@ -274,7 +271,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                     {/* Show activity indicator while the lightbox is still loading the image. */}
                     {isLoading && (!isOffline || isALocalFile) && (
                         <ActivityIndicator
-                            size="large"
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={StyleSheet.absoluteFill}
                         />
                     )}

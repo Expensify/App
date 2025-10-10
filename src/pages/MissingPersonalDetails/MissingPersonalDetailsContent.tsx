@@ -12,6 +12,7 @@ import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {updatePersonalDetailsAndShipExpensifyCards} from '@libs/actions/PersonalDetails';
+import {normalizeCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,11 +38,11 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
-    const values = useMemo(() => getSubstepValues(privatePersonalDetails, draftValues), [privatePersonalDetails, draftValues]);
+    const values = useMemo(() => normalizeCountryCode(getSubstepValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
     const startFrom = useMemo(() => getInitialSubstep(values), [values]);
 
@@ -83,7 +84,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
-            updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode ?? 1);
+            updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode);
         },
         [countryCode, values],
     );

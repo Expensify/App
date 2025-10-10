@@ -10,9 +10,10 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import {askToJoinPolicy, joinAccessiblePolicy} from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Onboarding, Policy as PolicyType, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
+import type {Onboarding, PolicyJoinMember, Policy as PolicyType, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
@@ -817,7 +818,7 @@ describe('actions/Policy', () => {
 
             // When deleting a workspace fails
             mockFetch?.fail?.();
-            Policy.deleteWorkspace(fakePolicy.id, fakePolicy.name, undefined);
+            Policy.deleteWorkspace(fakePolicy.id, fakePolicy.name, undefined, undefined, [fakeReport], undefined, undefined);
 
             await waitForBatchedUpdates();
 
@@ -879,13 +880,13 @@ describe('actions/Policy', () => {
             const expenseChatReportID = '1';
             const expenseReportID = '2';
             const transactionID = '3';
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`, {
+            const expenseChatReport = {
                 ...createRandomReport(Number(expenseChatReportID)),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 policyID,
                 iouReportID: expenseReportID,
-            });
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`, expenseChatReport);
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reportID: expenseReportID,
@@ -897,7 +898,13 @@ describe('actions/Policy', () => {
                 {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
             ]);
 
-            Policy.deleteWorkspace(policyID, 'test', undefined);
+            Policy.deleteWorkspace(policyID, 'test', undefined, undefined, [expenseChatReport], {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                transactionViolations_3: [
+                    {name: 'cashExpenseWithNoReceipt', type: CONST.VIOLATION_TYPES.VIOLATION},
+                    {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
+                ],
+            });
 
             await waitForBatchedUpdates();
 
@@ -922,7 +929,7 @@ describe('actions/Policy', () => {
 
             jest.spyOn(PolicyUtils, 'getPersonalPolicy').mockReturnValue(personalPolicy);
 
-            Policy.deleteWorkspace(teamPolicy.id, teamPolicy.name, undefined);
+            Policy.deleteWorkspace(teamPolicy.id, teamPolicy.name, undefined, undefined, [], undefined, undefined);
             await waitForBatchedUpdates();
 
             const activePolicyID: OnyxEntry<string> = await new Promise((resolve) => {
@@ -946,7 +953,7 @@ describe('actions/Policy', () => {
             await Onyx.merge(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, lastAccessedWorkspacePolicyID);
             await waitForBatchedUpdates();
 
-            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID);
+            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID, undefined, [], undefined, undefined);
             await waitForBatchedUpdates();
 
             const lastAccessedWorkspacePolicyIDAfterDelete: OnyxEntry<string> = await new Promise((resolve) => {
@@ -972,7 +979,7 @@ describe('actions/Policy', () => {
             await Onyx.merge(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, lastAccessedWorkspacePolicyID);
             await waitForBatchedUpdates();
 
-            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID);
+            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID, undefined, [], undefined, undefined);
             await waitForBatchedUpdates();
 
             const lastAccessedWorkspacePolicyIDAfterDelete: OnyxEntry<string> = await new Promise((resolve) => {
@@ -1128,6 +1135,84 @@ describe('actions/Policy', () => {
                     expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
                 },
             });
+
+            mockFetch?.resume?.();
+        });
+    });
+
+    describe('joinAccessiblePolicy', () => {
+        afterEach(() => {
+            mockFetch?.resume?.();
+        });
+
+        it('correctly implements RedBrickRoad error handling for joinAccessiblePolicy when the request fails', async () => {
+            const policyID = 'policy123';
+
+            mockFetch.pause?.();
+
+            // Call joinAccessiblePolicy
+            joinAccessiblePolicy(policyID);
+            await waitForBatchedUpdates();
+
+            // Simulate network failure
+            mockFetch.fail?.();
+            await (mockFetch.resume?.() as Promise<unknown>);
+            await waitForBatchedUpdates();
+
+            // Verify error handling after failure - focus on policy join member error
+            const policyJoinData = await new Promise<OnyxEntry<PolicyJoinMember>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}`,
+                    callback: (val) => {
+                        resolve(val);
+                        Onyx.disconnect(connection);
+                    },
+                });
+            });
+
+            // The policy join should have the genericAdd error
+            expect(policyJoinData?.errors).toBeTruthy();
+            expect(Object.values(policyJoinData?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
+
+            mockFetch.succeed?.();
+        });
+    });
+
+    describe('askToJoinPolicy', () => {
+        afterEach(() => {
+            mockFetch?.resume?.();
+        });
+
+        it('correctly implements RedBrickRoad error handling for askToJoinPolicy when the request fails', async () => {
+            const policyID = 'policy123';
+
+            mockFetch.pause?.();
+
+            // Call askToJoinPolicy
+            askToJoinPolicy(policyID);
+            await waitForBatchedUpdates();
+
+            // Simulate network failure
+            mockFetch.fail?.();
+            await (mockFetch.resume?.() as Promise<unknown>);
+            await waitForBatchedUpdates();
+
+            // Verify error handling after failure - focus on policy join member error
+            const policyJoinData = await new Promise<OnyxEntry<PolicyJoinMember>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}`,
+                    callback: (val) => {
+                        resolve(val);
+                        Onyx.disconnect(connection);
+                    },
+                });
+            });
+
+            // The policy join should have the genericAdd error
+            expect(policyJoinData?.errors).toBeTruthy();
+            expect(Object.values(policyJoinData?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
+
+            mockFetch.succeed?.();
         });
     });
 });

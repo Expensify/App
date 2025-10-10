@@ -25,6 +25,7 @@ import {
     findSelfDMReportID,
     getReportTransactions,
     hasViolations as hasViolationsReportUtils,
+    shouldEnableNegative,
 } from '@libs/ReportUtils';
 import {getAmount, isOnHold, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -33,6 +34,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     PersonalDetails,
     Policy,
+    PolicyCategories,
     RecentWaypoint,
     Report,
     ReportAction,
@@ -46,7 +48,6 @@ import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/type
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
-import {getPolicyCategoriesData} from './Policy/Category';
 import {getPolicyTagsData} from './Policy/Tag';
 
 let recentWaypoints: RecentWaypoint[] = [];
@@ -384,7 +385,13 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
  * Dismisses the duplicate transaction violation for the provided transactionIDs
  * and updates the transaction to include the dismissed violation in the comment.
  */
-function dismissDuplicateTransactionViolation(transactionIDs: string[], dismissedPersonalDetails: PersonalDetails) {
+function dismissDuplicateTransactionViolation(
+    transactionIDs: string[],
+    dismissedPersonalDetails: PersonalDetails,
+    expenseReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    isASAPSubmitBetaEnabled: boolean,
+) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
     const transactionsReportActions = currentTransactions.map((transaction) => getIOUActionForReportID(transaction.reportID, transaction.transactionID));
@@ -394,6 +401,33 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dismisse
 
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
+
+    if (expenseReport) {
+        const hasOtherViolationsBesideDuplicates = currentTransactionViolations.some(
+            ({violations}) => violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION).length,
+        );
+        const optimisticNextStep = buildNextStepNew({
+            report: expenseReport,
+            predictedNextStatus: expenseReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            shouldFixViolations: hasOtherViolationsBesideDuplicates,
+            policy,
+            currentUserAccountIDParam: dismissedPersonalDetails.accountID,
+            currentUserEmailParam: dismissedPersonalDetails.login ?? '',
+            hasViolations: hasOtherViolationsBesideDuplicates,
+            isASAPSubmitBetaEnabled,
+        });
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: optimisticNextStep,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: null,
+        });
+    }
 
     const optimisticReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
         const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
@@ -485,6 +519,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dismisse
         name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
         transactionIDList: transactionIDs.join(','),
         reportActionIDList: optimisticDismissedViolationReportActions.map(() => NumberUtils.rand64()).join(','),
+        reportID: expenseReport?.reportID,
     };
 
     API.write(WRITE_COMMANDS.DISMISS_VIOLATION, params, {
@@ -614,6 +649,7 @@ function changeTransactionsReport(
     email: string,
     policy?: OnyxEntry<Policy>,
     reportNextStep?: OnyxEntry<ReportNextStep>,
+    policyCategories?: OnyxEntry<PolicyCategories>,
 ) {
     const newReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
@@ -718,7 +754,6 @@ function changeTransactionsReport(
     let shouldFixViolations = false;
 
     const policyTagList = getPolicyTagsData(policy?.id);
-    const policyCategories = getPolicyCategoriesData(policy?.id);
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
 
     transactions.forEach((transaction) => {
@@ -807,7 +842,7 @@ function changeTransactionsReport(
                 currentTransactionViolations[transaction.transactionID] ?? [],
                 policy,
                 policyTagList,
-                policyCategories,
+                policyCategories ?? {},
                 policyHasDependentTags,
                 false,
             );
@@ -848,10 +883,12 @@ function changeTransactionsReport(
             }
         }
 
+        const allowNegative = shouldEnableNegative(newReport);
+
         // 3. Keep track of the new report totals
         const isUnreported = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         const targetReportID = isUnreported ? selfDMReportID : reportID;
-        const transactionAmount = getAmount(transaction);
+        const transactionAmount = getAmount(transaction, undefined, undefined, allowNegative);
 
         if (oldReport) {
             updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : (oldReport?.total ?? 0)) + transactionAmount;
@@ -1164,7 +1201,7 @@ function changeTransactionsReport(
             currentTransactionViolations[transaction.transactionID] ?? [],
             policy,
             policyTagList,
-            policyCategories,
+            policyCategories ?? {},
             policyHasDependentTags,
             false,
         );
@@ -1184,16 +1221,16 @@ function changeTransactionsReport(
     // 9. Update next step for report
     const nextStepReport = {...newReport, total: updatedReportTotals[reportID] ?? newReport?.total, reportID: newReport?.reportID ?? reportID};
     const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation);
-    const optimisticNextStep = buildNextStepNew(
-        nextStepReport,
+    const optimisticNextStep = buildNextStepNew({
+        report: nextStepReport,
         policy,
-        accountID,
-        email,
+        currentUserAccountIDParam: accountID,
+        currentUserEmailParam: email,
         hasViolations,
         isASAPSubmitBetaEnabled,
-        nextStepReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+        predictedNextStatus: nextStepReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
         shouldFixViolations,
-    );
+    });
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
