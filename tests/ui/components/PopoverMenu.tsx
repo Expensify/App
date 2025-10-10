@@ -1,9 +1,9 @@
-import {act, fireEvent, render, waitFor} from '@testing-library/react-native';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
-import {View} from 'react-native';
+import type {PropsWithChildren} from 'react';
+import type {GestureResponderEvent, View} from 'react-native';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {buildKeyPathFromIndexPath, getItemKey, resolveIndexPathByKeyPath} from '@components/PopoverMenu';
-import PopoverMenu from '@components/PopoverMenu';
+import PopoverMenu, {buildKeyPathFromIndexPath, getItemKey, resolveIndexPathByKeyPath} from '@components/PopoverMenu';
 
 describe('PopoverMenu utils', () => {
     const menuItems: PopoverMenuItem[] = [
@@ -139,27 +139,29 @@ describe('PopoverMenu utils', () => {
 });
 
 jest.mock('@components/PopoverWithMeasuredContent', () => {
-    const React = require('react');
     return {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
-        default: ({children}: any) => React.createElement(React.Fragment, null, children),
+        default: (props: PropsWithChildren<Record<string, unknown>>) => props.children,
     };
 });
 
 jest.mock('@components/FocusableMenuItem', () => {
-    const React = require('react');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {Pressable, Text} = require('react-native');
+
     return {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
-        default: ({pressableTestID, title, onPress}: any) => React.createElement(Pressable, {testID: pressableTestID, onPress}, React.createElement(Text, null, title)),
-    };
-});
-jest.mock('@components/MenuItem', () => {
-    const React = require('react');
-    const {Pressable, Text} = require('react-native');
-    return {
-        __esModule: true,
-        default: ({title, onPress, testID}: any) => React.createElement(Pressable, {testID: testID ?? `MenuItem-${title}`, onPress}, React.createElement(Text, null, title)),
+        default: (props: {title: string; pressableTestID?: string; onPress?: (event: GestureResponderEvent) => void}) => (
+            <Pressable
+                testID={props.pressableTestID}
+                onPress={props.onPress}
+                accessibilityLabel="Pressable"
+            >
+                <Text>{props.title}</Text>
+            </Pressable>
+        ),
     };
 });
 
@@ -183,128 +185,114 @@ describe('PopoverMenu integration — submenu open/close behaviors', () => {
     const renderPopover = (menuItems: PopoverMenuItem[]) =>
         render(
             <PopoverMenu
-                isVisible={true}
+                isVisible
                 menuItems={menuItems}
                 onClose={() => {}}
-                anchorPosition={anchorPosition as any}
-                anchorRef={anchorRef as any}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
             />,
         );
 
     it('keeps submenu open when root item is added', async () => {
-        const {getByTestId, rerender} = renderPopover(baseMenu);
+        const {rerender} = renderPopover(baseMenu);
 
         // Click on B
-        act(() => {
-            fireEvent.press(getByTestId('PopoverMenuItem-Item B'));
-        });
+        fireEvent.press(screen.getByTestId('PopoverMenuItem-Item B'));
 
         // Expect submenu to open
         await waitFor(() => {
-            expect(getByTestId('PopoverMenuItem-Sub B1')).toBeTruthy();
+            expect(screen.getByTestId('PopoverMenuItem-Sub B1')).toBeTruthy();
         });
 
         // Add new root
         const newMenu = [...baseMenu, {text: 'Item D', key: 'D'}];
-        act(() => {
-            rerender(
-                <PopoverMenu
-                    isVisible={true}
-                    menuItems={newMenu}
-                    onClose={() => {}}
-                    anchorPosition={anchorPosition as any}
-                    anchorRef={anchorRef as any}
-                />,
-            );
-        });
+        rerender(
+            <PopoverMenu
+                isVisible
+                menuItems={newMenu}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
 
         // Check that submenu is still open
         await waitFor(() => {
-            expect(getByTestId('PopoverMenuItem-Sub B1')).toBeTruthy();
+            expect(screen.getByTestId('PopoverMenuItem-Sub B1')).toBeTruthy();
         });
     });
 
     it('closes submenu when parent is removed', async () => {
-        const {getByTestId, queryByTestId, rerender} = renderPopover(baseMenu);
+        const {rerender} = renderPopover(baseMenu);
 
-        act(() => {
-            fireEvent.press(getByTestId('PopoverMenuItem-Item B'));
-        });
+        fireEvent.press(screen.getByTestId('PopoverMenuItem-Item B'));
         await waitFor(() => {
-            expect(getByTestId('PopoverMenuItem-Sub B1')).toBeTruthy();
+            expect(screen.getByTestId('PopoverMenuItem-Sub B1')).toBeTruthy();
         });
 
         // Remove Item B (parent)
         const newMenu = baseMenu.filter((item) => item.key !== 'B');
-        act(() => {
-            rerender(
-                <PopoverMenu
-                    isVisible={true}
-                    menuItems={newMenu}
-                    onClose={() => {}}
-                    anchorPosition={anchorPosition as any}
-                    anchorRef={anchorRef as any}
-                />,
-            );
-        });
+        rerender(
+            <PopoverMenu
+                isVisible
+                menuItems={newMenu}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
 
         // Submenu should close
         await waitFor(() => {
-            expect(queryByTestId('PopoverMenuItem-Sub B1')).toBeNull();
+            expect(screen.queryByTestId('PopoverMenuItem-Sub B1')).toBeNull();
         });
 
         // And only main menu (Item A, Item C) should be displayed
-        expect(getByTestId('PopoverMenuItem-Item A')).toBeTruthy();
-        expect(getByTestId('PopoverMenuItem-Item C')).toBeTruthy();
+        expect(screen.getByTestId('PopoverMenuItem-Item A')).toBeTruthy();
+        expect(screen.getByTestId('PopoverMenuItem-Item C')).toBeTruthy();
     });
 
     it('keeps submenu open when sibling root item is removed', async () => {
-        const {getByTestId, rerender, queryByTestId} = renderPopover(baseMenu);
+        const {rerender} = renderPopover(baseMenu);
 
         // Open submenu for Item B
-        act(() => {
-            fireEvent.press(getByTestId('PopoverMenuItem-Item B'));
-        });
+        fireEvent.press(screen.getByTestId('PopoverMenuItem-Item B'));
 
         // Make sure submenu is open
         await waitFor(() => {
-            expect(getByTestId('PopoverMenuItem-Sub B1')).toBeTruthy();
+            expect(screen.getByTestId('PopoverMenuItem-Sub B1')).toBeTruthy();
         });
 
         // Remove Item A (sibling item)
         const newMenu = baseMenu.filter((item) => item.key !== 'A');
-        act(() => {
-            rerender(
-                <PopoverMenu
-                    isVisible={true}
-                    menuItems={newMenu}
-                    onClose={() => {}}
-                    anchorPosition={anchorPosition as any}
-                    anchorRef={anchorRef as any}
-                />,
-            );
-        });
+        rerender(
+            <PopoverMenu
+                isVisible
+                menuItems={newMenu}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
 
         // Check that submenu is still open
         await waitFor(() => {
-            expect(getByTestId('PopoverMenuItem-Sub B1')).toBeTruthy();
+            expect(screen.getByTestId('PopoverMenuItem-Sub B1')).toBeTruthy();
         });
 
         // Check that Item A is no longer displayed
-        expect(queryByTestId('PopoverMenuItem-Item A')).toBeNull();
+        expect(screen.queryByTestId('PopoverMenuItem-Item A')).toBeNull();
     });
 
     it('keeps submenu open when submenu items are updated', async () => {
-        const {getByTestId, rerender} = renderPopover(baseMenu);
+        const {rerender} = renderPopover(baseMenu);
 
         // Open submenu for Item B
-        act(() => {
-            fireEvent.press(getByTestId('PopoverMenuItem-Item B'));
-        });
+        fireEvent.press(screen.getByTestId('PopoverMenuItem-Item B'));
 
         // Make sure submenu is open
         await waitFor(() => {
-            expect(getByTestId('PopoverMenuItem-Sub B1')).toBeTruthy();
+            expect(screen.getByTestId('PopoverMenuItem-Sub B1')).toBeTruthy();
         });
 
         // Add new item to submenu of Item B
@@ -318,26 +306,24 @@ describe('PopoverMenu integration — submenu open/close behaviors', () => {
             return item;
         });
 
-        act(() => {
-            rerender(
-                <PopoverMenu
-                    isVisible={true}
-                    menuItems={newMenu}
-                    onClose={() => {}}
-                    anchorPosition={anchorPosition as any}
-                    anchorRef={anchorRef as any}
-                />,
-            );
-        });
+        rerender(
+            <PopoverMenu
+                isVisible
+                menuItems={newMenu}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
 
         // Check that submenu is still open
         await waitFor(() => {
-            expect(getByTestId('PopoverMenuItem-Sub B1')).toBeTruthy();
+            expect(screen.getByTestId('PopoverMenuItem-Sub B1')).toBeTruthy();
         });
 
         // Check that the new submenu item is displayed
         await waitFor(() => {
-            expect(getByTestId('PopoverMenuItem-Sub B3')).toBeTruthy();
+            expect(screen.getByTestId('PopoverMenuItem-Sub B3')).toBeTruthy();
         });
     });
 });

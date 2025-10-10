@@ -186,7 +186,7 @@ function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
  * IMPORTANT: the key must be stable and unique across the whole menu tree for the
  * path-resolution algorithm to work reliably when menu arrays change.
  */
-export const getItemKey = (item: PopoverMenuItem) => item.key ?? item.text;
+const getItemKey = (item: PopoverMenuItem) => item.key ?? item.text;
 
 /**
  * Build a key-path (array of keys) by walking the `root` using `indexPath`.
@@ -198,7 +198,7 @@ export const getItemKey = (item: PopoverMenuItem) => item.key ?? item.text;
  * for each visited node. If any index is out-of-bounds for a level, we stop
  * and return the keys collected so far (could be empty).
  */
-export function buildKeyPathFromIndexPath(root: PopoverMenuItem[], indexPath: readonly number[]): string[] {
+function buildKeyPathFromIndexPath(root: PopoverMenuItem[], indexPath: readonly number[]): string[] {
     const keys: string[] = [];
     let level: PopoverMenuItem[] | undefined = root;
 
@@ -219,7 +219,7 @@ export function buildKeyPathFromIndexPath(root: PopoverMenuItem[], indexPath: re
  *
  * Returns `{found: false}` if any key in keyPath cannot be found at the expected level.
  */
-export function resolveIndexPathByKeyPath(root: PopoverMenuItem[], keyPath: string[]) {
+function resolveIndexPathByKeyPath(root: PopoverMenuItem[], keyPath: string[]) {
     let level: PopoverMenuItem[] = root;
     const indexes: number[] = [];
 
@@ -560,3 +560,4 @@ export default React.memo(
         prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility,
 );
 export type {PopoverMenuItem, PopoverMenuProps};
+export {getItemKey, buildKeyPathFromIndexPath, resolveIndexPathByKeyPath};
