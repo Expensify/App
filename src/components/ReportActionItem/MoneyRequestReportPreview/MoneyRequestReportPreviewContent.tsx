@@ -479,9 +479,21 @@ function MoneyRequestReportPreviewContent({
             transactions,
             invoiceReceiverPolicy,
             isPaidAnimationRunning,
+            isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
         );
-    }, [isPaidAnimationRunning, isSubmittingAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, invoiceReceiverPolicy, isChatReportArchived]);
+    }, [
+        isPaidAnimationRunning,
+        isApprovedAnimationRunning,
+        isSubmittingAnimationRunning,
+        violations,
+        iouReport,
+        policy,
+        transactions,
+        isIouReportArchived,
+        invoiceReceiverPolicy,
+        isChatReportArchived,
+    ]);
 
     const addExpenseDropdownOptions = useMemo(
         () => [
