@@ -383,22 +383,31 @@ function getFilterDisplayTitle(
                 return;
             }
 
+            const fieldName = fieldKey
+                .replace(CONST.SEARCH.REPORT_FIELD.ON_PREFIX, '')
+                .replace(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX, '')
+                .replace(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX, '')
+                .replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, '')
+                .split('-')
+                .map((word, index) => (index === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word))
+                .join(' ');
+
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.ON_PREFIX)) {
                 const dateString = translate('search.filters.date.on', {date: fieldValue as string}).toLowerCase();
-                values.push(dateString);
+                values.push(`${fieldName} ${dateString}`);
             }
 
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX)) {
                 const dateString = translate('search.filters.date.after', {date: fieldValue as string}).toLowerCase();
-                values.push(dateString);
+                values.push(`${fieldName} ${dateString}`);
             }
 
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX)) {
                 const dateString = translate('search.filters.date.before', {date: fieldValue as string}).toLowerCase();
-                values.push(dateString);
+                values.push(`${fieldName} ${dateString}`);
             }
 
-            values.push(fieldValue as string);
+            values.push(`${fieldName} is ${fieldValue as string}`);
         });
 
         return values.length ? values.join(', ') : undefined;
@@ -462,10 +471,6 @@ function getFilterDisplayTitle(
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
         const filterValue = filters[key];
         return filterValue ? filterValue.map((value) => translate(`common.${value as ValueOf<typeof CONST.SEARCH.IS_VALUES>}`)).join(', ') : undefined;
-    }
-
-    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) {
-        return 'NO VALUE';
     }
 
     const filterValue = filters[key];
