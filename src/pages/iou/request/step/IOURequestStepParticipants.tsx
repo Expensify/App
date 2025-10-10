@@ -73,7 +73,7 @@ function IOURequestStepParticipants({
     transaction: initialTransaction,
 }: IOURequestStepParticipantsProps) {
     const participants = initialTransaction?.participants;
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
@@ -232,7 +232,7 @@ function IOURequestStepParticipants({
             if (!isMovingTransactionFromTrackExpense) {
                 // If not moving the transaction from track expense, select the default rate automatically.
                 // Otherwise, keep the original p2p rate and let the user manually change it to the one they want from the workspace.
-                const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
+                const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates, localeCompare});
 
                 if (transactions.length > 0) {
                     transactions.forEach((transaction) => {
@@ -268,7 +268,19 @@ function IOURequestStepParticipants({
                 shouldAutoReport.current = !!policy?.autoReporting || !!personalPolicy?.autoReporting;
             }
         },
-        [action, iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense, allPolicies, personalPolicy, lastSelectedDistanceRates, initialTransactionID],
+        [
+            action,
+            iouType,
+            transactions,
+            isMovingTransactionFromTrackExpense,
+            reportID,
+            trackExpense,
+            allPolicies,
+            personalPolicy,
+            lastSelectedDistanceRates,
+            initialTransactionID,
+            localeCompare,
+        ],
     );
 
     const goToNextStep = useCallback(() => {
