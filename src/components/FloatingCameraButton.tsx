@@ -27,7 +27,6 @@ function FloatingCameraButton() {
     const {textLight} = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const borderRadius = styles.floatingActionButton.borderRadius;
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
@@ -71,7 +70,7 @@ function FloatingCameraButton() {
             testID="floating-camera-button"
         >
             <View
-                style={[styles.floatingActionButton, {borderRadius}]}
+                style={styles.floatingActionButton}
                 testID="floating-camera-button-container"
             >
                 <Icon
