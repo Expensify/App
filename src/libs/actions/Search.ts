@@ -864,7 +864,15 @@ function handleBulkPayItemSelected(
     confirmPayment?.(paymentType as PaymentMethodType);
 }
 
-/** Optimistically set the data necessary to show the transaction thread: parent report, parent report action, transaction and the transaction thread on its own */
+/**
+ * Optimistically sets the data necessary to show the transaction thread report right away if user opens it from the Search tab.
+ *
+ * When we open a transaction thread from the Search tab we already have all necessary information to show its preview without waiting for OpenReport API call to be finished.
+ * So we generate necessary data optimistically: parent report, parent report action, transaction, and transaction thread report.
+ * This way we provide users instant responsiveness when clicking search results.
+ *
+ * Note: we don't create anything new, we just optimistically generate the data that we know will be returned by API.
+ */
 function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemType, transactionPreviewData: TransactionPreviewData) {
     const {moneyRequestReportActionID, reportID, report, amount, currency, transactionID, created, transactionThreadReportID, policyID} = item;
     const {hasParentReport, hasParentReportAction, hasTransaction, hasTransactionThreadReport} = transactionPreviewData;
