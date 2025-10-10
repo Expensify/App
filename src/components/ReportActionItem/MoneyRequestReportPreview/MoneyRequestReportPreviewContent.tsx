@@ -22,6 +22,7 @@ import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropd
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -29,6 +30,7 @@ import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -66,6 +68,7 @@ import {
     isSettled,
     isTripRoom as isTripRoomReportUtils,
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
+    shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -131,6 +134,7 @@ function MoneyRequestReportPreviewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {isStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {areAllRequestsBeingSmartScanned, hasNonReimbursableTransactions} = useMemo(
@@ -470,6 +474,10 @@ function MoneyRequestReportPreviewContent({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
+    const shouldBlockSubmit = useMemo(() => {
+        return shouldBlockSubmitDueToStrictPolicyRules(iouReport?.reportID, violations, isStrictPolicyRulesEnabled, transactions);
+    }, [iouReport?.reportID, violations, isStrictPolicyRulesEnabled, transactions]);
+
     const reportPreviewAction = useMemo(() => {
         return getReportPreviewAction(
             violations,
@@ -480,8 +488,20 @@ function MoneyRequestReportPreviewContent({
             invoiceReceiverPolicy,
             isPaidAnimationRunning,
             isSubmittingAnimationRunning,
+            isStrictPolicyRulesEnabled,
         );
-    }, [isPaidAnimationRunning, isSubmittingAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, invoiceReceiverPolicy, isChatReportArchived]);
+    }, [
+        isPaidAnimationRunning,
+        isSubmittingAnimationRunning,
+        violations,
+        iouReport,
+        policy,
+        transactions,
+        isIouReportArchived,
+        invoiceReceiverPolicy,
+        isChatReportArchived,
+        isStrictPolicyRulesEnabled,
+    ]);
 
     const addExpenseDropdownOptions = useMemo(
         () => [
@@ -598,13 +618,18 @@ function MoneyRequestReportPreviewContent({
             />
         ) : null,
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW]: (
-            <Button
-                icon={Expensicons.DotIndicator}
-                iconFill={theme.danger}
-                iconHoverFill={theme.danger}
-                text={translate('common.review')}
-                onPress={() => openReportFromPreview()}
-            />
+            <Tooltip
+                text={shouldBlockSubmit ? translate('iou.waitingForSubmitterToFixViolations') : ''}
+                shouldRender={shouldBlockSubmit}
+            >
+                <Button
+                    icon={Expensicons.DotIndicator}
+                    iconFill={theme.danger}
+                    iconHoverFill={theme.danger}
+                    text={translate('common.review')}
+                    onPress={() => openReportFromPreview()}
+                />
+            </Tooltip>
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW]: (
             <Button

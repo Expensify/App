@@ -26,6 +26,7 @@ import {
     isReportManuallyReimbursed,
     isSettled,
     requiresManualSubmission,
+    shouldBlockSubmitDueToStrictPolicyRules,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isPending, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
@@ -221,6 +222,7 @@ function getReportPreviewAction(
     invoiceReceiverPolicy?: Policy,
     isPaidAnimationRunning?: boolean,
     isSubmittingAnimationRunning?: boolean,
+    isStrictPolicyRulesEnabled?: boolean,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
@@ -236,6 +238,13 @@ function getReportPreviewAction(
     if (isAddExpenseAction(report, transactions ?? [], isReportArchived)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
+
+    // When strict policy rules are enabled and there are violations, show REVIEW button instead of SUBMIT
+    const shouldBlockSubmit = shouldBlockSubmitDueToStrictPolicyRules(report.reportID, violations, isStrictPolicyRulesEnabled ?? false, transactions);
+    if (shouldBlockSubmit && canReview(report, violations, isReportArchived, policy, transactions)) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
+    }
+
     if (canSubmit(report, violations, isReportArchived, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }

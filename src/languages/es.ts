@@ -1412,6 +1412,7 @@ const translations = {
         dates: 'Fechas',
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
+        waitingForSubmitterToFixViolations: 'Esperando que soluciones los problemas. Tus administradores han restringido el envío de gastos que tienen infracciones.',
 
         reject: {
             educationalTitle: '¿Debes retener o rechazar?',
