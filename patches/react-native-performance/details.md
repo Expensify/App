@@ -25,7 +25,7 @@
     `react-native-performance` has a memory leak where ReactMarker listeners are not properly removed when the module is destroyed.
     Additionally, `setupListener()` can be called multiple times when `getPackages()` is called multiple times, causing duplicate listeners.
     This patch:
-    1. Refactors the listener setup to use instance methods instead of static methods
+    1. Extracts listeners to class fields to avoid recreating them
     2. Properly removes listeners in the `invalidate()` method
     3. Fixes the logic in `removeListener()` to only remove if the listener exists
     ```
