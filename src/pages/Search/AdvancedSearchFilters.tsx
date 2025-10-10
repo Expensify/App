@@ -371,6 +371,39 @@ function getFilterDisplayTitle(
 
     key = filterKey as Exclude<SearchFilterKey, SearchDateFilterKeys | SearchAmountFilterKeys>;
 
+    if (key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+        const values: string[] = [];
+
+        Object.entries(filters).forEach(([fieldKey, fieldValue]) => {
+            if (!fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+                return;
+            }
+
+            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX)) {
+                return;
+            }
+
+            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.ON_PREFIX)) {
+                const dateString = translate('search.filters.date.on', {date: fieldValue as string}).toLowerCase();
+                values.push(dateString);
+            }
+
+            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX)) {
+                const dateString = translate('search.filters.date.after', {date: fieldValue as string}).toLowerCase();
+                values.push(dateString);
+            }
+
+            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX)) {
+                const dateString = translate('search.filters.date.before', {date: fieldValue as string}).toLowerCase();
+                values.push(dateString);
+            }
+
+            values.push(fieldValue as string);
+        });
+
+        return values.length ? values.join(', ') : undefined;
+    }
+
     if ((key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY) && filters[key]) {
         const filterArray = filters[key] ?? [];
         return filterArray.sort(localeCompare).join(', ');

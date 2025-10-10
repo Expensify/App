@@ -1,15 +1,81 @@
-import React from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import FixedFooter from '@components/FixedFooter';
+import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
+import SelectionList from '@components/SelectionList';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {updateAdvancedFilters} from '@libs/actions/Search';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyReportField} from '@src/types/onyx';
 
-type ReportFieldTextProps = {
+type ReportFieldListProps = {
     field: PolicyReportField;
     close: () => void;
 };
 
-function ReportFieldText({field, close}: ReportFieldTextProps) {
-    return <></>;
+type ListItem = {
+    value: string;
+    keyForList: string;
+    text: string;
+    isSelected: boolean;
+};
+
+function ReportFieldText({field, close}: ReportFieldListProps) {
+    const formKey = `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${field.name.toLowerCase().replaceAll(' ', '-')}` as const;
+    const [value = null] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: (form) => form?.[formKey]}, [formKey]);
+
+    const styles = useThemeStyles();
+    const [selectedItem, setSelectedItem] = useState(value);
+
+    const items = useMemo(() => {
+        return field.values.map((fieldValue) => ({
+            value: fieldValue,
+            text: fieldValue,
+            keyForList: fieldValue,
+            isSelected: selectedItem === fieldValue,
+        }));
+    }, [field.values, selectedItem]);
+
+    const updateFilter = useCallback((selectedFilter: ListItem) => {
+        const newValue = selectedFilter.isSelected ? null : selectedFilter.value;
+        setSelectedItem(newValue);
+    }, []);
+
+    const resetChanges = useCallback(() => {
+        setSelectedItem(null);
+    }, []);
+
+    const saveChanges = useCallback(() => {
+        updateAdvancedFilters({
+            [formKey]: selectedItem ?? null,
+        });
+
+        close();
+    }, [formKey, selectedItem, close]);
+
+    return (
+        <>
+            <View style={[styles.flex1]}>
+                <SelectionList
+                    shouldSingleExecuteRowSelect
+                    data={items}
+                    ListItem={SingleSelectListItem}
+                    onSelectRow={updateFilter}
+                />
+            </View>
+            <FixedFooter style={styles.mtAuto}>
+                <SearchFilterPageFooterButtons
+                    applyChanges={saveChanges}
+                    resetChanges={resetChanges}
+                />
+            </FixedFooter>
+        </>
+    );
 }
 
-ReportFieldText.displayName = 'SearchFiltersReportFieldPage';
+ReportFieldText.displayName = 'ReportFieldText';
 
 export default ReportFieldText;
