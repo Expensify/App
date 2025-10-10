@@ -1047,7 +1047,6 @@ function openReport(
     participantAccountIDList: number[] = [],
     avatar?: File | CustomRNImageManipulatorResult,
     transactionID?: string,
-    isNewThread = false,
 ) {
     if (!reportID) {
         return;
@@ -1111,14 +1110,6 @@ function openReport(
             },
         },
     ];
-
-    if (isNewThread) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {errorFields: {createChatThread: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}},
-        });
-    }
 
     const finallyData: OnyxUpdate[] = [];
 
@@ -1543,7 +1534,7 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
 
         if (!childReportID) {
             const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
-            openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, undefined, true);
+            openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID);
         } else {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
         }
