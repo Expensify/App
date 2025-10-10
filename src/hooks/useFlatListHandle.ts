@@ -6,13 +6,13 @@ type FlatListInnerRefType<T> = RNFlatList<T> & HTMLElement;
 
 type UseFlatListHandleProps<T> = {
     forwardedRef: ForwardedRef<RNFlatList> | undefined;
-    listRef: React.RefObject<FlatListInnerRefType<T>>;
+    listRef: React.RefObject<FlatListInnerRefType<T> | null>;
     setCurrentDataId: (dataId: string | null) => void;
     remainingItemsToDisplay: number;
     onScrollToIndexFailed?: (params: {index: number; averageItemLength: number; highestMeasuredFrameIndex: number}) => void;
 };
 
-export default function useFlatListHandle<T>({forwardedRef, listRef, setCurrentDataId, remainingItemsToDisplay, onScrollToIndexFailed}: UseFlatListHandleProps<T>) {
+function useFlatListHandle<T>({forwardedRef, listRef, setCurrentDataId, remainingItemsToDisplay, onScrollToIndexFailed}: UseFlatListHandleProps<T>) {
     useImperativeHandle(forwardedRef, () => {
         // If we're trying to scroll at the start of the list we need to make sure to
         // render all items.
@@ -58,5 +58,7 @@ export default function useFlatListHandle<T>({forwardedRef, listRef, setCurrentD
         ) as RNFlatList;
     });
 }
+
+export default useFlatListHandle;
 
 export type {FlatListInnerRefType};

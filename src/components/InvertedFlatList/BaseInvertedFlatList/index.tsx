@@ -5,7 +5,6 @@ import FlatList from '@components/FlatList';
 import useFlatListHandle from '@hooks/useFlatListHandle';
 import type {FlatListInnerRefType} from '@hooks/useFlatListHandle';
 import usePrevious from '@hooks/usePrevious';
-import useRefWithFallback from '@hooks/useRefWithFallback';
 import CONST from '@src/CONST';
 import type {RenderInfo} from './RenderTaskQueue';
 import RenderTaskQueue from './RenderTaskQueue';
@@ -78,7 +77,8 @@ function BaseInvertedFlatList<T>({
     }, [currentDataIndex, data, initialNumToRender, isInitialData]);
     const initialNegativeScrollIndex = useRef(negativeScrollIndex);
 
-    const listRef = useRefWithFallback<FlatListInnerRefType<T>, typeof ref>(ref);
+    const listRef = useRef<FlatListInnerRefType<T>>(null);
+    useFlatListHandle({forwardedRef: ref, listRef, setCurrentDataId, remainingItemsToDisplay: initialNumToRender, onScrollToIndexFailed});
 
     // Queue up updates to the displayed data to avoid adding too many at once and cause jumps in the list.
     const renderQueue = useMemo(() => new RenderTaskQueue(), []);
@@ -164,8 +164,6 @@ function BaseInvertedFlatList<T>({
             autoscrollToTopThreshold: enableAutoScrollToTopThreshold ? AUTOSCROLL_TO_TOP_THRESHOLD : undefined,
         };
     }, [data.length, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
-
-    useFlatListHandle({forwardedRef: ref, listRef, setCurrentDataId, remainingItemsToDisplay: initialNumToRender, onScrollToIndexFailed});
 
     return (
         <FlatList
