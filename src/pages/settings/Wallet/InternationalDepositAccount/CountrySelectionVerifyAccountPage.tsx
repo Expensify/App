@@ -2,7 +2,7 @@ import React from 'react';
 import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
 import ROUTES from '@src/ROUTES';
 
-function VerifyAccountPage() {
+function CountrySelectionVerifyAccountPage() {
     return (
         <VerifyAccountPageBase
             navigateBackTo={ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route}
@@ -11,6 +11,6 @@ function VerifyAccountPage() {
     );
 }
 
-VerifyAccountPage.displayName = 'VerifyAccountPage';
+CountrySelectionVerifyAccountPage.displayName = 'CountrySelectionVerifyAccountPage';
 
-export default VerifyAccountPage;
+export default CountrySelectionVerifyAccountPage;
