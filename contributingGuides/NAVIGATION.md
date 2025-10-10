@@ -17,7 +17,7 @@ The navigation in the app is built on top of the `react-navigation` library. To 
     - [Reading state when it changes](#reading-state-when-it-changes)
     - [Finding the code that calls the navigation function](#finding-the-code-that-calls-the-navigation-function)
   - [How to remove backTo from URL](#how-to-remove-backto-from-url)
-    - [Separate routes for each screen instance](#separate-routes-for-each-screen-instance)
+    - [Separating routes for each screen instance](#separating-routes-for-each-screen-instance)
     - [Maintaining the order of screens in forms](#maintaining-the-order-of-screens-in-forms)
   - [Generating state from a path](#generating-state-from-a-path)
   - [Setting the correct screen underneath RHP](#setting-the-correct-screen-underneath-rhp)
@@ -502,16 +502,15 @@ function NewSettingsScreen({route}: NewSettingsScreenNavigationProps) {
 ```
 </details>
 
-### Separate routes for each screen instance
+### Separating routes for each screen instance
 
-Often, you will need to reuse a single screen across multiple navigation flows. For example, the `ReportScreen` can be viewed in full screen width in the Inbox tab and in the Reports tab in the RHP. The proper approach to implementing such a mechanism is to create a new route for each screen instance within a single flow.
+Often, you will need to reuse a single screen across multiple navigation flows. For example, the `VerifyAccountPage` can be viewed in many different RHP flows. The proper approach to implementing such a mechanism is to create a new route for each screen instance within a single flow.
 
 Considerations when removing `backTo` from a URL:
+
 - For RHP screens, check if the correct central screen is under the overlay after refreshing the page. More information on how to set the default screen underneath RHP can be found (here)[#setting-the-correct-screen-underneath-rhp].
 - Ensure that after refreshing the page and pressing the back button in the application, you return to the page from which you initially accessed the currently displayed screen.
-
-An example of a screen that is reused in two flows is `ReportScreen` (`src/pages/home/ReportScreen.tsx`):
-1. Sharing types
+- If you use the same component for different routes, be sure to define the correct props type. Here's the example of `ReportScreen` that can be viewed in full screen width in the Inbox tab and in the Reports tab in the RHP.
 
 ```ts
 type ReportScreenNavigationProps =
@@ -519,55 +518,77 @@ type ReportScreenNavigationProps =
     | PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>;
 ```
 
-2. Binding one component to multiple screens
+An example of a screen that is reused in several flows is `VerifyAccountPage`.
 
-`src/libs/Navigation/AppNavigator/Navigators/ReportsSplitNavigator.tsx`
+1. Binding one component to multiple screens.
+
+`src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx`
+
 ```ts
-const loadReportScreen = () => require<ReactComponentModule>('@pages/home/ReportScreen').default;
+const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParamList>({
+    // ...
+    [SCREENS.TRAVEL.VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Travel/VerifyAccountPage').default,
+});
 
-return (
-        <FreezeWrapper>
-            <Split.Navigator
-                persistentScreens={[SCREENS.HOME]}
-                sidebarScreen={SCREENS.HOME}
-                defaultCentralScreen={SCREENS.REPORT}
-                parentRoute={route}
-                screenOptions={splitNavigatorScreenOptions.centralScreen}
-            >
-                // ...
-                <Split.Screen
-                    name={SCREENS.REPORT}
-                    initialParams={{reportID: initialReportID, openOnAdminRoom: shouldOpenOnAdminRoom() ? true : undefined}}
-                    getComponent={loadReportScreen}
-                />
-            </Split.Navigator>
-        </FreezeWrapper>
+const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
+    // ...
+    [SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/VerifyAccountPage').default,
+});
+```
+
+2. Custom component behavior depending on the current route.
+
+If we want the component's behavior to change based on the current route, we can extract the component shared by each route and pass properties to it that define the custom behavior, as is done for `VerifyAccountPage`.
+
+`VerifyAccountPageBase` is a shared component that receives `navigateBackTo` and `navigateForwardTo` props defining behavior that is custom across different flows. 
+
+Here's an example of reusing this component for Wallet and Travel flows:
+
+1. `src/pages/settings/Wallet/VerifyAccountPage.tsx`.
+
+```ts
+import React from 'react';
+import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
+import ROUTES from '@src/ROUTES';
+
+function VerifyAccountPage() {
+    return (
+        <VerifyAccountPageBase
+            navigateBackTo={ROUTES.SETTINGS_WALLET}
+            navigateForwardTo={ROUTES.SETTINGS_ENABLE_PAYMENTS}
+        />
     );
+}
+
+VerifyAccountPage.displayName = 'VerifyAccountPage';
+
+export default VerifyAccountPage;
 ```
 
-3. Custom component behavior depending on the current route
-
-If we want the component's behavior to change based on the current route, we can implement this using the `route` property. We can use it to specify the correct return route after a refresh.
+2. `src/pages/Travel/VerifyAccountPage.tsx`.
 
 ```ts
-import SCREENS from '@src/SCREENS';
-import type {ReportsSplitNavigatorParamList, SearchReportParamList} from '@navigation/types';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {StackScreenProps} from '@react-navigation/stack';
+import React from 'react';
+import type {TravelNavigatorParamList} from '@libs/Navigation/types';
+import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
-type ReportScreenNavigationProps =
-    | PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
-    | PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>;
+type VerifyAccountPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.VERIFY_ACCOUNT>;
 
-function ReportScreen({route, navigation}: ReportScreenProps) {
-
-    const customAction = () => {
-        if(route.name === SCREENS.SEARCH.REPORT_RHP) {
-            // do something when screen is SCREENS.SEARCH.REPORT_RHP
-        }else {
-            // do something when screen is SCREENS.REPORT
-        }
-    }
+function VerifyAccountPage({route}: VerifyAccountPageProps) {
+    return (
+        <VerifyAccountPageBase
+            navigateBackTo={ROUTES.TRAVEL_MY_TRIPS}
+            navigateForwardTo={ROUTES.TRAVEL_TCS.getRoute(route.params.domain)}
+        />
+    );
 }
+
+VerifyAccountPage.displayName = 'VerifyAccountPage';
+export default VerifyAccountPage;
+
 ```
 
 ### Maintaining the order of screens in forms
@@ -588,10 +609,13 @@ We should use the following url pattern:
 
 Thanks to this structure, we are able to easily recreate the order of screens with the appropriate values ​​in the form.
 
+> [!WARNING]
+> This approach is not suggested for more complex forms with a large number of inputs.
+
+
 2. Store form data in Onyx.
 3. Reset the form to the first screen after a refresh.
 If we do not want to preserve the form's values after a refresh, we should reset the form. To handle this properly, we can perform a replace on the current screen (replace it with the first screen in the form's sequence).
-
 
 ## Generating state from a path
 
