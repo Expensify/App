@@ -76,15 +76,15 @@ function SearchFiltersReportFieldPage() {
     }, [advancedFiltersForm, fieldList, translate]);
 
     const resetValues = () => {
-        // Set all values that are report fields back to undefined
-        const updatedAdvancedFilters = Object.keys(advancedFiltersForm ?? {}).reduce((acc, key) => {
-            if (key.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {
-                return Object.assign(acc, {[key]: undefined});
+        // Set all values that are report fields back to empty
+        const clearedAdvancedFiltersForm = Object.keys(advancedFiltersForm ?? {}).reduce((acc, key) => {
+            if (key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+                return Object.assign(acc, {[key]: null});
             }
             return acc;
         }, {});
 
-        updateAdvancedFilters(updatedAdvancedFilters);
+        updateAdvancedFilters(clearedAdvancedFiltersForm);
     };
 
     if (selectedField) {
