@@ -220,6 +220,8 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             shouldEnableKeyboardAvoidingView
             includeSafeAreaPaddingBottom
             shouldEnablePickerAvoiding={false}
+            shouldEnableMaxHeight
+            enableEdgeToEdgeBottomSafeAreaPadding
             testID={NewChatSelectorPage.displayName}
             focusTrapSettings={{active: false}}
         >
