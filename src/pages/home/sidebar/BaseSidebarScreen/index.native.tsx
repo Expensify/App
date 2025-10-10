@@ -2,8 +2,8 @@ import React, {useEffect} from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Performance from '@libs/Performance';
+import SidebarInboxContent from '@pages/home/sidebar/SidebarInboxContent';
 import CONST from '@src/CONST';
-import SidebarInboxContent from './SidebarInboxContent';
 
 function BaseSidebarScreen() {
     const styles = useThemeStyles();

@@ -6,13 +6,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile} from '@libs/Browser';
 import Performance from '@libs/Performance';
+import SidebarInboxContent from '@pages/home/sidebar/SidebarInboxContent';
 import CONST from '@src/CONST';
-import SidebarInboxContent from './SidebarInboxContent';
 
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
@@ -23,7 +22,7 @@ function BaseSidebarScreen() {
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, isMobile() ? styles.userSelectNone : {}]}
             testID={BaseSidebarScreen.displayName}
-            bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
+            bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
         >
             {({insets}) => (
                 <SidebarInboxContent
