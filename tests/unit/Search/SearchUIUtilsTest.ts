@@ -1769,6 +1769,44 @@ describe('SearchUIUtils', () => {
             );
         });
 
+        it('should handle data where transaction keys appear before report keys in getReportSections', () => {
+            const testDataTransactionFirst = {
+                // Transaction keys first
+                [`transactions_${transactionID}`]: searchResults.data[`transactions_${transactionID}`],
+                [`transactions_${transactionID2}`]: searchResults.data[`transactions_${transactionID2}`],
+                // Report keys after transactions
+                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
+                [`report_${reportID2}`]: searchResults.data[`report_${reportID2}`],
+                // Other required data
+                personalDetailsList: searchResults.data.personalDetailsList,
+                [`policy_${policyID}`]: searchResults.data[`policy_${policyID}`],
+            };
+
+            const testDataReportFirst = {
+                // Report keys first
+                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
+                [`report_${reportID2}`]: searchResults.data[`report_${reportID2}`],
+                // Transaction keys after reports
+                [`transactions_${transactionID}`]: searchResults.data[`transactions_${transactionID}`],
+                [`transactions_${transactionID2}`]: searchResults.data[`transactions_${transactionID2}`],
+                // Other required data
+                personalDetailsList: searchResults.data.personalDetailsList,
+                [`policy_${policyID}`]: searchResults.data[`policy_${policyID}`],
+            };
+
+            const resultTransactionFirst = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, testDataTransactionFirst, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS);
+            const resultReportFirst = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, testDataReportFirst, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS);
+
+            expect(resultTransactionFirst).toBeDefined();
+            expect(Array.isArray(resultTransactionFirst)).toBe(true);
+            expect(resultReportFirst).toBeDefined();
+            expect(Array.isArray(resultReportFirst)).toBe(true);
+
+            expect(resultTransactionFirst).toEqual(resultReportFirst);
+
+            expect(resultTransactionFirst.length).toBeGreaterThan(0);
+        });
+
         it('should return getMemberSections result when type is EXPENSE and groupBy is from', () => {
             expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResultsGroupByFrom.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.FROM)).toStrictEqual(
                 transactionMemberGroupListItems,

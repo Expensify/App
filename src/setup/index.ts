@@ -61,6 +61,8 @@ export default function () {
 
     setDeviceID();
 
+    // Preload all icons early in app initialization
+    // This runs outside React lifecycle for optimal performance
     // Force app layout to work left to right because our design does not currently support devices using this mode
     I18nManager.allowRTL(false);
     I18nManager.forceRTL(false);
