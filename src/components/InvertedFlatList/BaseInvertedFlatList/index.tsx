@@ -89,11 +89,6 @@ function BaseInvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) 
         [renderItem, dataIndexDifference],
     );
 
-    console.log(`Test: displayedData: ${displayedData.length}`);
-    console.log(`Test: isInitialData: ${isInitialData}`);
-    console.log(`Test: isQueueRendering: ${isQueueRendering}`);
-    console.log(`Test: Combined: ${isInitialData || isQueueRendering}`);
-
     const maintainVisibleContentPosition = useMemo(() => {
         if (isInitialData || isQueueRendering) {
             return undefined;

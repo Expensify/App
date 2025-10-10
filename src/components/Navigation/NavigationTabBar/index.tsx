@@ -21,7 +21,6 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
-import {clearOnyxAndResetApp} from '@libs/actions/App';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
@@ -117,7 +116,6 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
     }, [orderedReportIDs, reportAttributes]);
 
     const navigateToChats = useCallback(() => {
-        clearOnyxAndResetApp(); // TODO: remove this
         if (selectedTab === NAVIGATION_TABS.HOME) {
             return;
         }
