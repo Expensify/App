@@ -37,7 +37,7 @@ Once a business bank account has been connected and verified in your Wallet, you
 
 ---
 
-# Remove a Bank Account
+# How to Remove a Bank Account
 
 ## Web
 1. Go to **Settings > Account > Wallet**.
