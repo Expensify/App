@@ -1,4 +1,5 @@
-import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
+import {findFocusedRoute, getPathFromState} from '@react-navigation/native';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
@@ -8,8 +9,7 @@ const createDynamicRoute = (dynamicRouteName: string): Route => {
         throw new Error(`The route name ${dynamicRouteName} is not supported in createDynamicRoute`);
     }
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const state = useNavigationState((focusedRoute) => findFocusedRoute(focusedRoute));
-    const activeRoute = state?.path ?? '';
+    const activeRoute = Navigation.getActiveRoute();
     const [path, params] = activeRoute.split('?');
     let dynamicRoute = path.endsWith('/') ? `${path}${dynamicRouteName}` : `${path}/${dynamicRouteName}`;
     if (params) {
