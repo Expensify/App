@@ -217,7 +217,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
 
     return (
         <ScreenWrapper
-            shouldEnableKeyboardAvoidingView={false}
+            shouldEnableKeyboardAvoidingView
             includeSafeAreaPaddingBottom
             shouldEnablePickerAvoiding={false}
             testID={NewChatSelectorPage.displayName}
