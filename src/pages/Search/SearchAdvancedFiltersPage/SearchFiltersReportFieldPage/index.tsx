@@ -8,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {isSearchDatePreset} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
@@ -22,7 +23,6 @@ function SearchFiltersReportFieldPage() {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
-    const [values, setValues] = useState<Record<string, string | string[] | null>>({});
     const [selectedField, setSelectedField] = useState<PolicyReportField | null>(null);
 
     const [advancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
@@ -76,10 +76,19 @@ function SearchFiltersReportFieldPage() {
     }, [advancedFiltersForm, fieldList, translate]);
 
     const resetValues = () => {
-        setValues({});
+        // Set all values that are report fields back to undefined
+        const updatedAdvancedFilters = Object.keys(advancedFiltersForm ?? {}).reduce((acc, key) => {
+            if (key.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {
+                return Object.assign(acc, {[key]: undefined});
+            }
+            return acc;
+        }, {});
+
+        updateAdvancedFilters(updatedAdvancedFilters);
     };
 
     if (selectedField) {
+        // JACK_TODO: Make this a type somewhere
         const fieldType = selectedField.type as 'text' | 'date' | 'dropdown';
 
         const UpdateReportFieldComponent = {
@@ -104,8 +113,6 @@ function SearchFiltersReportFieldPage() {
                 />
                 <UpdateReportFieldComponent
                     field={selectedField}
-                    values={values}
-                    setValues={setValues}
                     close={() => setSelectedField(null)}
                 />
             </ScreenWrapper>
