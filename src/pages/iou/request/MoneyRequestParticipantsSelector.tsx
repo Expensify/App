@@ -268,16 +268,11 @@ function MoneyRequestParticipantsSelector({
             shouldShow: (availableOptions.workspaceChats ?? []).length > 0,
         });
 
-        if (!isWorkspacesOnly && availableOptions.userToInvite) {
-            newSections.push({
-                title: undefined,
-                data: [availableOptions.userToInvite].map((participant) => {
-                    const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
-                }),
-                shouldShow: true,
-            });
-        }
+        newSections.push({
+            title: translate('workspace.invoices.paymentMethods.personal'),
+            data: availableOptions.selfDMChat ? [availableOptions.selfDMChat] : [],
+            shouldShow: !!availableOptions.selfDMChat,
+        });
 
         if (!isWorkspacesOnly) {
             newSections.push({
@@ -304,9 +299,12 @@ function MoneyRequestParticipantsSelector({
             !isPerDiemRequest
         ) {
             newSections.push({
-                title: translate('workspace.invoices.paymentMethods.personal'),
-                data: availableOptions.selfDMChat ? [availableOptions.selfDMChat] : [],
-                shouldShow: !!availableOptions.selfDMChat,
+                title: undefined,
+                data: [availableOptions.userToInvite].map((participant) => {
+                    const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                }),
+                shouldShow: true,
             });
         }
 
