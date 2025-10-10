@@ -156,7 +156,7 @@ function ReportActionsView({
         const actions = [...(allReportActions ?? [])];
 
         if (shouldAddCreatedAction) {
-            const createdTime = lastAction && DateUtils.subtractMillisecondsFromDateTime(lastAction.created, 1);
+            const createdTime = lastAction?.created && DateUtils.subtractMillisecondsFromDateTime(lastAction.created, 1);
             const optimisticCreatedAction = buildOptimisticCreatedReportAction(String(report?.ownerAccountID), createdTime);
             optimisticCreatedAction.pendingAction = null;
             actions.push(optimisticCreatedAction);
@@ -200,7 +200,7 @@ function ReportActionsView({
         }
 
         return [...actions, createdAction];
-    }, [allReportActions, shouldAddCreatedAction, report, reportPreviewAction?.childMoneyRequestCount, transactionThreadReport, lastAction]);
+    }, [allReportActions, shouldAddCreatedAction, report, reportPreviewAction?.childMoneyRequestCount, transactionThreadReport, lastAction?.created]);
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
