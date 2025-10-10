@@ -274,7 +274,7 @@ module.exports = {
             {
                 selector: 'CallExpression[callee.name="getUrlWithBackToParam"]',
                 message:
-                    'Usage of getUrlWithBackToParam function is prohibited. This is legacy code and no new occurrences should be added. Please look into documentation and use alternative routing methods instead.',
+                    'Usage of getUrlWithBackToParam function is prohibited. This is legacy code and no new occurrences should be added. Please look into the `How to remove backTo from URL` section in contributingGuides/NAVIGATION.md. and use alternative routing methods instead.',
             },
 
             // These are the original rules from AirBnB's style guide, modified to allow for...of loops and for...in loops
@@ -351,6 +351,20 @@ module.exports = {
     },
 
     overrides: [
+        // Prevent adding new `backTo` params to screen type definitions
+        {
+            files: ['src/libs/Navigation/types.ts'],
+            rules: {
+                'no-restricted-syntax': [
+                    'error',
+                    {
+                        selector: 'TSPropertySignature[key.name="backTo"]',
+                        message:
+                            'The `backTo` route param is deprecated. Do not add new `backTo` properties to screen param lists. Please look into the `How to remove backTo from URL` section in contributingGuides/NAVIGATION.md. and use alternative routing methods instead.',
+                    },
+                ],
+            },
+        },
         // Enforces every Onyx type and its properties to have a comment explaining its purpose.
         {
             files: ['src/types/onyx/**/*.ts'],
