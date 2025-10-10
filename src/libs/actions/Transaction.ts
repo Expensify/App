@@ -1139,6 +1139,11 @@ function changeTransactionsReport(
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
                 value: {[unHoldAction.reportActionID]: null},
             });
+
+            transactionIDToReportActionAndThreadData[transaction.transactionID] = {
+                ...transactionIDToReportActionAndThreadData[transaction.transactionID],
+                unholdReportActionID: unHoldAction.reportActionID,
+            };
         }
     });
 
