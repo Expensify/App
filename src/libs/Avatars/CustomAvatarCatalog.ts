@@ -116,7 +116,6 @@ const SEASON_F1: Record<SeasonF1AvatarIDs, AvatarEntry> = {
     'wrenches-pink600': {local: SeasonF1.WrenchesPink600, url: `${CDN_SEASON_F1}/wrenches-pink600.png`},
 };
 
-
 const DISPLAY_ORDER = [
     'car-blue100',
     'default-avatar_1',
