@@ -23,6 +23,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
+import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import getAccountTabScreenToOpen from '@libs/Navigation/helpers/getAccountTabScreenToOpen';
@@ -331,6 +332,9 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
         );
     }
 
+    const platform = getPlatform(true);
+    const shouldShowFloatingCameraButton = platform !== CONST.PLATFORM.WEB && platform !== CONST.PLATFORM.DESKTOP;
+
     return (
         <>
             {!!isDebugModeEnabled && (
@@ -442,7 +446,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                     onPress={navigateToSettings}
                 />
             </View>
-            <FloatingCameraButton />
+            {shouldShowFloatingCameraButton && <FloatingCameraButton />}
         </>
     );
 }
