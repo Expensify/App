@@ -113,8 +113,8 @@ function MoneyRequestParticipantsSelector({
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const {contactPermissionState, contacts, setContactPermissionState, importAndSaveContacts} = useContactImport();
     const platform = getPlatform();
-    const [shareExtensionFile] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
-    const isFromShareExtension = !!shareExtensionFile;
+    const [sharedFile] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
+    const isFromShareExtension = !!sharedFile;
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
     const showImportContacts = isNative && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED) && !isFromShareExtension;
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
