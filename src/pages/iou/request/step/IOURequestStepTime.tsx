@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
@@ -7,6 +7,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import TimeModalPicker from '@components/TimeModalPicker';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,7 +15,7 @@ import DateUtils from '@libs/DateUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {isValidMoneyRequestType} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPerDiemCustomUnits} from '@libs/PolicyUtils';
+import {getActivePoliciesWithExpenseChatAndPerDiemEnabled} from '@libs/PolicyUtils';
 import {getIOURequestPolicyID, setMoneyRequestDateAttribute} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,7 +52,6 @@ function IOURequestStepTime({
     const styles = useThemeStyles();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const {translate} = useLocalize();
     const currentDateAttributes = transaction?.comment?.customUnit?.attributes?.dates;
     const currentStartDate = currentDateAttributes?.start ? DateUtils.extractDate(currentDateAttributes.start) : undefined;
@@ -59,9 +59,9 @@ function IOURequestStepTime({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(transaction?.comment?.customUnit) || isEmptyObject(policy);
     const isEditPage = name === SCREENS.MONEY_REQUEST.STEP_TIME_EDIT;
-
-    const perDiemCustomUnits = getPerDiemCustomUnits(allPolicies, session?.email);
-    const moreThanOnePerDiemExist = perDiemCustomUnits.length > 1;
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const policiesWithPerDiemEnabled = useMemo(() => getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
+    const hasMoreThanOnePolicyWithPerDiemEnabled = policiesWithPerDiemEnabled.length > 1;
 
     const navigateBack = () => {
         if (isEditPage) {
@@ -75,7 +75,7 @@ function IOURequestStepTime({
         }
 
         if (transaction?.isFromGlobalCreate) {
-            if (moreThanOnePerDiemExist) {
+            if (hasMoreThanOnePolicyWithPerDiemEnabled) {
                 Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, reportID));
                 return;
             }

@@ -50,6 +50,7 @@ import type {
     UpdateCommentParams,
     UpdateGroupChatAvatarParams,
     UpdateGroupChatMemberRolesParams,
+    UpdatePolicyRoomAvatarParams,
     UpdatePolicyRoomNameParams,
     UpdateReportNotificationPreferenceParams,
     UpdateReportPrivateNoteParams,
@@ -940,7 +941,15 @@ function updateChatName(reportID: string, reportName: string, type: typeof CONST
     API.write(command, parameters, {optimisticData, successData, failureData});
 }
 
-function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
+/**
+ * Helper function to build optimistic, success, and failure Onyx updates
+ * when updating or removing a report's avatar.
+ *
+ * @param reportID - The report ID of the policy room.
+ * @param [file] - (Optional) The selected image file to update the avatar with.
+ * If not provided, the existing avatar will be removed.
+ */
+function buildUpdateReportAvatarOnyxData(reportID: string, file?: File | CustomRNImageManipulatorResult) {
     // If we have no file that means we are removing the avatar.
     const optimisticData: OnyxUpdate[] = [
         {
@@ -983,8 +992,26 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
             },
         },
     ];
+
+    return {optimisticData, successData, failureData};
+}
+
+/**
+ * Updates the avatar for a group chat.
+ */
+function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
+    const {optimisticData, successData, failureData} = buildUpdateReportAvatarOnyxData(reportID, file);
     const parameters: UpdateGroupChatAvatarParams = {file, reportID};
     API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_AVATAR, parameters, {optimisticData, failureData, successData});
+}
+
+/**
+ * Updates the avatar for a policy room.
+ */
+function updatePolicyRoomAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
+    const {optimisticData, successData, failureData} = buildUpdateReportAvatarOnyxData(reportID, file);
+    const parameters: UpdatePolicyRoomAvatarParams = {reportID, file};
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_ROOM_AVATAR, parameters, {optimisticData, failureData, successData});
 }
 
 /**
@@ -1382,12 +1409,25 @@ function getOptimisticChatReport(accountID: number): OptimisticChatReport {
 }
 
 function createTransactionThreadReport(iouReport: OnyxEntry<Report>, iouReportAction: OnyxEntry<ReportAction>): OptimisticChatReport | undefined {
-    if (!iouReport || !iouReportAction) {
-        Log.warn('Cannot build transaction thread report without iouReport and iouReportAction parameters');
+    if (!iouReportAction) {
+        Log.warn('Cannot build transaction thread report without iouReportAction parameter');
         return;
     }
+
+    let reportToUse = iouReport;
+    // For track expenses without iouReport, get the selfDM report
+    if (!iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction)) {
+        const selfDMReportID = findSelfDMReportID();
+        reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
+    }
+
+    if (!reportToUse) {
+        Log.warn('Cannot build transaction thread report without a valid report');
+        return;
+    }
+
     const optimisticTransactionThreadReportID = generateReportID();
-    const optimisticTransactionThread = buildTransactionThread(iouReportAction, iouReport, undefined, optimisticTransactionThreadReportID);
+    const optimisticTransactionThread = buildTransactionThread(iouReportAction, reportToUse, undefined, optimisticTransactionThreadReportID);
     openReport(optimisticTransactionThreadReportID, undefined, currentUserEmail ? [currentUserEmail] : [], optimisticTransactionThread, iouReportAction?.reportActionID);
     return optimisticTransactionThread;
 }
@@ -1856,16 +1896,15 @@ function broadcastUserIsLeavingRoom(reportID: string) {
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, leavingStatus);
 }
 
-/** When a report changes in Onyx, this fetches the report from the API if the report doesn't have a name */
-function handleReportChanged(report: OnyxEntry<Report>) {
-    if (!report) {
+function handlePreexistingReport(report: Report) {
+    const {reportID, preexistingReportID, parentReportID, parentReportActionID} = report;
+
+    if (!reportID || !preexistingReportID) {
         return;
     }
 
-    const {reportID, preexistingReportID, parentReportID, parentReportActionID} = report;
-
     // Handle cleanup of stale optimistic IOU report and its report preview separately
-    if (reportID && preexistingReportID && isMoneyRequestReport(report) && parentReportActionID) {
+    if (isMoneyRequestReport(report) && parentReportActionID) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
             [parentReportActionID]: null,
         });
@@ -1876,48 +1915,46 @@ function handleReportChanged(report: OnyxEntry<Report>) {
     // It is possible that we optimistically created a DM/group-DM for a set of users for which a report already exists.
     // In this case, the API will let us know by returning a preexistingReportID.
     // We should clear out the optimistically created report and re-route the user to the preexisting report.
-    if (reportID && preexistingReportID) {
-        let callback = () => {
-            const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
+    let callback = () => {
+        const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
 
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
-                ...report,
-                reportID: preexistingReportID,
-                preexistingReportID: null,
-                // Replacing the existing report's participants to avoid duplicates
-                participants: existingReport?.participants ?? report.participants,
-            });
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
+            ...report,
+            reportID: preexistingReportID,
+            preexistingReportID: null,
+            // Replacing the existing report's participants to avoid duplicates
+            participants: existingReport?.participants ?? report.participants,
+        });
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
+    };
+    // Only re-route them if they are still looking at the optimistically created report
+    if (Navigation.getActiveRoute().includes(`/r/${reportID}`)) {
+        const currCallback = callback;
+        callback = () => {
+            currCallback();
+            Navigation.setParams({reportID: preexistingReportID.toString()});
         };
-        // Only re-route them if they are still looking at the optimistically created report
-        if (Navigation.getActiveRoute().includes(`/r/${reportID}`)) {
-            const currCallback = callback;
-            callback = () => {
-                currCallback();
-                Navigation.setParams({reportID: preexistingReportID.toString()});
-            };
 
-            // The report screen will listen to this event and transfer the draft comment to the existing report
-            // This will allow the newest draft comment to be transferred to the existing report
-            DeviceEventEmitter.emit(`switchToPreExistingReport_${reportID}`, {
-                preexistingReportID,
-                callback,
-            });
+        // The report screen will listen to this event and transfer the draft comment to the existing report
+        // This will allow the newest draft comment to be transferred to the existing report
+        DeviceEventEmitter.emit(`switchToPreExistingReport_${reportID}`, {
+            preexistingReportID,
+            callback,
+        });
 
-            return;
-        }
-
-        // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
-        // after that clear the optimistically created report
-        const draftReportComment = allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
-        if (!draftReportComment) {
-            callback();
-            return;
-        }
-
-        saveReportDraftComment(preexistingReportID, draftReportComment, callback);
+        return;
     }
+
+    // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
+    // after that clear the optimistically created report
+    const draftReportComment = allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
+    if (!draftReportComment) {
+        callback();
+        return;
+    }
+
+    saveReportDraftComment(preexistingReportID, draftReportComment, callback);
 }
 
 /** Deletes a comment from the report, basically sets it as empty string */
@@ -6159,7 +6196,7 @@ export {
     getNewerActions,
     getOlderActions,
     getReportPrivateNote,
-    handleReportChanged,
+    handlePreexistingReport,
     handleUserDeletedLinksInHtml,
     hasErrorInPrivateNotes,
     inviteToGroupChat,
@@ -6208,6 +6245,7 @@ export {
     unsubscribeFromReportChannel,
     updateDescription,
     updateGroupChatAvatar,
+    updatePolicyRoomAvatar,
     updateGroupChatMemberRoles,
     updateChatName,
     updateLastVisitTime,
