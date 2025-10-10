@@ -25,7 +25,6 @@
 * [React StrictMode](contributingGuides/STRICT_MODE.md)
 * [Left Hand Navigation(LHN)](contributingGuides/LEFT_HAND_NAVIGATION.md)
 * [HybridApp - additional info & troubleshooting](contributingGuides/HYBRID_APP.md)
-* [Running Production Builds Locally](contributingGuides/PRODUCTION_BUILD.md)
 
 ----
 
