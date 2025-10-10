@@ -143,13 +143,11 @@ type QueryFilter = {
 
 // Report fields are dynamic keys, that policies can configure. They match:
 // reportField-<key> : Normal report field
-// reportField<modifier>-<key> : Report field with a modifier, such as On, After, Before, so that we can handle Dates
-type ReportFieldKey =
-    | `reportField-${string}`
-    | `reportField${ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>}-${string}`
-    | `reportField${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}-${string}`;
-
-type UserFriendlyReportFieldKey = `reportField-${string}`;
+// reportField<modifier>-<key> : Report field with a modifier, such as On, After, Before, Not, so that we can handle Dates and negation
+type ReportFieldNegatedKey = `reportField${typeof CONST.SEARCH.NOT_MODIFIER}-${string}`;
+type ReportFieldDateKey = `reportField${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}-${string}`;
+type ReportFieldTextKey = `reportField-${string}`;
+type ReportFieldKey = ReportFieldTextKey | ReportFieldDateKey | ReportFieldNegatedKey;
 
 type SearchBooleanFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
 
@@ -183,7 +181,7 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY;
 
-type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS> | UserFriendlyReportFieldKey;
+type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
 type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;
 
 type QueryFilters = Array<{
@@ -252,6 +250,9 @@ export type {
     SearchQueryJSON,
     SearchQueryString,
     ReportFieldKey,
+    ReportFieldTextKey,
+    ReportFieldDateKey,
+    ReportFieldNegatedKey,
     SortOrder,
     SearchContextProps,
     SearchContextData,

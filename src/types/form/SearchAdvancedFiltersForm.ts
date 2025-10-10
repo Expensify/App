@@ -1,5 +1,14 @@
 import type {ValueOf} from 'type-fest';
-import type {ReportFieldKey, SearchAmountFilterKeys, SearchDateFilterKeys, SearchGroupBy, SearchWithdrawalType} from '@components/Search/types';
+import type {
+    ReportFieldDateKey,
+    ReportFieldKey,
+    ReportFieldNegatedKey,
+    ReportFieldTextKey,
+    SearchAmountFilterKeys,
+    SearchDateFilterKeys,
+    SearchGroupBy,
+    SearchWithdrawalType,
+} from '@components/Search/types';
 import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type Form from './Form';
@@ -604,7 +613,9 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.IS]: string[];
         [FILTER_KEYS.HAS]: string[];
         [FILTER_KEYS.REPORT_FIELD]: string;
-    } & Record<ReportFieldKey, string>
+    } & Record<ReportFieldTextKey, string> &
+        Record<ReportFieldDateKey, string> &
+        Record<ReportFieldNegatedKey, string>
 >;
 
 export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey};

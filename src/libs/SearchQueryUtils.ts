@@ -600,19 +600,22 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             ) {
                 const filterValueArray = [...new Set<string>(filterValue)];
                 const isReportField = filterKey.startsWith(CONST.SEARCH.REPORT_FIELD_PREFIX);
+
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => {
                     return CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey || isReportField;
                 });
 
-                if (keyInCorrectForm) {
-                    const key = isReportField
-                        ? filterKey.replace(CONST.SEARCH.REPORT_FIELD_PREFIX, `${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD}-`)
-                        : CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm];
-
-                    const value = filterValueArray.map(sanitizeSearchValue).join(',');
-
-                    return `${prefix}${key}:${value}`;
+                if (!keyInCorrectForm) {
+                    return undefined;
                 }
+
+                const value = filterValueArray.map(sanitizeSearchValue).join(',');
+
+                if (isReportField) {
+                    return `${prefix}${filterKey.replace(CONST.SEARCH.REPORT_FIELD_PREFIX, `${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD}-`)}:${value}`;
+                }
+
+                return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${value}`;
             }
 
             return undefined;
