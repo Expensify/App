@@ -1,6 +1,7 @@
 import React, {useCallback} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
@@ -16,9 +17,18 @@ import {changeReportPolicy, changeReportPolicyAndInviteSubmitter, moveIOUReportT
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
+import Permissions from '@libs/Permissions';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
-import {isExpenseReport, isIOUReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
+import {
+    hasViolations as hasViolationsReportUtils,
+    isExpenseReport,
+    isIOUReport,
+    isMoneyRequestReport,
+    isMoneyRequestReportPendingDeletion,
+    isWorkspaceEligibleForReportChange,
+} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import NotFoundPage from './ErrorPage/NotFoundPage';
@@ -36,10 +46,19 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
+    const [submitterEmail] = useOnyx(
+        ONYXKEYS.PERSONAL_DETAILS_LIST,
+        {canBeMissing: false, selector: (personalDetailsList) => personalDetailsList?.[report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login},
+        [report?.ownerAccountID],
+    );
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const session = useSession();
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
 
     const selectPolicy = useCallback(
         (policyID?: string) => {
@@ -50,20 +69,51 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             const {backTo} = route.params;
             Navigation.goBack(backTo);
             if (isIOUReport(reportID)) {
-                const invite = moveIOUReportToPolicyAndInviteSubmitter(reportID, policy?.id, formatPhoneNumber);
+                const invite = moveIOUReportToPolicyAndInviteSubmitter(reportID, policy, formatPhoneNumber);
                 if (!invite?.policyExpenseChatReportID) {
-                    moveIOUReportToPolicy(reportID, policy?.id);
+                    moveIOUReportToPolicy(reportID, policy);
                 }
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                 // eslint-disable-next-line deprecation/deprecation
             } else if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
                 const employeeList = policy?.employeeList;
-                changeReportPolicyAndInviteSubmitter(report, policy, employeeList, formatPhoneNumber, isReportLastVisibleArchived);
+                changeReportPolicyAndInviteSubmitter(
+                    report,
+                    policy,
+                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    session?.email ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    employeeList,
+                    formatPhoneNumber,
+                    isReportLastVisibleArchived,
+                );
             } else {
-                changeReportPolicy(report, policy, reportNextStep, isReportLastVisibleArchived);
+                changeReportPolicy(
+                    report,
+                    policy,
+                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    session?.email ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    reportNextStep,
+                    isReportLastVisibleArchived,
+                );
             }
         },
-        [route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isReportLastVisibleArchived],
+        [
+            policies,
+            route.params,
+            reportID,
+            report,
+            formatPhoneNumber,
+            isReportLastVisibleArchived,
+            session?.accountID,
+            session?.email,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            reportNextStep,
+        ],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
@@ -73,7 +123,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         selectedPolicyIDs: report.policyID ? [report.policyID] : undefined,
         searchTerm: debouncedSearchTerm,
         localeCompare,
-        additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policies),
+        additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy),
     });
 
     if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report)) {

@@ -1,4 +1,5 @@
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
@@ -17,6 +18,7 @@ import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ReimbursementAccount} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -25,11 +27,13 @@ import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 type WorkspaceOverviewCurrencyPageProps = WithPolicyAndFullscreenLoadingProps;
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
+const hasVBASelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+
 function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPageProps) {
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const [isForcedToChangeCurrency] = useOnyx(ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY, {canBeMissing: true});
-    const [hasVBA = false] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: (value) => value?.achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN, canBeMissing: true});
+    const [hasVBA = false] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: hasVBASelector, canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
 
     const onSelectCurrency = (item: CurrencyListItem) => {
@@ -46,7 +50,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
             if (isCurrencySupportedForGlobalReimbursement(item.currencyCode as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND))) {
                 const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, item.currencyCode).length > 0;
                 if (hasValidExistingAccounts) {
-                    Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policy.id));
+                    Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.getRoute(policy.id));
                     return;
                 }
                 navigateToBankAccountRoute(policy.id, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id), {forceReplace: true});

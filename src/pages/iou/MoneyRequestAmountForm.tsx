@@ -47,11 +47,14 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
     /** Whether the user input should be kept or not */
     shouldKeepUserInput?: boolean;
 
+    /** Whether to allow flipping the amount */
+    allowFlippingAmount?: boolean;
+
     /** The chatReportID of the request */
     chatReportID?: string;
 };
 
-const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
+const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0;
 const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean, currency: string) =>
     isTaxAmountForm && Number.parseFloat(currentAmount) > convertToFrontendAmountAsInteger(Math.abs(taxAmount), currency);
 
@@ -73,6 +76,7 @@ function MoneyRequestAmountForm({
     shouldKeepUserInput = false,
     chatReportID,
     hideCurrencySymbol = false,
+    allowFlippingAmount = false,
     ref,
 }: MoneyRequestAmountFormProps) {
     const styles = useThemeStyles();
@@ -82,9 +86,13 @@ function MoneyRequestAmountForm({
     const textInput = useRef<BaseTextInputRef | null>(null);
     const moneyRequestAmountInputRef = useRef<NumberWithSymbolFormRef | null>(null);
 
+    const [isNegative, setIsNegative] = useState(false);
+
     const [formError, setFormError] = useState<string>('');
 
     const formattedTaxAmount = convertToDisplayString(Math.abs(taxAmount), currency);
+
+    const absoluteAmount = Math.abs(amount);
 
     const initializeAmount = useCallback(
         (newAmount: number) => {
@@ -94,11 +102,34 @@ function MoneyRequestAmountForm({
         [currency],
     );
 
-    useEffect(() => {
-        if (!currency || typeof amount !== 'number') {
+    const toggleNegative = useCallback(() => {
+        setIsNegative(!isNegative);
+    }, [isNegative]);
+
+    const clearNegative = useCallback(() => {
+        setIsNegative(false);
+    }, []);
+
+    const initializeIsNegative = useCallback((currentAmount: number) => {
+        if (currentAmount >= 0) {
+            setIsNegative(false);
             return;
         }
-        initializeAmount(amount);
+        setIsNegative(true);
+    }, []);
+
+    useEffect(() => {
+        initializeIsNegative(amount);
+    }, [amount, initializeIsNegative]);
+
+    useEffect(() => {
+        if (!currency || typeof absoluteAmount !== 'number') {
+            return;
+        }
+
+        initializeAmount(absoluteAmount);
+        initializeIsNegative(amount);
+
         // we want to re-initialize the state only when the selected tab
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [selectedTab]);
@@ -122,9 +153,11 @@ function MoneyRequestAmountForm({
                 return;
             }
 
-            onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
+            const newAmount = isNegative ? `-${currentAmount}` : currentAmount;
+
+            onSubmitButtonPress({amount: newAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, onSubmitButtonPress, currency, translate, formattedTaxAmount],
+        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount],
     );
 
     const buttonText: string = useMemo(() => {
@@ -150,7 +183,7 @@ function MoneyRequestAmountForm({
                     <SettlementButton
                         pressOnEnter
                         onPress={submitAndNavigateToNextPage}
-                        enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                        enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                         addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                         currency={currency ?? CONST.CURRENCY.USD}
                         policyID={policyID}
@@ -232,6 +265,10 @@ function MoneyRequestAmountForm({
                 containerStyle={styles.iouAmountTextInputContainer}
                 touchableInputWrapperStyle={styles.heightUndefined}
                 testID="moneyRequestAmountInput"
+                isNegative={isNegative}
+                allowFlippingAmount={allowFlippingAmount}
+                toggleNegative={toggleNegative}
+                clearNegative={clearNegative}
                 errorText={formError}
                 footer={footer}
             />

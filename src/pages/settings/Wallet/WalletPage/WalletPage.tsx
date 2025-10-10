@@ -2,7 +2,6 @@ import debounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -24,6 +23,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -77,6 +77,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const {isBetaEnabled} = usePermissions();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -489,7 +490,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                         shouldIncludeDebitCard={hasActivatedWallet}
                                     >
-                                        {(triggerKYCFlow: (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: PaymentMethodType) => void, buttonRef: RefObject<View | null>) => {
+                                        {(triggerKYCFlow, buttonRef: RefObject<View | null>) => {
                                             if (shouldShowLoadingSpinner) {
                                                 return null;
                                             }
@@ -500,7 +501,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                         ref={buttonRef as ForwardedRef<View>}
                                                         title={translate('common.transferBalance')}
                                                         icon={Expensicons.Transfer}
-                                                        onPress={triggerKYCFlow}
+                                                        onPress={(event) => {
+                                                            triggerKYCFlow({event});
+                                                        }}
                                                         shouldShowRightIcon
                                                         wrapperStyle={[
                                                             styles.transferBalance,
@@ -680,7 +683,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         />
                     )}
                     <MenuItem
-                        icon={Expensicons.MoneySearch}
+                        icon={expensifyIcons.MoneySearch}
                         title={translate('workspace.common.viewTransactions')}
                         onPress={() => {
                             hideCardMenu();
