@@ -29,6 +29,7 @@ import {
     canRejectReportAction,
     doesReportContainRequestsFromMultipleUsers,
     getTransactionDetails,
+    hasExportError as hasExportErrorUtils,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
     hasReportBeenReopened as hasReportBeenReopenedUtils,
@@ -595,7 +596,11 @@ function getSecondaryReportActions({
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
-    if (isPrimaryPayAction(report, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID)) {
+    const isExported = isExportedUtils(reportActions);
+    const hasExportError = hasExportErrorUtils(reportActions, report);
+    const isExportedAndHasExportError = !isExported && hasExportError;
+
+    if (isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived, undefined, reportActions) && (hasOnlyHeldExpenses(report?.reportID) || isExportedAndHasExportError)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
     }
 
