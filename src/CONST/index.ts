@@ -228,7 +228,6 @@ const CONST = {
     POPOVER_DROPDOWN_WIDTH: 334,
     POPOVER_DROPDOWN_MIN_HEIGHT: 0,
     POPOVER_DROPDOWN_MAX_HEIGHT: 416,
-    POPOVER_MENU_MAX_HEIGHT: 496,
     POPOVER_DATE_WIDTH: 338,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
@@ -699,6 +698,7 @@ const CONST = {
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         NEWDOT_REJECT: 'newDotReject',
         CUSTOM_RULES: 'customRules',
+        CUSTOM_AVATARS: 'customAvatars',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
@@ -2123,6 +2123,8 @@ const CONST = {
             CUSTOMERS: 'customers',
         },
         IMPORT_ITEMS: 'importItems',
+        AUTO_SYNC_ENABLED: 'enabled',
+        ACCOUNTING_METHOD: 'accountingMethod',
     },
 
     QUICKBOOKS_CONFIG: {
@@ -3361,6 +3363,7 @@ const CONST = {
             SELECT_COUNTRY: 'SelectCountry',
             PLAID_CONNECTION: 'PlaidConnection',
             SELECT_STATEMENT_CLOSE_DATE: 'SelectStatementCloseDate',
+            SELECT_DIRECT_STATEMENT_CLOSE_DATE: 'SelectDirectStatementCloseDate',
         },
         CARD_TYPE: {
             AMEX: 'amex',
@@ -6708,6 +6711,7 @@ const CONST = {
                 [this.STATUS.EXPENSE.DRAFTS]: 'draft',
             };
         },
+        NOT_MODIFIER: 'Not',
         DATE_MODIFIERS: {
             ON: 'On',
             AFTER: 'After',
@@ -6757,6 +6761,7 @@ const CONST = {
         SEARCH_CONTEXT_GENERAL: 'general',
         SEARCH_CONTEXT_SEARCH: 'search',
         SEARCH_CONTEXT_MEMBER_INVITE: 'memberInvite',
+        SEARCH_CONTEXT_SHARE_DESTINATION: 'shareDestination',
     },
     EXPENSE: {
         TYPE: {
