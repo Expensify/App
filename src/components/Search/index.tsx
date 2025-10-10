@@ -596,7 +596,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 });
             }
 
-            if (!reportActionsArray.find((action) => action.reportActionID === moneyRequestReportActionID)) {
+            const parentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+            const parentReportAction = moneyRequestReportActionID ? parentReportActions?.[moneyRequestReportActionID] : undefined;
+            if (!parentReportAction) {
                 const optimisticIOUAction = buildOptimisticIOUReportAction({
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     amount,
@@ -631,7 +633,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             Onyx.update(onyxUpdates);
         },
-        [reportActionsArray, reports, transactions],
+        [reportActions, reports, transactions],
     );
 
     const onSelectRow = useCallback(
