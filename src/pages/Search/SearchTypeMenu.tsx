@@ -86,13 +86,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 
     const getOverflowMenu = useCallback((itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal), [showDeleteModal]);
 
-    if (!suggestedSearchesReady) {
-        return (
-            <View style={[styles.flex1]}>
-                <SuggestedSearchSkeleton />
-            </View>
-        );
-    }
     const createSavedSearchMenuItem = useCallback(
         (item: SaveSearchItem, key: string, index: number) => {
             let title = item.name;
@@ -222,7 +215,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     if (shouldShowSkeleton) {
         return (
             <View style={[styles.flex1]}>
-                <SuggestedSearchSkeleton shouldShowResultsColumn={false} />
+                <SuggestedSearchSkeleton />
             </View>
         );
     }

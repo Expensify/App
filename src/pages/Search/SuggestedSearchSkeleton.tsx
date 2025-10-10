@@ -7,36 +7,16 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-export const SUGGESTED_SEARCH_SKELETON_TEST_ID = 'SuggestedSearchSkeleton';
-
+const SUGGESTED_SEARCH_SKELETON_TEST_ID = 'SuggestedSearchSkeleton';
 const NAV_ITEM_HEIGHT = 52;
-const RESULT_ITEM_HEIGHT = 80;
 
 /** ---- Relative layout tokens ---- */
-const NAV = {
+const LHN = {
     icon: {x: 18, y: 18, w: 16, h: 16, r: 4},
     // label is positioned relative to icon
     label: {dx: 30, dy: 4, w: 104, h: 8},
     // header bar in the small loader above each group
     header: {x: 8, y: 10, w: 36, h: 4},
-};
-
-const RESULT = {
-    // left mini box
-    box: {x: 10, y: 28, w: 20, h: 20, r: 4},
-    // avatar relative to the mini box
-    avatar: {dxFromBox: 25, dyFromBox: -9, w: 40, h: 40, r: 20},
-    // title/subtitle block
-    title: {x: 86, y: 22, wPct: '48%', h: 14, r: 2},
-    subtitle: {x: 86, y: 46, wPct: '36%', h: 12, r: 2},
-    // right side amounts (keep percent so they anchor to the right)
-    amount: {xPct: '78%', y: 26, wPct: '14%', h: 12, r: 2},
-    tag: {xPct: '94%', y: 26, w: 16, h: 12, r: 2},
-};
-
-type SuggestedSearchSkeletonProps = {
-    shouldShowNavigationColumn?: boolean;
-    shouldShowResultsColumn?: boolean;
 };
 
 function SuggestedSearchSkeleton() {
@@ -45,7 +25,7 @@ function SuggestedSearchSkeleton() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const renderNavigationItem = () => {
-        const {icon, label} = NAV;
+        const {icon, label} = LHN;
         const labelX = icon.x + label.dx;
         const labelY = icon.y + label.dy;
 
@@ -69,69 +49,6 @@ function SuggestedSearchSkeleton() {
         );
     };
 
-    const renderResultItem = () => {
-        const {box, avatar, title, subtitle, amount, tag} = RESULT;
-        const avatarX = box.x + avatar.dxFromBox;
-        const avatarY = box.y + avatar.dyFromBox;
-
-        return (
-            <>
-                {/* left mini box */}
-                <Rect
-                    x={box.x}
-                    y={box.y}
-                    rx={box.r}
-                    ry={box.r}
-                    width={box.w}
-                    height={box.h}
-                />
-                {/* avatar positioned from mini box */}
-                <Rect
-                    x={avatarX}
-                    y={avatarY}
-                    rx={avatar.r}
-                    ry={avatar.r}
-                    width={avatar.w}
-                    height={avatar.h}
-                />
-                {/* title + sub line */}
-                <Rect
-                    x={title.x}
-                    y={title.y}
-                    rx={title.r}
-                    ry={title.r}
-                    width={title.wPct}
-                    height={title.h}
-                />
-                <Rect
-                    x={subtitle.x}
-                    y={subtitle.y}
-                    rx={subtitle.r}
-                    ry={subtitle.r}
-                    width={subtitle.wPct}
-                    height={subtitle.h}
-                />
-                {/* right side */}
-                <Rect
-                    x={amount.xPct}
-                    y={amount.y}
-                    rx={amount.r}
-                    ry={amount.r}
-                    width={amount.wPct}
-                    height={amount.h}
-                />
-                <Rect
-                    x={tag.xPct}
-                    y={tag.y}
-                    rx={tag.r}
-                    ry={tag.r}
-                    width={tag.w}
-                    height={tag.h}
-                />
-            </>
-        );
-    };
-
     const shouldRenderNavigationColumn = !shouldUseNarrowLayout;
 
     const navigationColumnGroup = (
@@ -144,10 +61,10 @@ function SuggestedSearchSkeleton() {
                 style={[styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             >
                 <Rect
-                    x={NAV.header.x}
-                    y={NAV.header.y}
-                    width={NAV.header.w}
-                    height={NAV.header.h}
+                    x={LHN.header.x}
+                    y={LHN.header.y}
+                    width={LHN.header.w}
+                    height={LHN.header.h}
                 />
             </SkeletonViewContentLoader>
 
