@@ -10138,12 +10138,13 @@ function hasMissingPaymentMethod(userWalletTierName: string | undefined, iouRepo
 }
 
 /**
- * Used from expense actions to decide if we need to build an optimistic expense report.
- * Create a new report if:
- * - we don't have an iouReport set in the chatReport
- * - we have one, but it's waiting on the payee adding a bank account
- * - we have one, but we can't add more transactions to it due to: report is approved or settled
- */
+Used from expense actions to decide if we need to build an optimistic expense report.
+Create a new report if:
+- we don't have an iouReport set in the chatReport
+- we have one, but it's waiting on the payee adding a bank account
+- we have one, but we can't add more transactions to it due to: report is approved or settled
+- It is a SmartScan request, the user is in the ASAP Submit beta, and the action is not "submit"
+*/
 function shouldCreateNewMoneyRequestReport(
     existingIOUReport: OnyxInputOrEntry<Report> | undefined,
     chatReport: OnyxInputOrEntry<Report>,
