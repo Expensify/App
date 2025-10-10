@@ -1,5 +1,4 @@
 import type {RouteProp} from '@react-navigation/native';
-import {useNavigation} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {memo, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
