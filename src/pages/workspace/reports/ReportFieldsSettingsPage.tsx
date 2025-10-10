@@ -6,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,6 +21,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import {deleteReportFields} from '@userActions/Policy/ReportField';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -48,6 +50,18 @@ function ReportFieldsSettingsPage({
     const isListFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.LIST;
     const isListFieldEmpty = isListFieldType && reportField.disabledOptions.filter((disabledListValue) => !disabledListValue).length <= 0;
     const listValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {})?.sort(localeCompare);
+
+    const reportFieldError = policy?.errorFields?.fieldList?.[reportFieldKey];
+
+    let reportFieldErrors;
+    if (reportFieldError) {
+        reportFieldErrors = typeof reportFieldError === 'string' ? {[Date.now()]: reportFieldError} : reportFieldError;
+    }
+
+    const clearReportFieldError = () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        Policy.clearPolicyReportFieldError(policyID, reportFieldKey);
+    };
 
     const deleteReportFieldAndHideModal = () => {
         deleteReportFields(policyID, [reportFieldKey]);
@@ -81,53 +95,60 @@ function ReportFieldsSettingsPage({
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                <View style={styles.flexGrow1}>
-                    <MenuItemWithTopDescription
-                        style={[styles.moneyRequestMenuItem]}
-                        titleStyle={styles.flex1}
-                        title={reportField.name}
-                        description={translate('common.name')}
-                        interactive={false}
-                    />
-                    <MenuItemWithTopDescription
-                        style={[styles.moneyRequestMenuItem]}
-                        titleStyle={styles.flex1}
-                        title={Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type)))}
-                        description={translate('common.type')}
-                        interactive={false}
-                    />
-                    {isListFieldType && (
+                <OfflineWithFeedback
+                    errors={reportFieldErrors}
+                    onClose={clearReportFieldError}
+                    errorRowStyles={[styles.ph5, styles.mb3]}
+                >
+                    <View style={styles.flexGrow1}>
                         <MenuItemWithTopDescription
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            description={translate('workspace.reportFields.listValues')}
-                            shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.getRoute(policyID, reportFieldID))}
-                            title={listValues.join(', ')}
-                            numberOfLinesTitle={5}
+                            title={reportField.name}
+                            description={translate('common.name')}
+                            interactive={false}
+                            brickRoadIndicator={reportFieldErrors && Object.keys(reportFieldErrors).length > 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
-                    )}
-                    {!isListFieldEmpty && (
                         <MenuItemWithTopDescription
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            title={getReportFieldInitialValue(reportField)}
-                            description={translate('common.initialValue')}
-                            shouldShowRightIcon={!isDateFieldType && !hasAccountingConnections}
-                            interactive={!isDateFieldType && !hasAccountingConnections}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.getRoute(policyID, reportFieldID))}
+                            title={Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type)))}
+                            description={translate('common.type')}
+                            interactive={false}
                         />
-                    )}
-                    {!hasAccountingConnections && (
-                        <View style={styles.flexGrow1}>
-                            <MenuItem
-                                icon={Expensicons.Trashcan}
-                                title={translate('common.delete')}
-                                onPress={() => setIsDeleteModalVisible(true)}
+                        {isListFieldType && (
+                            <MenuItemWithTopDescription
+                                style={[styles.moneyRequestMenuItem]}
+                                titleStyle={styles.flex1}
+                                description={translate('workspace.reportFields.listValues')}
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.getRoute(policyID, reportFieldID))}
+                                title={listValues.join(', ')}
+                                numberOfLinesTitle={5}
                             />
-                        </View>
-                    )}
-                </View>
+                        )}
+                        {!isListFieldEmpty && (
+                            <MenuItemWithTopDescription
+                                style={[styles.moneyRequestMenuItem]}
+                                titleStyle={styles.flex1}
+                                title={getReportFieldInitialValue(reportField)}
+                                description={translate('common.initialValue')}
+                                shouldShowRightIcon={!isDateFieldType && !hasAccountingConnections}
+                                interactive={!isDateFieldType && !hasAccountingConnections}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.getRoute(policyID, reportFieldID))}
+                            />
+                        )}
+                        {!hasAccountingConnections && (
+                            <View style={styles.flexGrow1}>
+                                <MenuItem
+                                    icon={Expensicons.Trashcan}
+                                    title={translate('common.delete')}
+                                    onPress={() => setIsDeleteModalVisible(true)}
+                                />
+                            </View>
+                        )}
+                    </View>
+                </OfflineWithFeedback>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

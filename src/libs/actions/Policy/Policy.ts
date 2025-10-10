@@ -6393,6 +6393,19 @@ function clearPolicyTitleFieldError(policyID: string) {
     });
 }
 
+function clearPolicyReportFieldError(policyID: string, reportFieldKey: string) {
+    if (!policyID) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        errorFields: {
+            fieldList: {
+                [reportFieldKey]: null,
+            },
+        },
+    });
+}
+
 /**
  * Set the workspace currency for the workspace confirmation form
  */
@@ -6522,6 +6535,7 @@ export {
     getCashExpenseReimbursableMode,
     updateInterestedFeatures,
     clearPolicyTitleFieldError,
+    clearPolicyReportFieldError,
     inviteWorkspaceEmployeesToUber,
     setWorkspaceConfirmationCurrency,
 };
