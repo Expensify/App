@@ -186,5 +186,5 @@ const CUSTOM_AVATAR_CATALOG: AvatarEntry[] = buildOrderedAvatars();
 const getAvatarLocal = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].local;
 const getAvatarURL = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].url;
 
-export {CUSTOM_AVATAR_CATALOG, getAvatarLocal, getAvatarURL};
+export {CUSTOM_AVATAR_CATALOG, ALL_CUSTOM_AVATARS, getAvatarLocal, getAvatarURL};
 export type {DefaultAvatarIDs, SeasonF1AvatarIDs, CustomAvatarID};
