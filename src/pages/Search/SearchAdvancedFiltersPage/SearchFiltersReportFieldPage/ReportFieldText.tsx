@@ -1,12 +1,15 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import FixedFooter from '@components/FixedFooter';
-import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
+import {isValidInputLength} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyReportField} from '@src/types/onyx';
@@ -16,63 +19,55 @@ type ReportFieldListProps = {
     close: () => void;
 };
 
-type ListItem = {
-    value: string;
-    keyForList: string;
-    text: string;
-    isSelected: boolean;
-};
-
 function ReportFieldText({field, close}: ReportFieldListProps) {
     const formKey = `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${field.name.toLowerCase().replaceAll(' ', '-')}` as const;
-    const [value = null] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: (form) => form?.[formKey]}, [formKey]);
+    const [value = ''] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: (form) => form?.[formKey]}, [formKey]);
 
     const styles = useThemeStyles();
-    const [selectedItem, setSelectedItem] = useState(value);
+    const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
 
-    const items = useMemo(() => {
-        return field.values.map((fieldValue) => ({
-            value: fieldValue,
-            text: fieldValue,
-            keyForList: fieldValue,
-            isSelected: selectedItem === fieldValue,
-        }));
-    }, [field.values, selectedItem]);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM> = {};
+        const fieldValue = values[formKey] ?? '';
+        const trimmedValue = fieldValue.trim();
+        const {isValid, byteLength} = isValidInputLength(trimmedValue, CONST.MAX_COMMENT_LENGTH);
 
-    const updateFilter = useCallback((selectedFilter: ListItem) => {
-        const newValue = selectedFilter.isSelected ? null : selectedFilter.value;
-        setSelectedItem(newValue);
-    }, []);
+        if (!isValid) {
+            errors[formKey] = translate('common.error.characterLimitExceedCounter', {length: byteLength, limit: CONST.MAX_COMMENT_LENGTH});
+        }
 
-    const resetChanges = useCallback(() => {
-        setSelectedItem(null);
-    }, []);
+        return errors;
+    };
 
-    const saveChanges = useCallback(() => {
-        updateAdvancedFilters({
-            [formKey]: selectedItem ?? null,
-        });
-
+    const updateFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
+        updateAdvancedFilters(values);
         close();
-    }, [formKey, selectedItem, close]);
+    };
 
     return (
-        <>
-            <View style={[styles.flex1]}>
-                <SelectionList
-                    shouldSingleExecuteRowSelect
-                    data={items}
-                    ListItem={SingleSelectListItem}
-                    onSelectRow={updateFilter}
+        <FormProvider
+            style={[styles.flex1, styles.ph5]}
+            formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
+            validate={validate}
+            onSubmit={updateFilter}
+            submitButtonText={translate('common.save')}
+            enabledWhenOffline
+            shouldHideFixErrorsAlert
+        >
+            <View style={styles.mb5}>
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={formKey}
+                    name={formKey}
+                    defaultValue={value}
+                    label={field.name}
+                    accessibilityLabel={field.name}
+                    role={CONST.ROLE.PRESENTATION}
+                    ref={inputCallbackRef}
                 />
             </View>
-            <FixedFooter style={styles.mtAuto}>
-                <SearchFilterPageFooterButtons
-                    applyChanges={saveChanges}
-                    resetChanges={resetChanges}
-                />
-            </FixedFooter>
-        </>
+        </FormProvider>
     );
 }
 
