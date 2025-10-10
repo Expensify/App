@@ -188,6 +188,7 @@ function ReportActionsList({
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
 
+    const backTo = route?.params?.backTo as string;
     // Display the new message indicator when comment linking and not close to the newest message.
     const reportActionID = route?.params?.reportActionID;
 
@@ -534,12 +535,12 @@ function ReportActionsList({
         if (!hasNewestReportAction) {
             if (isSearchTopmostFullScreenRoute()) {
                 if (Navigation.getReportRHPActiveRoute()) {
-                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID}));
+                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo}));
                 } else {
-                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: report.reportID}));
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: report.reportID, backTo}));
                 }
             } else {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, backTo));
             }
             openReport(report.reportID);
             reportScrollManager.scrollToBottom();
@@ -548,7 +549,7 @@ function ReportActionsList({
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
         readNewestAction(report.reportID);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID]);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo]);
 
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on

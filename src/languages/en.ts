@@ -5554,6 +5554,11 @@ const translations = {
                 description: 'Expensify Travel is a new corporate travel booking and management platform that allows members to book accommodations, flights, transportation, and more.',
                 onlyAvailableOnPlan: 'Travel is available on the Collect plan, starting at ',
             },
+            reports: {
+                title: 'Reports',
+                description: 'Reports allow you to group expenses for easier tracking and organization.',
+                onlyAvailableOnPlan: 'Reports are available on the Collect plan, starting at ',
+            },
             multiLevelTags: {
                 title: 'Multi-level tags',
                 description:
