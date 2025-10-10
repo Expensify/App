@@ -62,7 +62,7 @@ function ExpensifyCardVerifyAccountPage({
             title={translate('cardPage.validateCardTitle')}
             descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
             sendValidateCode={() => requestValidateCodeAction()}
-            validateCodeActionErrorField="revealExpensifyCardDetails"
+            validateCodeActionErrorField="actionVerified"
             handleSubmitForm={handleRevealCardDetails}
             validateError={validateError}
             clearError={() => setValidateError({})}
