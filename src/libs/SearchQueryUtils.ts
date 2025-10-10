@@ -586,9 +586,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 const fieldPrefix = isFieldNegated ? '-' : '';
 
                 if (isTextBasedReportField) {
-                    // JACK_TODO: WHY DOES THIS WORK, I shouldnt need to replace repoprtField with anotjer dashj
-                    const key = filterKey.replace(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX, CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX);
-                    return `${fieldPrefix}${key}:${value}`;
+                    return `${fieldPrefix}${filterKey}:${value}`;
                 }
 
                 const isOnDateField = filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.ON_PREFIX);
