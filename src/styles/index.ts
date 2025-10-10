@@ -360,6 +360,7 @@ const staticStyles = (theme: ThemeColors) =>
         reportStatusText: {
             fontSize: variables.fontSizeSmall,
             fontWeight: FontUtils.fontWeight.normal,
+            lineHeight: 16,
         },
 
         textSupporting: {
