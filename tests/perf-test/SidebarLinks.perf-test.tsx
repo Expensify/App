@@ -1,4 +1,4 @@
-import {fireEvent, screen} from '@testing-library/react-native';
+import {fireEvent, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 import CONST from '@src/CONST';
@@ -26,6 +26,7 @@ jest.mock('../../src/libs/Navigation/navigationRef', () => ({
         routes: [],
     }),
     addListener: () => () => {},
+    isReady: () => true,
 }));
 jest.mock('@components/Icon/Expensicons');
 
@@ -77,7 +78,7 @@ describe('SidebarLinks', () => {
 
         await waitForBatchedUpdates();
 
-        Onyx.multiSet({
+        await Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
@@ -90,8 +91,14 @@ describe('SidebarLinks', () => {
 
     test('[SidebarLinks] should click on list item', async () => {
         const scenario = async () => {
-            await screen.findByTestId('lhn-options-list');
-            fireEvent.press(await screen.findByTestId('1'));
+            // Wait for the sidebar container to be rendered first
+            await waitFor(async () => {
+                await screen.findByTestId('lhn-options-list');
+            });
+
+            // Then wait for the specific list item to be available
+            const button = await screen.findByTestId('1');
+            fireEvent.press(button);
         };
         await Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
