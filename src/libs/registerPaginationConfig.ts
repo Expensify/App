@@ -7,8 +7,13 @@ import {registerPaginationConfig} from './Middleware/Pagination';
 import {getSortedReportActionsForDisplay} from './ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils} from './ReportUtils';
 
+/**
+ * This connection is exclusively used within the `registerPaginationConfig` function.
+ * Using connectWithoutView() is appropriate here since these values are not directly
+ * bound to any UI components.
+ */
 let allReports: OnyxCollection<Report>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -17,11 +22,7 @@ Onyx.connect({
 });
 
 let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
-/**
- * This connection is exclusively used within the `registerPaginationConfig` function.
- * Using connectWithoutView() is appropriate here since these values are not directly
- * bound to any UI components.
- */
+
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     waitForCollectionCallback: true,
