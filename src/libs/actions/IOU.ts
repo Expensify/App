@@ -2083,7 +2083,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
 
     // We don't need to compute violations unless we're on a paid policy
-    if (!policy || !isPaidGroupPolicy(policy)) {
+    if (!policy || !isPaidGroupPolicy(policy) || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         return [optimisticData, successData, failureData];
     }
 
@@ -2508,11 +2508,6 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
         if (searchUpdate.successData) {
             successData.push(...searchUpdate.successData);
         }
-    }
-
-    // We don't need to compute violations unless we're on a paid policy
-    if (!policyParams.policy || !isPaidGroupPolicy(policyParams.policy)) {
-        return [optimisticData, successData, failureData];
     }
 
     return [optimisticData, successData, failureData];
@@ -2944,7 +2939,7 @@ function buildOnyxDataForTrackExpense({
     }
 
     // We don't need to compute violations unless we're on a paid policy
-    if (!policy || !isPaidGroupPolicy(policy)) {
+    if (!policy || !isPaidGroupPolicy(policy) || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         return [optimisticData, successData, failureData];
     }
 
