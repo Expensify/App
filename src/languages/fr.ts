@@ -671,6 +671,7 @@ const translations = {
         link: 'Lien',
         pinned: 'Épinglé',
         read: 'Lu',
+        copyToClipboard: 'Copier dans le presse-papiers',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -857,7 +858,7 @@ const translations = {
         expand: 'Développer',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'Copier dans le presse-papiers',
+        copyMessage: 'Copier le message',
         copied: 'Copié !',
         copyLink: 'Copier le lien',
         copyURLToClipboard: "Copier l'URL dans le presse-papiers",
@@ -1140,6 +1141,7 @@ const translations = {
         canceled: 'Annulé',
         posted: 'Publié',
         deleteReceipt: 'Supprimer le reçu',
+        findExpense: 'Trouver une dépense',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `supprimé une dépense (${amount} pour ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `a déplacé une dépense${reportName ? `de ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `déplacé cette dépense${reportName ? `à <a href="${reportUrl}">${reportName}</a>` : ''}`,
@@ -3750,6 +3752,18 @@ const translations = {
                 createEntitiesDescription: "Expensify créera automatiquement des fournisseurs dans QuickBooks Desktop s'ils n'existent pas déjà.",
             },
             itemsDescription: 'Choisissez comment gérer les éléments QuickBooks Desktop dans Expensify.',
+            accountingMethods: {
+                label: 'Quand exporter',
+                description: 'Choisissez quand exporter les dépenses :',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Espèces',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Les dépenses hors de la poche seront exportées une fois approuvées définitivement.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: "Les dépenses personnelles seront exportées lorsqu'elles seront payées.",
+                },
+            },
         },
         qbo: {
             connectedTo: 'Connecté à',
@@ -7267,6 +7281,7 @@ const translations = {
         exportInProgress: 'Exportation en cours',
         conciergeWillSend: 'Concierge vous enverra le fichier sous peu.',
     },
+    avatarPage: {title: 'Modifier la photo de profil', uploadPhoto: 'Télécharger une photo'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
