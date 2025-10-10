@@ -74,7 +74,7 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
     return canAddTransaction(report, isReportArchived);
 }
 
-function isSplitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, isNewDotUpdateSplitsBeta = true): boolean {
+function isSplitAction(report: Report, reportTransactions: Transaction[], originalTransaction: OnyxEntry<Transaction>, policy?: Policy, isNewDotUpdateSplitsBeta = true): boolean {
     if (Number(reportTransactions?.length) !== 1) {
         return false;
     }
@@ -91,7 +91,7 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
         return false;
     }
 
-    const {isBillSplit, isExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction);
+    const {isBillSplit, isExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
     if (isBillSplit) {
         return false;
     }
@@ -572,6 +572,7 @@ function getSecondaryReportActions({
     report,
     chatReport,
     reportTransactions,
+    originalTransaction,
     violations,
     policy,
     reportNameValuePairs,
@@ -584,6 +585,7 @@ function getSecondaryReportActions({
     report: Report;
     chatReport: OnyxEntry<Report>;
     reportTransactions: Transaction[];
+    originalTransaction: OnyxEntry<Transaction>;
     violations: OnyxCollection<TransactionViolation[]>;
     policy?: Policy;
     reportNameValuePairs?: ReportNameValuePairs;
@@ -651,7 +653,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 
-    if (isSplitAction(report, reportTransactions, policy, isNewDotUpdateSplitsBeta)) {
+    if (isSplitAction(report, reportTransactions, originalTransaction, policy, isNewDotUpdateSplitsBeta)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
@@ -705,6 +707,7 @@ function getSecondaryTransactionThreadActions(
     parentReport: Report,
     reportTransaction: Transaction,
     reportAction: ReportAction | undefined,
+    originalTransaction: OnyxEntry<Transaction>,
     policy: OnyxEntry<Policy>,
     transactionThreadReport?: OnyxEntry<Report>,
     isNewDotUpdateSplitsBeta?: boolean,
@@ -723,7 +726,7 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
-    if (isSplitAction(parentReport, [reportTransaction], policy, isNewDotUpdateSplitsBeta)) {
+    if (isSplitAction(parentReport, [reportTransaction], originalTransaction, policy, isNewDotUpdateSplitsBeta)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
 
