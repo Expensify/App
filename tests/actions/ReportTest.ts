@@ -2448,6 +2448,44 @@ describe('actions/Report', () => {
         });
     });
 
+    it('should not overwrite testDriveModalDismissed when it is already true', async () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@test.com';
+
+        await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {testDriveModalDismissed: true});
+        await waitForBatchedUpdates();
+
+        const adminsChatReportID = '7957055873634067';
+        const onboardingPolicyID = 'A70D00C752416807';
+        const engagementChoice = CONST.INTRO_CHOICES.MANAGE_TEAM;
+        const {onboardingMessages} = getOnboardingMessages();
+
+        Report.completeOnboarding({
+            engagementChoice,
+            onboardingMessage: onboardingMessages[engagementChoice],
+            adminsChatReportID,
+            onboardingPolicyID,
+            companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            userReportedIntegration: null,
+        });
+
+        await waitForBatchedUpdates();
+
+        const onboarding = await new Promise<OnyxEntry<OnyxTypes.Onboarding>>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.NVP_ONBOARDING,
+                callback: (data) => {
+                    Onyx.disconnect(connection);
+                    resolve(data);
+                },
+            });
+        });
+
+        // testDriveModalDismissed should remain true and not be overwritten to false
+        expect(onboarding?.testDriveModalDismissed).toBe(true);
+    });
+
     describe('setOptimisticTransactionThread', () => {
         it('should set optimistic transaction thread data with the provided parameters', async () => {
             const reportID = 'report12';
