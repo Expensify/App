@@ -6653,7 +6653,15 @@ const CONST = {
             IS: 'is',
             REPORT_FIELD: 'reportField',
         },
-        REPORT_FIELD_PREFIX: 'reportField',
+        REPORT_FIELD: {
+            // All repoort fields start with this, so use this to check if a search key is a report field
+            PREFIX: 'reportField',
+            TEXT_PREFIX: 'reportField-',
+            NOT_PREFIX: 'reportFieldNot-',
+            ON_PREFIX: 'reportFieldOn-',
+            AFTER_PREFIX: 'reportFieldAfter-',
+            BEFORE_PREFIX: 'reportFieldBefore-',
+        },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
         SEARCH_ROUTER_ITEM_TYPE: {
