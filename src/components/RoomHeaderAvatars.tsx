@@ -6,6 +6,7 @@ import {clearAvatarErrors, updatePolicyRoomAvatar} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {isDefaultAvatar} from '@libs/UserUtils';
+import {isAnonymousUser} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
@@ -48,7 +49,7 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
             return;
         }
 
-        if (isPolicyRoom) {
+        if (isPolicyRoom && !isAnonymousUser()) {
             return (
                 <AvatarWithImagePicker
                     source={report.avatarUrl ?? icon.source}
