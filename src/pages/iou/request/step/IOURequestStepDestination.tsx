@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -7,7 +7,7 @@ import DestinationPicker from '@components/DestinationPicker';
 import FixedFooter from '@components/FixedFooter';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import type {ListItem, SelectionListHandle} from '@components/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -15,6 +15,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useTabFocusInput from '@hooks/useTabFocusInput';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
@@ -76,6 +77,8 @@ function IOURequestStepDestination({
     const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline;
     const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
 
+    const destinationSelectionListRef = useRef<SelectionListHandle | null>(null);
+
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
@@ -118,6 +121,12 @@ function IOURequestStepDestination({
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
+
+    const focusInput = useCallback(() => {
+        destinationSelectionListRef.current?.focusTextInput?.();
+    }, []);
+
+    useTabFocusInput(focusInput, {shouldDelay: openedFromStartPage});
 
     return (
         <ScreenWrapper
@@ -172,6 +181,7 @@ function IOURequestStepDestination({
                         selectedDestination={selectedDestination}
                         policyID={policy.id}
                         onSubmit={updateDestination}
+                        ref={destinationSelectionListRef}
                     />
                 )}
             </StepScreenWrapper>
