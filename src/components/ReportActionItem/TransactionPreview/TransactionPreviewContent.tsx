@@ -61,7 +61,11 @@ function TransactionPreviewContent({
     const {translate} = useLocalize();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-    const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, undefined, policy) ?? {}, [transaction, policy]);
+    const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
+    const transactionDetails = useMemo<Partial<TransactionDetails>>(
+        () => getTransactionDetails(transaction, undefined, policy, isParentPolicyExpenseChat) ?? {},
+        [transaction, policy, isParentPolicyExpenseChat],
+    );
     const {amount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactionDetails;
 
     const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -196,7 +200,7 @@ function TransactionPreviewContent({
     const previewTextViewGap = (shouldShowCategoryOrTag || !shouldWrapDisplayAmount) && styles.gap2;
     const previewTextMargin = shouldShowIOUHeader && shouldShowMerchantOrDescription && !isBillSplit && !shouldShowCategoryOrTag && styles.mbn1;
 
-    const transactionWrapperStyles = [styles.border, styles.moneyRequestPreviewBox, (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedback.pending];
+    const transactionWrapperStyles = [styles.border, styles.moneyRequestPreviewBox, (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedbackPending];
 
     return (
         <View style={[transactionWrapperStyles, containerStyles]}>

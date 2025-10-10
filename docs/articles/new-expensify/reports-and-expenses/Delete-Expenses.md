@@ -1,6 +1,6 @@
 ---
 title: Delete Expenses
-description: Learn how to delete personal or company card expenses in New Expensify, including rules for submitted reports and admin-only deletion cases.
+description: Learn how to delete personal or company card expenses in New Expensify, including rules for submitted reports, admin-only cases, and account-level deletion limits.
 keywords: [New Expensify, delete expenses, remove expense, company card, undo submit, draft expense, report expense, expense deletion]
 ---
 
@@ -53,7 +53,9 @@ To delete **existing draft** company card expenses:
 
 ## Why can't I delete certain expenses?
 
-Company card expenses can’t be deleted if **Allow deleting transactions** is disabled for that card. If that's the case, only a Domain Admin can enable this setting—or unassign the card to remove draft expenses.
+Company card expenses can’t be deleted if **Allow deleting transactions** is turned off for that card. In that case, only a Domain Admin can enable this setting—or unassign the card to remove draft expenses.
+
+Expense actions like deleting, editing, or retracting can only be done in your own account. Even Workspace Admins can’t delete another member’s expenses. If you need to help a teammate, ask them to add you as a [Copilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access) so you can assist from their account.
 
 ## Can I reopen a report after it’s been approved or paid?
 
