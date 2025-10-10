@@ -19,16 +19,7 @@ import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getT
 import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {
-    buildOptimisticExpenseReport,
-    getDefaultWorkspaceAvatar,
-    getOutstandingReportsForUser,
-    getReportName,
-    isArchivedReport,
-    isMoneyRequestReport,
-    isReportOutstanding,
-    populateOptimisticReportFormula,
-} from '@libs/ReportUtils';
+import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, getReportName, isArchivedReport, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
@@ -74,9 +65,6 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** The distance of the transaction */
     distance: number;
-
-    /** The raw numeric amount of the transaction */
-    rawAmount: number;
 
     /** The formatted amount of the transaction */
     formattedAmount: string;
@@ -246,7 +234,6 @@ function MoneyRequestConfirmationListFooter({
     onToggleBillable,
     policy,
     policyTags,
-    rawAmount,
     policyTagLists,
     rate,
     receiptFilename,
@@ -299,7 +286,6 @@ function MoneyRequestConfirmationListFooter({
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowMap = isDistanceRequest && !isManualDistanceRequest && !!(hasErrors || hasPendingWaypoints || iouType !== CONST.IOU.TYPE.SPLIT || !isReadOnly);
-
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
 
     const senderWorkspace = useMemo(() => {
@@ -317,35 +303,34 @@ function MoneyRequestConfirmationListFooter({
      * We need to check if the transaction report exists first in order to prevent the outstanding reports from being used.
      * Also we need to check if transaction report exists in outstanding reports in order to show a correct report name.
      */
+    const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const transactionReport = transaction?.reportID ? Object.values(allReports ?? {}).find((report) => report?.reportID === transaction.reportID) : undefined;
     const policyID = selectedParticipants?.at(0)?.policyID;
     const selectedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, policyID, undefined, false);
+    const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, policyID, undefined, false)) || isUnreported;
     const availableOutstandingReports = getOutstandingReportsForUser(policyID, selectedParticipants?.at(0)?.ownerAccountID, allReports, reportNameValuePairs, false).sort((a, b) =>
         localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''),
     );
     const iouReportID = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.iouReportID;
     const outstandingReportID = isPolicyExpenseChat ? (iouReportID ?? availableOutstandingReports.at(0)?.reportID) : reportID;
-    let selectedReportID = shouldUseTransactionReport ? transactionReport.reportID : outstandingReportID;
-    const selectedReport = useMemo(() => {
-        if (!selectedReportID) {
-            return;
+    const [selectedReportID, selectedReport] = useMemo(() => {
+        const reportIDToUse = shouldUseTransactionReport ? transaction?.reportID : outstandingReportID;
+        if (!reportIDToUse) {
+            // Even if we have no report to use we still need a report id for proper navigation
+            return [generateReportID(), undefined];
         }
-        return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`];
-    }, [allReports, selectedReportID]);
-    let reportName = getReportName(selectedReport, selectedPolicy);
 
-    if (!reportName) {
-        const optimisticReport = buildOptimisticExpenseReport(
-            reportID,
-            selectedPolicy?.id,
-            selectedPolicy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
-            rawAmount ?? transaction?.amount ?? 0,
-            currency,
-        );
-        selectedReportID = !selectedReportID ? optimisticReport.reportID : selectedReportID;
-        reportName = populateOptimisticReportFormula(selectedPolicy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, selectedPolicy, true);
-    }
+        const reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUse}`];
+        return [reportIDToUse, reportToUse];
+    }, [allReports, shouldUseTransactionReport, transaction?.reportID, outstandingReportID]);
+
+    const reportName = useMemo(() => {
+        const name = getReportName(selectedReport, selectedPolicy);
+        if (!name) {
+            return isUnreported ? translate('common.none') : translate('iou.newReport');
+        }
+        return name;
+    }, [isUnreported, selectedReport, selectedPolicy, translate]);
 
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
@@ -361,7 +346,7 @@ function MoneyRequestConfirmationListFooter({
     const canModifyTaxFields = !isReadOnly && !isDistanceRequest && !isPerDiemRequest;
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
-    const shouldShowReimbursable = isPolicyExpenseChat && policy?.disabledFields?.reimbursable === false && !isCardTransaction(transaction) && !isTypeInvoice;
+    const shouldShowReimbursable = isPolicyExpenseChat && policy?.disabledFields?.reimbursable !== true && !isCardTransaction(transaction) && !isTypeInvoice;
     // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
     const taxAmount = getTaxAmount(transaction, false);
     const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
@@ -1024,7 +1009,6 @@ export default memo(
         prevProps.currency === nextProps.currency &&
         prevProps.didConfirm === nextProps.didConfirm &&
         prevProps.distance === nextProps.distance &&
-        prevProps.rawAmount === nextProps.rawAmount &&
         prevProps.formattedAmount === nextProps.formattedAmount &&
         prevProps.formError === nextProps.formError &&
         prevProps.hasRoute === nextProps.hasRoute &&

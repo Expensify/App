@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     name: 🔍 spellcheck
     steps:
-      - uses: actions/checkout@v4
-      - uses: streetsidesoftware/cspell-action@v6
+      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+      - uses: streetsidesoftware/cspell-action@72ae91e90fa38f2335a60e233a847a6d00a9f221
         with:
           files: "**/*"
           root: "."

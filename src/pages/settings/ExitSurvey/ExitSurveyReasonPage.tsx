@@ -21,12 +21,14 @@ import INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
+const draftReasonSelector = (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[INPUT_IDS.REASON] ?? null;
+
 function ExitSurveyReasonPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [draftReason] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT, {
-        selector: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[INPUT_IDS.REASON] ?? null,
+        selector: draftReasonSelector,
         canBeMissing: true,
     });
 

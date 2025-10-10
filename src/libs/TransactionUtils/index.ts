@@ -17,7 +17,6 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import Permissions from '@libs/Permissions';
 import {getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -99,7 +98,9 @@ type TransactionParams = {
     filename?: string;
     customUnit?: TransactionCustomUnit;
     splitExpenses?: SplitExpense[];
+    splitExpensesTotal?: number;
     participants?: Participant[];
+    pendingAction?: PendingAction;
     distance?: number;
 };
 
@@ -310,7 +311,9 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         filename = '',
         customUnit,
         splitExpenses,
+        splitExpensesTotal,
         participants,
+        pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     } = transactionParams;
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -326,9 +329,11 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     if (originalTransactionID) {
         commentJSON.originalTransactionID = originalTransactionID;
     }
-
     if (splitExpenses) {
         commentJSON.splitExpenses = splitExpenses;
+    }
+    if (splitExpensesTotal) {
+        commentJSON.splitExpensesTotal = splitExpensesTotal;
     }
 
     const isMapDistanceTransaction = !!pendingFields?.waypoints;
@@ -354,7 +359,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         comment: commentJSON,
         merchant: merchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         created: created || DateUtils.getDBTime(),
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        pendingAction,
         receipt: receipt?.source
             ? {source: receipt.source, filename: receipt?.name ?? filename, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY, isTestDriveReceipt: receipt.isTestDriveReceipt}
             : {},
@@ -440,7 +445,8 @@ function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, reportTrans
     const isFromExpenseReport = parentReport?.type === CONST.REPORT.TYPE.EXPENSE;
     const isSplitPolicyExpenseChat = !!transaction?.comment?.splits?.some((participant) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`]?.isOwnPolicyExpenseChat);
     const isMerchantRequired = isFromExpenseReport || isSplitPolicyExpenseChat;
-    return (isMerchantRequired && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
+    const isAmountRequired = hasReceipt(transaction);
+    return (isMerchantRequired && isMerchantMissing(transaction)) || (isAmountMissing(transaction) && isAmountRequired) || isCreatedMissing(transaction);
 }
 
 /**
@@ -661,14 +667,18 @@ function getDescription(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
-function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false): number {
+function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false, allowNegative = false, disableOppositeConversion = false): number {
     // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
-    if (!isFromExpenseReport && !isFromTrackedExpense) {
+    if (!isFromExpenseReport && !isFromTrackedExpense && !allowNegative) {
         const amount = transaction?.modifiedAmount ?? 0;
         if (amount) {
             return Math.abs(amount);
         }
         return Math.abs(transaction?.amount ?? 0);
+    }
+
+    if (disableOppositeConversion) {
+        return transaction?.amount ?? 0;
     }
 
     // Expense report case:
@@ -679,8 +689,9 @@ function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseRepo
         return -amount;
     }
 
-    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
     amount = transaction?.amount ?? 0;
+
+    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
     return amount ? -amount : 0;
 }
 
@@ -1230,23 +1241,18 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
 /**
  * Check if transaction has duplicatedTransaction violation.
  * @param transactionID - the transaction to check
- * @param checkDismissed - whether to check if the violation has already been dismissed as well
  */
-function isDuplicate(transaction: OnyxEntry<Transaction>, checkDismissed = false): boolean {
+function isDuplicate(transaction: OnyxEntry<Transaction>): boolean {
     if (!transaction) {
         return false;
     }
-    const duplicateViolation = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]?.find(
+    const duplicatedTransactionViolation = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]?.find(
         (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     );
-    const hasDuplicatedViolation = !!duplicateViolation;
-    if (!checkDismissed) {
-        return hasDuplicatedViolation;
-    }
+    const hasDuplicatedTransactionViolation = !!duplicatedTransactionViolation;
+    const isDuplicatedTransactionViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation);
 
-    const didDismissedViolation = isViolationDismissed(transaction, duplicateViolation);
-
-    return hasDuplicatedViolation && !didDismissedViolation;
+    return hasDuplicatedTransactionViolation && !isDuplicatedTransactionViolationDismissed;
 }
 
 /**
@@ -1258,17 +1264,6 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
     }
 
     return !!transaction.comment?.hold;
-}
-
-/**
- * Check if transaction is on hold for the given transactionID
- */
-function isOnHoldByTransactionID(transactionID: string | undefined | null): boolean {
-    if (!transactionID) {
-        return false;
-    }
-
-    return isOnHold(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]);
 }
 
 /**
@@ -1312,7 +1307,7 @@ function hasDuplicateTransactions(iouReportID?: string, allReportTransactions?: 
     const transactionsByIouReportID = getReportTransactions(iouReportID);
     const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
 
-    return reportTransactions.length > 0 && reportTransactions.some((transaction) => isDuplicate(transaction, true));
+    return reportTransactions.length > 0 && reportTransactions.some((transaction) => isDuplicate(transaction));
 }
 
 /**
@@ -1930,6 +1925,20 @@ function isTransactionPendingDelete(transaction: OnyxEntry<Transaction>): boolea
 }
 
 /**
+ * Retrieves all “child” transactions associated with a given original transaction
+ */
+function getChildTransactions(originalTransactionID: string | undefined) {
+    return Object.values(allTransactions ?? {}).filter((currentTransaction) => {
+        const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
+        return (
+            currentTransaction?.comment?.originalTransactionID === originalTransactionID &&
+            !!currentReport &&
+            currentTransaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+        );
+    });
+}
+
+/**
  * Creates sections data for unreported expenses, marking transactions with DELETE pending action as disabled
  */
 function createUnreportedExpenseSections(transactions: Array<Transaction | undefined>): Array<{shouldShow: boolean; data: UnreportedExpenseListItemType[]}> {
@@ -1950,12 +1959,7 @@ function createUnreportedExpenseSections(transactions: Array<Transaction | undef
     ];
 }
 
-// Temporarily only for use in the Unreported Expense project
 function isExpenseUnreported(transaction?: Transaction): transaction is UnreportedTransaction {
-    // TODO: added for development purposes, should be removed once the feature are fully implemented
-    if (!Permissions.canUseUnreportedExpense()) {
-        return false;
-    }
     return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 }
 
@@ -2013,7 +2017,6 @@ export {
     isPending,
     isPosted,
     isOnHold,
-    isOnHoldByTransactionID,
     getWaypoints,
     isAmountMissing,
     isMerchantMissing,
@@ -2063,6 +2066,7 @@ export {
     getOriginalTransactionWithSplitInfo,
     getTransactionPendingAction,
     isTransactionPendingDelete,
+    getChildTransactions,
     createUnreportedExpenseSections,
     isDemoTransaction,
     shouldShowViolation,

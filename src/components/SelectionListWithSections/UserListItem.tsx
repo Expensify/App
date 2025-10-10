@@ -18,6 +18,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import BaseListItem from './BaseListItem';
 import type {ListItem, UserListItemProps} from './types';
 
+const reportExistsSelector = (report: unknown) => !!report;
+
 function UserListItem<TItem extends ListItem>({
     item,
     isFocused,
@@ -56,7 +58,7 @@ function UserListItem<TItem extends ListItem>({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {
         canBeMissing: true,
-        selector: (report) => !!report,
+        selector: reportExistsSelector,
     });
 
     const reportExists = isReportInOnyx && !!item.reportID;
