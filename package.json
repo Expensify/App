@@ -43,6 +43,7 @@
     "android-build": "bundle exec fastlane android build_local",
     "android-hybrid-build": "bundle exec fastlane android build_local_hybrid",
     "test": "TZ=utc NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:verbose": "TZ=utc NODE_OPTIONS=--experimental-vm-modules JEST_VERBOSE=true jest",
     "test:debug": "TZ=utc NODE_OPTIONS='--inspect-brk --experimental-vm-modules' jest --runInBand",
     "perf-test": "NODE_OPTIONS=--experimental-vm-modules npx reassure",
     "typecheck": "NODE_OPTIONS=--max_old_space_size=8192 tsc",
