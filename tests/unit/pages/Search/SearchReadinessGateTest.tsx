@@ -1,6 +1,6 @@
 import {render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
-import {Text} from 'react-native';
+import {Text} from '@components/Text';
 import type {ValueOf} from 'type-fest';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
@@ -88,6 +88,9 @@ describe('SearchReadinessGate', () => {
 
         await waitFor(() => {
             expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        });
+
+        await waitFor(() => {
             expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
         });
 

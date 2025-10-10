@@ -10,6 +10,8 @@ import {createTypeMenuSections, getSuggestedSearches, getSuggestedSearchesVisibi
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Session} from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -92,7 +94,7 @@ const useSearchTypeMenuSections = () => {
 
     const suggestedSearches = useMemo(() => {
         if (!suggestedSearchesReady) {
-            return CONST.EMPTY_OBJECT as Record<string, SearchTypeMenuItem>;
+            return getEmptyObject<Record<string, SearchTypeMenuItem>>();
         }
 
         return getSuggestedSearches(currentUserLoginAndAccountID?.accountID ?? CONST.DEFAULT_NUMBER_ID, defaultFeedForSuggestedSearches?.id);
@@ -100,7 +102,7 @@ const useSearchTypeMenuSections = () => {
 
     const suggestedSearchesVisibility = useMemo(() => {
         if (!suggestedSearchesReady) {
-            return CONST.EMPTY_OBJECT as Record<string, boolean>;
+            return getEmptyObject<Record<string, boolean>>();
         }
 
         return getSuggestedSearchesVisibility(currentUserLoginAndAccountID?.email, cardFeedsByPolicy, allPolicies, defaultExpensifyCard, reports, currentUserLoginAndAccountID?.accountID);
@@ -108,7 +110,7 @@ const useSearchTypeMenuSections = () => {
 
     const typeMenuSections = useMemo((): SearchTypeMenuSection[] => {
         if (!suggestedSearchesReady) {
-            return CONST.EMPTY_ARRAY as SearchTypeMenuSection[];
+            return getEmptyArray() as SearchTypeMenuSection[];
         }
 
         return memoizedCreateTypeMenuSections(
