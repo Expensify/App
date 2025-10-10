@@ -314,6 +314,10 @@ function getPolicyCategories(policyID: string) {
     API.read(READ_COMMANDS.GET_POLICY_CATEGORIES, params);
 }
 
+/**
+ * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
+ * All usages of this function should be replaced with useOnyx hook in React components.
+ */
 function buildOptimisticPolicyRecentlyUsedCategories(policyID?: string, category?: string) {
     if (!policyID || !category) {
         return [];
@@ -1486,6 +1490,8 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
 export {
     buildOptimisticPolicyCategories,
     buildOptimisticMccGroup,
+    // TODO: Replace buildOptimisticPolicyRecentlyUsedCategories with useOnyx hook (https://github.com/Expensify/App/issues/66557)
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     buildOptimisticPolicyRecentlyUsedCategories,
     clearCategoryErrors,
     createPolicyCategory,

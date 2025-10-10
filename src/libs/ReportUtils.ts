@@ -11901,6 +11901,19 @@ function getReportStatusTranslation(stateNum?: number, statusNum?: number): stri
     return '';
 }
 
+/**
+ * Checks if a workspace member is leaving a workspace room
+ * This is used to determine if we need to show special handling when a workspace member leaves a room
+ */
+function isWorkspaceMemberLeavingWorkspaceRoom(report: OnyxEntry<Report>, isPolicyEmployee: boolean, isPolicyAdminParam: boolean): boolean {
+    if (!report) {
+        return false;
+    }
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const hasAccessPolicyExpenseChat = isPolicyExpenseChat(report) && (report.isOwnPolicyExpenseChat || isPolicyAdminParam);
+    return (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || hasAccessPolicyExpenseChat) && isPolicyEmployee;
+}
+
 export {
     areAllRequestsBeingSmartScanned,
     buildOptimisticAddCommentReportAction,
@@ -12173,6 +12186,7 @@ export {
     isValidReportIDFromPath,
     isWaitingForAssigneeToCompleteAction,
     isWaitingForSubmissionFromCurrentUser,
+    isWorkspaceMemberLeavingWorkspaceRoom,
     isInvoiceRoom,
     isInvoiceRoomWithID,
     isInvoiceReport,
