@@ -30,13 +30,14 @@ function useOnboardingFlowRouter() {
     });
     const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
-    const [onboardingInitialPath, onboardingInitialPathResult] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
-    const isOnboardingInitialPathLoading = isLoadingOnyxValue(onboardingInitialPathResult);
+    const [onboardingInitialPath, onboardingInitialPathMetadata] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const isOnboardingLoading = isLoadingOnyxValue(onboardingInitialPathMetadata, accountMetadata);
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const isLoggingInAsNewSessionUser = isLoggingInAsNewUser(currentUrl, sessionEmail);
     const startedOnboardingFlowRef = useRef(false);
+    const started2FAFlowRef = useRef(false);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
         canBeMissing: true,
@@ -57,7 +58,8 @@ function useOnboardingFlowRouter() {
             if (currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS) && isLoggingInAsNewSessionUser) {
                 return;
             }
-            if (isLoadingApp !== false || isOnboardingInitialPathLoading) {
+
+            if (isLoadingApp !== false || isOnboardingLoading) {
                 return;
             }
 
@@ -75,6 +77,11 @@ function useOnboardingFlowRouter() {
             }
 
             if (shouldShowRequire2FAPage) {
+                if (started2FAFlowRef.current) {
+                    startedOnboardingFlowRef.current = false;
+                    return;
+                }
+                started2FAFlowRef.current = true;
                 Navigation.navigate(ROUTES.REQUIRE_TWO_FACTOR_AUTH);
                 return;
             }
@@ -155,7 +162,7 @@ function useOnboardingFlowRouter() {
         currentOnboardingCompanySize,
         currentOnboardingPurposeSelected,
         onboardingInitialPath,
-        isOnboardingInitialPathLoading,
+        isOnboardingLoading,
         typeMenuSections,
         shouldShowRequire2FAPage,
     ]);
