@@ -52,6 +52,7 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
             shouldShowOfflineIndicator
             testID={TravelUpgrade.displayName}
             offlineIndicatorStyle={styles.mtAuto}
+            shouldShowOfflineIndicatorInWideScreen={!isUpgraded}
         >
             <HeaderWithBackButton
                 title={translate('common.upgrade')}

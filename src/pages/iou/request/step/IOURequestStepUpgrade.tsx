@@ -146,6 +146,7 @@ function IOURequestStepUpgrade({
             shouldShowOfflineIndicator
             testID="workspaceUpgradePage"
             offlineIndicatorStyle={styles.mtAuto}
+            shouldShowOfflineIndicatorInWideScreen={!isUpgraded}
         >
             {(!!isUpgraded || !showConfirmationForm) && (
                 <HeaderWithBackButton
