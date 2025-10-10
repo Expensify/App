@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -15,7 +15,7 @@ import type {Report} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
@@ -38,11 +38,15 @@ describe('ReportDetailsPage', () => {
     });
 
     afterEach(async () => {
-        await Onyx.clear();
+        await act(async () => {
+            await Onyx.clear();
+        });
     });
 
     it('self DM track options should disappear when report moved to workspace', async () => {
-        await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TRACK_FLOWS]);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TRACK_FLOWS]);
+        });
 
         const selfDMReportID = '1';
         const trackExpenseReportID = '2';
@@ -55,20 +59,22 @@ describe('ReportDetailsPage', () => {
             parentReportID: selfDMReportID,
             parentReportActionID: trackExpenseActionID,
         };
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {
-            ...createRandomReport(Number(selfDMReportID)),
-            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
-        });
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${trackExpenseReportID}`, trackExpenseReport);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, {
-            [trackExpenseActionID]: {
-                ...createRandomReportAction(Number(trackExpenseActionID)),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                originalMessage: {
-                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {
+                ...createRandomReport(Number(selfDMReportID)),
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${trackExpenseReportID}`, trackExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, {
+                [trackExpenseActionID]: {
+                    ...createRandomReportAction(Number(trackExpenseActionID)),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                    },
                 },
-            },
+            });
         });
 
         const {rerender} = render(
@@ -86,7 +92,7 @@ describe('ReportDetailsPage', () => {
                 </LocaleContextProvider>
             </OnyxListItemProvider>,
         );
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         const submitText = translateLocal('actionableMentionTrackExpense.submit');
         const categorizeText = translateLocal('actionableMentionTrackExpense.categorize');
@@ -101,7 +107,9 @@ describe('ReportDetailsPage', () => {
             parentReportID: '3',
             parentReportActionID: '234',
         };
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${trackExpenseReportID}`, movedTrackExpenseReport);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${trackExpenseReportID}`, movedTrackExpenseReport);
+        });
 
         rerender(
             <OnyxListItemProvider>

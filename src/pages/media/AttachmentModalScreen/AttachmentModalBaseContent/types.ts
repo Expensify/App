@@ -11,7 +11,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 type AttachmentModalOnCloseOptions = {
     shouldCallDirectly?: boolean;
-    onAfterClose?: () => void;
 };
 
 type AttachmentModalContentData = {

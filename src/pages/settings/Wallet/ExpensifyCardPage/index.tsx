@@ -192,7 +192,7 @@ function ExpensifyCardPage({
                             />
                         )}
                         {virtualCards.map((card) => (
-                            <>
+                            <React.Fragment key={card.cardID}>
                                 {!!cardsDetails[card.cardID] && cardsDetails[card.cardID]?.pan ? (
                                     <CardDetails
                                         pan={cardsDetails[card.cardID]?.pan}
@@ -247,11 +247,11 @@ function ExpensifyCardPage({
                                         }}
                                     />
                                 )}
-                            </>
+                            </React.Fragment>
                         ))}
                         {isTravelCard &&
                             travelCards.map((card) => (
-                                <>
+                                <React.Fragment key={card.cardID}>
                                     {!!cardsDetails[card.cardID] && cardsDetails[card.cardID]?.cvv ? (
                                         <CardDetails
                                             cvv={cardsDetails[card.cardID]?.cvv}
@@ -292,7 +292,7 @@ function ExpensifyCardPage({
                                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
                                         />
                                     )}
-                                </>
+                                </React.Fragment>
                             ))}
                         {shouldShowReportLostCardButton && (
                             <>

@@ -1,7 +1,7 @@
 ---
 title: Add or remove a business bank account
 description: Learn how to add or remove a business bank account in Expensify, including setup steps and limitations.
-keywords: [add bank account, remove bank account, delete account, verified account, deposit-only, Expensify Wallet, ACH, payments setup]
+keywords: [add bank account, remove bank account, delete account, verified account, deposit-only, Expensify Wallet, ACH, payments setup, business bank account, business checking]
 ---
 <div id="expensify-classic" markdown="1">
 
@@ -37,7 +37,7 @@ Once a business bank account has been connected and verified in your Wallet, you
 
 ---
 
-# Remove a Bank Account
+# How to Remove a Bank Account
 
 ## Web
 1. Go to **Settings > Account > Wallet**.

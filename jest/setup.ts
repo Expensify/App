@@ -1,4 +1,5 @@
 /* eslint-disable max-classes-per-file */
+import * as core from '@actions/core';
 import '@shopify/flash-list/jestSetup';
 import type * as RNAppLogs from 'react-native-app-logs';
 import 'react-native-gesture-handler/jestSetup';
@@ -40,16 +41,24 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
     },
 }));
 
-// Turn off the console logs for timing events. They are not relevant for unit tests and create a lot of noise
-jest.spyOn(console, 'debug').mockImplementation((...params: string[]) => {
-    if (params.at(0)?.startsWith('Timing:')) {
-        return;
-    }
+const isVerbose = process.env.JEST_VERBOSE === 'true';
 
-    // Send the message to console.log but don't re-used console.debug or else this mock method is called in an infinite loop. Instead, just prefix the output with the word "DEBUG"
-    // eslint-disable-next-line no-console
-    console.log('DEBUG', ...params);
-});
+if (!isVerbose) {
+    jest.spyOn(core, 'startGroup').mockImplementation(() => {});
+    jest.spyOn(core, 'endGroup').mockImplementation(() => {});
+    jest.spyOn(core, 'group').mockImplementation(<T>(_title: string, fn: () => T) => fn());
+    jest.spyOn(core, 'info').mockImplementation(() => {});
+    jest.spyOn(core, 'setOutput').mockImplementation(() => {});
+
+    // Make them global to override module-level console calls
+    global.console = {
+        ...console,
+        log: jest.fn(),
+        info: jest.fn(),
+        debug: jest.fn(),
+        warn: jest.fn(),
+    } as Console;
+}
 
 // This mock is required for mocking file systems when running tests
 jest.mock('react-native-fs', () => ({

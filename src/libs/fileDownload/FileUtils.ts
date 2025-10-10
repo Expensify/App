@@ -549,6 +549,11 @@ const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
 
 const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean, isValidatingReceipt?: boolean) => {
     const maxFileSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
+
+    if (isValidatingReceipt && !isValidReceiptExtension(file)) {
+        return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
+    }
+
     if (!Str.isImage(file.name ?? '') && !hasHeicOrHeifExtension(file) && (file?.size ?? 0) > maxFileSize) {
         return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }
@@ -557,9 +562,6 @@ const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean,
         return CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL;
     }
 
-    if (isValidatingReceipt && !isValidReceiptExtension(file)) {
-        return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
-    }
     return '';
 };
 
@@ -699,23 +701,19 @@ const canvasFallback = (blob: Blob, fileName: string): Promise<File> => {
     });
 };
 
+function getFileWithUri(file: File) {
+    const newFile = file;
+    newFile.uri = URL.createObjectURL(newFile);
+    return newFile as FileObject;
+}
+
 function getFilesFromClipboardEvent(event: DragEvent) {
-    if (event.dataTransfer?.files.length && event.dataTransfer?.files.length > 1) {
-        const files = Array.from(event.dataTransfer?.files).map((file) => {
-            // eslint-disable-next-line no-param-reassign
-            file.uri = URL.createObjectURL(file);
-            return file;
-        });
-        return files;
+    const files = event.dataTransfer?.files;
+    if (!files || files?.length === 0) {
+        return [];
     }
 
-    const data = event.dataTransfer?.files[0];
-    if (data) {
-        data.uri = URL.createObjectURL(data);
-        return [data];
-    }
-
-    return [];
+    return Array.from(files).map((file) => getFileWithUri(file));
 }
 
 function cleanFileObject(fileObject: FileObject): FileObject {
