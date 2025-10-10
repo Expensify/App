@@ -76,7 +76,6 @@ function SearchFiltersReportFieldPage() {
     }, [advancedFiltersForm, fieldList, translate]);
 
     const resetValues = () => {
-        // Set all values that are report fields back to empty
         const clearedAdvancedFiltersForm = Object.keys(advancedFiltersForm ?? {}).reduce((acc, key) => {
             if (key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
                 return Object.assign(acc, {[key]: null});
@@ -85,6 +84,14 @@ function SearchFiltersReportFieldPage() {
         }, {});
 
         updateAdvancedFilters(clearedAdvancedFiltersForm);
+    };
+
+    /**
+     * Changes are automatically saved to the advanced filters form, so we can
+     * just navigate back
+     */
+    const saveChanges = () => {
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     };
 
     if (selectedField) {
@@ -130,6 +137,7 @@ function SearchFiltersReportFieldPage() {
             <HeaderWithBackButton
                 title={translate('workspace.common.reportField')}
                 onBackButtonPress={() => {
+                    resetValues();
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
@@ -154,7 +162,7 @@ function SearchFiltersReportFieldPage() {
             <FormAlertWithSubmitButton
                 buttonText={translate('common.save')}
                 containerStyles={[styles.m4, styles.mt3, styles.mb5]}
-                onSubmit={() => {}}
+                onSubmit={saveChanges}
                 enabledWhenOffline
             />
         </ScreenWrapper>

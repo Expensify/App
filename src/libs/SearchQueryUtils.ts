@@ -1055,7 +1055,6 @@ function buildUserReadableQueryString(
                 value: getFilterDisplayValue(key, getUserFriendlyValue(filter.value.toString()), PersonalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID),
             }));
         }
-
         title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);
     }
 

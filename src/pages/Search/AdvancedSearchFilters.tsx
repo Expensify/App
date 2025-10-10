@@ -371,6 +371,8 @@ function getFilterDisplayTitle(
 
     key = filterKey as Exclude<SearchFilterKey, SearchDateFilterKeys | SearchAmountFilterKeys>;
 
+    // JACK_TODO: Update this based on the result of this conversation:
+    // https://new.expensify.com//r/3594838085067419/5438745387543660410
     if (key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
         const values: string[] = [];
 
