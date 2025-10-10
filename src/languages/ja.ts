@@ -5542,7 +5542,7 @@ const translations = {
             },
             reports: {
                 title: 'レポート',
-                description: '組織化された経費レポートを作成して、ビジネス支出を追跡し、承認のために提出し、払い戻しプロセスを合理化します。',
+                description: 'レポートを使用すると、経費をグループ化して追跡と整理を簡単にできます。',
                 onlyAvailableOnPlan: 'レポートは、Collectプランで利用可能です。料金は ',
             },
             multiLevelTags: {

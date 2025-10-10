@@ -5581,7 +5581,7 @@ const translations = {
             },
             reports: {
                 title: 'Relatórios',
-                description: 'Crie relatórios de despesas organizados para acompanhar seus gastos empresariais, enviá-los para aprovação e otimizar seu processo de reembolso.',
+                description: 'Os relatórios permitem agrupar despesas para facilitar o acompanhamento e organização.',
                 onlyAvailableOnPlan: 'Os relatórios estão disponíveis no plano Collect, a partir de ',
             },
             multiLevelTags: {

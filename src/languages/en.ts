@@ -5556,7 +5556,7 @@ const translations = {
             },
             reports: {
                 title: 'Reports',
-                description: 'Create organized expense reports to track your business spending, submit for approvals, and streamline your reimbursement process.',
+                description: 'Reports allow you to group expenses for easier tracking and organization.',
                 onlyAvailableOnPlan: 'Reports are available on the Collect plan, starting at ',
             },
             multiLevelTags: {

@@ -5585,7 +5585,7 @@ const translations = {
             },
             reports: {
                 title: 'Informes',
-                description: 'Crea informes de gastos organizados para hacer seguimiento de tus gastos comerciales, enviarlos para aprobación y optimizar tu proceso de reembolso.',
+                description: 'Los informes te permiten agrupar gastos para un seguimiento y organización más fáciles.',
                 onlyAvailableOnPlan: 'Los informes están disponibles en el plan Recopilar, a partir de ',
             },
             multiLevelTags: {

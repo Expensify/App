@@ -5476,7 +5476,7 @@ const translations = {
             },
             reports: {
                 title: '报告',
-                description: '创建有序的费用报告来跟踪您的商业开支，提交审批，并简化您的报销流程。',
+                description: '报告允许您对费用进行分组，以便更容易地跟踪和整理。',
                 onlyAvailableOnPlan: '报告功能在 Collect 计划中提供，起价为 ',
             },
             multiLevelTags: {

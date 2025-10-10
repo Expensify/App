@@ -5591,7 +5591,7 @@ const translations = {
             },
             reports: {
                 title: 'Report',
-                description: 'Crea report spese organizzati per tenere traccia delle tue spese aziendali, inviarli per approvazione e semplificare il processo di rimborso.',
+                description: `I report ti permettono di raggruppare le spese per un monitoraggio e un'organizzazione più semplici.`,
                 onlyAvailableOnPlan: 'I report sono disponibili nel piano Collect, a partire da ',
             },
             multiLevelTags: {
