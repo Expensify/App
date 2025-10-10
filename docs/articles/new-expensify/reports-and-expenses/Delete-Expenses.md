@@ -57,9 +57,9 @@ Company card expenses can’t be deleted if **Allow deleting transactions** is t
 
 Expense actions like deleting, editing, or retracting can only be done in your own account. Even Workspace Admins can’t delete another member’s expenses. If you need to help a teammate, ask them to add you as a [Copilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access) so you can assist from their account.
 
-## Can I reopen a retract after it’s been approved or paid?
+## Can I retract a report after it’s been approved or paid?
 
-No, reports in **Approved** or **Paid** status can’t be retracted. Only reports that are **Done** or **Outstanding** state can be retracted to allow expense deletion.
+No, reports in **Approved** or **Paid** status can’t be retracted. Only reports that are **Done** or **Outstanding** can be retracted to allow expense deletion.
 
 ## Can Expensify permanently delete expenses for me?
 
