@@ -17,9 +17,9 @@ import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type {SelectionListHandle} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
+import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import useContactImport from '@hooks/useContactImport';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
@@ -79,8 +79,14 @@ type MoneyRequestParticipantsSelectorProps = {
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
 
+    /** Whether the IOU is workspaces only */
+    isWorkspacesOnly?: boolean;
+
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
+
+    /** Whether this is a corporate card transaction */
+    isCorporateCardTransaction?: boolean;
 
     /** Reference to the outer element */
     ref?: Ref<InputFocusRef>;
@@ -98,6 +104,8 @@ function MoneyRequestParticipantsSelector({
     iouType,
     action,
     isPerDiemRequest = false,
+    isWorkspacesOnly = false,
+    isCorporateCardTransaction = false,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
@@ -133,7 +141,14 @@ function MoneyRequestParticipantsSelector({
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
-    const canShowManagerMcTest = useMemo(() => !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT, [hasBeenAddedToNudgeMigration, action]);
+    const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: (items) => Object.values(items ?? {}),
+        canBeMissing: true,
+    });
+
+    // This is necessary to prevent showing the Manager McTest when there are multiple transactions being created
+    const hasMultipleTransactions = (optimisticTransactions ?? []).length > 1;
+    const canShowManagerMcTest = useMemo(() => !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT, [hasBeenAddedToNudgeMigration, action]) && !hasMultipleTransactions;
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -173,8 +188,8 @@ function MoneyRequestParticipantsSelector({
                 // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
                 excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
 
-                // Per diem expenses should only be submitted to workspaces, not individual users
-                includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest,
+                // Per diem expenses and corporate card transactions should only be submitted to workspaces, not individual users
+                includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isCorporateCardTransaction,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,
                 shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
@@ -205,6 +220,7 @@ function MoneyRequestParticipantsSelector({
         participants,
         isPerDiemRequest,
         canShowManagerMcTest,
+        isCorporateCardTransaction,
     ]);
 
     const chatOptions = useMemo(() => {
@@ -286,19 +302,22 @@ function MoneyRequestParticipantsSelector({
             shouldShow: !!chatOptions.selfDMChat,
         });
 
-        newSections.push({
-            title: translate('common.recents'),
-            data: isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports,
-            shouldShow: (isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports).length > 0,
-        });
+        if (!isWorkspacesOnly) {
+            newSections.push({
+                title: translate('common.recents'),
+                data: isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports,
+                shouldShow: (isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports).length > 0,
+            });
 
-        newSections.push({
-            title: translate('common.contacts'),
-            data: chatOptions.personalDetails,
-            shouldShow: chatOptions.personalDetails.length > 0 && !isPerDiemRequest,
-        });
+            newSections.push({
+                title: translate('common.contacts'),
+                data: chatOptions.personalDetails,
+                shouldShow: chatOptions.personalDetails.length > 0 && !isPerDiemRequest,
+            });
+        }
 
         if (
+            !isWorkspacesOnly &&
             chatOptions.userToInvite &&
             !isCurrentUser({
                 ...chatOptions.userToInvite,
@@ -335,6 +354,7 @@ function MoneyRequestParticipantsSelector({
         chatOptions.userToInvite,
         personalDetails,
         translate,
+        isWorkspacesOnly,
         isPerDiemRequest,
         showImportContacts,
         reportAttributesDerived,
@@ -465,6 +485,7 @@ function MoneyRequestParticipantsSelector({
 
     const initiateContactImportAndSetState = useCallback(() => {
         setContactPermissionState(RESULTS.GRANTED);
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(importAndSaveContacts);
     }, [importAndSaveContacts, setContactPermissionState]);
 
@@ -593,7 +614,6 @@ function MoneyRequestParticipantsSelector({
                 onDeny={setContactPermissionState}
                 onFocusTextInput={() => {
                     setTextInputAutoFocus(true);
-                    selectionListRef.current?.focusTextInput?.();
                 }}
             />
             <SelectionList
@@ -623,7 +643,7 @@ function MoneyRequestParticipantsSelector({
                 canSelectMultiple={isIOUSplit && isAllowedToSplit}
                 isLoadingNewOptions={!!isSearchingForReports}
                 shouldShowListEmptyContent={shouldShowListEmptyContent}
-                textInputAutoFocus={!isNative}
+                textInputAutoFocus={textInputAutoFocus}
                 ref={selectionListRef}
             />
         </>
@@ -632,4 +652,12 @@ function MoneyRequestParticipantsSelector({
 
 MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
 
-export default memo(MoneyRequestParticipantsSelector, (prevProps, nextProps) => deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType);
+export default memo(
+    MoneyRequestParticipantsSelector,
+    (prevProps, nextProps) =>
+        deepEqual(prevProps.participants, nextProps.participants) &&
+        prevProps.iouType === nextProps.iouType &&
+        prevProps.isWorkspacesOnly === nextProps.isWorkspacesOnly &&
+        prevProps.onParticipantsAdded === nextProps.onParticipantsAdded &&
+        prevProps.onFinish === nextProps.onFinish,
+);

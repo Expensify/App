@@ -3,11 +3,11 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -107,10 +107,9 @@ function SelectFeedType() {
             />
 
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.howDoYouWantToConnect')}</Text>
-            <Text style={[styles.textSupporting, styles.ph5, styles.mb6]}>
-                {`${translate('workspace.companyCards.addNewCard.learnMoreAboutOptions.text')}`}
-                <TextLink href={CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}>{`${translate('workspace.companyCards.addNewCard.learnMoreAboutOptions.linkText')}`}</TextLink>
-            </Text>
+            <View style={[styles.renderHTML, styles.flexRow, styles.ph5, styles.mb6]}>
+                <RenderHTML html={translate('workspace.companyCards.addNewCard.learnMoreAboutOptions')} />
+            </View>
 
             <SelectionList
                 ListItem={RadioListItem}
