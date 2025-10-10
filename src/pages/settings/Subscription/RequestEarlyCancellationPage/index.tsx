@@ -95,7 +95,7 @@ function RequestEarlyCancellationPage() {
                 enabledWhenOffline={false}
             />
         ),
-        [acknowledgementText, isLoading, styles.flex1, styles.mb2, styles.mt4, translate],
+        [acknowledgementText, isLoading, styles.mb2, styles.mt4, translate],
     );
 
     const contentMap: Partial<Record<CancellationType, ReactNode>> = {
