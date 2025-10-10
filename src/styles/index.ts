@@ -690,7 +690,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         leftNavigationTabBarFAB: {
-            height: 1.75 * variables.navigationTabBarSize,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',

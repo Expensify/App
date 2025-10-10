@@ -118,7 +118,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
             {({hovered}) =>
                 isLHBVisible ? (
                     <Animated.View
-                        style={[styles.floatingActionButton, {borderRadius}, isLHBVisible && styles.floatingActionButtonSmall, animatedStyle, hovered && {backgroundColor: buttonHoveredBG}]}
+                        style={[styles.floatingActionButton, {borderRadius}, styles.floatingActionButtonSmall, animatedStyle, hovered && {backgroundColor: buttonHoveredBG}]}
                         testID="fab-animated-container"
                     >
                         <Svg
@@ -142,7 +142,6 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                         <View>
                             <Icon
                                 src={PlusCircle}
-                                // fill={selectedTab === NAVIGATION_TABS.SEARCH ? theme.iconMenu : theme.icon}
                                 fill={icon}
                                 width={variables.iconBottomBar}
                                 height={variables.iconBottomBar}
@@ -150,14 +149,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                         </View>
                         <Text
                             numberOfLines={1}
-                            style={[
-                                styles.textSmall,
-                                styles.textAlignCenter,
-                                styles.mt1Half,
-                                // selectedTab === NAVIGATION_TABS.SEARCH ? styles.textBold : styles.textSupporting,
-                                styles.textSupporting,
-                                styles.navigationTabBarLabel,
-                            ]}
+                            style={[styles.textSmall, styles.textAlignCenter, styles.mt1Half, styles.textSupporting, styles.navigationTabBarLabel]}
                         >
                             {translate('common.create')}
                         </Text>

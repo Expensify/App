@@ -581,9 +581,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     ];
 
     return (
-        // <View style={{backgroundColor: 'red'}}>
-        // <View style={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-        <View style={[styles.flexGrow1, styles.justifyContentEvenly]}>
+        <View style={[styles.flexGrow1, styles.justifyContentCenter, styles.pv4, styles.gap3]}>
             <PopoverMenu
                 onClose={hideCreateMenu}
                 shouldEnableMaxHeight={false}
