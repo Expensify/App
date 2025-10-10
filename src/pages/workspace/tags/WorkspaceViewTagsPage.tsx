@@ -379,7 +379,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             }}
                             pendingAction={currentPolicyTag.pendingFields?.required}
                             errors={currentPolicyTag?.errorFields?.required ?? undefined}
-                            onCloseError={() => clearPolicyTagListErrorField(policyID, route.params.orderWeight, 'required')}
+                            onCloseError={() => clearPolicyTagListErrorField({policyID, tagListIndex: route.params.orderWeight, errorField: 'required', policyTags})}
                             disabled={!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)}
                             showLockIcon={isMakingLastRequiredTagListOptional(policy, policyTags, [currentPolicyTag])}
                         />

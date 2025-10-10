@@ -1,6 +1,7 @@
 import {createPoliciesSelector} from '@selectors/Policy';
 import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import memoize from '@libs/memoize';
 import Permissions from '@libs/Permissions';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
@@ -38,6 +39,9 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     email: session?.email,
     accountID: session?.accountID,
 });
+
+const memoizedCreateTypeMenuSections = memoize(createTypeMenuSections, {maxSize: 5, monitoringName: 'useSearchTypeMenuSections.createTypeMenuSections'});
+
 /**
  * Get a list of all search groupings, along with their search items. Also returns the
  * currently focused search, based on the hash
@@ -58,7 +62,7 @@ const useSearchTypeMenuSections = () => {
 
     const typeMenuSections = useMemo(
         () =>
-            createTypeMenuSections(
+            memoizedCreateTypeMenuSections(
                 currentUserLoginAndAccountID?.email,
                 currentUserLoginAndAccountID?.accountID,
                 cardFeedsByPolicy,

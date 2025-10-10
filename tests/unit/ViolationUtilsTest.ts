@@ -175,6 +175,45 @@ describe('getViolationsOnyxData', () => {
         });
     });
 
+    describe('per diem rate validation', () => {
+        beforeEach(() => {
+            transactionViolations = [customUnitOutOfPolicyViolation];
+
+            const customUnitRateID = 'per_diem_rate_id';
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    customUnitRateID,
+                },
+            };
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
+            policy.customUnits = {
+                perDiemUnitId: {
+                    customUnitID: 'perDiemUnitId',
+                    defaultCategory: '',
+                    enabled: true,
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    rates: {
+                        [customUnitRateID]: {
+                            currency: 'USD',
+                            customUnitRateID,
+                            enabled: true,
+                            name: 'Spain',
+                            rate: 0,
+                        },
+                    },
+                },
+            };
+        });
+
+        it('should remove the customUnitOutOfPolicy violation if the per diem rate is valid for the policy', () => {
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).not.toContainEqual(customUnitOutOfPolicyViolation);
+        });
+    });
+
     describe('controlPolicyViolations', () => {
         beforeEach(() => {
             policy.type = 'corporate';
@@ -203,14 +242,14 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('should add receiptRequired violation if the transaction has no receipt', () => {
-            transaction.amount = 1000000;
+            transaction.amount = -1000000;
             policy.maxExpenseAmountNoReceipt = 2500;
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual(expect.arrayContaining([receiptRequiredViolation, ...transactionViolations]));
         });
 
         it('should not add receiptRequired violation if the transaction has different currency than the workspace currency', () => {
-            transaction.amount = 1000000;
+            transaction.amount = -1000000;
             transaction.modifiedCurrency = CONST.CURRENCY.CAD;
             policy.maxExpenseAmountNoReceipt = 2500;
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
@@ -218,14 +257,14 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('should add overLimit violation if the transaction amount is over the policy limit', () => {
-            transaction.amount = 1000000;
+            transaction.amount = -1000000;
             policy.maxExpenseAmount = 200000;
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual(expect.arrayContaining([overLimitViolation, ...transactionViolations]));
         });
 
         it('should not add overLimit violation if the transaction currency is different from the workspace currency', () => {
-            transaction.amount = 1000000;
+            transaction.amount = -1000000;
             transaction.modifiedCurrency = CONST.CURRENCY.NZD;
             policy.maxExpenseAmount = 200000;
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
@@ -247,7 +286,7 @@ describe('getViolationsOnyxData', () => {
                 },
             };
             transaction.category = 'Food';
-            transaction.amount = CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT + 1;
+            transaction.amount = -CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT - 1;
             transaction.comment = {comment: ''};
         });
 

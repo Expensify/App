@@ -5,6 +5,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,6 +29,7 @@ type CardTypeStepProps = {
 function CardTypeStep({policyID, stepNames, startStepIndex}: CardTypeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['HandCard'] as const);
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
 
     const isEditing = issueNewCard?.isEditing;
@@ -71,7 +73,7 @@ function CardTypeStep({policyID, stepNames, startStepIndex}: CardTypeStepProps) 
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.chooseCardType')}</Text>
             <View style={styles.mh5}>
                 <MenuItem
-                    icon={Illustrations.HandCard}
+                    icon={illustrations.HandCard}
                     title={translate('workspace.card.issueNewCard.physicalCard')}
                     description={translate('workspace.card.issueNewCard.physicalCardDescription')}
                     shouldShowRightIcon

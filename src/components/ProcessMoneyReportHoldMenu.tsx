@@ -3,12 +3,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import Navigation from '@libs/Navigation/Navigation';
-import {isLinkedTransactionHeld} from '@libs/ReportActionsUtils';
 import {approveMoneyRequest, payMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -73,9 +70,6 @@ function ProcessMoneyReportHoldMenu({
                 startAnimation();
             }
             approveMoneyRequest(moneyRequestReport, full);
-            if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId(), moneyRequestReport?.reportID)) {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport?.reportID));
-            }
         } else if (chatReport && paymentType) {
             if (startAnimation) {
                 startAnimation();
