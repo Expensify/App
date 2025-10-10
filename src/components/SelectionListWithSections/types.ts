@@ -21,7 +21,6 @@ import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
-import type SpendCategorySelectorListItem from '@pages/workspace/categories/SpendCategorySelectorListItem';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
@@ -556,8 +555,7 @@ type ValidListItem =
     | typeof SearchQueryListItem
     | typeof SearchRouterItem
     | typeof TravelDomainListItem
-    | typeof UnreportedExpenseListItem
-    | typeof SpendCategorySelectorListItem;
+    | typeof UnreportedExpenseListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
