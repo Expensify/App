@@ -11,7 +11,6 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import ImageSVG from '@components/ImageSVG';
 import MoneyReportHeaderStatusBarSkeleton from '@components/MoneyReportHeaderStatusBarSkeleton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -49,6 +48,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
     getPolicyName,
+    getReportStatusColorStyle,
     getReportStatusTranslation,
     getTransactionsWithReceipts,
     hasHeldExpenses as hasHeldExpensesReportUtils,
@@ -326,6 +326,11 @@ function MoneyRequestReportPreviewContent({
         [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum],
     );
 
+    const reportStatusColorStyle = useMemo(
+        () => getReportStatusColorStyle(theme, iouReport?.stateNum ?? action?.childStateNum, iouReport?.statusNum ?? action?.childStatusNum),
+        [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, theme],
+    );
+
     const totalAmountStyle = shouldUseNarrowLayout ? [styles.flexColumnReverse, styles.alignItemsStretch] : [styles.flexRow, styles.alignItemsCenter];
 
     useEffect(() => {
@@ -431,21 +436,6 @@ function MoneyRequestReportPreviewContent({
         !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewCarouselStyle.width >= CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH
             ? {maxWidth: reportPreviewStyles.transactionPreviewCarouselStyle.width}
             : {};
-
-    // We also show icons in case of Approved or Paid report for easier identification at glance
-    const isIconNeeded = useMemo(() => {
-        return iouSettled || isApproved;
-    }, [iouSettled, isApproved]);
-
-    const approvedOrSettledIcon = isIconNeeded && (
-        <ImageSVG
-            src={isApproved ? Expensicons.ThumbsUp : Expensicons.Checkmark}
-            fill={isApproved ? theme.icon : theme.iconSuccessFill}
-            width={variables.iconSizeExtraSmall}
-            height={variables.iconSizeExtraSmall}
-            contentFit="cover"
-        />
-    );
 
     useEffect(() => {
         if (
@@ -708,8 +698,20 @@ function MoneyRequestReportPreviewContent({
                                                 ) : (
                                                     !shouldShowEmptyPlaceholder && (
                                                         <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
-                                                            {isIconNeeded && <View style={[styles.alignItemsCenter, styles.lh16, styles.mr1]}>{approvedOrSettledIcon}</View>}
-                                                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}</Text>
+                                                            {!!reportStatus && (
+                                                                <View
+                                                                    style={[
+                                                                        styles.reportStatusContainer,
+                                                                        styles.mr1,
+                                                                        {
+                                                                            backgroundColor: reportStatusColorStyle?.backgroundColor,
+                                                                        },
+                                                                    ]}
+                                                                >
+                                                                    <Text style={[styles.reportStatusText, {color: reportStatusColorStyle?.textColor}]}>{reportStatus}</Text>
+                                                                </View>
+                                                            )}
+                                                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>
                                                         </View>
                                                     )
                                                 )}
