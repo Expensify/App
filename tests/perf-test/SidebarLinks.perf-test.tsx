@@ -73,10 +73,7 @@ describe('SidebarLinks', () => {
 
     test('[SidebarLinks] should render Sidebar with 500 reports stored', async () => {
         const scenario = async () => {
-            await waitFor(async () => {
-                // Query for the sidebar
-                await screen.findByTestId('lhn-options-list');
-            });
+            await screen.findByTestId('lhn-options-list');
         };
 
         await waitForBatchedUpdates();
@@ -103,7 +100,6 @@ describe('SidebarLinks', () => {
             const button = await screen.findByTestId('1');
             fireEvent.press(button);
         };
-
         await Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],

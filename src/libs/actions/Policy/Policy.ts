@@ -117,7 +117,6 @@ import type {
     PolicyCategories,
     PolicyCategory,
     PolicyEmployee,
-    ReimbursementAccount,
     Report,
     ReportAction,
     ReportActions,
@@ -269,12 +268,6 @@ Onyx.connect({
     callback: (val) => (allPersonalDetails = val),
 });
 
-let reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-Onyx.connect({
-    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    callback: (val) => (reimbursementAccount = val),
-});
-
 let allRecentlyUsedCurrencies: string[];
 Onyx.connect({
     key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
@@ -384,6 +377,7 @@ function deleteWorkspace(
     policyCardFeeds: CardFeeds | undefined,
     reportsToArchive: Report[],
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
+    reimbursementAccountError: Errors | undefined,
     lastUsedPaymentMethods?: LastPaymentMethod,
 ) {
     if (!allPolicies) {
@@ -429,7 +423,7 @@ function deleteWorkspace(
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
             value: {
-                errors: reimbursementAccount?.errors ?? null,
+                errors: reimbursementAccountError ?? null,
             },
         },
         {
