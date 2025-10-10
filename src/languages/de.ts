@@ -671,6 +671,7 @@ const translations = {
         link: 'Link',
         pinned: 'Angeheftet',
         read: 'Gelesen',
+        copyToClipboard: 'In die Zwischenablage kopieren',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -858,7 +859,7 @@ const translations = {
         expand: 'Erweitern',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'In die Zwischenablage kopieren',
+        copyMessage: 'Nachricht kopieren',
         copied: 'Kopiert!',
         copyLink: 'Link kopieren',
         copyURLToClipboard: 'URL in die Zwischenablage kopieren',
@@ -3747,6 +3748,18 @@ const translations = {
                 createEntitiesDescription: 'Expensify wird automatisch Lieferanten in QuickBooks Desktop erstellen, wenn sie noch nicht existieren.',
             },
             itemsDescription: 'Wählen Sie, wie QuickBooks Desktop-Elemente in Expensify behandelt werden sollen.',
+            accountingMethods: {
+                label: 'Wann exportieren',
+                description: 'Wählen Sie, wann die Ausgaben exportiert werden sollen:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Bargeld',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Auslagen werden exportiert, wenn sie endgültig genehmigt sind.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagen werden exportiert, wenn sie bezahlt sind.',
+                },
+            },
         },
         qbo: {
             connectedTo: 'Verbunden mit',
@@ -5567,6 +5580,11 @@ const translations = {
                 description:
                     'Expensify Travel ist eine neue Plattform für die Buchung und Verwaltung von Geschäftsreisen, die es Mitgliedern ermöglicht, Unterkünfte, Flüge, Transportmittel und mehr zu buchen.',
                 onlyAvailableOnPlan: 'Reisen ist im Collect-Plan verfügbar, beginnend bei',
+            },
+            reports: {
+                title: 'Berichte',
+                description: 'Berichte ermöglichen es Ihnen, Ausgaben für eine einfachere Verfolgung und Organisation zu gruppieren.',
+                onlyAvailableOnPlan: 'Berichte sind im Collect-Plan verfügbar, beginnend bei ',
             },
             multiLevelTags: {
                 title: 'Mehrstufige Tags',

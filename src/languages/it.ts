@@ -671,6 +671,7 @@ const translations = {
         link: 'Link',
         pinned: 'Fissato',
         read: 'Letto',
+        copyToClipboard: 'Copia negli appunti',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -854,7 +855,7 @@ const translations = {
         expand: 'Espandi',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'Copia negli appunti',
+        copyMessage: 'Copia messaggio',
         copied: 'Copiato!',
         copyLink: 'Copia link',
         copyURLToClipboard: 'Copia URL negli appunti',
@@ -3757,6 +3758,18 @@ const translations = {
                 createEntitiesDescription: 'Expensify creerà automaticamente i fornitori in QuickBooks Desktop se non esistono già.',
             },
             itemsDescription: 'Scegli come gestire gli elementi di QuickBooks Desktop in Expensify.',
+            accountingMethods: {
+                label: 'Quando Esportare',
+                description: 'Scegli quando esportare le spese:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contanti',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Le spese anticipate verranno esportate quando approvate definitivamente.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate quando pagate',
+                },
+            },
         },
         qbo: {
             connectedTo: 'Connesso a',
@@ -5577,6 +5590,11 @@ const translations = {
                 description:
                     'Expensify Travel è una nuova piattaforma aziendale per la prenotazione e la gestione dei viaggi che consente ai membri di prenotare alloggi, voli, trasporti e altro.',
                 onlyAvailableOnPlan: 'Il viaggio è disponibile nel piano Collect, a partire da',
+            },
+            reports: {
+                title: 'Report',
+                description: `I report ti permettono di raggruppare le spese per un monitoraggio e un'organizzazione più semplici.`,
+                onlyAvailableOnPlan: 'I report sono disponibili nel piano Collect, a partire da ',
             },
             multiLevelTags: {
                 title: 'Tag multi-livello',
