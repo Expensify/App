@@ -1,8 +1,8 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {FadeIn, FadeOut, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {easing} from '@components/Modal/ReanimatedModal/utils';
@@ -47,63 +47,21 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
     const theme = useTheme();
     const styles = useThemeStyles();
     const contentHeight = useSharedValue(0);
-    const isAnimating = useSharedValue(false);
-    const hasExpanded = useSharedValue(false);
-    const isExpandedFirstTime = useRef(false);
+    const hasExpanded = useSharedValue(isExpanded);
 
     useEffect(() => {
-        if (!isExpanded && !isExpandedFirstTime.current) {
-            return;
-        }
-        if (isExpandedFirstTime.current) {
-            hasExpanded.set(true);
-        } else {
-            isExpandedFirstTime.current = true;
-        }
-    }, [hasExpanded, isExpanded]);
+        hasExpanded.set(isExpanded);
+    }, [isExpanded, hasExpanded]);
 
-    // Animation for content height and opacity
-    const derivedHeight = useDerivedValue(() => {
-        const targetHeight = isExpanded ? contentHeight.get() : 0;
-        return withTiming(
-            targetHeight,
-            {
-                duration,
-                easing,
-            },
-            (finished) => {
-                if (!finished) {
-                    return;
-                }
-                isAnimating.set(false);
-            },
-        );
-    });
+    const animatedHeight = useDerivedValue(() => {
+        const target = hasExpanded.get() ? contentHeight.get() : 0;
+        return withTiming(target, {duration, easing});
+    }, [duration]);
 
-    const derivedOpacity = useDerivedValue(() => {
-        const targetOpacity = isExpanded ? 1 : 0;
-        isAnimating.set(true);
-        return withTiming(targetOpacity, {
-            duration,
-            easing,
-        });
-    });
-
-    const contentAnimatedStyle = useAnimatedStyle(() => {
-        if (!isExpanded && !hasExpanded.get()) {
-            return {
-                height: 0,
-                opacity: 0,
-                overflow: 'hidden',
-            };
-        }
-
-        return {
-            height: !hasExpanded.get() ? undefined : derivedHeight.get(),
-            opacity: derivedOpacity.get(),
-            overflow: isAnimating.get() ? 'hidden' : 'visible',
-        };
-    });
+    const contentAnimatedStyle = useAnimatedStyle(() => ({
+        height: animatedHeight.get(),
+        overflow: 'hidden',
+    }));
 
     return (
         <View style={style}>
@@ -127,20 +85,25 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
             </View>
             <Animated.View style={[contentAnimatedStyle, contentStyle]}>
                 <View
+                style={styles.stickToTop}
                     onLayout={(e) => {
-                        if (!e.nativeEvent.layout.height) {
-                            return;
+                        const height = e.nativeEvent.layout.height;
+                        if (height) {
+                            contentHeight.set(height);
                         }
-                        if (!isExpanded) {
-                            hasExpanded.set(true);
-                        }
-                        contentHeight.set(e.nativeEvent.layout.height);
                     }}
                 >
-                    <View style={[styles.pv2, styles.ph3]}>
-                        <View style={[styles.borderBottom]} />
-                    </View>
-                    {children}
+                    {isExpanded ? (
+                        <Animated.View
+                            exiting={FadeOut}
+                            entering={FadeIn}
+                        >
+                            <View style={[styles.pv2, styles.ph3]}>
+                                <View style={[styles.borderBottom]} />
+                            </View>
+                            {children}
+                        </Animated.View>
+                    ) : null}
                 </View>
             </Animated.View>
         </View>
