@@ -3,8 +3,6 @@ import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -21,7 +19,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {openSearch} from '@libs/actions/Search';
+import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
+import type {TransactionPreviewData} from '@libs/actions/Search';
 import Timing from '@libs/actions/Timing';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -29,7 +28,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {buildOptimisticIOUReportAction, canEditFieldOfMoneyRequest, selectArchivedReportsIdSet, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, selectArchivedReportsIdSet, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {
@@ -56,7 +55,6 @@ import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
-import {setOptimisticTransactionThread} from '@userActions/Report';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -227,7 +225,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
@@ -582,62 +579,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         [data, reportActionsArray, selectedTransactions, outstandingReportsByPolicyID, setSelectedTransactions],
     );
 
-    // We optimistically set the data necessary to show the transaction thread
-    const setOptimisticPreviewData = useCallback(
-        (item: TransactionListItemType) => {
-            const {moneyRequestReportActionID, reportID, report, amount, currency, transactionID, created, transactionThreadReportID, policyID} = item;
-            const onyxUpdates: OnyxUpdate[] = [];
-
-            if (!reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) {
-                onyxUpdates.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: report,
-                });
-            }
-
-            const parentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
-            const parentReportAction = moneyRequestReportActionID ? parentReportActions?.[moneyRequestReportActionID] : undefined;
-            if (!parentReportAction) {
-                const optimisticIOUAction = buildOptimisticIOUReportAction({
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                    amount,
-                    currency,
-                    comment: '',
-                    participants: [],
-                    transactionID,
-                    iouReportID: reportID,
-                    created,
-                    reportActionID: moneyRequestReportActionID,
-                    linkedExpenseReportAction: {childReportID: transactionThreadReportID} as ReportAction,
-                });
-                optimisticIOUAction.pendingAction = undefined;
-                onyxUpdates.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                    value: {[optimisticIOUAction.reportActionID]: optimisticIOUAction},
-                });
-            }
-
-            if (!transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]) {
-                onyxUpdates.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    value: item,
-                });
-            }
-
-            if (!reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]) {
-                setOptimisticTransactionThread(transactionThreadReportID, reportID, moneyRequestReportActionID, policyID);
-            }
-
-            Onyx.update(onyxUpdates);
-        },
-        [reportActions, reports, transactions],
-    );
-
     const onSelectRow = useCallback(
-        (item: SearchListItem) => {
+        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData) => {
             if (isMobileSelectionModeEnabled) {
                 toggleTransaction(item);
                 return;
@@ -709,8 +652,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             if (isTransactionGroupListItemType(item)) {
                 const firstTransaction = item.transactions.at(0);
-                if (item.isOneTransactionReport && firstTransaction) {
-                    setOptimisticPreviewData(firstTransaction);
+                if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
+                    setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData);
                 }
                 requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
                 return;
@@ -728,13 +671,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 markReportIDAsExpense(reportID);
             }
 
-            if (isTransactionItem) {
-                setOptimisticPreviewData(item);
+            if (isTransactionItem && transactionPreviewData) {
+                setOptimisticDataForTransactionThreadPreview(item, transactionPreviewData);
             }
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [isMobileSelectionModeEnabled, type, toggleTransaction, reportActionsArray, hash, queryJSON, handleSearch, searchKey, setOptimisticPreviewData, markReportIDAsExpense],
+        [isMobileSelectionModeEnabled, type, toggleTransaction, reportActionsArray, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
     );
 
     const currentColumns = useMemo(() => {

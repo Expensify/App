@@ -22,7 +22,15 @@ import {getActivePaymentType} from '@libs/PaymentUtils';
 import {getPersonalPolicy, getSubmitToAccountID, getValidConnectedIntegration} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
-import {buildOptimisticExportIntegrationAction, getReportTransactions, hasHeldExpenses, isExpenseReport, isInvoiceReport, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
+import {
+    buildOptimisticExportIntegrationAction,
+    buildOptimisticIOUReportAction,
+    getReportTransactions,
+    hasHeldExpenses,
+    isExpenseReport,
+    isInvoiceReport,
+    isIOUReport as isIOUReportUtil,
+} from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -32,12 +40,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, ReportActions, Transaction} from '@src/types/onyx';
+import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
+import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
 type OnyxSearchResponse = {
@@ -46,6 +55,13 @@ type OnyxSearchResponse = {
         offset: number;
         hasMoreResults: boolean;
     };
+};
+
+type TransactionPreviewData = {
+    hasParentReport: boolean;
+    hasParentReportAction: boolean;
+    hasTransaction: boolean;
+    hasTransactionThreadReport: boolean;
 };
 
 function handleActionButtonPress(
@@ -848,6 +864,60 @@ function handleBulkPayItemSelected(
     confirmPayment?.(paymentType as PaymentMethodType);
 }
 
+/** Optimistically set the data necessary to show the transaction thread: parent report, parent report action, transaction and the transaction thread on its own */
+function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemType, transactionPreviewData: TransactionPreviewData) {
+    const {moneyRequestReportActionID, reportID, report, amount, currency, transactionID, created, transactionThreadReportID, policyID} = item;
+    const {hasParentReport, hasParentReportAction, hasTransaction, hasTransactionThreadReport} = transactionPreviewData;
+    const onyxUpdates: OnyxUpdate[] = [];
+
+    // Set optimistic parent report
+    if (!hasParentReport) {
+        onyxUpdates.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: report,
+        });
+    }
+
+    // Set optimistic parent report action
+    if (!hasParentReportAction) {
+        const optimisticIOUAction = buildOptimisticIOUReportAction({
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            amount,
+            currency,
+            comment: '',
+            participants: [],
+            transactionID,
+            iouReportID: reportID,
+            created,
+            reportActionID: moneyRequestReportActionID,
+            linkedExpenseReportAction: {childReportID: transactionThreadReportID} as ReportAction,
+        });
+        optimisticIOUAction.pendingAction = undefined;
+        onyxUpdates.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[optimisticIOUAction.reportActionID]: optimisticIOUAction},
+        });
+    }
+
+    // Set optimistic transaction
+    if (!hasTransaction) {
+        onyxUpdates.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: item,
+        });
+    }
+
+    // Set optimistic transaction thread report
+    if (!hasTransactionThreadReport) {
+        setOptimisticTransactionThread(transactionThreadReportID, reportID, moneyRequestReportActionID, policyID);
+    }
+
+    Onyx.update(onyxUpdates);
+}
+
 export {
     saveSearch,
     search,
@@ -874,4 +944,6 @@ export {
     isValidBulkPayOption,
     handleBulkPayItemSelected,
     getExportTemplates,
+    setOptimisticDataForTransactionThreadPreview,
 };
+export type {TransactionPreviewData};

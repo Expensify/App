@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import type {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -13,12 +14,13 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
 import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, ReportAction, ReportActions} from '@src/types/onyx';
 import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
@@ -55,6 +57,23 @@ function TransactionListItem<TItem extends ListItem>({
     }, [snapshot, transactionItem.policyID]);
     const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {canBeMissing: true});
 
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`, {canBeMissing: true, shouldUseOnyxDataInsteadOfSnapshot: true});
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.transactionThreadReportID}`, {canBeMissing: true, shouldUseOnyxDataInsteadOfSnapshot: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`, {canBeMissing: true, shouldUseOnyxDataInsteadOfSnapshot: true});
+    const [parentReportAction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`,
+        {
+            selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${transactionItem?.moneyRequestReportActionID}`],
+            canBeMissing: true,
+            shouldUseOnyxDataInsteadOfSnapshot: true,
+        },
+        [transactionItem],
+    );
+    const transactionPreviewData: TransactionPreviewData = useMemo(
+        () => ({hasParentReport: !!parentReport, hasTransaction: !!transaction, hasParentReportAction: !!parentReportAction, hasTransactionThreadReport: !!transactionThreadReport}),
+        [parentReport, transaction, parentReportAction, transactionThreadReport],
+    );
+
     const pressableStyle = [
         styles.transactionListItemStyle,
         !isLargeScreenWidth && styles.pt3,
@@ -87,22 +106,34 @@ function TransactionListItem<TItem extends ListItem>({
         handleActionButtonPressUtil(
             currentSearchHash,
             transactionItem,
-            () => onSelectRow(item),
+            () => onSelectRow(item, transactionPreviewData),
             shouldUseNarrowLayout && !!canSelectMultiple,
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
         );
-    }, [currentSearchHash, transactionItem, shouldUseNarrowLayout, canSelectMultiple, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, onSelectRow, item]);
+    }, [
+        currentSearchHash,
+        transactionItem,
+        transactionPreviewData,
+        shouldUseNarrowLayout,
+        canSelectMultiple,
+        snapshotReport,
+        snapshotPolicy,
+        lastPaymentMethod,
+        currentSearchKey,
+        onSelectRow,
+        item,
+    ]);
 
     const handleCheckboxPress = useCallback(() => {
         onCheckboxPress?.(item);
     }, [item, onCheckboxPress]);
 
     const onPress = useCallback(() => {
-        onSelectRow(item);
-    }, [item, onSelectRow]);
+        onSelectRow(item, transactionPreviewData);
+    }, [item, onSelectRow, transactionPreviewData]);
 
     const onLongPress = useCallback(() => {
         onLongPressRow?.(item);
