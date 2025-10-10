@@ -22,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {
     addSplitExpenseField,
     clearSplitTransactionDraftErrors,
+    getIOURequestPolicyID,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
     saveSplitTransactions,
@@ -72,7 +73,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: true});
-    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: true});
 
     const policy = usePolicy(report?.policyID);
     const isSplitAvailable = report && transaction && isSplitAction(report, [transaction], policy);
