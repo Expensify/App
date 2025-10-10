@@ -4,7 +4,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {MergeTransaction, Transaction} from '@src/types/onyx';
-import type {Receipt} from '@src/types/onyx/Transaction';
+import type {Receipt, Routes} from '@src/types/onyx/Transaction';
 import {convertToDisplayString} from './CurrencyUtils';
 import getReceiptFilenameFromTransaction from './getReceiptFilenameFromTransaction';
 import Parser from './Parser';
@@ -13,12 +13,12 @@ import {getIOUActionForReportID} from './ReportActionsUtils';
 import {findSelfDMReportID, getReportName, getReportOrDraftReport, getTransactionDetails} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {getCurrency, getReimbursable, isCardTransaction, isMerchantMissing} from './TransactionUtils';
+import {getCurrency, getReimbursable, getWaypoints, isCardTransaction, isDistanceRequest, isMerchantMissing} from './TransactionUtils';
 
 const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
 
 // Define the specific merge fields we want to handle
-const MERGE_FIELDS = ['amount', 'currency', 'merchant', 'created', 'category', 'tag', 'description', 'reimbursable', 'billable', 'reportID'] as const;
+const MERGE_FIELDS = ['amount', 'merchant', 'created', 'category', 'tag', 'description', 'reimbursable', 'billable', 'reportID'] as const;
 type MergeFieldKey = TupleToUnion<typeof MERGE_FIELDS>;
 type MergeFieldOption = {
     transaction: Transaction;
@@ -34,7 +34,6 @@ type MergeFieldData = {
 
 const MERGE_FIELD_TRANSLATION_KEYS = {
     amount: 'iou.amount',
-    currency: 'iou.currency',
     merchant: 'common.merchant',
     category: 'common.category',
     tag: 'common.tag',
@@ -111,7 +110,8 @@ const getTargetTransactionFromMergeTransaction = (mergeTransaction: OnyxEntry<Me
  * @returns True if both transactions have a receipt
  */
 function shouldNavigateToReceiptReview(transactions: Array<OnyxEntry<Transaction>>): boolean {
-    return transactions.every((transaction) => transaction?.receipt?.receiptID);
+    // If it's a distance request, the receipt will be automatically merged on merchant selection
+    return transactions.every((transaction) => !isDistanceRequest(transaction) && transaction?.receipt?.receiptID);
 }
 
 // Check if whether merge value is truly "empty" (null, undefined, or empty string)
@@ -157,6 +157,17 @@ function getMergeFieldTranslationKey(field: MergeFieldKey) {
     return MERGE_FIELD_TRANSLATION_KEYS[field];
 }
 
+function getMergeFields(targetTransaction: OnyxEntry<Transaction>) {
+    const excludeFields: MergeFieldKey[] = [];
+
+    // If the target transaction is a distance request, we gonna use merchant to decide amount/currency/receipt
+    if (isDistanceRequest(targetTransaction)) {
+        excludeFields.push('amount');
+    }
+
+    return MERGE_FIELDS.filter((field) => !excludeFields.includes(field));
+}
+
 /**
  * Get mergeableData data if one is missing, and conflict fields that need to be resolved by the user
  * @param targetTransaction - The target transaction
@@ -170,12 +181,7 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
     const targetTransactionDetails = getTransactionDetails(targetTransaction);
     const sourceTransactionDetails = getTransactionDetails(sourceTransaction);
 
-    MERGE_FIELDS.forEach((field) => {
-        // Currency field is handled by the amount field
-        if (field === 'currency') {
-            return;
-        }
-
+    getMergeFields(targetTransaction).forEach((field) => {
         const targetValue = getMergeFieldValue(targetTransactionDetails, targetTransaction, field);
         const sourceValue = getMergeFieldValue(sourceTransactionDetails, sourceTransaction, field);
 
@@ -289,6 +295,8 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         comment: {
             ...targetTransaction.comment,
             comment: mergeTransaction.description,
+            customUnit: mergeTransaction.customUnit,
+            waypoints: mergeTransaction.waypoints,
         },
         reimbursable: mergeTransaction.reimbursable,
         billable: mergeTransaction.billable,
@@ -297,6 +305,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         created: mergeTransaction.created,
         modifiedCreated: mergeTransaction.created,
         reportID: mergeTransaction.reportID,
+        routes: mergeTransaction.routes as Routes | undefined,
     };
 }
 
@@ -397,6 +406,32 @@ function buildMergeFieldsData(
     });
 }
 
+/**
+ * Build updated values for merge transaction field selection
+ * Handles special cases like currency for amount field and additional fields for distance requests
+ */
+function getMergeFieldUpdatedValues(transaction: OnyxEntry<Transaction>, field: MergeFieldKey, fieldValue: string | number | boolean | undefined): Partial<MergeTransaction> {
+    const updatedValues: Partial<MergeTransaction> = {
+        [field]: fieldValue,
+    };
+
+    if (field === 'amount') {
+        updatedValues.currency = getCurrency(transaction);
+    }
+
+    if (field === 'merchant' && isDistanceRequest(transaction)) {
+        const transactionDetails = getTransactionDetails(transaction);
+        updatedValues.amount = getMergeFieldValue(transactionDetails, transaction, 'amount') as number;
+        updatedValues.currency = getCurrency(transaction);
+        updatedValues.receipt = transaction?.receipt;
+        updatedValues.customUnit = transaction?.comment?.customUnit;
+        updatedValues.waypoints = getWaypoints(transaction);
+        updatedValues.routes = transaction?.routes ?? null;
+    }
+
+    return updatedValues;
+}
+
 export {
     getSourceTransactionFromMergeTransaction,
     getTargetTransactionFromMergeTransaction,
@@ -413,6 +448,7 @@ export {
     getDisplayValue,
     buildMergeFieldsData,
     getReportIDForExpense,
+    getMergeFieldUpdatedValues,
 };
 
 export type {MergeFieldKey, MergeFieldData};
