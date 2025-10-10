@@ -31,17 +31,19 @@ function FloatingCameraButton() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: sessionSelector});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const reportID = useMemo(() => generateReportID(), []);
 
-    const policyChatForActivePolicy = useMemo(() => {
-        if (isEmptyObject(activePolicy) || !activePolicy?.isPolicyExpenseChatEnabled) {
-            return undefined;
-        }
-        const policyChatsForActivePolicy = getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], allReports);
-        return policyChatsForActivePolicy.at(0);
-    }, [activePolicy, activePolicyID, session?.accountID, allReports]);
+    const [policyChatForActivePolicy] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        canBeMissing: true,
+        selector: (reports) => {
+            if (isEmptyObject(activePolicy) || !activePolicy?.isPolicyExpenseChatEnabled) {
+                return undefined;
+            }
+            const policyChatsForActivePolicy = getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], reports);
+            return policyChatsForActivePolicy.at(0);
+        },
+    });
 
     const onPress = () => {
         interceptAnonymousUser(() => {
