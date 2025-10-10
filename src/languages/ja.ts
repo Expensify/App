@@ -672,6 +672,7 @@ const translations = {
         link: 'リンク',
         pinned: '固定済み',
         read: '既読',
+        copyToClipboard: 'クリップボードにコピー',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -856,7 +857,7 @@ const translations = {
         expand: '展開する',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'クリップボードにコピー',
+        copyMessage: 'メッセージをコピー',
         copied: 'コピーしました！',
         copyLink: 'リンクをコピー',
         copyURLToClipboard: 'URLをクリップボードにコピー',
@@ -1138,6 +1139,7 @@ const translations = {
         canceled: 'キャンセルされました',
         posted: '投稿済み',
         deleteReceipt: '領収書を削除',
+        findExpense: '経費を検索',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `経費を削除しました (${merchant}の${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `費用${reportName ? `${reportName} から` : ''}を移動しました`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `この経費${reportName ? `to <a href="${reportUrl}">${reportName}</a>` : ''}を移動しました`,
@@ -3734,6 +3736,18 @@ const translations = {
                 createEntitiesDescription: 'Expensifyは、QuickBooks Desktopに既に存在しない場合、自動的にベンダーを作成します。',
             },
             itemsDescription: 'ExpensifyでQuickBooks Desktopの項目をどのように処理するか選択します。',
+            accountingMethods: {
+                label: 'エクスポートのタイミング',
+                description: '経費をエクスポートするタイミングを選択:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '発生主義',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '現金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自己負担の経費は最終承認時にエクスポートされます。',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自己負担の経費は支払われたときにエクスポートされます。',
+                },
+            },
         },
         qbo: {
             connectedTo: '接続済み',
@@ -5527,6 +5541,11 @@ const translations = {
                 description: 'Expensify Travelは、メンバーが宿泊施設、フライト、交通機関などを予約できる新しい法人向け旅行予約および管理プラットフォームです。',
                 onlyAvailableOnPlan: '旅行は、Collectプランで利用可能です。料金は',
             },
+            reports: {
+                title: 'レポート',
+                description: 'レポートを使用すると、経費をグループ化して追跡と整理を簡単にできます。',
+                onlyAvailableOnPlan: 'レポートは、Collectプランで利用可能です。料金は ',
+            },
             multiLevelTags: {
                 title: 'マルチレベルタグ',
                 description:
@@ -7197,6 +7216,7 @@ const translations = {
         exportInProgress: 'エクスポート中',
         conciergeWillSend: 'コンシェルジュがまもなくファイルを送信します。',
     },
+    avatarPage: {title: 'プロフィール写真を編集', uploadPhoto: '写真をアップロード'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
