@@ -8,12 +8,9 @@ import ScrollView from './ScrollView';
 type FormScrollViewProps = ScrollViewProps & {
     /** Form elements */
     children: React.ReactNode;
-
-    /** Reference to the outer element */
-    ref?: ForwardedRef<RNScrollView>;
 };
 
-function FormScrollView({children, ref, ...rest}: FormScrollViewProps) {
+function FormScrollView({children, ...rest}: FormScrollViewProps, ref: ForwardedRef<RNScrollView>) {
     const styles = useThemeStyles();
     return (
         <ScrollView
@@ -31,4 +28,4 @@ function FormScrollView({children, ref, ...rest}: FormScrollViewProps) {
 
 FormScrollView.displayName = 'FormScrollView';
 
-export default FormScrollView;
+export default React.forwardRef(FormScrollView);
