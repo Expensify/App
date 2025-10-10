@@ -15,5 +15,6 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 * [HybridApp Philosophy](/contributingGuides/philosophies/HYBRID-APP.md)
 * [Offline Philosophy](/contributingGuides/philosophies/OFFLINE.md)
 * [Onyx Data Management Philosophy](/contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md)
+* [Pagination Philosophy](contributingGuides/philosophies/PAGINATION.md)
 * [Routing Philosophy](/contributingGuides/philosophies/ROUTING.md)
 * [Security Philosophy](/contributingGuides/philosophies/SECURITY.md)
