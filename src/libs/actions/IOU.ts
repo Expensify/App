@@ -803,6 +803,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     isAutoReporting: boolean;
     lastSelectedDistanceRates?: OnyxEntry<OnyxTypes.LastSelectedDistanceRates>;
     setDistanceRequestData?: (participatns: Participant[]) => void;
+    localeCompare?: (a: string, b: string) => number;
 };
 
 let allBetas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -13989,6 +13990,7 @@ function handleMoneyRequestStepDistanceNavigation({
     isAutoReporting,
     lastSelectedDistanceRates,
     setDistanceRequestData,
+    localeCompare,
 }: MoneyRequestStepDistanceNavigationParams) {
     if (transaction?.splitShares && !manualDistance) {
         resetSplitShares(transaction);
@@ -14063,7 +14065,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     billable: !!policy?.defaultBillable,
                     reimbursable: manualDistance ? undefined : !!policy?.defaultReimbursable,
                     validWaypoints: manualDistance ? undefined : getValidWaypoints(waypoints, true),
-                    customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates}),
+                    customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates, localeCompare}),
                     splitShares: transaction?.splitShares,
                     attendees: transaction?.comment?.attendees,
                 },
@@ -14093,6 +14095,7 @@ function handleMoneyRequestStepDistanceNavigation({
             isPolicyExpenseChat: true,
             policy: defaultExpensePolicy,
             lastSelectedDistanceRates,
+            localeCompare,
         });
         setTransactionReport(transactionID, {reportID: transactionReportID}, true);
         setCustomUnitRateID(transactionID, rateID);

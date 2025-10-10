@@ -157,6 +157,7 @@ function IOURequestStepDistanceManual({
                 isArchivedExpenseReport: isArchivedReport(reportNameValuePairs),
                 isAutoReporting: !!personalPolicy?.autoReporting,
                 lastSelectedDistanceRates,
+                localeCompare,
             });
         },
         [

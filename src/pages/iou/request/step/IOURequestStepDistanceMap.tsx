@@ -287,6 +287,7 @@ function IOURequestStepDistanceMap({
             isAutoReporting: !!personalPolicy?.autoReporting,
             lastSelectedDistanceRates,
             setDistanceRequestData,
+            localeCompare,
         });
     }, [
         transaction,
