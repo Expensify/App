@@ -1,9 +1,7 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import React, {memo, useContext, useEffect, useMemo, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import React, {memo, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -86,7 +84,7 @@ const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../..
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
-const loadProfileAvatar = () => require<ReactComponentModule>('../../../pages/settings/Profile/ProfileAvatar').default;
+const loadProfileAvatar = () => require<ReactComponentModule>('../../../pages/settings/Profile/Avatar/ProfileAvatar').default;
 const loadWorkspaceAvatar = () => require<ReactComponentModule>('../../../pages/workspace/WorkspaceAvatar').default;
 const loadReportAvatar = () => require<ReactComponentModule>('../../../pages/ReportAvatar').default;
 const loadReceiptView = () => require<ReactComponentModule>('../../../pages/TransactionReceiptPage').default;
@@ -105,31 +103,6 @@ function initializePusher() {
     }).then(() => {
         User.subscribeToUserEvents();
     });
-}
-let lastUpdateIDAppliedToClient: OnyxEntry<number>;
-let isLoadingApp = false;
-
-Onyx.connect({
-    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (value) => {
-        lastUpdateIDAppliedToClient = value;
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.IS_LOADING_APP,
-    callback: (value) => {
-        isLoadingApp = !!value;
-    },
-});
-
-function handleNetworkReconnect() {
-    if (isLoadingApp) {
-        App.openApp();
-    } else {
-        Log.info('[handleNetworkReconnect] Sending ReconnectApp');
-        App.reconnectApp(lastUpdateIDAppliedToClient);
-    }
 }
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
@@ -198,6 +171,24 @@ function AuthScreens() {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
+
+    const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
+    const isLoadingAppRef = useRef(isLoadingApp);
+    // eslint-disable-next-line react-compiler/react-compiler
+    lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
+    // eslint-disable-next-line react-compiler/react-compiler
+    isLoadingAppRef.current = isLoadingApp;
+
+    const handleNetworkReconnect = () => {
+        if (isLoadingAppRef.current) {
+            App.openApp();
+        } else {
+            Log.info('[handleNetworkReconnect] Sending ReconnectApp');
+            App.reconnectApp(lastUpdateIDAppliedToClientRef.current);
+        }
+    };
 
     // On HybridApp we need to prevent flickering during transition to OldDot
     const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {

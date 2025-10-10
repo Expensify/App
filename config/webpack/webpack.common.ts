@@ -357,6 +357,18 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                         name: 'heicTo',
                         chunks: 'all',
                     },
+                    // ExpensifyIcons chunk - separate chunk loaded eagerly for offline support
+                    expensifyIcons: {
+                        test: /[\\/]src[\\/]components[\\/]Icon[\\/]chunks[\\/]expensify-icons\.chunk\.ts$/,
+                        name: 'expensifyIcons',
+                        chunks: 'all',
+                    },
+                    // Illustrations chunk - separate chunk loaded eagerly for offline support
+                    illustrations: {
+                        test: /[\\/]src[\\/]components[\\/]Icon[\\/]chunks[\\/]illustrations\.chunk\.ts$/,
+                        name: 'illustrations',
+                        chunks: 'all',
+                    },
                     // Extract all 3rd party dependencies (~75% of App) to separate js file
                     // This gives a more efficient caching - 3rd party deps don't change as often as main source
                     // When dependencies don't change webpack would produce the same js file (and content hash)

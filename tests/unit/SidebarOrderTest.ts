@@ -40,6 +40,19 @@ function assertSidebarOptionsAlphabetical() {
     expect(thirdElement).toHaveTextContent('Email Three');
     expect(fourthElement).toHaveTextContent('Email Two');
 }
+// Mock components to prevent act() warnings from state updates during render
+jest.mock('@src/components/ReportActionAvatars', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const React = require('react');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        return React.createElement(View, {
+            testID: 'MockedReportActionAvatars',
+        });
+    };
+});
 
 describe('Sidebar', () => {
     beforeAll(() => {
