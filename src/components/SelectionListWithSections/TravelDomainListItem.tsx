@@ -17,7 +17,17 @@ type AdditionalDomainItemProps = {
 
 type DomainItemProps<TItem extends ListItem> = BaseListItemProps<TItem & AdditionalDomainItemProps>;
 
-function TravelDomainListItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, onSelectRow, onCheckboxPress, onFocus, shouldSyncFocus, accessibilityState}: DomainItemProps<TItem>) {
+function TravelDomainListItem<TItem extends ListItem>({
+    item,
+    isFocused,
+    showTooltip,
+    isDisabled,
+    onSelectRow,
+    onCheckboxPress,
+    onFocus,
+    shouldSyncFocus,
+    accessibilityState,
+}: DomainItemProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
