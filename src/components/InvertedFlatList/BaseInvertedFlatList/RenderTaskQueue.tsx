@@ -13,7 +13,7 @@ class RenderTaskQueue {
 
     private timeout: NodeJS.Timeout | null = null;
 
-    private onRenderingStateChange?: (isRendering: boolean) => void; // ADD THIS
+    private onRenderingStateChange?: (isRendering: boolean) => void;
 
     constructor(onRenderingStateChange?: (isRendering: boolean) => void) {
         this.onRenderingStateChange = onRenderingStateChange;
