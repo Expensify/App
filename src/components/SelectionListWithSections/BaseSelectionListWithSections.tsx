@@ -643,8 +643,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
         const selected = isItemSelected(item);
-        const isItemFocused = (!isDisabled || selected) && focusedIndex === normalizedIndex;
+        const isItemFocused = (selected ? hasKeyBeenPressed.current : !isDisabled) && focusedIndex === normalizedIndex;
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
+        const accessibilityState = {selected: hasKeyBeenPressed.current ? isItemFocused : selected};
 
         return (
             <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
@@ -680,6 +681,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
+                    accessibilityState={accessibilityState}
                 />
             </View>
         );
