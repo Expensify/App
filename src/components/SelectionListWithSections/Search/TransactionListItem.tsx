@@ -1,6 +1,9 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+// Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -57,18 +60,16 @@ function TransactionListItem<TItem extends ListItem>({
     }, [snapshot, transactionItem.policyID]);
     const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {canBeMissing: true});
 
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`, {canBeMissing: true, shouldUseOnyxDataInsteadOfSnapshot: true});
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.transactionThreadReportID}`, {canBeMissing: true, shouldUseOnyxDataInsteadOfSnapshot: true});
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`, {canBeMissing: true, shouldUseOnyxDataInsteadOfSnapshot: true});
+    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`, {canBeMissing: true});
+    const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.transactionThreadReportID}`, {canBeMissing: true});
+    const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`, {canBeMissing: true});
     const parentReportActionSelector = useCallback(
         (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${transactionItem?.moneyRequestReportActionID}`],
         [transactionItem],
     );
-    const [parentReportAction] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`,
-        {selector: parentReportActionSelector, canBeMissing: true, shouldUseOnyxDataInsteadOfSnapshot: true},
-        [transactionItem],
-    );
+    const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`, {selector: parentReportActionSelector, canBeMissing: true}, [
+        transactionItem,
+    ]);
     const transactionPreviewData: TransactionPreviewData = useMemo(
         () => ({hasParentReport: !!parentReport, hasTransaction: !!transaction, hasParentReportAction: !!parentReportAction, hasTransactionThreadReport: !!transactionThreadReport}),
         [parentReport, transaction, parentReportAction, transactionThreadReport],

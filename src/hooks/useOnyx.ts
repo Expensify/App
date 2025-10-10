@@ -9,10 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
 
-type CustomOptions = {
-    /** If true, the hook will return actual onyx data and not the snapshot one */
-    shouldUseOnyxDataInsteadOfSnapshot?: boolean;
-};
+type OriginalUseOnyx = typeof originalUseOnyx;
 
 const COLLECTION_VALUES = Object.values(ONYXKEYS.COLLECTION);
 const getDataByPath = (data: SearchResults['data'], path: string) => {
@@ -50,11 +47,7 @@ const getKeyData = <TKey extends OnyxKey, TReturnValue>(snapshotData: SearchResu
 /**
  * Custom hook for accessing and subscribing to Onyx data with search snapshot support
  */
-const useOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
-    key: TKey,
-    options?: UseOnyxOptions<TKey, TReturnValue> & CustomOptions,
-    dependencies?: DependencyList,
-): UseOnyxResult<TReturnValue> => {
+const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(key: TKey, options?: UseOnyxOptions<TKey, TReturnValue>, dependencies?: DependencyList) => {
     const isSnapshotCompatibleKey = useMemo(() => !key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) && CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((snapshotKey) => key.startsWith(snapshotKey)), [key]);
     const isOnSearch = useIsOnSearch();
 
@@ -68,7 +61,7 @@ const useOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(
     const {selector: selectorProp, ...optionsWithoutSelector} = useOnyxOptions ?? {};
 
     // Determine if we should use snapshot data based on search state and key
-    const shouldUseSnapshot = isOnSearch && !!currentSearchHash && isSnapshotCompatibleKey && !options?.shouldUseOnyxDataInsteadOfSnapshot;
+    const shouldUseSnapshot = isOnSearch && !!currentSearchHash && isSnapshotCompatibleKey;
 
     // Create selector function that handles both regular and snapshot data
     const selector = useMemo(() => {
