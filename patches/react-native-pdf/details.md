@@ -5,12 +5,8 @@
 - Reason:
 
     ```md
-    The last version (7.0.1) has a bug after the [RTL support PR](https://github.com/wonday/react-native-pdf/pull/914) has been merged
-    `this.bookmarks` can be 0 and setting the page to `bookmarks-1` (-1) caused
-    
-    `Loaded page is null`
-    
-    error
+    The last version (7.0.1) has many bugs after the [RTL support PR](https://github.com/wonday/react-native-pdf/pull/914) has been merged
+    This patch is fixing the implementation and introduced errors
     ```
 
 - Upstream PR/issue: https://github.com/wonday/react-native-pdf/pull/978
