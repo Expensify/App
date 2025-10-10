@@ -2546,8 +2546,9 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
                     reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
                 defaultBillable: false,
-                disabledFields: {defaultBillable: true},
+                disabledFields: {defaultBillable: true, reimbursable: false},
                 requiresCategory: true,
+                defaultReimbursable: true,
             },
         },
         {
@@ -3428,8 +3429,9 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
             reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         },
         defaultBillable: false,
-        disabledFields: {defaultBillable: true},
+        disabledFields: {defaultBillable: true, reimbursable: false},
         requiresCategory: true,
+        defaultReimbursable: true,
     };
 
     const optimisticData: OnyxUpdate[] = [
