@@ -1606,6 +1606,7 @@ const CONST = {
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
+        SEARCH_PAGE_ANIMATION_DURATION_IN_MS: 300,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -6653,6 +6654,10 @@ const CONST = {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
             AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
             SEARCH: 'searchItem',
+        },
+        SPACING: {
+            TOO_CLOSE_TO_TOP_DISTANCE: 10,
+            TOO_CLOSE_TO_BOTTOM_DISTANCE: 10,
         },
         SEARCH_USER_FRIENDLY_KEYS: {
             TYPE: 'type',

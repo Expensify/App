@@ -19,12 +19,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type {SearchResults} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-
-const TOO_CLOSE_TO_TOP_DISTANCE = 10;
-const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
-const ANIMATION_DURATION_IN_MS = 300;
 
 type FooterData = {
     count: number | undefined;
@@ -77,7 +74,6 @@ function SearchPageNarrowContent({
     const triggerScrollEvent = useScrollEventEmitter();
     const {windowHeight} = useWindowDimensions();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
-    // to remove
     const route = useRoute();
 
     const scrollOffset = useSharedValue(0);
@@ -102,10 +98,10 @@ function SearchPageNarrowContent({
 
                 runOnJS(saveScrollOffset)(route, currentOffset);
 
-                if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
+                if (isScrollingDown && contentOffset.y > CONST.SEARCH.SPACING.TOO_CLOSE_TO_TOP_DISTANCE) {
                     topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderDefaultOffset));
-                } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
-                    topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
+                } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - CONST.SEARCH.SPACING.TOO_CLOSE_TO_BOTTOM_DISTANCE) {
+                    topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: CONST.TIMING.SEARCH_PAGE_ANIMATION_DURATION_IN_MS}));
                 }
                 scrollOffset.set(currentOffset);
             },
