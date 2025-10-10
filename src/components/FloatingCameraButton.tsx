@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,6 +26,7 @@ const sessionSelector = (session: OnyxEntry<OnyxTypes.Session>) => ({email: sess
 function FloatingCameraButton() {
     const {textLight} = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const borderRadius = styles.floatingActionButton.borderRadius;
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
@@ -58,20 +60,19 @@ function FloatingCameraButton() {
         <PressableWithoutFeedback
             style={[
                 styles.navigationTabBarFABItem,
-                {paddingHorizontal: 0},
+                styles.ph0,
                 // Prevent text selection on touch devices (e.g. on long press)
                 canUseTouchScreen() && styles.userSelectNone,
                 styles.floatingCameraButton,
             ]}
-            // accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
-            accessibilityLabel="fcb"
+            accessibilityLabel={translate('sidebarScreen.fabScanReceiptExplained')}
             onPress={onPress}
             role={CONST.ROLE.BUTTON}
             testID="floating-camera-button"
         >
             <View
                 style={[styles.floatingActionButton, {borderRadius}]}
-                testID="fab-animated-container"
+                testID="floating-camera-button-container"
             >
                 <Icon
                     fill={textLight}

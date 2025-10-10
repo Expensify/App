@@ -622,12 +622,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             />
             {!shouldUseNarrowLayout && (
                 <FloatingReceiptButton
-                    accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
+                    accessibilityLabel={translate('sidebarScreen.fabScanReceiptExplained')}
                     role={CONST.ROLE.BUTTON}
-                    isActive={isCreateMenuActive}
-                    ref={fabRef}
                     onPress={startScan}
-                    onLongPress={startScan}
                 />
             )}
             <FloatingActionButton
