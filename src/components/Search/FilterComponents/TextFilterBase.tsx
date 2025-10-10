@@ -15,11 +15,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 type SearchFiltersTextBaseProps = {
     filterKey: SearchTextFilterKeys;
-
     title: string;
-
     characterLimit?: number;
-
     onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => void;
 };
 
