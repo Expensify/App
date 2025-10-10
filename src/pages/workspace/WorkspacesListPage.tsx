@@ -41,12 +41,21 @@ import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/
 import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import {getDefaultApprover, getPolicy, getPolicyBrickRoadIndicatorStatus, getUberConnectionErrorDirectlyFromPolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {
+    getDefaultApprover,
+    getPolicy,
+    getPolicyBrickRoadIndicatorStatus,
+    getUberConnectionErrorDirectlyFromPolicy,
+    isPolicyAdmin,
+    shouldShowPolicy,
+    shouldShowPolicyError,
+} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
@@ -123,9 +132,12 @@ function WorkspacesListPage() {
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
+    // The workspace was deleted in this page
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
     const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyIDToDelete);
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
+    const [policyErrorMessage, setPolicyErrorMessage] = useState('');
+    const [isPolicyErrorModalOpen, setIsPolicyErrorModalOpen] = useState(false);
 
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
 
@@ -161,6 +173,11 @@ function WorkspacesListPage() {
         setIsDeleteModalOpen(false);
     };
 
+    const hideWorkspaceErrorModal = () => {
+        setIsPolicyErrorModalOpen(false);
+        setPolicyErrorMessage('');
+    };
+
     const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn();
 
     const resetLoadingSpinnerIconIndex = useCallback(() => {
@@ -186,6 +203,20 @@ function WorkspacesListPage() {
         },
         [session?.accountID],
     );
+
+    useEffect(() => {
+        if (!isFocused || !!policyErrorMessage || isPolicyErrorModalOpen) {
+            return;
+        }
+        const workspaceWithError = Object.values(policies ?? {}).find(shouldShowPolicyError);
+        const workspaceErrorMessage = getLatestErrorMessage(workspaceWithError);
+        if (!workspaceWithError || !workspaceErrorMessage) {
+            return;
+        }
+        setPolicyErrorMessage(workspaceErrorMessage);
+        dismissWorkspaceError(workspaceWithError.id, workspaceWithError.pendingAction);
+        setIsPolicyErrorModalOpen(true);
+    }, [policyErrorMessage, isFocused, isPolicyErrorModalOpen, policies]);
 
     /**
      * Gets the menu item for each workspace
@@ -318,9 +349,9 @@ function WorkspacesListPage() {
             translate,
             policies,
             fundList,
+            styles.ph5,
             styles.mb2,
             styles.mh5,
-            styles.ph5,
             styles.hoveredComponentBG,
             styles.offlineFeedbackDeleted,
             loadingSpinnerIconIndex,
@@ -564,6 +595,16 @@ function WorkspacesListPage() {
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
+            />
+            <ConfirmModal
+                title={translate('workspace.common.delete')}
+                isVisible={isPolicyErrorModalOpen}
+                onConfirm={hideWorkspaceErrorModal}
+                onCancel={hideWorkspaceErrorModal}
+                prompt={policyErrorMessage}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+                success={false}
             />
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         </ScreenWrapper>
