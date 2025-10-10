@@ -2,8 +2,8 @@ import React, {useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
@@ -77,11 +77,10 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
                 />
                 <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementFrequencyDescription')}</Text>
                 <SelectionList
-                    sections={[{data}]}
+                    data={data}
                     ListItem={RadioListItem}
                     onSelectRow={({value}) => updateSettlementFrequency(value)}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedOptionKey={selectedFrequency}
                     addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
