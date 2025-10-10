@@ -20,6 +20,9 @@ import ReportFieldText from './ReportFieldText';
 function SearchFiltersReportFieldPage() {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+
+    console.log('searchAdvancedFiltersForm', searchAdvancedFiltersForm);
 
     const [values, setValues] = useState<Record<string, string | string[] | null>>({});
     const [selectedField, setSelectedField] = useState<PolicyReportField | null>(null);

@@ -828,6 +828,11 @@ function buildFilterFormValuesFromQuery(
             const validBooleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
             filtersForm[key as typeof filterKey] = validBooleanTypes.find((value) => filterValues.at(0) === value);
         }
+
+        if (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD_PREFIX)) {
+            // JACK_TODO: Add negation support for report fields & fix types & support dates
+            filtersForm[filterKey] = filterValues.filter((value) => value);
+        }
     }
 
     const [typeKey, typeValue] = Object.entries(CONST.SEARCH.DATA_TYPES).find(([, value]) => value === queryJSON.type) ?? [];
