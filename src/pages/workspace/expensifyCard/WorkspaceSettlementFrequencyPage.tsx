@@ -80,6 +80,8 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
                     data={data}
                     ListItem={RadioListItem}
                     onSelectRow={({value}) => updateSettlementFrequency(value)}
+                    initiallyFocusedItemKey={selectedFrequency}
+                    shouldUpdateFocusedIndex
                     shouldSingleExecuteRowSelect
                     addBottomSafeAreaPadding
                 />
