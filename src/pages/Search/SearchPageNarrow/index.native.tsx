@@ -1,11 +1,8 @@
 import React, {useCallback, useState} from 'react';
 import {useSharedValue} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
-import type {BankAccountMenuItem, SearchQueryJSON} from '@components/Search/types';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -19,26 +16,7 @@ import {turnOffMobileSelectionMode} from '@userActions/MobileSelectionMode';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchResults} from '@src/types/onyx';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
-
-type SearchPageNarrowProps = {
-    queryJSON?: SearchQueryJSON;
-    metadata?: SearchResultsInfo;
-    headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
-    searchResults?: SearchResults;
-    isMobileSelectionModeEnabled: boolean;
-    footerData: {
-        count: number | undefined;
-        total: number | undefined;
-        currency: string | undefined;
-    };
-    currentSelectedPolicyID?: string | undefined;
-    currentSelectedReportID?: string | undefined;
-    confirmPayment?: (paymentType: PaymentMethodType | undefined) => void;
-    latestBankItems?: BankAccountMenuItem[] | undefined;
-};
+import type SearchPageNarrowProps from './types';
 
 function SearchPageNarrow({
     queryJSON,
