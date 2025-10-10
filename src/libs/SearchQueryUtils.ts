@@ -576,6 +576,44 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 return `${value}`;
             }
 
+            if (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD_PREFIX)) {
+                const textPrefix = `${CONST.SEARCH.REPORT_FIELD_PREFIX}-`;
+                const negationPrefix = `${CONST.SEARCH.REPORT_FIELD_PREFIX}${CONST.SEARCH.NOT_MODIFIER}-`;
+                const dateOnPrefix = `${CONST.SEARCH.REPORT_FIELD_PREFIX}${CONST.SEARCH.DATE_MODIFIERS.ON}-`;
+                const dateAfterPrefix = `${CONST.SEARCH.REPORT_FIELD_PREFIX}${CONST.SEARCH.DATE_MODIFIERS.AFTER}-`;
+                const dateBeforePrefix = `${CONST.SEARCH.REPORT_FIELD_PREFIX}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}-`;
+
+                const value = filterValue as string;
+                const isFieldNegated = filterKey.startsWith(negationPrefix);
+                const isTextBasedReportField = value.startsWith(textPrefix) || isNegated;
+                const fieldPrefix = isFieldNegated ? '-' : '';
+
+                if (isTextBasedReportField) {
+                    // JACK_TODO: WHY DOES THIS WORK, I shouldnt need to replace repoprtField with anotjer dashj
+                    const key = filterKey.replace(CONST.SEARCH.REPORT_FIELD_PREFIX, `${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD}-`);
+                    return `${fieldPrefix}${key}:${value}`;
+                }
+
+                const isOnDateField = value.startsWith(dateOnPrefix);
+                const isAfterDateField = value.startsWith(dateAfterPrefix);
+                const isBeforeDateField = value.startsWith(dateBeforePrefix);
+
+                if (isOnDateField) {
+                    const key = filterKey.replace(dateOnPrefix, textPrefix);
+                    return `${key}:${value}`;
+                }
+
+                if (isAfterDateField) {
+                    const key = filterKey.replace(dateAfterPrefix, textPrefix);
+                    return `${key}>${value}`;
+                }
+
+                if (isBeforeDateField) {
+                    const key = filterKey.replace(dateBeforePrefix, textPrefix);
+                    return `${key}<${value}`;
+                }
+            }
+
             if (
                 (filterKey === FILTER_KEYS.CATEGORY ||
                     filterKey === FILTER_KEYS.CARD_ID ||
