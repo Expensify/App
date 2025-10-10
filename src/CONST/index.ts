@@ -6978,6 +6978,14 @@ const CONST = {
                 description: 'workspace.upgrade.distanceRates.description' as const,
                 icon: 'CarIce',
             },
+            reports: {
+                id: 'reports' as const,
+                alias: 'reports',
+                name: 'Reports',
+                title: 'workspace.upgrade.reports.title' as const,
+                description: 'workspace.upgrade.reports.description' as const,
+                icon: 'ReportReceipt',
+            },
         };
     },
     REPORT_FIELD_TYPES: {
