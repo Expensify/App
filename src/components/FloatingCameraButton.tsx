@@ -38,10 +38,10 @@ function FloatingCameraButton() {
 
     const policyChatForActivePolicy = useMemo(() => {
         if (isEmptyObject(activePolicy) || !activePolicy?.isPolicyExpenseChatEnabled) {
-            return {} as OnyxTypes.Report;
+            return undefined;
         }
         const policyChatsForActivePolicy = getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], allReports);
-        return policyChatsForActivePolicy.length > 0 ? policyChatsForActivePolicy.at(0) : ({} as OnyxTypes.Report);
+        return policyChatsForActivePolicy.at(0);
     }, [activePolicy, activePolicyID, session?.accountID, allReports]);
 
     const onPress = () => {
