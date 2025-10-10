@@ -337,4 +337,4 @@ function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: M
     API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData});
 }
 
-export {setupMergeTransactionData, setMergeTransactionKey, getTransactionsForMerging, mergeTransactionRequest};
+export {setupMergeTransactionData, setMergeTransactionKey, getTransactionsForMerging, mergeTransactionRequest, areTransactionsEligibleForMerge};

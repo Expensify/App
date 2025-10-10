@@ -97,6 +97,23 @@ describe('MergeTransactionUtils', () => {
             // Then it should return true because all transactions have valid receipts
             expect(result).toBe(true);
         });
+
+        it('should return false when both transactions are distance requests', () => {
+            // Given two distance request transactions (with or without receipts)
+            const distanceTransaction1 = createRandomDistanceRequestTransaction(0);
+            const distanceTransaction2 = createRandomDistanceRequestTransaction(1);
+
+            distanceTransaction1.receipt = {receiptID: 333};
+            distanceTransaction2.receipt = {receiptID: 444};
+
+            const transactions = [distanceTransaction1, distanceTransaction2];
+
+            // When we check if should navigate to receipt review
+            const result = shouldNavigateToReceiptReview(transactions);
+
+            // Then it should return false because distance requests skip receipt review
+            expect(result).toBe(false);
+        });
     });
 
     describe('getMergeFieldValue', () => {
@@ -399,6 +416,8 @@ describe('MergeTransactionUtils', () => {
                 receipt: {receiptID: 1235, source: 'merged.jpg', filename: 'merged.jpg'},
                 created: '2025-01-02T00:00:00.000Z',
                 reportID: '1',
+                waypoints: {waypoint0: {name: 'Selected waypoint'}},
+                customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitID: 'distance1', quantity: 100},
             };
 
             const result = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -416,6 +435,8 @@ describe('MergeTransactionUtils', () => {
                 comment: {
                     ...targetTransaction.comment,
                     comment: 'Merged description',
+                    customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitID: 'distance1', quantity: 100},
+                    waypoints: {waypoint0: {name: 'Selected waypoint'}},
                 },
                 reimbursable: false,
                 billable: true,
@@ -668,6 +689,7 @@ describe('MergeTransactionUtils', () => {
                     waypoint0: {name: 'Start Location', address: '123 Start St'},
                     waypoint1: {name: 'End Location', address: '456 End Ave'},
                 },
+                routes: null,
             });
         });
     });
