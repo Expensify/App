@@ -373,34 +373,40 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                         />
                                     </View>
                                 )}
-                                {transactions.map((transaction) => (
-                                    <OfflineWithFeedback
-                                        pendingAction={transaction.pendingAction}
-                                        key={transaction.transactionID}
-                                    >
-                                        <TransactionItemRow
-                                            report={transaction.report}
-                                            transactionItem={transaction}
-                                            violations={getTransactionViolations(transaction, violations)}
-                                            isSelected={!!transaction.isSelected}
-                                            dateColumnSize={dateColumnSize}
-                                            amountColumnSize={amountColumnSize}
-                                            taxAmountColumnSize={taxAmountColumnSize}
-                                            shouldShowTooltip={showTooltip}
-                                            shouldUseNarrowLayout={!isLargeScreenWidth}
-                                            shouldShowCheckbox={!!canSelectMultiple}
-                                            onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                            columns={currentColumns}
-                                            onButtonPress={() => {
-                                                openReportInRHP(transaction);
-                                            }}
-                                            style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half], isGroupByReports && styles.pr10]}
-                                            isReportItemChild
-                                            isInSingleTransactionReport={groupItem.transactions.length === 1}
-                                            areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                                        />
-                                    </OfflineWithFeedback>
-                                ))}
+                                {isExpanded
+                                    ? transactions.map((transaction) => (
+                                          <OfflineWithFeedback
+                                              pendingAction={transaction.pendingAction}
+                                              key={transaction.transactionID}
+                                          >
+                                              <TransactionItemRow
+                                                  report={transaction.report}
+                                                  transactionItem={transaction}
+                                                  violations={getTransactionViolations(transaction, violations)}
+                                                  isSelected={!!transaction.isSelected}
+                                                  dateColumnSize={dateColumnSize}
+                                                  amountColumnSize={amountColumnSize}
+                                                  taxAmountColumnSize={taxAmountColumnSize}
+                                                  shouldShowTooltip={showTooltip}
+                                                  shouldUseNarrowLayout={!isLargeScreenWidth}
+                                                  shouldShowCheckbox={!!canSelectMultiple}
+                                                  onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                                  columns={currentColumns}
+                                                  onButtonPress={() => {
+                                                      openReportInRHP(transaction);
+                                                  }}
+                                                  style={[
+                                                      styles.noBorderRadius,
+                                                      shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half],
+                                                      isGroupByReports && styles.pr10,
+                                                  ]}
+                                                  isReportItemChild
+                                                  isInSingleTransactionReport={groupItem.transactions.length === 1}
+                                                  areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                                              />
+                                          </OfflineWithFeedback>
+                                      ))
+                                    : null}
                                 {shouldDisplayShowMoreButton && !shouldDisplayLoadingIndicator && (
                                     <View style={[styles.w100, styles.flexRow, isLargeScreenWidth && styles.pl10]}>
                                         <Button
