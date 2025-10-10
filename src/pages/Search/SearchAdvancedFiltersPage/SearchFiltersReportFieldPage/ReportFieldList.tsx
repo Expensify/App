@@ -4,14 +4,16 @@ import FixedFooter from '@components/FixedFooter';
 import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateAdvancedFilters} from '@libs/actions/Search';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyReportField} from '@src/types/onyx';
 
 type ReportFieldListProps = {
     field: PolicyReportField;
-    values: Record<string, string | string[] | null>;
     close: () => void;
-    setValues: React.Dispatch<React.SetStateAction<Record<string, string | string[] | null>>>;
 };
 
 type ListItem = {
@@ -21,22 +23,21 @@ type ListItem = {
     isSelected: boolean;
 };
 
-function ReportFieldList({field, values, close, setValues}: ReportFieldListProps) {
-    const styles = useThemeStyles();
+function ReportFieldList({field, close}: ReportFieldListProps) {
+    const formKey = `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${field.name.toLowerCase().replaceAll(' ', '-')}` as const;
+    const [value = null] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: (form) => form?.[formKey]}, [formKey]);
 
-    const [selectedItem, setSelectedItem] = useState(() => {
-        const value = values[field.fieldID];
-        return [value].flat().at(0) ?? null;
-    });
+    const styles = useThemeStyles();
+    const [selectedItem, setSelectedItem] = useState(value);
 
     const items = useMemo(() => {
-        return field.values.map((value) => ({
-            value,
-            keyForList: value,
-            text: value,
-            isSelected: selectedItem === value,
+        return field.values.map((fieldValue) => ({
+            value: fieldValue,
+            text: fieldValue,
+            keyForList: fieldValue,
+            isSelected: selectedItem === fieldValue,
         }));
-    }, [field, selectedItem]);
+    }, [field.values, selectedItem]);
 
     const updateFilter = useCallback((selectedFilter: ListItem) => {
         const newValue = selectedFilter.isSelected ? null : selectedFilter.value;
@@ -48,13 +49,12 @@ function ReportFieldList({field, values, close, setValues}: ReportFieldListProps
     }, []);
 
     const saveChanges = useCallback(() => {
-        setValues((prevValues) => ({
-            ...prevValues,
-            [field.fieldID]: selectedItem ?? null,
-        }));
+        updateAdvancedFilters({
+            [formKey]: selectedItem ?? null,
+        });
 
         close();
-    }, [field.fieldID, selectedItem, setValues, close]);
+    }, [formKey, selectedItem, close]);
 
     return (
         <>

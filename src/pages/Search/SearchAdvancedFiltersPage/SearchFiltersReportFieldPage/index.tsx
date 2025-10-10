@@ -20,9 +20,6 @@ import ReportFieldText from './ReportFieldText';
 function SearchFiltersReportFieldPage() {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-
-    console.log('searchAdvancedFiltersForm', searchAdvancedFiltersForm);
 
     const [values, setValues] = useState<Record<string, string | string[] | null>>({});
     const [selectedField, setSelectedField] = useState<PolicyReportField | null>(null);
@@ -45,19 +42,7 @@ function SearchFiltersReportFieldPage() {
         },
     });
 
-    const fieldMenuItems = useMemo(() => {
-        return Object.values(fieldList ?? {}).map((field) => {
-            const fieldType = field.type as 'text' | 'date' | 'dropdown';
-
-            let value = values[field.fieldID] ?? undefined;
-
-            if (fieldType === CONST.REPORT_FIELD_TYPES.DATE && value) {
-                value = [value].flat().join(', ');
-            }
-
-            return {...field, value};
-        });
-    }, [fieldList, values]);
+    const [fieldValues] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
     const resetValues = () => {
         setValues({});
