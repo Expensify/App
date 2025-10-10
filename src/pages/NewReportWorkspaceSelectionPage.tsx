@@ -101,7 +101,8 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 );
                 if (selectedTransactionIDs.length) {
                     clearSelectedTransactions(true);
-                } else if (selectedTransactionsKeys.length) {
+                }
+                if (selectedTransactionsKeys.length) {
                     clearSelectedTransactions();
                 }
                 Navigation.dismissModal();
