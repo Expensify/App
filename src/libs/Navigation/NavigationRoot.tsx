@@ -117,7 +117,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                 Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
             });
 
-            return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+            return getAdaptedStateFromPath(lastVisitedPath);
         }
 
         if (!account || account.isFromPublicDomain) {
@@ -126,7 +126,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
         const shouldShowRequire2FAPage = !!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth;
         if (shouldShowRequire2FAPage) {
-            return getAdaptedStateFromPath(ROUTES.REQUIRE_TWO_FACTOR_AUTH, linkingConfig.config);
+            return getAdaptedStateFromPath(ROUTES.REQUIRE_TWO_FACTOR_AUTH);
         }
 
         const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
@@ -141,8 +141,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                     currentOnboardingPurposeSelected,
                     currentOnboardingCompanySize,
                     onboardingInitialPath,
-                }),
-                linkingConfig.config,
+                }) as Route,
             );
         }
 
@@ -159,7 +158,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         }
 
         // Otherwise we want to redirect the user to the last visited path.
-        return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+        return getAdaptedStateFromPath(lastVisitedPath);
 
         // The initialState value is relevant only on the first render.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
