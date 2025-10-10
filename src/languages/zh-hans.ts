@@ -670,6 +670,7 @@ const translations = {
         link: '链接',
         pinned: '已固定',
         read: '已读',
+        copyToClipboard: '复制到剪贴板',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -852,7 +853,7 @@ const translations = {
         expand: '展开',
     },
     reportActionContextMenu: {
-        copyToClipboard: '复制到剪贴板',
+        copyMessage: '复制消息',
         copied: '已复制！',
         copyLink: '复制链接',
         copyURLToClipboard: '复制网址到剪贴板',
@@ -3689,6 +3690,18 @@ const translations = {
                 createEntitiesDescription: '如果供应商尚不存在，Expensify 将在 QuickBooks Desktop 中自动创建供应商。',
             },
             itemsDescription: '选择如何在Expensify中处理QuickBooks Desktop项目。',
+            accountingMethods: {
+                label: '何时导出',
+                description: '选择何时导出费用：',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '应计',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '现金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自付费用将在最终批准时导出',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自付费用将在支付时导出',
+                },
+            },
         },
         qbo: {
             connectedTo: '已连接到',

@@ -50,6 +50,7 @@ import type {
     UpdateCommentParams,
     UpdateGroupChatAvatarParams,
     UpdateGroupChatMemberRolesParams,
+    UpdatePolicyRoomAvatarParams,
     UpdatePolicyRoomNameParams,
     UpdateReportNotificationPreferenceParams,
     UpdateReportPrivateNoteParams,
@@ -925,7 +926,15 @@ function updateChatName(reportID: string, reportName: string, type: typeof CONST
     API.write(command, parameters, {optimisticData, successData, failureData});
 }
 
-function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
+/**
+ * Helper function to build optimistic, success, and failure Onyx updates
+ * when updating or removing a report's avatar.
+ *
+ * @param reportID - The report ID of the policy room.
+ * @param [file] - (Optional) The selected image file to update the avatar with.
+ * If not provided, the existing avatar will be removed.
+ */
+function buildUpdateReportAvatarOnyxData(reportID: string, file?: File | CustomRNImageManipulatorResult) {
     // If we have no file that means we are removing the avatar.
     const optimisticData: OnyxUpdate[] = [
         {
@@ -968,8 +977,26 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
             },
         },
     ];
+
+    return {optimisticData, successData, failureData};
+}
+
+/**
+ * Updates the avatar for a group chat.
+ */
+function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
+    const {optimisticData, successData, failureData} = buildUpdateReportAvatarOnyxData(reportID, file);
     const parameters: UpdateGroupChatAvatarParams = {file, reportID};
     API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_AVATAR, parameters, {optimisticData, failureData, successData});
+}
+
+/**
+ * Updates the avatar for a policy room.
+ */
+function updatePolicyRoomAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
+    const {optimisticData, successData, failureData} = buildUpdateReportAvatarOnyxData(reportID, file);
+    const parameters: UpdatePolicyRoomAvatarParams = {reportID, file};
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_ROOM_AVATAR, parameters, {optimisticData, failureData, successData});
 }
 
 /**
@@ -6203,6 +6230,7 @@ export {
     unsubscribeFromReportChannel,
     updateDescription,
     updateGroupChatAvatar,
+    updatePolicyRoomAvatar,
     updateGroupChatMemberRoles,
     updateChatName,
     updateLastVisitTime,
