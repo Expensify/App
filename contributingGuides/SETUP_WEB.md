@@ -32,19 +32,17 @@ If you're using another operating system, you will need to ensure `mkcert` is in
 To build and run the production web build locally:
 
 ```bash
-# 1. Build the production bundle
-npm run build
-
-# 2. Set USE_WEB_PROXY environment variable in .env.production
+# 1. Set USE_WEB_PROXY environment variable in .env.production
 USE_WEB_PROXY=true
+
+# 2. Build the production bundle
+npm run build
 
 # 3. Run the distribution server
 npm run web:dist
 ```
 
 The `web:dist` command starts both the proxy server (port 9000) and web server (port 8080) concurrently. Access the application at **http://localhost:8080**
-
-**Important**: You must set `USE_WEB_PROXY=true` before running `web:dist` to avoid CORS errors when testing locally.
 
 ## Environment Variables
 
