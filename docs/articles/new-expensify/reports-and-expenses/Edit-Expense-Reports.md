@@ -43,7 +43,7 @@ You can retract reports with the following statuses:
 2. Tap **More** > **Retract**.
 3. A system message confirms the report is retracted and editable.
 
-**Note:** Only Workspace Admins can retract done reports. Submitters can't retract their own done report unless they're also an admin. 
+**Note:** Only Workspace Admins can retract done reports.
 
 ---
 
@@ -59,7 +59,7 @@ From there, you can choose:
 - **Retract**: Confirms and returns the report to an editable state.
 - **Cancel**: Dismisses the warning message without making changes to the expense report.
 
-Once retracting, a Workspace Admin can fully edit the report—adding or deleting expenses, changing categories, and more.
+After retracting, a Workspace Admin can fully edit the report—adding or deleting expenses, changing categories, and more.
 
 ---
 
