@@ -68,7 +68,6 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
     }, [isActive, sharedValue]);
 
     const animatedStyle = useAnimatedStyle(() => {
-        // const backgroundColor = interpolateColor(sharedValue.get(), [0, 1], [success, buttonDefaultBG]);
         const backgroundColor = interpolateColor(sharedValue.get(), [0, 1], [buttonDefaultBG, buttonHoveredBG]);
 
         return {
@@ -102,7 +101,6 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                 }
             }}
             style={[
-                // styles.h100,
                 styles.navigationTabBarFABItem,
 
                 // Prevent text selection on touch devices (e.g. on long press)

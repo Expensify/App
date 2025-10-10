@@ -339,7 +339,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                     chatTabBrickRoad={chatTabBrickRoad}
                 />
             )}
-            <View style={[styles.navigationTabBarContainer]}>
+            <View style={styles.navigationTabBarContainer}>
                 <PressableWithFeedback
                     onPress={navigateToChats}
                     role={CONST.ROLE.BUTTON}
