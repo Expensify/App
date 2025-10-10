@@ -1,12 +1,10 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import SelectCircle from '@components/SelectCircle';
+import Checkbox from '@components/Checkbox';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {BaseListItemProps, ListItem} from './types';
 
@@ -56,18 +54,14 @@ function TravelDomainListItem<TItem extends ListItem>({
         >
             <>
                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                    <PressableWithFeedback
-                        onPress={handleCheckboxPress}
-                        disabled={isDisabled}
-                        role={CONST.ROLE.BUTTON}
+                    <Checkbox
+                        style={[styles.mr2]}
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        disabled={isDisabled || item.isDisabledCheckbox}
+                        isChecked={item.isSelected ?? false}
                         accessibilityLabel={item.text ?? ''}
-                        style={[styles.mr2, styles.optionSelectCircle]}
-                    >
-                        <SelectCircle
-                            isChecked={item.isSelected ?? false}
-                            selectCircleStyles={styles.ml0}
-                        />
-                    </PressableWithFeedback>
+                        onPress={handleCheckboxPress}
+                    />
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
