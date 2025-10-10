@@ -11,6 +11,7 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -22,7 +23,6 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import GenericFeaturesView from './GenericFeaturesView';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 
 type Props = {
     buttonDisabled?: boolean;
@@ -87,9 +87,9 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         );
     }
 
-    const isIllustration = feature.icon in Illustrations
+    const isIllustration = feature.icon in Illustrations;
     const isIllustrationIcon = feature.icon in illustrationIcons;
-    let iconSrc
+    let iconSrc;
     if (isIllustrationIcon) {
         iconSrc = illustrationIcons[feature.icon as keyof typeof illustrationIcons];
     } else if (isIllustration) {
