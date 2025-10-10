@@ -56,7 +56,6 @@ const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue
         const {currentSearchHash: searchContextCurrentSearchHash} = use(SearchContext);
         currentSearchHash = searchContextCurrentSearchHash;
     }
-
     const useOnyxOptions = options as UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> | undefined;
     const {selector: selectorProp, ...optionsWithoutSelector} = useOnyxOptions ?? {};
 
