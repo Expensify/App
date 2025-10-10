@@ -157,11 +157,9 @@ function AuthScreens() {
     });
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const [userReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, {canBeMissing: true});
-    const {isOnboardingCompleted} = useOnboardingFlowRouter();
+    const {isOnboardingCompleted, shouldShowRequire2FAPage} = useOnboardingFlowRouter();
     const [isOnboardingLoading] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: (value) => !!value?.isLoading});
     const prevIsOnboardingLoading = usePrevious(isOnboardingLoading);
-    const [shouldShowRequire2FAPage, setShouldShowRequire2FAPage] = useState(!!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth);
-    const navigation = useNavigation();
     const {initialURL, isAuthenticatedAtStartup, setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
 
@@ -223,20 +221,6 @@ function AuthScreens() {
             NavBarManager.setButtonStyle(CONST.NAVIGATION_BAR_BUTTONS_STYLE.LIGHT);
         };
     }, [theme]);
-
-    useEffect(() => {
-        if (!account?.needsTwoFactorAuthSetup || !!account.requiresTwoFactorAuth || shouldShowRequire2FAPage) {
-            return;
-        }
-        setShouldShowRequire2FAPage(true);
-    }, [account?.needsTwoFactorAuthSetup, account?.requiresTwoFactorAuth, shouldShowRequire2FAPage]);
-
-    useEffect(() => {
-        if (!shouldShowRequire2FAPage) {
-            return;
-        }
-        Navigation.navigate(ROUTES.REQUIRE_TWO_FACTOR_AUTH);
-    }, [shouldShowRequire2FAPage]);
 
     useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
@@ -618,20 +602,7 @@ function AuthScreens() {
                     name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                     options={rootNavigatorScreenOptions.rightModalNavigator}
                     component={RightModalNavigator}
-                    listeners={{
-                        ...modalScreenListenersWithCancelSearch,
-                        beforeRemove: () => {
-                            modalScreenListenersWithCancelSearch.beforeRemove();
-
-                            // When a 2FA RHP page is closed, if the 2FA require page is visible and the user has now enabled the 2FA, then remove the 2FA require page from the navigator.
-                            const routeParams = navigation.getState()?.routes?.at(-1)?.params;
-                            const screen = routeParams && 'screen' in routeParams ? routeParams.screen : '';
-                            if (!shouldShowRequire2FAPage || !account?.requiresTwoFactorAuth || screen !== SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH) {
-                                return;
-                            }
-                            setShouldShowRequire2FAPage(false);
-                        },
-                    }}
+                    listeners={modalScreenListenersWithCancelSearch}
                 />
                 <RootStack.Screen
                     name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}

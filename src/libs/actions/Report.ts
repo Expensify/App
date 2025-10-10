@@ -3513,7 +3513,6 @@ function openReportFromDeepLink(
     isAuthenticated: boolean,
 ) {
     const reportID = getReportIDFromLink(url);
-    const shouldShowRequire2FAPage = !!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth;
 
     if (reportID && !isAuthenticated) {
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
@@ -3640,12 +3639,7 @@ function openReportFromDeepLink(
 
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         isOnboardingFlowCompleted({
-                            onNotCompleted: () => {
-                                // Don't trigger onboarding if we are showing the require 2FA page
-                                if (shouldShowRequire2FAPage) {
-                                    return;
-                                }
-
+                            onNotCompleted: () =>
                                 startOnboardingFlow({
                                     onboardingValuesParam: val,
                                     hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
@@ -3653,8 +3647,7 @@ function openReportFromDeepLink(
                                     currentOnboardingPurposeSelected,
                                     currentOnboardingCompanySize,
                                     onboardingInitialPath,
-                                });
-                            },
+                                }),
                             onCompleted: handleDeeplinkNavigation,
                             onCanceled: handleDeeplinkNavigation,
                         });
