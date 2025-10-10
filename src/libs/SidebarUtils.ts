@@ -26,9 +26,9 @@ import {
     getChangedApproverActionMessage,
     getDeletedApprovalRuleMessage,
     getIntegrationSyncFailedMessage,
+    getIOUReportIDFromReportActionPreview,
     getLastVisibleMessage,
     getMessageOfOldDotReportAction,
-    getOneTransactionThreadReportID,
     getOriginalMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogDefaultBillableMessage,
@@ -66,9 +66,12 @@ import {
     getWorkspaceUpdateFieldMessage,
     isActionOfType,
     isCardIssuedAction,
+    isDeletedAction,
     isInviteOrRemovedAction,
+    isMoneyRequestAction,
     isOldDotReportAction,
     isRenamedAction,
+    isReportPreviewAction,
     isTagModificationAction,
     isTaskAction,
     isTransactionThread,
@@ -92,6 +95,7 @@ import {
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
+    getReportTransactions,
     getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
     hasReceiptError,
@@ -536,20 +540,40 @@ function getReasonAndReportActionThatHasRedBrickRoad(
             reason: CONST.RBR_REASONS.HAS_VIOLATIONS,
         };
     }
+
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? []);
-    if (transactionThreadReportID) {
-        const transactionID = getTransactionID(transactionThreadReportID);
-        const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        if (hasReceiptError(transaction)) {
-            return {
-                reason: CONST.RBR_REASONS.HAS_ERRORS,
-            };
-        }
-    }
     const transactionID = getTransactionID(report.reportID);
     const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     if (isTransactionThread(parentReportAction) && hasReceiptError(transaction)) {
+        return {
+            reason: CONST.RBR_REASONS.HAS_ERRORS,
+        };
+    }
+
+    const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !isDeletedAction(action));
+    const shouldShowReceiptError = reportActionsArray?.some((action) => {
+        if (isReportPreviewAction(action)) {
+            const IOUReportID = getIOUReportIDFromReportActionPreview(action);
+            const reportTransactions = getReportTransactions(IOUReportID);
+
+            if (reportTransactions.some(hasReceiptError)) {
+                return true;
+            }
+        }
+
+        if (isTransactionThread(action)) {
+            // if needed we can also add the case of parentReportAction to include transactionThreadReports
+            const IOUTransactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
+            const iouTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`];
+            if (hasReceiptError(iouTransaction)) {
+                return true;
+            }
+        }
+
+        return false;
+    });
+
+    if (shouldShowReceiptError) {
         return {
             reason: CONST.RBR_REASONS.HAS_ERRORS,
         };
@@ -669,7 +693,8 @@ function getOptionData({
     result.isMoneyRequestReport = isMoneyRequestReport(report);
     result.shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
-    result.brickRoadIndicator = reportAttributes?.brickRoadStatus;
+    // We only need to show brickRoadIndicator in LHN for the top-most report.
+    result.brickRoadIndicator = isThread(report) ? undefined : reportAttributes?.brickRoadStatus;
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;

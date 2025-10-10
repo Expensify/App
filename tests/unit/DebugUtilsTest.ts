@@ -1417,7 +1417,7 @@ describe('DebugUtils', () => {
                             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                             reportActionID: '2',
                             message: {
-                                IOUTransactionID: '1',
+                                IOUTransactionID: '3',
                             },
                             actorAccountID: 1,
                         } as ReportAction<'IOU'>,
