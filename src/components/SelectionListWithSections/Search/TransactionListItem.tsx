@@ -60,13 +60,13 @@ function TransactionListItem<TItem extends ListItem>({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`, {canBeMissing: true, shouldUseOnyxDataInsteadOfSnapshot: true});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.transactionThreadReportID}`, {canBeMissing: true, shouldUseOnyxDataInsteadOfSnapshot: true});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`, {canBeMissing: true, shouldUseOnyxDataInsteadOfSnapshot: true});
+    const parentReportActionSelector = useCallback(
+        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${transactionItem?.moneyRequestReportActionID}`],
+        [transactionItem],
+    );
     const [parentReportAction] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`,
-        {
-            selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${transactionItem?.moneyRequestReportActionID}`],
-            canBeMissing: true,
-            shouldUseOnyxDataInsteadOfSnapshot: true,
-        },
+        {selector: parentReportActionSelector, canBeMissing: true, shouldUseOnyxDataInsteadOfSnapshot: true},
         [transactionItem],
     );
     const transactionPreviewData: TransactionPreviewData = useMemo(
