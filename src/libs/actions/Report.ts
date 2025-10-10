@@ -3636,7 +3636,6 @@ function openReportFromDeepLink(
                             handleDeeplinkNavigation();
                             return;
                         }
-
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         isOnboardingFlowCompleted({
                             onNotCompleted: () =>
