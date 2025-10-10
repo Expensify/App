@@ -439,6 +439,20 @@ function MoneyRequestView({
         ],
     );
 
+    const distanceCopyValue = !canEditDistance ? distanceToDisplay : undefined;
+    const distanceRateCopyValue = !canEditDistanceRate ? rateToDisplay : undefined;
+    const amountCopyValue = !canEditAmount ? amountTitle : undefined;
+    const descriptionCopyValue = !canEdit ? (updatedTransactionDescription ?? transactionDescription) : undefined;
+    const merchantCopyValue = !canEditMerchant ? updatedMerchantTitle : undefined;
+    const dateCopyValue = !canEditDate ? transactionDate : undefined;
+    const categoryValue = updatedTransaction?.category ?? categoryForDisplay;
+    const categoryCopyValue = !canEdit ? categoryValue : undefined;
+    const cardCopyValue = cardProgramName;
+    const taxRateValue = taxRateTitle ?? fallbackTaxRateTitle;
+    const taxRateCopyValue = !canEditTaxFields ? taxRateValue : undefined;
+    const taxAmountTitle = formattedTaxAmount ? formattedTaxAmount.toString() : '';
+    const taxAmountCopyValue = !canEditTaxFields ? taxAmountTitle : undefined;
+
     const distanceRequestFields = (
         <>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints') ?? getPendingFieldAction('merchant')}>
@@ -469,8 +483,8 @@ function MoneyRequestView({
                             ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
                         );
                     }}
-                    copyValue={!canEditDistance ? distanceToDisplay : undefined}
-                    copyable={!canEditDistance && !!distanceToDisplay}
+                    copyValue={distanceCopyValue}
+                    copyable={!!distanceCopyValue}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('customUnitRateID')}>
@@ -496,8 +510,8 @@ function MoneyRequestView({
                     }}
                     brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={getErrorForField('customUnitRateID')}
-                    copyValue={!canEditDistanceRate ? rateToDisplay : undefined}
-                    copyable={!canEditDistanceRate && !!rateToDisplay}
+                    copyValue={distanceRateCopyValue}
+                    copyable={!!distanceRateCopyValue}
                 />
             </OfflineWithFeedback>
         </>
@@ -521,6 +535,7 @@ function MoneyRequestView({
     const getAttendeesTitle = useMemo(() => {
         return Array.isArray(transactionAttendees) ? transactionAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : '';
     }, [transactionAttendees]);
+    const attendeesCopyValue = !canEdit ? getAttendeesTitle : undefined;
 
     const previousTagLength = getLengthOfTag(previousTag ?? '');
     const currentTagLength = getLengthOfTag(currentTransactionTag ?? '');
@@ -552,6 +567,7 @@ function MoneyRequestView({
             hasDependentTags,
             tagForDisplay,
         );
+        const tagCopyValue = !canEdit ? tagForDisplay : undefined;
 
         return (
             <OfflineWithFeedback
@@ -578,8 +594,8 @@ function MoneyRequestView({
                     errorText={tagError}
                     shouldShowBasicTitle
                     shouldShowDescriptionOnTop
-                    copyValue={!canEdit ? tagForDisplay : undefined}
-                    copyable={!canEdit && !!tagForDisplay}
+                    copyValue={tagCopyValue}
+                    copyable={!!tagCopyValue}
                 />
             </OfflineWithFeedback>
         );
@@ -587,6 +603,7 @@ function MoneyRequestView({
 
     const actualParentReport = isFromMergeTransaction ? getReportOrDraftReport(getReportIDForExpense(updatedTransaction)) : parentReport;
     const shouldShowReport = !!parentReportID || !!actualParentReport;
+    const reportCopyValue = !canEditReport ? getReportName(actualParentReport) || actualParentReport?.reportName : undefined;
 
     // In this case we want to use this value. The  shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -652,8 +669,8 @@ function MoneyRequestView({
                         }}
                         brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={getErrorForField('amount')}
-                        copyValue={!canEditAmount ? amountTitle : undefined}
-                        copyable={!canEditAmount && !!amountTitle}
+                        copyValue={amountCopyValue}
+                        copyable={!!amountCopyValue}
                     />
                 </OfflineWithFeedback>
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
@@ -673,8 +690,8 @@ function MoneyRequestView({
                         brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={getErrorForField('comment')}
                         numberOfLinesTitle={0}
-                        copyValue={!canEdit ? (updatedTransactionDescription ?? transactionDescription) : undefined}
-                        copyable={!canEdit && !!(updatedTransactionDescription ?? transactionDescription)}
+                        copyValue={descriptionCopyValue}
+                        copyable={!!descriptionCopyValue}
                     />
                 </OfflineWithFeedback>
                 {isManualDistanceRequest || (isMapDistanceRequest && transaction?.comment?.waypoints) ? (
@@ -696,8 +713,8 @@ function MoneyRequestView({
                             brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('merchant')}
                             numberOfLinesTitle={0}
-                            copyValue={!canEditMerchant ? updatedMerchantTitle : undefined}
-                            copyable={!canEditMerchant && !!updatedMerchantTitle}
+                            copyValue={merchantCopyValue}
+                            copyable={!!merchantCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -715,15 +732,15 @@ function MoneyRequestView({
                         }}
                         brickRoadIndicator={getErrorForField('date') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={getErrorForField('date')}
-                        copyValue={!canEditDate ? transactionDate : undefined}
-                        copyable={!canEditDate && !!transactionDate}
+                        copyValue={dateCopyValue}
+                        copyable={!!dateCopyValue}
                     />
                 </OfflineWithFeedback>
                 {!!shouldShowCategory && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
                         <MenuItemWithTopDescription
                             description={translate('common.category')}
-                            title={updatedTransaction?.category ?? categoryForDisplay}
+                            title={categoryValue}
                             numberOfLinesTitle={2}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
@@ -748,8 +765,8 @@ function MoneyRequestView({
                             }}
                             brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('category')}
-                            copyValue={!canEdit ? (updatedTransaction?.category ?? categoryForDisplay) : undefined}
-                            copyable={!canEdit && !!(updatedTransaction?.category ?? categoryForDisplay)}
+                            copyValue={categoryCopyValue}
+                            copyable={!!categoryCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -758,18 +775,18 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('cardID')}>
                         <MenuItemWithTopDescription
                             description={translate('iou.card')}
-                            title={cardProgramName}
+                            title={cardCopyValue}
                             titleStyle={styles.flex1}
                             interactive={false}
-                            copyValue={cardProgramName}
-                            copyable
+                            copyValue={cardCopyValue}
+                            copyable={!!cardCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
                 {shouldShowTax && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('taxCode')}>
                         <MenuItemWithTopDescription
-                            title={taxRateTitle ?? fallbackTaxRateTitle}
+                            title={taxRateValue}
                             description={taxRatesDescription}
                             interactive={canEditTaxFields}
                             shouldShowRightIcon={canEditTaxFields}
@@ -781,15 +798,15 @@ function MoneyRequestView({
                             }}
                             brickRoadIndicator={getErrorForField('tax') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('tax')}
-                            copyValue={!canEditTaxFields ? (taxRateTitle ?? fallbackTaxRateTitle) : undefined}
-                            copyable={!canEditTaxFields && !!(taxRateTitle ?? fallbackTaxRateTitle)}
+                            copyValue={taxRateCopyValue}
+                            copyable={!!taxRateCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
                 {shouldShowTax && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('taxAmount')}>
                         <MenuItemWithTopDescription
-                            title={formattedTaxAmount ? formattedTaxAmount.toString() : ''}
+                            title={taxAmountTitle}
                             description={translate('iou.taxAmount')}
                             interactive={canEditTaxFields}
                             shouldShowRightIcon={canEditTaxFields}
@@ -799,8 +816,8 @@ function MoneyRequestView({
                                     ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
                                 );
                             }}
-                            copyValue={!canEditTaxFields ? (formattedTaxAmount?.toString() ?? '') : undefined}
-                            copyable={!canEditTaxFields && !!(formattedTaxAmount ? formattedTaxAmount.toString() : '')}
+                            copyValue={taxAmountCopyValue}
+                            copyable={!!taxAmountCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -822,8 +839,8 @@ function MoneyRequestView({
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             shouldRenderAsHTML
-                            copyValue={!canEdit ? getAttendeesTitle : undefined}
-                            copyable={!canEdit && !!getAttendeesTitle}
+                            copyValue={attendeesCopyValue}
+                            copyable={!!attendeesCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -886,8 +903,8 @@ function MoneyRequestView({
                             }}
                             interactive={canEditReport}
                             shouldRenderAsHTML
-                            copyValue={!canEditReport ? getReportName(actualParentReport) || actualParentReport?.reportName : undefined}
-                            copyable={!canEditReport && !!(getReportName(actualParentReport) || actualParentReport?.reportName)}
+                            copyValue={reportCopyValue}
+                            copyable={!!reportCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
