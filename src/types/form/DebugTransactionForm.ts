@@ -42,7 +42,6 @@ const INPUT_IDS = {
     ORIGINAL_CURRENCY: 'originalCurrency',
     IS_LOADING: 'isLoading',
     SPLIT_SHARES: 'splitShares',
-    SPLIT_PAYER_ACCOUNT_I_DS: 'splitPayerAccountIDs',
     SHOULD_SHOW_ORIGINAL_AMOUNT: 'shouldShowOriginalAmount',
     ACTIONABLE_WHISPER_REPORT_ACTION_ID: 'actionableWhisperReportActionID',
     LINKED_TRACKED_EXPENSE_REPORT_ACTION: 'linkedTrackedExpenseReportAction',

@@ -1062,7 +1062,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     originalAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     originalCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitShares: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                    splitPayerAccountIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     shouldShowOriginalAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     actionableWhisperReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     linkedTrackedExpenseReportAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1179,8 +1178,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 },
                 'number',
             );
-        case 'splitPayerAccountIDs':
-            return validateArray(value, 'number');
         case 'linkedTrackedExpenseReportAction':
             return validateObject<ReportAction>(value, {
                 accountID: 'number',
