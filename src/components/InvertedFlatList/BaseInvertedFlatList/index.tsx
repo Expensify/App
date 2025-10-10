@@ -126,6 +126,8 @@ function BaseInvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) 
         ) as RNFlatList;
     });
 
+    console.log(data);
+
     return (
         <FlatList
             // eslint-disable-next-line react/jsx-props-no-spreading

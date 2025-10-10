@@ -289,7 +289,7 @@ const ROUTES = {
         route: 'settings/wallet/add-bank-account',
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/wallet/add-bank-account', backTo),
+        getRoute: (subStep: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/add-bank-account?subStep=${subStep}`, backTo),
     },
     SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: `settings/wallet/add-bank-account/${VERIFY_ACCOUNT}`,
     SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',

@@ -6,7 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useRootNavigationState from '@hooks/useRootNavigationState';
-import useSubStep from '@hooks/useSubStep';
+import useSubStepWithURL from '@hooks/useSubStepWithURL';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
@@ -90,6 +90,9 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
         goBack();
     }, [goBack]);
 
+    // Define step names for URL parameters based on CORPAY_FIELDS.STEPS_NAME
+    const stepNames = ['Country', 'Details', 'AccountType', 'BankInfo', 'AccountHolder', 'Confirmation', 'Success'];
+
     const {
         componentToRender: SubStep,
         isEditing,
@@ -98,7 +101,13 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
         screenIndex,
         moveTo,
         resetScreenIndex,
-    } = useSubStep<CustomSubStepProps>({bodyContent: formSteps, startFrom, onFinished: handleFinishStep, skipSteps: skippedSteps});
+    } = useSubStepWithURL<CustomSubStepProps>({
+        bodyContent: formSteps, 
+        startFrom, 
+        onFinished: handleFinishStep, 
+        skipSteps: skippedSteps,
+        stepNames
+    });
 
     const handleBackButtonPress = () => {
         if (isEditing) {
