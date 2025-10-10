@@ -1,124 +1,85 @@
-import type {ForwardedRef} from 'react';
-import React, {useEffect, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Role, Text, View} from 'react-native';
-import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import {Path} from 'react-native-svg';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {startMoneyRequest} from '@libs/actions/IOU';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import Navigation from '@libs/Navigation/Navigation';
+import {generateReportID, getWorkspaceChats} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type * as OnyxTypes from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Icon from './Icon';
 import {Camera} from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
 
-const AnimatedPath = Animated.createAnimatedComponent(Path);
-AnimatedPath.displayName = 'AnimatedPath';
+const sessionSelector = (session: OnyxEntry<OnyxTypes.Session>) => ({email: session?.email, accountID: session?.accountID});
 
-type FloatingReceiptButtonProps = {
-    /* Callback to fire on request to toggle the FloatingCameraButton */
-    onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
-
-    /* Callback to fire on long press of the FloatingCameraButton */
-    onLongPress?: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
-
-    /* Current state (active or not active) of the component */
-    isActive: boolean;
-
-    /* An accessibility label for the button */
-    accessibilityLabel: string;
-
-    /* An accessibility role for the button */
-    role: Role;
-
-    /** Reference to the outer element */
-    ref?: ForwardedRef<HTMLDivElement | View | Text>;
-};
-
-function FloatingCameraButton({onPress, onLongPress, isActive, accessibilityLabel, role, ref}: FloatingReceiptButtonProps) {
-    const {success, successHover, buttonDefaultBG, textLight} = useTheme();
+function FloatingCameraButton() {
+    const {textLight} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
-    const fabPressable = useRef<HTMLDivElement | View | Text | null>(null);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const isLHBVisible = !shouldUseNarrowLayout;
 
-    const fabSize = isLHBVisible ? variables.iconSizeSmall : variables.iconSizeNormal;
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: sessionSelector});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
+    const reportID = useMemo(() => generateReportID(), []);
 
-    const sharedValue = useSharedValue(isActive ? 1 : 0);
-    const buttonRef = ref;
-
-    useEffect(() => {
-        sharedValue.set(
-            withTiming(isActive ? 1 : 0, {
-                duration: 340,
-                easing: Easing.inOut(Easing.ease),
-            }),
-        );
-    }, [isActive, sharedValue]);
-
-    const animatedStyle = useAnimatedStyle(() => {
-        const backgroundColor = interpolateColor(sharedValue.get(), [0, 1], [success, buttonDefaultBG]);
-
-        return {
-            transform: [{rotate: `${sharedValue.get() * 135}deg`}],
-            backgroundColor,
-        };
-    });
-
-    const toggleFabAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
-        // Drop focus to avoid blue focus ring.
-        fabPressable.current?.blur();
-        onPress(event);
-    };
-
-    const longPressFabAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
-        // Only execute on narrow layout - prevent event from firing on wide screens
-        if (isLHBVisible) {
-            return;
+    const policyChatForActivePolicy = useMemo(() => {
+        if (isEmptyObject(activePolicy) || !activePolicy?.isPolicyExpenseChatEnabled) {
+            return {} as OnyxTypes.Report;
         }
-        // Drop focus to avoid blue focus ring.
-        fabPressable.current?.blur();
-        onLongPress?.(event);
+        const policyChatsForActivePolicy = getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], allReports);
+        return policyChatsForActivePolicy.length > 0 ? policyChatsForActivePolicy.at(0) : ({} as OnyxTypes.Report);
+    }, [activePolicy, activePolicyID, session?.accountID, allReports]);
+
+    const onPress = () => {
+        interceptAnonymousUser(() => {
+            if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
+                return;
+            }
+
+            const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
+            startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, allTransactionDrafts);
+        });
     };
 
     return (
         <PressableWithoutFeedback
-            ref={(el) => {
-                fabPressable.current = el ?? null;
-                if (buttonRef && 'current' in buttonRef) {
-                    buttonRef.current = el ?? null;
-                }
-            }}
             style={[
-                // styles.h100,
                 styles.navigationTabBarFABItem,
                 {paddingHorizontal: 0},
                 // Prevent text selection on touch devices (e.g. on long press)
                 canUseTouchScreen() && styles.userSelectNone,
                 styles.floatingCameraButton,
             ]}
-            accessibilityLabel={accessibilityLabel}
-            onPress={toggleFabAction}
-            onLongPress={longPressFabAction}
-            role={role}
-            shouldUseHapticsOnLongPress
-            testID="floating-action-button"
+            // accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
+            accessibilityLabel="fcb"
+            onPress={onPress}
+            role={CONST.ROLE.BUTTON}
+            testID="floating-camera-button"
         >
-            {({hovered}) => (
-                <Animated.View
-                    style={[styles.floatingActionButton, {borderRadius}, animatedStyle, hovered && {backgroundColor: successHover}]}
-                    testID="fab-animated-container"
-                >
-                    <Icon
-                        fill={textLight}
-                        src={Camera}
-                        width={fabSize}
-                        height={fabSize}
-                    />
-                </Animated.View>
-            )}
+            <View
+                style={[styles.floatingActionButton, {borderRadius}]}
+                testID="fab-animated-container"
+            >
+                <Icon
+                    fill={textLight}
+                    src={Camera}
+                    width={variables.iconSizeNormal}
+                    height={variables.iconSizeNormal}
+                />
+            </View>
         </PressableWithoutFeedback>
     );
 }

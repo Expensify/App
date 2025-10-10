@@ -442,13 +442,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                     onPress={navigateToSettings}
                 />
             </View>
-            <FloatingCameraButton
-                accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
-                role={CONST.ROLE.BUTTON}
-                isActive={false}
-                onPress={() => {}}
-                onLongPress={() => {}}
-            />
+            <FloatingCameraButton />
         </>
     );
 }
