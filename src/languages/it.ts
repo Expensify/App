@@ -117,6 +117,7 @@ import type {
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
+    FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
     ImportedTagsMessageParams,
@@ -2697,8 +2698,8 @@ const translations = {
     },
     focusModeUpdateModal: {
         title: 'Benvenuto in modalità #focus!',
-        prompt: 'Rimani al passo vedendo solo le chat non lette o quelle che richiedono la tua attenzione. Non preoccuparti, puoi cambiare questa impostazione in qualsiasi momento in',
-        settings: 'impostazioni',
+        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
+            `Rimani al passo vedendo solo le chat non lette o quelle che richiedono la tua attenzione. Non preoccuparti, puoi cambiare questa impostazione in qualsiasi momento in <a href="${priorityModePageUrl}">impostazioni</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'La chat che stai cercando non può essere trovata.',

@@ -942,6 +942,10 @@ type MergeAccountIntoParams = {
     login: string;
 };
 
+type FocusModeUpdateParams = {
+    priorityModePageUrl: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1253,4 +1257,5 @@ export type {
     ErrorODIntegrationParams,
     DisconnectYourBankAccountParams,
     MergeAccountIntoParams,
+    FocusModeUpdateParams,
 };
