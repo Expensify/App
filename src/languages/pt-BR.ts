@@ -1467,6 +1467,7 @@ const translations = {
                 subtitle: 'Escolha um aprovador adicional para este relatório antes de o encaminharmos através do restante do fluxo de trabalho de aprovação.',
             },
         },
+        chooseWorkspace: 'Escolha um espaço de trabalho',
     },
     transactionMerge: {
         listPage: {
