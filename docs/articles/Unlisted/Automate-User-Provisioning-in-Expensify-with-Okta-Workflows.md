@@ -205,7 +205,7 @@ Expensify enforces API rate limits. Avoid sending excessive requests in a short 
 
 ## Does Expensify support SCIM-based provisioning?
 
-No. Expensify does **not** support SCIM-based user provisioning.However, we do support SCIM-based deprovisioning for customers using Okta. To learn more, see [Okta SCIM API for User Deactivation](https://help.expensify.com/articles/expensify-classic/domains/Managing-Single-Sign-On-(SSO)-in-Expensify#:~:text=Advanced%20Configurations-,Okta%20SCIM%20API%20for%20User%20Deactivation,-Ensure%20your%20domain).
+No. Expensify does **not** support SCIM-based user provisioning. However, we do support SCIM-based deprovisioning for customers using Okta. To learn more, see [Okta SCIM API for User Deactivation](https://help.expensify.com/articles/expensify-classic/domains/Managing-Single-Sign-On-(SSO)-in-Expensify#:~:text=Advanced%20Configurations-,Okta%20SCIM%20API%20for%20User%20Deactivation,-Ensure%20your%20domain).
 
 
 ---
