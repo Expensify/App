@@ -1,6 +1,6 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -16,6 +16,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {openReport} from '@libs/actions/Report';
 import {dismissDuplicateTransactionViolation} from '@libs/actions/Transaction';
+import {setActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
+import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -24,8 +26,10 @@ import {getLinkedTransactionID, getReportAction} from '@libs/ReportActionsUtils'
 import {isReportIDApproved, isSettled} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import DuplicateTransactionsList from './DuplicateTransactionsList';
 
 function TransactionDuplicateReview() {
@@ -51,6 +55,7 @@ function TransactionDuplicateReview() {
         (allTransactions: OnyxCollection<Transaction>) =>
             transactionIDs
                 .map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])
+                .filter((transaction) => !!transaction)
                 .sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime()),
         [transactionIDs],
     );
@@ -62,6 +67,37 @@ function TransactionDuplicateReview() {
             canBeMissing: true,
         },
         [transactionIDs],
+    );
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`, {canBeMissing: true});
+    const originalReportIDsListRef = useRef<string[] | null>(null);
+    const [reportIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, {
+        canBeMissing: true,
+    });
+
+    const onPreviewPressed = useCallback(
+        (reportID: string) => {
+            const siblingTransactionReportIDs = getThreadReportIDsForTransactions(Object.values(reportActions ?? {}), transactions ?? []);
+            setActiveTransactionThreadIDs(siblingTransactionReportIDs).then(() => {
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute()}));
+            });
+            // Store the initial value of reportIDsList and only save it when the item is clicked for the first time
+            // to ensure that reportIDsList reflects its original value when this component is mounted
+            if (!originalReportIDsListRef.current) {
+                originalReportIDsListRef.current = reportIDsList;
+            }
+        },
+        [reportActions, reportIDsList, transactions],
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            InteractionManager.runAfterInteractions(() => {
+                if (!originalReportIDsListRef.current) {
+                    return;
+                }
+                setActiveTransactionThreadIDs(originalReportIDsListRef.current);
+            });
+        }, []),
     );
 
     const keepAll = () => {
@@ -110,7 +146,10 @@ function TransactionDuplicateReview() {
                     />
                     {!!hasSettledOrApprovedTransaction && <Text style={[styles.textNormal, styles.colorMuted, styles.mt3]}>{translate('iou.someDuplicatesArePaid')}</Text>}
                 </View>
-                <DuplicateTransactionsList transactions={transactions ?? []} />
+                <DuplicateTransactionsList
+                    transactions={transactions ?? []}
+                    onPreviewPressed={onPreviewPressed}
+                />
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
