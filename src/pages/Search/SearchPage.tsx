@@ -619,10 +619,6 @@ function SearchPage({route}: SearchPageProps) {
         searchResults = lastNonEmptySearchResults.current;
     }
 
-    const shouldShowOfflineIndicator = !!searchResults?.data;
-
-    const offlineIndicatorStyle = [styles.mtAuto];
-
     // Handles video player cleanup:
     // 1. On mount: Resets player if navigating from report screen
     // 2. On unmount: Stops video when leaving this screen
@@ -753,8 +749,7 @@ function SearchPage({route}: SearchPageProps) {
                     <View style={styles.searchSplitContainer}>
                         <ScreenWrapper
                             testID={Search.displayName}
-                            shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
-                            offlineIndicatorStyle={offlineIndicatorStyle}
+                            shouldShowOfflineIndicatorInWideScreen={false}
                         >
                             <DragAndDropProvider>
                                 {PDFValidationComponent}
