@@ -11,6 +11,7 @@ import type {
     SearchDatePreset,
     SearchFilterKey,
     SearchQueryJSON,
+    SearchQueryPositionEntry,
     SearchQueryString,
     SearchStatus,
     SearchWithdrawalType,
@@ -406,8 +407,21 @@ function serializeRootEntry(key: string, value: unknown) {
         if (value.length === 0) {
             return;
         }
+        const seen = new Set<string>();
+        const dedupedValues = value.filter((item) => {
+            const serialized = String(item);
+            if (seen.has(serialized)) {
+                return false;
+            }
+            seen.add(serialized);
+            return true;
+        });
 
-        return `${key}:${value.join(',')}`;
+        if (!dedupedValues.length) {
+            return;
+        }
+
+        return `${key}:${dedupedValues.join(',')}`;
     }
 
     if (typeof value === 'string' && value.length === 0) {
@@ -448,6 +462,76 @@ function getQueryFiltersFromNode(node?: ASTNode) {
     return filters;
 }
 
+function dedupeQueryFilters(filters: QueryFilter[]) {
+    const seen = new Set<string>();
+    return filters.filter((filter) => {
+        const key = `${filter.operator}:${sanitizeSearchValue(String(filter.value))}`;
+        if (seen.has(key)) {
+            return false;
+        }
+        seen.add(key);
+        return true;
+    });
+}
+
+function dedupePositionInfo(positionInfo: SearchQueryPositionEntry[]) {
+    const rootKeysSeen = new Set<string>();
+    const filterValuesSeen = new Map<string, Set<string>>();
+
+    return positionInfo.reduce<SearchQueryPositionEntry[]>((acc, entry) => {
+        if (entry.type === 'root') {
+            if (rootKeysSeen.has(entry.key)) {
+                return acc;
+            }
+
+            rootKeysSeen.add(entry.key);
+            acc.push(entry);
+            return acc;
+        }
+
+        if (entry.type === 'filter' && entry.node) {
+            const dedupedFilters = dedupeQueryFilters(getQueryFiltersFromNode(entry.node));
+            if (!dedupedFilters.length) {
+                return acc;
+            }
+
+            const signature = dedupedFilters
+                .map((filter) => `${filter.operator}:${sanitizeSearchValue(String(filter.value))}`)
+                .join('|');
+
+            let seenForKey = filterValuesSeen.get(entry.key);
+            if (!seenForKey) {
+                seenForKey = new Set<string>();
+                filterValuesSeen.set(entry.key, seenForKey);
+            }
+
+            if (seenForKey.has(signature)) {
+                return acc;
+            }
+
+            seenForKey.add(signature);
+
+            const updatedNode: ASTNode = {
+                ...entry.node,
+                operator: dedupedFilters[0]?.operator ?? entry.node.operator,
+                right:
+                    dedupedFilters.length === 1
+                        ? dedupedFilters[0]?.value ?? entry.node.right
+                        : dedupedFilters.map((filter) => filter.value),
+            };
+
+            acc.push({
+                ...entry,
+                node: updatedNode,
+            });
+            return acc;
+        }
+
+        acc.push(entry);
+        return acc;
+    }, []);
+}
+
 /**
  * Builds the printable segment (e.g., `merchant:Coffee`) from a stored AST node.
  *
@@ -456,12 +540,124 @@ function getQueryFiltersFromNode(node?: ASTNode) {
  * @return Serialized filter segment or `undefined` when no values are present.
  */
 function buildFilterStringFromNode(key: string, node?: ASTNode) {
-    const queryFilters = getQueryFiltersFromNode(node);
+    const queryFilters = dedupeQueryFilters(getQueryFiltersFromNode(node));
     if (!queryFilters.length) {
         return;
     }
 
     return buildFilterValuesString(key, queryFilters).trim();
+}
+
+/**
+ * Adds a segment to the output list if it has not already been seen.
+ *
+ * @param segment Formatted segment to append.
+ * @param seen Collection tracking which segments have been emitted.
+ * @param target Output array that preserves order for joining.
+ */
+function addUniqueSegment(segment: string | undefined, seen: Set<string>, target: string[]) {
+    if (!segment) {
+        return;
+    }
+
+    const normalizedSegment = segment.trim();
+    if (!normalizedSegment || seen.has(normalizedSegment)) {
+        return;
+    }
+
+    seen.add(normalizedSegment);
+    target.push(normalizedSegment);
+}
+
+/**
+ * Builds a human-readable root segment (e.g., `type:Expenses`) for the query title.
+ *
+ * @param key Root search key recorded in the position metadata.
+ * @param queryJSON Parsed query payload that holds the root values.
+ * @param policies Policies collection used to resolve workspace names.
+ * @return Root segment or `undefined` if there is nothing to display.
+ */
+function getRootTitleSegment(key: string, queryJSON: SearchQueryJSON, policies: OnyxCollection<OnyxTypes.Policy>): string | undefined {
+    const {type, status, groupBy, policyID} = queryJSON;
+
+    switch (key) {
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE: {
+            if (!type) {
+                return undefined;
+            }
+            return `type:${getUserFriendlyValue(type)}`;
+        }
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
+            if (!status) {
+                return undefined;
+            }
+
+            if (Array.isArray(status) && status.length === 0) {
+                return undefined;
+            }
+
+            const serializedStatus = Array.isArray(status)
+                ? status.map(getUserFriendlyValue).join(',')
+                : getUserFriendlyValue(status);
+            return `status:${serializedStatus}`;
+        }
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY: {
+            if (!groupBy) {
+                return undefined;
+            }
+            return `group-by:${getUserFriendlyValue(groupBy)}`;
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID: {
+            if (!policyID || policyID.length === 0) {
+                return undefined;
+            }
+
+            const workspaceNames = policyID
+                .map((id) => sanitizeSearchValue(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]?.name ?? id))
+                .join(',');
+            return `workspace:${workspaceNames}`;
+        }
+        default:
+            return undefined;
+    }
+}
+
+/**
+ * Builds a human-readable filter segment (e.g., `merchant:Coffee`) for the query title.
+ *
+ * @param key Filter key recorded in the position metadata.
+ * @param filters Parsed filter values associated with the key.
+ * @param PersonalDetails User details used to resolve account IDs.
+ * @param reports Reports collection for resolving report IDs.
+ * @param cardList Company cards used for card ID resolution.
+ * @param cardFeeds Card feed metadata used for feed resolution.
+ * @param policies Policies collection for workspace/name lookups.
+ * @param currentUserAccountID Current user account ID for self lookups.
+ * @param taxRates Mapping of tax rate names to IDs for tax resolution.
+ * @return Filter segment or `undefined` when no displayable values exist.
+ */
+function getFilterTitleSegment(
+    key: string,
+    filters: QueryFilter[],
+    PersonalDetails: OnyxTypes.PersonalDetailsList | undefined,
+    reports: OnyxCollection<OnyxTypes.Report>,
+    cardList: OnyxTypes.CardList,
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
+    policies: OnyxCollection<OnyxTypes.Policy>,
+    currentUserAccountID: number,
+    taxRates: Record<string, string[]>,
+): string | undefined {
+    if (!filters.length) {
+        return undefined;
+    }
+
+    const uniqueFilters = dedupeQueryFilters(filters);
+    const displayFilters = getDisplayQueryFilters(key, uniqueFilters, PersonalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID, taxRates);
+    if (!displayFilters.length) {
+        return undefined;
+    }
+
+    return buildFilterValuesString(getUserFriendlyKey(key as SearchFilterKey), displayFilters).trim();
 }
 
 /**
@@ -477,15 +673,25 @@ function buildSearchQueryJSON(query: SearchQueryString) {
 
         // Add the full input and hash to the results
         result.inputQuery = query;
-        result.flatFilters = flatFilters;
+        result.flatFilters = flatFilters.map((filterGroup) => ({
+            ...filterGroup,
+            filters: dedupeQueryFilters(filterGroup.filters),
+        }));
+        result.flatFilters = result.flatFilters.filter((filterGroup) => filterGroup.filters.length > 0);
+        if (result.positionInfo) {
+            result.positionInfo = dedupePositionInfo(result.positionInfo);
+        }
         const {primaryHash, recentSearchHash, similarSearchHash} = getQueryHashes(result);
         result.hash = primaryHash;
         result.recentSearchHash = recentSearchHash;
         result.similarSearchHash = similarSearchHash;
 
-        if (result.policyID && typeof result.policyID === 'string') {
-            // Ensure policyID is always an array for consistency
-            result.policyID = [result.policyID];
+        if (result.policyID) {
+            if (typeof result.policyID === 'string') {
+                // Ensure policyID is always an array for consistency
+                result.policyID = [result.policyID];
+            }
+            result.policyID = [...new Set(result.policyID)];
         }
 
         if (result.groupBy) {
@@ -495,6 +701,12 @@ function buildSearchQueryJSON(query: SearchQueryString) {
         if (result.type) {
             result.type = normalizeValue(result.type);
         }
+
+        if (Array.isArray(result.status)) {
+            result.status = [...new Set(result.status)];
+        }
+
+        result.inputQuery = query.trim().length > 0 ? buildSearchQueryString(result) : query;
 
         return result;
     } catch (e) {
@@ -518,58 +730,41 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON): string {
     const queryParts: string[] = [];
     const processedRootKeys = new Set<string>();
     const processedFilterKeys = new Set<string>();
-    // Ensure items are in the order in which they appeared in the original query string.
+    const seenSegments = new Set<string>();
+    const addSegment = (segment?: string) => addUniqueSegment(segment, seenSegments, queryParts);
+    // Replay items in the order they appeared in the original query string.
     const sortedPositionInfo = [...(queryJSON.positionInfo ?? [])].sort((a, b) => a.position - b.position);
 
     for (const entry of sortedPositionInfo) {
         if (entry.type === 'root') {
             processedRootKeys.add(entry.key);
             const rootValue = (queryJSON as Record<string, unknown>)[entry.key] ?? (defaultQueryJSON as Record<string, unknown> | undefined)?.[entry.key];
-            const serialized = serializeRootEntry(entry.key, rootValue);
-
-            if (serialized) {
-                queryParts.push(serialized);
-            }
+            addSegment(serializeRootEntry(entry.key, rootValue));
             continue;
         }
 
         if (entry.type === 'filter') {
             processedFilterKeys.add(entry.key);
-            const filterString = buildFilterStringFromNode(entry.key, entry.node);
-
-            if (filterString) {
-                queryParts.push(filterString);
-            }
+            addSegment(buildFilterStringFromNode(entry.key, entry.node));
         }
     }
 
     // Fall back to defaults for any root fields that were not present in the position metadata.
-    const fallbackRootEntries: string[] = [];
     for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
         if (processedRootKeys.has(key)) {
             continue;
         }
 
         const rootValue = queryJSON[key as keyof SearchQueryJSON] ?? defaultQueryJSON?.[key as keyof SearchQueryJSON];
-        const serialized = serializeRootEntry(key, rootValue);
-
-        if (serialized) {
-            fallbackRootEntries.push(serialized);
-        }
+        addSegment(serializeRootEntry(key, rootValue));
     }
 
     // Workspace IDs are modeled as filters in the constants, but the UI renders them next to root fields,
     // so we fall back here to keep the order consistent when no positional metadata exists.
     if (!processedRootKeys.has(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID)) {
         const policyValue = queryJSON.policyID ?? defaultQueryJSON?.policyID;
-        const serializedPolicy = serializeRootEntry(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, policyValue);
-
-        if (serializedPolicy) {
-            fallbackRootEntries.push(serializedPolicy);
-        }
+        addSegment(serializeRootEntry(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, policyValue));
     }
-
-    queryParts.push(...fallbackRootEntries);
 
     // Emit remaining filters in a stable order when no positional metadata is present.
     for (const filter of queryJSON.flatFilters) {
@@ -581,10 +776,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON): string {
             continue;
         }
 
-        const filterValueString = buildFilterValuesString(filter.key, filter.filters);
-        if (filterValueString) {
-            queryParts.push(filterValueString.trim());
-        }
+        addSegment(buildFilterValuesString(filter.key, dedupeQueryFilters(filter.filters)));
     }
 
     return queryParts.join(' ').trim();
@@ -1102,120 +1294,116 @@ function buildUserReadableQueryString(
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
 ) {
-    const {type, status, groupBy, policyID} = queryJSON;
+    const rootKeysInOrder = [
+        CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE,
+        CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS,
+        CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+    ];
     const sortedPositionInfo = [...(queryJSON.positionInfo ?? [])].sort((a, b) => a.position - b.position);
 
     if (sortedPositionInfo.length > 0) {
         const processedRootKeys = new Set<string>();
         const processedFilterKeys = new Set<string>();
+        const seenSegments = new Set<string>();
         const queryParts: string[] = [];
+        const addQuerySegment = (segment?: string) => addUniqueSegment(segment, seenSegments, queryParts);
 
         for (const entry of sortedPositionInfo) {
             if (entry.type === 'root') {
                 processedRootKeys.add(entry.key);
-
-                if (entry.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE) {
-                    queryParts.push(`type:${getUserFriendlyValue(type)}`);
-                } else if (entry.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS) {
-                    if (status) {
-                        queryParts.push(`status:${Array.isArray(status) ? status.map(getUserFriendlyValue).join(',') : getUserFriendlyValue(status)}`);
-                    }
-                } else if (entry.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
-                    if (groupBy) {
-                        queryParts.push(`group-by:${getUserFriendlyValue(groupBy)}`);
-                    }
-                } else if (entry.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
-                    if (policyID && policyID.length > 0) {
-                        queryParts.push(`workspace:${policyID.map((id) => sanitizeSearchValue(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]?.name ?? id)).join(',')}`);
-                    }
-                }
+                addQuerySegment(getRootTitleSegment(entry.key, queryJSON, policies));
                 continue;
             }
 
             if (entry.type === 'filter') {
                 processedFilterKeys.add(entry.key);
-                const queryFilters = getQueryFiltersFromNode(entry.node);
-                const displayFilters = getDisplayQueryFilters(entry.key, queryFilters, PersonalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID, taxRates);
-
-                if (!displayFilters.length) {
-                    continue;
-                }
-
-                const filterString = buildFilterValuesString(getUserFriendlyKey(entry.key as SearchFilterKey), displayFilters).trim();
-                if (filterString) {
-                    queryParts.push(filterString);
-                }
+                addQuerySegment(
+                    getFilterTitleSegment(
+                        entry.key,
+                        getQueryFiltersFromNode(entry.node),
+                        PersonalDetails,
+                        reports,
+                        cardList,
+                        cardFeeds,
+                        policies,
+                        currentUserAccountID,
+                        taxRates,
+                    ),
+                );
             }
         }
 
-        // Seed the title with any root fields that were missing from position data.
+        // Prepend root fields that were not included in the captured order.
         const fallbackParts: string[] = [];
-        if (!processedRootKeys.has(CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE)) {
-            fallbackParts.push(`type:${getUserFriendlyValue(type)}`);
-        }
-        if (!processedRootKeys.has(CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS) && status) {
-            fallbackParts.push(`status:${Array.isArray(status) ? status.map(getUserFriendlyValue).join(',') : getUserFriendlyValue(status)}`);
-        }
-        if (!processedRootKeys.has(CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) && groupBy) {
-            fallbackParts.push(`group-by:${getUserFriendlyValue(groupBy)}`);
-        }
-        if (!processedRootKeys.has(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) && policyID && policyID.length > 0) {
-            fallbackParts.push(`workspace:${policyID.map((id) => sanitizeSearchValue(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]?.name ?? id)).join(',')}`);
+        const addFallbackSegment = (segment?: string) => addUniqueSegment(segment, seenSegments, fallbackParts);
+        for (const key of rootKeysInOrder) {
+            if (processedRootKeys.has(key)) {
+                continue;
+            }
+
+            addFallbackSegment(getRootTitleSegment(key, queryJSON, policies));
         }
 
         const titleParts = [...fallbackParts, ...queryParts];
+        const addTitleSegment = (segment?: string) => addUniqueSegment(segment, seenSegments, titleParts);
 
-        // Append human-readable filters that were not already emitted via position metadata.
+        // Append filters that were absent from the captured order.
         for (const filter of queryJSON.flatFilters) {
             if (processedFilterKeys.has(filter.key)) {
                 continue;
             }
 
-            if (!filter.filters.length) {
-                continue;
-            }
-
-            const displayFilters = getDisplayQueryFilters(filter.key, filter.filters, PersonalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID, taxRates);
-            if (!displayFilters.length) {
-                continue;
-            }
-
-            const filterString = buildFilterValuesString(getUserFriendlyKey(filter.key), displayFilters).trim();
-            if (filterString) {
-                titleParts.push(filterString);
-            }
+            addTitleSegment(
+                getFilterTitleSegment(
+                    filter.key,
+                    filter.filters,
+                    PersonalDetails,
+                    reports,
+                    cardList,
+                    cardFeeds,
+                    policies,
+                    currentUserAccountID,
+                    taxRates,
+                ),
+            );
         }
 
         return titleParts.join(' ').trim();
     }
 
-    let title = status
-        ? `type:${getUserFriendlyValue(type)} status:${Array.isArray(status) ? status.map(getUserFriendlyValue).join(',') : getUserFriendlyValue(status)}`
-        : `type:${getUserFriendlyValue(type)}`;
+    const seenSegments = new Set<string>();
+    // Start with the expected root-field ordering when no positional metadata exists.
+    const baseSegments: string[] = [];
+    const addBaseSegment = (segment?: string) => addUniqueSegment(segment, seenSegments, baseSegments);
 
-    if (groupBy) {
-        title += ` group-by:${getUserFriendlyValue(groupBy)}`;
+    for (const key of rootKeysInOrder) {
+        addBaseSegment(getRootTitleSegment(key, queryJSON, policies));
     }
 
-    if (policyID && policyID.length > 0) {
-        title += ` workspace:${policyID.map((id) => sanitizeSearchValue(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]?.name ?? id)).join(',')}`;
-    }
+    const titleSegments = [...baseSegments];
+    const addTitleSegment = (segment?: string) => addUniqueSegment(segment, seenSegments, titleSegments);
 
+    // Append filters after the root segments to finish the readable title.
     for (const filter of queryJSON.flatFilters) {
-        if (!filter.filters.length) {
-            continue;
-        }
-
-        const displayFilters = getDisplayQueryFilters(filter.key, filter.filters, PersonalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID, taxRates);
-        if (!displayFilters.length) {
-            continue;
-        }
-
-        title += buildFilterValuesString(getUserFriendlyKey(filter.key), displayFilters);
+        addTitleSegment(
+            getFilterTitleSegment(
+                filter.key,
+                filter.filters,
+                PersonalDetails,
+                reports,
+                cardList,
+                cardFeeds,
+                policies,
+                currentUserAccountID,
+                taxRates,
+            ),
+        );
     }
 
-    return title;
+    return titleSegments.join(' ').trim();
 }
+
 
 /**
  * Returns properly built QueryString for a canned query, with the optional policyID.

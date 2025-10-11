@@ -38,6 +38,8 @@
   // Track the original character offsets for every parsed segment so later
   // consumers can reconstruct the query's display order.
   const positionInfo = [];
+  const seenRootKeys = new Set();
+  const seenFilterEntries = new Map();
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
@@ -63,6 +65,27 @@
   // Persist metadata for each parsed segment (default values and filters)
   // using the same shape that the client consumes from the parser output.
   function addPositionInfo(entry) {
+    if (entry.type === 'root') {
+      if (seenRootKeys.has(entry.key)) {
+        return;
+      }
+      seenRootKeys.add(entry.key);
+      positionInfo.push(entry);
+      return;
+    }
+
+    if (entry.type === 'filter' && entry.node) {
+      const signature = JSON.stringify({ key: entry.key, node: entry.node });
+      const existingSignatures = seenFilterEntries.get(entry.key) || new Set();
+      if (existingSignatures.has(signature)) {
+        return;
+      }
+      existingSignatures.add(signature);
+      seenFilterEntries.set(entry.key, existingSignatures);
+      positionInfo.push(entry);
+      return;
+    }
+
     positionInfo.push(entry);
   }
 }

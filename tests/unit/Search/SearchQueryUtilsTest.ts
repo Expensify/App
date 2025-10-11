@@ -25,6 +25,8 @@ const personalDetailsFakeData = {
     },
 } as Record<string, {accountID: number}>;
 
+const countToken = (query: string, token: string) => query.split(' ').filter((segment) => segment === token).length;
+
 jest.mock('@libs/PersonalDetailsUtils', () => {
     return {
         getPersonalDetailByEmail(email: string) {
@@ -439,6 +441,72 @@ describe('SearchQueryUtils', () => {
             expect(reconstructedQuery).toEqual('from:name1 from:name2 type:expense sortBy:date sortOrder:desc');
         });
 
+        it('should drop duplicate root entries while keeping the first occurrence', () => {
+            const originalQuery = 'type:expense type:expense status:draft';
+            const queryJSON = buildSearchQueryJSON(originalQuery);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const reconstructedQuery = buildSearchQueryString(queryJSON);
+
+            expect(reconstructedQuery).toEqual('type:expense status:drafts sortBy:date sortOrder:desc');
+        });
+
+        it('should drop duplicate filter entries while keeping the first occurrence', () => {
+            const originalQuery = 'from:john from:john type:expense';
+            const queryJSON = buildSearchQueryJSON(originalQuery);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const reconstructedQuery = buildSearchQueryString(queryJSON);
+
+            expect(reconstructedQuery).toEqual('from:john type:expense sortBy:date sortOrder:desc');
+        });
+
+        it('should dedupe duplicates in parsed query state', () => {
+            const originalQuery = 'action:submit action:submit type:expense';
+            const queryJSON = buildSearchQueryJSON(originalQuery);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const actionFilters = queryJSON.flatFilters.find((filterGroup) => filterGroup.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION);
+            expect(actionFilters?.filters).toHaveLength(1);
+            const actionPositions = queryJSON.positionInfo?.filter((entry) => entry.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION) ?? [];
+            expect(actionPositions).toHaveLength(1);
+        });
+
+        it('should collapse duplicate values for the same filter', () => {
+            const originalQuery = 'action:submit action:submit type:expense';
+            const queryJSON = buildSearchQueryJSON(originalQuery);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const reconstructedQuery = buildSearchQueryString(queryJSON);
+
+            expect(reconstructedQuery).toEqual('action:submit type:expense sortBy:date sortOrder:desc');
+        });
+
+        it('should keep different values for the same filter key in order', () => {
+            const originalQuery = 'action:submit action:approve type:expense';
+            const queryJSON = buildSearchQueryJSON(originalQuery);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const reconstructedQuery = buildSearchQueryString(queryJSON);
+
+            expect(reconstructedQuery).toEqual('action:submit action:approve type:expense sortBy:date sortOrder:desc');
+        });
+
         it('should test position ordering with complex queries', () => {
             const originalQuery = 'group-by:merchant amount:100 type:expense status:draft from:name';
             const queryJSON = buildSearchQueryJSON(originalQuery);
@@ -538,6 +606,70 @@ describe('SearchQueryUtils', () => {
             );
 
             expect(userReadableQuery).toEqual('status:draft from:john type:expense');
+        });
+
+        it('should drop duplicate segments in buildUserReadableQueryString', () => {
+            const originalQuery = 'type:expense type:expense from:john from:john action:submit action:submit';
+            const queryJSON = buildSearchQueryJSON(originalQuery);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const mockPersonalDetails = {};
+            const mockReports = {};
+            const mockTaxRates = {};
+            const mockCardList = {};
+            const mockCardFeeds = {};
+            const mockPolicies = {};
+            const mockCurrentUserAccountID = 1;
+
+            const userReadableQuery = buildUserReadableQueryString(
+                queryJSON,
+                mockPersonalDetails,
+                mockReports,
+                mockTaxRates,
+                mockCardList,
+                mockCardFeeds,
+                mockPolicies,
+                mockCurrentUserAccountID,
+            );
+
+            expect(countToken(userReadableQuery, 'type:expense')).toBe(1);
+            expect(countToken(userReadableQuery, 'from:john')).toBe(1);
+            expect(countToken(userReadableQuery, 'action:submit')).toBe(1);
+        });
+
+        it('should retain different values for the same filter in buildUserReadableQueryString', () => {
+            const originalQuery = 'type:expense action:submit action:approve';
+            const queryJSON = buildSearchQueryJSON(originalQuery);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const mockPersonalDetails = {};
+            const mockReports = {};
+            const mockTaxRates = {};
+            const mockCardList = {};
+            const mockCardFeeds = {};
+            const mockPolicies = {};
+            const mockCurrentUserAccountID = 1;
+
+            const userReadableQuery = buildUserReadableQueryString(
+                queryJSON,
+                mockPersonalDetails,
+                mockReports,
+                mockTaxRates,
+                mockCardList,
+                mockCardFeeds,
+                mockPolicies,
+                mockCurrentUserAccountID,
+            );
+
+            expect(countToken(userReadableQuery, 'type:expense')).toBe(1);
+            expect(countToken(userReadableQuery, 'action:submit')).toBe(1);
+            expect(countToken(userReadableQuery, 'action:approve')).toBe(1);
         });
     });
 });
