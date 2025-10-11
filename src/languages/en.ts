@@ -2072,6 +2072,7 @@ const translations = {
     workflowsExpensesFromPage: {
         title: 'Expenses from',
         header: 'When the following members submit expenses:',
+        notAllowedError: 'Workflows with the same submitters as the default workflow must have the same approver. Please update the approver to match.',
     },
     workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
