@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,6 +9,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
@@ -30,19 +31,25 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
     const backTo = route.params.backTo;
 
     const closePage = useCallback(() => {
-        clearWorkspaceOwnerChangeFlow(policyID);
         if (backTo) {
             Navigation.goBack(backTo);
         } else {
             Navigation.goBack();
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
         }
+        InteractionManager.runAfterInteractions(() => {
+            clearWorkspaceOwnerChangeFlow(policyID);
+        });
     }, [accountID, backTo, policyID]);
+
+    const policy = usePolicy(policyID);
+    const shouldShow = !policy?.errorFields && policy?.isChangeOwnerFailed;
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
+            shouldBeBlocked={!shouldShow}
         >
             <ScreenWrapper
                 testID={WorkspaceOwnerChangeErrorPage.displayName}
