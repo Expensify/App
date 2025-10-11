@@ -644,12 +644,14 @@ function MenuItem({
         if (!copyValue) {
             return;
         }
-        showContextMenu({
-            type: CONST.CONTEXT_MENU_TYPES.TEXT,
-            event,
-            selection: copyValue,
-            contextMenuAnchor: popoverAnchor.current,
-        });
+        if (!deviceHasHoverSupport) {
+            showContextMenu({
+                type: CONST.CONTEXT_MENU_TYPES.TEXT,
+                event,
+                selection: copyValue,
+                contextMenuAnchor: popoverAnchor.current,
+            });
+        }
         onSecondaryInteraction?.(event);
     };
 
