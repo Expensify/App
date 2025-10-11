@@ -489,13 +489,23 @@ describe('getReportPreviewAction', () => {
                 name: CONST.VIOLATIONS.OVER_LIMIT,
             } as TransactionViolation,
         ]);
+        const violations: OnyxCollection<TransactionViolation[]> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [
+                {
+                    name: CONST.VIOLATIONS.OVER_LIMIT,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                } as TransactionViolation,
+            ],
+        };
+
         const transaction = {
+            transactionID: `${TRANSACTION_ID}`,
             reportID: `${REPORT_ID}`,
         } as unknown as Transaction;
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         await waitForBatchedUpdatesWithAct();
-        expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
+        expect(getReportPreviewAction(violations, isReportArchived.current, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
     });
 
     it('canReview should return true for reports with RTER violations regardless of workspace workflow configuration', async () => {
@@ -519,20 +529,25 @@ describe('getReportPreviewAction', () => {
         } as unknown as ReportViolations;
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${REPORT_ID}`, REPORT_VIOLATION);
 
-        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`, [
-            {
-                name: CONST.VIOLATIONS.RTER,
-                data: {
-                    pendingPattern: true,
-                    rterType: CONST.RTER_VIOLATION_TYPES.SEVEN_DAY_HOLD,
-                },
-            } as TransactionViolation,
-        ]);
+        const violations: OnyxCollection<TransactionViolation[]> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [
+                {
+                    name: CONST.VIOLATIONS.RTER,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    data: {
+                        pendingPattern: true,
+                        rterType: CONST.RTER_VIOLATION_TYPES.SEVEN_DAY_HOLD,
+                    },
+                } as TransactionViolation,
+            ],
+        };
+
         const transaction = {
+            transactionID: `${TRANSACTION_ID}`,
             reportID: `${REPORT_ID}`,
         } as unknown as Transaction;
 
-        expect(getReportPreviewAction(VIOLATIONS, false, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
+        expect(getReportPreviewAction(violations, false, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
     });
 
     it('canView should return true for reports in which we are waiting for user to add a bank account', async () => {
@@ -556,5 +571,123 @@ describe('getReportPreviewAction', () => {
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         await waitForBatchedUpdatesWithAct();
         expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+    });
+
+    it('canReview should return false for submitters when RECEIPT_NOT_SMART_SCANNED violation exists but is hidden from submitter', async () => {
+        (ReportUtils.hasAnyViolations as jest.Mock).mockReturnValue(true);
+        const report: Report = {
+            ...createRandomReport(REPORT_ID),
+            statusNum: 0,
+            stateNum: 0,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.areWorkflowsEnabled = true;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // Create a RECEIPT_NOT_SMART_SCANNED violation that should be hidden from submitter
+        const violations: OnyxCollection<TransactionViolation[]> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [
+                {
+                    name: CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                } as TransactionViolation,
+            ],
+        };
+
+        const transaction = {
+            transactionID: `${TRANSACTION_ID}`,
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        // Should return VIEW instead of REVIEW because the violation is hidden from submitter
+        expect(getReportPreviewAction(violations, isReportArchived.current, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+    });
+
+    it('canReview should return true when report has mix of visible and hidden violations but at least one is visible', async () => {
+        (ReportUtils.hasAnyViolations as jest.Mock).mockReturnValue(true);
+        const report: Report = {
+            ...createRandomReport(REPORT_ID),
+            statusNum: 0,
+            stateNum: 0,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.areWorkflowsEnabled = true;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // Mix of hidden and visible violations
+        const violations: OnyxCollection<TransactionViolation[]> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [
+                {
+                    name: CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                } as TransactionViolation,
+                {
+                    name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                } as TransactionViolation,
+            ],
+        };
+
+        const transaction = {
+            transactionID: `${TRANSACTION_ID}`,
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        // Should return REVIEW because at least one violation (MISSING_CATEGORY) is visible
+        expect(getReportPreviewAction(violations, isReportArchived.current, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
+    });
+
+    it('canReview should return false when report has no visible violations for current user role', async () => {
+        (ReportUtils.hasAnyViolations as jest.Mock).mockReturnValue(true);
+        const report: Report = {
+            ...createRandomReport(REPORT_ID),
+            statusNum: 0,
+            stateNum: 0,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.areWorkflowsEnabled = true;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // All violations hidden from submitter
+        const violations: OnyxCollection<TransactionViolation[]> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [
+                {
+                    name: CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+                    type: CONST.VIOLATION_TYPES.NOTICE,
+                } as TransactionViolation,
+                {
+                    name: CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                } as TransactionViolation,
+            ],
+        };
+
+        const transaction = {
+            transactionID: `${TRANSACTION_ID}`,
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        expect(getReportPreviewAction(violations, isReportArchived.current, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
 });
