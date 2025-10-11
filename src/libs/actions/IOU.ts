@@ -113,7 +113,7 @@ import {
     isMoneyRequestAction,
     isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
-import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptionData, TransactionDetails} from '@libs/ReportUtils';
+import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticNewReport, OptionData, TransactionDetails} from '@libs/ReportUtils';
 import {
     buildOptimisticActionableTrackExpenseWhisper,
     buildOptimisticAddCommentReportAction,
@@ -133,6 +133,7 @@ import {
     buildOptimisticMarkedAsResolvedReportAction,
     buildOptimisticModifiedExpenseReportAction,
     buildOptimisticMoneyRequestEntities,
+    buildOptimisticMovedReportAction,
     buildOptimisticMovedTransactionAction,
     buildOptimisticRejectReportAction,
     buildOptimisticRejectReportActionComment,
@@ -195,6 +196,7 @@ import {
     isSettled,
     isTestTransactionReport,
     isTrackExpenseReport,
+    populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
@@ -12483,10 +12485,12 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
 
     const reportAction = getIOUActionForReportID(reportID, transactionID);
     const childReportID = reportAction?.childReportID;
+    const reportOwnerLogin = allPersonalDetails[report?.ownerAccountID ?? 0]?.login ?? '';
 
     let movedToReport;
     let rejectedToReportID;
     let urlToNavigateBack;
+    let reportPreviewAction: OnyxTypes.ReportAction | undefined;
 
     const hasMultipleExpenses = getReportTransactions(reportID).length > 1;
 
@@ -12675,6 +12679,162 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
             });
         } else {
             rejectedToReportID = generateReportID();
+            
+            // Create optimistic report for the rejected transaction
+            const optimisticReport: OptimisticNewReport = {
+                reportID: rejectedToReportID,
+                policyID: report?.policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: report?.ownerAccountID ?? 0,
+                reportName: '',
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                currency: report?.currency ?? CONST.CURRENCY.USD,
+                total: 0, // We're updating the report total as a common logic below
+                nonReimbursableTotal: 0,
+                parentReportID: report?.chatReportID,
+                lastVisibleActionCreated: DateUtils.getDBTime(),
+                parentReportActionID: undefined,
+                participants: report?.participants ?? {},
+                managerID: report?.managerID,
+                pendingFields: {createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                chatReportID: report?.chatReportID,
+            };
+
+            // Generate report name using the pattern "Expense Report #reportID"
+            const reportNamePattern = '{report:type} #{report:id}';
+            optimisticReport.reportName = populateOptimisticReportFormula(reportNamePattern, optimisticReport, policy);
+
+            // Create report preview action for the parent report (chat report)
+            const chatReport = report?.chatReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] : null;
+            reportPreviewAction = buildOptimisticReportPreview(
+                chatReport,
+                optimisticReport as OnyxTypes.Report,
+                '', // No comment for rejected expenses
+                transaction, // Pass the transaction for receipt info
+                rejectedToReportID, // childReportID
+                undefined // reportPreviewReportActionID - will be added when backend supports it
+            );
+
+            // Update optimistic report with parentReportActionID
+            optimisticReport.parentReportActionID = reportPreviewAction.reportActionID;
+
+            // Update the report total with the transaction amount (expense reports store negative values)
+            optimisticReport.total = -transactionAmount;
+
+            // Add optimistic data for the new report
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${rejectedToReportID}`,
+                value: {
+                    ...optimisticReport,
+                    parentReportID: report?.chatReportID,
+                    parentReportActionID: reportPreviewAction.reportActionID,
+                    chatReportID: report?.chatReportID,
+                } as OnyxTypes.Report,
+            });
+
+            // Add optimistic metadata for the new report
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${rejectedToReportID}`,
+                value: {
+                    isOptimisticReport: true,
+                },
+            });
+
+            // Add report actions to the new optimistic report
+            const newReportActions: Record<string, OnyxTypes.ReportAction> = {};
+
+            // Add CREATED action for the new report (matches online response)
+            const createdAction = buildOptimisticCreatedReportAction(
+                reportOwnerLogin,
+                DateUtils.getDBTime()
+            );
+            newReportActions[createdAction.reportActionID] = createdAction;
+
+            // Add IOU action for the moved transaction (matches online response)
+            const iouAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: -transactionAmount,
+                currency: report?.currency ?? CONST.CURRENCY.USD,
+                comment: typeof transaction?.comment === 'string' ? transaction.comment : '',
+                participants: [{accountID: report?.ownerAccountID ?? 0}, {accountID: 0}],
+                transactionID,
+                iouReportID: rejectedToReportID,
+            });
+            newReportActions[iouAction.reportActionID] = iouAction;
+
+            // Add the "rejected this expense" action
+            newReportActions[optimisticRejectReportAction.reportActionID] = optimisticRejectReportAction as OnyxTypes.ReportAction;
+
+            // Add the rejection reason comment
+            newReportActions[optimisticRejectReportActionComment.reportActionID] = optimisticRejectReportActionComment as OnyxTypes.ReportAction;
+
+            // Add a "moved this expense" action to show where it came from
+            const movedExpenseAction = buildOptimisticMovedReportAction(
+                report?.policyID ?? '',
+                report?.policyID ?? '',
+                report?.chatReportID ?? '',
+                reportID,
+                report?.reportName ?? '',
+                false, // isFromIOU
+            );
+            newReportActions[movedExpenseAction.reportActionID] = movedExpenseAction;
+
+            // Add all report actions to the new report
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rejectedToReportID}`,
+                value: newReportActions,
+            });
+
+
+            // Add personal details for participants (matches online response)
+            const optimisticPersonalDetails: Record<string, OnyxTypes.PersonalDetails> = {};
+            Object.keys(optimisticReport.participants ?? {}).forEach(accountID => {
+                const personalDetail = allPersonalDetails[accountID];
+                if (personalDetail) {
+                    optimisticPersonalDetails[accountID] = personalDetail;
+                }
+            });
+
+            if (Object.keys(optimisticPersonalDetails).length > 0) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: optimisticPersonalDetails,
+                });
+            }
+
+            // Add report name value pairs for proper linking (matches online response)
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${rejectedToReportID}`,
+                value: {
+                    parentReportID: report?.chatReportID,
+                },
+            });
+
+            // Add report preview action to parent report (chat report)
+            if (report?.chatReportID) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.chatReportID}`,
+                    value: {
+                        [reportPreviewAction.reportActionID]: reportPreviewAction,
+                    },
+                });
+
+                // Update parent report's lastVisibleActionCreated
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`,
+                    value: {
+                        lastVisibleActionCreated: reportPreviewAction.created,
+                    },
+                });
+            }
         }
         optimisticData.push(
             {
@@ -12897,6 +13057,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
         reportID,
         comment,
         rejectedToReportID,
+        reportPreviewReportActionID: reportPreviewAction?.reportActionID,
         rejectedActionReportActionID: optimisticRejectReportAction.reportActionID,
         rejectedCommentReportActionID: optimisticRejectReportActionComment.reportActionID,
     };
