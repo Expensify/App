@@ -6311,7 +6311,6 @@ describe('actions/IOU', () => {
             transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
             isFromGlobalCreate: true,
             merchant: '(none)',
-            splitPayerAccountIDs: [3],
         };
 
         const currentDate = '2025-04-01';
