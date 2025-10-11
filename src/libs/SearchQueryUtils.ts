@@ -24,8 +24,8 @@ import type {OnyxCollectionKey, OnyxCollectionValuesMapping} from '@src/ONYXKEYS
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
@@ -769,7 +769,11 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON): string {
  *
  * Reverse operation of buildFilterFormValuesFromQuery()
  */
-function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
+type BuildQueryStringOptions = {
+    basePositionInfo?: SearchQueryPositionEntry[];
+};
+
+function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvancedFiltersForm>, options?: BuildQueryStringOptions) {
     const supportedFilterValues = {...filterValues};
 
     // When switching types/setting the type, ensure we aren't polluting our query with filters that are
@@ -785,122 +789,196 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
     const {type, status, groupBy, ...otherFilters} = supportedFilterValues;
-    const filtersString: string[] = [];
+    const rootSegments = new Map<string, string>();
+    const filterSegments = new Map<string, string>();
 
-    filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${CONST.SEARCH.TABLE_COLUMNS.DATE}`);
-    filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${CONST.SEARCH.SORT_ORDER.DESC}`);
+    const addRootSegment = (key: string, segment?: string) => {
+        if (!segment) {
+            return;
+        }
+        rootSegments.set(key, segment);
+    };
+
+    const addFilterSegment = (key: string, segment?: string) => {
+        if (!segment) {
+            return;
+        }
+        filterSegments.set(key, segment);
+    };
+
+    addRootSegment(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY, `${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${CONST.SEARCH.TABLE_COLUMNS.DATE}`);
+    addRootSegment(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER, `${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${CONST.SEARCH.SORT_ORDER.DESC}`);
 
     if (type) {
         const sanitizedType = sanitizeSearchValue(type);
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${sanitizedType}`);
+        addRootSegment(CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${sanitizedType}`);
     }
 
     if (groupBy) {
         const sanitizedGroupBy = sanitizeSearchValue(groupBy);
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${sanitizedGroupBy}`);
+        addRootSegment(CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY, `${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${sanitizedGroupBy}`);
     }
 
     if (status && typeof status === 'string') {
         const sanitizedStatus = sanitizeSearchValue(status);
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizedStatus}`);
+        addRootSegment(CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS, `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizedStatus}`);
     }
 
     if (status && Array.isArray(status)) {
         const filterValueArray = [...new Set<string>(status)];
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValueArray.map(sanitizeSearchValue).join(',')}`);
+        addRootSegment(CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS, `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValueArray.map(sanitizeSearchValue).join(',')}`);
     }
 
-    const mappedFilters = Object.entries(otherFilters)
-        .map(([filterKey, filterValue]) => {
-            const isNegated = filterKey.endsWith(CONST.SEARCH.NOT_MODIFIER);
+    Object.entries(otherFilters).forEach(([filterKey, filterValue]) => {
+        const isNegated = filterKey.endsWith(CONST.SEARCH.NOT_MODIFIER);
 
-            if (isNegated) {
-                // eslint-disable-next-line no-param-reassign
-                filterKey = filterKey.replace(CONST.SEARCH.NOT_MODIFIER, '');
-            }
+        if (isNegated) {
+            // eslint-disable-next-line no-param-reassign
+            filterKey = filterKey.replace(CONST.SEARCH.NOT_MODIFIER, '');
+        }
 
-            const prefix = isNegated ? '-' : '';
+        const prefix = isNegated ? '-' : '';
 
-            if (
-                (filterKey === FILTER_KEYS.MERCHANT ||
-                    filterKey === FILTER_KEYS.DESCRIPTION ||
-                    filterKey === FILTER_KEYS.REIMBURSABLE ||
-                    filterKey === FILTER_KEYS.BILLABLE ||
-                    filterKey === FILTER_KEYS.TITLE ||
-                    filterKey === FILTER_KEYS.PAYER ||
-                    filterKey === FILTER_KEYS.GROUP_CURRENCY ||
-                    filterKey === FILTER_KEYS.WITHDRAWAL_TYPE ||
-                    filterKey === FILTER_KEYS.ACTION) &&
-                filterValue
-            ) {
-                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
-                if (keyInCorrectForm) {
-                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeSearchValue(filterValue as string)}`;
+        if (
+            (filterKey === FILTER_KEYS.MERCHANT ||
+                filterKey === FILTER_KEYS.DESCRIPTION ||
+                filterKey === FILTER_KEYS.REIMBURSABLE ||
+                filterKey === FILTER_KEYS.BILLABLE ||
+                filterKey === FILTER_KEYS.TITLE ||
+                filterKey === FILTER_KEYS.PAYER ||
+                filterKey === FILTER_KEYS.GROUP_CURRENCY ||
+                filterKey === FILTER_KEYS.WITHDRAWAL_TYPE ||
+                filterKey === FILTER_KEYS.ACTION) &&
+            filterValue
+        ) {
+            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+            if (keyInCorrectForm) {
+                const segment = `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeSearchValue(filterValue as string)}`;
+                if (keyInCorrectForm === FILTER_KEYS.POLICY_ID) {
+                    addRootSegment(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, segment);
+                    return;
                 }
+                addFilterSegment(CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm], segment);
             }
-            if ((filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.WITHDRAWAL_ID) && filterValue) {
-                const reportIDs = (filterValue as string)
-                    .split(',')
-                    .map((id) => sanitizeSearchValue(id.trim()))
-                    .filter((id) => id.length > 0);
+        }
+        if ((filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.WITHDRAWAL_ID) && filterValue) {
+            const reportIDs = (filterValue as string)
+                .split(',')
+                .map((id) => sanitizeSearchValue(id.trim()))
+                .filter((id) => id.length > 0);
 
-                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
-                if (keyInCorrectForm && reportIDs.length > 0) {
-                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${reportIDs.join(',')}`;
-                }
+            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+            if (keyInCorrectForm && reportIDs.length > 0) {
+                addFilterSegment(CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm], `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${reportIDs.join(',')}`);
             }
+        }
 
-            if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
-                const value = (filterValue as string).split(' ').map(sanitizeSearchValue).join(' ');
-                return `${value}`;
+        if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
+            const value = (filterValue as string).split(' ').map(sanitizeSearchValue).join(' ');
+            addFilterSegment(CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, value);
+            return;
+        }
+
+        if (
+            (filterKey === FILTER_KEYS.CATEGORY ||
+                filterKey === FILTER_KEYS.CARD_ID ||
+                filterKey === FILTER_KEYS.TAX_RATE ||
+                filterKey === FILTER_KEYS.EXPENSE_TYPE ||
+                filterKey === FILTER_KEYS.TAG ||
+                filterKey === FILTER_KEYS.CURRENCY ||
+                filterKey === FILTER_KEYS.PURCHASE_CURRENCY ||
+                filterKey === FILTER_KEYS.FROM ||
+                filterKey === FILTER_KEYS.TO ||
+                filterKey === FILTER_KEYS.FEED ||
+                filterKey === FILTER_KEYS.IN ||
+                filterKey === FILTER_KEYS.ASSIGNEE ||
+                filterKey === FILTER_KEYS.POLICY_ID ||
+                filterKey === FILTER_KEYS.HAS ||
+                filterKey === FILTER_KEYS.IS ||
+                filterKey === FILTER_KEYS.EXPORTER ||
+                filterKey === FILTER_KEYS.ATTENDEE) &&
+            Array.isArray(filterValue) &&
+            filterValue.length > 0
+        ) {
+            const filterValueArray = [...new Set<string>(filterValue)];
+            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+
+            if (keyInCorrectForm) {
+                addFilterSegment(
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm],
+                    `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`,
+                );
             }
+        }
 
-            if (
-                (filterKey === FILTER_KEYS.CATEGORY ||
-                    filterKey === FILTER_KEYS.CARD_ID ||
-                    filterKey === FILTER_KEYS.TAX_RATE ||
-                    filterKey === FILTER_KEYS.EXPENSE_TYPE ||
-                    filterKey === FILTER_KEYS.TAG ||
-                    filterKey === FILTER_KEYS.CURRENCY ||
-                    filterKey === FILTER_KEYS.PURCHASE_CURRENCY ||
-                    filterKey === FILTER_KEYS.FROM ||
-                    filterKey === FILTER_KEYS.TO ||
-                    filterKey === FILTER_KEYS.FEED ||
-                    filterKey === FILTER_KEYS.IN ||
-                    filterKey === FILTER_KEYS.ASSIGNEE ||
-                    filterKey === FILTER_KEYS.POLICY_ID ||
-                    filterKey === FILTER_KEYS.HAS ||
-                    filterKey === FILTER_KEYS.IS ||
-                    filterKey === FILTER_KEYS.EXPORTER ||
-                    filterKey === FILTER_KEYS.ATTENDEE) &&
-                Array.isArray(filterValue) &&
-                filterValue.length > 0
-            ) {
-                const filterValueArray = [...new Set<string>(filterValue)];
-                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
-
-                if (keyInCorrectForm) {
-                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
-                }
-            }
-
-            return undefined;
-        })
-        .filter((filter): filter is string => !!filter);
-
-    filtersString.push(...mappedFilters);
+        return;
+    });
 
     DATE_FILTER_KEYS.forEach((dateKey) => {
         const dateFilter = buildDateFilterQuery(supportedFilterValues, dateKey);
-        filtersString.push(dateFilter);
+        if (dateFilter) {
+            addFilterSegment(dateKey, dateFilter);
+        }
     });
 
     AMOUNT_FILTER_KEYS.forEach((filterKey) => {
         const amountFilter = buildAmountFilterQuery(filterKey, supportedFilterValues);
-        filtersString.push(amountFilter);
+        if (amountFilter) {
+            addFilterSegment(filterKey, amountFilter);
+        }
     });
 
-    return filtersString.filter(Boolean).join(' ').trim();
+    const orderedSegments: string[] = [];
+    const seenRootKeys = new Set<string>();
+    const seenFilterKeys = new Set<string>();
+
+    const addOrderedRoot = (key: string) => {
+        const segment = rootSegments.get(key);
+        if (!segment || seenRootKeys.has(key)) {
+            return;
+        }
+        orderedSegments.push(segment);
+        seenRootKeys.add(key);
+    };
+
+    const addOrderedFilter = (key: string) => {
+        const segment = filterSegments.get(key);
+        if (!segment || seenFilterKeys.has(key)) {
+            return;
+        }
+        orderedSegments.push(segment);
+        seenFilterKeys.add(key);
+    };
+
+    addOrderedRoot(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY);
+    addOrderedRoot(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER);
+
+    const baseOrder = [...(options?.basePositionInfo ?? [])].sort((a, b) => a.position - b.position);
+    baseOrder.forEach((entry) => {
+        if (entry.type === 'root') {
+            addOrderedRoot(entry.key);
+            return;
+        }
+
+        if (entry.type === 'filter') {
+            addOrderedFilter(entry.key);
+        }
+    });
+
+    const rootFallbackOrder = [
+        CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY,
+        CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER,
+        CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE,
+        CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS,
+        CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+    ];
+    rootFallbackOrder.forEach(addOrderedRoot);
+
+    rootSegments.forEach((_, key) => addOrderedRoot(key));
+    filterSegments.forEach((_, key) => addOrderedFilter(key));
+
+    return orderedSegments.join(' ').trim();
 }
 
 function getAllPolicyValues<T extends OnyxCollectionKey>(

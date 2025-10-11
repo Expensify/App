@@ -1,20 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
-import {generatePolicyID} from '@libs/actions/Policy/Policy';
+import { generatePolicyID } from '@libs/actions/Policy/Policy';
 import CONST from '@src/CONST';
-import {
-    buildFilterFormValuesFromQuery,
-    buildQueryStringFromFilterFormValues,
-    buildSearchQueryJSON,
-    buildSearchQueryString,
-    buildUserReadableQueryString,
-    getQueryWithUpdatedValues,
-    shouldHighlight,
-    sortOptionsWithEmptyValue,
-} from '@src/libs/SearchQueryUtils';
+import { buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, buildUserReadableQueryString, getQueryWithUpdatedValues, shouldHighlight, sortOptionsWithEmptyValue } from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import {localeCompare} from '../../utils/TestHelper';
+import type { SearchAdvancedFiltersForm } from '@src/types/form';
+import { localeCompare } from '../../utils/TestHelper';
+
 
 const personalDetailsFakeData = {
     'johndoe@example.com': {
@@ -141,6 +133,23 @@ describe('SearchQueryUtils', () => {
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
             expect(result).toEqual('sortBy:date sortOrder:desc type:expense category:services,consulting currency:USD,EUR');
+        });
+
+        test('preserves existing order when base position info provided', () => {
+            const baseQuery = 'status:drafts from:johndoe@example.com type:expense';
+            const baseQueryJSON = buildSearchQueryJSON(baseQuery);
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                from: ['johndoe@example.com'],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues, {basePositionInfo: baseQueryJSON?.positionInfo ?? []});
+
+            expect(result.startsWith('sortBy:date sortOrder:desc')).toBe(true);
+            expect(result.indexOf('status:drafts')).toBeGreaterThan(result.indexOf('sortOrder:desc'));
+            expect(result.indexOf('status:drafts')).toBeLessThan(result.indexOf('from:johndoe@example.com'));
+            expect(result.indexOf('from:johndoe@example.com')).toBeLessThan(result.indexOf('type:expense'));
         });
 
         test('has empty category values', () => {
