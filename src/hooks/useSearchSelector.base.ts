@@ -169,7 +169,16 @@ function useSearchSelectorBase({
 
         switch (searchContext) {
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SEARCH:
-                return getSearchOptions(optionsWithContacts, betas ?? [], true, true, computedSearchTerm, maxResults, includeUserToInvite);
+                return getSearchOptions({
+                    options: optionsWithContacts,
+                    betas,
+                    isUsedInChatFinder: true,
+                    includeReadOnly: true,
+                    searchQuery: computedSearchTerm,
+                    maxResults,
+                    includeUserToInvite,
+                    countryCode,
+                });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
                 return getValidOptions(optionsWithContacts, {
                     betas: betas ?? [],
@@ -221,6 +230,7 @@ function useSearchSelectorBase({
         computedSearchTerm,
         maxResults,
         includeUserToInvite,
+        countryCode,
         excludeLogins,
         includeRecentReports,
         maxRecentReportsToShow,
