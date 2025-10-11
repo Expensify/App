@@ -111,8 +111,13 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
 
     const styles = useThemeStyles();
     const selectionListRef = useRef<SelectionListHandle>(null);
+
+    const shouldShowTextInput = useMemo(() => {
+        return transactions.length >= CONST.SEARCH_ITEM_LIMIT;
+    }, [transactions.length]);
+
     const filteredTransactions = useMemo(() => {
-        if (!debouncedSearchValue.trim()) {
+        if (!debouncedSearchValue.trim() || !shouldShowTextInput) {
             return transactions;
         }
 
@@ -136,13 +141,9 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
 
             return searchableFields;
         });
-    }, [transactions, debouncedSearchValue]);
+    }, [debouncedSearchValue, shouldShowTextInput, transactions]);
 
     const sections: Array<SectionListDataType<Transaction & ListItem>> = useMemo(() => createUnreportedExpenseSections(filteredTransactions), [filteredTransactions]);
-
-    const shouldShowTextInput = useMemo(() => {
-        return transactions.length >= CONST.SEARCH_ITEM_LIMIT;
-    }, [transactions.length]);
 
     const handleConfirm = useCallback(() => {
         if (selectedIds.size === 0) {
