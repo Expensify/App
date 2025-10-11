@@ -6,7 +6,7 @@ keywords: [Expensify Classic, reimburse reports, direct deposit, ACH, global rei
 
 You can reimburse submitted and approved reports in Expensify using direct deposit (USD or international), third-party payment tools like Venmo, or manual methods such as payroll tracking or ABA batch files.
 
-# Reimburse via Direct Deposit (USD)
+# How to reimburse reports via direct deposit (USD)
 
 ## Setup requirements
 - **Reimburser** must [connect a verified business bank account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account).
@@ -16,7 +16,7 @@ You can reimburse submitted and approved reports in Expensify using direct depos
 
 ## Steps
 1. Open the approved report.
-2. Click **Reimburse** > **Via Direct Deposit**.
+2. Click **Reimburse** > **via direct deposit**.
 3. Confirm the bank account.
 4. Click **Accept Terms & Pay**.
 
@@ -49,7 +49,7 @@ For international bank transfers.
 
 ## Steps
 1. Open the approved report.
-2. Click **Reimburse** > **Via Direct Deposit**.
+2. Click **Reimburse** > **via direct deposit**.
 3. Confirm the recipient’s bank account.
 4. Click **Accept Terms & Pay**.
 
