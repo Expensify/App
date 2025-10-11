@@ -4,7 +4,7 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -66,7 +66,7 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
             <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                 <SelectionList
                     sections={[{data: items}]}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={changeRole}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={items.find((item) => item.isSelected)?.keyForList}

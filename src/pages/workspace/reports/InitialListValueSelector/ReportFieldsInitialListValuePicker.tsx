@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 
 type ReportFieldsInitialListValuePickerProps = {
@@ -39,7 +39,7 @@ function ReportFieldsInitialListValuePicker({listValues, disabledOptions, value,
     return (
         <SelectionList
             sections={listValueSections}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             onSelectRow={(item) => onValueChange(item.value)}
             initiallyFocusedOptionKey={listValueSections.at(0)?.data?.find((listValue) => listValue.isSelected)?.keyForList}
             addBottomSafeAreaPadding

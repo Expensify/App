@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SelectionList from './SelectionListWithSections';
-import RadioListItem from './SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from './SelectionListWithSections/SingleSelectListItem';
 import type {ListItem} from './SelectionListWithSections/types';
 
 type CategoryPickerProps = {
@@ -82,7 +82,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
             textInputHint={offlineMessage}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}

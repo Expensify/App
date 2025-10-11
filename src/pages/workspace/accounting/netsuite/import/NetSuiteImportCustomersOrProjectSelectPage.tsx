@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
@@ -68,7 +68,7 @@ function NetSuiteImportCustomersOrProjectSelectPage({policy}: WithPolicyConnecti
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={NetSuiteImportCustomersOrProjectSelectPage.displayName}
             sections={[{data: inputSectionData}]}
-            listItem={RadioListItem}
+            listItem={SingleSelectListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onSelectRow={(selection: SelectorType) => updateImportMapping(selection as ImportListItem)}
             initiallyFocusedOptionKey={inputSectionData.find((inputOption) => inputOption.isSelected)?.keyForList}
