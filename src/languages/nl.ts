@@ -4865,6 +4865,7 @@ const translations = {
             existingReportFieldNameError: 'Er bestaat al een rapportveld met deze naam',
             reportFieldNameRequiredError: 'Voer een rapportveldnaam in alstublieft',
             reportFieldTypeRequiredError: 'Kies een rapportveldtype aub',
+            circularReferenceError: 'Circular reference is not allowed',
             reportFieldInitialValueRequiredError: 'Kies een initiële waarde voor een rapportveld alstublieft.',
             genericFailureMessage: 'Er is een fout opgetreden bij het bijwerken van het rapportveld. Probeer het opnieuw.',
         },

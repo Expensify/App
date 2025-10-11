@@ -4767,6 +4767,7 @@ const translations = {
             existingReportFieldNameError: '具有此名称的报表字段已存在',
             reportFieldNameRequiredError: '请输入报告字段名称',
             reportFieldTypeRequiredError: '请选择报告字段类型',
+            circularReferenceError: 'Circular reference is not allowed',
             reportFieldInitialValueRequiredError: '请选择报告字段的初始值',
             genericFailureMessage: '更新报告字段时发生错误。请再试一次。',
         },

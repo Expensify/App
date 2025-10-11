@@ -4860,6 +4860,7 @@ const translations = {
             existingReportFieldNameError: 'Um campo de relatório com este nome já existe',
             reportFieldNameRequiredError: 'Por favor, insira um nome de campo de relatório',
             reportFieldTypeRequiredError: 'Por favor, escolha um tipo de campo de relatório',
+            circularReferenceError: 'Circular reference is not allowed',
             reportFieldInitialValueRequiredError: 'Por favor, escolha um valor inicial para o campo do relatório',
             genericFailureMessage: 'Ocorreu um erro ao atualizar o campo do relatório. Por favor, tente novamente.',
         },

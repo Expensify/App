@@ -4830,6 +4830,7 @@ const translations = {
             existingReportFieldNameError: 'この名前のレポートフィールドは既に存在します',
             reportFieldNameRequiredError: 'レポートフィールド名を入力してください',
             reportFieldTypeRequiredError: 'レポートフィールドのタイプを選択してください',
+            circularReferenceError: 'Circular reference is not allowed',
             reportFieldInitialValueRequiredError: 'レポートフィールドの初期値を選択してください',
             genericFailureMessage: 'レポートフィールドの更新中にエラーが発生しました。もう一度お試しください。',
         },

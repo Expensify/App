@@ -4837,6 +4837,7 @@ const translations = {
             existingReportFieldNameError: 'A report field with this name already exists',
             reportFieldNameRequiredError: 'Please enter a report field name',
             reportFieldTypeRequiredError: 'Please choose a report field type',
+            circularReferenceError: 'Circular reference is not allowed',
             reportFieldInitialValueRequiredError: 'Please choose a report field initial value',
             genericFailureMessage: 'An error occurred while updating the report field. Please try again.',
         },

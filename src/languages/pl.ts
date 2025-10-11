@@ -4855,6 +4855,7 @@ const translations = {
             existingReportFieldNameError: 'Pole raportu o tej nazwie już istnieje',
             reportFieldNameRequiredError: 'Proszę wprowadzić nazwę pola raportu',
             reportFieldTypeRequiredError: 'Proszę wybrać typ pola raportu',
+            circularReferenceError: 'Circular reference is not allowed',
             reportFieldInitialValueRequiredError: 'Proszę wybrać początkową wartość pola raportu',
             genericFailureMessage: 'Wystąpił błąd podczas aktualizacji pola raportu. Proszę spróbować ponownie.',
         },
