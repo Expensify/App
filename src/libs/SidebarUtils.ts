@@ -783,6 +783,16 @@ function getOptionData({
             }
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME)) {
             result.alternateText = getWorkspaceNameUpdatedMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT) && getOriginalMessage(lastAction)?.resolution) {
+            const fraudMessage = getOriginalMessage(lastAction);
+            const cardLastFour = fraudMessage?.maskedCardNumber?.slice(-4) ?? '';
+            const resolution = fraudMessage?.resolution;
+
+            if (resolution === CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED) {
+                result.alternateText = translateLocal('cardPage.cardFraudAlert.clearedMessage', {cardLastFour});
+            } else {
+                result.alternateText = translateLocal('cardPage.cardFraudAlert.deactivatedMessage', {cardLastFour});
+            }
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION)) {
             result.alternateText = getWorkspaceDescriptionUpdatedMessage(lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY)) {
