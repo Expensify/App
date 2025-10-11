@@ -145,5 +145,5 @@ New Expensify simplifies filtering compared to Classic. Some filters like “All
 - Use **Unreported** or **Open** status filters to find expenses without reports
 
 ## How do comments work on a report?
-Yes, if someone comments on a report, a **Comments** section appears and the layout adjusts to make space for the discussion.
+If someone comments on a report, a **Comments** section appears and the layout adjusts to make space for the discussion.
 
