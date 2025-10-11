@@ -20,6 +20,7 @@ import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
 import KeyboardProvider from './components/KeyboardProvider';
+import KYCWallContextProvider from './components/KYCWall/KYCWallContext';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import NavigationBar from './components/NavigationBar';
 import OnyxListItemProvider from './components/OnyxListItemProvider';
@@ -123,6 +124,7 @@ function App() {
                                         FullScreenLoaderContextProvider,
                                         SidePanelContextProvider,
                                         ExpensifyCardContextProvider,
+                                        KYCWallContextProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />
