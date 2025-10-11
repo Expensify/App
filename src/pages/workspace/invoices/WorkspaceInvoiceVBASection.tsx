@@ -31,6 +31,7 @@ type WorkspaceInvoiceVBASectionProps = {
     policyID: string;
 };
 
+// TODO: can be refactored to use ThreeDotsMenu component instead handling the popover and positioning
 function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();

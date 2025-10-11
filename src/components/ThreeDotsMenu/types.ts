@@ -1,4 +1,4 @@
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {TranslationPaths} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
@@ -19,7 +19,7 @@ type ThreeDotsMenuProps = {
     iconFill?: string;
 
     /** Function to call on icon press */
-    onIconPress?: () => void;
+    onIconPress?: (() => void) | ((e?: GestureResponderEvent | KeyboardEvent | undefined) => void);
 
     /** menuItems that'll show up on toggle of the popup menu */
     menuItems: PopoverMenuItem[];
