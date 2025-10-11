@@ -490,14 +490,12 @@ function dedupePositionInfo(positionInfo: SearchQueryPositionEntry[]) {
         }
 
         if (entry.type === 'filter' && entry.node) {
-            const dedupedFilters = dedupeQueryFilters(getQueryFiltersFromNode(entry.node));
-            if (!dedupedFilters.length) {
+            const filtersForSignature = dedupeQueryFilters(getQueryFiltersFromNode(entry.node));
+            if (!filtersForSignature.length) {
                 return acc;
             }
 
-            const signature = dedupedFilters
-                .map((filter) => `${filter.operator}:${sanitizeSearchValue(String(filter.value))}`)
-                .join('|');
+            const signature = filtersForSignature.map((filter) => `${filter.operator}:${sanitizeSearchValue(String(filter.value))}`).join('|');
 
             let seenForKey = filterValuesSeen.get(entry.key);
             if (!seenForKey) {
@@ -510,20 +508,7 @@ function dedupePositionInfo(positionInfo: SearchQueryPositionEntry[]) {
             }
 
             seenForKey.add(signature);
-
-            const updatedNode: ASTNode = {
-                ...entry.node,
-                operator: dedupedFilters[0]?.operator ?? entry.node.operator,
-                right:
-                    dedupedFilters.length === 1
-                        ? dedupedFilters[0]?.value ?? entry.node.right
-                        : dedupedFilters.map((filter) => filter.value),
-            };
-
-            acc.push({
-                ...entry,
-                node: updatedNode,
-            });
+            acc.push(entry);
             return acc;
         }
 
@@ -596,9 +581,7 @@ function getRootTitleSegment(key: string, queryJSON: SearchQueryJSON, policies: 
                 return undefined;
             }
 
-            const serializedStatus = Array.isArray(status)
-                ? status.map(getUserFriendlyValue).join(',')
-                : getUserFriendlyValue(status);
+            const serializedStatus = Array.isArray(status) ? status.map(getUserFriendlyValue).join(',') : getUserFriendlyValue(status);
             return `status:${serializedStatus}`;
         }
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY: {
@@ -612,9 +595,7 @@ function getRootTitleSegment(key: string, queryJSON: SearchQueryJSON, policies: 
                 return undefined;
             }
 
-            const workspaceNames = policyID
-                .map((id) => sanitizeSearchValue(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]?.name ?? id))
-                .join(',');
+            const workspaceNames = policyID.map((id) => sanitizeSearchValue(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]?.name ?? id)).join(',');
             return `workspace:${workspaceNames}`;
         }
         default:
@@ -1294,12 +1275,7 @@ function buildUserReadableQueryString(
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
 ) {
-    const rootKeysInOrder = [
-        CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE,
-        CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS,
-        CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
-        CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-    ];
+    const rootKeysInOrder = [CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS, CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID];
     const sortedPositionInfo = [...(queryJSON.positionInfo ?? [])].sort((a, b) => a.position - b.position);
 
     if (sortedPositionInfo.length > 0) {
@@ -1319,17 +1295,7 @@ function buildUserReadableQueryString(
             if (entry.type === 'filter') {
                 processedFilterKeys.add(entry.key);
                 addQuerySegment(
-                    getFilterTitleSegment(
-                        entry.key,
-                        getQueryFiltersFromNode(entry.node),
-                        PersonalDetails,
-                        reports,
-                        cardList,
-                        cardFeeds,
-                        policies,
-                        currentUserAccountID,
-                        taxRates,
-                    ),
+                    getFilterTitleSegment(entry.key, getQueryFiltersFromNode(entry.node), PersonalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID, taxRates),
                 );
             }
         }
@@ -1354,19 +1320,7 @@ function buildUserReadableQueryString(
                 continue;
             }
 
-            addTitleSegment(
-                getFilterTitleSegment(
-                    filter.key,
-                    filter.filters,
-                    PersonalDetails,
-                    reports,
-                    cardList,
-                    cardFeeds,
-                    policies,
-                    currentUserAccountID,
-                    taxRates,
-                ),
-            );
+            addTitleSegment(getFilterTitleSegment(filter.key, filter.filters, PersonalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID, taxRates));
         }
 
         return titleParts.join(' ').trim();
@@ -1386,24 +1340,11 @@ function buildUserReadableQueryString(
 
     // Append filters after the root segments to finish the readable title.
     for (const filter of queryJSON.flatFilters) {
-        addTitleSegment(
-            getFilterTitleSegment(
-                filter.key,
-                filter.filters,
-                PersonalDetails,
-                reports,
-                cardList,
-                cardFeeds,
-                policies,
-                currentUserAccountID,
-                taxRates,
-            ),
-        );
+        addTitleSegment(getFilterTitleSegment(filter.key, filter.filters, PersonalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID, taxRates));
     }
 
     return titleSegments.join(' ').trim();
 }
-
 
 /**
  * Returns properly built QueryString for a canned query, with the optional policyID.

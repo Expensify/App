@@ -138,7 +138,7 @@ type ASTNode = {
 
 /**
  * Metadata describing where each filter originated in the raw input so the
- * consumer can restore the author’s ordering (e.g., for rebuilding the query).
+ * consumer can restore the author's ordering (e.g., for rebuilding the query).
  */
 type SearchQueryPositionEntry = {
     key: string;
@@ -281,4 +281,5 @@ export type {
     SelectedReports,
     SearchTextFilterKeys,
     BankAccountMenuItem,
+    SearchQueryPositionEntry,
 };
