@@ -230,6 +230,9 @@ type ListItem<K extends string | number = string> = {
 
     /** Used to initiate payment from search page */
     hash?: number;
+
+    /** Whether check box state is indeterminate */
+    isIndeterminate?: boolean;
 };
 
 type TransactionListItemType = ListItem &
