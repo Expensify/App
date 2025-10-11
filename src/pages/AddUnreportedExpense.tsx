@@ -183,11 +183,12 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 )}
                 <Button
                     success
+                    large
+                    style={[styles.w100, styles.justifyContentCenter]}
                     text={translate('iou.addUnreportedExpenseConfirm')}
                     onPress={handleConfirm}
                     pressOnEnter
-                    large
-                    style={[styles.justifyContentCenter]}
+                    enterKeyEventListenerPriority={1}
                 />
             </>
         );
@@ -307,6 +308,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 ListItem={UnreportedExpenseListItem}
                 onEndReached={fetchMoreUnreportedTransactions}
                 onEndReachedThreshold={0.75}
+                addBottomSafeAreaPadding
                 listFooterContent={shouldShowUnreportedTransactionsSkeletons ? <UnreportedExpensesSkeleton fixedNumberOfItems={3} /> : undefined}
                 footerContent={footerContent}
             />
