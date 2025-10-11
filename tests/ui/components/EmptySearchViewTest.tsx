@@ -1,18 +1,18 @@
 import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import LottieAnimations from '@components/LottieAnimations';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import {translateLocal} from '@libs/Localize';
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import EmptySearchView from '@pages/Search/EmptySearchView';
-import LottieAnimations from '@components/LottieAnimations';
-import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchTypeMenuSection, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {ValueOf} from 'type-fest';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@hooks/useSearchTypeMenuSections');

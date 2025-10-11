@@ -1,8 +1,8 @@
 import {render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
-import Text from '@components/Text';
 import type {ValueOf} from 'type-fest';
 import type {SearchQueryJSON} from '@components/Search/types';
+import Text from '@components/Text';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import {openSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
