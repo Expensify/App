@@ -178,15 +178,37 @@ function SearchList({
         }
         return data;
     }, [data, groupBy]);
-    const flattenedItemsWithoutPendingDelete = useMemo(() => flattenedItems.filter((t) => t?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [flattenedItems]);
 
-    const selectedItemsLength = useMemo(
-        () =>
-            flattenedItems.reduce((acc, item) => {
-                return item?.isSelected ? acc + 1 : acc;
-            }, 0),
-        [flattenedItems],
-    );
+    const emptyReports = useMemo(() => {
+        if (groupBy && isTransactionGroupListItemArray(data)) {
+            return data.filter((item) => item.transactions.length === 0);
+        }
+        return [];
+    }, [data, groupBy]);
+
+    const selectedItemsLength = useMemo(() => {
+        const selectedTransactions = flattenedItems.reduce((acc, item) => {
+            return acc + (item?.isSelected ? 1 : 0);
+        }, 0);
+
+        if (groupBy && isTransactionGroupListItemArray(data)) {
+            const selectedEmptyReports = emptyReports.reduce((acc, item) => {
+                return acc + (item.isSelected ? 1 : 0);
+            }, 0);
+
+            return selectedEmptyReports + selectedTransactions;
+        }
+
+        return selectedTransactions;
+    }, [data, flattenedItems, groupBy, emptyReports]);
+
+    const totalItems = useMemo(() => {
+        if (groupBy && isTransactionGroupListItemArray(data)) {
+            return emptyReports.length + flattenedItems.length;
+        }
+
+        return flattenedItems.length;
+    }, [data, groupBy, flattenedItems, emptyReports]);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -362,7 +384,7 @@ function SearchList({
 
     const tableHeaderVisible = (canSelectMultiple || !!SearchTableHeader) && (!groupBy || groupBy === CONST.SEARCH.GROUP_BY.REPORTS);
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
-    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length;
+    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems;
 
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
@@ -372,7 +394,7 @@ function SearchList({
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={isSelectAllChecked}
-                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedItemsWithoutPendingDelete.length}
+                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== totalItems}
                             onPress={() => {
                                 onAllCheckboxPress();
                             }}

@@ -123,12 +123,15 @@ function TransactionGroupListItem<TItem extends ListItem>({
         return transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     }, [transactions]);
 
-    const isSelectAllChecked = selectedItemsLength === transactions.length && transactions.length > 0;
+    const isEmpty = transactions.length === 0;
+
+    const isEmptyReportSelected = isEmpty && isGroupByReports && item?.keyForList && selectedTransactions[item.keyForList]?.isSelected;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const isSelectAllChecked = isEmptyReportSelected || (selectedItemsLength === transactionsWithoutPendingDelete.length && transactionsWithoutPendingDelete.length > 0);
     const isIndeterminate = selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length;
 
     const [isExpanded, setIsExpanded] = useState(false);
 
-    const isEmpty = transactions.length === 0;
     const {markReportIDAsExpense} = useContext(WideRHPContext);
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayEmptyView = isEmpty && isGroupByReports;
@@ -254,7 +257,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     report={groupItem as TransactionReportGroupListItemType}
                     onSelectRow={onSelectRow}
                     onCheckboxPress={onCheckboxPress}
-                    isDisabled={isDisabledOrEmpty}
+                    isDisabled={isDisabled}
                     isFocused={isFocused}
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
@@ -299,7 +302,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         return headers[groupBy];
-    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, groupBy]);
+    }, [groupItem, onSelectRow, onCheckboxPress, isDisabled, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, isDisabledOrEmpty, groupBy]);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
