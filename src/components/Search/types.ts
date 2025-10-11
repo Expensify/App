@@ -136,6 +136,17 @@ type ASTNode = {
     right: string | ASTNode | string[];
 };
 
+/**
+ * Metadata describing where each filter originated in the raw input so the
+ * consumer can restore the author's ordering (e.g., for rebuilding the query).
+ */
+type SearchQueryPositionEntry = {
+    key: string;
+    position: number;
+    type: 'root' | 'filter';
+    node?: ASTNode;
+};
+
 type QueryFilter = {
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
     value: string | number;
@@ -201,6 +212,8 @@ type SearchQueryJSON = {
     /** Use similarSearchHash to test if two searchers are similar i.e. have same filters but not necessary same values */
     similarSearchHash: number;
     flatFilters: QueryFilters;
+    /** Position information for preserving original query order */
+    positionInfo?: SearchQueryPositionEntry[];
 } & SearchQueryAST;
 
 type SearchAutocompleteResult = {
@@ -268,4 +281,5 @@ export type {
     SelectedReports,
     SearchTextFilterKeys,
     BankAccountMenuItem,
+    SearchQueryPositionEntry,
 };

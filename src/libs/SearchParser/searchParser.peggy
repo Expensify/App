@@ -35,6 +35,12 @@
     sortOrder: "desc",
   };
 
+  // Track the original character offsets for every parsed segment so later
+  // consumers can reconstruct the query's display order.
+  const positionInfo = [];
+  const seenRootKeys = new Set();
+  const seenFilterEntries = new Map();
+
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
     "type", "keyword", "groupCurrency", "groupBy"
@@ -44,6 +50,7 @@
     return {
       ...defaultValues,
       filters,
+      positionInfo,
     };
   }
 
@@ -53,6 +60,33 @@
       return;
     }
     defaultValues[field] = value;
+  }
+
+  // Persist metadata for each parsed segment (default values and filters)
+  // using the same shape that the client consumes from the parser output.
+  function addPositionInfo(entry) {
+    if (entry.type === 'root') {
+      if (seenRootKeys.has(entry.key)) {
+        return;
+      }
+      seenRootKeys.add(entry.key);
+      positionInfo.push(entry);
+      return;
+    }
+
+    if (entry.type === 'filter' && entry.node) {
+      const signature = JSON.stringify({ key: entry.key, node: entry.node });
+      const existingSignatures = seenFilterEntries.get(entry.key) || new Set();
+      if (existingSignatures.has(signature)) {
+        return;
+      }
+      existingSignatures.add(signature);
+      seenFilterEntries.set(entry.key, existingSignatures);
+      positionInfo.push(entry);
+      return;
+    }
+
+    positionInfo.push(entry);
   }
 }
 
@@ -96,6 +130,9 @@ filter = @(standardFilter / defaultFilter / freeTextFilter)
 defaultFilter
   = _ key:defaultKey _ op:operator _ value:identifier {
       updateDefaultValues(key, value);
+      // Default keys do not emit filters, but we still capture their position
+      // so the UI can interleave them correctly with explicit filters.
+      addPositionInfo({ type: 'root', key, position: location().start.offset });
     }
 
 freeTextFilter
@@ -107,7 +144,11 @@ freeTextFilter
       } else {
         word = value;
       }
-      return buildFilter("eq", "keyword", word);
+      const filterNode = buildFilter("eq", "keyword", word);
+      // Remember where the keyword filter began in the raw string so we can
+      // merge it back in the correct order when rehydrating the query.
+      addPositionInfo({ type: 'filter', key: 'keyword', position: location().start.offset, node: filterNode });
+      return filterNode;
     }
 
 standardFilter
@@ -124,7 +165,11 @@ standardFilter
         }
       }
 
-      return buildFilter(operator, key, values);
+      const filterNode = buildFilter(operator, key, values);
+      // Record the filter AST node alongside its offset to preserve ordering
+      // between structured filters and free-text keywords.
+      addPositionInfo({ type: 'filter', key, position: location().start.offset, node: filterNode });
+      return filterNode;
     }
 
 key "key"
@@ -175,7 +220,7 @@ filterKey
       nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
       return k;
     }
-    
+
 defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy)
 
 identifier
