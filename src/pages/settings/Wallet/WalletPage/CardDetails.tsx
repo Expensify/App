@@ -6,10 +6,13 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 
 const defaultPrivatePersonalDetails: PrivatePersonalDetails = {
@@ -24,7 +27,7 @@ const defaultPrivatePersonalDetails: PrivatePersonalDetails = {
     ],
 };
 
-type CardDetailsProps = {
+type CardDetailsProps = Omit<PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD>, 'navigation'> & {
     /** Card number */
     pan?: string;
 
@@ -36,9 +39,12 @@ type CardDetailsProps = {
 
     /** Domain name */
     domain: string;
+
+    /** Card ID */
+    cardID: number;
 };
 
-function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsProps) {
+function CardDetails({pan = '', expiration = '', cvv = '', domain, cardID, route}: CardDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
@@ -81,7 +87,13 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                     />
                     <TextLink
                         style={[styles.link, styles.mh5, styles.mb3]}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.getRoute(domain))}
+                        onPress={() => {
+                            if (route.name === SCREENS.SETTINGS.WALLET.DOMAIN_CARD) {
+                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.getRoute(domain));
+                                return;
+                            }
+                            Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_UPDATE_ADDRESS.getRoute(cardID.toString()));
+                        }}
                     >
                         {translate('cardPage.cardDetails.updateAddress')}
                     </TextLink>
