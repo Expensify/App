@@ -2120,7 +2120,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-pdf (6.7.3):
+  - react-native-pdf (7.0.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3825,7 +3825,7 @@ SPEC CHECKSUMS:
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: b8577cba87fbe7b7740c279ee23d25d7c5d87666
   react-native-pager-view: 0f1489fdcdfa56677aa1492e342c9216cbf468a0
-  react-native-pdf: 1fee221a1bdb66bb5dc14718e0687dd34f33a823
+  react-native-pdf: 95ac830ccce8e03bf499248b85b7e8fc4459ab40
   react-native-performance: ed312c0ee791c50077b7ad22b01685fe5a0e3db6
   react-native-plaid-link-sdk: 017d025be9fdb05151e03453bb191e0518e3fe6a
   react-native-release-profiler: a04b78ac9bf24beff9785eaacf9af297644f2103

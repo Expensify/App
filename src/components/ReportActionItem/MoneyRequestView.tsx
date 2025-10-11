@@ -151,7 +151,7 @@ function MoneyRequestView({
     }, [parentReportAction]);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     const isExpenseUnreported = isExpenseUnreportedTransactionUtils(updatedTransaction ?? transaction);
-    const {policyForMovingExpensesID, policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
     // If the expense is unreported the policy should be the user's default policy, otherwise it should be the policy the expense was made for
     const policy = isExpenseUnreported ? policyForMovingExpenses : expensePolicy;
     const policyID = isExpenseUnreported ? policyForMovingExpensesID : report?.policyID;
@@ -852,7 +852,7 @@ function MoneyRequestView({
                                 if (!canEditReport) {
                                     return;
                                 }
-                                if (!policy) {
+                                if (!policy && !shouldSelectPolicy) {
                                     Navigation.navigate(
                                         ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                                             iouType,
