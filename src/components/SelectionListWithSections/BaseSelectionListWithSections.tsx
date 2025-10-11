@@ -304,7 +304,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             allSelected: selectedOptions.length > 0 && selectedOptions.length === totalSelectable,
             someSelected: selectedOptions.length > 0 && selectedOptions.length < totalSelectable,
         };
-    }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, getItemHeight]);
+    }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, getItemHeight, ListItem]);
 
     const incrementPage = useCallback(() => {
         if (flattenedSections.allOptions.length <= CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage) {
