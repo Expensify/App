@@ -13,6 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
+import {hasCircularReferences} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasAccountingConnections} from '@libs/PolicyUtils';
@@ -106,6 +107,10 @@ function WorkspaceCreateReportFieldsPage({
                     length: formInitialValue.length,
                     limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH,
                 });
+            }
+
+            if (type === CONST.REPORT_FIELD_TYPES.TEXT && hasCircularReferences(formInitialValue, name)) {
+                errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
             }
 
             if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !isRequiredFulfilled(formInitialValue)) {

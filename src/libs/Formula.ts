@@ -189,6 +189,24 @@ function parsePart(definition: string): FormulaPart {
 }
 
 /**
+ * Check if the report field value is containing circular references, e.g example
+ * fieldName (report field name): test-example
+ * fieldValue (report field value / initial value): `abc {field:test-example}`
+ * Output >> should return: true
+ */
+function hasCircularReferences(fieldValue: string, fieldName: string) {
+    const formulaValues = extract(fieldValue);
+    if (formulaValues.length === 0) {
+        return false;
+    }
+
+    return formulaValues.some((formula) => {
+        const fieldPath = parsePart(formula).fieldPath;
+        return fieldPath.includes(fieldName);
+    });
+}
+
+/**
  * Compute the value of a formula given a context
  */
 function compute(formula?: string, context?: FormulaContext): string {
@@ -503,6 +521,6 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
     return oldestDate;
 }
 
-export {FORMULA_PART_TYPES, compute, extract, parse};
+export {FORMULA_PART_TYPES, compute, extract, parse, hasCircularReferences};
 
 export type {FormulaContext, FormulaPart};
