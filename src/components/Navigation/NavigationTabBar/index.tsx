@@ -3,6 +3,7 @@ import reportsSelector from '@selectors/Attributes';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import FloatingCameraButton from '@components/FloatingCameraButton';
 import HeaderGap from '@components/HeaderGap';
 import Icon from '@components/Icon';
 // import * as Expensicons from '@components/Icon/Expensicons';
@@ -23,6 +24,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
+import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import getAccountTabScreenToOpen from '@libs/Navigation/helpers/getAccountTabScreenToOpen';
@@ -324,13 +326,16 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                             onPress={navigateToSettings}
                         />
                     </View>
-                    <View style={styles.leftNavigationTabBarItem}>
+                    <View style={styles.leftNavigationTabBarFAB}>
                         <NavigationTabBarFloatingActionButton />
                     </View>
                 </View>
             </>
         );
     }
+
+    const platform = getPlatform(true);
+    const shouldShowFloatingCameraButton = platform !== CONST.PLATFORM.WEB && platform !== CONST.PLATFORM.DESKTOP;
 
     return (
         <>
@@ -443,6 +448,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                     onPress={navigateToSettings}
                 />
             </View>
+            {shouldShowFloatingCameraButton && <FloatingCameraButton />}
         </>
     );
 }
