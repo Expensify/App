@@ -261,6 +261,10 @@ const personalDetails: PersonalDetailsList = {
         accountID: 8,
         login: CONST.EMAIL.GUIDES_DOMAIN,
     },
+    '9': {
+        accountID: 9,
+        login: 'manager@test.com',
+    },
 };
 
 const rules = {
