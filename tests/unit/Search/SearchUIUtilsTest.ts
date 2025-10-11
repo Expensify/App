@@ -2870,7 +2870,7 @@ describe('SearchUIUtils', () => {
             expect(result).toEqual({
                 count: 2,
                 total: 8000,
-                currency: 'EUR', // Uses first transaction currency, not metadata currency
+                currency: 'EUR',
             });
         });
 
