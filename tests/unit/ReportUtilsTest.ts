@@ -7509,6 +7509,7 @@ describe('ReportUtils', () => {
 
             expect(hasEmptyReportsForPolicy(reports, undefined, accountID)).toBe(false);
             expect(hasEmptyReportsForPolicy(reports, policyID, Number.NaN)).toBe(false);
+            expect(hasEmptyReportsForPolicy(reports, policyID, CONST.DEFAULT_NUMBER_ID)).toBe(false);
         });
 
         it('returns true when an owned open expense report has no money', () => {
@@ -7563,6 +7564,24 @@ describe('ReportUtils', () => {
 
             expect(hasEmptyReportsForPolicy(reports, policyID, CONST.DEFAULT_NUMBER_ID)).toBe(false);
         });
+
+        it('supports minimal report summaries array', () => {
+            const minimalReports = [
+                {
+                    policyID,
+                    ownerAccountID: accountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    total: 0,
+                    nonReimbursableTotal: 0,
+                    pendingAction: null,
+                    errors: undefined,
+                },
+            ];
+
+            expect(hasEmptyReportsForPolicy(minimalReports, policyID, accountID)).toBe(true);
+        });
     });
 
     describe('getPolicyIDsWithEmptyReportsForAccount', () => {
@@ -7606,6 +7625,26 @@ describe('ReportUtils', () => {
             expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID)).toEqual({
                 [policyID]: true,
                 [otherPolicyID]: true,
+            });
+        });
+
+        it('supports minimal summaries input', () => {
+            const summaries = [
+                {
+                    policyID,
+                    ownerAccountID: accountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    total: 0,
+                    nonReimbursableTotal: 0,
+                    pendingAction: null,
+                    errors: undefined,
+                },
+            ];
+
+            expect(getPolicyIDsWithEmptyReportsForAccount(summaries, accountID)).toEqual({
+                [policyID]: true,
             });
         });
 

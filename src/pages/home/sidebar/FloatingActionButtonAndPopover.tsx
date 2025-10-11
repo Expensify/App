@@ -49,16 +49,7 @@ import {
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
-import {
-    generateReportID,
-    getDisplayNameForParticipant,
-    getIcons,
-    getReportName,
-    getWorkspaceChats,
-    hasEmptyReportsForPolicy,
-    hasViolations as hasViolationsReportUtils,
-    isPolicyExpenseChat,
-} from '@libs/ReportUtils';
+import {generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
 import variables from '@styles/variables';
@@ -195,6 +186,23 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     );
 
     const inferredWorkspaceID = inferredWorkspacePolicy?.id;
+
+    const hasEmptyReportSelector = useMemo(() => {
+        if (!inferredWorkspaceID || !(session?.accountID)) {
+            return () => false;
+        }
+
+        return (reports: OnyxCollection<OnyxTypes.Report>) => hasEmptyReportsForPolicy(reports, inferredWorkspaceID, session.accountID);
+    }, [inferredWorkspaceID, session?.accountID]);
+
+    const [hasEmptyReportForInferredWorkspace = false] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT,
+        {
+            canBeMissing: true,
+            selector: hasEmptyReportSelector,
+        },
+        [hasEmptyReportSelector],
+    );
 
     const handleCreateWorkspaceReport = useCallback(() => {
         if (!inferredWorkspaceID) {
@@ -537,9 +545,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
                               if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
                                   // Check if empty report confirmation should be shown
-                                  const hasEmptyReports = hasEmptyReportsForPolicy(allReports, workspaceIDForReportCreation, session?.accountID);
-
-                                  if (hasEmptyReports) {
+                                  if (hasEmptyReportForInferredWorkspace) {
                                       openFabCreateReportConfirmation();
                                   } else {
                                       handleCreateWorkspaceReport();
