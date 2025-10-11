@@ -854,10 +854,6 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
             if (keyInCorrectForm) {
                 const segment = `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeSearchValue(filterValue as string)}`;
-                if (keyInCorrectForm === FILTER_KEYS.POLICY_ID) {
-                    addRootSegment(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, segment);
-                    return;
-                }
                 addFilterSegment(CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm], segment);
             }
         }
@@ -910,8 +906,6 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 );
             }
         }
-
-        return;
     });
 
     DATE_FILTER_KEYS.forEach((dateKey) => {
