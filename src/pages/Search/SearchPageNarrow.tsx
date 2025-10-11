@@ -144,8 +144,7 @@ function SearchPageNarrow({
             <ScreenWrapper
                 testID={SearchPageNarrow.displayName}
                 style={styles.pv0}
-                offlineIndicatorStyle={styles.mtAuto}
-                shouldShowOfflineIndicator={!!searchResults}
+                shouldShowOfflineIndicator={false}
             >
                 <FullPageNotFoundView
                     shouldShow={!queryJSON}
@@ -163,10 +162,9 @@ function SearchPageNarrow({
         <ScreenWrapper
             testID={SearchPageNarrow.displayName}
             shouldEnableMaxHeight
-            offlineIndicatorStyle={styles.mtAuto}
             bottomContent={<NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />}
             headerGapStyles={styles.searchHeaderGap}
-            shouldShowOfflineIndicator={!!searchResults}
+            shouldShowOfflineIndicator={false}
         >
             <View style={[styles.flex1, styles.overflowHidden]}>
                 {!isMobileSelectionModeEnabled ? (

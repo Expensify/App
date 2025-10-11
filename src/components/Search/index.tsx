@@ -6,6 +6,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import ScreenWrapper from '@components/ScreenWrapper';
 import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
@@ -963,13 +964,24 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                     newTransactions={newTransactions}
                 />
-                {!!footerData && (
-                    <SearchPageFooter
-                        count={footerData.count}
-                        total={footerData.total}
-                        currency={footerData.currency}
-                    />
-                )}
+                <View style={[styles.mtAuto]}>
+                    <ScreenWrapper
+                        testID="SearchPageFooterWrapper"
+                        shouldShowOfflineIndicator
+                        shouldShowOfflineIndicatorInWideScreen
+                        offlineIndicatorStyle={shouldUseNarrowLayout ? [styles.mtAuto] : [styles.pAbsolute, styles.h10, styles.b0]}
+                        shouldEnableKeyboardAvoidingView={false}
+                        shouldEnableMaxHeight={false}
+                    >
+                        {!!footerData && (
+                            <SearchPageFooter
+                                count={footerData.count}
+                                total={footerData.total}
+                                currency={footerData.currency}
+                            />
+                        )}
+                    </ScreenWrapper>
+                </View>
             </Animated.View>
         </SearchScopeProvider>
     );
