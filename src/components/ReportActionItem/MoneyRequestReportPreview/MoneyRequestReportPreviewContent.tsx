@@ -756,7 +756,7 @@ function MoneyRequestReportPreviewContent({
                                             )}
                                         </View>
                                     </View>
-                                    {!currentWidth || shouldShowLoading || shouldShowLoadingDeferred ? (
+                                    {shouldShowLoading || shouldShowLoadingDeferred ? (
                                         <View
                                             style={[
                                                 {
