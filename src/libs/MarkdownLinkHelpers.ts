@@ -60,7 +60,7 @@ const sanitizeUrlForMarkdown = (url: string): string => {
 
 /**
  * Build a Markdown link: [escaped-selected-text](sanitized-url)
- * We do NOT wrap the URL in < > here — angle brackets are only valid for "autolinks", not inside link destinations.
+ * We do NOT wrap the URL in < > here — angle brackets are only valid for "auto links", not inside link destinations.
  */
 const toMarkdownLink = (selectedText: string, url: string): string => {
     const safeText = escapeLinkText(selectedText);
