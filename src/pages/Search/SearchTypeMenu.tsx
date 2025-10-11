@@ -25,9 +25,9 @@ import {clearAllFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, getFlattenedMenuItemsWithDefaultTodoIndex, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -69,8 +69,9 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const taxRates = getAllTaxRates();
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
-    const {clearSelectedTransactions} = useSearchContext();
+    const {clearSelectedTransactions, shouldDefaultToTodo, setShouldDefaultToTodo} = useSearchContext();
     const initialSearchKeys = useRef<string[]>([]);
+    const isDefaultQuery = queryJSON ? isDefaultExpensesQuery(queryJSON) : true;
 
     // The first time we render all of the sections the user can see, we need to mark these as 'rendered', such that we
     // dont animate them in. We only animate in items that a user gains access to later on
@@ -83,6 +84,13 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             return section.menuItems.map((item) => item.key);
         });
     }, [typeMenuSections]);
+
+    const disableDefaultSelection = useCallback(() => {
+        if (!shouldDefaultToTodo) {
+            return;
+        }
+        setShouldDefaultToTodo(false);
+    }, [shouldDefaultToTodo, setShouldDefaultToTodo]);
 
     const getOverflowMenu = useCallback((itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal), [showDeleteModal]);
 
@@ -100,6 +108,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             return {
                 ...baseMenuItem,
                 onPress: () => {
+                    disableDefaultSelection();
                     clearAllFilters();
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
                 },
@@ -140,6 +149,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             allFeeds,
             currentUserAccountID,
             allPolicies,
+            disableDefaultSelection,
         ],
     );
 
@@ -202,15 +212,29 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         [styles],
     );
 
+    const {flattenedMenuItems, defaultTodoIndex} = useMemo(() => getFlattenedMenuItemsWithDefaultTodoIndex(typeMenuSections), [typeMenuSections]);
+    const shouldUseDefaultSelection = shouldDefaultToTodo && isDefaultQuery;
+    const shouldFallbackToTodoDefault = shouldUseDefaultSelection && defaultTodoIndex !== -1;
+
     const activeItemIndex = useMemo(() => {
         // If we have a suggested search, then none of the menu items are active
         if (isSavedSearchActive) {
             return -1;
         }
 
-        const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
-        return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
-    }, [similarSearchHash, isSavedSearchActive, typeMenuSections]);
+        const similarSearchIndex = flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
+
+        if (!shouldFallbackToTodoDefault) {
+            return similarSearchIndex;
+        }
+
+        const similarSearchItem = similarSearchIndex !== -1 ? flattenedMenuItems.at(similarSearchIndex) : undefined;
+        if (similarSearchItem && (similarSearchItem.key === CONST.SEARCH.SEARCH_KEYS.APPROVE || similarSearchItem.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT)) {
+            return similarSearchIndex;
+        }
+
+        return defaultTodoIndex;
+    }, [flattenedMenuItems, similarSearchHash, isSavedSearchActive, shouldFallbackToTodoDefault, defaultTodoIndex]);
 
     if (shouldShowSkeleton) {
         return (
@@ -247,6 +271,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                     const focused = activeItemIndex === flattenedIndex;
 
                                     const onPress = singleExecution(() => {
+                                        disableDefaultSelection();
                                         clearAllFilters();
                                         clearSelectedTransactions();
                                         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));

@@ -3,15 +3,16 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import {clearAllFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, getFlattenedMenuItemsWithDefaultTodoIndex, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -30,6 +31,7 @@ import useWindowDimensions from './useWindowDimensions';
 
 export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const {hash, similarSearchHash} = queryJSON;
+    const isDefaultQuery = isDefaultExpensesQuery(queryJSON);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -46,8 +48,15 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
-
+    const {shouldDefaultToTodo, setShouldDefaultToTodo} = useSearchContext();
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
+
+    const disableDefaultSelection = useCallback(() => {
+        if (!shouldDefaultToTodo) {
+            return;
+        }
+        setShouldDefaultToTodo(false);
+    }, [shouldDefaultToTodo, setShouldDefaultToTodo]);
 
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
@@ -95,6 +104,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
             return {
                 ...baseMenuItem,
                 onSelected: () => {
+                    disableDefaultSelection();
                     clearAllFilters();
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
                 },
@@ -123,7 +133,11 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
             savedSearchesMenuItems: menuItems,
             isSavedSearchActive: savedSearchFocused,
         };
-    }, [savedSearches, hash, getOverflowMenu, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies, currentUserAccountID]);
+    }, [savedSearches, hash, getOverflowMenu, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies, currentUserAccountID, disableDefaultSelection]);
+
+    const {flattenedMenuItems, defaultTodoIndex} = useMemo(() => getFlattenedMenuItemsWithDefaultTodoIndex(typeMenuSections), [typeMenuSections]);
+    const shouldUseDefaultSelection = shouldDefaultToTodo && isDefaultQuery;
+    const shouldFallbackToTodoDefault = shouldUseDefaultSelection && defaultTodoIndex !== -1;
 
     const activeItemIndex = useMemo(() => {
         // If we have a suggested search, then none of the menu items are active
@@ -131,9 +145,19 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
             return -1;
         }
 
-        const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
-        return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
-    }, [similarSearchHash, isSavedSearchActive, typeMenuSections]);
+        const similarSearchIndex = flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
+
+        if (!shouldFallbackToTodoDefault) {
+            return similarSearchIndex;
+        }
+
+        const similarSearchItem = similarSearchIndex !== -1 ? flattenedMenuItems.at(similarSearchIndex) : undefined;
+        if (similarSearchItem && (similarSearchItem.key === CONST.SEARCH.SEARCH_KEYS.APPROVE || similarSearchItem.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT)) {
+            return similarSearchIndex;
+        }
+
+        return defaultTodoIndex;
+    }, [flattenedMenuItems, similarSearchHash, isSavedSearchActive, shouldFallbackToTodoDefault, defaultTodoIndex]);
 
     const popoverMenuItems = useMemo(() => {
         return typeMenuSections
@@ -168,6 +192,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                             containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
                             shouldCallAfterModalHide: true,
                             onSelected: singleExecution(() => {
+                                disableDefaultSelection();
                                 clearAllFilters();
                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                             }),
@@ -178,7 +203,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                 return sectionItems;
             })
             .flat();
-    }, [typeMenuSections, savedSearchesMenuItems, translate, styles.textSupporting, activeItemIndex, theme.iconSuccessFill, theme.border, singleExecution]);
+    }, [typeMenuSections, savedSearchesMenuItems, translate, styles.textSupporting, activeItemIndex, theme.iconSuccessFill, theme.border, singleExecution, disableDefaultSelection]);
 
     const openMenu = useCallback(() => {
         setIsPopoverVisible(true);

@@ -88,10 +88,7 @@ const useSearchTypeMenuSections = () => {
     const cardFeedsReady = workspaceCardFeeds !== undefined && userCardList !== undefined;
     const sessionReady = !!currentUserLoginAndAccountID?.email && currentUserLoginAndAccountID?.accountID !== undefined;
 
-    const reportsReady = reports !== undefined;
-
-    const baseSuggestedSearchesReady = policiesReady && cardFeedsReady && sessionReady && reportsReady;
-    const suggestedSearchesReady = baseSuggestedSearchesReady || isOffline;
+    const suggestedSearchesReady = policiesReady && cardFeedsReady && sessionReady;
 
     const defaultFeedForSuggestedSearches = defaultCardFeed ?? defaultExpensifyCard;
 
