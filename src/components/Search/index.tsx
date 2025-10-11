@@ -282,10 +282,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const previousReportActions = usePrevious(reportActions);
     const reportActionsArray = useMemo(
         () =>
-            Object.values(reportActions ?? {})
-                .filter((reportAction) => !!reportAction)
-                .flatMap((filteredReportActions) => Object.values(filteredReportActions ?? {})),
-        [reportActions],
+            Object.entries(searchResults?.data ?? {})
+                .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))
+                .map(([, value]) => value),
+        [searchResults?.data],
     );
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
@@ -566,7 +566,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     ...Object.fromEntries(
                         currentTransactions
                             .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
+                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID, transaction)),
                     ),
                 },
                 data,
