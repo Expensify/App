@@ -1,12 +1,10 @@
 ---
 title: Getting Started with the Reports Page
 description: Learn how to use the Reports page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, reports page, report preview, report table, filters, smart suggestions, expense management, add expenses, bulk actions, date range, missing filters, workspace filters, visibility issues, expenses missing, classic vs new filters]
+keywords: [New Expensify, reports page, report preview, report table, filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing]
 ---
 
-Get familiar with the Reports page in New Expensify. This guide walks you through using report previews, tables, filters, and smart suggestions to streamline your expense-tracking workflow.
-
-The **Reports page** shows a full list of your reports and related expenses. While the Inbox highlights what needs attention, this page helps you explore, filter, and export your expense data.
+The Reports page in New Expensify gives you a complete view of your submitted, approved, and reimbursed expenses—all in one place. This guide shows you how to use report previews, tables, filters, and smart suggestions to track, manage, and take action on your expenses more efficiently.
 
 ---
 
@@ -73,13 +71,13 @@ Each row represents an expense and includes:
 
 ---
 
-# Filters on the Reports page in New Expensify
+# Using Filters to Find Reports and Expenses
 Filters help you narrow down expenses or reports so you can find exactly what you need—fast. This is especially useful when you're working with a large dataset or trying to take specific actions, such as reporting unsubmitted expenses.
 
 **Filters can help you:**
 
 - **Add unreported expenses to a report**: Use filters to find unreported expenses, and then add them to a report with just a few clicks.
-- **Use filters to quickly search and locate specific reports.**  
+- **Quickly search and locate specific reports using filters.**  
   On the **Reports** page, filter by:
   - **Workspace**
   - **Submitter**
@@ -89,11 +87,11 @@ Filters help you narrow down expenses or reports so you can find exactly what yo
 
 You can filter your **expenses** and **reports** using dropdowns, search bars, and chips. 
 
-- **Expenses:**  can be filtered by  `Date`, `Merchant`, `Category`, `Tag`, `Amount`, `Reimbursable`, `Billable`, `Status` (e.g. Unreported)
+- **Expenses:** can be filtered by  `Date`, `Merchant`, `Category`, `Tag`, `Amount`, `Reimbursable`, `Billable`, `Status` (e.g. Unreported)
 
-- **Reports:**  can be filtered by `Submitter`, `Workspace`, `Report Status` (e.g. Open, Approved, Paid), `Date`
+- **Reports:** can be filtered by `Submitter`, `Workspace`, `Report Status` (e.g. Open, Approved, Paid), `Date`
 
-> To view other available filters, click into the **search box** on the Reports or Expenses page.
+To view other available filters, click into the **search box** on the Reports or Expenses page.
 
 ## How Filtering Works
 
@@ -108,7 +106,7 @@ You can also combine filters with keyword search for even more precision. For ex
 
 ---
 
-# Smart Suggestions in New Expensify
+# Using Smart Suggestions
 
 Smart suggestions recommend the next best action—like submitting a report or adding unreported expenses—based on your activity.
 
@@ -131,9 +129,6 @@ Smart suggestions recommend the next best action—like submitting a report or a
 
 ## Can I export reports from the Reports page?
 Yes! You can export filtered reports to CSV using the export option at the top of the Reports page.
-
-## Why don’t I see certain filters on the Reports page?
-Some filters depend on your workspace settings (like tags or categories). If they’re missing, check with your Workspace Admin.
 
 ## Do smart suggestions work on mobile?
 Yes, smart suggestions also appear in the mobile Inbox and draft reports.
