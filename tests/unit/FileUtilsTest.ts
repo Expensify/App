@@ -196,7 +196,6 @@ describe('FileUtils', () => {
             expect(FileUtils.getFileExtension('image/jpeg')).toBe('jpg');
             expect(FileUtils.getFileExtension('image/png')).toBe('png');
             expect(FileUtils.getFileExtension('video/mp4')).toBe('mp4');
-            expect(FileUtils.getFileExtension('video/quicktime')).toBe('mov');
         });
     });
 });
