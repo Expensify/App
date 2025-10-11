@@ -65,6 +65,12 @@ defaultFilter
         }));
     }
 
+reportFieldDynamic
+  = ("report-field"i / "reportfield"i) "-" rest:$((!([ \t\r\n\xA0,:=<>!]) .)*) {
+      const suffix = rest.replace(/^-+/, "");
+      return "reportField-" + (suffix ? suffix : "");
+    }
+    
 freeTextFilter = _ (identifier / ",") _ { autocomplete = null; }
 
 autocompleteKey "key"
@@ -111,6 +117,7 @@ autocompleteKey "key"
       / reportID
       / withdrawalID
       / title
+      / reportFieldDynamic
     )
 
 filterKey
