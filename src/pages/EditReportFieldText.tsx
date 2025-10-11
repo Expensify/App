@@ -44,15 +44,13 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
                 errors[fieldKey] = translate('common.error.fieldRequired');
             }
 
-            console.log('sssss', fieldName, fieldKey);
-
             if (hasCircularReferences(inputValue, fieldName)) {
                 errors[fieldKey] = translate('workspace.reportFields.circularReferenceError');
             }
 
             return errors;
         },
-        [fieldKey, isRequired, translate],
+        [fieldName, fieldKey, isRequired, translate],
     );
 
     return (
