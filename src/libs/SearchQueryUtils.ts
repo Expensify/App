@@ -910,8 +910,6 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 );
             }
         }
-
-        return;
     });
 
     DATE_FILTER_KEYS.forEach((dateKey) => {
