@@ -75,6 +75,7 @@ function ExitSurveyReasonPage() {
                     Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.getRoute(reason, ROUTES.SETTINGS_EXIT_SURVEY_REASON.route));
                 }}
                 submitButtonText={translate('common.next')}
+                submitButtonStyles={styles.ph5}
                 shouldValidateOnBlur
                 shouldValidateOnChange
                 shouldHideFixErrorsAlert
