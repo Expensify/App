@@ -16,9 +16,22 @@ import {bold, info, log, error as logError, success as logSuccess, note, warn} f
 
 const DEFAULT_REPORT_FILENAME = 'react-compiler-report.json';
 
+const SUPPRESSED_COMPILER_ERRORS = [
+    // This error is caused by an internal limitation of React Compiler
+    // https://github.com/facebook/react/issues/29583
+    '(BuildHIR::lowerExpression) Expected Identifier, got MemberExpression key in ObjectExpression',
+] as const satisfies string[];
+
+const VERBOSE_OUTPUT_LINE_REGEXES = {
+    SUCCESS: /Successfully compiled (?:hook|component) \[([^\]]+)\]\(([^)]+)\)/,
+    FAILURE_WITH_REASON: /Failed to compile ([^:]+):(\d+):(\d+)\. Reason: (.+)/,
+    FAILURE_WITHOUT_REASON: /Failed to compile ([^:]+):(\d+):(\d+)\./,
+    REASON: /Reason: (.+)/,
+} as const satisfies Record<string, RegExp>;
+
 type HealthcheckJsonResults = {
     success: string[];
-    failures: CompilerFailure;
+    failures: CompilerFailure[];
 };
 
 type CompilerResults = {
@@ -30,7 +43,7 @@ type CompilerFailure = {
     file: string;
     line?: number;
     column?: number;
-    reason: string;
+    reason?: string;
 };
 
 function check(filesToCheck?: string[], shouldGenerateReport = false) {
@@ -94,36 +107,40 @@ function runCompilerHealthcheck(src?: string): CompilerResults {
         cwd: process.cwd(),
     });
 
-    // Parse and then normalize via Set/Map to ensure true uniqueness
-    const parsed = parseCombinedOutput(output);
+    // // Use Map keyed by unique file key to deduplicate failures
+    // const failureMap = new Map<string, CompilerFailure>();
+    // results.failures.forEach((failure) => {
+    //     const key = getUniqueFileKey(failure);
+    //     // Prefer the first occurrence that has a reason
+    //     const existing = failureMap.get(key);
+    //     if (!existing) {
+    //         failureMap.set(key, failure);
+    //         return;
+    //     }
+    //     if (!existing.reason && failure.reason) {
+    //         failureMap.set(key, failure);
+    //     }
+    // });
 
-    // Use Set to deduplicate success entries
-    const successSet = new Set(parsed.success);
-
-    // Use Map keyed by unique file key to deduplicate failures
-    const failureMap = new Map<string, CompilerFailure>();
-    parsed.failures.forEach((failure) => {
-        const key = getUniqueFileKey(failure);
-        // Prefer the first occurrence that has a reason
-        const existing = failureMap.get(key);
-        if (!existing) {
-            failureMap.set(key, failure);
-            return;
-        }
-        if (!existing.reason && failure.reason) {
-            failureMap.set(key, failure);
-        }
-    });
-
-    return {success: successSet, failures: failureMap};
+    const results = parseHealthcheckOutput(output);
+    return results;
 }
 
-function parseCombinedOutput(output: string): CompilerResults {
+function parseHealthcheckOutput(output: string): CompilerResults {
     const lines = output.split('\n');
-    const successSet = new Set<string>();
-    const failure = new Map<string, CompilerFailure>();
 
-    // First, try to extract JSON from the output
+    const initialResults: CompilerResults = {
+        success: new Set<string>(),
+        failures: new Map<string, CompilerFailure>(),
+    };
+
+    const resultsAfterJson = parseJsonOutput(lines, initialResults);
+    const finalResults = parseVerboseOutput(lines, resultsAfterJson);
+
+    return finalResults;
+}
+
+function parseJsonOutput(lines: string[], results: CompilerResults): CompilerResults {
     let jsonStart = -1;
     let jsonEnd = -1;
     for (let i = 0; i < lines.length; i++) {
@@ -136,117 +153,141 @@ function parseCombinedOutput(output: string): CompilerResults {
         }
     }
 
-    // Parse JSON if found
-    if (jsonStart !== -1 && jsonEnd !== -1) {
-        try {
-            const jsonLines = lines.slice(jsonStart, jsonEnd + 1);
-            const jsonStr = jsonLines.join('\n');
-            const jsonResult = JSON.parse(jsonStr) as HealthcheckJsonResults;
-            jsonResult.success.forEach((success) => successSet.add(success));
-        } catch (error) {
-            warn('Failed to parse JSON from combined output:', error);
-        }
-    } else {
+    if (jsonStart === -1 || jsonEnd === -1) {
         warn('No JSON found in combined output, parsing verbose text only');
+
+        return results;
     }
 
-    // Parse verbose output for detailed failure information
-    let currentFailure: CompilerFailure | null = null;
+    // Parse JSON if found
+    try {
+        const jsonLines = lines.slice(jsonStart, jsonEnd + 1);
+        const jsonStr = jsonLines.join('\n');
+        const jsonResult = JSON.parse(jsonStr) as HealthcheckJsonResults;
+
+        // Process successful compilations from JSON
+        jsonResult.success.forEach((success) => results.success.add(success));
+
+        // Process failures from JSON
+        jsonResult.failures.forEach((newFailure) => {
+            if (shouldSuppressCompilerError(newFailure.reason)) {
+                return;
+            }
+
+            const key = getUniqueFileKey(newFailure);
+
+            // Only add if not already exists, or if existing one has no reason
+            const existing = results.failures.get(key);
+            if (!existing?.reason) {
+                results.failures.set(key, newFailure);
+            }
+        });
+    } catch (error) {
+        warn('Failed to parse JSON from combined react-compiler-healthcheck output:', error);
+    }
+
+    return results;
+}
+
+function parseVerboseOutput(lines: string[], results: CompilerResults): CompilerResults {
+    let currentFailureWithoutReason: CompilerFailure;
 
     for (const line of lines) {
-        // Parse successful compilation from verbose output
-        const successMatch = line.match(/Successfully compiled (?:hook|component) \[([^\]]+)\]\(([^)]+)\)/);
+        // Parse successful file paths
+        const successMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.SUCCESS);
         if (successMatch) {
             const filePath = successMatch[2];
-            successSet.add(filePath);
+            results.success.add(filePath);
             continue;
         }
 
-        // Parse failed compilation with file, location, and reason all on one line
-        const failureWithReasonMatch = line.match(/Failed to compile ([^:]+):(\d+):(\d+)\. Reason: (.+)/);
+        // Parse failed file paths with file, location, and reason all on one line
+        const failureWithReasonMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.FAILURE_WITH_REASON);
         if (failureWithReasonMatch) {
-            const newFailure = {
+            const newFailure: CompilerFailure = {
                 file: failureWithReasonMatch[1],
                 line: parseInt(failureWithReasonMatch[2], 10),
                 column: parseInt(failureWithReasonMatch[3], 10),
                 reason: failureWithReasonMatch[4],
             };
 
-            const key = getUniqueFileKey(newFailure);
-            // Only add if not already exists, or if existing one has no reason
-            const existing = failure.get(key);
-            if (!existing?.reason) {
-                failure.set(key, newFailure);
+            // If we already have a reason, we don't want to set the reason again
+            currentFailureWithoutReason = null;
+
+            if (shouldSuppressCompilerError(newFailure.reason)) {
+                continue;
             }
-            currentFailure = null;
+
+            // Only add if not already exists, or if existing one has no reason
+            const key = getUniqueFileKey(newFailure);
+            const existing = results.failures.get(key);
+            if (!existing?.reason) {
+                results.failures.set(key, newFailure);
+            }
+
             continue;
         }
 
         // Parse failed compilation with file and location only (fallback)
-        const failureMatch = line.match(/Failed to compile ([^:]+):(\d+):(\d+)\./);
+        const failureMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.FAILURE_WITHOUT_REASON);
         if (failureMatch) {
-            // Save previous failure if exists
-            if (currentFailure) {
-                const key = getUniqueFileKey(currentFailure);
-                const existing = failure.get(key);
-                if (!existing?.reason) {
-                    failure.set(key, currentFailure);
-                }
-            }
-
-            const key = getUniqueFileKey({
+            const newFailure: CompilerFailure = {
                 file: failureMatch[1],
                 line: parseInt(failureMatch[2], 10),
                 column: parseInt(failureMatch[3], 10),
-                reason: '',
-            });
+            };
 
             // Only create new failure if it doesn't exist
-            if (failure.has(key)) {
-                // Use existing failure if it exists
-                const existingFailure = failure.get(key);
-                if (existingFailure) {
-                    currentFailure = existingFailure;
-                }
+            const key = getUniqueFileKey(newFailure);
+            if (results.failures.has(key)) {
                 continue;
             }
 
-            currentFailure = {
-                file: failureMatch[1],
-                line: parseInt(failureMatch[2], 10),
-                column: parseInt(failureMatch[3], 10),
-                reason: '',
-            };
+            results.failures.set(key, newFailure);
+            currentFailureWithoutReason = newFailure;
             continue;
         }
 
         // Parse reason line (fallback for multi-line reasons)
-        const reasonMatch = line.match(/Reason: (.+)/);
-        if (reasonMatch && currentFailure) {
+        const reasonMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.REASON);
+        if (reasonMatch && currentFailureWithoutReason) {
+            const reason = reasonMatch[1];
+
+            // After we have parsed a file with reason only, we can always clear the current failure
+            currentFailureWithoutReason = null;
+
             // Only update reason if it's not already set
-            if (!currentFailure.reason) {
-                currentFailure.reason = reasonMatch[1];
-                failure.set(getUniqueFileKey(currentFailure), currentFailure);
+            if (currentFailureWithoutReason.reason) {
+                continue;
             }
-            currentFailure = null;
+
+            if (shouldSuppressCompilerError(reason)) {
+                continue;
+            }
+
+            const newFailure: CompilerFailure = {
+                file: currentFailureWithoutReason.file,
+                line: currentFailureWithoutReason.line,
+                column: currentFailureWithoutReason.column,
+                reason,
+            };
+
+            results.failures.set(getUniqueFileKey(newFailure), newFailure);
+
             continue;
         }
     }
 
-    // Add any remaining failure
-    if (currentFailure) {
-        const key = getUniqueFileKey(currentFailure);
-        const existing = failure.get(key);
-        if (!existing?.reason) {
-            failure.set(key, currentFailure);
-        }
-    }
-
-    return {success: successSet, failures: failure};
+    return results;
 }
 
-function getUniqueFileKey(failure: CompilerFailure): string {
-    return `${failure.file}:${failure.line}:${failure.column}`;
+function shouldSuppressCompilerError(reason: string): boolean {
+    // Check if the error reason matches any of the suppressed error patterns
+    return SUPPRESSED_COMPILER_ERRORS.some((suppressedError) => reason.includes(suppressedError));
+}
+
+function getUniqueFileKey({file, line, column}: CompilerFailure): string {
+    return `${file}:${line}:${column}`;
 }
 
 function createFilesGlob(filesToCheck?: string[]): string | undefined {
