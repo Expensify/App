@@ -451,4 +451,203 @@ describe('CustomFormula', () => {
             expect(result).toBe('2025-01-12');
         });
     });
+
+    describe('Submission Info Formula Parts', () => {
+        const mockContext: FormulaContext = {
+            report: {
+                reportID: '123',
+                ownerAccountID: 100,
+                managerID: 200,
+            } as Report,
+            policy: {
+                id: 'policy1',
+                name: 'Test Policy',
+                role: 'admin' as const,
+                type: 'team' as const,
+                owner: 'owner@test.com',
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
+                employeeList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'user@test.com': {
+                        email: 'user@test.com',
+                        employeeUserID: 'EMP001',
+                        employeePayrollID: 'PAY123',
+                    },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'manager@test.com': {
+                        email: 'manager@test.com',
+                        employeeUserID: 'EMP002',
+                        employeePayrollID: 'PAY456',
+                    },
+                },
+            } as Policy,
+            personalDetails: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '100': {
+                    accountID: 100,
+                    firstName: 'John',
+                    lastName: 'User',
+                    displayName: 'John User',
+                    login: 'user@test.com',
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '200': {
+                    accountID: 200,
+                    firstName: 'Jane',
+                    lastName: 'Manager',
+                    displayName: 'Jane Manager',
+                    login: 'manager@test.com',
+                },
+            },
+        };
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+            mockReportActionsUtils.getAllReportActions.mockReturnValue({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1': {reportActionID: '1', created: '2025-01-20T10:00:00Z', actionName: 'SUBMITTED'},
+            } as unknown as ReportActions);
+        });
+
+        test('should compute submitter info', () => {
+            expect(compute('{report:submit:from:firstname}', mockContext)).toBe('John');
+            expect(compute('{report:submit:from:lastname}', mockContext)).toBe('User');
+            expect(compute('{report:submit:from:fullname}', mockContext)).toBe('John User');
+            expect(compute('{report:submit:from:email}', mockContext)).toBe('user@test.com');
+            expect(compute('{report:submit:from:userid}', mockContext)).toBe('100');
+        });
+
+        test('should compute manager info', () => {
+            expect(compute('{report:submit:to:firstname}', mockContext)).toBe('Jane');
+            expect(compute('{report:submit:to:lastname}', mockContext)).toBe('Manager');
+            expect(compute('{report:submit:to:fullname}', mockContext)).toBe('Jane Manager');
+            expect(compute('{report:submit:to:email}', mockContext)).toBe('manager@test.com');
+            expect(compute('{report:submit:to:userid}', mockContext)).toBe('200');
+        });
+
+        test('should compute submission date', () => {
+            expect(compute('{report:submit:date}', mockContext)).toBe('2025-01-20');
+            expect(compute('{report:submit:date:MM/dd/yyyy}', mockContext)).toBe('01/20/2025');
+        });
+
+        test('should compute custom fields', () => {
+            expect(compute('{report:submit:from:customfield1}', mockContext)).toBe('EMP001');
+            expect(compute('{report:submit:from:customfield2}', mockContext)).toBe('PAY123');
+            expect(compute('{report:submit:to:customfield1}', mockContext)).toBe('EMP002');
+            expect(compute('{report:submit:to:customfield2}', mockContext)).toBe('PAY456');
+        });
+
+        test('should handle fallbacks', () => {
+            expect(compute('{report:submit:from}', mockContext)).toBe('John User');
+            expect(compute('{report:submit:to}', mockContext)).toBe('manager@test.com');
+        });
+
+        test('should handle missing data gracefully', () => {
+            const emptyContext: FormulaContext = {
+                report: {reportID: '123'} as Report,
+                policy: undefined,
+                personalDetails: {},
+            };
+
+            // Mock empty report actions for this test
+            mockReportActionsUtils.getAllReportActions.mockReturnValueOnce({} as ReportActions);
+
+            expect(compute('{report:submit:from:firstname}', emptyContext)).toBe('{report:submit:from:firstname}');
+            expect(compute('{report:submit:date}', emptyContext)).toBe('{report:submit:date}');
+        });
+
+        test('should combine multiple submission parts', () => {
+            const result = compute('By {report:submit:from:fullname} on {report:submit:date}', mockContext);
+            expect(result).toBe('By John User on 2025-01-20');
+        });
+
+        test('should fall back to owner when no managerID is set', () => {
+            // Test the fallback behavior when report has no managerID (like when using Create Report)
+            const contextWithoutManager: FormulaContext = {
+                report: {
+                    reportID: '123',
+                    ownerAccountID: 100,
+                    // No managerID set - simulates Create Report scenario
+                } as Report,
+                policy: {
+                    id: 'policy1',
+                    name: 'Test Policy',
+                    role: 'admin' as const,
+                    type: 'team' as const,
+                    owner: 'owner@test.com',
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
+                    employeeList: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'user@test.com': {
+                            email: 'user@test.com',
+                            employeeUserID: 'EMP001',
+                            employeePayrollID: 'PAY123',
+                        },
+                    },
+                } as Policy,
+                personalDetails: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '100': {
+                        accountID: 100,
+                        firstName: 'John',
+                        lastName: 'User',
+                        displayName: 'John User',
+                        login: 'user@test.com',
+                    },
+                },
+            };
+
+            // When no managerID is set, it should fall back to the owner's info
+            expect(compute('{report:submit:to:firstname}', contextWithoutManager)).toBe('John');
+            expect(compute('{report:submit:to:lastname}', contextWithoutManager)).toBe('User');
+            expect(compute('{report:submit:to:fullname}', contextWithoutManager)).toBe('John User');
+            expect(compute('{report:submit:to:email}', contextWithoutManager)).toBe('user@test.com');
+
+            // Test the full formula showing "John to John" behavior
+            const formula = '{report:submit:from:firstname} to {report:submit:to:firstname}';
+            expect(compute(formula, contextWithoutManager)).toBe('John to John');
+        });
+
+        test('should return formula when invalid field is specified', () => {
+            expect(compute('{report:submit:from:invalidField}', mockContext)).toBe('{report:submit:from:invalidField}');
+            expect(compute('{report:submit:to:invalidField}', mockContext)).toBe('{report:submit:to:invalidField}');
+        });
+
+        test('should handle missing personal details for specific accountID', () => {
+            const contextWithMissingDetails: FormulaContext = {
+                report: {
+                    reportID: '123',
+                    ownerAccountID: 999, // AccountID not in personalDetails
+                    managerID: 888, // AccountID not in personalDetails
+                } as Report,
+                policy: mockContext.policy,
+                personalDetails: mockContext.personalDetails,
+            };
+
+            expect(compute('{report:submit:from:firstname}', contextWithMissingDetails)).toBe('{report:submit:from:firstname}');
+            expect(compute('{report:submit:to:email}', contextWithMissingDetails)).toBe('{report:submit:to:email}');
+        });
+
+        test('should handle custom fields when employee is not in policy employeeList', () => {
+            const contextWithDifferentEmail: FormulaContext = {
+                ...mockContext,
+                personalDetails: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '100': {
+                        accountID: 100,
+                        firstName: 'John',
+                        lastName: 'User',
+                        displayName: 'John User',
+                        login: 'different@test.com', // Email not in policy.employeeList
+                    },
+                },
+            };
+
+            // Should return formula string for custom fields when employee not found
+            expect(compute('{report:submit:from:customfield1}', contextWithDifferentEmail)).toBe('{report:submit:from:customfield1}');
+            expect(compute('{report:submit:from:customfield2}', contextWithDifferentEmail)).toBe('{report:submit:from:customfield2}');
+        });
+    });
 });
