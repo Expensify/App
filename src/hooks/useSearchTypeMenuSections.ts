@@ -110,7 +110,7 @@ const useSearchTypeMenuSections = () => {
 
     const typeMenuSections = useMemo((): SearchTypeMenuSection[] => {
         if (!suggestedSearchesReady) {
-            return getEmptyArray() as SearchTypeMenuSection[];
+            return getEmptyArray();
         }
 
         return memoizedCreateTypeMenuSections(
