@@ -106,7 +106,6 @@ const createReportListItem = (
 const renderReportListItemHeader = (reportItem: TransactionReportGroupListItemType) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            {/* @ts-expect-error - Disable TypeScript errors to simplify the test */}
             <SearchContext.Provider value={mockSearchContext}>
                 <ReportListItemHeader
                     report={reportItem}
