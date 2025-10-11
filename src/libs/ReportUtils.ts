@@ -8273,6 +8273,115 @@ function isEmptyReport(report: OnyxEntry<Report>, isReportArchived = false): boo
     return generateIsEmptyReport(report, isReportArchived);
 }
 
+type ReportEmptyStateSummary = Pick<Report, 'policyID' | 'ownerAccountID' | 'type' | 'stateNum' | 'statusNum' | 'total' | 'nonReimbursableTotal' | 'pendingAction' | 'errors'>;
+
+const REPORT_EMPTY_STATE_SUMMARY_KEYS: Array<keyof ReportEmptyStateSummary> = [
+    'policyID',
+    'ownerAccountID',
+    'type',
+    'stateNum',
+    'statusNum',
+    'total',
+    'nonReimbursableTotal',
+    'pendingAction',
+    'errors',
+];
+
+function toReportEmptyStateSummary(report: Report | ReportEmptyStateSummary | undefined): ReportEmptyStateSummary | undefined {
+    if (!report) {
+        return undefined;
+    }
+
+    return REPORT_EMPTY_STATE_SUMMARY_KEYS.reduce<ReportEmptyStateSummary>(
+        (summary, key) => ({
+            ...summary,
+            [key]: report[key],
+        }),
+        {} as ReportEmptyStateSummary,
+    );
+}
+
+function getReportSummariesForEmptyCheck(
+    reports: OnyxCollection<Report> | Array<Report | ReportEmptyStateSummary | null | undefined> | undefined,
+): ReportEmptyStateSummary[] {
+    if (!reports) {
+        return [];
+    }
+
+    const reportsArray = Array.isArray(reports) ? reports : Object.values(reports);
+    return reportsArray
+        .map((report) => toReportEmptyStateSummary(report as Report | ReportEmptyStateSummary | undefined))
+        .filter((summary): summary is ReportEmptyStateSummary => Boolean(summary));
+}
+
+/**
+ * Checks if there are any empty (no money) open expense reports for a specific policy and user.
+ * An empty report is defined as having total === 0 and nonReimbursableTotal === 0.
+ * This excludes reports that are being deleted or have errors.
+ */
+function hasEmptyReportsForPolicy(
+    reports: OnyxCollection<Report> | Array<Report | ReportEmptyStateSummary | null | undefined> | undefined,
+    policyID: string | undefined,
+    accountID?: number,
+): boolean {
+    if (!policyID || !accountID) {
+        return false;
+    }
+
+    const summaries = getReportSummariesForEmptyCheck(reports);
+
+    return summaries.some((report) => {
+        if (!report.policyID || report.policyID !== policyID || report.ownerAccountID !== accountID) {
+            return false;
+        }
+
+        // Exclude reports that are being deleted or have errors
+        if (report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errors) {
+            return false;
+        }
+
+        const hasNoMoney = (report.total ?? 0) === 0 && (report.nonReimbursableTotal ?? 0) === 0;
+        const isOpenExpense = report.type === CONST.REPORT.TYPE.EXPENSE && report.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
+
+        return isOpenExpense && hasNoMoney;
+    });
+}
+
+/**
+ * Returns a lookup object containing the policy IDs that have empty (no money) open expense reports for a specific user.
+ * An empty report is defined as having total === 0 and nonReimbursableTotal === 0.
+ * This excludes reports that are being deleted or have errors.
+ */
+function getPolicyIDsWithEmptyReportsForAccount(
+    reports: OnyxCollection<Report> | Array<Report | ReportEmptyStateSummary | null | undefined> | undefined,
+    accountID?: number,
+): Record<string, boolean> {
+    if (!accountID) {
+        return {};
+    }
+
+    const summaries = getReportSummariesForEmptyCheck(reports);
+
+    return summaries.reduce<Record<string, boolean>>((policyLookup, report) => {
+        if (!report.policyID || report.ownerAccountID !== accountID) {
+            return policyLookup;
+        }
+
+        if (report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errors) {
+            return policyLookup;
+        }
+
+        const hasNoMoney = (report.total ?? 0) === 0 && (report.nonReimbursableTotal ?? 0) === 0;
+        const isOpenExpense = report.type === CONST.REPORT.TYPE.EXPENSE && report.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
+
+        if (hasNoMoney && isOpenExpense) {
+            policyLookup[report.policyID] = true;
+        }
+
+        return policyLookup;
+    }, {});
+}
+
 /**
  * Check if the report is empty, meaning it has no visible messages (i.e. only a "created" report action).
  * No cache implementation which bypasses derived value check.
@@ -12079,8 +12188,11 @@ export {
     getInvoicePayerName,
     getInvoicesChatName,
     getPayeeName,
+    getReportSummariesForEmptyCheck,
+    getPolicyIDsWithEmptyReportsForAccount,
     hasActionWithErrorsForTransaction,
     hasAutomatedExpensifyAccountIDs,
+    hasEmptyReportsForPolicy,
     hasExpensifyGuidesEmails,
     hasHeldExpenses,
     hasIOUWaitingOnCurrentUserBankAccount,

@@ -12,6 +12,7 @@ import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
+import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -42,12 +43,13 @@ import {
     areAllGroupPoliciesExpenseChatDisabled,
     canSendInvoice as canSendInvoicePolicyUtils,
     getGroupPaidPoliciesWithExpenseChatEnabled,
+    getInferredWorkspacePolicy,
     isPaidGroupPolicy,
     isPolicyMember,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
-import {generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
 import variables from '@styles/variables';
@@ -177,6 +179,56 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
     }, [allPolicies]);
     const shouldShowCreateReportOption = shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0;
+
+    const inferredWorkspacePolicy = useMemo(
+        () => getInferredWorkspacePolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy),
+        [activePolicy, groupPoliciesWithChatEnabled],
+    );
+
+    const inferredWorkspaceID = inferredWorkspacePolicy?.id;
+
+    const hasEmptyReportSelector = useMemo(() => {
+        if (!inferredWorkspaceID || !(session?.accountID)) {
+            return () => false;
+        }
+
+        return (reports: OnyxCollection<OnyxTypes.Report>) => hasEmptyReportsForPolicy(reports, inferredWorkspaceID, session.accountID);
+    }, [inferredWorkspaceID, session?.accountID]);
+
+    const [hasEmptyReportForInferredWorkspace = false] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT,
+        {
+            canBeMissing: true,
+            selector: hasEmptyReportSelector,
+        },
+        [hasEmptyReportSelector],
+    );
+
+    const handleCreateWorkspaceReport = useCallback(() => {
+        if (!inferredWorkspaceID) {
+            return;
+        }
+
+        if (isReportInSearch) {
+            clearLastSearchParams();
+        }
+
+        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, inferredWorkspaceID);
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.navigate(
+                isSearchTopmostFullScreenRoute()
+                    ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
+                    : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
+                {forceReplace: isReportInSearch},
+            );
+        });
+    }, [currentUserPersonalDetails, hasViolations, inferredWorkspaceID, isASAPSubmitBetaEnabled, isReportInSearch]);
+
+    const {openCreateReportConfirmation: openFabCreateReportConfirmation, CreateReportConfirmationModal: FabCreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+        policyID: inferredWorkspaceID,
+        policyName: inferredWorkspacePolicy?.name ?? '',
+        onConfirm: handleCreateWorkspaceReport,
+    });
 
     const shouldShowNewWorkspaceButton = Object.values(allPolicies ?? {}).every((policy) => !shouldShowPolicy(policy as OnyxEntry<OnyxTypes.Policy>, !!isOffline, session?.email));
 
@@ -469,19 +521,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                                   return;
                               }
 
-                              let workspaceIDForReportCreation: string | undefined;
-
-                              if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-                                  // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
-                                  workspaceIDForReportCreation = activePolicyID;
-                              } else if (groupPoliciesWithChatEnabled.length === 1) {
-                                  // If the user has only one paid group workspace with chat enabled, we create a report with it
-                                  workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
-                              }
-
-                              if (isReportInSearch) {
-                                  clearLastSearchParams();
-                              }
+                              const workspaceIDForReportCreation = inferredWorkspaceID;
 
                               if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
                                   // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
@@ -490,18 +530,16 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                               }
 
                               if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                                  const createdReportID = createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, workspaceIDForReportCreation);
-                                  Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                      Navigation.navigate(
-                                          isSearchTopmostFullScreenRoute()
-                                              ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
-                                              : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
-                                          {forceReplace: isReportInSearch},
-                                      );
-                                  });
-                              } else {
-                                  Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
+                                  // Check if empty report confirmation should be shown
+                                  if (hasEmptyReportForInferredWorkspace) {
+                                      openFabCreateReportConfirmation();
+                                  } else {
+                                      handleCreateWorkspaceReport();
+                                  }
+                                  return;
                               }
+
+                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
                           });
                       },
                   },
@@ -581,6 +619,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
     return (
         <View style={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+            {FabCreateReportConfirmationModal}
             <PopoverMenu
                 onClose={hideCreateMenu}
                 shouldEnableMaxHeight={false}
