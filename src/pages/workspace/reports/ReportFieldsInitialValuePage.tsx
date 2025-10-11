@@ -75,7 +75,7 @@ function ReportFieldsInitialValuePage({
                 });
             }
 
-            if (reportField?.type === CONST.REPORT_FIELD_TYPES.TEXT && hasCircularReferences(formInitialValue, reportField.name)) {
+            if (reportField?.type === CONST.REPORT_FIELD_TYPES.TEXT && hasCircularReferences(formInitialValue, reportField?.name)) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
             }
 
@@ -85,7 +85,7 @@ function ReportFieldsInitialValuePage({
 
             return errors;
         },
-        [availableListValuesLength, reportField.name, reportField?.type, translate],
+        [availableListValuesLength, reportField?.name, reportField?.type, translate],
     );
 
     if (!reportField || hasAccountingConnections) {
