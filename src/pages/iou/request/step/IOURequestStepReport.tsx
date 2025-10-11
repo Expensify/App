@@ -104,7 +104,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
 
         handleGoBack();
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setTransactionReport(
                 transaction.transactionID,
@@ -157,7 +157,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             return;
         }
         Navigation.dismissModal();
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             changeTransactionsReport(
                 [transaction.transactionID],

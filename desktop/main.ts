@@ -59,7 +59,7 @@ function pasteAsPlainText(browserWindow: BrowserWindow | BrowserView | WebviewTa
 
     if ('webContents' in browserWindow) {
         // https://github.com/sindresorhus/electron-context-menu is passing in deprecated `BrowserView` to this function
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         browserWindow.webContents.insertText(text);
     }
 }

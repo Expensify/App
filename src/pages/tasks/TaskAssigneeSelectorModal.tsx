@@ -196,7 +196,7 @@ function TaskAssigneeSelectorModal() {
                     // Pass through the selected assignee
                     editTaskAssignee(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, option?.login ?? '', option?.accountID, assigneeChatReport);
                 }
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     Navigation.dismissModalWithReport({reportID: report?.reportID});
                 });
@@ -209,7 +209,7 @@ function TaskAssigneeSelectorModal() {
                     undefined, // passing null as report is null in this condition
                     isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? undefined}),
                 );
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));
                 });

@@ -189,7 +189,7 @@ function OptionRow({
                                 result = Promise.resolve();
                             }
 
-                            // eslint-disable-next-line deprecation/deprecation
+                            // eslint-disable-next-line @typescript-eslint/no-deprecated
                             InteractionManager.runAfterInteractions(() => {
                                 result?.finally(() => setIsDisabled(isOptionDisabled));
                             });

@@ -45,7 +45,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 }
                 // Delay clearing review duplicate data till the RHP is completely closed
                 // to avoid not found showing briefly in confirmation page when RHP is closing
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     abandonReviewDuplicateTransactions();
                 });
@@ -86,7 +86,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.TwoFactorAuthenticatorStackNavigator}
                             listeners={{
                                 beforeRemove: () => {
-                                    // eslint-disable-next-line deprecation/deprecation
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                                     InteractionManager.runAfterInteractions(clearTwoFactorAuthData);
                                 },
                             }}

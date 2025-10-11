@@ -38,6 +38,7 @@ type AttachmentModalContainerModalProps = {
     ExtraContent?: React.ReactNode;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const ATTACHMENT_MODAL_SCREENS = [
     SCREENS.ATTACHMENTS,
     SCREENS.REPORT_ADD_ATTACHMENT,

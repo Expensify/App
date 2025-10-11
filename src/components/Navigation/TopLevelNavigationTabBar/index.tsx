@@ -29,7 +29,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingBottom} = useSafeAreaPaddings();
     const [isAfterClosingTransition, setIsAfterClosingTransition] = useState(false);
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const cancelAfterInteractions = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | undefined>(undefined);
     const {isBlockingViewVisible} = useContext(FullScreenBlockingViewContext);
     const StyleUtils = useStyleUtils();
@@ -50,7 +50,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
             setIsAfterClosingTransition(false);
         } else {
             // If the bottom tab should be visible, we want to wait for transition to finish.
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             cancelAfterInteractions.current = InteractionManager.runAfterInteractions(() => {
                 setIsAfterClosingTransition(true);
             });
