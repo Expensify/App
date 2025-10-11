@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import type {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -31,7 +31,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
 }: UnreportedExpenseListItemProps<TItem>) {
     const styles = useThemeStyles();
     const transactionItem = item as unknown as TransactionListItemType;
-    const [isSelected, setIsSelected] = useState<boolean>(false);
+    const isSelected = !!item.isSelected;
     const theme = useTheme();
 
     const pressableStyle = [styles.transactionListItemStyle, isSelected && styles.activeComponentBG];
@@ -47,15 +47,16 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
+    const isItemDisabled = !!isDisabled && !isSelected;
+
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
                 onPress={() => {
                     onSelectRow(item);
-                    setIsSelected((val) => !val);
                 }}
-                disabled={isDisabled && !isSelected}
+                disabled={isItemDisabled}
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
@@ -78,8 +79,8 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
                     taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                     onCheckboxPress={() => {
                         onSelectRow(item);
-                        setIsSelected((val) => !val);
                     }}
+                    isDisabled={isItemDisabled}
                     shouldShowCheckbox
                     style={styles.p3}
                 />

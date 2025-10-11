@@ -112,10 +112,20 @@ target 'NewExpensify' do
     __apply_Xcode_14_3_RC_post_install_workaround(installer)
 
     installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+         config.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO' 
+      end 
+
       if target.respond_to?(:product_type) and target.product_type == "com.apple.product-type.bundle"
         target.build_configurations.each do |config|
           config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
         end
+      end
+    end
+
+    installer.pods_project.targets.each do |t|
+      t.build_configurations.each do |c|
+        c.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
       end
     end
   end
@@ -127,4 +137,4 @@ target 'NotificationServiceExtension' do
   pod 'AppLogs', :path => '../node_modules/react-native-app-logs/AppLogsPod'
 end
 
-pod 'FullStory', :http => 'https://ios-releases.fullstory.com/fullstory-1.61.0-xcframework.tar.gz'
+pod 'FullStory', :http => 'https://ios-releases.fullstory.com/fullstory-1.64.2-xcframework.tar.gz'

@@ -100,8 +100,8 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     /** The placeholder for the input */
     inputPlaceholder: string;
 
-    /** Function to display a file in a modal */
-    displayFilesInModal: (file: FileObject[]) => void;
+    /** Callback when a file is pasted */
+    onPasteFile: (file: FileObject | FileObject[]) => void;
 
     /** Whether the input is disabled, defaults to false */
     disabled?: boolean;
@@ -215,7 +215,7 @@ function ComposerWithSuggestions({
     setIsFullComposerAvailable,
     isMenuVisible,
     inputPlaceholder,
-    displayFilesInModal,
+    onPasteFile,
     disabled,
     setIsCommentEmpty,
     handleSendMessage,
@@ -510,6 +510,7 @@ function ComposerWithSuggestions({
                 syncSelectionWithOnChangeTextRef.current = null;
 
                 // ensure that selection is set imperatively after all state changes are effective
+                // eslint-disable-next-line deprecation/deprecation
                 InteractionManager.runAfterInteractions(() => {
                     // note: this implementation is only available on non-web RN, thus the wrapping
                     // 'if' block contains a redundant (since the ref is only used on iOS) platform check
@@ -809,9 +810,9 @@ function ComposerWithSuggestions({
                     }}
                     onBlur={onBlur}
                     onClick={setShouldBlockSuggestionCalcToFalse}
-                    onPasteFile={(file) => {
+                    onPasteFile={(files) => {
                         textInputRef.current?.blur();
-                        displayFilesInModal([file]);
+                        onPasteFile(files);
                     }}
                     onClear={onClear}
                     isDisabled={disabled}

@@ -2,7 +2,6 @@ module.exports = {
     extends: ['plugin:testing-library/react'],
     rules: {
         'no-import-assign': 'off',
-        '@lwc/lwc/no-async-await': 'off',
         'no-await-in-loop': 'off',
         'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
 
