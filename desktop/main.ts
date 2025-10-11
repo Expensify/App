@@ -1,10 +1,11 @@
 import {exec} from 'child_process';
-import {app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell} from 'electron';
 import type {BaseWindow, BrowserView, MenuItem, MenuItemConstructorOptions, WebContents, WebviewTag} from 'electron';
+import {app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell} from 'electron';
 import contextMenu from 'electron-context-menu';
-import log from 'electron-log';
 import type {ElectronLog} from 'electron-log';
+import log from 'electron-log';
 import {autoUpdater} from 'electron-updater';
+import type {AuthType, PermissionType} from 'node-mac-permissions';
 import {machineId} from 'node-machine-id';
 import checkForUpdates from '@libs/checkForUpdates';
 import {translate} from '@libs/Localize';
@@ -373,6 +374,39 @@ const mainWindow = (): Promise<void> => {
                             resolve(undefined);
                         });
                     });
+                });
+
+                ipcMain.handle(ELECTRON_EVENTS.CHECK_LOCATION_PERMISSION, async () => {
+                    try {
+                        type MacPermissionsModule = {
+                            getAuthStatus?: (authType: AuthType) => PermissionType | 'not determined';
+                        };
+                        const macPermissionsModule = (await import('node-mac-permissions')) as MacPermissionsModule | {default: MacPermissionsModule};
+                        const macPermissions: MacPermissionsModule = ('default' in macPermissionsModule ? macPermissionsModule.default : macPermissionsModule) ?? {};
+                        const {getAuthStatus} = macPermissions;
+
+                        if (!getAuthStatus || typeof getAuthStatus !== 'function') {
+                            log.warn('node-mac-permissions not available or invalid, defaulting to denied');
+                            return 'denied';
+                        }
+
+                        const status = getAuthStatus('location');
+
+                        switch (status) {
+                            case 'authorized':
+                                return 'granted';
+                            case 'denied':
+                            case 'restricted':
+                                return 'denied';
+                            case 'not determined':
+                                return 'prompt';
+                            default:
+                                return 'denied';
+                        }
+                    } catch (error) {
+                        log.warn('node-mac-permissions not available, defaulting to denied:', (error as Error)?.message);
+                        return 'denied';
+                    }
                 });
                 /*
                  * The default origin of our Electron app is app://- instead of https://new.expensify.com or https://staging.new.expensify.com
