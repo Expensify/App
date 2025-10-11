@@ -111,6 +111,8 @@ function Expensify() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS, {canBeMissing: true});
 
+    // This is a random comment, to trigger Reassure to run 
+
     useDebugShortcut();
     usePriorityMode();
 
