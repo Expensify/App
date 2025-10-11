@@ -236,7 +236,7 @@ function MoneyRequestReportPreviewContent({
                 if (isInvoiceReportUtils(iouReport)) {
                     payInvoice(type, chatReport, iouReport, introSelected, payAsBusiness, existingB2BInvoiceReport, undefined, undefined, activePolicy);
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport, introSelected, undefined, false, activePolicy);
+                    payMoneyRequest(type, chatReport, iouReport, introSelected, undefined, true, activePolicy);
                 }
             }
         },
