@@ -273,25 +273,68 @@ function isUnapproveAction(currentUserLogin: string, report: Report, policy?: Po
 
 function isCancelPaymentAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
+    const session = getSession();
+
+    console.log('🔍 [Cancel Payment Debug] Step 1 - Initial Check', {
+        reportID: report.reportID,
+        isExpenseReport,
+    });
 
     if (!isExpenseReport) {
+        console.log('❌ [Cancel Payment Debug] Blocked: Not an expense report');
         return false;
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isPayer = isPayerUtils(getSession(), report, false, policy);
+    const isPayer = isPayerUtils(session, report, false, policy);
+
+    console.log('🔍 [Cancel Payment Debug] Step 2 - Permission Check', {
+        isAdmin,
+        isPayer,
+        policyRole: policy?.role,
+        policyType: policy?.type,
+        reimbursementChoice: policy?.reimbursementChoice,
+        userEmail: session?.email,
+        userAccountID: session?.accountID,
+        reportManagerID: report.managerID,
+        reportOwnerID: report.ownerAccountID,
+    });
 
     if (!isAdmin || !isPayer) {
+        console.log('❌ [Cancel Payment Debug] Blocked: Permission check failed', {isAdmin, isPayer});
         return false;
     }
 
     const isReportPaidElsewhere = report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
+    console.log('🔍 [Cancel Payment Debug] Step 3 - Paid Elsewhere Check', {
+        isReportPaidElsewhere,
+        stateNum: report.stateNum,
+        statusNum: report.statusNum,
+        STATE_APPROVED: CONST.REPORT.STATE_NUM.APPROVED,
+        STATUS_REIMBURSED: CONST.REPORT.STATUS_NUM.REIMBURSED,
+    });
+
     if (isReportPaidElsewhere) {
+        console.log('✅ [Cancel Payment Debug] SHOW BUTTON: Paid elsewhere path');
         return true;
     }
 
-    const isPaymentProcessing = !!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
+    const condition1 = !!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
+    const condition2 = report.stateNum === CONST.REPORT.STATE_NUM.BILLING;
+    const isPaymentProcessing = condition1 || condition2;
+
+    console.log('🔍 [Cancel Payment Debug] Step 4 - Payment Processing Check', {
+        isPaymentProcessing,
+        condition1_WaitingOnBank: condition1,
+        condition2_BillingState: condition2,
+        isWaitingOnBankAccount: report.isWaitingOnBankAccount,
+        stateNum: report.stateNum,
+        statusNum: report.statusNum,
+        STATE_BILLING: CONST.REPORT.STATE_NUM.BILLING,
+        STATUS_APPROVED: CONST.REPORT.STATUS_NUM.APPROVED,
+        STATUS_REIMBURSED: CONST.REPORT.STATUS_NUM.REIMBURSED,
+    });
 
     const payActions = reportTransactions.reduce((acc, transaction) => {
         const action = getIOUActionForReportID(report.reportID, transaction.transactionID);
@@ -301,15 +344,38 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
         return acc;
     }, [] as ReportAction[]);
 
+    console.log('🔍 [Cancel Payment Debug] Step 5 - Pay Actions Found', {
+        payActionsCount: payActions.length,
+        payActionIDs: payActions.map((a) => a.reportActionID),
+    });
+
     const hasDailyNachaCutoffPassed = payActions.some((action) => {
         const now = new Date();
         const paymentDatetime = new Date(action.created);
         const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
         const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
-        return nowUTC.getTime() < cutoffTimeUTC.getTime();
+        const cutoffPassed = nowUTC.getTime() > cutoffTimeUTC.getTime();
+
+        console.log('🔍 [Cancel Payment Debug] Step 6 - NACHA Cutoff Check', {
+            actionCreated: action.created,
+            nowUTC: nowUTC.toISOString(),
+            cutoffTimeUTC: cutoffTimeUTC.toISOString(),
+            cutoffPassed,
+        });
+
+        return cutoffPassed;
     });
 
-    return isPaymentProcessing && !hasDailyNachaCutoffPassed;
+    const finalResult = isPaymentProcessing && !hasDailyNachaCutoffPassed;
+
+    console.log('🔍 [Cancel Payment Debug] Step 7 - Final Decision', {
+        isPaymentProcessing,
+        hasDailyNachaCutoffPassed,
+        finalResult,
+        decision: finalResult ? '✅ SHOW BUTTON' : '❌ HIDE BUTTON',
+    });
+
+    return finalResult;
 }
 
 function isExportAction(report: Report, policy?: Policy): boolean {
