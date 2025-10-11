@@ -6,12 +6,15 @@ import {Image, StyleSheet, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
+import * as Expensicons from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Section from '@components/Section';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -26,14 +29,16 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
-import {clearInviteDraft, clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
+import {clearInviteDraft, clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {
     calculateBillNewDot,
     clearAvatarErrors,
     clearPolicyErrorField,
     deleteWorkspace,
     deleteWorkspaceAvatar,
+    leaveWorkspace,
     openPolicyProfilePage,
+    removePendingApproverMemberErrorMessage,
     setIsComingFromGlobalReimbursementsFlow,
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
@@ -42,7 +47,15 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getUserFriendlyWorkspaceType, goBackFromInvalidPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
+import {
+    getDefaultApprover,
+    getUserFriendlyWorkspaceType,
+    goBackFromInvalidPolicy,
+    isPolicyAdmin as isPolicyAdminPolicyUtils,
+    isPolicyAuditor,
+    isPolicyOwner,
+    shouldShowPolicy,
+} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
@@ -159,6 +172,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
+    const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+    const defaultApprover = getDefaultApprover(policy);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const personalDetails = usePersonalDetails();
+    const [isCannotLeaveWorkspaceModalOpen, setIsCannotLeaveWorkspaceModalOpen] = useState(false);
+    const [isCannotLeaveWorkspaceWithPendingReportsModalOpen, setIsCannotLeaveWorkspaceWithPendingReportsModalOpen] = useState(false);
+    const {isOffline} = useNetwork();
 
     const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {
@@ -210,12 +230,41 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         goBackFromInvalidPolicy();
     }, [policy?.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastPaymentMethod]);
 
+    const handleLeaveWorkspace = useCallback(() => {
+        if (!policy?.id) {
+            return;
+        }
+
+        leaveWorkspace(policy.id);
+        setIsLeaveModalOpen(false);
+        goBackFromInvalidPolicy();
+    }, [policy?.id]);
+
     useEffect(() => {
         if (isLoadingBill) {
             return;
         }
         dropdownMenuRef.current?.setIsMenuVisible(false);
     }, [isLoadingBill]);
+
+    useEffect(() => {
+        if (!shouldShowPolicy(policy, isOffline, session?.email)) {
+            return;
+        }
+
+        if (policy?.employeeList && session?.email && policy?.employeeList?.[session?.email]) {
+            const employee = policy?.employeeList[session.email];
+
+            if (employee.errors && employee.pendingAction === 'delete') {
+                const hasApprovalError = Object.values(employee.errors).some((error) => typeof error === 'string' && error.includes(CONST.POLICY_ERROR_MESSAGES.PENDING_REPORTS));
+                if (hasApprovalError) {
+                    setIsCannotLeaveWorkspaceWithPendingReportsModalOpen(true);
+                    // Clear the error after showing the modal to prevent it from triggering again
+                    removePendingApproverMemberErrorMessage(policy?.id, employee.errors);
+                }
+            }
+        }
+    }, []);
 
     const onDeleteWorkspace = useCallback(() => {
         if (shouldCalculateBillNewDot()) {
@@ -250,6 +299,58 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, currentUserAccountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>, Navigation.getActiveRoute()),
         );
     }, [currentUserAccountID, policy?.id]);
+
+    const confirmModalPrompt = () => {
+        // Helper to get the policy object for the current policy ID to leave
+        const exporters = [
+            policy?.connections?.intacct?.config?.export?.exporter,
+            policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
+            policy?.connections?.quickbooksOnline?.config?.export?.exporter,
+            policy?.connections?.xero?.config?.export?.exporter,
+            policy?.connections?.netsuite?.options.config.exporter,
+        ];
+        const policyOwnerDisplayName = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
+        const technicalContact = policy?.technicalContact;
+        const isCurrentUserReimburser = policy?.achAccount?.reimburser === session?.email;
+        const userEmail = session?.email ?? '';
+        const isApprover = isApproverUserAction(policy, userEmail);
+
+        if (isCannotLeaveWorkspaceWithPendingReportsModalOpen) {
+            return translate('common.cannotLeaveWorkspaceOutstandingReport');
+        }
+
+        if (isCurrentUserReimburser) {
+            return translate('common.leaveWorkspaceReimburser');
+        }
+
+        if (technicalContact === userEmail) {
+            return translate('common.leaveWorkspaceConfirmationTechContact', {
+                workspaceOwner: policyOwnerDisplayName,
+            });
+        }
+
+        if (exporters.some((exporter) => exporter === userEmail)) {
+            return translate('common.leaveWorkspaceConfirmationExporter', {
+                workspaceOwner: policyOwnerDisplayName,
+            });
+        }
+
+        if (isApprover) {
+            return translate('common.leaveWorkspaceConfirmationApprover', {
+                workspaceOwner: policyOwnerDisplayName,
+            });
+        }
+
+        if (isPolicyAdminPolicyUtils(policy)) {
+            return translate('common.leaveWorkspaceConfirmationAdmin');
+        }
+
+        if (isPolicyAuditor(policy)) {
+            return translate('common.leaveWorkspaceConfirmationAuditor');
+        }
+
+        return translate('common.leaveWorkspaceConfirmation');
+    };
 
     const getHeaderButtons = () => {
         if (readOnly) {
@@ -488,6 +589,25 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 </View>
                             </OfflineWithFeedback>
                         )}
+                        {!isOwner && defaultApprover !== session?.email && (
+                            <View style={[styles.flexRow, styles.mt6, styles.mnw120]}>
+                                <Button
+                                    accessibilityLabel={translate('common.leave')}
+                                    text={translate('common.leave')}
+                                    onPress={() => {
+                                        const isReimburser = policy?.achAccount?.reimburser === session?.email;
+
+                                        if (isReimburser) {
+                                            setIsCannotLeaveWorkspaceModalOpen(true);
+                                            return;
+                                        }
+
+                                        setIsLeaveModalOpen(true);
+                                    }}
+                                    icon={Expensicons.Exit}
+                                />
+                            </View>
+                        )}
                     </Section>
                     {isBetaEnabled(CONST.BETAS.CUSTOM_RULES) ? (
                         <Section
@@ -521,6 +641,31 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}
                         danger
+                    />
+                    <ConfirmModal
+                        title={translate('common.leave')}
+                        isVisible={isLeaveModalOpen}
+                        onConfirm={handleLeaveWorkspace}
+                        onCancel={() => setIsLeaveModalOpen(false)}
+                        prompt={confirmModalPrompt()}
+                        confirmText={translate('common.leave')}
+                        cancelText={translate('common.cancel')}
+                        danger
+                    />
+                    <ConfirmModal
+                        title={translate('common.leaveWorkspace')}
+                        isVisible={isCannotLeaveWorkspaceModalOpen || isCannotLeaveWorkspaceWithPendingReportsModalOpen}
+                        onConfirm={() => {
+                            if (isCannotLeaveWorkspaceWithPendingReportsModalOpen) {
+                                setIsCannotLeaveWorkspaceWithPendingReportsModalOpen(false);
+                                return;
+                            }
+                            setIsCannotLeaveWorkspaceModalOpen(false);
+                        }}
+                        prompt={confirmModalPrompt()}
+                        confirmText={translate('common.buttonConfirm')}
+                        success
+                        shouldShowCancelButton={false}
                     />
                 </View>
             )}
