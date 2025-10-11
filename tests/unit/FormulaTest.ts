@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need CurrencyUtils to mock
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {FormulaContext} from '@libs/Formula';
-import {compute, extract, parse} from '@libs/Formula';
+import {compute, extract, getAutoReportingDates, parse} from '@libs/Formula';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportActionsUtils to mock
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
@@ -325,6 +325,251 @@ describe('CustomFormula', () => {
                 const result = compute('{report:policyname|substr:0:abc}', mockContext);
                 expect(result).toBe(''); // Invalid length, returns empty
             });
+        });
+    });
+
+    describe('Auto-reporting Frequency', () => {
+        const mockReport = {reportID: '123'} as Report;
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+            jest.useFakeTimers();
+            // Set a fixed date for consistent testing
+            jest.setSystemTime(new Date('2025-01-19T12:00:00Z'));
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        test('should compute auto-reporting dates for immediate frequency', () => {
+            const policy = {
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+            } as Policy;
+
+            const {startDate, endDate} = getAutoReportingDates(policy, mockReport);
+
+            expect(startDate?.toISOString()).toBe('2025-01-19T00:00:00.000Z');
+            expect(endDate?.toISOString()).toBe('2025-01-19T23:59:59.999Z');
+
+            // Also test the formula computation
+            const context: FormulaContext = {report: mockReport, policy};
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-19');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-19');
+        });
+
+        test('should compute auto-reporting dates for weekly frequency', () => {
+            const policy = {
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
+            } as Policy;
+
+            const {startDate, endDate} = getAutoReportingDates(policy, mockReport);
+
+            // January 19, 2025 is a Sunday, but with Monday start, the week is Jan 13-19
+            expect(startDate?.toISOString()).toBe('2025-01-13T00:00:00.000Z'); // Monday (start of week)
+            expect(endDate?.toISOString()).toBe('2025-01-19T23:59:59.999Z'); // Sunday (end of week)
+
+            // Test formula computation
+            const context: FormulaContext = {report: mockReport, policy};
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-13');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-19');
+        });
+
+        test('should compute auto-reporting dates for semi-monthly frequency (first half)', () => {
+            // Set date to January 10, 2025
+            jest.setSystemTime(new Date('2025-01-10T12:00:00Z'));
+
+            const policy = {
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+            } as Policy;
+
+            const {startDate, endDate} = getAutoReportingDates(policy, mockReport);
+
+            expect(startDate?.toISOString()).toBe('2025-01-01T00:00:00.000Z'); // 1st of the month
+            expect(endDate?.toISOString()).toBe('2025-01-15T23:59:59.999Z'); // 15th of the month
+
+            const context: FormulaContext = {report: mockReport, policy};
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-01');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-15');
+        });
+
+        test('should compute auto-reporting dates for semi-monthly frequency (second half)', () => {
+            // Set date to January 20, 2025
+            jest.setSystemTime(new Date('2025-01-20T12:00:00Z'));
+
+            const policy = {
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+            } as Policy;
+
+            const {startDate, endDate} = getAutoReportingDates(policy, mockReport);
+
+            expect(startDate?.toISOString()).toBe('2025-01-16T00:00:00.000Z'); // 16th of the month
+            expect(endDate?.toISOString()).toBe('2025-01-31T23:59:59.999Z'); // Last day of January
+
+            const context: FormulaContext = {report: mockReport, policy};
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-16');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-31');
+        });
+
+        test('should compute auto-reporting dates for monthly frequency with specific day', () => {
+            // Set date to January 19, 2025
+            jest.setSystemTime(new Date('2025-01-19T12:00:00Z'));
+
+            const policy = {
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
+                autoReportingOffset: 25, // Report on 25th of each month
+            } as Policy;
+
+            const {startDate, endDate} = getAutoReportingDates(policy, mockReport);
+
+            // Since it's Jan 19th (before the 25th reporting day), we're in the period Dec 26 - Jan 25
+            expect(startDate?.toISOString()).toBe('2024-12-26T00:00:00.000Z'); // Day after last month's 25th
+            expect(endDate?.toISOString()).toBe('2025-01-25T23:59:59.999Z'); // 25th of current month
+
+            const context: FormulaContext = {report: mockReport, policy};
+            expect(compute('{report:autoreporting:start}', context)).toBe('2024-12-26');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-25');
+        });
+
+        test('should compute auto-reporting dates for monthly frequency with last business day', () => {
+            // Set date to January 19, 2025
+            jest.setSystemTime(new Date('2025-01-19T12:00:00Z'));
+
+            const policy = {
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
+                autoReportingOffset: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH,
+            } as Policy;
+
+            const {startDate, endDate} = getAutoReportingDates(policy, mockReport);
+
+            expect(startDate?.toISOString()).toBe('2025-01-01T00:00:00.000Z'); // Start of month
+            // January 31, 2025 is a Friday, so it's already a business day
+            expect(endDate?.toISOString()).toBe('2025-01-31T23:59:59.999Z');
+
+            const context: FormulaContext = {report: mockReport, policy};
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-01');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-31');
+        });
+
+        test('should handle monthly frequency when last day is weekend', () => {
+            // Set date to February 2025
+            jest.setSystemTime(new Date('2025-02-15T12:00:00Z'));
+
+            const policy = {
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
+                autoReportingOffset: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH,
+            } as Policy;
+
+            const {endDate} = getAutoReportingDates(policy, mockReport);
+
+            // February 28, 2025 is a Friday (last business day)
+            expect(endDate?.toISOString()).toBe('2025-02-28T23:59:59.999Z');
+
+            const context: FormulaContext = {report: mockReport, policy};
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-02-28');
+        });
+
+        test('should compute auto-reporting dates for trip frequency', () => {
+            const mockTransactions = [
+                {
+                    transactionID: 'trans1',
+                    created: '2025-01-08T12:00:00Z', // Oldest transaction
+                    amount: 5000,
+                    merchant: 'ACME Ltd.',
+                },
+                {
+                    transactionID: 'trans2',
+                    created: '2025-01-14T16:45:00Z',
+                    amount: 3000,
+                    merchant: 'ACME Ltd.',
+                },
+            ] as Transaction[];
+
+            mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
+
+            const policy = {
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+            } as Policy;
+
+            const {startDate, endDate} = getAutoReportingDates(policy, mockReport);
+
+            expect(startDate?.toISOString()).toBe('2025-01-08T12:00:00.000Z'); // Oldest transaction date
+            expect(endDate?.toISOString()).toBe('2025-01-19T12:00:00.000Z'); // Current date
+
+            const context: FormulaContext = {report: mockReport, policy};
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-19');
+        });
+
+        test('should apply custom date format to auto-reporting dates', () => {
+            const policy = {
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+            } as Policy;
+
+            const context: FormulaContext = {report: mockReport, policy};
+            const result = compute('{report:autoreporting:start:MMMM dd, yyyy}', context);
+            expect(result).toBe('January 19, 2025');
+        });
+
+        test('should handle missing policy gracefully for auto-reporting', () => {
+            const {startDate, endDate} = getAutoReportingDates(undefined, mockReport);
+
+            expect(startDate).toBeUndefined();
+            expect(endDate).toBeUndefined();
+
+            const context: FormulaContext = {report: mockReport, policy: undefined as unknown as Policy};
+            expect(compute('{report:autoreporting:start}', context)).toBe('{report:autoreporting:start}');
+            expect(compute('{report:autoreporting:end}', context)).toBe('{report:autoreporting:end}');
+        });
+
+        test('should handle missing frequency gracefully', () => {
+            const policy = {} as Policy;
+            const {startDate, endDate} = getAutoReportingDates(policy, mockReport);
+
+            expect(startDate).toBeUndefined();
+            expect(endDate).toBeUndefined();
+
+            const context: FormulaContext = {report: mockReport, policy};
+            expect(compute('{report:autoreporting:start}', context)).toBe('{report:autoreporting:start}');
+            expect(compute('{report:autoreporting:end}', context)).toBe('{report:autoreporting:end}');
+        });
+
+        test('should handle monthly frequency with offset after current date', () => {
+            // Set date to January 30, 2025
+            jest.setSystemTime(new Date('2025-01-30T12:00:00Z'));
+
+            const policy = {
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
+                autoReportingOffset: 15, // Report on 15th of each month
+            } as Policy;
+
+            const {startDate, endDate} = getAutoReportingDates(policy, mockReport);
+
+            // Since it's Jan 30th (after the 15th reporting day), we're in the period Jan 16 - Feb 15
+            expect(startDate?.toISOString()).toBe('2025-01-16T00:00:00.000Z'); // Day after the 15th
+            expect(endDate?.toISOString()).toBe('2025-02-15T23:59:59.999Z'); // Next month's 15th
+
+            const context: FormulaContext = {report: mockReport, policy};
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-16');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-02-15');
+        });
+
+        test('should handle month with fewer days than offset', () => {
+            // Set date to February 2025
+            jest.setSystemTime(new Date('2025-02-15T12:00:00Z'));
+
+            const policy = {
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
+                autoReportingOffset: 31, // Report on 31st of each month
+            } as Policy;
+
+            const {endDate} = getAutoReportingDates(policy, mockReport);
+
+            // February only has 28 days in 2025, so it should use the 28th
+            expect(endDate?.toISOString()).toBe('2025-02-28T23:59:59.999Z');
+
+            const context: FormulaContext = {report: mockReport, policy};
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-02-28');
         });
     });
 
