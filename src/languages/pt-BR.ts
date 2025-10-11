@@ -2592,6 +2592,10 @@ const translations = {
             title: 'Convidar membros',
             subtitle: 'Gerencie e compartilhe suas despesas com um contador ou inicie um grupo de viagem com amigos.',
         },
+        domainWorkspaceRestriction: {
+            subtitle: 'A criação de espaços de trabalho é restrita aos administradores. Junte-se a um dos espaços abaixo ou entre em contato com seu administrador para mais informações.',
+            skipForNow: 'Pular por enquanto',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Não me mostre isso novamente',
