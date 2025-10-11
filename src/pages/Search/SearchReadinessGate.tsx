@@ -17,7 +17,8 @@ type SearchReadinessGateProps = {
 
 function SearchReadinessGate({queryJSON, children}: SearchReadinessGateProps) {
     const {suggestedSearchesReady, suggestedSearches, suggestedSearchesVisibility} = useSearchTypeMenuSections();
-    const hasNavigatedToDefault = useRef(false);
+    const hasHandledInitialNavigation = useRef(false);
+    const initialSimilarSearchHash = useRef<number | null>(queryJSON?.similarSearchHash ?? null);
 
     useEffect(() => {
         openSearch();
@@ -41,45 +42,37 @@ function SearchReadinessGate({queryJSON, children}: SearchReadinessGateProps) {
         return undefined;
     }, [suggestedSearches, suggestedSearchesReady, suggestedSearchesVisibility]);
 
-    const activeSuggestedSearchHash = useMemo(() => {
-        if (!suggestedSearchesReady || !queryJSON?.similarSearchHash) {
-            return undefined;
-        }
-
-        return queryJSON.similarSearchHash;
-    }, [queryJSON?.similarSearchHash, suggestedSearchesReady]);
-
-    const isActiveRouteSuggestedSearch = useMemo(() => {
-        if (!suggestedSearchesReady || activeSuggestedSearchHash === undefined) {
-            return false;
-        }
-
-        return Object.values(suggestedSearches).some((search) => search?.similarSearchHash === activeSuggestedSearchHash);
-    }, [activeSuggestedSearchHash, suggestedSearches, suggestedSearchesReady]);
-
     useEffect(() => {
-        if (!suggestedSearchesReady || hasNavigatedToDefault.current) {
+        if (hasHandledInitialNavigation.current || !suggestedSearchesReady) {
             return;
         }
 
         if (!defaultSuggestedSearch) {
-            hasNavigatedToDefault.current = true;
+            hasHandledInitialNavigation.current = true;
             return;
         }
 
-        if (isActiveRouteSuggestedSearch && activeSuggestedSearchHash === defaultSuggestedSearch.similarSearchHash) {
-            hasNavigatedToDefault.current = true;
+        const targetSimilarSearchHash = defaultSuggestedSearch.similarSearchHash;
+        if (targetSimilarSearchHash == null) {
+            hasHandledInitialNavigation.current = true;
             return;
         }
 
-        if (isActiveRouteSuggestedSearch) {
-            hasNavigatedToDefault.current = true;
+        if (queryJSON?.similarSearchHash === targetSimilarSearchHash) {
+            hasHandledInitialNavigation.current = true;
             return;
         }
 
-        hasNavigatedToDefault.current = true;
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultSuggestedSearch.searchQuery}));
-    }, [activeSuggestedSearchHash, defaultSuggestedSearch, isActiveRouteSuggestedSearch, suggestedSearchesReady]);
+        if (queryJSON?.similarSearchHash !== undefined && queryJSON?.similarSearchHash !== initialSimilarSearchHash.current) {
+            hasHandledInitialNavigation.current = true;
+            return;
+        }
+
+        hasHandledInitialNavigation.current = true;
+        setTimeout(() => {
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultSuggestedSearch.searchQuery}));
+        }, 0);
+    }, [defaultSuggestedSearch, queryJSON?.similarSearchHash, suggestedSearchesReady]);
 
     return <>{children({suggestedSearchesReady})}</>;
 }
