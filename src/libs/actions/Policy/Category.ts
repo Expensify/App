@@ -1,5 +1,4 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
-import lodashUnion from 'lodash/union';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
@@ -37,13 +36,6 @@ import type {Policy, PolicyCategories, PolicyCategory, PolicyTagLists, RecentlyU
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
-
-let allRecentlyUsedCategories: OnyxCollection<RecentlyUsedCategories> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES,
-    waitForCollectionCallback: true,
-    callback: (val) => (allRecentlyUsedCategories = val),
-});
 
 function appendSetupCategoriesOnboardingData(
     onyxData: OnyxData,
