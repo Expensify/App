@@ -647,6 +647,10 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
+        scrollPaddingWhenNoBottomTab: {
+            paddingBottom: variables.bottomTabHeight,
+        },
+
         navigationTabBarItem: {
             height: '100%',
             display: 'flex',

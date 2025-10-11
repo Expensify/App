@@ -6,16 +6,11 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
-import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import {PressableWithFeedback} from '@components/Pressable';
-import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -53,6 +48,7 @@ import SCREENS from '@src/SCREENS';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import InitialSettingsPageView from './InitialSettingsPageView';
 
 type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 
@@ -110,11 +106,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const subscriptionPlan = useSubscriptionPlan();
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
 
-    const shouldLogout = useRef(false);
-
     const freeTrialText = getFreeTrialText(policies, introSelected);
-
-    const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
     const walletBrickRoadIndicator =
@@ -415,44 +407,16 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     }, [getScrollOffset, route]);
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom
-            testID={InitialSettingsPage.displayName}
-            bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
-            shouldEnableKeyboardAvoidingView={false}
-        >
-            {headerContent}
-            <ScrollView
-                ref={scrollViewRef}
-                onScroll={onScroll}
-                scrollEventThrottle={16}
-                contentContainerStyle={[styles.w100]}
-                showsVerticalScrollIndicator={false}
-            >
-                {accountMenuItems}
-                {generalMenuItems}
-                <ConfirmModal
-                    danger
-                    title={translate('common.areYouSure')}
-                    prompt={translate('initialSettingsPage.signOutConfirmationText')}
-                    confirmText={translate('initialSettingsPage.signOut')}
-                    cancelText={translate('common.cancel')}
-                    isVisible={shouldShowSignoutConfirmModal}
-                    onConfirm={() => {
-                        toggleSignoutConfirmModal(false);
-                        shouldLogout.current = true;
-                    }}
-                    onCancel={() => toggleSignoutConfirmModal(false)}
-                    onModalHide={() => {
-                        if (!shouldLogout.current) {
-                            return;
-                        }
-                        signOut(true);
-                    }}
-                />
-            </ScrollView>
-            {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
-        </ScreenWrapper>
+        <InitialSettingsPageView
+            headerContent={headerContent}
+            scrollViewRef={scrollViewRef}
+            onScroll={onScroll}
+            accountMenuItems={accountMenuItems}
+            generalMenuItems={generalMenuItems}
+            shouldShowSignoutConfirmModal={shouldShowSignoutConfirmModal}
+            toggleSignoutConfirmModal={toggleSignoutConfirmModal}
+            signOut={signOut}
+        />
     );
 }
 
