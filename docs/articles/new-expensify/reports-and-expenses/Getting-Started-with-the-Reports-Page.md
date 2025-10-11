@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Reports Page
 description: Learn how to use the Reports page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, reports page, report preview, report table, filters, smart suggestions, expense management, add expenses, bulk actions]
+keywords: [New Expensify, reports page, report preview, report table, filters, smart suggestions, expense management, add expenses, bulk actions, date range, missing filters, workspace filters, visibility issues, expenses missing, classic vs new filters]
 ---
 
 Get familiar with the Reports page in New Expensify. This guide walks you through using report previews, tables, filters, and smart suggestions to streamline your expense-tracking workflow.
@@ -73,33 +73,27 @@ Each row represents an expense and includes:
 
 ---
 
-# Filters
+# Filters on the Reports page in New Expensify
 Filters help you narrow down expenses or reports so you can find exactly what you need—fast. This is especially useful when you're working with a large dataset or trying to take specific actions, such as reporting unsubmitted expenses.
 
 **Filters can help you:**
 
 - **Add unreported expenses to a report**: Use filters to find unreported expenses, and then add them to a report with just a few clicks.
-- **Quickly search reports**  
+- **Use filters to quickly search and locate specific reports.**  
   On the **Reports** page, filter by:
   - **Workspace**
   - **Submitter**
   - **Report status** (e.g., Open, Approved, Reimbursed)
 
-## Filter Controls
+### Available Filters in New Expensify
 
-You’ll find different controls depending on where you are in your account. These may appear as:
-- Dropdowns  
-- Search bars  
-- Chips (selectable tags)  
-- Radio buttons or checkboxes  
+You can filter your **expenses** and **reports** using dropdowns, search bars, and chips. 
 
-Common filters include:
-- **Date range**
-- **Category**
-- **Merchant**
-- **Workspace**
-- **Tags** (if enabled)
-- **Status** (e.g., pending, reimbursed)
+- **Expenses:**  can be filtered by  `Date`, `Merchant`, `Category`, `Tag`, `Amount`, `Reimbursable`, `Billable`, `Status` (e.g. Unreported)
+
+- **Reports:**  can be filtered by `Submitter`, `Workspace`, `Report Status` (e.g. Open, Approved, Paid), `Date`
+
+> To view other available filters, click into the **search box** on the Reports or Expenses page.
 
 ## How Filtering Works
 
@@ -114,7 +108,7 @@ You can also combine filters with keyword search for even more precision. For ex
 
 ---
 
-# Smart Suggestions
+# Smart Suggestions in New Expensify
 
 Smart suggestions recommend the next best action—like submitting a report or adding unreported expenses—based on your activity.
 
@@ -138,7 +132,7 @@ Smart suggestions recommend the next best action—like submitting a report or a
 ## Can I export reports from the Reports page?
 Yes! You can export filtered reports to CSV using the export option at the top of the Reports page.
 
-## What if I don’t see filters?
+## Why don’t I see certain filters on the Reports page?
 Some filters depend on your workspace settings (like tags or categories). If they’re missing, check with your Workspace Admin.
 
 ## Do smart suggestions work on mobile?
@@ -147,6 +141,14 @@ Yes, smart suggestions also appear in the mobile Inbox and draft reports.
 ## When do report previews update?
 Previews update **in real time** when expenses are added. Alternatively, if a report is deleted, the preview is removed from the workspace chat.
 
-## Can someone comment on a report? 
+## Why don’t I see the same filters as in Expensify Classic?
+
+New Expensify simplifies filtering compared to Classic. Some filters like “All Time” or “All Workspaces” aren’t available in the same way. Instead:
+
+- Use the **Date Range** picker to simulate “All Time”
+- Use the **Workspace Switcher** to move between workspaces
+- Use **Unreported** or **Open** status filters to find expenses without reports
+
+## How do comments work on a report?
 Yes, if someone comments on a report, a **Comments** section appears and the layout adjusts to make space for the discussion.
 
