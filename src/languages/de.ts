@@ -2369,6 +2369,23 @@ const translations = {
                 title: ({testDriveURL}) => `Mache eine [Probefahrt](${testDriveURL})`,
                 description: ({testDriveURL}) => `Probiere uns in einer [Probefahrt](${testDriveURL}) aus und sichere deinem Team *3 Monate Expensify gratis!*`,
             },
+            addExpenseApprovalsTask: {
+                title: 'Ausgabengenehmigungen hinzufügen',
+                description: ({workspaceMoreFeaturesLink}) =>
+                    `*Füge Ausgabengenehmigungen hinzu*, um die Ausgaben deines Teams zu überprüfen und unter Kontrolle zu halten.\n` +
+                    '\n' +
+                    `So geht’s:\n` +
+                    '\n' +
+                    '1. Gehe zu *Arbeitsbereiche*.\n' +
+                    '2. Wähle deinen Arbeitsbereich aus.\n' +
+                    '3. Klicke auf *Weitere Funktionen*.\n' +
+                    '4. Aktiviere *Workflows*.\n' +
+                    '5. Navigiere im Arbeitsbereich-Editor zu *Workflows*.\n' +
+                    '6. Aktiviere *Genehmigungen hinzufügen*.\n' +
+                    `7. Du wirst als Ausgabengenehmiger festgelegt. Du kannst dies nach dem Einladen deines Teams auf einen beliebigen Administrator ändern.\n` +
+                    '\n' +
+                    `[Zu weiteren Funktionen](${workspaceMoreFeaturesLink}).`,
+            },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Erstelle](${workspaceConfirmationLink}) einen Workspace`,
                 description: 'Erstelle einen Workspace und konfiguriere die Einstellungen mit Hilfe deines Einrichtungsspezialisten!',
