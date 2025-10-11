@@ -12,7 +12,7 @@ import type {
 } from '@react-navigation/native';
 import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
-import type {StackNavigationConfig} from '@react-navigation/stack/lib/typescript/src/types';
+import type {StackNavigationConfig} from 'node_modules/@react-navigation/stack/lib/typescript/src/types';
 import type CommonProperties from '@src/types/utils/CommonProperties';
 import type {PlatformStackNavigationOptions} from './NavigationOptions';
 
