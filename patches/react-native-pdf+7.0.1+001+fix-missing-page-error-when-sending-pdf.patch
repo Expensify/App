@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfView.java b/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfView.java
+index ae6836a..69954af 100644
+--- a/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfView.java
++++ b/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfView.java
+@@ -310,7 +310,7 @@ public class PdfView extends PDFView implements OnPageChangeListener,OnLoadCompl
+                     
+                 }else{
+                     this.pagesArrays = null;
+-                    this.page=this.bookmarks-1;
++                    this.page=Math.max(this.bookmarks-1, 0);
+                 }
+              } catch (IOException e) {
+                  Log.e("error", "error read PDF", e);
