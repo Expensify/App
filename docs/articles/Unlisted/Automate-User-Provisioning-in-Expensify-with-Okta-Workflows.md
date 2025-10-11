@@ -22,7 +22,7 @@ Set up Okta Workflows with Expensify’s Advanced Employee Updater API to automa
 ## Where to find your Expensify API credentials
 
 ### Web
-1. Go to the **Integrations Center** in your Expensify account.
+1. While logged into your Expensify account, visit the [**Integrations Center**](https://www.expensify.com/tools/integrations/).
 2. Click **Generate API credentials**.
 3. Copy your **partnerUserID** and **partnerUserSecret**.
 4. Store these securely — these credentials will be used in your Okta workflow.
