@@ -670,6 +670,7 @@ const translations = {
         link: 'Link',
         pinned: 'Vastgezet',
         read: 'Gelezen',
+        copyToClipboard: 'Kopiëren naar klembord',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -853,7 +854,7 @@ const translations = {
         expand: 'Uitbreiden',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'Kopiëren naar klembord',
+        copyMessage: 'Bericht kopiëren',
         copied: 'Gekopieerd!',
         copyLink: 'Kopieer link',
         copyURLToClipboard: 'Kopieer URL naar klembord',
@@ -1107,7 +1108,7 @@ const translations = {
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Het totale bedrag is ${amount} meer dan de oorspronkelijke uitgave.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Het totale bedrag is ${amount} minder dan de oorspronkelijke uitgave.`,
         splitExpenseZeroAmount: 'Voer een geldig bedrag in voordat u doorgaat.',
-        splitExpenseOneMoreSplit: 'Geen splitsing toegevoegd. Voeg er ten minste \u00E9\u00E9n toe om op te slaan.',
+        splitExpenseOneMoreSplit: 'Geen splitsing toegevoegd. Voeg er ten minste één toe om op te slaan.',
         splitExpenseCannotBeEditedModalTitle: 'Deze uitgave kan niet worden bewerkt',
         splitExpenseCannotBeEditedModalDescription: 'Goedgekeurde of betaalde uitgaven kunnen niet worden bewerkt',
         splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `Bewerk ${amount} voor ${merchant}`,
@@ -1135,6 +1136,7 @@ const translations = {
         canceled: 'Geannuleerd',
         posted: 'Geplaatst',
         deleteReceipt: 'Verwijder bonnetje',
+        findExpense: 'Uitgave zoeken',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `verwijderde een uitgave (${amount} voor ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `verplaatste een uitgave${reportName ? `van ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `heeft deze uitgave verplaatst${reportName ? `naar <a href="${reportUrl}">${reportName}</a>` : ''}`,
@@ -3754,6 +3756,18 @@ const translations = {
                 createEntitiesDescription: 'Expensify zal automatisch leveranciers aanmaken in QuickBooks Desktop als ze nog niet bestaan.',
             },
             itemsDescription: 'Kies hoe u QuickBooks Desktop-items in Expensify wilt verwerken.',
+            accountingMethods: {
+                label: 'Wanneer exporteren',
+                description: 'Kies wanneer u de uitgaven wilt exporteren:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contant',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Uit eigen zak gemaakte uitgaven worden geëxporteerd wanneer ze definitief zijn goedgekeurd.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Uit eigen zak gemaakte uitgaven worden geëxporteerd wanneer ze zijn betaald.',
+                },
+            },
         },
         qbo: {
             connectedTo: 'Verbonden met',
@@ -5566,6 +5580,11 @@ const translations = {
                 description: 'Expensify Travel is een nieuw platform voor het boeken en beheren van zakelijke reizen waarmee leden accommodaties, vluchten, vervoer en meer kunnen boeken.',
                 onlyAvailableOnPlan: 'Reizen is beschikbaar op het Collect-plan, beginnend bij',
             },
+            reports: {
+                title: 'Rapporten',
+                description: 'Rapporten stellen je in staat om uitgaven te groeperen voor eenvoudigere tracking en organisatie.',
+                onlyAvailableOnPlan: 'Rapporten zijn beschikbaar op het Collect-plan, beginnend bij ',
+            },
             multiLevelTags: {
                 title: 'Meerniveautags',
                 description:
@@ -6214,7 +6233,6 @@ const translations = {
         groupBy: 'Groep per',
         moneyRequestReport: {
             emptyStateTitle: 'Dit rapport heeft geen uitgaven.',
-            emptyStateSubtitle: 'U kunt uitgaven aan dit rapport toevoegen\n via de knop hieronder of de optie "Uitgave toevoegen" in het menu Meer hierboven.',
         },
         noCategory: 'Geen categorie',
         noTag: 'Geen tag',
@@ -7250,6 +7268,7 @@ const translations = {
         exportInProgress: 'Bezig met exporteren',
         conciergeWillSend: 'Concierge stuurt je het bestand binnenkort.',
     },
+    avatarPage: {title: 'Profielfoto bewerken', uploadPhoto: 'Foto uploaden'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
