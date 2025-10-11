@@ -662,14 +662,25 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
 
 function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
     onyxUpdates.forEach((update) => {
-        if (!update.shouldNotify && !update.shouldShowPushNotification) {
+        const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
+        const hasWorkspaceWelcomeAction = reportActions.some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_EXPENSE_CHAT_WELCOME_WHISPER);
+
+        if (hasWorkspaceWelcomeAction) {
+            // Continue to process notification even though shouldNotify is not set
+        } else if (!update.shouldNotify && !update.shouldShowPushNotification) {
             return;
         }
 
         const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-        const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
+        const reportActionsForNotification = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
 
-        reportActions.forEach((action) => action && showReportActionNotification(reportID, action));
+        reportActionsForNotification.forEach((action) => {
+            if (!action) {
+                return;
+            }
+
+            showReportActionNotification(reportID, action);
+        });
     });
 }
 

@@ -7,6 +7,7 @@ import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 import focusApp from './focusApp';
 import type {LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpensePushParams} from './types';
@@ -60,28 +61,54 @@ function push(
             return;
         }
 
-        // We cache these notifications so that we can clear them later
-        const notificationID = Str.guid();
-        notificationCache[notificationID] = new Notification(title, {
-            body,
-            icon: String(icon),
-            data,
-            silent: true,
-            tag,
-        });
+        // Check if Service Worker is active and use appropriate method
+        const createNotification = async () => {
+            if ('serviceWorker' in navigator) {
+                const registration = await navigator.serviceWorker.getRegistration();
+                if (registration?.active && registration.showNotification) {
+                    // Use Service Worker method (required by Chrome when SW is active)
+                    await registration.showNotification(title, {
+                        body,
+                        icon: String(icon),
+                        data,
+                        silent: true,
+                        tag,
+                    });
+                    return;
+                }
+            }
+
+            const notificationID = Str.guid();
+            notificationCache[notificationID] = new Notification(title, {
+                body,
+                icon: String(icon),
+                data,
+                silent: true,
+                tag,
+            });
+
+            notificationCache[notificationID].onclick = () => {
+                onClick();
+                window.parent.focus();
+                window.focus();
+                focusApp();
+                notificationCache[notificationID].close();
+            };
+
+            notificationCache[notificationID].onclose = () => {
+                delete notificationCache[notificationID];
+            };
+        };
+
+        // Play sound if not silent
         if (!silent) {
             playSound(SOUNDS.RECEIVE);
         }
-        notificationCache[notificationID].onclick = () => {
-            onClick();
-            window.parent.focus();
-            window.focus();
-            focusApp();
-            notificationCache[notificationID].close();
-        };
-        notificationCache[notificationID].onclose = () => {
-            delete notificationCache[notificationID];
-        };
+
+        // Create the notification
+        createNotification().catch((error) => {
+            console.error('[BrowserNotification] Notification creation failed:', error);
+        });
     });
 }
 
@@ -113,9 +140,14 @@ export default {
             plainTextMessage = message?.type === 'COMMENT' ? getTextFromHtml(message?.html) : '';
         }
 
-        if (isRoomOrGroupChat) {
-            const roomName = ReportUtils.getReportName(report);
-            title = roomName;
+        if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST) {
+            title = 'Workspace Invitation Request';
+            body = `${plainTextPerson} has requested to join your workspace`;
+        } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_EXPENSE_CHAT_WELCOME_WHISPER) {
+            title = 'Workspace Invitation';
+            body = `You've been invited to join a workspace`;
+        } else if (isRoomOrGroupChat) {
+            title = ReportUtils.getReportName(report);
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
             title = plainTextPerson;
