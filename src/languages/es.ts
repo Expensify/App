@@ -1995,7 +1995,7 @@ const translations = {
         workflowTitle: 'Gasto',
         workflowDescription: 'Configure un flujo de trabajo desde el momento en que se produce el gasto, incluida la aprobación y el pago',
         submissionFrequency: 'Frecuencia de envíos',
-        submissionFrequencyDescription: 'Elige una frecuencia para enviar los gastos, o dejalo desactivado para recibir actualizaciones en tiempo real sobre los gastos.',
+        submissionFrequencyDescription: 'Elige un horario personalizado para enviar los gastos.',
         submissionFrequencyDateOfMonth: 'Fecha del mes',
         addApprovalsTitle: 'Aprobaciones',
         addApprovalButton: 'Añadir flujo de aprobación',

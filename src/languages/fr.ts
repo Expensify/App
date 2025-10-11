@@ -2025,8 +2025,7 @@ const translations = {
         workflowTitle: 'Dépenser',
         workflowDescription: "Configurez un flux de travail dès que la dépense survient, y compris l'approbation et le paiement.",
         submissionFrequency: 'Fréquence de soumission',
-        submissionFrequencyDescription:
-            'Choisissez un calendrier personnalisé pour soumettre les dépenses, ou laissez cette option désactivée pour des mises à jour en temps réel sur les dépenses.',
+        submissionFrequencyDescription: 'Choisissez une fréquence pour soumettre les dépenses.',
         submissionFrequencyDateOfMonth: 'Date du mois',
         addApprovalsTitle: 'Ajouter des approbations',
         addApprovalButton: "Ajouter un flux de travail d'approbation",

@@ -2015,7 +2015,7 @@ const translations = {
         workflowTitle: 'Gastar',
         workflowDescription: 'Configurar um fluxo de trabalho desde o momento em que a despesa ocorre, incluindo aprovação e pagamento.',
         submissionFrequency: 'Frequência de envio',
-        submissionFrequencyDescription: 'Escolha um cronograma personalizado para enviar despesas ou deixe isso desativado para atualizações em tempo real sobre gastos.',
+        submissionFrequencyDescription: 'Escolha uma frequência para enviar despesas.',
         submissionFrequencyDateOfMonth: 'Data do mês',
         addApprovalsTitle: 'Adicionar aprovações',
         addApprovalButton: 'Adicionar fluxo de trabalho de aprovação',

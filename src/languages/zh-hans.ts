@@ -1988,7 +1988,7 @@ const translations = {
         workflowTitle: '花费',
         workflowDescription: '配置从支出发生到审批和支付的工作流程。',
         submissionFrequency: '提交频率',
-        submissionFrequencyDescription: '选择自定义的费用提交时间表，或者关闭此选项以实时更新支出。',
+        submissionFrequencyDescription: '选择提交费用的频率。',
         submissionFrequencyDateOfMonth: '月份日期',
         addApprovalsTitle: '添加审批',
         addApprovalButton: '添加审批工作流程',

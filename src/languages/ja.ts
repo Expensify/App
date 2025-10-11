@@ -2009,7 +2009,7 @@ const translations = {
         workflowTitle: '支出',
         workflowDescription: '支出が発生した瞬間から、承認および支払いを含むワークフローを設定します。',
         submissionFrequency: '提出頻度',
-        submissionFrequencyDescription: '経費提出のカスタムスケジュールを選択するか、支出のリアルタイム更新のためにこれをオフにしておいてください。',
+        submissionFrequencyDescription: '経費を提出する頻度を選択します。',
         submissionFrequencyDateOfMonth: '月の日付',
         addApprovalsTitle: '承認を追加',
         addApprovalButton: '承認ワークフローを追加',

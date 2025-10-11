@@ -2003,7 +2003,7 @@ const translations = {
         workflowTitle: 'Spend',
         workflowDescription: 'Configure a workflow from the moment spend occurs, including approval and payment.',
         submissionFrequency: 'Submission frequency',
-        submissionFrequencyDescription: 'Choose a custom schedule for submitting expenses, or leave this off for realtime updates on spending.',
+        submissionFrequencyDescription: 'Choose a custom schedule for submitting expenses.',
         submissionFrequencyDateOfMonth: 'Date of month',
         addApprovalsTitle: 'Add approvals',
         addApprovalButton: 'Add approval workflow',

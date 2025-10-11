@@ -2025,7 +2025,7 @@ const translations = {
         workflowTitle: 'Ausgaben',
         workflowDescription: 'Konfigurieren Sie einen Workflow ab dem Moment, in dem Ausgaben anfallen, einschließlich Genehmigung und Zahlung.',
         submissionFrequency: 'Einreichungshäufigkeit',
-        submissionFrequencyDescription: 'Wählen Sie einen benutzerdefinierten Zeitplan für die Einreichung von Ausgaben oder lassen Sie dies für Echtzeit-Updates zu Ausgaben aus.',
+        submissionFrequencyDescription: 'Wählen Sie eine Häufigkeit für die Übermittlung von Ausgaben.',
         submissionFrequencyDateOfMonth: 'Datum des Monats',
         addApprovalsTitle: 'Genehmigungen hinzufügen',
         addApprovalButton: 'Genehmigungsworkflow hinzufügen',
