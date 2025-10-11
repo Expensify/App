@@ -1,4 +1,4 @@
-import {useCallback, useEffect} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import type UseHtmlPaste from './types';
@@ -164,16 +164,25 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
         [handlePastedHTML, handlePastePlainText, preHtmlPasteCallback],
     );
 
+    const handlePasteRef = useRef<(event: ClipboardEvent) => void>(handlePaste);
+    useEffect(() => {
+        handlePasteRef.current = handlePaste;
+    }, [handlePaste]);
+
     useEffect(() => {
         if (!isActive) {
             return;
         }
-        document.addEventListener('paste', handlePaste, true);
+
+        const listener = (event: ClipboardEvent) => {
+            handlePasteRef.current(event);
+        };
+
+        document.addEventListener('paste', listener, true);
 
         return () => {
-            document.removeEventListener('paste', handlePaste, true);
+            document.removeEventListener('paste', listener, true);
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isActive]);
 };
 
