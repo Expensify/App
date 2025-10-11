@@ -181,7 +181,7 @@ This Okta Workflows integration guide reflects common customer workflows, such a
 - Deprovisioning users when removed from an Okta group
 - Updating names and emails during employment changes
 
-If your setup differs or you’ve found another way to use this integration, we’d love to hear from you. Reach out to Concierge with feedback or [recommend a change to this article](https://github.com/Expensify/App/edit/main/docs/articles/Unlisted/Automate-User-Provisioning-in-Expensify-with-Okta-Workflows.md.md) to help expand the use cases we cover.
+If your setup differs or you’ve found another way to use this integration, we’d love to hear from you. Reach out to Concierge with feedback or [recommend a change to this article](https://github.com/Expensify/App/edit/main/docs/articles/Unlisted/Automate-User-Provisioning-in-Expensify-with-Okta-Workflows.md) to help expand the use cases we cover.
 
 ---
 
@@ -195,13 +195,18 @@ Yes. Set `"type": "update"` — the API will either update or create the user de
 
 Yes. Set `"dry-run": true` in the request payload to simulate the call without applying changes.
 
-## What happens if the API request contains invalid data?"
+## What happens if the API request contains invalid data?
 
 The API response will include a `responseCode` and `responseMessage`. Handle this using error-checking logic in your flow.
 
 ## How often can I run this flow?
 
 Expensify enforces API rate limits. Avoid sending excessive requests in a short period. Batching users can help reduce the load.
+
+## Does Expensify support SCIM-based provisioning?
+
+No. Expensify does **not** support SCIM-based user provisioning.However, we do support SCIM-based deprovisioning for customers using Okta. To learn more, see [Okta SCIM API for User Deactivation](https://help.expensify.com/articles/expensify-classic/domains/Managing-Single-Sign-On-(SSO)-in-Expensify#:~:text=Advanced%20Configurations-,Okta%20SCIM%20API%20for%20User%20Deactivation,-Ensure%20your%20domain).
+
 
 ---
 
