@@ -95,7 +95,7 @@ Your account may be locked due to a failed withdrawal (e.g., insufficient funds 
   2. Click **Fix** next to the locked account
   3. Concierge will review and update the account within 4–5 business days
  
-Note: If a reimbursement debit fails, we must wait for the bank to return the attempt before another debit can be retried. We cannot manually trigger a new debit while the previous one is still pending.
+> **Note:** If a reimbursement debit fails, we must wait for the bank to return the attempt before another debit can be retried. We cannot manually trigger a new debit while the previous one is still pending.
 
 ## Who can reimburse reports?
 Only Workspace Admins with a verified business bank account can reimburse reports.
