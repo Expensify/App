@@ -87,7 +87,7 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     }
 
     const {amount} = getTransactionDetails(reportTransaction) ?? {};
-    if (!amount) {
+    if (amount === null || amount === undefined) {
         return false;
     }
 

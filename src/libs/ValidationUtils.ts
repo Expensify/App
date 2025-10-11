@@ -757,6 +757,10 @@ function isValidTaxIDEINNumber(number: string, country: Country | '') {
     }
 }
 
+function isValidAmount(amount: number | null | undefined): boolean {
+    return amount !== null && amount !== undefined && !Number.isNaN(amount);
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -810,4 +814,5 @@ export {
     isValidRegistrationNumber,
     isValidInputLength,
     isValidTaxIDEINNumber,
+    isValidAmount,
 };
