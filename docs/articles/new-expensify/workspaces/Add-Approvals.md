@@ -1,7 +1,7 @@
 ---
 title: Add Approvals
 description: Require approvals for expenses in your Expensify workspace before authorizing payments.
-keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows]
+keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain]
 ---
 
 Each Expensify workspace can be configured to require additional approvals before payments are authorized. When approvals are enabled, admins can set a default approval workflow for all members or create custom workflows for individual members.
@@ -29,8 +29,8 @@ Set up default or custom approval workflows to route expenses through one or mor
 
 ## Set the Default Approval Workflow
 
-1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**
-2. Click your workspace name to access the settings for that workspace
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your workspace name to access the settings for that workspace.
 3. In the left menu, click **Workflows**.
 4. Under **Expenses from Everyone**, click **First approver**.
 5. Choose the first approver from the list of workspace members.
