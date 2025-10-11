@@ -19,19 +19,19 @@ Set up Okta Workflows with Expensify’s Advanced Employee Updater API to automa
 
 ---
 
-## Where to find your API credentials
+## Where to find your Expensify API credentials
 
 ### Web
 1. Go to the **Integrations Center** in your Expensify account.
 2. Click **Generate API credentials**.
 3. Copy your **partnerUserID** and **partnerUserSecret**.
-4. Store these securely — they’ll be used in your Okta workflow.
+4. Store these securely — these credentials will be used in your Okta workflow.
 
 ---
 
-## What this Okta integration does
+## What the Okta Workflows integration with Expensify does
 
-Expensify’s native Okta integration handles authentication and SSO, but does **not** provision or update users. That’s where **Okta Workflows** and the **Advanced Employee Updater API** come in.
+Expensify’s native Okta integration handles authentication and SSO, but does **not** provision or update users. Use Okta Workflows with the Advanced Employee Updater API for user provisioning and updates.
 
 With this setup, you can:
 - Provision users into specific Workspaces (formerly policies)
@@ -41,7 +41,7 @@ With this setup, you can:
 
 ---
 
-## Step-by-step: How to configure Okta Workflows with Expensify
+## How to configure Okta Workflows with Expensify
 
 ### 1. Build the trigger
 
@@ -50,7 +50,7 @@ In **Okta Workflows**, create a new flow:
 
 ---
 
-### 2. Retrieve policy IDs from Expensify
+### 2. Retrieve workspace policy IDs from Expensify
 
 Use this API request to retrieve a list of policy IDs tied to your domain:
 
@@ -67,16 +67,16 @@ Use this API request to retrieve a list of policy IDs tied to your domain:
 }
 ```
 
-We recommend using Postman or Insomnia to run this once, then store the results in an **Assign** card.
+We recommend using Postman or Insomnia to run this API request once, then store the results in an **Assign** card.
 
 ![Assign and Construct cards showing credentials setup]({{site.url}}/assets/images/okta-assign-construct.png){:width="100%"}  
 *Use an Assign card to store your Expensify credentials and policy IDs once for reuse throughout the workflow.*
 
 ---
 
-## How to create a user in Expensify from Okta
+## How to create a user in Expensify using Okta Workflows API
 
-To create or update a user, your API request must follow Expensify’s required structure. Here’s what your payload should include inside the `requestJobDescription`:
+To create or update a user, your API request must follow Expensify’s required structure. Here's what your API request payload should include in the `requestJobDescription` parameter:
 
 ```json
 {
@@ -108,9 +108,9 @@ To create or update a user, your API request must follow Expensify’s required 
 
 ---
 
-## Bringing it all together: Example end-to-end flow
+## End-to-end workflow example
 
-Here’s how all the pieces work together inside Okta Workflows:
+Here's how the Okta Workflows cards work together to create users in Expensify: 
 
 1. **Trigger**  
    Use **User Created** or **User Assigned to App**.
@@ -172,16 +172,16 @@ Use **Parse JSON** to extract the `responseCode`, and use **Return Error If** to
 
 ---
 
-## Common use cases for Okta + Expensify provisioning
+## Common use cases for Okta Workflows with Expensify user provisioning
 
-This article reflects common customer workflows, such as:
+This Okta Workflows integration guide reflects common customer workflows, such as:
 
 - Auto-provisioning employees into Workspaces at onboarding
 - Assigning managers and domain groups based on profile fields
 - Deprovisioning users when removed from an Okta group
 - Updating names and emails during employment changes
 
-If your setup differs or you’ve found another way to use this integration, we’d love to hear from you. Reach out to Concierge with feedback or [recommend a change to this article](https://github.com/Expensify/App/edit/main/docs/articles/Unlisted/Compliance-Documentation.md) to help expand the use cases we cover.
+If your setup differs or you’ve found another way to use this integration, we’d love to hear from you. Reach out to Concierge with feedback or [recommend a change to this article](https://github.com/Expensify/App/edit/main/docs/articles/Unlisted/Automate-User-Provisioning-in-Expensify-with-Okta-Workflows.md.md) to help expand the use cases we cover.
 
 ---
 
@@ -195,17 +195,17 @@ Yes. Set `"type": "update"` — the API will either update or create the user de
 
 Yes. Set `"dry-run": true` in the request payload to simulate the call without applying changes.
 
-## What happens if I send invalid data?
+## What happens if the API request contains invalid data?"
 
 The API response will include a `responseCode` and `responseMessage`. Handle this using error-checking logic in your flow.
 
 ## How often can I run this flow?
 
-Expensify enforces API rate limits. Avoid sending excessive requests in a short period — batching users can help reduce the load.
+Expensify enforces API rate limits. Avoid sending excessive requests in a short period. Batching users can help reduce the load.
 
 ---
 
-# Resources
+## Resources
 
 - [Expensify Advanced Employee Updater API Docs](https://integrations.expensify.com/Integration-Server/doc/employeeUpdater/)
 - [Okta Workflows Documentation](https://help.okta.com/)
