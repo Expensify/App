@@ -2315,6 +2315,17 @@ function getColumnsToShow(
     return columns;
 }
 
+function getFlattenedMenuItemsWithDefaultTodoIndex(typeMenuSections: SearchTypeMenuSection[]): {flattenedMenuItems: SearchTypeMenuItem[]; defaultTodoIndex: number} {
+    const flattenedMenuItems = typeMenuSections.flatMap((section) => section.menuItems);
+    const approveIndex = flattenedMenuItems.findIndex((item) => item.key === CONST.SEARCH.SEARCH_KEYS.APPROVE);
+    const submitIndex = flattenedMenuItems.findIndex((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+
+    return {
+        flattenedMenuItems,
+        defaultTodoIndex: approveIndex !== -1 ? approveIndex : submitIndex,
+    };
+}
+
 export {
     getSuggestedSearches,
     getListItem,
@@ -2355,6 +2366,7 @@ export {
     getWithdrawalTypeOptions,
     getActionOptions,
     getColumnsToShow,
+    getFlattenedMenuItemsWithDefaultTodoIndex,
     getHasOptions,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};

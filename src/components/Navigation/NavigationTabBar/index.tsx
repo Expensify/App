@@ -30,6 +30,7 @@ import isRoutePreloaded from '@libs/Navigation/helpers/isRoutePreloaded';
 import navigateToWorkspacesPage, {getWorkspaceNavigationRouteState} from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import navigationRef from '@navigation/navigationRef';
@@ -48,6 +49,25 @@ type NavigationTabBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isTopLevelBar?: boolean;
 };
+
+function getDefaultTodoSuggestedSearch(typeMenuSections: SearchTypeMenuSection[]) {
+    const todoSection = typeMenuSections.find((section) => section.translationPath === 'common.todo');
+    if (!todoSection) {
+        return undefined;
+    }
+
+    const approveItem = todoSection.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.APPROVE);
+    if (approveItem) {
+        return approveItem;
+    }
+
+    const submitItem = todoSection.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+    if (submitItem) {
+        return submitItem;
+    }
+
+    return todoSection.menuItems.at(0);
+}
 
 function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBarProps) {
     const theme = useTheme();
@@ -75,7 +95,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
     const [lastWorkspacesTabNavigatorRoute, setLastWorkspacesTabNavigatorRoute] = useState(initialNavigationRouteState.lastWorkspacesTabNavigatorRoute);
     const [workspacesTabState, setWorkspacesTabState] = useState(initialNavigationRouteState.workspacesTabState);
     const params = workspacesTabState?.routes?.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
-    const {typeMenuSections} = useSearchTypeMenuSections();
+    const {typeMenuSections, suggestedSearchesReady} = useSearchTypeMenuSections();
     const subscriptionPlan = useSubscriptionPlan();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Inbox', 'MoneySearch', 'Buildings'] as const);
 
@@ -151,11 +171,11 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                 }
             }
 
-            const nonExploreTypeQuery = typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
+            const defaultSuggestedSearch = suggestedSearchesReady ? getDefaultTodoSuggestedSearch(typeMenuSections) : undefined;
             const savedSearchQuery = Object.values(savedSearches ?? {}).at(0)?.query;
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: nonExploreTypeQuery ?? savedSearchQuery ?? buildCannedSearchQuery()}));
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultSuggestedSearch?.searchQuery ?? savedSearchQuery ?? buildCannedSearchQuery()}));
         });
-    }, [selectedTab, typeMenuSections, savedSearches]);
+    }, [selectedTab, suggestedSearchesReady, typeMenuSections, savedSearches]);
 
     const navigateToSettings = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.SETTINGS) {
@@ -450,3 +470,4 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
 NavigationTabBar.displayName = 'NavigationTabBar';
 
 export default memo(NavigationTabBar);
+export {getDefaultTodoSuggestedSearch};

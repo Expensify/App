@@ -17,6 +17,7 @@ const defaultSearchContextData: SearchContextData = {
     isOnSearch: false,
     shouldTurnOffSelectionMode: false,
     shouldResetSearchQuery: false,
+    shouldDefaultToTodo: true,
 };
 
 const defaultSearchContext: SearchContextProps = {
@@ -35,6 +36,8 @@ const defaultSearchContext: SearchContextProps = {
     shouldShowSelectAllMatchingItems: () => {},
     selectAllMatchingItems: () => {},
     setShouldResetSearchQuery: () => {},
+    shouldDefaultToTodo: true,
+    setShouldDefaultToTodo: () => {},
 };
 
 const SearchContext = React.createContext<SearchContextProps>(defaultSearchContext);
@@ -118,6 +121,19 @@ function SearchContextProvider({children}: ChildrenProps) {
             shouldTurnOffSelectionMode: false,
             selectedReports,
         }));
+    }, []);
+
+    const setShouldDefaultToTodo = useCallback((shouldDefault: boolean) => {
+        setSearchContextData((prevState) => {
+            if (prevState.shouldDefaultToTodo === shouldDefault) {
+                return prevState;
+            }
+
+            return {
+                ...prevState,
+                shouldDefaultToTodo: shouldDefault,
+            };
+        });
     }, []);
 
     const clearSelectedTransactions: SearchContextProps['clearSelectedTransactions'] = useCallback(
@@ -210,6 +226,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             areAllMatchingItemsSelected,
             selectAllMatchingItems,
             setShouldResetSearchQuery,
+            setShouldDefaultToTodo,
         }),
         [
             searchContextData,
@@ -224,6 +241,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             showSelectAllMatchingItems,
             areAllMatchingItemsSelected,
             setShouldResetSearchQuery,
+            setShouldDefaultToTodo,
         ],
     );
 
