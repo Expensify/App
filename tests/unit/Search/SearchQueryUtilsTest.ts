@@ -1,12 +1,20 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
-import { generatePolicyID } from '@libs/actions/Policy/Policy';
+import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import CONST from '@src/CONST';
-import { buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, buildUserReadableQueryString, getQueryWithUpdatedValues, shouldHighlight, sortOptionsWithEmptyValue } from '@src/libs/SearchQueryUtils';
+import {
+    buildFilterFormValuesFromQuery,
+    buildQueryStringFromFilterFormValues,
+    buildSearchQueryJSON,
+    buildSearchQueryString,
+    buildUserReadableQueryString,
+    getQueryWithUpdatedValues,
+    shouldHighlight,
+    sortOptionsWithEmptyValue,
+} from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { SearchAdvancedFiltersForm } from '@src/types/form';
-import { localeCompare } from '../../utils/TestHelper';
-
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import {localeCompare} from '../../utils/TestHelper';
 
 const personalDetailsFakeData = {
     'johndoe@example.com': {
