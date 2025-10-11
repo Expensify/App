@@ -36,6 +36,14 @@ const enablePolicyFeatureCommand = [
     WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
 ] as const;
 
+const availableRemoveDuplicateEnableFeatureConflicts = [
+    WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS,
+    WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
+    WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
+    WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS,
+    WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
+];
+
 type EnablePolicyFeatureCommand = TupleToUnion<typeof enablePolicyFeatureCommand>;
 
 function createUpdateCommentMatcher(reportActionID: string) {
@@ -200,7 +208,11 @@ function resolveEnableFeatureConflicts(
     parameters: ApiRequestCommandParameters[EnablePolicyFeatureCommand],
 ): ConflictActionData {
     const deleteRequestIndex = persistedRequests.findIndex(
-        (request) => request.command === command && request.data?.policyID === parameters.policyID && request.data?.enabled !== parameters.enabled,
+        (request) =>
+            (availableRemoveDuplicateEnableFeatureConflicts as string[]).includes(command) &&
+            request.command === command &&
+            request.data?.policyID === parameters.policyID &&
+            request.data?.enabled !== parameters.enabled,
     );
 
     if (deleteRequestIndex === -1) {
@@ -227,7 +239,7 @@ export {
     resolveEditCommentWithNewAddCommentRequest,
     createUpdateCommentMatcher,
     resolveEnableFeatureConflicts,
-    enablePolicyFeatureCommand,
+    availableRemoveDuplicateEnableFeatureConflicts,
 };
 
 export type {EnablePolicyFeatureCommand, RequestMatcher};

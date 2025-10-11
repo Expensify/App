@@ -685,18 +685,9 @@ describe('APITests', () => {
         })
             .then(() => {
                 // When we queue 3 duplicate persistable commands with same policyID and different enabled values
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '1', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '1', enabled: false} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '1', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
+                API.writeWithNoDuplicatesEnableFeatureConflicts('EnablePolicyCompanyCards', {policyID: '1', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand]);
+                API.writeWithNoDuplicatesEnableFeatureConflicts('EnablePolicyCompanyCards', {policyID: '1', enabled: false} as ApiRequestCommandParameters[EnablePolicyFeatureCommand]);
+                API.writeWithNoDuplicatesEnableFeatureConflicts('EnablePolicyCompanyCards', {policyID: '1', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand]);
                 return waitForBatchedUpdates();
             })
             .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
@@ -717,14 +708,8 @@ describe('APITests', () => {
         })
             .then(() => {
                 // When we queue 2 duplicate persistable commands with same policyID and true and false enabled values
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '1', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '1', enabled: false} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
+                API.writeWithNoDuplicatesEnableFeatureConflicts('EnablePolicyCompanyCards', {policyID: '1', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand]);
+                API.writeWithNoDuplicatesEnableFeatureConflicts('EnablePolicyCompanyCards', {policyID: '1', enabled: false} as ApiRequestCommandParameters[EnablePolicyFeatureCommand]);
                 return waitForBatchedUpdates();
             })
             .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
@@ -744,18 +729,9 @@ describe('APITests', () => {
         })
             .then(() => {
                 // When we queue 3 different persistable commands with different policyIDs
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '1', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '2', enabled: false} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '3', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
+                API.writeWithNoDuplicatesEnableFeatureConflicts('EnablePolicyCompanyCards', {policyID: '1', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand]);
+                API.writeWithNoDuplicatesEnableFeatureConflicts('EnablePolicyCompanyCards', {policyID: '2', enabled: false} as ApiRequestCommandParameters[EnablePolicyFeatureCommand]);
+                API.writeWithNoDuplicatesEnableFeatureConflicts('EnablePolicyCompanyCards', {policyID: '3', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand]);
                 return waitForBatchedUpdates();
             })
             .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
@@ -778,18 +754,9 @@ describe('APITests', () => {
         })
             .then(() => {
                 // When we queue 3 different persistable commands with only 2 policyIDs
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '1', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '2', enabled: false} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '1', enabled: false} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
+                API.writeWithNoDuplicatesEnableFeatureConflicts('EnablePolicyCompanyCards', {policyID: '1', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand]);
+                API.writeWithNoDuplicatesEnableFeatureConflicts('EnablePolicyCompanyCards', {policyID: '2', enabled: false} as ApiRequestCommandParameters[EnablePolicyFeatureCommand]);
+                API.writeWithNoDuplicatesEnableFeatureConflicts('EnablePolicyCompanyCards', {policyID: '1', enabled: false} as ApiRequestCommandParameters[EnablePolicyFeatureCommand]);
                 return waitForBatchedUpdates();
             })
             .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))

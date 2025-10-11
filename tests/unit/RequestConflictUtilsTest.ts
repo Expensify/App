@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {
-    enablePolicyFeatureCommand,
+    availableRemoveDuplicateEnableFeatureConflicts,
     resolveCommentDeletionConflicts,
     resolveDuplicationConflictAction,
     resolveEditCommentWithNewAddCommentRequest,
@@ -141,14 +141,14 @@ describe('RequestConflictUtils', () => {
         });
     });
 
-    it.each(enablePolicyFeatureCommand)('resolveEnableFeatureConflicts should return push when the same enable feature API is not found', (commandName) => {
+    it.each(availableRemoveDuplicateEnableFeatureConflicts)('resolveEnableFeatureConflicts should return push when the same enable feature API is not found', (commandName) => {
         const persistedRequests = [{command: commandName, data: {policyID: '1', enabled: true}}];
         const parameters = {policyID: '2', enabled: false};
         const result = resolveEnableFeatureConflicts(commandName, persistedRequests, parameters);
         expect(result).toEqual({conflictAction: {type: 'push'}});
     });
 
-    it.each(enablePolicyFeatureCommand)('resolveEnableFeatureConflicts should return delete when the same enable feature API is found', (commandName) => {
+    it.each(availableRemoveDuplicateEnableFeatureConflicts)('resolveEnableFeatureConflicts should return delete when the same enable feature API is found', (commandName) => {
         const persistedRequests = [{command: commandName, data: {policyID: '1', enabled: true}}];
         const parameters = {policyID: '1', enabled: false};
         const result = resolveEnableFeatureConflicts(commandName, persistedRequests, parameters);
