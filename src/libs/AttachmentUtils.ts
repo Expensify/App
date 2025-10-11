@@ -101,5 +101,9 @@ function isDirectoryCheck(data: FileObject) {
     return true;
 }
 
-export default validateAttachmentFile;
+function isLocalAttachment(url: string) {
+    return new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(url) || url.startsWith('/chat-attachments');
+}
+
+export {validateAttachmentFile, isLocalAttachment};
 export type {AttachmentValidationResult};

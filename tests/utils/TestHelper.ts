@@ -213,7 +213,7 @@ function signOutTestUser() {
  * - fail() - start returning a failure response
  * - success() - go back to returning a success response
  */
-function getGlobalFetchMock(): typeof fetch {
+function getGlobalFetchMock(mockResponse?: Partial<Response>): typeof fetch {
     let queue: QueueItem[] = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let responses = new Map<string, (params: any) => OnyxResponse>();
@@ -240,6 +240,7 @@ function getGlobalFetchMock(): typeof fetch {
 
                       return Promise.resolve({jsonCode: 200});
                   },
+                  ...mockResponse,
               };
 
     const mockFetch = jest.fn().mockImplementation((input: RequestInfo, options?: RequestInit) => {
