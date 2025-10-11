@@ -25,17 +25,18 @@ function ArchivedReportFooter({report}: ArchivedReportFooterProps) {
 
     const [personalDetails = getEmptyObject<PersonalDetailsList>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [reportClosedAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false, selector: getLastClosedReportAction, canBeMissing: true});
+    const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false, canBeMissing: true});
     const originalMessage = isClosedAction(reportClosedAction) ? getOriginalMessage(reportClosedAction) : null;
     const archiveReason = originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
     const actorPersonalDetails = personalDetails?.[reportClosedAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID];
-    let displayName = getDisplayNameOrDefault(actorPersonalDetails);
+    let displayName = getDisplayNameOrDefault(actorPersonalDetails, undefined, undefined, undefined, areTranslationsLoading);
 
     let oldDisplayName: string | undefined;
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
         const newAccountID = originalMessage?.newAccountID;
         const oldAccountID = originalMessage?.oldAccountID;
-        displayName = getDisplayNameOrDefault(personalDetails?.[newAccountID ?? CONST.DEFAULT_NUMBER_ID]);
-        oldDisplayName = getDisplayNameOrDefault(personalDetails?.[oldAccountID ?? CONST.DEFAULT_NUMBER_ID]);
+        displayName = getDisplayNameOrDefault(personalDetails?.[newAccountID ?? CONST.DEFAULT_NUMBER_ID], undefined, undefined, undefined, areTranslationsLoading);
+        oldDisplayName = getDisplayNameOrDefault(personalDetails?.[oldAccountID ?? CONST.DEFAULT_NUMBER_ID], undefined, undefined, undefined, areTranslationsLoading);
     }
 
     const shouldRenderHTML = archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT && archiveReason !== CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED;
