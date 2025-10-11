@@ -392,7 +392,7 @@ function dismissDuplicateTransactionViolation(
     isASAPSubmitBetaEnabled: boolean,
 ) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
-    const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
+    const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]).filter((transaction): transaction is Transaction => !!transaction);
     const transactionsReportActions = currentTransactions.map((transaction) => getIOUActionForReportID(transaction.reportID, transaction.transactionID));
     const optimisticDismissedViolationReportActions = transactionsReportActions.map(() => {
         return buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
