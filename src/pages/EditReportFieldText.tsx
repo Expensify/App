@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -32,6 +33,7 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
+    const reportFieldName = Str.UCFirst(fieldName);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
@@ -41,6 +43,8 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
             if (isRequired && inputValue === '') {
                 errors[fieldKey] = translate('common.error.fieldRequired');
             }
+
+            console.log('sssss', fieldName, fieldKey);
 
             if (hasCircularReferences(inputValue, fieldName)) {
                 errors[fieldKey] = translate('workspace.reportFields.circularReferenceError');
@@ -67,8 +71,8 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
                     inputID={fieldKey}
                     name={fieldKey}
                     defaultValue={fieldValue}
-                    label={fieldName}
-                    accessibilityLabel={fieldName}
+                    label={reportFieldName}
+                    accessibilityLabel={reportFieldName}
                     role={CONST.ROLE.PRESENTATION}
                     ref={inputCallbackRef}
                 />
