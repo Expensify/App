@@ -1,7 +1,7 @@
 import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import type {ColorValue, TextStyle} from 'react-native';
+import type {ColorValue, StyleProp, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
@@ -71,6 +71,11 @@ type AvatarWithDisplayNameProps = {
 
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
+
+    customDisplayNameStyle?: TextStyle;
+
+    /** The style of the parent navigation subtitle text */
+    parentNavigationSubtitleTextStyles?: StyleProp<TextStyle>;
 };
 
 function getCustomDisplayName(
@@ -160,6 +165,8 @@ function AvatarWithDisplayName({
     openParentReportInCurrentTab = false,
     avatarBorderColor: avatarBorderColorProp,
     shouldDisplayStatus = false,
+    customDisplayNameStyle = {},
+    parentNavigationSubtitleTextStyles,
 }: AvatarWithDisplayNameProps) {
     const {localeCompare} = useLocalize();
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false, canBeMissing: !report?.parentReportID});
@@ -267,7 +274,7 @@ function AvatarWithDisplayName({
                             displayNamesWithTooltips,
                             transactions,
                             shouldUseFullTitle,
-                            [styles.headerText, styles.pre],
+                            [styles.headerText, styles.pre, customDisplayNameStyle],
                             [isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre],
                             isAnonymous,
                             isMoneyRequestOrReport,
@@ -280,6 +287,7 @@ function AvatarWithDisplayName({
                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                 openParentReportInCurrentTab={openParentReportInCurrentTab}
                                 statusText={statusText}
+                                textStyles={parentNavigationSubtitleTextStyles}
                             />
                         )}
                         {!!subtitle && (

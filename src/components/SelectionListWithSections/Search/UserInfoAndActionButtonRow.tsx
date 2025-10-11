@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
@@ -23,6 +24,7 @@ function UserInfoAndActionButtonRow({
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const hasFromSender = !!item?.from && !!item?.from?.accountID && !!item?.from?.displayName;
     const hasToRecipient = !!item?.to && !!item?.to?.accountID && !!item?.to?.displayName;
     const participantFromDisplayName = item?.from?.displayName ?? item?.from?.login ?? translate('common.hidden');
@@ -48,14 +50,15 @@ function UserInfoAndActionButtonRow({
                     participantFromDisplayName={participantFromDisplayName}
                     participantToDisplayName={participantToDisplayName}
                     participantTo={item?.to}
-                    avatarSize={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
-                    infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
+                    avatarSize={shouldUseNarrowLayout ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
+                    infoCellsTextStyle={{lineHeight: 14}}
                     infoCellsAvatarStyle={styles.pr1}
                     fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : {}}
+                    shouldUseArrowIcon={false}
                 />
             )}
-            <View style={[{width: variables.w80}, styles.alignItemsEnd]}>
+            <View style={[{width: shouldUseNarrowLayout ? variables.w72 : variables.w80}, styles.alignItemsEnd]}>
                 <ActionCell
                     action={item.action}
                     goToItem={handleActionButtonPress}
@@ -65,6 +68,7 @@ function UserInfoAndActionButtonRow({
                     reportID={item.reportID}
                     hash={item.hash}
                     amount={(item as TransactionListItemType)?.amount ?? (item as TransactionReportGroupListItemType)?.total}
+                    extraSmall={!isLargeScreenWidth}
                 />
             </View>
         </View>

@@ -44,6 +44,7 @@ type ActionCellProps = {
     reportID?: string;
     hash?: number;
     amount?: number;
+    extraSmall?: boolean;
 };
 
 function ActionCell({
@@ -58,6 +59,7 @@ function ActionCell({
     reportID = '',
     hash,
     amount,
+    extraSmall = false,
 }: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -84,7 +86,7 @@ function ActionCell({
 
     if (!isChildListItem && ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID) || action === CONST.SEARCH.ACTION_TYPES.DONE)) {
         return (
-            <View style={[StyleUtils.getHeight(variables.h28), styles.justifyContentCenter]}>
+            <View style={[StyleUtils.getHeight(variables.h20), styles.justifyContentCenter]}>
                 <Badge
                     text={text}
                     icon={action === CONST.SEARCH.ACTION_TYPES.DONE ? Expensicons.Checkbox : Expensicons.Checkmark}
@@ -97,9 +99,10 @@ function ActionCell({
                         StyleUtils.getMinimumHeight(variables.h20),
                         isSelected ? StyleUtils.getBorderColorStyle(theme.buttonHoveredBG) : StyleUtils.getBorderColorStyle(theme.border),
                     ]}
-                    textStyles={StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall)}
+                    textStyles={StyleUtils.getFontSizeStyle(extraSmall ? variables.fontSizeExtraSmall : variables.fontSizeSmall)}
                     iconStyles={styles.mr0}
                     success
+                    shouldUseXXSmallIcon={extraSmall}
                 />
             </View>
         );
@@ -112,7 +115,8 @@ function ActionCell({
             <Button
                 text={text}
                 onPress={goToItem}
-                small
+                small={!extraSmall}
+                extraSmall={extraSmall}
                 style={[styles.w100]}
                 innerStyles={buttonInnerStyles}
                 link={isChildListItem}
@@ -129,7 +133,7 @@ function ActionCell({
         return (
             <SettlementButton
                 shouldUseShortForm
-                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                buttonSize={extraSmall ? CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL : CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                 currency={currency}
                 formattedAmount={convertToDisplayString(iouReport?.total, currency)}
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -151,7 +155,8 @@ function ActionCell({
         <Button
             text={text}
             onPress={goToItem}
-            small
+            small={!extraSmall}
+            extraSmall={extraSmall}
             style={[styles.w100]}
             isLoading={isLoading}
             success
