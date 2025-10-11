@@ -445,8 +445,31 @@ function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, reportTrans
     const isFromExpenseReport = parentReport?.type === CONST.REPORT.TYPE.EXPENSE;
     const isSplitPolicyExpenseChat = !!transaction?.comment?.splits?.some((participant) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`]?.isOwnPolicyExpenseChat);
     const isMerchantRequired = isFromExpenseReport || isSplitPolicyExpenseChat;
-    const isAmountRequired = hasReceipt(transaction);
-    return (isMerchantRequired && isMerchantMissing(transaction)) || (isAmountMissing(transaction) && isAmountRequired) || isCreatedMissing(transaction);
+    return (isMerchantRequired && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
+}
+
+function getClearedPendingFields(transactionChanges: TransactionChanges) {
+    return {
+        ...Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, null])),
+        ...(Object.hasOwn(transactionChanges, 'comment') && {comment: null}),
+        ...(Object.hasOwn(transactionChanges, 'created') && {created: null}),
+        ...(Object.hasOwn(transactionChanges, 'amount') && {amount: null}),
+        ...(Object.hasOwn(transactionChanges, 'currency') && {currency: null}),
+        ...(Object.hasOwn(transactionChanges, 'merchant') && {merchant: null}),
+        ...(Object.hasOwn(transactionChanges, 'waypoints') && {waypoints: null}),
+        ...(Object.hasOwn(transactionChanges, 'reimbursable') && {reimbursable: null}),
+        ...(Object.hasOwn(transactionChanges, 'billable') && {billable: null}),
+        ...(Object.hasOwn(transactionChanges, 'category') && {category: null}),
+        ...(Object.hasOwn(transactionChanges, 'tag') && {tag: null}),
+        ...(Object.hasOwn(transactionChanges, 'taxAmount') && {taxAmount: null}),
+        ...(Object.hasOwn(transactionChanges, 'taxCode') && {taxCode: null}),
+        ...(Object.hasOwn(transactionChanges, 'attendees') && {attendees: null}),
+        ...(Object.hasOwn(transactionChanges, 'distance') && {
+            quantity: null,
+            amount: null,
+            merchant: null,
+        }),
+    };
 }
 
 /**
@@ -1973,6 +1996,7 @@ export {
     getTaxName,
     getEnabledTaxRateCount,
     getUpdatedTransaction,
+    getClearedPendingFields,
     getDescription,
     getRequestType,
     getExpenseType,

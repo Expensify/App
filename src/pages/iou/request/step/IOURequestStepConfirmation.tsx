@@ -535,6 +535,7 @@ function IOURequestStepConfirmation({
                         policy,
                         policyTagList: policyTags,
                         policyCategories,
+                        policyRecentlyUsedCategories,
                     },
                     gpsPoints,
                     action,
@@ -578,6 +579,7 @@ function IOURequestStepConfirmation({
             policy,
             policyTags,
             policyCategories,
+            policyRecentlyUsedCategories,
             action,
             transactionTaxCode,
             transactionTaxAmount,
@@ -724,6 +726,7 @@ function IOURequestStepConfirmation({
                     policy,
                     policyCategories,
                     policyTagList: policyTags,
+                    policyRecentlyUsedCategories,
                 },
                 transactionParams: {
                     amount: transaction.amount,
@@ -752,10 +755,11 @@ function IOURequestStepConfirmation({
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             iouType,
-            isManualDistanceRequest,
             policy,
             policyCategories,
             policyTags,
+            policyRecentlyUsedCategories,
+            isManualDistanceRequest,
             transactionTaxCode,
             transactionTaxAmount,
             customUnitRateID,
@@ -788,7 +792,7 @@ function IOURequestStepConfirmation({
 
             formHasBeenSubmitted.current = true;
 
-            if (iouType !== CONST.IOU.TYPE.TRACK && isDistanceRequest && !isMovingTransactionFromTrackExpense) {
+            if (iouType !== CONST.IOU.TYPE.TRACK && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
                 createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants, trimmedComment);
                 return;
             }
