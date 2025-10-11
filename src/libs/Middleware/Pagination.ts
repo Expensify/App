@@ -1,11 +1,13 @@
 import fastMerge from 'expensify-common/dist/fastMerge';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiCommand} from '@libs/API/types';
 import Log from '@libs/Log';
 import PaginationUtils from '@libs/PaginationUtils';
 import CONST from '@src/CONST';
 import type {OnyxCollectionKey, OnyxPagesKey, OnyxValues} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
 import type {PaginatedRequest} from '@src/types/onyx/Request';
 import type Middleware from './types';
@@ -105,7 +107,7 @@ const Pagination: Middleware = (requestResponse, request) => {
 
         const newPage = sortedPageItems.map((item) => getItemID(item));
 
-        if (response.hasNewerActions === false || (type === 'initial' && !cursorID)) {
+        if (response.hasNewerActions === false) {
             newPage.unshift(CONST.PAGINATION_START_ID);
         }
         if (response.hasOlderActions === false || response.hasOlderActions === null) {
@@ -119,13 +121,30 @@ const Pagination: Middleware = (requestResponse, request) => {
 
         const pagesCollections = pages.get(pageCollectionKey) ?? {};
         const existingPages = pagesCollections[pageKey] ?? [];
-        const mergedPages = PaginationUtils.mergeAndSortContinuousPages(sortedAllItems, [...existingPages, newPage], getItemID);
 
+        // When loading the first page of data, make sure to remove the start maker if the backend returns
+        // that there is new data.
+        const firstPage = existingPages.at(0);
+        if (type === 'initial' && !cursorID && firstPage?.at(0) === CONST.PAGINATION_START_ID && response.hasNewerActions === true) {
+            firstPage.shift();
+        }
+        const mergedPages = PaginationUtils.mergeAndSortContinuousPages(sortedAllItems, [...existingPages, newPage], getItemID);
         response.onyxData.push({
             key: pageKey,
             onyxMethod: Onyx.METHOD.SET,
             value: mergedPages,
         });
+
+        if (request.command === WRITE_COMMANDS.OPEN_REPORT) {
+            // Stores the oldestUnreadReportActionID in Onyx to to allow fetching the correct page initially when a report is loaded.
+            // This value is reset once the report has finished loading.
+            const oldestUnreadReportActionID = response.oldestUnreadReportActionID ?? CONST.NOT_FOUND_ID;
+            response.onyxData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${resourceID}`,
+                value: oldestUnreadReportActionID,
+            });
+        }
 
         return Promise.resolve(response);
     });
