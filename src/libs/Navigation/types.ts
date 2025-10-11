@@ -489,6 +489,14 @@ type SettingsNavigatorParamList = {
         policyID: string;
         valueIndex: number;
     };
+    [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_NAME]: {
+        policyID: string;
+        reportFieldID: string;
+    };
+    [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_TYPE]: {
+        policyID: string;
+        reportFieldID: string;
+    };
     [SCREENS.WORKSPACE.REPORT_FIELDS_SETTINGS]: {
         policyID: string;
         reportFieldID: string;
