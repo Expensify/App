@@ -280,6 +280,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isTaskActionable;
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
+    const iouReportID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUReportID : undefined;
+    const [iouReportRNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`, {canBeMissing: true}, [iouReportID]);
+
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransactionID}`, {canBeMissing: true});
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
@@ -794,23 +797,34 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 duplicateTransactionViolations,
                 isSingleTransactionView,
                 isMoneyRequestReportArchived,
+                iouReportRNVP,
             );
         } else {
-            deleteMoneyRequest(iouTransactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations, isSingleTransactionView);
+            deleteMoneyRequest(
+                iouTransactionID,
+                requestParentReportAction,
+                duplicateTransactions,
+                duplicateTransactionViolations,
+                isSingleTransactionView,
+                undefined,
+                undefined,
+                iouReportRNVP,
+            );
             removeTransaction(iouTransactionID);
         }
     }, [
+        caseID,
+        requestParentReportAction,
+        report,
+        isReportArchived,
+        moneyRequestReport?.reportID,
+        iouTransactionID,
         duplicateTransactions,
         duplicateTransactionViolations,
-        caseID,
-        iouTransactionID,
         isSingleTransactionView,
-        moneyRequestReport?.reportID,
-        removeTransaction,
-        report,
-        requestParentReportAction,
-        isReportArchived,
         isMoneyRequestReportArchived,
+        iouReportRNVP,
+        removeTransaction,
     ]);
 
     // A flag to indicate whether the user chose to delete the transaction or not

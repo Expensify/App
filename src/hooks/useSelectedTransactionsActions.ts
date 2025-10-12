@@ -1,4 +1,5 @@
 import {useCallback, useMemo, useState} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -6,6 +7,7 @@ import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates} from '@libs/actions/Search';
+import {extractCollectionItemID} from '@libs/CollectionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isMergeAction} from '@libs/ReportSecondaryActionUtils';
@@ -24,6 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
@@ -63,6 +66,46 @@ function useSelectedTransactionsActions({
 
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
+    const [selectTransactionsIOUReports] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT,
+        {
+            canBeMissing: true,
+            selector: (allReports: OnyxCollection<Report>) => {
+                const transactionIOUReportIDs = selectedTransactionIDs
+                    .map((transactionID) => {
+                        const iOUaction = reportActions.find((action) => {
+                            if (!isMoneyRequestAction(action)) {
+                                return false;
+                            }
+                            const IOUTransactionID = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action)?.IOUTransactionID;
+                            return transactionID === IOUTransactionID;
+                        }) as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> | undefined;
+                        if (!iOUaction) {
+                            return;
+                        }
+                        const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(iOUaction);
+                        return originalMessage?.IOUReportID;
+                    })
+                    .filter(Boolean);
+
+                return mapOnyxCollectionItems(allReports, (reportValue) => (reportValue?.reportID && transactionIOUReportIDs.includes(reportValue.reportID) ? reportValue : undefined));
+            },
+        },
+        [reportActions, selectedTransactionIDs],
+    );
+    const [iouTransactionsReportRNVP] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+        {
+            canBeMissing: true,
+            selector: (rNVPs) =>
+                mapOnyxCollectionItems(rNVPs, (rNVP, rNVPKey) =>
+                    selectTransactionsIOUReports && Object.values(selectTransactionsIOUReports).some((iouReport) => extractCollectionItemID(rNVPKey) === iouReport?.reportID)
+                        ? rNVP
+                        : undefined,
+                ),
+        },
+        [selectTransactionsIOUReports],
+    );
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -109,7 +152,7 @@ function useSelectedTransactionsActions({
                 return;
             }
 
-            deleteMoneyRequest(transactionID, action, duplicateTransactions, duplicateTransactionViolations, false, deletedTransactionIDs, selectedTransactionIDs);
+            deleteMoneyRequest(transactionID, action, duplicateTransactions, duplicateTransactionViolations, false, deletedTransactionIDs, selectedTransactionIDs, iouTransactionsReportRNVP);
             deletedTransactionIDs.push(transactionID);
             if (action.childReportID) {
                 deletedTransactionThreadReportIDs.add(action.childReportID);
@@ -118,7 +161,7 @@ function useSelectedTransactionsActions({
         clearSelectedTransactions(true);
         setIsDeleteModalVisible(false);
         Navigation.removeReportScreen(deletedTransactionThreadReportIDs);
-    }, [duplicateTransactions, duplicateTransactionViolations, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
+    }, [reportActions, selectedTransactionIDs, clearSelectedTransactions, duplicateTransactions, duplicateTransactionViolations, iouTransactionsReportRNVP]);
 
     const showDeleteModal = useCallback(() => {
         setIsDeleteModalVisible(true);
