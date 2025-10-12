@@ -14,8 +14,8 @@ const ActionSheetAwareScrollView = forwardRef<ActionSheetAwareScrollViewHandle, 
         paddingTop: spacing.get(),
     }));
 
-    const {onScroll: onScrollInternal} = usePreventScrollOnKeyboardInteraction({scrollViewRef: animatedRef});
-    const onScroll = useComposedEventHandler([onScrollInternal, onScrollProp ?? null]);
+    const preventScrollOnKeyboardInteraction = usePreventScrollOnKeyboardInteraction({scrollViewRef: animatedRef});
+    const onScroll = useComposedEventHandler([preventScrollOnKeyboardInteraction, onScrollProp ?? null]);
 
     return (
         <Reanimated.ScrollView

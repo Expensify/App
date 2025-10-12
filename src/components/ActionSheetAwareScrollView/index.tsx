@@ -10,8 +10,8 @@ import usePreventScrollOnKeyboardInteraction from './usePreventScrollOnKeyboardI
 const ActionSheetAwareScrollView = forwardRef<ActionSheetAwareScrollViewHandle, ActionSheetAwareScrollViewProps>(({onScroll: onScrollProp, ...restProps}, forwardedRef) => {
     const {onRef, animatedRef} = useActionSheetAwareScrollViewRef(forwardedRef);
 
-    const {onScroll: onScrollInternal} = usePreventScrollOnKeyboardInteraction({scrollViewRef: animatedRef});
-    const onScroll = useComposedEventHandler([onScrollInternal, onScrollProp ?? null]);
+    const preventScrollOnKeyboardInteraction = usePreventScrollOnKeyboardInteraction({scrollViewRef: animatedRef});
+    const onScroll = useComposedEventHandler([preventScrollOnKeyboardInteraction, onScrollProp ?? null]);
 
     return (
         <Reanimated.ScrollView
