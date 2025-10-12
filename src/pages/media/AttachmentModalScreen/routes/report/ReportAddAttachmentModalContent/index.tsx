@@ -1,9 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
-import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView';
-import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
-import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
-import type {Attachment} from '@components/Attachments/types';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {openReport} from '@libs/actions/Report';
@@ -11,7 +7,7 @@ import validateAttachmentFile from '@libs/AttachmentUtils';
 import type {AttachmentValidationResult} from '@libs/AttachmentUtils';
 import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import type {AttachmentContentProps, AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
+import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
 import useNavigateToReportOnRefresh from '@pages/media/AttachmentModalScreen/routes/hooks/useNavigateToReportOnRefresh';
@@ -21,17 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-const convertFileToAttachment = (file: FileObject | undefined): Attachment => {
-    if (!file) {
-        return {source: ''};
-    }
-
-    return {
-        file,
-        source: file.uri ?? '',
-    };
-};
+import AddAttachmentModalCarouselView from './AddAttachmentModalCarouselView';
 
 function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.REPORT_ADD_ATTACHMENT>) {
     const {
@@ -199,47 +185,5 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     );
 }
 ReportAddAttachmentModalContent.displayName = 'ReportAddAttachmentModalContent';
-
-function AddAttachmentModalCarouselView({fileToDisplay, files}: AttachmentContentProps) {
-    const {setAttachmentError, clearAttachmentErrors} = useAttachmentErrors();
-    const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
-
-    const [page, setPage] = useState<number>(0);
-    const attachments = useMemo(() => {
-        if (Array.isArray(files)) {
-            return files?.map((file) => convertFileToAttachment(file)) ?? [];
-        }
-
-        if (!files) {
-            return [];
-        }
-
-        return [convertFileToAttachment(files)];
-    }, [files]);
-    const currentAttachment = useMemo(() => convertFileToAttachment(fileToDisplay), [fileToDisplay]);
-
-    useEffect(() => {
-        clearAttachmentErrors();
-    }, [clearAttachmentErrors]);
-
-    if (attachments.length === 0 || !currentAttachment) {
-        return null;
-    }
-
-    return (
-        <AttachmentCarouselView
-            attachments={attachments}
-            source={currentAttachment.source}
-            page={page}
-            setPage={setPage}
-            autoHideArrows={autoHideArrows}
-            cancelAutoHideArrow={cancelAutoHideArrows}
-            setShouldShowArrows={setShouldShowArrows}
-            onAttachmentError={setAttachmentError}
-            shouldShowArrows={shouldShowArrows}
-        />
-    );
-}
-AddAttachmentModalCarouselView.displayName = 'AddAttachmentModalCarouselView';
 
 export default ReportAddAttachmentModalContent;
