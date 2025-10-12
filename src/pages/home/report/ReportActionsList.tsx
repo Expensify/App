@@ -405,9 +405,8 @@ function ReportActionsList({
 
         // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
-            setIsFloatingMessageCounterVisible(false);
-
             if (!shouldScrollToEndAfterLayout) {
+                setIsFloatingMessageCounterVisible(false);
                 reportScrollManager.scrollToBottom();
             }
         });
