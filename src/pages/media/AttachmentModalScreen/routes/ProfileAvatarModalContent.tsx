@@ -11,6 +11,7 @@ import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScree
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.PROFILE_AVATAR>) {
     const {accountID = CONST.DEFAULT_NUMBER_ID} = route.params;
@@ -21,23 +22,27 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
     const avatarURL = personalDetail?.avatar ?? '';
     const displayName = getDisplayNameOrDefault(personalDetail);
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+
     useEffect(() => {
-        if (!isValidAccountRoute(accountID)) {
+        if (!isValidAccountRoute(Number(accountID))) {
             return;
         }
         openPublicProfilePage(accountID);
     }, [accountID]);
 
+    const onDownloadAttachment = useDownloadAttachment();
+
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
             source: getFullSizeAvatar(avatarURL, accountID),
-            isLoading: !!(personalDetailsMetadata?.[accountID]?.isLoading ?? (isLoadingApp && !Object.keys(personalDetail ?? {}).length)),
-            headerTitle: formatPhoneNumber(displayName),
             originalFileName: personalDetail?.originalFileName ?? '',
+            headerTitle: formatPhoneNumber(displayName),
+            isLoading: !!(personalDetailsMetadata?.[accountID]?.isLoading ?? (isLoadingApp && !Object.keys(personalDetail ?? {}).length)),
             shouldShowNotFoundPage: !avatarURL,
             maybeIcon: true,
+            onDownloadAttachment,
         }),
-        [accountID, avatarURL, displayName, isLoadingApp, personalDetail, personalDetailsMetadata, formatPhoneNumber],
+        [accountID, avatarURL, displayName, formatPhoneNumber, isLoadingApp, onDownloadAttachment, personalDetail, personalDetailsMetadata],
     );
 
     return (

@@ -84,7 +84,6 @@ const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../..
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
-const loadProfileAvatar = () => require<ReactComponentModule>('../../../pages/settings/Profile/Avatar/ProfileAvatar').default;
 const loadWorkspaceAvatar = () => require<ReactComponentModule>('../../../pages/workspace/WorkspaceAvatar').default;
 const loadReportAvatar = () => require<ReactComponentModule>('../../../pages/ReportAvatar').default;
 const loadReceiptView = () => require<ReactComponentModule>('../../../pages/TransactionReceiptPage').default;
@@ -583,12 +582,8 @@ function AuthScreens() {
                 />
                 <RootStack.Screen
                     name={SCREENS.PROFILE_AVATAR}
-                    options={{
-                        headerShown: false,
-                        presentation: Presentation.TRANSPARENT_MODAL,
-                        animation: Animations.NONE,
-                    }}
-                    getComponent={loadProfileAvatar}
+                    options={attachmentModalScreenOptions}
+                    getComponent={loadAttachmentModalScreen}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
