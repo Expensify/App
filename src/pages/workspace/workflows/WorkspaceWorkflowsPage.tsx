@@ -225,8 +225,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subtitle: isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
                 switchAccessibilityLabel: isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
                 onToggle: (isEnabled: boolean) => {
-                    const hasCustomApprovalWorkflows = policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED;
-                    if (!isEnabled && hasCustomApprovalWorkflows) {
+                    if (!isEnabled) {
                         setIsDisableApprovalsConfirmModalOpen(true);
                         return;
                     }
