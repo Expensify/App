@@ -3,7 +3,7 @@ import SCREENS from '@src/SCREENS';
 import AttachmentModalContext from './AttachmentModalContext';
 import ProfileAvatarModalContent from './routes/ProfileAvatarModalContent';
 import ReportAddAttachmentModalContent from './routes/report/ReportAddAttachmentModalContent';
-import ReportAttachmentModalContent from './routes/ReportAttachmentModalContent';
+import ReportAttachmentModalContent from './routes/report/ReportAttachmentModalContent';
 import ReportAvatarModalContent from './routes/ReportAvatarModalContent';
 import TransactionReceiptModalContent from './routes/TransactionReceiptModalContent';
 import WorkspaceAvatarModalContent from './routes/WorkspaceAvatarModalContent';
