@@ -759,7 +759,8 @@
         "مثال",
         "moveElemsAttrsToGroup",
         "removeHiddenElems",
-        "moveGroupAttrsToElems"
+        "moveGroupAttrsToElems",
+        "expensifycard"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
