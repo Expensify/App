@@ -151,6 +151,7 @@ import {
     getReportViolations,
     getRouteFromLink,
     getTitleReportField,
+    getTransactionReportName,
     hasOutstandingChildRequest,
     isChatThread as isChatThreadReportUtils,
     isConciergeChatReport,
@@ -1133,44 +1134,45 @@ function openReport(
 
     // This is a legacy transactions that doesn't have either a transaction thread or a money request preview
     if (transactionID && !parentReportActionID) {
-        const transaction = allTransactions?.[transactionID];
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
         if (transaction) {
-            const selfDMReportID = findSelfDMReportID();
+            const isUnreportedTransaction = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+            const parentReportID = isUnreportedTransaction ? findSelfDMReportID() : transaction?.reportID;
+            const iouReportActionID = rand64();
 
-            if (selfDMReportID) {
-                const generatedReportActionID = rand64();
-                const optimisticParentAction = buildOptimisticIOUReportAction({
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                    amount: Math.abs(transaction.amount),
-                    currency: transaction.currency,
-                    comment: transaction.comment?.comment ?? '',
-                    participants: [{accountID: currentUserAccountID, login: currentUserEmail ?? ''}],
-                    transactionID,
-                    isOwnPolicyExpenseChat: true,
-                });
+            const optimisticIOUAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: Math.abs(transaction.amount),
+                currency: transaction.currency,
+                comment: transaction.comment?.comment ?? '',
+                participants: [{accountID: currentUserAccountID, login: currentUserEmail ?? ''}],
+                transactionID,
+                isOwnPolicyExpenseChat: true,
+            });
 
-                optimisticData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: {
-                        parentReportID: selfDMReportID,
-                        parentReportActionID: generatedReportActionID,
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    parentReportID,
+                    parentReportActionID: iouReportActionID,
+                    reportName: getTransactionReportName({reportAction: optimisticIOUAction}),
+                },
+            });
+
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+                value: {
+                    [iouReportActionID]: {
+                        ...optimisticIOUAction,
+                        reportActionID: iouReportActionID,
                     },
-                });
+                },
+            });
 
-                optimisticData.push({
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}${generatedReportActionID}`,
-                    value: {
-                        ...optimisticParentAction,
-                        reportActionID: generatedReportActionID,
-                        childReportID: reportID,
-                    },
-                });
-
-                parameters.moneyRequestPreviewReportActionID = generatedReportActionID;
-            }
+            parameters.moneyRequestPreviewReportActionID = iouReportActionID;
         }
     }
 
