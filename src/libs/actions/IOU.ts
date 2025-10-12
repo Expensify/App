@@ -770,15 +770,6 @@ Onyx.connect({
     },
 });
 
-// let allDraftSplitTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
-// Onyx.connect({
-//     key: ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT,
-//     waitForCollectionCallback: true,
-//     callback: (value) => {
-//         allDraftSplitTransactions = value ?? {};
-//     },
-// });
-
 let allNextSteps: NonNullable<OnyxCollection<OnyxTypes.ReportNextStep>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.NEXT_STEP,
