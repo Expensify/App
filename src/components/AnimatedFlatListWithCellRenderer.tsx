@@ -51,9 +51,10 @@ type AnimatedFlatListComplement<T> = {
 } & FlatList<T>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnimatedFlatListWithCellRendererProps<Item = any> = Omit<ReanimatedFlatListPropsWithLayout<Item>, 'CellRendererComponent' | 'onScroll'> & {
+type AnimatedFlatListWithCellRendererProps<Item = any> = Omit<ReanimatedFlatListPropsWithLayout<Item>, 'CellRendererComponent' | 'onScroll' | 'inverted'> & {
     CellRendererComponent?: CellRendererComponentProps<Item>;
     onScroll?: FlatListProps<Item>['onScroll'];
+    inverted?: boolean;
 };
 
 // We need explicit any here, because this is the exact same type that is used in React Native types.

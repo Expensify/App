@@ -43,7 +43,7 @@ function getScrollableNode(flatList: FlatList | null): HTMLElement | undefined {
     return flatList?.getScrollableNode() as HTMLElement | undefined;
 }
 
-function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll: onScrollProp, ref, ...props}: CustomFlatListProps<TItem>) {
+function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll: onScrollProp, ref, ...restProps}: CustomFlatListProps<TItem>) {
     const {minIndexForVisible: mvcpMinIndexForVisible, autoscrollToTopThreshold: mvcpAutoscrollToTopThreshold} = maintainVisibleContentPosition ?? {};
     const scrollRef = useRef<FlatList | null>(null);
     const prevFirstVisibleOffsetRef = useRef(0);
@@ -223,7 +223,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         };
     }, []);
 
-    const emitScrollEvents = useMomentumScrollEvents();
+    const emitScrollEvents = useMomentumScrollEvents(restProps.inverted);
     const handleScroll = useCallback(
         (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             onScrollProp?.(event);
@@ -236,7 +236,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
     return (
         <FlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            {...restProps}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             horizontal={horizontal}
             onScroll={handleScroll}
@@ -248,7 +248,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
                     prepareForMaintainVisibleContentPosition();
                     setupMutationObserver();
                 }
-                props.onLayout?.(e);
+                restProps.onLayout?.(e);
             }}
         />
     );
