@@ -11,7 +11,8 @@ import type {Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx'
 import updateUnread from './updateUnread';
 
 let allReports: OnyxCollection<Report> = {};
-Onyx.connect({
+// This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => {
