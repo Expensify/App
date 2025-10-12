@@ -161,10 +161,9 @@ function getOptimisticTargetTransactionData(targetTransaction: Transaction, merg
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction
  */
 function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: MergeTransaction, targetTransaction: Transaction, sourceTransaction: Transaction) {
-    const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-
-    // If the target transaction we're keeping is unreported, the amount needs to be always negative. Otherwise for expense reports it needs to be the opposite sign.
-    const finalAmount = isUnreportedExpense ? -Math.abs(mergeTransaction.amount) : -mergeTransaction.amount;
+    // For both unreported expenses and expense reports, negate the display amount when storing
+    // This preserves the user's chosen sign while following the storage convention
+    const finalAmount = -mergeTransaction.amount;
 
     // Call the merge transaction action
     const params = {

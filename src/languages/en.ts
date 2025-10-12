@@ -654,8 +654,6 @@ const translations = {
         reschedule: 'Reschedule',
         general: 'General',
         workspacesTabTitle: 'Workspaces',
-        getTheApp: 'Get the app',
-        scanReceiptsOnTheGo: 'Scan receipts from your phone',
         headsUp: 'Heads up!',
         submitTo: 'Submit to',
         forwardTo: 'Forward to',
@@ -664,9 +662,11 @@ const translations = {
         unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
         enableGlobalReimbursements: 'Enable Global Reimbursements',
         purchaseAmount: 'Purchase amount',
+        frequency: 'Frequency',
         link: 'Link',
         pinned: 'Pinned',
         read: 'Read',
+        copyToClipboard: 'Copy to clipboard',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -846,7 +846,7 @@ const translations = {
         expand: 'Expand',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'Copy to clipboard',
+        copyMessage: 'Copy message',
         copied: 'Copied!',
         copyLink: 'Copy link',
         copyURLToClipboard: 'Copy URL to clipboard',
@@ -1034,12 +1034,16 @@ const translations = {
     receipt: {
         upload: 'Upload receipt',
         uploadMultiple: 'Upload receipts',
-        dragReceiptBeforeEmail: 'Drag a receipt onto this page, forward a receipt to ',
-        dragReceiptsBeforeEmail: 'Drag receipts onto this page, forward receipts to ',
-        dragReceiptAfterEmail: ' or choose a file to upload below.',
-        dragReceiptsAfterEmail: ' or choose files to upload below.',
+        desktopSubtitleSingle: `or drag and drop it here`,
+        desktopSubtitleMultiple: `or drag and drop them here`,
         chooseReceipt: 'Choose a receipt to upload or forward a receipt to ',
         chooseReceipts: 'Choose receipts to upload or forward receipts to ',
+        alternativeMethodsTitle: 'Other ways to add receipts:',
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">Download the app</a> to scan from your phone</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Forward receipts to <a href="mailto:${email}">${email}</a></label-text>`,
+        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: {phoneNumber: string; contactMethodsUrl: string}) =>
+            `<label-text><a href="${contactMethodsUrl}">Add your number</a> to text receipts to ${phoneNumber}</label-text>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Text receipts to ${phoneNumber} (US numbers only)</label-text>`,
         takePhoto: 'Take a photo',
         cameraAccess: 'Camera access is required to take pictures of receipts.',
         deniedCameraAccess: "Camera access still hasn't been granted, please follow ",
@@ -1090,11 +1094,15 @@ const translations = {
         splitExpense: 'Split expense',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} from ${merchant}`,
         addSplit: 'Add split',
+        editSplits: 'Edit splits',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Total amount is ${amount} greater than the original expense.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Total amount is ${amount} less than the original expense.`,
         splitExpenseZeroAmount: 'Please enter a valid amount before continuing.',
+        splitExpenseOneMoreSplit: 'No splits added. Add at least one to save.',
         splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `Edit ${amount} for ${merchant}`,
         removeSplit: 'Remove split',
+        splitExpenseCannotBeEditedModalTitle: "This expense can't be edited",
+        splitExpenseCannotBeEditedModalDescription: 'Approved or paid expenses cannot be edited',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Pay ${name ?? 'someone'}`,
         expense: 'Expense',
         categorize: 'Categorize',
@@ -1118,6 +1126,7 @@ const translations = {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
+        findExpense: 'Find expense',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `deleted an expense (${amount} for ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `moved an expense${reportName ? ` from ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
@@ -1219,8 +1228,8 @@ const translations = {
         invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Business Account • ${lastFour}`,
         nextStep: 'Next steps',
         finished: 'Finished',
+        flip: 'Flip',
         sendInvoice: ({amount}: RequestAmountParams) => `Send ${amount} invoice`,
-        submitAmount: ({amount}: RequestAmountParams) => `Submit ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `submitted${memo ? `, saying ${memo}` : ''}`,
         automaticallySubmitted: `submitted via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a>`,
@@ -1501,6 +1510,10 @@ const translations = {
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
             `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels and smaller than ${maxHeightInPx}x${maxWidthInPx} pixels.`,
         notAllowedExtension: ({allowedExtensions}: NotAllowedExtensionParams) => `Profile picture must be one of the following types: ${allowedExtensions.join(', ')}.`,
+    },
+    avatarPage: {
+        title: 'Edit profile picture',
+        uploadPhoto: 'Upload photo',
     },
     modal: {
         backdropLabel: 'Modal Backdrop',
@@ -1989,9 +2002,8 @@ const translations = {
     workflowsPage: {
         workflowTitle: 'Spend',
         workflowDescription: 'Configure a workflow from the moment spend occurs, including approval and payment.',
-        delaySubmissionTitle: 'Delay submissions',
-        delaySubmissionDescription: 'Choose a custom schedule for submitting expenses, or leave this off for realtime updates on spending.',
         submissionFrequency: 'Submission frequency',
+        submissionFrequencyDescription: 'Choose a custom schedule for submitting expenses, or leave this off for realtime updates on spending.',
         submissionFrequencyDateOfMonth: 'Date of month',
         addApprovalsTitle: 'Add approvals',
         addApprovalButton: 'Add approval workflow',
@@ -2005,7 +2017,7 @@ const translations = {
         },
         frequencyDescription: 'Choose how often you’d like expenses to submit automatically, or make it manual',
         frequencies: {
-            instant: 'Instant',
+            instant: 'Instantly',
             weekly: 'Weekly',
             monthly: 'Monthly',
             twiceAMonth: 'Twice a month',
@@ -2043,7 +2055,6 @@ const translations = {
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: "Delayed submission couldn't be changed. Please try again or contact support.",
         autoReportingFrequencyErrorMessage: "Submission frequency couldn't be changed. Please try again or contact support.",
         monthlyOffsetErrorMessage: "Monthly frequency couldn't be changed. Please try again or contact support.",
     },
@@ -3730,6 +3741,18 @@ const translations = {
                 createEntitiesDescription: "Expensify will automatically create vendors in QuickBooks Desktop if they don't exist already.",
             },
             itemsDescription: 'Choose how to handle QuickBooks Desktop items in Expensify.',
+            accountingMethods: {
+                label: 'When to Export',
+                description: 'Choose when to export the expenses:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
+                },
+            },
         },
         qbo: {
             connectedTo: 'Connected to',
@@ -5531,6 +5554,11 @@ const translations = {
                 description: 'Expensify Travel is a new corporate travel booking and management platform that allows members to book accommodations, flights, transportation, and more.',
                 onlyAvailableOnPlan: 'Travel is available on the Collect plan, starting at ',
             },
+            reports: {
+                title: 'Reports',
+                description: 'Reports allow you to group expenses for easier tracking and organization.',
+                onlyAvailableOnPlan: 'Reports are available on the Collect plan, starting at ',
+            },
             multiLevelTags: {
                 title: 'Multi-level tags',
                 description:
@@ -6179,7 +6207,6 @@ const translations = {
         groupBy: 'Group by',
         moneyRequestReport: {
             emptyStateTitle: 'This report has no expenses.',
-            emptyStateSubtitle: 'You can add expenses to this report \n using the button below or the "Add expense" option in the More menu above.',
         },
         noCategory: 'No category',
         noTag: 'No tag',
