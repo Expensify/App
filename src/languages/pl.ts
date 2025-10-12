@@ -330,7 +330,7 @@ const translations = {
         count: 'Liczba',
         cancel: 'Anuluj',
         dismiss: 'Odrzuć',
-        proceed: 'Proceed',
+        proceed: 'Przystępować',
         yes: 'Tak',
         no: 'Nie',
         ok: 'OK',
@@ -659,8 +659,6 @@ const translations = {
         reschedule: 'Przełożyć na inny termin',
         general: 'Ogólne',
         workspacesTabTitle: 'Przestrzenie robocze',
-        getTheApp: 'Pobierz aplikację',
-        scanReceiptsOnTheGo: 'Skanuj paragony za pomocą telefonu',
         headsUp: 'Uwaga!',
         submitTo: 'Wyślij do',
         forwardTo: 'Przekaż do',
@@ -669,9 +667,11 @@ const translations = {
         unstableInternetConnection: 'Niestabilne połączenie internetowe. Sprawdź swoją sieć i spróbuj ponownie.',
         enableGlobalReimbursements: 'Włącz globalne zwroty',
         purchaseAmount: 'Kwota zakupu',
+        frequency: 'Częstotliwość',
         link: 'Link',
         pinned: 'Przypięte',
         read: 'Przeczytane',
+        copyToClipboard: 'Skopiuj do schowka',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -855,7 +855,7 @@ const translations = {
         expand: 'Rozwiń',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'Skopiuj do schowka',
+        copyMessage: 'Skopiuj wiadomość',
         copied: 'Skopiowano!',
         copyLink: 'Skopiuj link',
         copyURLToClipboard: 'Skopiuj URL do schowka',
@@ -1039,12 +1039,16 @@ const translations = {
     receipt: {
         upload: 'Prześlij paragon',
         uploadMultiple: 'Prześlij paragony',
-        dragReceiptBeforeEmail: 'Przeciągnij paragon na tę stronę, prześlij paragon do',
-        dragReceiptsBeforeEmail: 'Przeciągnij paragony na tę stronę, prześlij paragony do',
-        dragReceiptAfterEmail: 'lub wybierz plik do przesłania poniżej.',
-        dragReceiptsAfterEmail: 'lub wybierz pliki do przesłania poniżej.',
+        desktopSubtitleSingle: `lub przeciągnij i upuść tutaj`,
+        desktopSubtitleMultiple: `lub przeciągnij i upuść je tutaj`,
         chooseReceipt: 'Wybierz paragon do przesłania lub prześlij paragon do',
         chooseReceipts: 'Wybierz paragony do przesłania lub prześlij paragony do',
+        alternativeMethodsTitle: 'Inne sposoby dodawania paragonów:',
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">Pobierz aplikację</a>, aby skanować z telefonu</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Przekazuj paragony na <a href="mailto:${email}">${email}</a></label-text>`,
+        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: {phoneNumber: string; contactMethodsUrl: string}) =>
+            `<label-text><a href="${contactMethodsUrl}">Dodaj swój numer</a>, aby wysyłać paragony SMS-em na ${phoneNumber}</label-text>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Wysyłaj paragony SMS-em na ${phoneNumber} (tylko numery w USA)</label-text>`,
         takePhoto: 'Zrób zdjęcie',
         cameraAccess: 'Dostęp do aparatu jest wymagany, aby robić zdjęcia paragonów.',
         deniedCameraAccess: 'Dostęp do kamery nadal nie został przyznany, proszę postępować zgodnie z',
@@ -1131,6 +1135,7 @@ const translations = {
         canceled: 'Anulowano',
         posted: 'Opublikowano',
         deleteReceipt: 'Usuń paragon',
+        findExpense: 'Znajdź wydatek',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `usunął wydatek (${amount} dla ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `przeniósł wydatek${reportName ? `z ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `przeniesiono ten wydatek${reportName ? `do <a href="${reportUrl}">${reportName}</a>` : ''}`,
@@ -1237,8 +1242,8 @@ const translations = {
         invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Konto firmowe • ${lastFour}`,
         nextStep: 'Następne kroki',
         finished: 'Zakończono',
+        flip: 'Odwróć',
         sendInvoice: ({amount}: RequestAmountParams) => `Wyślij fakturę na kwotę ${amount}`,
-        submitAmount: ({amount}: RequestAmountParams) => `Zatwierdź ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `dla ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `przesłano${memo ? `, mówiąc ${memo}` : ''}`,
         automaticallySubmitted: `przesłane za pomocą <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">opóźnij zgłoszenia</a>`,
@@ -2006,10 +2011,9 @@ const translations = {
     workflowsPage: {
         workflowTitle: 'Wydatki',
         workflowDescription: 'Skonfiguruj przepływ pracy od momentu wystąpienia wydatku, w tym zatwierdzenie i płatność.',
-        delaySubmissionTitle: 'Opóźnij zgłoszenia',
-        delaySubmissionDescription:
-            'Wybierz niestandardowy harmonogram przesyłania wydatków lub pozostaw to wyłączone, aby otrzymywać aktualizacje w czasie rzeczywistym dotyczące wydatków.',
         submissionFrequency: 'Częstotliwość składania wniosków',
+        submissionFrequencyDescription:
+            'Wybierz niestandardowy harmonogram przesyłania wydatków lub pozostaw to wyłączone, aby otrzymywać aktualizacje w czasie rzeczywistym dotyczące wydatków.',
         submissionFrequencyDateOfMonth: 'Data miesiąca',
         addApprovalsTitle: 'Dodaj zatwierdzenia',
         addApprovalButton: 'Dodaj przepływ pracy zatwierdzania',
@@ -2023,7 +2027,7 @@ const translations = {
         },
         frequencyDescription: 'Wybierz, jak często chcesz, aby wydatki były przesyłane automatycznie, lub ustaw je na ręczne przesyłanie.',
         frequencies: {
-            instant: 'Natychmiastowy',
+            instant: 'Natychmiast',
             weekly: 'Cotygodniowo',
             monthly: 'Miesięczny',
             twiceAMonth: 'Dwa razy w miesiącu',
@@ -2061,7 +2065,6 @@ const translations = {
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: 'Opóźnione zgłoszenie nie mogło zostać zmienione. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
         autoReportingFrequencyErrorMessage: 'Nie można było zmienić częstotliwości przesyłania. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
         monthlyOffsetErrorMessage: 'Nie można było zmienić miesięcznej częstotliwości. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
     },
@@ -3746,6 +3749,18 @@ const translations = {
                 createEntitiesDescription: 'Expensify automatycznie utworzy dostawców w QuickBooks Desktop, jeśli jeszcze nie istnieją.',
             },
             itemsDescription: 'Wybierz, jak obsługiwać elementy QuickBooks Desktop w Expensify.',
+            accountingMethods: {
+                label: 'Kiedy eksportować',
+                description: 'Wybierz, kiedy eksportować wydatki:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Rozliczenia międzyokresowe',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Gotówka',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po ostatecznym zatwierdzeniu.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po opłaceniu',
+                },
+            },
         },
         qbo: {
             connectedTo: 'Połączono z',
@@ -5554,6 +5569,11 @@ const translations = {
                     'Expensify Travel to nowa platforma do rezerwacji i zarządzania podróżami służbowymi, która umożliwia członkom rezerwację zakwaterowania, lotów, transportu i nie tylko.',
                 onlyAvailableOnPlan: 'Podróże są dostępne w planie Collect, zaczynając od',
             },
+            reports: {
+                title: 'Raporty',
+                description: 'Raporty pozwalają grupować wydatki dla łatwiejszego śledzenia i organizacji.',
+                onlyAvailableOnPlan: 'Raporty są dostępne w planie Collect, zaczynając od ',
+            },
             multiLevelTags: {
                 title: 'Wielopoziomowe tagi',
                 description:
@@ -6200,7 +6220,6 @@ const translations = {
         groupBy: 'Grupa według',
         moneyRequestReport: {
             emptyStateTitle: 'Ten raport nie zawiera wydatków.',
-            emptyStateSubtitle: 'Możesz dodać wydatki do tego raportu\n za pomocą przycisku poniżej lub opcji „Dodaj wydatek” w menu Więcej powyżej.',
         },
         noCategory: 'Brak kategorii',
         noTag: 'Brak tagu',
@@ -7237,6 +7256,7 @@ const translations = {
         exportInProgress: 'Trwa eksport',
         conciergeWillSend: 'Concierge wkrótce prześle plik.',
     },
+    avatarPage: {title: 'Edytuj zdjęcie profilowe', uploadPhoto: 'Prześlij zdjęcie'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

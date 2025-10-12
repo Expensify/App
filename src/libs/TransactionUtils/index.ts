@@ -17,7 +17,6 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import Permissions from '@libs/Permissions';
 import {getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -449,6 +448,30 @@ function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, reportTrans
     return (isMerchantRequired && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
 }
 
+function getClearedPendingFields(transactionChanges: TransactionChanges) {
+    return {
+        ...Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, null])),
+        ...(Object.hasOwn(transactionChanges, 'comment') && {comment: null}),
+        ...(Object.hasOwn(transactionChanges, 'created') && {created: null}),
+        ...(Object.hasOwn(transactionChanges, 'amount') && {amount: null}),
+        ...(Object.hasOwn(transactionChanges, 'currency') && {currency: null}),
+        ...(Object.hasOwn(transactionChanges, 'merchant') && {merchant: null}),
+        ...(Object.hasOwn(transactionChanges, 'waypoints') && {waypoints: null}),
+        ...(Object.hasOwn(transactionChanges, 'reimbursable') && {reimbursable: null}),
+        ...(Object.hasOwn(transactionChanges, 'billable') && {billable: null}),
+        ...(Object.hasOwn(transactionChanges, 'category') && {category: null}),
+        ...(Object.hasOwn(transactionChanges, 'tag') && {tag: null}),
+        ...(Object.hasOwn(transactionChanges, 'taxAmount') && {taxAmount: null}),
+        ...(Object.hasOwn(transactionChanges, 'taxCode') && {taxCode: null}),
+        ...(Object.hasOwn(transactionChanges, 'attendees') && {attendees: null}),
+        ...(Object.hasOwn(transactionChanges, 'distance') && {
+            quantity: null,
+            amount: null,
+            merchant: null,
+        }),
+    };
+}
+
 /**
  * Given the edit made to the expense, return an updated transaction object.
  */
@@ -667,14 +690,18 @@ function getDescription(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
-function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false): number {
+function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false, allowNegative = false, disableOppositeConversion = false): number {
     // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
-    if (!isFromExpenseReport && !isFromTrackedExpense) {
+    if (!isFromExpenseReport && !isFromTrackedExpense && !allowNegative) {
         const amount = transaction?.modifiedAmount ?? 0;
         if (amount) {
             return Math.abs(amount);
         }
         return Math.abs(transaction?.amount ?? 0);
+    }
+
+    if (disableOppositeConversion) {
+        return transaction?.amount ?? 0;
     }
 
     // Expense report case:
@@ -685,8 +712,9 @@ function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseRepo
         return -amount;
     }
 
-    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
     amount = transaction?.amount ?? 0;
+
+    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
     return amount ? -amount : 0;
 }
 
@@ -1236,23 +1264,18 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
 /**
  * Check if transaction has duplicatedTransaction violation.
  * @param transactionID - the transaction to check
- * @param checkDismissed - whether to check if the violation has already been dismissed as well
  */
-function isDuplicate(transaction: OnyxEntry<Transaction>, checkDismissed = false): boolean {
+function isDuplicate(transaction: OnyxEntry<Transaction>): boolean {
     if (!transaction) {
         return false;
     }
-    const duplicateViolation = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]?.find(
+    const duplicatedTransactionViolation = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]?.find(
         (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     );
-    const hasDuplicatedViolation = !!duplicateViolation;
-    if (!checkDismissed) {
-        return hasDuplicatedViolation;
-    }
+    const hasDuplicatedTransactionViolation = !!duplicatedTransactionViolation;
+    const isDuplicatedTransactionViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation);
 
-    const didDismissedViolation = isViolationDismissed(transaction, duplicateViolation);
-
-    return hasDuplicatedViolation && !didDismissedViolation;
+    return hasDuplicatedTransactionViolation && !isDuplicatedTransactionViolationDismissed;
 }
 
 /**
@@ -1264,17 +1287,6 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
     }
 
     return !!transaction.comment?.hold;
-}
-
-/**
- * Check if transaction is on hold for the given transactionID
- */
-function isOnHoldByTransactionID(transactionID: string | undefined | null): boolean {
-    if (!transactionID) {
-        return false;
-    }
-
-    return isOnHold(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]);
 }
 
 /**
@@ -1318,7 +1330,7 @@ function hasDuplicateTransactions(iouReportID?: string, allReportTransactions?: 
     const transactionsByIouReportID = getReportTransactions(iouReportID);
     const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
 
-    return reportTransactions.length > 0 && reportTransactions.some((transaction) => isDuplicate(transaction, true));
+    return reportTransactions.length > 0 && reportTransactions.some((transaction) => isDuplicate(transaction));
 }
 
 /**
@@ -1970,12 +1982,7 @@ function createUnreportedExpenseSections(transactions: Array<Transaction | undef
     ];
 }
 
-// Temporarily only for use in the Unreported Expense project
 function isExpenseUnreported(transaction?: Transaction): transaction is UnreportedTransaction {
-    // TODO: added for development purposes, should be removed once the feature are fully implemented
-    if (!Permissions.canUseUnreportedExpense()) {
-        return false;
-    }
     return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 }
 
@@ -1989,6 +1996,7 @@ export {
     getTaxName,
     getEnabledTaxRateCount,
     getUpdatedTransaction,
+    getClearedPendingFields,
     getDescription,
     getRequestType,
     getExpenseType,
@@ -2033,7 +2041,6 @@ export {
     isPending,
     isPosted,
     isOnHold,
-    isOnHoldByTransactionID,
     getWaypoints,
     isAmountMissing,
     isMerchantMissing,
