@@ -1,10 +1,11 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction, TransactionViolation} from '@src/types/onyx';
+import type {TransactionViolation} from '@src/types/onyx';
 
-let previousTransactions: OnyxCollection<Transaction> = {};
 let previousViolations: OnyxCollection<TransactionViolation[]> = {};
+
+const transactionToReportIDMap: Record<string, string> = {};
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS,
@@ -33,18 +34,15 @@ export default createOnyxDerivedValueConfig({
             const reportID = transaction?.reportID;
 
             // If the reportID of the transaction has changed (e.g. the transaction was split into multiple reports), we need to delete the transaction from the previous reportID and the violations from the previous reportID
-            const previousTransaction = previousTransactions?.[transactionKey];
-            const previousReportID = previousTransaction?.reportID;
-
+            const previousReportID = transactionToReportIDMap[transactionKey];
             if (previousReportID && previousReportID !== reportID && reportTransactionsAndViolations[previousReportID]) {
                 delete reportTransactionsAndViolations[previousReportID].transactions[transactionKey];
-                const transactionID = previousTransaction?.transactionID;
-                if (transactionID) {
-                    delete reportTransactionsAndViolations[previousReportID].violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-                }
+                const transactionID = transactionKey.replace(ONYXKEYS.COLLECTION.TRANSACTION, '');
+                delete reportTransactionsAndViolations[previousReportID].violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
             }
 
             if (!reportID) {
+                delete transactionToReportIDMap[transactionKey];
                 continue;
             }
 
@@ -71,9 +69,9 @@ export default createOnyxDerivedValueConfig({
             }
 
             reportTransactionsAndViolations[reportID].transactions[transactionKey] = transaction;
+            transactionToReportIDMap[transactionKey] = reportID;
         }
 
-        previousTransactions = transactions;
         previousViolations = violations;
 
         return reportTransactionsAndViolations;

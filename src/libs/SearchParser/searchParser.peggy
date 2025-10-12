@@ -35,6 +35,11 @@
     sortOrder: "desc",
   };
 
+  // List fields where you cannot prefix it with "-" to negate it
+  const nonNegatableKeys = new Set([
+    "type", "keyword", "groupCurrency", "groupBy"
+  ]);
+
   function applyDefaults(filters) {
     return {
       ...defaultValues,
@@ -106,9 +111,20 @@ freeTextFilter
     }
 
 standardFilter
-  = _ field:filterKey _ op:filterOperator _  values:identifier {
+  = _ neg:"-"? field:filterKey _ op:filterOperator _ values:identifier {
       expectingNestedQuote = false; nameOperator = false;
-      return buildFilter(op, field, values);
+
+      const key = field;
+      let operator = op;
+
+      // Apply negation only when "-" is present and the key can be negated
+      if (neg && !nonNegatableKeys.has(key)) {
+        if (operator === "eq") {
+          operator = "neq";
+        }
+      }
+
+      return buildFilter(operator, key, values);
     }
 
 key "key"
@@ -129,6 +145,7 @@ key "key"
       / taxRate
       / cardID
       / from
+      / attendee
       / payer
       / exporter
       / expenseType
@@ -147,14 +164,18 @@ key "key"
       / reimbursable
       / billable
       / action
+      / has
+      / is
+      / purchaseCurrency
+      / purchaseAmount
     )
 
 filterKey
   = k:key {
-      nameOperator = (k === "from" || k === "to");
+      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
       return k;
-}
-
+    }
+    
 defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy)
 
 identifier

@@ -1,29 +1,11 @@
 import {findFocusedRoute, useFocusEffect, useNavigationState} from '@react-navigation/native';
+import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
-import {
-    Building,
-    CalendarSolid,
-    Car,
-    Coins,
-    CreditCard,
-    Document,
-    ExpensifyAppIcon,
-    ExpensifyCard,
-    Feed,
-    Folder,
-    Gear,
-    InvoiceGeneric,
-    Receipt,
-    Sync,
-    Tag,
-    Users,
-    Workflows,
-} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -33,6 +15,8 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -106,19 +90,41 @@ function dismissError(policyID: string | undefined, pendingAction: PendingAction
 
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
+
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Building',
+        'CalendarSolid',
+        'Car',
+        'Coins',
+        'CreditCard',
+        'Document',
+        'ExpensifyAppIcon',
+        'ExpensifyCard',
+        'Feed',
+        'Folder',
+        'Gear',
+        'InvoiceGeneric',
+        'Receipt',
+        'Sync',
+        'Tag',
+        'Users',
+        'Workflows',
+    ] as const);
+
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
     const [cardFeeds] = useCardFeeds(policy?.id);
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID}`, {canBeMissing: true});
     const cardsDomainIDs = Object.values(getCompanyFeeds(cardFeeds))
         .map((data) => data.domainID)
         .filter((domainID): domainID is number => !!domainID);
     const {login, accountID} = useCurrentUserPersonalDetails();
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
+    const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData(policy?.id);
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
@@ -149,7 +155,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: policy?.areRulesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]: policy?.areInvoicesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: policy?.arePerDiemRatesEnabled,
-            [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: isUberForBusinessEnabled && (policy?.areReceiptPartnersEnabled ?? false),
+            [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: isUberForBusinessEnabled && (policy?.receiptPartners?.enabled ?? false),
         }),
         [policy, isUberForBusinessEnabled],
     ) as PolicyFeatureStates;
@@ -189,7 +195,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
         protectedMenuItems.push({
             translationKey: 'common.reports',
-            icon: Document,
+            icon: expensifyIcons.Document,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORTS.getRoute(policyID)))),
             screenName: SCREENS.WORKSPACE.REPORTS,
         });
@@ -197,7 +203,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]) {
             protectedMenuItems.push({
                 translationKey: 'workspace.common.accounting',
-                icon: Sync,
+                icon: expensifyIcons.Sync,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)))),
                 brickRoadIndicator: hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
@@ -208,7 +214,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]) {
             protectedMenuItems.push({
                 translationKey: 'workspace.common.receiptPartners',
-                icon: Receipt,
+                brickRoadIndicator: shouldShowEnterCredentialsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                icon: expensifyIcons.Receipt,
                 action: singleExecution(
                     waitForNavigate(() => {
                         Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
@@ -222,7 +229,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED]) {
             protectedMenuItems.push({
                 translationKey: 'workspace.common.categories',
-                icon: Folder,
+                icon: expensifyIcons.Folder,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)))),
                 brickRoadIndicator: hasPolicyCategoryError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.CATEGORIES,
@@ -233,7 +240,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]) {
             protectedMenuItems.push({
                 translationKey: 'workspace.common.tags',
-                icon: Tag,
+                icon: expensifyIcons.Tag,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.TAGS,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED,
@@ -243,7 +250,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]) {
             protectedMenuItems.push({
                 translationKey: 'workspace.common.taxes',
-                icon: Coins,
+                icon: expensifyIcons.Coins,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAXES.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.TAXES,
                 brickRoadIndicator: shouldShowTaxRateError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
@@ -254,7 +261,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED]) {
             protectedMenuItems.push({
                 translationKey: 'workspace.common.workflows',
-                icon: Workflows,
+                icon: expensifyIcons.Workflows,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.WORKFLOWS,
                 brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburser ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
@@ -265,7 +272,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]) {
             protectedMenuItems.push({
                 translationKey: 'workspace.common.rules',
-                icon: Feed,
+                icon: expensifyIcons.Feed,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_RULES.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.RULES,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
@@ -275,7 +282,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]) {
             protectedMenuItems.push({
                 translationKey: 'workspace.common.distanceRates',
-                icon: Car,
+                icon: expensifyIcons.Car,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.DISTANCE_RATES,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
@@ -285,7 +292,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]) {
             protectedMenuItems.push({
                 translationKey: 'workspace.common.expensifyCard',
-                icon: ExpensifyCard,
+                icon: expensifyIcons.ExpensifyCard,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.EXPENSIFY_CARD,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED,
@@ -297,7 +304,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
             protectedMenuItems.push({
                 translationKey: 'workspace.common.companyCards',
-                icon: CreditCard,
+                icon: expensifyIcons.CreditCard,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.COMPANY_CARDS,
                 brickRoadIndicator: hasBrokenFeedConnection ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
@@ -308,7 +315,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]) {
             protectedMenuItems.push({
                 translationKey: 'common.perDiem',
-                icon: CalendarSolid,
+                icon: expensifyIcons.CalendarSolid,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.PER_DIEM,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
@@ -319,7 +326,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             const currencyCode = policy?.outputCurrency ?? CONST.CURRENCY.USD;
             protectedMenuItems.push({
                 translationKey: 'workspace.common.invoices',
-                icon: InvoiceGeneric,
+                icon: expensifyIcons.InvoiceGeneric,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.INVOICES,
                 badgeText: convertToDisplayString(policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0, currencyCode),
@@ -329,7 +336,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
         protectedMenuItems.push({
             translationKey: 'workspace.common.moreFeatures',
-            icon: Gear,
+            icon: expensifyIcons.Gear,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)))),
             screenName: SCREENS.WORKSPACE.MORE_FEATURES,
         });
@@ -337,14 +344,14 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         const menuItems: WorkspaceMenuItem[] = [
             {
                 translationKey: 'workspace.common.profile',
-                icon: Building,
+                icon: expensifyIcons.Building,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID)))),
                 brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.PROFILE,
             },
             {
                 translationKey: 'workspace.common.members',
-                icon: Users,
+                icon: expensifyIcons.Users,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)))),
                 brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.MEMBERS,
@@ -354,20 +361,22 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
         return menuItems;
     }, [
+        expensifyIcons,
+        singleExecution,
+        waitForNavigate,
         featureStates,
         hasGeneralSettingsError,
         hasMembersError,
-        hasPolicyCategoryError,
+        policy,
+        shouldShowProtectedItems,
+        policyID,
         hasSyncError,
         highlightedFeature,
-        policy,
-        policyID,
-        shouldShowProtectedItems,
-        singleExecution,
-        waitForNavigate,
+        hasPolicyCategoryError,
+        shouldShowEnterCredentialsError,
         allFeedsCards,
-        cardsDomainIDs,
         workspaceAccountID,
+        cardsDomainIDs,
     ]);
 
     // We only update feature states if they aren't pending.
@@ -438,7 +447,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const policyAvatar = useMemo(() => {
         if (!policy) {
-            return {source: ExpensifyAppIcon, name: CONST.EXPENSIFY_ICON_NAME, type: CONST.ICON_TYPE_AVATAR};
+            return {source: expensifyIcons.ExpensifyAppIcon, name: CONST.EXPENSIFY_ICON_NAME, type: CONST.ICON_TYPE_AVATAR};
         }
 
         const avatar = policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name);
@@ -448,7 +457,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             type: CONST.ICON_TYPE_WORKSPACE,
             id: policy.id,
         };
-    }, [policy]);
+    }, [expensifyIcons.ExpensifyAppIcon, policy]);
 
     const shouldShowNavigationTabBar = !shouldShowNotFoundPage;
 
@@ -482,6 +491,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                         errorRowStyles={[styles.ph5, styles.pv2]}
                         shouldDisableStrikeThrough={false}
                         shouldHideOnDelete={false}
+                        shouldShowErrorMessages={false}
                     >
                         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                             {/*
@@ -509,7 +519,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     {isPolicyExpenseChatEnabled && !!currentUserPolicyExpenseChatReportID && (
                         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                             <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph2]}>{translate('workspace.common.submitExpense')}</Text>
-                            <OfflineWithFeedback pendingAction={reportPendingAction}>
+                            <OfflineWithFeedback
+                                pendingAction={reportPendingAction}
+                                shouldShowErrorMessages={false}
+                            >
                                 <MenuItem
                                     title={getReportName(currentUserPolicyExpenseChat)}
                                     description={translate('workspace.common.workspace')}

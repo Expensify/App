@@ -9,7 +9,7 @@ import TextLink from '@components/TextLink';
 import type {MultipleAttachmentsValidationError, SingleAttachmentValidationError} from '@libs/AttachmentValidation';
 import {
     getFileValidationErrorText,
-    isHeicOrHeifImage,
+    hasHeicOrHeifExtension,
     normalizeFileObject,
     resizeImageIfNeeded,
     splitExtensionFromFileName,
@@ -31,7 +31,7 @@ const sortFilesByOriginalOrder = (files: FileObject[], orderMap: Map<string, num
     return files.sort((a, b) => (orderMap.get(a.uri ?? '') ?? 0) - (orderMap.get(b.uri ?? '') ?? 0));
 };
 
-function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => void, isValidatingReceipts = true) {
+function useFilesValidation(proceedWithFilesAction: (files: FileObject[], dataTransferItems: DataTransferItem[]) => void, isValidatingReceipts = true) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
@@ -90,6 +90,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
 
     const hideModalAndReset = useCallback(() => {
         setIsErrorModalVisible(false);
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             resetValidationState();
         });
@@ -170,7 +171,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
             }
         } else if (validFiles.current.length > 0) {
             const sortedFiles = sortFilesByOriginalOrder(validFiles.current, originalFileOrder.current);
-            proceedWithFilesAction(sortedFiles);
+            proceedWithFilesAction(sortedFiles, dataTransferItemList.current);
             resetValidationState();
         }
     }, [deduplicateErrors, pdfFilesToRender.length, proceedWithFilesAction, resetValidationState]);
@@ -195,7 +196,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                 const otherFiles = filteredResults.filter((file) => !Str.isPDF(file.name ?? ''));
 
                 // Check if we need to convert images
-                if (otherFiles.some((file) => isHeicOrHeifImage(file))) {
+                if (otherFiles.some((file) => hasHeicOrHeifExtension(file))) {
                     setIsLoaderVisible(true);
 
                     return Promise.all(otherFiles.map((file) => convertHeicImageToJpegPromise(file))).then((convertedImages) => {
@@ -258,7 +259,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                         }
                     } else if (processedFiles.length > 0) {
                         const sortedFiles = sortFilesByOriginalOrder(processedFiles, originalFileOrder.current);
-                        proceedWithFilesAction(sortedFiles);
+                        proceedWithFilesAction(sortedFiles, dataTransferItemList.current);
                         resetValidationState();
                     }
                 }
@@ -306,15 +307,16 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         // the error modal is dismissed before opening the attachment modal
         if (!isValidatingReceipts && fileError) {
             setIsErrorModalVisible(false);
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => {
                 if (sortedFiles.length !== 0) {
-                    proceedWithFilesAction(sortedFiles);
+                    proceedWithFilesAction(sortedFiles, dataTransferItemList.current);
                 }
                 resetValidationState();
             });
         } else {
             if (sortedFiles.length !== 0) {
-                proceedWithFilesAction(sortedFiles);
+                proceedWithFilesAction(sortedFiles, dataTransferItemList.current);
             }
             hideModalAndReset();
         }

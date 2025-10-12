@@ -4,10 +4,11 @@ import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from '
 import {View} from 'react-native';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
+import Button from '@components/Button';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
-import {Gallery} from '@components/Icon/Expensicons';
+import {ArrowCircleClockwise, Gallery} from '@components/Icon/Expensicons';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -124,7 +125,7 @@ function AttachmentView({
 }: AttachmentViewProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const {translate} = useLocalize();
-    const {updateCurrentURLAndReportID} = usePlaybackContext();
+    const {updateCurrentURLAndReportID, playVideo} = usePlaybackContext();
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const {onAttachmentError} = attachmentCarouselPagerContext ?? {};
@@ -144,7 +145,10 @@ function AttachmentView({
             return;
         }
         updateCurrentURLAndReportID(isVideo && typeof source === 'string' ? source : undefined, reportID);
-    }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID]);
+        if (isVideo && typeof source === 'string') {
+            playVideo();
+        }
+    }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID, playVideo]);
 
     const [imageError, setImageError] = useState(false);
 
@@ -245,7 +249,11 @@ function AttachmentView({
     }
 
     if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && transaction) {
-        return <DistanceEReceipt transaction={transaction} />;
+        // Distance eReceipts are now generated as a PDF, but to keep it backwards compatible we still show the old eReceipt view for image receipts
+        const isImageReceiptSource = checkIsFileImage(source, file?.name);
+        if (!hasReceiptSource(transaction) || isImageReceiptSource) {
+            return <DistanceEReceipt transaction={transaction} />;
+        }
     }
 
     // For this check we use both source and file.name since temporary file source is a blob
@@ -271,6 +279,16 @@ function AttachmentView({
                     <View>
                         <Text style={[styles.notFoundTextHeader]}>{translate('attachmentView.attachmentNotFound')}</Text>
                     </View>
+                    <Button
+                        text={translate('attachmentView.retry')}
+                        icon={ArrowCircleClockwise}
+                        onPress={() => {
+                            if (isOffline) {
+                                return;
+                            }
+                            setImageError(false);
+                        }}
+                    />
                 </View>
             );
         }

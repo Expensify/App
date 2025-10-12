@@ -1,6 +1,6 @@
 ---
 title: Global Reimbursement - United Kingdom (GBP)
-description: An overview of how to set up a GBP bank account to send global reimbursements. 
+description: An overview of how to set up a GBP bank account to send global reimbursements.
 keywords: [New Expensify, global reimbursement, United Kingdom, GBP, international payments]
 ---
 
@@ -30,7 +30,7 @@ To comply with financial regulations, the following documents are needed:
 
 # Step 1: Set Your Workspace Currency and Enable Payments
 
-1. From the left-hand menu, go to **Workspaces > [Workspace Name] > Overview**.
+1. From the **navigation tabs** (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Overview**.
 2. Under **Default currency**, choose **GBP £**.
 3. Return to the left-hand menu and select **Workflows > Make or Track Payments**.
 4. Click **Connect bank account**, then confirm your **currency and country** (United Kingdom – GBP £).
@@ -99,7 +99,7 @@ Once you agree to the terms, Expensify’s Compliance Team will review your subm
 
 To begin reimbursing:
 
-1. In the left-hand menu, go to **Workspaces > [Workspace Name] > Make or track payments**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Make or track payments**.
 2. Set the verified GBP account as the default reimbursement method.
 3. Ask employees to add their personal deposit account.
 

@@ -52,7 +52,7 @@ This banner appears when Expensify detects that emails to your address are bounc
 
 ### Step 1: Try the Self-Service Unblock
 
-1. Confirm that the Email address on your Expensify account is valid
+1. Confirm that all Email addresses on your Expensify account are valid (including all Contact Methods and Secondary Logins)
 2. Click the link in the banner labeled **"here"**
 3. If successful, you will see a confirmation that your Email was unblocked
 

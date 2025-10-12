@@ -2,10 +2,10 @@ import type {CommonActions, ParamListBase, PartialState, RouterConfigOptions, St
 import {StackActions, StackRouter} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import Log from '@libs/Log';
 import getParamsFromRoute from '@libs/Navigation/helpers/getParamsFromRoute';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NavigationPartialRoute} from '@libs/Navigation/types';
-import {shouldDisplayPolicyNotFoundPage} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type SplitNavigatorRouterOptions from './types';
@@ -19,10 +19,6 @@ type AdaptStateIfNecessaryArgs = {
     state: StackState;
     options: SplitNavigatorRouterOptions;
 };
-
-function getRoutePolicyID(route: NavigationPartialRoute): string | undefined {
-    return (route?.params as Record<string, string> | undefined)?.policyID;
-}
 
 /**
  * Adapts the navigation state of a SplitNavigator to ensure proper screen layout and navigation flow.
@@ -38,22 +34,16 @@ function getRoutePolicyID(route: NavigationPartialRoute): string | undefined {
  * @param options - Configuration options including sidebarScreen, defaultCentralScreen, and parentRoute
  */
 function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralScreen, parentRoute}}: AdaptStateIfNecessaryArgs) {
-    const isNarrowLayout = getIsNarrowLayout();
-    const rootState = navigationRef.getRootState();
+    if (!navigationRef.isReady()) {
+        Log.warn('[src/libs/Navigation/AppNavigator/createSplitNavigator/SplitRouter.ts] NavigationRef is not ready. Returning the original state without adaptation.');
+    }
 
+    const isNarrowLayout = getIsNarrowLayout();
+    const rootState = navigationRef.isReady() ? navigationRef.getRootState() : undefined;
     const lastRoute = state.routes.at(-1) as NavigationPartialRoute;
-    const routePolicyID = getRoutePolicyID(lastRoute);
 
     const routes = [...state.routes];
     let modified = false;
-
-    // If invalid policy page is displayed on narrow layout, sidebar screen should not be
-    // pushed to the navigation state to avoid adding redundant not found page
-    if (isNarrowLayout && !!routePolicyID) {
-        if (shouldDisplayPolicyNotFoundPage(routePolicyID)) {
-            return state; // state is unchanged
-        }
-    }
 
     // When initializing the app on a small screen with the center screen as the initial screen, the sidebar must also be split to allow users to swipe back.
     const isInitialRoute = !rootState || rootState.routes.length === 1;

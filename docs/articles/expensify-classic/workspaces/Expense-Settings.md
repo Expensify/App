@@ -129,6 +129,9 @@ Expensify generates eReceipts for **Expensify Card purchases** of any amount in 
 - Taxis
 - Utilities
 
+## Can I disable SmartScan for my workspace?
+No, SmartScan can’t be disabled for group (paid) workspaces. It’s always enabled by default.
+
 ## Why didn’t my mileage rate update to the latest IRS rate?
 
 Expensify does not automatically update mileage rates based on IRS guidance. A **Workspace Admin** must manually update or create a new rate to reflect changes. This allows global customers to control rate adjustments and communicate changes internally.

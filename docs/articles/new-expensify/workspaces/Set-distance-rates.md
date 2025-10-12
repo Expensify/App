@@ -12,12 +12,12 @@ Distance rates allow your workspace to reimburse mileage-based travel. Admins ca
 
 To activate distance rates for a workspace:
 
-1. In the **left-hand navigation bar (LHB)**, click **Workspaces**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **More Features** in the left menu.
 4. Toggle on **Distance Rates**.
 
-Once enabled, a new **Distance Rates** tab will appear in the left-hand menu.
+Once enabled, a new **Distance Rates** tab will appear in the left-hand bar.
 
 ---
 

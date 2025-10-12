@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -55,6 +55,10 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
     const internalInputRef = useRef<AnimatedTextInputRef>(null);
     useDelayedAutoFocus(internalInputRef, shouldDelayAutoFocus);
 
+    const helpLink = useMemo(() => {
+        return CONST.REGISTRATION_NUMBER_HELP_URL[country as keyof typeof CONST.REGISTRATION_NUMBER_HELP_URL] ?? CONST.REGISTRATION_NUMBER_HELP_URL.EU;
+    }, [country]);
+
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
             const errors = getFieldRequiredErrors(values, [inputID]);
@@ -99,7 +103,7 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
                 <View style={[styles.ml2, styles.dFlex, styles.flexRow]}>
                     <TextLink
                         style={[styles.textMicro]}
-                        href={CONST.HELP_LINK_URL}
+                        href={helpLink}
                     >
                         {translate('businessInfoStep.whatsThisNumber')}
                     </TextLink>

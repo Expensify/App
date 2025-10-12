@@ -448,7 +448,7 @@ function unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, bankNa
     API.write(WRITE_COMMANDS.UNASSIGN_COMPANY_CARD, parameters, onyxData);
 }
 
-function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: string, bankName: CompanyCardFeed) {
+function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: string, bankName: CompanyCardFeed, lastScrapeResult?: number) {
     const authToken = NetworkStore.getAuthToken();
 
     const optimisticData: OnyxUpdate[] = [
@@ -458,6 +458,7 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
             value: {
                 [cardID]: {
                     isLoadingLastUpdated: true,
+                    lastScrapeResult: CONST.JSON_CODE.SUCCESS,
                     pendingFields: {
                         lastScrape: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -472,6 +473,7 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
             key: ONYXKEYS.CARD_LIST,
             value: {
                 [cardID]: {
+                    lastScrapeResult: CONST.JSON_CODE.SUCCESS,
                     isLoadingLastUpdated: true,
                     pendingFields: {
                         lastScrape: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -490,6 +492,7 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
             value: {
                 [cardID]: {
+                    lastScrapeResult: CONST.JSON_CODE.SUCCESS,
                     isLoadingLastUpdated: false,
                     pendingFields: {
                         lastScrape: null,
@@ -502,6 +505,7 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
             key: ONYXKEYS.CARD_LIST,
             value: {
                 [cardID]: {
+                    lastScrapeResult: CONST.JSON_CODE.SUCCESS,
                     isLoadingLastUpdated: false,
                     pendingFields: {
                         lastScrape: null,
@@ -517,6 +521,7 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
             value: {
                 [cardID]: {
+                    lastScrapeResult,
                     isLoadingLastUpdated: false,
                     pendingFields: {
                         lastScrape: null,
@@ -532,6 +537,7 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
             key: ONYXKEYS.CARD_LIST,
             value: {
                 [cardID]: {
+                    lastScrapeResult,
                     isLoadingLastUpdated: false,
                     pendingFields: {
                         lastScrape: null,

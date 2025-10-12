@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
@@ -19,7 +19,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -29,6 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
+import {AttachmentStateContext} from './AttachmentStateContextProvider';
 import type {AttachmentModalBaseContentProps} from './types';
 
 function AttachmentModalBaseContent({
@@ -52,17 +52,15 @@ function AttachmentModalBaseContent({
     shouldShowNotFoundPage = false,
     shouldShowCarousel = true,
     shouldDisableSendButton = false,
-    shouldDisplayHelpButton = true,
+    shouldDisplayHelpButton = false,
     submitRef,
     onDownloadAttachment,
     onClose,
     onConfirm,
     AttachmentContent,
-    ExtraModals,
     onCarouselAttachmentChange = () => {},
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
-    const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -83,8 +81,7 @@ function AttachmentModalBaseContent({
 
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
+    const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) ?? CONST.DEFAULT_NUMBER_ID;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
 
@@ -157,8 +154,7 @@ function AttachmentModalBaseContent({
         }
 
         onClose?.();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isConfirmButtonDisabled, onConfirm, files, source]);
+    }, [isConfirmButtonDisabled, onConfirm, onClose, files, source]);
 
     // Close the modal when the escape key is pressed
     useEffect(() => {
@@ -183,13 +179,16 @@ function AttachmentModalBaseContent({
             clearAttachmentErrors();
         };
     }, [clearAttachmentErrors]);
+
+    const {isAttachmentLoaded} = useContext(AttachmentStateContext);
     const shouldShowDownloadButton = useMemo(() => {
-        if ((isEmptyObject(report) && type !== CONST.ATTACHMENT_TYPE.SEARCH) || isErrorInAttachment(source)) {
+        const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH;
+        if (!isValidContext || isErrorInAttachment(source)) {
             return false;
         }
 
-        return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource;
-    }, [isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, onDownloadAttachment, report, shouldShowNotFoundPage, source, type]);
+        return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && isAttachmentLoaded?.(source);
+    }, [isAttachmentLoaded, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, onDownloadAttachment, report, shouldShowNotFoundPage, source, type]);
 
     // We need to pass a shared value of type boolean to the context, so `falseSV` acts as a default value.
     const falseSV = useSharedValue(false);
@@ -202,10 +201,9 @@ function AttachmentModalBaseContent({
             isScrollEnabled: falseSV,
             onTap: () => {},
             onScaleChanged: () => {},
-            onSwipeDown: onClose,
             onAttachmentError: setAttachmentError,
         }),
-        [onClose, falseSV, sourceForAttachmentView, setAttachmentError],
+        [falseSV, sourceForAttachmentView, setAttachmentError],
     );
 
     const shouldDisplayContent = !shouldShowNotFoundPage && !isLoading;
@@ -226,7 +224,6 @@ function AttachmentModalBaseContent({
                 attachmentID={attachmentID}
                 report={report}
                 onNavigate={onNavigate}
-                onClose={onClose}
                 source={sourceProp}
                 setDownloadButtonVisibility={setDownloadButtonVisibility}
                 attachmentLink={currentAttachmentLink}
@@ -264,7 +261,6 @@ function AttachmentModalBaseContent({
         isAuthTokenRequiredState,
         isWorkspaceAvatar,
         maybeIcon,
-        onClose,
         onNavigate,
         report,
         reportID,
@@ -294,7 +290,6 @@ function AttachmentModalBaseContent({
                 onCloseButtonPress={onClose}
                 shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
                 threeDotsMenuItems={threeDotsMenuItems}
-                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                 threeDotsAnchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -345,7 +340,6 @@ function AttachmentModalBaseContent({
                     )}
                 </LayoutAnimationConfig>
             )}
-            {ExtraModals}
         </GestureHandlerRootView>
     );
 }

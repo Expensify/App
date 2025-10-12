@@ -1,11 +1,9 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef} from 'react';
-import type {FlatList} from 'react-native';
+import React from 'react';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import type {BaseInvertedFlatListProps} from './BaseInvertedFlatList';
 import CellRendererComponent from './CellRendererComponent';
 
-function BaseInvertedFlatListWithRef<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<FlatList>) {
+function BaseInvertedFlatListWithRef<T>({ref, ...props}: BaseInvertedFlatListProps<T>) {
     return (
         <BaseInvertedFlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -24,4 +22,4 @@ function BaseInvertedFlatListWithRef<T>(props: BaseInvertedFlatListProps<T>, ref
 
 BaseInvertedFlatListWithRef.displayName = 'BaseInvertedFlatListWithRef';
 
-export default forwardRef(BaseInvertedFlatListWithRef);
+export default BaseInvertedFlatListWithRef;

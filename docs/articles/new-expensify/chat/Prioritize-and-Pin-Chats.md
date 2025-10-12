@@ -33,7 +33,7 @@ To unpin a chat, repeat the same action and select **Unpin**.
 
 To adjust how chats are sorted in your inbox:
 
-1. In the left-hand menu, go to **Account > Preferences**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Account > Preferences**.
 2. Click or tap **Priority Mode**.
 3. Select either **#focus** or **Most Recent**.
 

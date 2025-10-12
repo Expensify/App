@@ -12,6 +12,9 @@ type MergeTransaction = {
     /** API will set this to contain eligible transactions */
     eligibleTransactions: Transaction[];
 
+    /** Track which transaction was selected for each field (for persistence across page reloads) */
+    selectedTransactionByField?: Partial<Record<string, string>>;
+
     /** Amount which user want to keep */
     amount: number;
 
@@ -41,6 +44,12 @@ type MergeTransaction = {
 
     /** The receipt object associated with the transaction */
     receipt?: Receipt;
+
+    /** The date of the transaction */
+    created: string;
+
+    /** The report ID of the transaction */
+    reportID: string;
 };
 
 export default MergeTransaction;

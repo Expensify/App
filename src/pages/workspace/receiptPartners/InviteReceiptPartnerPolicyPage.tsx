@@ -4,12 +4,13 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/UserListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearErrors, inviteWorkspaceEmployeesToUber} from '@libs/actions/Policy/Policy';
@@ -24,6 +25,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 type InviteReceiptPartnerPolicyPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE>;
@@ -35,20 +37,33 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
     const [isInvitationSent, setIsInvitationSent] = useState(false);
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const policyID = route.params?.policyID;
     const policy = usePolicy(policyID);
     const shouldShowTextInput = policy?.employeeList && Object.keys(policy.employeeList).length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
-
     const workspaceMembers = useMemo(() => {
         let membersList: MemberForList[] = [];
         if (!policy?.employeeList) {
             return membersList;
         }
 
+        // Get the list of employees from the U4B organization
+        const uberEmployees = policy?.receiptPartners?.uber?.employees ?? {};
+
         Object.entries(policy.employeeList).forEach(([email, policyEmployee]) => {
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
+                return;
+            }
+
+            // Skip employees who are in the "Linked" section
+            const employeeStatus = uberEmployees[email]?.status;
+            if (
+                employeeStatus === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED ||
+                employeeStatus === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL ||
+                employeeStatus === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED
+            ) {
                 return;
             }
 
@@ -79,7 +94,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, localeCompare]);
+    }, [isOffline, policy?.employeeList, policy?.receiptPartners?.uber?.employees, localeCompare]);
 
     const sections = useMemo(() => {
         if (workspaceMembers.length === 0) {
@@ -90,14 +105,14 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
 
         // Apply search filter if there's a search term
         if (debouncedSearchTerm) {
-            const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm).toLowerCase();
+            const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
             membersToDisplay = tokenizedSearch(workspaceMembers, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
         }
 
         // Filter to show selected members first, then apply search filter to selected members
         let filterSelectedOptions = selectedOptions;
         if (debouncedSearchTerm !== '') {
-            const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm).toLowerCase();
+            const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
             filterSelectedOptions = selectedOptions.filter((option) => {
                 const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
                 return isPartOfSearchTerm;
@@ -123,7 +138,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                 shouldShow: true,
             },
         ];
-    }, [workspaceMembers, debouncedSearchTerm, selectedOptions]);
+    }, [workspaceMembers, countryCode, debouncedSearchTerm, selectedOptions]);
 
     // Pre-select all members only once on first load.
     useEffect(() => {
@@ -177,7 +192,13 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         Navigation.dismissModal();
     }, []);
 
-    if (isInvitationSent) {
+    // Check if we should skip to "All set" page immediately
+    const shouldSkipToAllSet = useMemo(() => {
+        // Skip if no workspace members can be invited (covers all cases: no employees, only owner, already linked)
+        return workspaceMembers.length === 0;
+    }, [workspaceMembers.length]);
+
+    if (isInvitationSent || shouldSkipToAllSet) {
         return (
             <ScreenWrapper testID={InviteReceiptPartnerPolicyPage.displayName}>
                 <HeaderWithBackButton

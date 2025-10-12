@@ -46,7 +46,7 @@ To do this:
 
 To connect your workspace:
 
-1. From the left-hand menu, go to **Workspaces**
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces**
 2. Select your **Workspace**
 3. Click **More features**
 4. Scroll to **Integrate** and enable the **Accounting** toggle
@@ -68,7 +68,7 @@ This will enable the connection between QuickBooks Online and import your settin
 
 ---
 
-# FAQ 
+# FAQ
 
 ## Why do I see a red dot next to the QuickBooks Online connection?
 

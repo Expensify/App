@@ -1,7 +1,8 @@
+import type {TupleToUnion} from 'type-fest';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+import SCREENS from '@src/SCREENS';
 import type ModalType from '@src/types/utils/ModalType';
-import type {AttachmentModalScreenType} from '.';
 import type {AttachmentModalBaseContentProps} from './AttachmentModalBaseContent/types';
 
 /**
@@ -20,33 +21,36 @@ type ImagePickerResponse = {
 
 type FileObject = Partial<File | ImagePickerResponse>;
 
-type AttachmentModalModalProps = {
+type AttachmentModalContainerModalProps = {
+    /** The type of the modal */
     modalType?: ModalType;
+
+    /** Callback to fire when the modal is shown */
     onShow?: () => void;
+
+    /** Callback to fire when the modal is closed */
     onClose?: () => void;
+
+    /** Whether to handle navigation back */
     shouldHandleNavigationBack?: boolean;
+
+    /** Extra modals to be displayed in the modal */
+    ExtraContent?: React.ReactNode;
 };
 
-// {
-//     file?: FileObject | FileObject[];
-//     reportID?: string;
-//     policyID?: string;
-//     transactionID?: string;
-//     readonly?: boolean;
-//     isFromReviewDuplicates?: boolean;
-//     hashKey?: number;
-//     backTo?: Routes;
-//     letter?: UpperCaseCharacters;
+const ATTACHMENT_MODAL_SCREENS = [
+    SCREENS.REPORT_ATTACHMENTS,
+    SCREENS.REPORT_ADD_ATTACHMENT,
+    SCREENS.REPORT_AVATAR,
+    SCREENS.PROFILE_AVATAR,
+    SCREENS.WORKSPACE_AVATAR,
+    SCREENS.TRANSACTION_RECEIPT,
+    SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW,
+];
+type AttachmentModalScreenType = TupleToUnion<typeof ATTACHMENT_MODAL_SCREENS>;
 
-//     /** The iou action of the expense creation flow of which we are displaying the receipt for. */
-//     iouAction?: IOUAction;
-
-//     /** The iou type of the expense creation flow of which we are displaying the receipt for. */
-//     iouType?: IOUType;
-// };
-
-type AttachmentModalScreenBaseParams = AttachmentModalBaseContentProps & AttachmentModalModalProps;
+type AttachmentModalScreenBaseParams = AttachmentModalBaseContentProps & AttachmentModalContainerModalProps;
 
 type AttachmentModalScreenProps<Screen extends AttachmentModalScreenType> = PlatformStackScreenProps<RootNavigatorParamList, Screen>;
 
-export type {AttachmentModalScreenBaseParams, AttachmentModalModalProps, AttachmentModalScreenProps, FileObject, ImagePickerResponse};
+export type {AttachmentModalScreenType, AttachmentModalScreenBaseParams, AttachmentModalContainerModalProps, AttachmentModalScreenProps, FileObject, ImagePickerResponse};

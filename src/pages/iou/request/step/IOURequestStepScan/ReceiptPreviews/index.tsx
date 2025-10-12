@@ -1,3 +1,4 @@
+import {transactionDraftReceiptsSelector} from '@selectors/TransactionDraft';
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {FlatList as FlatListType} from 'react-native';
@@ -44,10 +45,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
         [windowWidth, styles, previewItemWidth],
     );
     const [optimisticTransactionsReceipts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: (items) =>
-            Object.values(items ?? {})
-                .map((transaction) => (transaction?.receipt ? {...transaction?.receipt, transactionID: transaction.transactionID} : undefined))
-                .filter((receipt): receipt is ReceiptWithTransactionID => !!receipt),
+        selector: transactionDraftReceiptsSelector,
         canBeMissing: true,
     });
     const receipts = useMemo(() => {
@@ -72,6 +70,14 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
             isPreviewsVisible.set(false);
         }
     }, [isMultiScanEnabled, isPreviewsVisible]);
+
+    useEffect(() => {
+        const hasRemovedReceipt = receiptsPhotosLength < previousReceiptsPhotosLength;
+
+        if (hasRemovedReceipt) {
+            flatListRef.current?.scrollToOffset({offset: 0, animated: true});
+        }
+    }, [receiptsPhotosLength, previousReceiptsPhotosLength]);
 
     useEffect(() => {
         const shouldScrollToReceipt = receiptsPhotosLength && receiptsPhotosLength > previousReceiptsPhotosLength && receiptsPhotosLength > Math.floor(initialReceiptsAmount);

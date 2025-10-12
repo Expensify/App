@@ -11,6 +11,7 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
@@ -51,6 +52,7 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
     const defaultFundID = useDefaultFundID(policyID);
+    const {isBetaEnabled} = usePermissions();
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
     const isAddApprovalEnabled = policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL && !hasApprovalError;
     const shouldDisableSubmitButton = !isAddApprovalEnabled && data?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART;
@@ -78,7 +80,8 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
     }, [backTo, policyID, isSuccessful]);
 
     const submit = (validateCode: string) => {
-        issueExpensifyCard(defaultFundID, policyID, CONST.COUNTRY.US, validateCode, data);
+        // NOTE: For Expensify Card UK/EU, the backend will automatically detect the correct feedCountry to use
+        issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, validateCode, data);
     };
 
     const errorMessage = getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
@@ -126,7 +129,7 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.limit')}
-                    title={convertToShortDisplayString(data?.limit)}
+                    title={convertToShortDisplayString(data?.limit, data?.currency)}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT)}
                 />

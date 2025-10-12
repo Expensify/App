@@ -20,12 +20,12 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
-import useFilesValidation from '@hooks/useFilesValidation';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -35,7 +35,6 @@ import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import {getDraftComment} from '@libs/DraftCommentUtils';
-import getModalState from '@libs/getModalState';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Performance from '@libs/Performance';
 import {getLinkedTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -45,31 +44,25 @@ import {
     chatIncludesConcierge,
     getParentReport,
     getReportRecipientAccountIDs,
+    isChatRoom,
+    isGroupChat,
     isReportApproved,
     isReportTransactionThread,
-    isSelfDM,
     isSettled,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils, isDistanceRequest, isManualDistanceRequest} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
-import Navigation from '@navigation/Navigation';
 import AgentZeroProcessingRequestIndicator from '@pages/home/report/AgentZeroProcessingRequestIndicator';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
-import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
-import {initMoneyRequest, replaceReceipt, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
-import {addAttachment as addAttachmentReportActions, setIsComposerFullSize} from '@userActions/Report';
+import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Report';
 import Timing from '@userActions/Timing';
-import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -77,6 +70,7 @@ import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerRef, ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import SendButton from './SendButton';
+import useAttachmentUploadValidation from './useAttachmentUploadValidation';
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
@@ -94,6 +88,9 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
 
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
+
+    /** The ID of the transaction thread report if there is a single transaction */
+    transactionThreadReportID?: string;
 
     /** Report transactions */
     reportTransactions?: OnyxEntry<OnyxTypes.Transaction[]>;
@@ -131,6 +128,7 @@ function ReportActionCompose({
     onComposerBlur,
     didHideComposerInput,
     reportTransactions,
+    transactionThreadReportID,
 }: ReportActionComposeProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
@@ -145,13 +143,14 @@ function ReportActionCompose({
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, {canBeMissing: true});
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
+    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const [initialModalState] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     /**
      * Updates the Highlight state of the composer
      */
     const [isFocused, setIsFocused] = useState(() => {
-        const initialModalState = getModalState();
         return shouldFocusInputOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
     });
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
@@ -223,6 +222,8 @@ function ReportActionCompose({
         canBeMissing: true,
     });
 
+    const personalDetail = useCurrentUserPersonalDetails();
+
     const iouAction = reportActions ? Object.values(reportActions).find((action) => isMoneyRequestAction(action)) : null;
     const linkedTransactionID = iouAction && !isExpensesReport ? getLinkedTransactionID(iouAction) : undefined;
 
@@ -238,8 +239,11 @@ function ReportActionCompose({
     const shouldDisplayDualDropZone = useMemo(() => {
         const parentReport = getParentReport(report);
         const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
-        return (shouldAddOrReplaceReceipt && !isSettledOrApproved) || !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived).length;
-    }, [shouldAddOrReplaceReceipt, report, policy, reportParticipantIDs, isReportArchived]);
+        const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived, isRestrictedToPreferredPolicy).length;
+        const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledOrApproved;
+        const isRoomOrGroupChat = isChatRoom(report) || isGroupChat(report);
+        return !isRoomOrGroupChat && (canModifyReceipt || hasMoneyRequestOptions);
+    }, [shouldAddOrReplaceReceipt, report, reportParticipantIDs, policy, isReportArchived, isRestrictedToPreferredPolicy]);
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
@@ -320,15 +324,7 @@ function ReportActionCompose({
             const newCommentTrimmed = newComment.trim();
 
             if (attachmentFileRef.current) {
-                if (Array.isArray(attachmentFileRef.current)) {
-                    // Handle multiple files
-                    attachmentFileRef.current.forEach((file) => {
-                        addAttachmentReportActions(reportID, file, newCommentTrimmed, true);
-                    });
-                } else {
-                    // Handle single file
-                    addAttachmentReportActions(reportID, attachmentFileRef.current, newCommentTrimmed, true);
-                }
+                addAttachmentWithComment(transactionThreadReportID ?? reportID, reportID, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone, true);
                 attachmentFileRef.current = null;
             } else {
                 Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
@@ -336,7 +332,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [onSubmit, reportID],
+        [onSubmit, reportID, personalDetail.timezone, transactionThreadReportID],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
@@ -484,109 +480,21 @@ function ReportActionCompose({
         [isComposerFullSize, reportID, debouncedValidate],
     );
 
-    const reportAttachmentsContext = useContext(AttachmentModalContext);
-    const showAttachmentModalScreen = useCallback(
-        (file: FileObject | FileObject[]) => {
-            reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.REPORT_ADD_ATTACHMENT>({
-                reportID,
-                file,
-                headerTitle: translate('reportActionCompose.sendAttachment'),
-                onConfirm: addAttachment,
-                onShow: () => setIsAttachmentPreviewActive(true),
-                onClose: onAttachmentPreviewClose,
-                shouldDisableSendButton: !!exceededMaxLength,
-            });
-            Navigation.navigate(ROUTES.REPORT_ADD_ATTACHMENT.getRoute(reportID));
-        },
-        [addAttachment, exceededMaxLength, onAttachmentPreviewClose, reportAttachmentsContext, reportID, translate],
-    );
-
-    const handleAttachmentDrop = (event: DragEvent) => {
-        if (isAttachmentPreviewActive) {
-            return;
-        }
-
-        const files = Array.from(event.dataTransfer?.files ?? []).map((file) => {
-            // eslint-disable-next-line no-param-reassign
-            file.uri = URL.createObjectURL(file);
-            return file;
-        });
-
-        if (files.length === 0) {
-            return;
-        }
-
-        showAttachmentModalScreen(files);
-    };
-
-    const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
-        if (files.length === 0) {
-            return;
-        }
-        if (shouldAddOrReplaceReceipt && transactionID) {
-            const source = URL.createObjectURL(files.at(0) as Blob);
-            replaceReceipt({transactionID, file: files.at(0) as File, source});
-        } else {
-            const initialTransaction = initMoneyRequest({
-                reportID,
-                newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
-                report,
-                parentReport: newParentReport,
-                currentDate,
-            });
-
-            files.forEach((file, index) => {
-                const source = URL.createObjectURL(file as Blob);
-                const newTransaction =
-                    index === 0
-                        ? (initialTransaction as Partial<OnyxTypes.Transaction>)
-                        : buildOptimisticTransactionAndCreateDraft({
-                              initialTransaction: initialTransaction as Partial<OnyxTypes.Transaction>,
-                              currentUserPersonalDetails,
-                              reportID,
-                          });
-                const newTransactionID = newTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-                setMoneyRequestReceipt(newTransactionID, source, file.name ?? '', true);
-                setMoneyRequestParticipantsFromReport(newTransactionID, report);
-            });
-            Navigation.navigate(
-                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                    CONST.IOU.ACTION.CREATE,
-                    isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT,
-                    CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                    reportID,
-                ),
-            );
-        }
-    };
-
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(saveFileAndInitMoneyRequest);
-
-    const handleAddingReceipt = (e: DragEvent) => {
-        if (policy && shouldRestrictUserBillableActions(policy.id)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-            return;
-        }
-        if (shouldAddOrReplaceReceipt && transactionID) {
-            const file = e?.dataTransfer?.files?.[0];
-            if (file) {
-                file.uri = URL.createObjectURL(file);
-                validateFiles([file], Array.from(e.dataTransfer?.items ?? []));
-                return;
-            }
-        }
-
-        const files = Array.from(e?.dataTransfer?.files ?? []);
-        if (files.length === 0) {
-            return;
-        }
-        files.forEach((file) => {
-            // eslint-disable-next-line no-param-reassign
-            file.uri = URL.createObjectURL(file);
-        });
-
-        validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
-    };
+    const {validateAttachments, onReceiptDropped, PDFValidationComponent, ErrorModal} = useAttachmentUploadValidation({
+        policy,
+        reportID,
+        addAttachment,
+        onAttachmentPreviewClose,
+        exceededMaxLength,
+        shouldAddOrReplaceReceipt,
+        transactionID,
+        report,
+        newParentReport,
+        currentDate,
+        currentUserPersonalDetails,
+        isAttachmentPreviewActive,
+        setIsAttachmentPreviewActive,
+    });
 
     return (
         <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
@@ -615,7 +523,7 @@ function ReportActionCompose({
                     >
                         {PDFValidationComponent}
                         <AttachmentPickerWithMenuItems
-                            onAttachmentPicked={showAttachmentModalScreen}
+                            onAttachmentPicked={(files) => validateAttachments({files})}
                             reportID={reportID}
                             report={report}
                             currentUserPersonalDetails={currentUserPersonalDetails}
@@ -658,7 +566,7 @@ function ReportActionCompose({
                             inputPlaceholder={inputPlaceholder}
                             isComposerFullSize={isComposerFullSize}
                             setIsFullComposerAvailable={setIsFullComposerAvailable}
-                            onFilePasted={showAttachmentModalScreen}
+                            onPasteFile={(files) => validateAttachments({files})}
                             onCleared={submitForm}
                             disabled={isBlockedFromConcierge}
                             setIsCommentEmpty={setIsCommentEmpty}
@@ -673,19 +581,19 @@ function ReportActionCompose({
                         {shouldDisplayDualDropZone && (
                             <DualDropZone
                                 isEditing={shouldAddOrReplaceReceipt && hasReceipt}
-                                onAttachmentDrop={handleAttachmentDrop}
-                                onReceiptDrop={handleAddingReceipt}
+                                onAttachmentDrop={(dragEvent) => validateAttachments({dragEvent})}
+                                onReceiptDrop={onReceiptDropped}
                                 shouldAcceptSingleReceipt={shouldAddOrReplaceReceipt}
                             />
                         )}
                         {!shouldDisplayDualDropZone && (
-                            <DragAndDropConsumer onDrop={handleAttachmentDrop}>
+                            <DragAndDropConsumer onDrop={(dragEvent) => validateAttachments({dragEvent})}>
                                 <DropZoneUI
                                     icon={Expensicons.MessageInABottle}
                                     dropTitle={translate('dropzone.addAttachments')}
                                     dropStyles={styles.attachmentDropOverlay(true)}
                                     dropTextStyles={styles.attachmentDropText}
-                                    dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, true)}
+                                    dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, true)]}
                                 />
                             </DragAndDropConsumer>
                         )}

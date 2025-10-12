@@ -7,13 +7,14 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 
 type SearchPageFooterProps = {
-    metadata: SearchResultsInfo;
+    count: number | undefined;
+    total: number | undefined;
+    currency: string | undefined;
 };
 
-function SearchPageFooter({metadata}: SearchPageFooterProps) {
+function SearchPageFooter({count, total, currency}: SearchPageFooterProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -26,11 +27,11 @@ function SearchPageFooter({metadata}: SearchPageFooterProps) {
         <View style={[styles.justifyContentEnd, styles.borderTop, styles.ph5, styles.pv3, styles.flexRow, styles.gap3, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
             <View style={[styles.flexRow, styles.gap1]}>
                 <Text style={styles.textLabelSupporting}>{`${translate('common.expenses')}:`}</Text>
-                <Text style={valueTextStyle}>{metadata.count}</Text>
+                <Text style={valueTextStyle}>{count}</Text>
             </View>
             <View style={[styles.flexRow, styles.gap1]}>
                 <Text style={styles.textLabelSupporting}>{`${translate('common.totalSpend')}:`}</Text>
-                <Text style={valueTextStyle}>{convertToDisplayString(metadata.total, metadata.currency)}</Text>
+                <Text style={valueTextStyle}>{convertToDisplayString(total, currency)}</Text>
             </View>
         </View>
     );
