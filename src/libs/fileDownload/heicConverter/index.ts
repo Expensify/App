@@ -1,4 +1,6 @@
-import {hasHeicOrHeifExtension} from '../FileUtils';
+import {canvasFallback, hasHeicOrHeifExtension} from '@libs/fileDownload/FileUtils';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import CONST from '@src/CONST';
 import type {HeicConverterFunction} from './types';
 
 type HeicConverter = {
@@ -42,29 +44,44 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
     const fetchBlobPromise = fetch(file.uri).then((response) => response.blob());
 
     Promise.all([libraryPromise, fetchBlobPromise])
-        .then(([{heicTo, isHeic}, blob]) => {
-            const fileFromBlob = new File([blob], file.name ?? 'temp-file', {type: blob.type});
+        .then(([heicConverter, blob]) => {
+            const fileName = file.name ?? 'temp-file.heic';
+            const fileFromBlob = new File([blob], fileName, {type: blob.type});
 
-            return isHeic(fileFromBlob).then((isHEIC) => {
-                if (isHEIC || hasHeicOrHeifExtension(file)) {
-                    return heicTo({
-                        blob,
-                        type: 'image/jpeg',
-                    })
-                        .then((convertedBlob) => {
-                            const fileName = file.name ? file.name.replace(/\.(heic|heif)$/i, '.jpg') : 'converted-image.jpg';
-                            const jpegFile = new File([convertedBlob], fileName, {type: 'image/jpeg'});
-                            jpegFile.uri = URL.createObjectURL(jpegFile);
-                            onSuccess(jpegFile);
-                        })
-                        .catch((err) => {
-                            console.error('Error converting image format to JPEG:', err);
-                            onError(err, file);
-                        });
-                }
+            // Strategy 1: Try heic-to library
+            if (heicConverter && typeof heicConverter.heicTo === 'function') {
+                return (heicConverter.isHeic as (file: File) => Promise<boolean>)(fileFromBlob).then((isHEIC) => {
+                    if (isHEIC || hasHeicOrHeifExtension(file)) {
+                        return heicConverter
+                            .heicTo({blob, type: CONST.IMAGE_FILE_FORMAT.JPEG})
+                            .then((convertedBlob) => {
+                                const jpegFile = Object.assign(new File([convertedBlob], fileName.replace(/\.(heic|heif)$/i, '.jpg'), {type: CONST.IMAGE_FILE_FORMAT.JPEG}), {
+                                    uri: URL.createObjectURL(convertedBlob),
+                                });
+                                onSuccess(jpegFile as FileObject);
+                            })
+                            .catch(() => {
+                                // Strategy 2: Canvas fallback
+                                return canvasFallback(fileFromBlob, fileName)
+                                    .then(onSuccess)
+                                    .catch((err) => {
+                                        console.error('Canvas fallback failed:', err);
+                                        onError(err, file);
+                                    });
+                            });
+                    }
+                    // Not a HEIC file, return original
+                    onSuccess(file);
+                });
+            }
 
-                onSuccess(file);
-            });
+            // No library - use canvas fallback
+            return canvasFallback(fileFromBlob, fileName)
+                .then(onSuccess)
+                .catch((err) => {
+                    console.error('Canvas fallback failed:', err);
+                    onError(err, file);
+                });
         })
         .catch((err) => {
             console.error('Error processing the file:', err);

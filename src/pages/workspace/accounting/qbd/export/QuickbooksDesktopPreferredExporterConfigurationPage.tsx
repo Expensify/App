@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -94,7 +94,7 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={QuickbooksDesktopPreferredExporterConfigurationPage.displayName}
             sections={[{data}]}
-            listItem={SingleSelectListItem}
+            listItem={RadioListItem}
             headerContent={headerContent}
             onBackButtonPress={goBack}
             onSelectRow={selectExporter}

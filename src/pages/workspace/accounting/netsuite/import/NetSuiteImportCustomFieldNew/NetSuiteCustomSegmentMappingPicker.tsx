@@ -1,8 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -44,7 +44,7 @@ function NetSuiteCustomSegmentMappingPicker({value, errorText, onInputChange}: N
                 onSelectRow={(selected) => {
                     onInputChange?.(selected.value);
                 }}
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 initiallyFocusedOptionKey={value ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG}
                 shouldSingleExecuteRowSelect
                 shouldUpdateFocusedIndex

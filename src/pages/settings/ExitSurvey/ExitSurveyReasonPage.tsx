@@ -21,12 +21,14 @@ import INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
+const draftReasonSelector = (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[INPUT_IDS.REASON] ?? null;
+
 function ExitSurveyReasonPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [draftReason] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT, {
-        selector: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[INPUT_IDS.REASON] ?? null,
+        selector: draftReasonSelector,
         canBeMissing: true,
     });
 
@@ -57,7 +59,7 @@ function ExitSurveyReasonPage() {
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM}
-                style={[styles.flex1, styles.mt3]}
+                style={[styles.flex1, styles.mt3, styles.mh5]}
                 validate={() => {
                     const errors: Errors = {};
                     if (!reason) {
@@ -73,7 +75,6 @@ function ExitSurveyReasonPage() {
                     Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.getRoute(reason, ROUTES.SETTINGS_EXIT_SURVEY_REASON.route));
                 }}
                 submitButtonText={translate('common.next')}
-                submitButtonStyles={[styles.ph5]}
                 shouldValidateOnBlur
                 shouldValidateOnChange
                 shouldHideFixErrorsAlert
@@ -81,11 +82,10 @@ function ExitSurveyReasonPage() {
                 {isOffline && <ExitSurveyOffline />}
                 {!isOffline && (
                     <>
-                        <Text style={[styles.headerAnonymousFooter, styles.mh5]}>{translate('exitSurvey.reasonPage.title')}</Text>
-                        <Text style={[styles.mh5, styles.mv2]}>{translate('exitSurvey.reasonPage.subtitle')}</Text>
+                        <Text style={styles.headerAnonymousFooter}>{translate('exitSurvey.reasonPage.title')}</Text>
+                        <Text style={styles.mt2}>{translate('exitSurvey.reasonPage.subtitle')}</Text>
                         <InputWrapper
                             InputComponent={RadioButtons}
-                            radioButtonStyle={[styles.optionRowCompact, styles.ph5]}
                             inputID={INPUT_IDS.REASON}
                             value={reason as string}
                             items={reasons}

@@ -2,14 +2,14 @@ import React, {useCallback} from 'react';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateChatPriorityMode} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
-import {updateChatPriorityMode} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -23,7 +23,7 @@ type PriorityModeItem = {
 
 function PriorityModePage() {
     const {translate} = useLocalize();
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: (mode) => mode ?? CONST.PRIORITY_MODE.DEFAULT, canBeMissing: true});
+    const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
     const styles = useThemeStyles();
     const priorityModes = Object.values(CONST.PRIORITY_MODE).map<PriorityModeItem>((mode) => ({
         value: mode,
@@ -56,7 +56,7 @@ function PriorityModePage() {
             <Text style={[styles.mh5, styles.mv3]}>{translate('priorityModePage.explainerText')}</Text>
             <SelectionList
                 sections={[{data: priorityModes}]}
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 onSelectRow={updateMode}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedOptionKey={priorityModes.find((mode) => mode.isSelected)?.keyForList}

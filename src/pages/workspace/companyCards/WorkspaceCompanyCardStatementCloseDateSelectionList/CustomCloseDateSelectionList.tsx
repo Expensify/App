@@ -1,8 +1,8 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import FormHelpMessage from '@components/FormHelpMessage';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';

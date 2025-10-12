@@ -108,21 +108,19 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
             isSubmitButtonVisible={false}
             enabledWhenOffline={enabledWhenOffline}
         >
-            <View>
-                <View style={styles.mh5}>
-                    <Text style={styles.textHeadline}>{title}</Text>
-                    <Text style={[styles.mt1, styles.textNormalThemeText]}>{description}</Text>
-                </View>
+            <View style={styles.mh5}>
+                <Text style={styles.textHeadline}>{title}</Text>
+                <Text style={[styles.mt1, styles.mb3, styles.textNormalThemeText]}>{description}</Text>
                 <InputWrapper
                     InputComponent={RadioButtons}
                     inputID={INPUT_IDS.REASON}
                     items={options}
-                    radioButtonStyle={[styles.optionRowCompact, styles.ph5, optionRowStyles]}
+                    radioButtonStyle={[styles.mb7, optionRowStyles]}
                     onPress={handleOptionSelect}
                     shouldSaveDraft
                 />
                 {!!reason && (
-                    <View style={[styles.mh5, styles.mt4]}>
+                    <>
                         <Text style={[styles.textNormalThemeText, styles.mb3]}>{translate('feedbackSurvey.additionalInfoTitle')}</Text>
                         <InputWrapper
                             InputComponent={TextInput}
@@ -133,7 +131,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
                             onChangeText={handleSetNote}
                             shouldSaveDraft
                         />
-                    </View>
+                    </>
                 )}
             </View>
             <FixedFooter style={styles.pb0}>
