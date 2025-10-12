@@ -7,8 +7,8 @@ import type {ActionSheetAwareScrollViewHandle, ActionSheetAwareScrollViewProps} 
 import useActionSheetAwareScrollViewRef from './useActionSheetAwareScrollViewRef';
 import usePreventScrollOnKeyboardInteraction from './usePreventScrollOnKeyboardInteraction';
 
-const ActionSheetAwareScrollView = forwardRef<ActionSheetAwareScrollViewHandle, ActionSheetAwareScrollViewProps>(({onScroll: onScrollProp, ...restProps}, ref) => {
-    const {onRef, animatedRef} = useActionSheetAwareScrollViewRef(ref);
+const ActionSheetAwareScrollView = forwardRef<ActionSheetAwareScrollViewHandle, ActionSheetAwareScrollViewProps>(({onScroll: onScrollProp, ...restProps}, forwardedRef) => {
+    const {onRef, animatedRef} = useActionSheetAwareScrollViewRef(forwardedRef);
 
     const {onScroll: onScrollInternal} = usePreventScrollOnKeyboardInteraction({scrollViewRef: animatedRef});
     const onScroll = useComposedEventHandler([onScrollInternal, onScrollProp ?? null]);
