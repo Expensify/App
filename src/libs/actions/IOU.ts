@@ -13058,8 +13058,6 @@ function updateSplitExpenseField(
 
     const originalTransactionID = splitExpenseDraftTransaction?.comment?.originalTransactionID;
 
-    // const draftTransaction = allDraftSplitTransactions[`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`];
-
     const splitExpenses = originalTransactionDraft?.comment?.splitExpenses?.map((item) => {
         if (item.transactionID === splitExpenseTransactionID) {
             const transactionDetails = getTransactionDetails(splitExpenseDraftTransaction);

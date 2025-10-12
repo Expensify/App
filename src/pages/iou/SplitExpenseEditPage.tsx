@@ -43,6 +43,9 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const report = getReportOrDraftReport(reportID);
 
     const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
+    const [originalTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitExpenseDraftTransaction?.comment?.originalTransactionID}`, {canBeMissing: false}, [
+        splitExpenseDraftTransaction?.comment?.originalTransactionID,
+    ]);
 
     const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction) ?? {}, [splitExpenseDraftTransaction]);
 
@@ -233,7 +236,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             style={[styles.w100]}
                             text={translate('common.save')}
                             onPress={() => {
-                                updateSplitExpenseField(splitExpenseDraftTransaction, splitExpenseTransactionID);
+                                updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID);
                                 Navigation.goBack(backTo);
                             }}
                             pressOnEnter
