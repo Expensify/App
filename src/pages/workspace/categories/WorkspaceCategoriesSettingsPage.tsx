@@ -90,6 +90,23 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
         });
     };
 
+    const onSelectItem = (item: ListItem) => {
+        if (!item.groupID || !item.categoryID) {
+            return;
+        }
+
+        setIsSelectorModalVisible(true);
+        setCategoryID(item.categoryID);
+        setGroupID(item.groupID);
+    };
+
+    const selectionListHeaderContent = (
+        <View style={[styles.mh5, styles.mt2, styles.mb1]}>
+            <Text style={[styles.headerText]}>{translate('workspace.categories.defaultSpendCategories')}</Text>
+            <Text style={[styles.mt1, styles.lh20]}>{translate('workspace.categories.spendCategoriesDescription')}</Text>
+        </View>
+    );
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -124,22 +141,10 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                         {!!currentPolicy && data.length > 0 && (
                             <SelectionList
                                 addBottomSafeAreaPadding
-                                customListHeaderContent={
-                                    <View style={[styles.mh5, styles.mt2, styles.mb1]}>
-                                        <Text style={[styles.headerText]}>{translate('workspace.categories.defaultSpendCategories')}</Text>
-                                        <Text style={[styles.mt1, styles.lh20]}>{translate('workspace.categories.spendCategoriesDescription')}</Text>
-                                    </View>
-                                }
+                                customListHeaderContent={selectionListHeaderContent}
                                 data={data}
                                 ListItem={SpendCategorySelectorListItem}
-                                onSelectRow={(item) => {
-                                    if (!item.groupID || !item.categoryID) {
-                                        return;
-                                    }
-                                    setIsSelectorModalVisible(true);
-                                    setCategoryID(item.categoryID);
-                                    setGroupID(item.groupID);
-                                }}
+                                onSelectRow={onSelectItem}
                             />
                         )}
                     </View>
