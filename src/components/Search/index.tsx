@@ -843,7 +843,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const visibleData = data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
     const visibleDataLength = visibleData.length;
-    const shouldShowFooter = type === CONST.SEARCH.DATA_TYPES.EXPENSE && visibleDataLength > 0;
+    const shouldShowFooter = (type === CONST.SEARCH.DATA_TYPES.EXPENSE || type === CONST.SEARCH.DATA_TYPES.INVOICE || type === CONST.SEARCH.DATA_TYPES.TRIP) && visibleDataLength > 0;
 
     const footerData = useMemo(() => {
         if (!shouldShowFooter) {
