@@ -5367,7 +5367,6 @@ const CONST = {
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
         ANIMATION_DURATION_ON_CENTER_ME: 1000,
         CENTER_BUTTON_FADE_DURATION: 300,
-        MAX_RELOAD_ATTEMPTS: 3,
     },
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',
