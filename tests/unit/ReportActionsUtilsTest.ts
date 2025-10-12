@@ -1384,6 +1384,42 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('shouldReportActionBeVisible', () => {
+        it('should return false for moved transaction if the report destination is unavailable', () => {
+            // Given a moved transaction action but the report destination is not available
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    toReportID: '2',
+                },
+            };
+
+            // Then the action should not be visible
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for moved transaction if the report destination is available', async () => {
+            // Given a moved transaction action but the report destination is available
+            const report: Report = createRandomReport(2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    toReportID: report.reportID,
+                },
+            };
+
+            // Then the action should be visible
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+    });
+
     describe('getPolicyChangeLogUpdateEmployee', () => {
         it('should remove SMS domain when the email is a phone number', () => {
             const email = '+919383833920@expensify.sms';

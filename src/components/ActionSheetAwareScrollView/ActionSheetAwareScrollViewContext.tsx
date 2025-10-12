@@ -4,7 +4,7 @@ import type {ValueOf} from 'type-fest';
 import useWorkletStateMachine from '@hooks/useWorkletStateMachine';
 import type {StateMachine} from '@hooks/useWorkletStateMachine';
 import createDummySharedValue from '@src/utils/createDummySharedValue';
-import {INITIAL_ACTION_SHEET_STATE} from './types';
+import {INITIAL_ACTION_SHEET_STATE} from './constants';
 import type {ActionSheetAwareScrollViewContextValue, ActionSheetAwareScrollViewMeasurements} from './types';
 
 const NOOP = () => {};

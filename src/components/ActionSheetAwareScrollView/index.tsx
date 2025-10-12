@@ -1,31 +1,29 @@
 // The action sheet is only used on native platforms (iOS and Android)
 // On all other platforms, the action sheet is implemented using the Animated.ScrollView
-import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import Reanimated, {useAnimatedRef, useComposedEventHandler} from 'react-native-reanimated';
-import type {AnimatedRef} from 'react-native-reanimated';
+import React, {forwardRef} from 'react';
+import Reanimated, {useComposedEventHandler} from 'react-native-reanimated';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
-import type {ActionSheetAwareScrollViewProps} from './types';
+import type {ActionSheetAwareScrollViewHandle, ActionSheetAwareScrollViewProps} from './types';
+import useActionSheetAwareScrollViewRef from './useActionSheetAwareScrollViewRef';
 import usePreventScrollOnKeyboardInteraction from './usePreventScrollOnKeyboardInteraction';
 
-function ActionSheetAwareScrollView({onScroll: onScrollProp, ref, ...restProps}: ActionSheetAwareScrollViewProps) {
-    const fallbackRef = useAnimatedRef<Reanimated.ScrollView>();
-    const scrollViewRef = ref ?? fallbackRef;
+const ActionSheetAwareScrollView = forwardRef<ActionSheetAwareScrollViewHandle, ActionSheetAwareScrollViewProps>(({onScroll: onScrollProp, ...restProps}, ref) => {
+    const {onRef, animatedRef} = useActionSheetAwareScrollViewRef(ref);
 
-    const {onScroll: onScrollInternal} = usePreventScrollOnKeyboardInteraction({scrollViewRef: scrollViewRef as AnimatedRef<Reanimated.ScrollView>});
+    const {onScroll: onScrollInternal} = usePreventScrollOnKeyboardInteraction({scrollViewRef: animatedRef});
     const onScroll = useComposedEventHandler([onScrollInternal, onScrollProp ?? null]);
 
     return (
         <Reanimated.ScrollView
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
-            ref={scrollViewRef}
+            ref={onRef}
             onScroll={onScroll}
         >
             {restProps.children}
         </Reanimated.ScrollView>
     );
-}
+});
 
 export default ActionSheetAwareScrollView;
 

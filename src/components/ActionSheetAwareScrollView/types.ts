@@ -1,6 +1,8 @@
 import type {ReactNode} from 'react';
-import type {AnimatedRef, AnimatedScrollViewProps, ScrollHandlerProcessed, SharedValue} from 'react-native-reanimated';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView} from 'react-native';
 import type Reanimated from 'react-native-reanimated';
+import type {AnimatedScrollViewProps, ScrollHandlerProcessed, SharedValue} from 'react-native-reanimated';
 import type {ActionWithPayload, State} from '@hooks/useWorkletStateMachine';
 
 type ActionSheetAwareScrollViewMeasurements = {
@@ -12,18 +14,6 @@ type ActionSheetAwareScrollViewMeasurements = {
 
 type ActionSheetAwareScrollViewState = State<ActionSheetAwareScrollViewMeasurements>;
 
-/** Holds all information that is needed to coordinate the state value for the action sheet state machine. */
-const INITIAL_ACTION_SHEET_STATE: ActionSheetAwareScrollViewState = {
-    previous: {
-        state: 'idle',
-        payload: null,
-    },
-    current: {
-        state: 'idle',
-        payload: null,
-    },
-};
-
 type ActionSheetAwareScrollViewContextValue = {
     currentActionSheetState: SharedValue<ActionSheetAwareScrollViewState>;
     transitionActionSheetState: (action: ActionWithPayload) => void;
@@ -34,9 +24,14 @@ type ActionSheetAwareScrollViewContextValue = {
 type ActionSheetAwareScrollViewProps = Omit<AnimatedScrollViewProps, 'onScroll'> & {
     children?: ReactNode | SharedValue<ReactNode>;
     onScroll?: ScrollHandlerProcessed<Record<string, unknown>>;
-    ref?: React.Ref<Reanimated.ScrollView> | AnimatedRef<Reanimated.ScrollView>;
 };
 
-export type {ActionSheetAwareScrollViewProps, ActionSheetAwareScrollViewContextValue, ActionSheetAwareScrollViewMeasurements, ActionSheetAwareScrollViewState};
+type ActionSheetAwareScrollViewHandle = ScrollView | Reanimated.ScrollView;
 
-export {INITIAL_ACTION_SHEET_STATE};
+export type {
+    ActionSheetAwareScrollViewProps,
+    ActionSheetAwareScrollViewHandle,
+    ActionSheetAwareScrollViewContextValue,
+    ActionSheetAwareScrollViewMeasurements,
+    ActionSheetAwareScrollViewState,
+};
