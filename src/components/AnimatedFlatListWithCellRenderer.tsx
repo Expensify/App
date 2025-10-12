@@ -54,7 +54,7 @@ type AnimatedFlatListComplement<T> = {
 type AnimatedFlatListWithCellRendererProps<Item = any> = Omit<ReanimatedFlatListPropsWithLayout<Item>, 'CellRendererComponent' | 'onScroll' | 'inverted'> & {
     CellRendererComponent?: CellRendererComponentProps<Item>;
     onScroll?: FlatListProps<Item>['onScroll'];
-    inverted?: boolean;
+    inverted?: boolean | null | undefined;
 };
 
 // We need explicit any here, because this is the exact same type that is used in React Native types.
