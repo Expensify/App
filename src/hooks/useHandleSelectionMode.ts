@@ -36,8 +36,7 @@ function useHandleSelectionMode<TItem extends ListItem>(selectedItems: string[] 
         } else if (selectedItems.length === 0 && isMobileSelectionModeEnabled && !wasSelectionOnRef.current) {
             turnOffMobileSelectionMode();
         }
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isMobileSelectionModeEnabled, isSmallScreenWidth, isFocused]);
+    }, [isMobileSelectionModeEnabled, isSmallScreenWidth, isFocused, selectedItems.length]);
 
     useEffect(
         () => () => {

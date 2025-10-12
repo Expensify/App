@@ -16,7 +16,6 @@ import CONST from '@src/CONST';
 type SelectionListWithModalProps<TItem extends ListItem> = SelectionListProps<TItem> & {
     turnOnSelectionModeOnLongPress?: boolean;
     onTurnOnSelectionMode?: (item: TItem | null) => void;
-    isSelected?: (item: TItem) => boolean;
     isScreenFocused?: boolean;
 };
 
