@@ -20,7 +20,7 @@ import useDownloadAttachment from './hooks/useDownloadAttachment';
 import useNavigateToReportOnRefresh from './hooks/useNavigateToReportOnRefresh';
 import useReportAttachmentModalType from './hooks/useReportAttachmentModalType';
 
-function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.ATTACHMENTS>) {
+function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.REPORT_ATTACHMENTS>) {
     const {attachmentID, type, source: sourceParam, isAuthTokenRequired, attachmentLink, originalFileName, accountID, reportID, hashKey, headerTitle, onShow, onClose} = route.params;
 
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
@@ -115,7 +115,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     );
 
     return (
-        <AttachmentModalContainer<typeof SCREENS.ATTACHMENTS>
+        <AttachmentModalContainer<typeof SCREENS.REPORT_ATTACHMENTS>
             navigation={navigation}
             contentProps={contentProps}
             modalType={modalType}

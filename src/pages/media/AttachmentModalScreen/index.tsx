@@ -27,11 +27,11 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
         return route;
     }, [attachmentsContext, route]);
 
-    if (route.name === SCREENS.ATTACHMENTS) {
+    if (route.name === SCREENS.REPORT_ATTACHMENTS) {
         return (
             <ReportAttachmentModalContent
-                route={routeWithContext as RouteType<typeof SCREENS.ATTACHMENTS>}
-                navigation={navigation as NavigationType<typeof SCREENS.ATTACHMENTS>}
+                route={routeWithContext as RouteType<typeof SCREENS.REPORT_ATTACHMENTS>}
+                navigation={navigation as NavigationType<typeof SCREENS.REPORT_ATTACHMENTS>}
             />
         );
     }

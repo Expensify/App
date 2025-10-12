@@ -1917,7 +1917,7 @@ type ReportsSplitNavigatorParamList = {
         referrer?: string;
         backTo?: Routes;
     };
-    [SCREENS.ATTACHMENTS]: AttachmentModalScreensParamList[typeof SCREENS.ATTACHMENTS];
+    [SCREENS.REPORT_ATTACHMENTS]: AttachmentModalScreensParamList[typeof SCREENS.REPORT_ATTACHMENTS];
 };
 
 type SettingsSplitNavigatorParamList = {
@@ -2176,7 +2176,7 @@ type PublicScreensParamList = SharedScreensParamList & {
 };
 
 type AttachmentModalScreensParamList = {
-    [SCREENS.ATTACHMENTS]: AttachmentModalContainerModalProps & {
+    [SCREENS.REPORT_ATTACHMENTS]: AttachmentModalContainerModalProps & {
         source?: AvatarSource;
         reportID?: string;
         accountID?: number;
