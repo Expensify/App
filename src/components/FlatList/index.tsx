@@ -3,7 +3,7 @@ import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
-import useMomentumScrollEvents from '@hooks/useMomentumScrollEvents';
+import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
 import {isMobileSafari} from '@libs/Browser';
 import type {CustomFlatListProps} from './types';
 
@@ -223,7 +223,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         };
     }, []);
 
-    const emitScrollEvents = useMomentumScrollEvents(restProps.inverted);
+    const emitScrollEvents = useEmitComposerScrollEvents(restProps.inverted);
     const handleScroll = useCallback(
         (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             onScrollProp?.(event);

@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
  * @param inverted - Whether the list is inverted.
  * @returns A function that can be used to emit the scroll events.
  */
-function useMomentumScrollEvents(inverted: boolean | null | undefined = false) {
+function useEmitComposerScrollEvents(inverted: boolean | null | undefined = false) {
     const lastScrollEvent = useRef<number | null>(null);
     const scrollEndTimeout = useRef<NodeJS.Timeout | null>(null);
     const updateInProgress = useRef<boolean>(false);
@@ -88,4 +88,4 @@ function useMomentumScrollEvents(inverted: boolean | null | undefined = false) {
     return emitScrollEvents;
 }
 
-export default useMomentumScrollEvents;
+export default useEmitComposerScrollEvents;
