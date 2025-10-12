@@ -144,8 +144,6 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         travelSettings?.hasAcceptedTerms,
         travelSettings?.lastTravelSignupRequestTime,
         isBetaEnabled,
-        styles.flexRow,
-        StyleUtils,
         translate,
         isUserValidated,
         phoneErrorMethodsRoute,

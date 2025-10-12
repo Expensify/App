@@ -417,6 +417,7 @@ function FormProvider({
                     }
                     inputProps.onBlur?.(event);
                     if (isSafari()) {
+                        // eslint-disable-next-line deprecation/deprecation
                         InteractionManager.runAfterInteractions(() => {
                             setIsBlurred(true);
                         });

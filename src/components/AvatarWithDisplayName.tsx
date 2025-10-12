@@ -1,3 +1,4 @@
+import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {ColorValue, TextStyle} from 'react-native';
@@ -37,7 +38,7 @@ import type DisplayNamesProps from './DisplayNames/types';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import ReportActionAvatars from './ReportActionAvatars';
-import type {TransactionListItemType} from './SelectionList/types';
+import type {TransactionListItemType} from './SelectionListWithSections/types';
 import Text from './Text';
 
 type AvatarWithDisplayNameProps = {
@@ -171,7 +172,7 @@ function AvatarWithDisplayName({
         `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : undefined}`,
         {canBeMissing: true},
     );
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: true});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
     const parentReportActionParam = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const isReportArchived = useReportIsArchived(report?.reportID);
     const title = getReportName(report, undefined, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes, undefined, isReportArchived);

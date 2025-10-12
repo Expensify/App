@@ -154,9 +154,9 @@ function shouldComputeReportName(report: Report, context: UpdateContext): boolea
     }
 
     // Only compute names for expense reports with policies that have title fields
-    // Check if the policy has a title field with a formula
-    const titleField = getTitleFieldFromRNVP(report.reportID, context);
-    if (!titleField?.defaultValue) {
+    // Check if the report has a title field with a formula in rNVP
+    const reportTitleField = getTitleFieldFromRNVP(report.reportID, context);
+    if (!reportTitleField?.defaultValue) {
         return false;
     }
     return true;
@@ -195,13 +195,10 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
     }
 
     const titleField = getTitleFieldFromRNVP(targetReport.reportID, context);
-    if (!titleField?.defaultValue) {
-        return null;
-    }
 
     // Quick check: see if the update might affect the report name
     const updateType = determineObjectTypeByKey(incomingUpdate.key);
-    const formula = titleField.defaultValue;
+    const formula = titleField?.defaultValue;
     const formulaParts = parse(formula);
 
     let transaction: Transaction | undefined;
@@ -265,7 +262,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
     const {betas, allReports, betaConfiguration} = context;
 
     // Check if the feature is enabled
-    if (!Permissions.isBetaEnabled(CONST.BETAS.AUTH_AUTO_REPORT_TITLE, betas, betaConfiguration)) {
+    if (!Permissions.isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES, betas, betaConfiguration)) {
         return updates;
     }
 

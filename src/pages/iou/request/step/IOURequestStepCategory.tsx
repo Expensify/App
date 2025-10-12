@@ -1,20 +1,21 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useEffect} from 'react';
-import {ActivityIndicator, InteractionManager, View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import CategoryPicker from '@components/CategoryPicker';
 import FixedFooter from '@components/FixedFooter';
 import * as Illustrations from '@components/Icon/Illustrations';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOURequestPolicyID, setDraftSplitTransaction, setMoneyRequestCategory, updateMoneyRequestCategory} from '@libs/actions/IOU';
 import {enablePolicyCategories, getPolicyCategories} from '@libs/actions/Policy/Category';
@@ -23,7 +24,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getTransactionDetails, isGroupPolicy, isReportInGroupPolicy} from '@libs/ReportUtils';
-import {isExpenseUnreported as isExpenseUnreportedTransactionUtils} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,30 +41,24 @@ function IOURequestStepCategory({
     report: reportReal,
     reportDraft,
     route: {
-        params: {transactionID, backTo, action, iouType, reportActionID},
+        params: {transactionID, backTo, action, iouType, reportActionID, reportID: routeReportID},
     },
     transaction,
 }: IOURequestStepCategoryProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
 
     const policyIdReal = getIOURequestPolicyID(transaction, reportReal);
     const policyIdDraft = getIOURequestPolicyID(transaction, reportDraft);
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyIdReal}`, {canBeMissing: true});
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyIdDraft}`, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
-        canBeMissing: true,
-        selector: (policy) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined),
-    });
-    const isExpenseUnreported = isExpenseUnreportedTransactionUtils(transaction);
-    const policy = isExpenseUnreported ? activePolicy : (policyReal ?? policyDraft);
+    const policy = policyReal ?? policyDraft;
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyIdDraft}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policy?.id}`, {canBeMissing: true});
 
     const report = reportReal ?? reportDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
@@ -75,11 +69,12 @@ function IOURequestStepCategory({
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionCategory = getTransactionDetails(currentTransaction)?.category ?? '';
+    useRestartOnReceiptFailure(transaction, routeReportID, iouType, action);
 
     const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
 
     const shouldShowCategory =
-        (isExpenseUnreported || isReportInGroupPolicy(report) || isGroupPolicy(policy?.type ?? '')) &&
+        (isReportInGroupPolicy(report) || isGroupPolicy(policy?.type ?? '')) &&
         // The transactionCategory can be an empty string, so to maintain the logic we'd like to keep it in this shape until utils refactor
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (!!categoryForDisplay || hasEnabledOptions(Object.values(policyCategories ?? {})));
@@ -122,7 +117,16 @@ function IOURequestStepCategory({
             }
 
             if (isEditing && report) {
-                updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory, policy, policyTags, policyCategories, currentSearchHash);
+                updateMoneyRequestCategory(
+                    transaction.transactionID,
+                    report.reportID,
+                    updatedCategory,
+                    policy,
+                    policyTags,
+                    policyCategories,
+                    policyRecentlyUsedCategories,
+                    currentSearchHash,
+                );
                 navigateBack();
                 return;
             }
@@ -154,7 +158,6 @@ function IOURequestStepCategory({
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     style={[styles.flex1]}
-                    color={theme.spinner}
                 />
             )}
             {shouldShowOfflineView && <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>}
@@ -179,8 +182,9 @@ function IOURequestStepCategory({
                                     }
 
                                     if (!policy.areCategoriesEnabled) {
-                                        enablePolicyCategories(policy.id, true, policyTagLists, allTransactionViolations, false);
+                                        enablePolicyCategories(policy.id, true, policyTagLists, policyCategories, allTransactionViolations, false);
                                     }
+                                    // eslint-disable-next-line deprecation/deprecation
                                     InteractionManager.runAfterInteractions(() => {
                                         Navigation.navigate(
                                             ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
