@@ -22,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {
     addSplitExpenseField,
     clearSplitTransactionDraftErrors,
+    getIOURequestPolicyID,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
     updateSplitExpenseAmountField,
@@ -73,6 +74,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: true});
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: true});
 
     const policy = usePolicy(report?.policyID);
     const isSplitAvailable = report && transaction && isSplitAction(report, [transaction], policy);
@@ -165,6 +167,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             hash: currentSearchHash,
             policyCategories,
             policy: expenseReportPolicy,
+            policyRecentlyUsedCategories,
         });
     }, [
         splitExpenses,
@@ -181,6 +184,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         currentSearchHash,
         policyCategories,
         expenseReportPolicy,
+        policyRecentlyUsedCategories,
         splitFieldDataFromOriginalTransaction,
         translate,
         transactionID,
