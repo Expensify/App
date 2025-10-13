@@ -46,6 +46,8 @@ import MemberListItemHeader from './MemberListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 
+const TRANSACTIONS_PAGE_SIZE = 20;
+
 function TransactionGroupListItem<TItem extends ListItem>({
     item,
     isFocused,
@@ -77,6 +79,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
         return transactionsSnapshot?.search;
     }, [transactionsSnapshot]);
     const isGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
+    const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(TRANSACTIONS_PAGE_SIZE);
+
     const transactions = useMemo(() => {
         if (isGroupByReports) {
             return groupItem.transactions;
@@ -90,6 +94,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
             isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
         }));
     }, [isGroupByReports, transactionsSnapshot?.data, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDsSet]);
+
+    const visibleTransactions = useMemo(() => {
+        if (isGroupByReports) {
+            return transactions.slice(0, transactionsVisibleLimit);
+        }
+        return transactions;
+    }, [transactions, transactionsVisibleLimit, isGroupByReports]);
 
     const currentColumns = useMemo(() => {
         if (isGroupByReports) {
@@ -133,7 +144,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayEmptyView = isEmpty && isGroupByReports;
     const isDisabledOrEmpty = isEmpty || isDisabled;
-    const shouldDisplayShowMoreButton = !isGroupByReports && !!transactionsSnapshotMetadata?.hasMoreResults;
+    const shouldDisplayShowMoreButton = isGroupByReports ? transactions.length > transactionsVisibleLimit : !!transactionsSnapshotMetadata?.hasMoreResults;
     const currentOffset = transactionsSnapshotMetadata?.offset ?? 0;
     const shouldShowLoadingOnSearch = !!(!transactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
     const shouldDisplayLoadingIndicator = !isGroupByReports && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
@@ -205,6 +216,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
             shouldCalculateTotals: false,
         });
     }, [groupItem.transactionsQueryJSON, newTransactionID, transactionsSnapshot?.search?.offset, isExpanded]);
+
+    useEffect(() => {
+        if (isExpanded) {
+            return;
+        }
+        setTransactionsVisibleLimit(TRANSACTIONS_PAGE_SIZE);
+    }, [isExpanded]);
 
     const handleToggle = useCallback(() => {
         setIsExpanded(!isExpanded);
@@ -308,6 +326,114 @@ function TransactionGroupListItem<TItem extends ListItem>({
             ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
             : undefined;
 
+    const renderExpandedContent = () => {
+        if (shouldDisplayEmptyView) {
+            return (
+                <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
+                    <Text
+                        style={[styles.textLabelSupporting]}
+                        numberOfLines={1}
+                    >
+                        {translate('search.moneyRequestReport.emptyStateTitle')}
+                    </Text>
+                </View>
+            );
+        }
+
+        return (
+            <>
+                {isLargeScreenWidth && (
+                    <View
+                        style={[
+                            styles.searchListHeaderContainerStyle,
+                            styles.groupSearchListTableContainerStyle,
+                            styles.bgTransparent,
+                            styles.pl9,
+                            isGroupByReports ? styles.pr10 : styles.pr3,
+                        ]}
+                    >
+                        <SearchTableHeader
+                            canSelectMultiple
+                            type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                            onSortPress={() => {}}
+                            sortOrder={undefined}
+                            sortBy={undefined}
+                            shouldShowYear={dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
+                            isAmountColumnWide={amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
+                            isTaxAmountColumnWide={taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
+                            shouldShowSorting={false}
+                            columns={currentColumns}
+                            areAllOptionalColumnsHidden={areAllOptionalColumnsHidden ?? false}
+                            groupBy={groupBy}
+                        />
+                    </View>
+                )}
+                {visibleTransactions.map((transaction) => (
+                    <OfflineWithFeedback
+                        pendingAction={transaction.pendingAction}
+                        key={transaction.transactionID}
+                    >
+                        <TransactionItemRow
+                            report={transaction.report}
+                            transactionItem={transaction}
+                            violations={getTransactionViolations(transaction, violations)}
+                            isSelected={!!transaction.isSelected}
+                            dateColumnSize={dateColumnSize}
+                            amountColumnSize={amountColumnSize}
+                            taxAmountColumnSize={taxAmountColumnSize}
+                            shouldShowTooltip={showTooltip}
+                            shouldUseNarrowLayout={!isLargeScreenWidth}
+                            shouldShowCheckbox={!!canSelectMultiple}
+                            onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                            columns={currentColumns}
+                            onButtonPress={() => {
+                                openReportInRHP(transaction);
+                            }}
+                            style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half], isGroupByReports && styles.pr10]}
+                            isReportItemChild
+                            isInSingleTransactionReport={groupItem.transactions.length === 1}
+                            areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                        />
+                    </OfflineWithFeedback>
+                ))}
+                {shouldDisplayShowMoreButton && !shouldDisplayLoadingIndicator && (
+                    <View style={[styles.w100, styles.flexRow, isLargeScreenWidth && styles.pl10]}>
+                        <Button
+                            text={translate('common.showMore')}
+                            onPress={() => {
+                                if (isGroupByReports) {
+                                    setTransactionsVisibleLimit((currentPageSize) => currentPageSize + TRANSACTIONS_PAGE_SIZE);
+                                } else if (!isOffline && groupItem.transactionsQueryJSON) {
+                                    search({
+                                        queryJSON: groupItem.transactionsQueryJSON,
+                                        searchKey: undefined,
+                                        offset: (transactionsSnapshotMetadata?.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE,
+                                        shouldCalculateTotals: false,
+                                    });
+                                }
+                            }}
+                            link
+                            shouldUseDefaultHover={false}
+                            isNested
+                            medium
+                            innerStyles={[styles.ph3]}
+                            textStyles={[styles.fontSizeNormal]}
+                        />
+                    </View>
+                )}
+                {shouldDisplayLoadingIndicator && (
+                    <View style={[isLargeScreenWidth && styles.pl10, styles.pt3, isEmpty && styles.pb3]}>
+                        <ActivityIndicator
+                            color={theme.spinner}
+                            size={25}
+                            style={[styles.pl3, !isEmpty && styles.alignItemsStart]}
+                        />
+                    </View>
+                )}
+            </>
+        );
+    };
+
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
             <PressableWithFeedback
@@ -336,112 +462,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         onPress={onExpandIconPress}
                         expandButtonStyle={[styles.pv4Half]}
                     >
-                        {shouldDisplayEmptyView ? (
-                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
-                                <Text
-                                    style={[styles.textLabelSupporting]}
-                                    numberOfLines={1}
-                                >
-                                    {translate('search.moneyRequestReport.emptyStateTitle')}
-                                </Text>
-                            </View>
-                        ) : (
-                            <>
-                                {isLargeScreenWidth && (
-                                    <View
-                                        style={[
-                                            styles.searchListHeaderContainerStyle,
-                                            styles.groupSearchListTableContainerStyle,
-                                            styles.bgTransparent,
-                                            styles.pl9,
-                                            isGroupByReports ? styles.pr10 : styles.pr3,
-                                        ]}
-                                    >
-                                        <SearchTableHeader
-                                            canSelectMultiple
-                                            type={CONST.SEARCH.DATA_TYPES.EXPENSE}
-                                            onSortPress={() => {}}
-                                            sortOrder={undefined}
-                                            sortBy={undefined}
-                                            shouldShowYear={dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
-                                            isAmountColumnWide={amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
-                                            isTaxAmountColumnWide={taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
-                                            shouldShowSorting={false}
-                                            columns={currentColumns}
-                                            areAllOptionalColumnsHidden={areAllOptionalColumnsHidden ?? false}
-                                            groupBy={groupBy}
-                                        />
-                                    </View>
-                                )}
-                                {isExpanded
-                                    ? transactions.map((transaction) => (
-                                          <OfflineWithFeedback
-                                              pendingAction={transaction.pendingAction}
-                                              key={transaction.transactionID}
-                                          >
-                                              <TransactionItemRow
-                                                  report={transaction.report}
-                                                  transactionItem={transaction}
-                                                  violations={getTransactionViolations(transaction, violations)}
-                                                  isSelected={!!transaction.isSelected}
-                                                  dateColumnSize={dateColumnSize}
-                                                  amountColumnSize={amountColumnSize}
-                                                  taxAmountColumnSize={taxAmountColumnSize}
-                                                  shouldShowTooltip={showTooltip}
-                                                  shouldUseNarrowLayout={!isLargeScreenWidth}
-                                                  shouldShowCheckbox={!!canSelectMultiple}
-                                                  onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                                  columns={currentColumns}
-                                                  onButtonPress={() => {
-                                                      openReportInRHP(transaction);
-                                                  }}
-                                                  style={[
-                                                      styles.noBorderRadius,
-                                                      shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half],
-                                                      isGroupByReports && styles.pr10,
-                                                  ]}
-                                                  isReportItemChild
-                                                  isInSingleTransactionReport={groupItem.transactions.length === 1}
-                                                  areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                                              />
-                                          </OfflineWithFeedback>
-                                      ))
-                                    : null}
-                                {shouldDisplayShowMoreButton && !shouldDisplayLoadingIndicator && (
-                                    <View style={[styles.w100, styles.flexRow, isLargeScreenWidth && styles.pl10]}>
-                                        <Button
-                                            text={translate('common.showMore')}
-                                            onPress={() => {
-                                                if (!!isOffline || !groupItem.transactionsQueryJSON) {
-                                                    return;
-                                                }
-                                                search({
-                                                    queryJSON: groupItem.transactionsQueryJSON,
-                                                    searchKey: undefined,
-                                                    offset: (transactionsSnapshotMetadata?.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE,
-                                                    shouldCalculateTotals: false,
-                                                });
-                                            }}
-                                            link
-                                            shouldUseDefaultHover={false}
-                                            isNested
-                                            medium
-                                            innerStyles={[styles.ph3]}
-                                            textStyles={[styles.fontSizeNormal]}
-                                        />
-                                    </View>
-                                )}
-                                {shouldDisplayLoadingIndicator && (
-                                    <View style={[isLargeScreenWidth && styles.pl10, styles.pt3, isEmpty && styles.pb3]}>
-                                        <ActivityIndicator
-                                            color={theme.spinner}
-                                            size={25}
-                                            style={[styles.pl3, !isEmpty && styles.alignItemsStart]}
-                                        />
-                                    </View>
-                                )}
-                            </>
-                        )}
+                        {isExpanded ? renderExpandedContent() : null}
                     </AnimatedCollapsible>
                 </View>
             </PressableWithFeedback>
