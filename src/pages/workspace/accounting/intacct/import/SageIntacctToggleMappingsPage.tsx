@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearSageIntacctErrorField, updateSageIntacctMappingValue} from '@libs/actions/connections/SageIntacct';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -53,7 +53,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
 
     const policy = usePolicy(route.params.policyID);
     const mappingName: SageIntacctMappingName = route.params.mapping;
-    const policyID: string = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const config = policy?.connections?.intacct?.config;
     const isImportMappingEnable = config?.mappings?.[mappingName] !== CONST.SAGE_INTACCT_MAPPING_VALUE.NONE;
     const isAccordionExpanded = useSharedValue(isImportMappingEnable);
@@ -103,7 +103,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                     shouldAnimateAccordionSection.set(true);
                 }}
                 pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}
-                errors={ErrorUtils.getLatestErrorField(config ?? {}, mappingName)}
+                errors={getLatestErrorField(config ?? {}, mappingName)}
                 onCloseError={() => clearSageIntacctErrorField(policyID, mappingName)}
             />
             <Accordion
