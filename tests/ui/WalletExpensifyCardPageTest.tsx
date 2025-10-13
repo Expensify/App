@@ -18,8 +18,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import currencyList from '../unit/currencyList.json';
 import * as TestHelper from '../utils/TestHelper';
-import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Set up a global fetch mock for API requests in tests.
 TestHelper.setupGlobalFetchMock();
