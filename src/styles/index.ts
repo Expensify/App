@@ -5496,6 +5496,14 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         createMenuPositionSidebar: (windowHeight: number) =>
             ({
+                horizontal: 16,
+                // Menu should be displayed 8px above the floating action button.
+                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (16px) + fab height on a wide layout (variables.componentSizeNormal) + distance above the fab (8px)
+                vertical: windowHeight - 16 - variables.componentSizeNormal - 8,
+            }) satisfies AnchorPosition,
+
+        createMenuPositionSearchBar: (windowHeight: number) =>
+            ({
                 horizontal: 18,
                 // Menu should be displayed 12px above the floating action button.
                 // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height on a wide layout (variables.componentSizeNormal) + distance above the fab (12px)
