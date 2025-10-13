@@ -102,7 +102,6 @@ export type {default as UpdateStatusParams} from './UpdateStatusParams';
 export type {default as UpdateThemeParams} from './UpdateThemeParams';
 export type {default as UpdateUserAvatarParams} from './UpdateUserAvatarParams';
 export type {default as UpdateGroupChatAvatarParams} from './UpdateGroupChatAvatarParams';
-export type {default as UpdatePolicyRoomAvatarParams} from './UpdatePolicyRoomAvatarParams';
 export type {default as ValidateBankAccountWithTransactionsParams} from './ValidateBankAccountWithTransactionsParams';
 export type {default as ValidateLoginParams} from './ValidateLoginParams';
 export type {default as ValidateSecondaryLoginParams} from './ValidateSecondaryLoginParams';
@@ -158,6 +157,7 @@ export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMem
 export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCategoriesPageParams';
 export type {default as OpenPolicyTagsPageParams} from './OpenPolicyTagsPageParams';
 export type {default as OpenDraftWorkspaceRequestParams} from './OpenDraftWorkspaceRequestParams';
+export type {default as OpenDraftPerDiemExpenseParams} from './OpenDraftPerDiemExpenseParams';
 export type {default as CreateWorkspaceFromIOUPaymentParams} from './CreateWorkspaceFromIOUPaymentParams';
 export type {default as UpdatePolicyMembersCustomFieldsParams} from './UpdatePolicyMembersCustomFieldsParams';
 export type {default as CreateTaskParams} from './CreateTaskParams';

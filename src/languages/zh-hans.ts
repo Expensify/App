@@ -658,6 +658,8 @@ const translations = {
         reschedule: '重新安排',
         general: '常规',
         workspacesTabTitle: '工作区',
+        getTheApp: '获取应用程序',
+        scanReceiptsOnTheGo: '从手机扫描收据',
         headsUp: '注意！',
         submitTo: '提交到',
         forwardTo: '转发到',
@@ -1032,6 +1034,10 @@ const translations = {
     receipt: {
         upload: '上传收据',
         uploadMultiple: '上传收据',
+        dragReceiptBeforeEmail: '将收据拖到此页面上，转发收据到',
+        dragReceiptsBeforeEmail: '将收据拖到此页面，转发收据至',
+        dragReceiptAfterEmail: '或者选择下方的文件上传。',
+        dragReceiptsAfterEmail: '或选择文件上传。',
         desktopSubtitleSingle: `或将其拖放到此处`,
         desktopSubtitleMultiple: `或将它们拖放到此处`,
         chooseReceipt: '选择要上传的收据或转发收据到',
@@ -1468,6 +1474,7 @@ const translations = {
             pageTitle: '选择您想保留的详情：',
             noDifferences: '发现交易无差异',
             pleaseSelectError: ({field}: {field: string}) => `请选择一个${field}`,
+            pleaseSelectAttendees: '请选择参与者',
             selectAllDetailsError: '继续前请选取所有详情。',
         },
         confirmationPage: {
@@ -1537,10 +1544,7 @@ const translations = {
         subtitle: '启用双因素认证以确保您的账户安全。',
         goToSecurity: '返回安全页面',
     },
-    shareCodePage: {
-        title: '您的代码',
-        subtitle: '通过分享您的个人二维码或推荐链接邀请成员加入Expensify。',
-    },
+    shareCodePage: {title: '您的代码', subtitle: '通过分享您的个人二维码或推荐链接邀请成员加入Expensify。'},
     pronounsPage: {
         pronouns: '代词',
         isShownOnProfile: '您的代词显示在您的个人资料上。',
@@ -1551,8 +1555,8 @@ const translations = {
         contactMethods: '联系方式',
         featureRequiresValidate: '此功能需要您验证您的账户。',
         validateAccount: '验证您的账户',
-        helpTextBeforeEmail: '添加更多方式让人们找到您，并转发收据到',
-        helpTextAfterEmail: '从多个电子邮件地址。',
+        helpTextBeforeEmail: '添加更多发送收据的方式。转发到',
+        helpTextAfterEmail: '或将其发送至 47777（仅限美国号码）。',
         pleaseVerify: '请验证此联系方式',
         getInTouch: '每当我们需要联系您时，我们将使用此联系方式。',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `请输入发送到${contactMethod}的验证码。验证码将在一分钟内到达。`,
@@ -1987,8 +1991,10 @@ const translations = {
     workflowsPage: {
         workflowTitle: '花费',
         workflowDescription: '配置从支出发生到审批和支付的工作流程。',
+        delaySubmissionTitle: '延迟提交',
+        delaySubmissionDescription: '选择一个自定义的报销提交时间表，或者关闭此选项以实时更新支出。',
         submissionFrequency: '提交频率',
-        submissionFrequencyDescription: '选择自定义的费用提交时间表，或者关闭此选项以实时更新支出。',
+        submissionFrequencyDescription: '选择提交费用的频率。',
         submissionFrequencyDateOfMonth: '月份日期',
         addApprovalsTitle: '添加审批',
         addApprovalButton: '添加审批工作流程',
@@ -2040,6 +2046,7 @@ const translations = {
         },
     },
     workflowsDelayedSubmissionPage: {
+        autoReportingErrorMessage: '延迟提交无法更改。请重试或联系支持。',
         autoReportingFrequencyErrorMessage: '提交频率无法更改。请重试或联系客服。',
         monthlyOffsetErrorMessage: '无法更改每月频率。请重试或联系支持。',
     },
@@ -2323,6 +2330,23 @@ const translations = {
             testDriveEmployeeTask: {
                 title: ({testDriveURL}) => `进行[试驾](${testDriveURL})`,
                 description: ({testDriveURL}) => `进行[试驾](${testDriveURL})即可获得团队 *3 个月的 Expensify 免费使用权！*`,
+            },
+            addExpenseApprovalsTask: {
+                title: '添加费用审批',
+                description: ({workspaceMoreFeaturesLink}) =>
+                    `*添加费用审批*，以便查看团队支出并保持控制。\n` +
+                    '\n' +
+                    `操作步骤如下：\n` +
+                    '\n' +
+                    '1. 前往 *工作区*。\n' +
+                    '2. 选择你的工作区。\n' +
+                    '3. 点击 *更多功能*。\n' +
+                    '4. 启用 *工作流*。\n' +
+                    '5. 在工作区编辑器中进入 *工作流*。\n' +
+                    '6. 启用 *添加审批*。\n' +
+                    `7. 你将被设置为费用审批人。邀请团队后，你可以将其更改为任意管理员。\n` +
+                    '\n' +
+                    `[前往更多功能](${workspaceMoreFeaturesLink})。`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[创建](${workspaceConfirmationLink})一个工作区`,
@@ -5474,6 +5498,11 @@ const translations = {
                 description: 'Expensify Travel 是一个新的企业差旅预订和管理平台，允许会员预订住宿、航班、交通等。',
                 onlyAvailableOnPlan: '旅行功能在 Collect 计划中提供，起价为',
             },
+            reports: {
+                title: '报告',
+                description: '报告允许您对费用进行分组，以便更容易地跟踪和整理。',
+                onlyAvailableOnPlan: '报告功能在 Collect 计划中提供，起价为 ',
+            },
             multiLevelTags: {
                 title: '多级标签',
                 description: '多级标签帮助您更精确地跟踪费用。为每个项目分配多个标签，例如部门、客户或成本中心，以捕获每笔费用的完整上下文。这使得更详细的报告、审批流程和会计导出成为可能。',
@@ -6098,10 +6127,7 @@ const translations = {
         },
         has: '有',
         groupBy: '组别',
-        moneyRequestReport: {
-            emptyStateTitle: '此报告没有费用。',
-            emptyStateSubtitle: '您可以使用下方按钮，或上方“更多”菜单中的“添加费用”选项，将费用添加到此报告中。',
-        },
+        moneyRequestReport: {emptyStateTitle: '此报告没有费用。', emptyStateSubtitle: '您可以通过下面的按钮或上方“更多”菜单中的“添加费用”选项将费用添加到此报告中。'},
         noCategory: '无类别',
         noTag: '无标签',
         expenseType: '费用类型',
