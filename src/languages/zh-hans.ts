@@ -6127,9 +6127,6 @@ const translations = {
         has: '有',
         groupBy: '组别',
         moneyRequestReport: {emptyStateTitle: '此报告没有费用。', emptyStateSubtitle: '您可以通过下面的按钮或上方“更多”菜单中的“添加费用”选项将费用添加到此报告中。'},
-        moneyRequestReport: {
-            emptyStateTitle: '此报告没有费用。',
-        },
         noCategory: '无类别',
         noTag: '无标签',
         expenseType: '费用类型',
