@@ -6,7 +6,6 @@ import type {ReportFieldDateKey, SearchDateFilterKeys} from '@components/Search/
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateAdvancedFilters} from '@libs/actions/Search';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -15,11 +14,11 @@ import type {SearchDatePresetFilterBaseHandle} from './DatePresetFilterBase';
 import DatePresetFilterBase from './DatePresetFilterBase';
 
 type DateFilterBaseProps = {
-    /** Key used for the date filter */
     dateKey: SearchDateFilterKeys;
+    onSubmit: (values: Record<string, string | undefined>) => void;
 };
 
-function DateFilterBase({dateKey}: DateFilterBaseProps) {
+function DateFilterBase({dateKey, onSubmit}: DateFilterBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -76,12 +75,13 @@ function DateFilterBase({dateKey}: DateFilterBaseProps) {
         }
 
         const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
-        updateAdvancedFilters({
-            [dateOnKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
-            [dateBeforeKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,
-            [dateAfterKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? null,
+
+        onSubmit({
+            [dateOnKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON],
+            [dateBeforeKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
+            [dateAfterKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
         });
-    }, [selectedDateModifier, dateOnKey, dateBeforeKey, dateAfterKey]);
+    }, [selectedDateModifier, dateOnKey, dateBeforeKey, dateAfterKey, onSubmit]);
 
     return (
         <>

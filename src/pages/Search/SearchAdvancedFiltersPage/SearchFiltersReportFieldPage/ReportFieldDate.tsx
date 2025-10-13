@@ -1,4 +1,7 @@
 import React from 'react';
+import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
+import {updateAdvancedFilters} from '@libs/actions/Search';
+import CONST from '@src/CONST';
 import type {PolicyReportField} from '@src/types/onyx';
 
 type ReportFieldDateProps = {
@@ -7,9 +10,21 @@ type ReportFieldDateProps = {
 };
 
 function ReportFieldDate({field, close}: ReportFieldDateProps) {
-    return <></>;
+    const formKey = `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${field.name.toLowerCase().replaceAll(' ', '-')}` as const;
+
+    const updateFilter = (values: Record<string, string | undefined>) => {
+        updateAdvancedFilters(values);
+        close();
+    };
+
+    return (
+        <DateFilterBase
+            dateKey={formKey}
+            onSubmit={updateFilter}
+        />
+    );
 }
 
-ReportFieldDate.displayName = 'SearchFiltersReportFieldPage';
+ReportFieldDate.displayName = 'ReportFieldDate';
 
 export default ReportFieldDate;
