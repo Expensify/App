@@ -1,10 +1,10 @@
-import React, { useCallback, useMemo, useRef } from 'react';
-import type { View } from 'react-native';
-import { getButtonRole } from '@components/Button/utils';
+import React, {useCallback, useMemo, useRef} from 'react';
+import type {View} from 'react-native';
+import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import { useSearchContext } from '@components/Search/SearchContext';
-import type { ListItem, TransactionListItemProps, TransactionListItemType } from '@components/SelectionListWithSections/types';
+import {useSearchContext} from '@components/Search/SearchContext';
+import type {ListItem, TransactionListItemProps, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useOnyx from '@hooks/useOnyx';
@@ -13,16 +13,15 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { handleActionButtonPress as handleActionButtonPressUtil } from '@libs/actions/Search';
-import { isViolationDismissed, shouldShowViolation } from '@libs/TransactionUtils';
+import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
+import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Policy } from '@src/types/onyx';
-import type { SearchPolicy, SearchReport } from '@src/types/onyx/SearchResults';
-import type { TransactionViolation } from '@src/types/onyx/TransactionViolation';
+import type {Policy} from '@src/types/onyx';
+import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
+import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
-
 
 function TransactionListItem<TItem extends ListItem>({
     item,
