@@ -152,7 +152,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         const newFocusedRoute = findFocusedRoute(stateFromPath);
         if (newFocusedRoute) {
             const matchingFullScreenRoute = getMatchingFullScreenRoute(newFocusedRoute);
-            const lastRouteInMatchingFullScreen = matchingFullScreenRoute?.state?.routes?.at(-1);
 
             const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
 
@@ -160,6 +159,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
                 if (isRoutePreloaded(currentState, matchingFullScreenRoute)) {
                     navigation.dispatch(StackActions.push(matchingFullScreenRoute.name));
                 } else {
+                    const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
                     const additionalAction = StackActions.push(matchingFullScreenRoute.name, {
                         screen: lastRouteInMatchingFullScreen?.name,
                         params: lastRouteInMatchingFullScreen?.params,
