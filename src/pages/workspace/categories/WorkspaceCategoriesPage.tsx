@@ -163,7 +163,16 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 allTransactionViolations,
             );
         },
-        [policyId, isSetupCategoryTaskParentReportArchived, setupCategoryTaskReport, setupCategoryTaskParentReport, policyCategories, policyTagLists, allTransactionViolations],
+        [
+            policyId,
+            isSetupCategoryTaskParentReportArchived,
+            setupCategoryTaskReport,
+            setupCategoryTaskParentReport,
+            currentUserPersonalDetails.accountID,
+            policyCategories,
+            policyTagLists,
+            allTransactionViolations,
+        ],
     );
 
     const categoryList = useMemo<PolicyOption[]>(() => {

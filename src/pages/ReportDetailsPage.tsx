@@ -803,17 +803,18 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             removeTransaction(iouTransactionID);
         }
     }, [
+        caseID,
+        requestParentReportAction,
+        report,
+        isReportArchived,
+        currentUserPersonalDetails.accountID,
+        moneyRequestReport?.reportID,
+        iouTransactionID,
         duplicateTransactions,
         duplicateTransactionViolations,
-        caseID,
-        iouTransactionID,
         isSingleTransactionView,
-        moneyRequestReport?.reportID,
-        removeTransaction,
-        report,
-        requestParentReportAction,
-        isReportArchived,
         isMoneyRequestReportArchived,
+        removeTransaction,
     ]);
 
     // A flag to indicate whether the user chose to delete the transaction or not
