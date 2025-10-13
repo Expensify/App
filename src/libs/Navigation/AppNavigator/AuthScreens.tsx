@@ -87,7 +87,6 @@ const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../page
 const loadProfileAvatar = () => require<ReactComponentModule>('../../../pages/settings/Profile/Avatar/ProfileAvatar').default;
 const loadWorkspaceAvatar = () => require<ReactComponentModule>('../../../pages/workspace/WorkspaceAvatar').default;
 const loadReportAvatar = () => require<ReactComponentModule>('../../../pages/ReportAvatar').default;
-const loadReceiptView = () => require<ReactComponentModule>('../../../pages/TransactionReceiptPage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
 const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
@@ -582,6 +581,18 @@ function AuthScreens() {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
+                    name={SCREENS.TRANSACTION_RECEIPT}
+                    options={attachmentModalScreenOptions}
+                    getComponent={loadAttachmentModalScreen}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW}
+                    options={attachmentModalScreenOptions}
+                    getComponent={loadAttachmentModalScreen}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
                     name={SCREENS.PROFILE_AVATAR}
                     options={{
                         headerShown: false,
@@ -696,24 +707,6 @@ function AuthScreens() {
                     }}
                     listeners={modalScreenListeners}
                     getComponent={loadWorkspaceJoinUser}
-                />
-                <RootStack.Screen
-                    name={SCREENS.TRANSACTION_RECEIPT}
-                    options={{
-                        headerShown: false,
-                        presentation: Presentation.TRANSPARENT_MODAL,
-                    }}
-                    getComponent={loadReceiptView}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name={SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW}
-                    options={{
-                        headerShown: false,
-                        presentation: Presentation.TRANSPARENT_MODAL,
-                    }}
-                    getComponent={loadReceiptView}
-                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name={SCREENS.CONNECTION_COMPLETE}
