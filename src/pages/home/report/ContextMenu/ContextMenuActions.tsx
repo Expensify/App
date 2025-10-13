@@ -694,7 +694,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedManualApprovalThresholdMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
                     setClipboardMessage(getChangedApproverActionMessage(reportAction));
-                } else if(isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
                     setClipboardMessage(getMovedTransactionMessage(reportAction));
                 } else if (isMovedAction(reportAction)) {
                     setClipboardMessage(getMovedActionMessage(reportAction, originalReport));
