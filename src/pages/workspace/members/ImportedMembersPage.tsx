@@ -14,7 +14,7 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {isControlPolicy, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -78,6 +78,14 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         let isRoleMissing = false;
 
         const columns = Object.values(spreadsheet?.columns ?? {});
+
+        const containsAdvanceApprovalColumns = columns.includes(CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO) || columns.includes(CONST.CSV_IMPORT_COLUMNS.APPROVE_TO);
+
+        if (containsAdvanceApprovalColumns && !isControlPolicy(policy)) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, Navigation.getActiveRoute()));
+            return;
+        }
+
         const membersEmailsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.EMAIL);
         const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
         const membersEmails = spreadsheet?.data[membersEmailsColumn].map((email) => email);
@@ -144,7 +152,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             setIsImporting(true);
             importPolicyMembers(policyID, allMembers);
         }
-    }, [validate, spreadsheet?.columns, spreadsheet?.data, containsHeader, policy, policyID]);
+    }, [validate, spreadsheet?.columns, spreadsheet?.data, policy, containsHeader, route.params.policyID, policyID]);
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
@@ -190,6 +198,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 shouldShowCancelButton={false}
                 shouldHandleNavigationBack
                 onModalHide={() => {
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
                 }}
             />

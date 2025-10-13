@@ -95,6 +95,7 @@ function DatePicker(
     };
 
     useEffect(() => {
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             calculatePopoverPosition();
         });
@@ -105,6 +106,7 @@ function DatePicker(
             return;
         }
         isAutoFocused.current = true;
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             handlePress();
         });

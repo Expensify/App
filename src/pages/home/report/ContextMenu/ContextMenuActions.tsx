@@ -202,6 +202,7 @@ type ContextMenuActionPayload = {
     card?: Card;
     originalReport: OnyxEntry<ReportType>;
     isTryNewDotNVPDismissed?: boolean;
+    childReport?: OnyxEntry<ReportType>;
     movedFromReport?: OnyxEntry<ReportType>;
     movedToReport?: OnyxEntry<ReportType>;
 };
@@ -465,7 +466,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
     {
         isAnonymousAction: true,
-        textTranslateKey: 'reportActionContextMenu.copyToClipboard',
+        textTranslateKey: 'common.copyToClipboard',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
@@ -491,7 +492,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
     {
         isAnonymousAction: true,
-        textTranslateKey: 'reportActionContextMenu.copyToClipboard',
+        textTranslateKey: 'reportActionContextMenu.copyMessage',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
@@ -501,7 +502,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fall back to
         // the `text` and `icon`
-        onPress: (closePopover, {reportAction, transaction, selection, report, reportID, card, originalReport, isTryNewDotNVPDismissed, movedFromReport, movedToReport}) => {
+        onPress: (closePopover, {reportAction, transaction, selection, report, reportID, card, originalReport, isTryNewDotNVPDismissed, movedFromReport, movedToReport, childReport}) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
             const messageHtml = getActionHtml(reportAction);
             const messageText = getReportActionMessageText(reportAction);
@@ -530,14 +531,14 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(reportAction, expenseReportID);
                     Clipboard.setString(displayMessage);
                 } else if (isMoneyRequestAction(reportAction)) {
-                    const displayMessage = getIOUReportActionDisplayMessage(reportAction, transaction);
+                    const displayMessage = getIOUReportActionDisplayMessage(reportAction, transaction, report);
                     if (displayMessage === Parser.htmlToText(displayMessage)) {
                         Clipboard.setString(displayMessage);
                     } else {
                         setClipboardMessage(displayMessage);
                     }
                 } else if (isCreatedTaskReportAction(reportAction)) {
-                    const taskPreviewMessage = getTaskCreatedMessage(reportAction, true);
+                    const taskPreviewMessage = getTaskCreatedMessage(reportAction, childReport, true);
                     Clipboard.setString(taskPreviewMessage);
                 } else if (isMemberChangeAction(reportAction)) {
                     const logMessage = getMemberChangeMessageFragment(reportAction, getReportName).html ?? '';
@@ -589,6 +590,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getPolicyChangeLogDefaultTitleEnforcedMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
                     setClipboardMessage(getUnreportedTransactionMessage());
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+                    Clipboard.setString(translateLocal('iou.paidElsewhere'));
                 } else if (isReimbursementQueuedAction(reportAction)) {
                     Clipboard.setString(getReimbursementQueuedActionMessage({reportAction, reportOrID: reportID, shouldUseShortDisplayName: false}));
                 } else if (isActionableMentionWhisper(reportAction)) {

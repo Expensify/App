@@ -29,6 +29,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePermissions from '@hooks/usePermissions';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -87,6 +88,7 @@ import {
     isThread as isThreadUtil,
     isTrackExpenseReport as isTrackExpenseReportUtil,
     isUserCreatedPolicyRoom as isUserCreatedPolicyRoomUtil,
+    isWorkspaceMemberLeavingWorkspaceRoom as isWorkspaceMemberLeavingWorkspaceRoomUtil,
     navigateBackOnDeleteTransaction,
     navigateToPrivateNotes,
     shouldDisableRename as shouldDisableRenameUtil,
@@ -145,6 +147,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
+    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
 
@@ -306,10 +309,10 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 leaveGroupChat(report.reportID);
                 return;
             }
-            const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
+            const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
             leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
         });
-    }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility]);
+    }, [isPolicyEmployee, isRootGroupChat, report, isPolicyAdmin]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
@@ -410,7 +413,14 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.SUBMIT, actionableWhisperReportActionID);
+                    createDraftTransactionAndNavigateToParticipantSelector(
+                        iouTransactionID,
+                        actionReportID,
+                        CONST.IOU.ACTION.SUBMIT,
+                        actionableWhisperReportActionID,
+                        isRestrictedToPreferredPolicy,
+                        preferredPolicyID,
+                    );
                 },
             });
             if (isBetaEnabled(CONST.BETAS.TRACK_FLOWS)) {
@@ -549,6 +559,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isRootGroupChat,
         leaveChat,
         isSmallScreenWidth,
+        isRestrictedToPreferredPolicy,
+        preferredPolicyID,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
