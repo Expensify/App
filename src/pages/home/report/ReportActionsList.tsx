@@ -405,10 +405,11 @@ function ReportActionsList({
 
         // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
-            if (!shouldScrollToEndAfterLayout) {
-                setIsFloatingMessageCounterVisible(false);
-                reportScrollManager.scrollToBottom();
+            if (shouldScrollToEndAfterLayout) {
+                return;
             }
+            setIsFloatingMessageCounterVisible(false);
+            reportScrollManager.scrollToBottom();
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
