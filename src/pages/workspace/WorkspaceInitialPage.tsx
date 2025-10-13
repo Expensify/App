@@ -422,11 +422,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const shouldShowNotFoundPage = !shouldShowPolicy && (!isPendingDelete || prevIsPendingDelete);
 
     useEffect(() => {
-        if (!isFocused || !prevIsPendingDelete || isPendingDelete) {
+        if (!isFocused || isEmptyObject(prevPolicy) || prevIsPendingDelete || !isPendingDelete) {
             return;
         }
         goBackFromInvalidPolicy();
-    }, [isFocused, isPendingDelete, prevIsPendingDelete]);
+    }, [isFocused, isPendingDelete, policy, prevIsPendingDelete, prevPolicy]);
 
     // We are checking if the user can access the route.
     // If user can't access the route, we are dismissing any modals that are open when the NotFound view is shown
@@ -496,9 +496,9 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     >
                         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                             {/*
-                            Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
-                            In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
-                        */}
+                                Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
+                                In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
+                            */}
                             {workspaceMenuItems.map((item) => (
                                 <HighlightableMenuItem
                                     key={item.translationKey}
