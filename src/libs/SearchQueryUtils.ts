@@ -375,21 +375,24 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
 }
 
 /**
- * Normalizes the value into a single string.
- * - If it's an array, returns the first element.
- * - Otherwise, returns the value as is.
-
- * @param value - The raw field value from SearchQueryJSON
- * @returns The normalized field value
+ * Checks whether any of the provided values have an invalid data type.
+ *
+ * Currently, arrays are considered invalid types, but this function
+ * can be easily extended to check for other invalid types as needed.
+ *
+ * @param {...*} values - The list of values to validate.
+ * @returns {boolean} Returns `true` if any value has an invalid type (e.g., an array), otherwise `false`.
+ *
+ * @example
+ * // ✅ Valid case
+ * hasInvalidSearchTypes('user', 'role', 123); // false
+ *
+ * // ❌ Invalid case
+ * hasInvalidSearchTypes(['user'], 'role'); // true
  */
-function normalizeValue<T>(value: T | T[]): T {
-    if (Array.isArray(value)) {
-        return value.at(0) as T;
-    }
-
-    return value;
+function hasInvalidSearchTypes<T>(...values: T[]): boolean {
+    return values.some((value) => Array.isArray(value));
 }
-
 /**
  * Parses a given search query string into a structured `SearchQueryJSON` format.
  * This format of query is most commonly shared between components and also sent to backend to retrieve search results.
@@ -412,14 +415,6 @@ function buildSearchQueryJSON(query: SearchQueryString) {
         if (result.policyID && typeof result.policyID === 'string') {
             // Ensure policyID is always an array for consistency
             result.policyID = [result.policyID];
-        }
-
-        if (result.groupBy) {
-            result.groupBy = normalizeValue(result.groupBy);
-        }
-
-        if (result.type) {
-            result.type = normalizeValue(result.type);
         }
 
         return result;
@@ -1173,4 +1168,5 @@ export {
     getAllPolicyValues,
     getUserFriendlyValue,
     getUserFriendlyKey,
+    hasInvalidSearchTypes,
 };
