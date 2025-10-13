@@ -4199,7 +4199,7 @@ function calculateDiffAmount(
     return null;
 }
 
-type GetUpdateMoneyRequestParams = {
+type GetUpdateMoneyRequestParamsType = {
     transactionID: string | undefined;
     transactionThreadReportID: string | undefined;
     transactionChanges: TransactionChanges;
@@ -4214,7 +4214,7 @@ type GetUpdateMoneyRequestParams = {
     shouldBuildOptimisticModifiedExpenseReportAction?: boolean;
 };
 
-function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParams): UpdateMoneyRequestData {
+function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): UpdateMoneyRequestData {
     const {
         transactionID,
         transactionThreadReportID,
