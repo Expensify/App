@@ -37,6 +37,18 @@ type CardFeedForDisplay = {
 };
 type CardFeedsForDisplay = Record<string, CardFeedForDisplay>;
 
+function hasActiveFeedData(cardFeeds?: CardFeeds): boolean {
+    if (!cardFeeds) {
+        return false;
+    }
+
+    const verifiedCompanyFeedsCount = Object.keys(getCompanyFeeds(cardFeeds, true, true)).length;
+    const hasExpensifyCardFeed = !!cardFeeds.settings?.companyCards?.[CONST.EXPENSIFY_CARD.BANK];
+    const hasOAuthFeeds = !isEmptyObject(cardFeeds.settings?.oAuthAccountDetails);
+
+    return verifiedCompanyFeedsCount > 0 || hasExpensifyCardFeed || hasOAuthFeeds;
+}
+
 function getRepeatingBanks(workspaceCardFeedsKeys: string[], domainFeedsData: Record<string, DomainFeedData>) {
     const bankFrequency: Record<string, number> = {};
     for (const key of workspaceCardFeedsKeys) {
@@ -420,7 +432,7 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
     Object.entries(allCardFeeds ?? {}).forEach(([domainKey, cardFeeds]) => {
         // sharedNVP_private_domain_member_123456 -> 123456
         const fundID = domainKey.split('_').at(-1);
-        if (!fundID || fundID === CONST.EXPENSIFY_CARD.PENDING_EXPENSIFY_CARD) {
+        if (!fundID || fundID === CONST.EXPENSIFY_CARD.PENDING_EXPENSIFY_CARD || !hasActiveFeedData(cardFeeds)) {
             return;
         }
 
@@ -443,6 +455,12 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
 
     Object.values(allCards).forEach((card) => {
         if (card.bank !== CONST.EXPENSIFY_CARD.BANK || !card.fundID || card.fundID === CONST.EXPENSIFY_CARD.PENDING_EXPENSIFY_CARD) {
+            return;
+        }
+
+        const fundKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${card.fundID}`;
+        const linkedFundFeeds = allCardFeeds?.[fundKey];
+        if (linkedFundFeeds && !hasActiveFeedData(linkedFundFeeds)) {
             return;
         }
 
