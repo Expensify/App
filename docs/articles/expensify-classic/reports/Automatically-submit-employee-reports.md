@@ -1,7 +1,7 @@
 ---
 title: Automatically Submit Employee Reports
 description: Learn how to configure automatic report submissions in Expensify Classic using Submission Frequency in your Workspace settings.
-keywords: [Expensify Classic, automatic report submission, delay submissions, submission frequency, expense report schedule}
+keywords: [Expensify Classic, automatic report submission, delay submissions, submission frequency, expense report schedule]
 ---
 
 
