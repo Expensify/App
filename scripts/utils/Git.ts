@@ -316,8 +316,7 @@ class Git {
         }
     }
 
-    static getMainBaseCommitHash(remote: string): string {
-        // Fetch the main branch from the specified remote to ensure it's available
+    static getMainBranchCommitHash(remote = 'origin'): string {
         try {
             execSync(`git fetch ${remote} main --no-tags --depth=1 -q`, {encoding: 'utf8'});
         } catch (error) {
@@ -366,7 +365,7 @@ class Git {
         return mergeBaseHash;
     }
 
-    static async getChangedFiles(remote: string): Promise<string[]> {
+    static async getChangedFiles(fromRef: string, toRef = 'HEAD'): Promise<string[]> {
         if (IS_CI) {
             const {data: changedFiles} = await GitHubUtils.octokit.pulls.listFiles({
                 owner: 'Expensify',
@@ -379,15 +378,9 @@ class Git {
         }
 
         try {
-            // Get files changed in the current branch/commit
-            const mainBaseCommitHash = this.getMainBaseCommitHash(remote);
-
             // Get the diff output and check status
-            const gitDiffOutput = execSync(`git diff --diff-filter=AMR --name-only ${mainBaseCommitHash} HEAD`, {
-                encoding: 'utf8',
-            });
-
-            const files = gitDiffOutput.trim().split('\n');
+            const diffResult = this.diff(fromRef, toRef);
+            const files = diffResult.files.map((file) => file.filePath);
             return files;
         } catch (error) {
             if (error instanceof Error && error.message === GIT_ERRORS.FAILED_TO_FETCH_FROM_REMOTE) {

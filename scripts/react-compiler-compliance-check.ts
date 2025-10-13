@@ -46,7 +46,18 @@ type CompilerFailure = {
     reason?: string;
 };
 
-function check(filesToCheck?: string[], shouldGenerateReport = false) {
+type CommonCheckOptions = {
+    remote?: string;
+    shouldGenerateReport?: boolean;
+    reportFileName?: string;
+    shouldFilterByDiff?: boolean;
+};
+
+type CheckOptions = CommonCheckOptions & {
+    filesToCheck?: string[];
+};
+
+function check({filesToCheck, shouldGenerateReport = false, reportFileName = DEFAULT_REPORT_FILENAME, shouldFilterByDiff = false, remote}: CheckOptions) {
     if (filesToCheck) {
         info(`Running React Compiler check for ${filesToCheck.length} files or glob patterns...`);
     } else {
@@ -54,7 +65,8 @@ function check(filesToCheck?: string[], shouldGenerateReport = false) {
     }
 
     const src = createFilesGlob(filesToCheck);
-    const results = runCompilerHealthcheck(src);
+    let results = runCompilerHealthcheck(src);
+
 
     const isPassed = results.failures.size === 0;
     if (isPassed) {
@@ -65,17 +77,22 @@ function check(filesToCheck?: string[], shouldGenerateReport = false) {
     printFailureSummary(results);
 
     if (shouldGenerateReport) {
-        generateReport(results, DEFAULT_REPORT_FILENAME);
+        generateReport(results, reportFileName);
     }
 
     return false;
 }
 
-async function checkChangedFiles(remote: string): Promise<boolean> {
+type CheckChangedFilesOptions = CommonCheckOptions & {
+    reportFileName?: string;
+};
+
+async function checkChangedFiles({remote, ...restOptions}: CheckChangedFilesOptions): Promise<boolean> {
     info('Checking changed files for React Compiler compliance...');
 
     try {
-        const changedFiles = await Git.getChangedFiles(remote);
+        const mainBaseCommitHash = Git.getMainBranchCommitHash(remote);
+        const changedFiles = await Git.getChangedFiles(mainBaseCommitHash);
         const filesToCheck = [...new Set(changedFiles)];
 
         if (filesToCheck.length === 0) {
@@ -83,7 +100,7 @@ async function checkChangedFiles(remote: string): Promise<boolean> {
             return true;
         }
 
-        return check(filesToCheck);
+        return check({filesToCheck, ...restOptions});
     } catch (error) {
         if (error instanceof Error && error.message === GIT_ERRORS.FAILED_TO_FETCH_FROM_REMOTE) {
             logError(`Could not fetch from remote ${remote}. If your base remote is not ${remote}, please specify another remote with the --remote flag.`);
@@ -403,8 +420,18 @@ async function main() {
                 supersedes: ['check-changed'],
                 default: 'origin',
             },
+            reportFileName: {
+                description: 'File name to save the report to',
+                required: false,
+                default: DEFAULT_REPORT_FILENAME,
+            },
         },
         flags: {
+            filterByDiff: {
+                description: 'Filter the files to check by the diff between the current commit/PR and the main branch',
+                required: false,
+                default: false,
+            },
             report: {
                 description: 'Generate a report of the results',
                 required: false,
@@ -414,17 +441,17 @@ async function main() {
     });
 
     const {command, file} = cli.positionalArgs;
-    const {remote} = cli.namedArgs;
-    const {report: shouldGenerateReport} = cli.flags;
+    const {remote, reportFileName} = cli.namedArgs;
+    const {report: shouldGenerateReport, filterByDiff: shouldFilterByDiff} = cli.flags;
 
     let isPassed = false;
     try {
         switch (command) {
             case 'check':
-                isPassed = Checker.check(file !== '' ? [file] : undefined, shouldGenerateReport);
+                isPassed = Checker.check({filesToCheck: file !== '' ? [file] : undefined, shouldGenerateReport, reportFileName, shouldFilterByDiff});
                 break;
             case 'check-changed':
-                isPassed = await Checker.checkChangedFiles(remote);
+                isPassed = await Checker.checkChangedFiles({remote, shouldGenerateReport, reportFileName, shouldFilterByDiff});
                 break;
             default:
                 logError(`Unknown command: ${String(command)}`);
