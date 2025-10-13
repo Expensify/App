@@ -2762,7 +2762,7 @@ describe('SearchUIUtils', () => {
 
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, iouReportAction, hash, backTo);
 
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, iouReportAction);
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, iouReportAction, transactionID);
             expect(updateSearchResultsWithTransactionThreadReportID).toHaveBeenCalledWith(hash, transactionID, threadReportID);
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
         });
