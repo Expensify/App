@@ -15,7 +15,7 @@ function BaseSidebarScreen() {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            style={[styles.sidebar, styles.userSelectNone]}
+            style={[styles.sidebar, styles.userSelectNone, styles.scrollPaddingWhenNoBottomTab]}
             testID={BaseSidebarScreen.displayName}
         >
             {({insets}) => (
