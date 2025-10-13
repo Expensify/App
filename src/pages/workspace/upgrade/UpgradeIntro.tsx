@@ -57,7 +57,6 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const allIconNames = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
         .map((feat) => feat?.icon)
         .filter((icon) => icon !== undefined);
-    // TODO: check other icons and migrate them to the chunk
     const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Tag', 'Coins', 'Rules', 'CompanyCard', 'PerDiem', 'ReportReceipt', 'CarIce']);
     const illustrationIcons = useMemoizedLazyExpensifyIcons(['Pencil', 'Tag', 'IntacctSquare', 'NetSuiteSquare', 'QBDSquare', 'AdvancedApprovalsSquare', 'Luggage', 'Unlock']);
     const imported = new Set([...Object.keys(illustrations), ...Object.keys(illustrationIcons)]);
