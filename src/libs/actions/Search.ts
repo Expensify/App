@@ -12,6 +12,7 @@ import {waitForWrites} from '@libs/API';
 import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import * as Localize from '@libs/Localize';
@@ -857,6 +858,19 @@ function isCurrencySupportWalletBulkPay(selectedReports: SelectedReports[], sele
         : Object.values(selectedTransactions).every((transaction) => transaction.currency === CONST.CURRENCY.USD);
 }
 
+/**
+ * Return the total amount of selected transactions/reports.
+ */
+function getTotalFormattedAmount(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, currency?: string): string {
+    const transactionKeys = Object.keys(selectedTransactions ?? {});
+    const totalAmount =
+        selectedReports.length > 0
+            ? selectedReports.reduce((acc, report) => acc + (Math.abs(report.total) ?? 0), 0)
+            : transactionKeys.reduce((acc, transactionIdKey) => acc + (Math.abs(selectedTransactions[transactionIdKey].amount) ?? 0), 0);
+    const formattedAmount = convertToDisplayString(totalAmount, currency);
+    return formattedAmount ?? '';
+}
+
 export {
     saveSearch,
     search,
@@ -885,4 +899,5 @@ export {
     isCurrencySupportWalletBulkPay,
     getExportTemplates,
     getReportType,
+    getTotalFormattedAmount,
 };
