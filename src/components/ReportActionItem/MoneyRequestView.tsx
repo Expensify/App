@@ -723,7 +723,17 @@ function MoneyRequestView({
                                         }),
                                     );
                                 } else if (shouldSelectPolicy) {
-                                    console.log(policy);
+                                    Navigation.navigate(
+                                        ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
+                                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
+                                                CONST.IOU.ACTION.EDIT,
+                                                iouType,
+                                                transaction.transactionID,
+                                                report.reportID,
+                                                getReportRHPActiveRoute(),
+                                            ),
+                                        ),
+                                    );
                                 } else {
                                     Navigation.navigate(
                                         ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
