@@ -16,7 +16,7 @@ function RadioListItem<TItem extends ListItem>({
     onDismissError,
     shouldPreventEnterKeySubmit,
     rightHandSideComponent,
-    isMultilineSupported = false,
+    isMultilineSupported = true,
     isAlternateTextMultilineSupported = false,
     alternateTextNumberOfLines = 2,
     onFocus,

@@ -62,7 +62,6 @@ function ConstantPicker({formType, fieldName, fieldValue, onSubmit}: ConstantPic
             onSelectRow={onSubmit}
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
-            isRowMultilineSupported
         />
     );
 }
