@@ -2720,6 +2720,7 @@ const translations = {
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oups... ${isBreakLine ? '\n' : ''}Quelque chose a mal tourné`,
         subtitle: "Votre demande n'a pas pu être complétée. Veuillez réessayer plus tard.",
+        wrongTypeSubtitle: "Cette recherche n'est pas valide. Essayez de modifier vos critères de recherche.",
     },
     setPasswordPage: {
         enterPassword: 'Entrez un mot de passe',

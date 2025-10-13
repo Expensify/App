@@ -2694,6 +2694,7 @@ const translations = {
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `抱歉... ${isBreakLine ? '\n' : ''}出现了问题`,
         subtitle: '您的请求无法完成。请稍后再试。',
+        wrongTypeSubtitle: '该搜索无效。请尝试调整您的搜索条件。',
     },
     setPasswordPage: {
         enterPassword: '输入密码',

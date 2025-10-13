@@ -2727,6 +2727,7 @@ const translations = {
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Ups... ${isBreakLine ? '\n' : ''}Coś poszło nie tak`,
         subtitle: 'Nie można zrealizować Twojego żądania. Spróbuj ponownie później.',
+        wrongTypeSubtitle: 'To wyszukiwanie jest nieprawidłowe. Spróbuj dostosować kryteria wyszukiwania.',
     },
     setPasswordPage: {
         enterPassword: 'Wprowadź hasło',
