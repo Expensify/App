@@ -671,6 +671,7 @@ const translations = {
         link: 'Lien',
         pinned: 'Épinglé',
         read: 'Lu',
+        copyToClipboard: 'Copier dans le presse-papiers',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -857,7 +858,7 @@ const translations = {
         expand: 'Développer',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'Copier dans le presse-papiers',
+        copyMessage: 'Copier le message',
         copied: 'Copié !',
         copyLink: 'Copier le lien',
         copyURLToClipboard: "Copier l'URL dans le presse-papiers",
@@ -1140,6 +1141,7 @@ const translations = {
         canceled: 'Annulé',
         posted: 'Publié',
         deleteReceipt: 'Supprimer le reçu',
+        findExpense: 'Trouver une dépense',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `supprimé une dépense (${amount} pour ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `a déplacé une dépense${reportName ? `de ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `déplacé cette dépense${reportName ? `à <a href="${reportUrl}">${reportName}</a>` : ''}`,
@@ -2024,8 +2026,7 @@ const translations = {
         workflowTitle: 'Dépenser',
         workflowDescription: "Configurez un flux de travail dès que la dépense survient, y compris l'approbation et le paiement.",
         submissionFrequency: 'Fréquence de soumission',
-        submissionFrequencyDescription:
-            'Choisissez un calendrier personnalisé pour soumettre les dépenses, ou laissez cette option désactivée pour des mises à jour en temps réel des dépenses.',
+        submissionFrequencyDescription: 'Choisissez une fréquence pour soumettre les dépenses.',
         submissionFrequencyDateOfMonth: 'Date du mois',
         addApprovalsTitle: 'Ajouter des approbations',
         addApprovalButton: "Ajouter un flux de travail d'approbation",
@@ -2368,6 +2369,23 @@ const translations = {
             testDriveEmployeeTask: {
                 title: ({testDriveURL}) => `Faites un [essai gratuit](${testDriveURL})`,
                 description: ({testDriveURL}) => `Essayez-nous avec un [essai gratuit](${testDriveURL}) et offrez à votre équipe *3 mois gratuits sur Expensify !*`,
+            },
+            addExpenseApprovalsTask: {
+                title: 'Ajouter des validations de dépenses',
+                description: ({workspaceMoreFeaturesLink}) =>
+                    `*Ajoutez des validations de dépenses* pour examiner les dépenses de votre équipe et les garder sous contrôle.\n` +
+                    '\n' +
+                    `Voici comment faire :\n` +
+                    '\n' +
+                    '1. Allez dans *Espaces de travail*.\n' +
+                    '2. Sélectionnez votre espace de travail.\n' +
+                    '3. Cliquez sur *Plus de fonctionnalités*.\n' +
+                    '4. Activez *Flux de travail*.\n' +
+                    '5. Accédez à *Flux de travail* dans l’éditeur de l’espace de travail.\n' +
+                    '6. Activez *Ajouter des validations*.\n' +
+                    `7. Vous serez défini comme validateur des dépenses. Vous pourrez changer cela pour un autre administrateur après avoir invité votre équipe.\n` +
+                    '\n' +
+                    `[Aller à plus de fonctionnalités](${workspaceMoreFeaturesLink}).`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Créez](${workspaceConfirmationLink}) un espace de travail`,
@@ -3751,6 +3769,18 @@ const translations = {
                 createEntitiesDescription: "Expensify créera automatiquement des fournisseurs dans QuickBooks Desktop s'ils n'existent pas déjà.",
             },
             itemsDescription: 'Choisissez comment gérer les éléments QuickBooks Desktop dans Expensify.',
+            accountingMethods: {
+                label: 'Quand exporter',
+                description: 'Choisissez quand exporter les dépenses :',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Espèces',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Les dépenses hors de la poche seront exportées une fois approuvées définitivement.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: "Les dépenses personnelles seront exportées lorsqu'elles seront payées.",
+                },
+            },
         },
         qbo: {
             connectedTo: 'Connecté à',
@@ -5577,6 +5607,11 @@ const translations = {
                 description:
                     "Expensify Travel est une nouvelle plateforme de réservation et de gestion de voyages d'affaires qui permet aux membres de réserver des hébergements, des vols, des transports, et plus encore.",
                 onlyAvailableOnPlan: 'Le voyage est disponible sur le plan Collect, à partir de',
+            },
+            reports: {
+                title: 'Rapports',
+                description: 'Les rapports vous permettent de regrouper les dépenses pour un suivi et une organisation plus faciles.',
+                onlyAvailableOnPlan: 'Les rapports sont disponibles sur le plan Collect, à partir de ',
             },
             multiLevelTags: {
                 title: 'Tags multi-niveaux',

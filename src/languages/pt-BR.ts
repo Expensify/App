@@ -671,6 +671,7 @@ const translations = {
         link: 'Link',
         pinned: 'Fixado',
         read: 'Lido',
+        copyToClipboard: 'Copiar para a área de transferência',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -854,7 +855,7 @@ const translations = {
         expand: 'Expandir',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'Copiar para a área de transferência',
+        copyMessage: 'Copiar mensagem',
         copied: 'Copiado!',
         copyLink: 'Copiar link',
         copyURLToClipboard: 'Copiar URL para a área de transferência',
@@ -1136,6 +1137,7 @@ const translations = {
         canceled: 'Cancelado',
         posted: 'Publicado',
         deleteReceipt: 'Excluir recibo',
+        findExpense: 'Encontrar despesa',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `excluiu uma despesa (${amount} para ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `moveu uma despesa${reportName ? `de ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `para <a href="${reportUrl}">${reportName}</a>` : ''}`,
@@ -2014,7 +2016,7 @@ const translations = {
         workflowTitle: 'Gastar',
         workflowDescription: 'Configurar um fluxo de trabalho desde o momento em que a despesa ocorre, incluindo aprovação e pagamento.',
         submissionFrequency: 'Frequência de envio',
-        submissionFrequencyDescription: 'Escolha um cronograma personalizado para enviar despesas ou deixe desativado para atualizações em tempo real sobre os gastos.',
+        submissionFrequencyDescription: 'Escolha uma frequência para enviar despesas.',
         submissionFrequencyDateOfMonth: 'Data do mês',
         addApprovalsTitle: 'Adicionar aprovações',
         addApprovalButton: 'Adicionar fluxo de trabalho de aprovação',
@@ -2352,6 +2354,23 @@ const translations = {
             testDriveEmployeeTask: {
                 title: ({testDriveURL}) => `Faça um [test drive](${testDriveURL})`,
                 description: ({testDriveURL}) => `[Faça um test drive](${testDriveURL}) conosco e sua equipe ganha *3 meses grátis de Expensify!*`,
+            },
+            addExpenseApprovalsTask: {
+                title: 'Adicionar aprovações de despesas',
+                description: ({workspaceMoreFeaturesLink}) =>
+                    `*Adicione aprovações de despesas* para revisar os gastos da sua equipe e mantê-los sob controle.\n` +
+                    '\n' +
+                    `Veja como fazer:\n` +
+                    '\n' +
+                    '1. Vá para *Espaços de trabalho*.\n' +
+                    '2. Selecione seu espaço de trabalho.\n' +
+                    '3. Clique em *Mais recursos*.\n' +
+                    '4. Ative *Fluxos de trabalho*.\n' +
+                    '5. Vá para *Fluxos de trabalho* no editor do espaço de trabalho.\n' +
+                    '6. Ative *Adicionar aprovações*.\n' +
+                    `7. Você será definido como o aprovador de despesas. Pode alterar isso para qualquer administrador após convidar sua equipe.\n` +
+                    '\n' +
+                    `[Ir para mais recursos](${workspaceMoreFeaturesLink}).`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Crie](${workspaceConfirmationLink}) um espaço de trabalho`,
@@ -3753,6 +3772,18 @@ const translations = {
                 createEntitiesDescription: 'A Expensify criará automaticamente fornecedores no QuickBooks Desktop se eles ainda não existirem.',
             },
             itemsDescription: 'Escolha como lidar com itens do QuickBooks Desktop no Expensify.',
+            accountingMethods: {
+                label: 'Quando Exportar',
+                description: 'Escolha quando exportar as despesas:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Acumulação',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Dinheiro',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Despesas do próprio bolso serão exportadas quando aprovadas em definitivo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Despesas do próprio bolso serão exportadas quando pagas',
+                },
+            },
         },
         qbo: {
             connectedTo: 'Conectado a',
@@ -5565,6 +5596,11 @@ const translations = {
                 title: 'Viagem',
                 description: 'Expensify Travel é uma nova plataforma de reserva e gestão de viagens corporativas que permite aos membros reservar acomodações, voos, transporte e mais.',
                 onlyAvailableOnPlan: 'Viagens estão disponíveis no plano Collect, a partir de',
+            },
+            reports: {
+                title: 'Relatórios',
+                description: 'Os relatórios permitem agrupar despesas para facilitar o acompanhamento e organização.',
+                onlyAvailableOnPlan: 'Os relatórios estão disponíveis no plano Collect, a partir de ',
             },
             multiLevelTags: {
                 title: 'Tags multiníveis',
