@@ -934,7 +934,7 @@ function getTransactionViolations(allViolations: OnyxCollection<OnyxTypes.Transa
 function getTransactionsSections(
     data: OnyxTypes.SearchResults['data'],
     currentSearch: SearchKey,
-    currentAccountID: number | undefined,
+    session: OnyxEntry<OnyxTypes.Session>,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
@@ -985,7 +985,7 @@ function getTransactionsSections(
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
 
-            const allActions = getActions(data, allViolations, key, currentSearch, currentAccountID);
+            const allActions = getActions(data, allViolations, key, currentSearch, session);
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
                 keyForList: transactionItem.transactionID,
@@ -1092,7 +1092,7 @@ function getActions(
     allViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     key: string,
     currentSearch: SearchKey,
-    currentAccountID: number | undefined,
+    session: OnyxEntry<OnyxTypes.Session>,
     reportActions: OnyxTypes.ReportAction[] = [],
 ): SearchTransactionAction[] {
     const isTransaction = isTransactionEntry(key);
@@ -1141,7 +1141,7 @@ function getActions(
         allReportTransactions = transaction ? [transaction] : [];
     }
 
-    const {isSubmitter, isAdmin, isApprover} = getReviewerPermissionFlags(report, policy, currentAccountID);
+    const {isSubmitter, isAdmin, isApprover} = getReviewerPermissionFlags(report, policy, session?.accountID);
 
     const reportNVP = getReportNameValuePairsFromKey(data, report);
     const isIOUReportArchived = isArchivedReport(reportNVP);
@@ -1151,7 +1151,7 @@ function getActions(
 
     // Only check for violations if we need to (when user has permission to review)
     if ((isSubmitter || isApprover || isAdmin) && hasAnyViolations(report.reportID, allViolations, allReportTransactions)) {
-        if (isSubmitter && !isApprover && !isAdmin && !canReview(report, allViolations, isIOUReportArchived || isChatReportArchived, policy, allReportTransactions)) {
+        if (isSubmitter && !isApprover && !isAdmin && !canReview(report, session, allViolations, isIOUReportArchived || isChatReportArchived, policy, allReportTransactions)) {
             allActions.push(CONST.SEARCH.ACTION_TYPES.VIEW);
         } else {
             allActions.push(CONST.SEARCH.ACTION_TYPES.REVIEW);
@@ -1362,7 +1362,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
 function getReportSections(
     data: OnyxTypes.SearchResults['data'],
     currentSearch: SearchKey,
-    currentAccountID: number | undefined,
+    session: OnyxEntry<OnyxTypes.Session>,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
 ): TransactionGroupListItemType[] {
@@ -1417,7 +1417,7 @@ function getReportSections(
             if (shouldShow) {
                 const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
-                const allActions = getActions(data, allViolations, key, currentSearch, currentAccountID, actions);
+                const allActions = getActions(data, allViolations, key, currentSearch, session, actions);
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
                     action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
@@ -1448,7 +1448,7 @@ function getReportSections(
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
 
-            const allActions = getActions(data, allViolations, key, currentSearch, currentAccountID, actions);
+            const allActions = getActions(data, allViolations, key, currentSearch, session, actions);
             const transaction = {
                 ...transactionItem,
                 action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
@@ -1607,8 +1607,8 @@ function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: Sear
 function getSections(
     type: SearchDataTypes,
     data: OnyxTypes.SearchResults['data'],
-    currentAccountID: number | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    session: OnyxEntry<OnyxTypes.Session>,
     groupBy?: SearchGroupBy,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
     currentSearch: SearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
@@ -1627,7 +1627,7 @@ function getSections(
         // eslint-disable-next-line default-case
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.REPORTS:
-                return getReportSections(data, currentSearch, currentAccountID, formatPhoneNumber, reportActions);
+                return getReportSections(data, currentSearch, session, formatPhoneNumber, reportActions);
             case CONST.SEARCH.GROUP_BY.FROM:
                 return getMemberSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.CARD:
@@ -1637,7 +1637,7 @@ function getSections(
         }
     }
 
-    return getTransactionsSections(data, currentSearch, currentAccountID, formatPhoneNumber);
+    return getTransactionsSections(data, currentSearch, session, formatPhoneNumber);
 }
 
 /**

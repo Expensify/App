@@ -2,7 +2,8 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Session, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {SessionWithEmail} from '@src/types/onyx/Session';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
@@ -52,7 +53,6 @@ import {
     isSettled,
     isWorkspaceEligibleForReportChange,
 } from './ReportUtils';
-import {getSession} from './SessionUtils';
 import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
@@ -271,7 +271,7 @@ function isUnapproveAction(currentUserLogin: string, report: Report, policy?: Po
     return isReportApprover;
 }
 
-function isCancelPaymentAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
+function isCancelPaymentAction(report: Report, session: OnyxEntry<Session>, reportTransactions: Transaction[], policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
 
     if (!isExpenseReport) {
@@ -279,7 +279,7 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isPayer = isPayerUtils(getSession(), report, false, policy);
+    const isPayer = isPayerUtils(session, report, false, policy);
 
     if (!isAdmin || !isPayer) {
         return false;
@@ -312,7 +312,7 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
 
-function isExportAction(report: Report, policy?: Policy): boolean {
+function isExportAction(report: Report, session: OnyxEntry<Session>, policy?: Policy): boolean {
     if (!policy) {
         return false;
     }
@@ -336,7 +336,7 @@ function isExportAction(report: Report, policy?: Policy): boolean {
     }
 
     const isReportApproved = isReportApprovedUtils({report});
-    const isReportPayer = isPayerUtils(getSession(), report, false, policy);
+    const isReportPayer = isPayerUtils(session, report, false, policy);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportClosed = isClosedReportUtils(report);
 
@@ -354,7 +354,7 @@ function isExportAction(report: Report, policy?: Policy): boolean {
     return isAdmin && isReportFinished && syncEnabled;
 }
 
-function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
+function isMarkAsExportedAction(report: Report, session: OnyxEntry<Session>, policy?: Policy): boolean {
     if (!policy) {
         return false;
     }
@@ -377,7 +377,7 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
         return false;
     }
 
-    const isReportPayer = isPayerUtils(getSession(), report, false, policy);
+    const isReportPayer = isPayerUtils(session, report, false, policy);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
@@ -568,7 +568,7 @@ function isRemoveHoldActionForTransaction(report: Report, reportTransaction: Tra
 }
 
 function getSecondaryReportActions({
-    currentUserEmail,
+    session,
     report,
     chatReport,
     reportTransactions,
@@ -580,7 +580,7 @@ function getSecondaryReportActions({
     isChatReportArchived = false,
     isNewDotUpdateSplitsBeta,
 }: {
-    currentUserEmail: string;
+    session: SessionWithEmail;
     report: Report;
     chatReport: OnyxEntry<Report>;
     reportTransactions: Transaction[];
@@ -595,7 +595,7 @@ function getSecondaryReportActions({
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
-    if (isPrimaryPayAction(report, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID)) {
+    if (isPrimaryPayAction(report, session, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
     }
 
@@ -604,7 +604,7 @@ function getSecondaryReportActions({
     }
 
     const primaryAction = getReportPrimaryAction({
-        currentUserEmail,
+        session,
         report,
         chatReport,
         reportTransactions,
@@ -619,15 +619,15 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
-    if (isApproveAction(currentUserEmail, report, reportTransactions, violations, policy)) {
+    if (isApproveAction(session.email, report, reportTransactions, violations, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     }
 
-    if (isUnapproveAction(currentUserEmail, report, policy)) {
+    if (isUnapproveAction(session.email, report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE);
     }
 
-    if (isCancelPaymentAction(report, reportTransactions, policy)) {
+    if (isCancelPaymentAction(report, session, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
     }
 
@@ -647,7 +647,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (canRejectReportAction(currentUserEmail, report, policy)) {
+    if (canRejectReportAction(session, report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 
@@ -701,7 +701,7 @@ function getSecondaryExportReportActions(report: Report, policy?: Policy, export
 }
 
 function getSecondaryTransactionThreadActions(
-    currentUserEmail: string,
+    session: SessionWithEmail,
     parentReport: Report,
     reportTransaction: Transaction,
     reportAction: ReportAction | undefined,
@@ -719,7 +719,7 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (canRejectReportAction(currentUserEmail, parentReport, policy)) {
+    if (canRejectReportAction(session, parentReport, policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 

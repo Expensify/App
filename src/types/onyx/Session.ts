@@ -1,4 +1,4 @@
-import type {ValueOf} from 'type-fest';
+import type {SetRequired, ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
@@ -47,6 +47,11 @@ type Session = {
     creationDate?: number;
 };
 
+/**
+ * Make email required on session
+ */
+type SessionWithEmail = SetRequired<Session, 'email'>;
+
 export default Session;
 
-export type {AutoAuthState};
+export type {AutoAuthState, SessionWithEmail};

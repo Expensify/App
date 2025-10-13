@@ -1,5 +1,4 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
-import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -237,8 +236,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     });
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
-    const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const suggestedSearches = useMemo(() => getSuggestedSearches(session?.accountID, defaultCardFeed?.id), [defaultCardFeed?.id, session?.accountID]);
 
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
 
@@ -377,9 +376,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return [[], 0];
         }
 
-        const data1 = getSections(type, searchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
+        const data1 = getSections(type, searchResults.data, formatPhoneNumber, session, groupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
         return [data1, data1.length];
-    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON]);
+    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, session, queryJSON]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -672,10 +671,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (!searchResults?.data) {
             return [];
         }
-        const columns = getColumnsToShow(accountID, searchResults?.data, false, searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.TASK);
+        const columns = getColumnsToShow(session?.accountID, searchResults?.data, false, searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.TASK);
 
         return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
-    }, [accountID, searchResults?.data, searchResults?.search?.type]);
+    }, [searchResults?.data, searchResults?.search?.type, session?.accountID]);
 
     const opacity = useSharedValue(1);
     const animatedStyle = useAnimatedStyle(() => ({

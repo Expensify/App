@@ -207,7 +207,7 @@ function SearchList({
     });
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const personalDetails = usePersonalDetails();
@@ -322,7 +322,8 @@ function SearchList({
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
                         userBillingFundID={userBillingFundID}
-                        accountID={accountID}
+                        accountID={session?.accountID}
+                        session={session}
                         isOffline={isOffline}
                         violations={violations}
                         onFocus={onFocus}
@@ -332,11 +333,10 @@ function SearchList({
             );
         },
         [
-            groupBy,
-            newTransactions,
             shouldAnimate,
-            isFocused,
             data.length,
+            newTransactions,
+            isFocused,
             styles.overflowHidden,
             hasItemsBeingRemoved,
             ListItem,
@@ -347,15 +347,16 @@ function SearchList({
             shouldPreventDefaultFocusOnSelectRow,
             hash,
             columns,
+            areAllOptionalColumnsHidden,
             policies,
             allReports,
+            groupBy,
             userWalletTierName,
             isUserValidated,
             personalDetails,
             userBillingFundID,
-            accountID,
+            session,
             isOffline,
-            areAllOptionalColumnsHidden,
             violations,
         ],
     );

@@ -69,6 +69,7 @@ import type {Message, OldDotReportAction, ReportActions} from '@src/types/onyx/R
 import type {PendingChatMember} from '@src/types/onyx/ReportMetadata';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SessionWithEmail} from '@src/types/onyx/Session';
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -232,7 +233,6 @@ import {
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import type {ArchivedReportsIDSet} from './SearchUIUtils';
-import {getSession} from './SessionUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
     getAttendees,
@@ -11660,14 +11660,14 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
     };
 }
 
-function canRejectReportAction(currentUserLogin: string, report: Report, policy?: Policy): boolean {
+function canRejectReportAction(session: SessionWithEmail, report: Report, policy?: Policy): boolean {
     if (!Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_REJECT, allBetas)) {
         return false;
     }
 
-    const isReportApprover = isApproverUtils(policy, currentUserLogin);
+    const isReportApprover = isApproverUtils(policy, session.email);
     const isReportBeingProcessed = isProcessingReport(report);
-    const isReportPayer = isPayer(getSession(), report, false, policy);
+    const isReportPayer = isPayer(session, report, false, policy);
     const isIOU = isIOUReport(report);
     const isInvoice = isInvoiceReport(report);
     const isCurrentUserManager = report?.managerID === currentUserAccountID;

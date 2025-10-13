@@ -45,6 +45,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
+import type {SessionWithEmail} from '@src/types/onyx/Session';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
@@ -101,6 +102,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isRejectEducationalModalVisible, setIsRejectEducationalModalVisible] = useState(false);
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
     const shouldShowLoadingBar = useLoadingBarVisibility();
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
@@ -260,11 +262,19 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     };
 
     const secondaryActions = useMemo(() => {
-        if (!transaction || !parentReportAction || !parentReport) {
+        if (!transaction || !parentReportAction || !parentReport || !session?.email) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(currentUserLogin ?? '', parentReport, transaction, parentReportAction, policy, report, isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS));
-    }, [parentReport, transaction, parentReportAction, currentUserLogin, policy, report, isBetaEnabled]);
+        return getSecondaryTransactionThreadActions(
+            session as SessionWithEmail,
+            parentReport,
+            transaction,
+            parentReportAction,
+            policy,
+            report,
+            isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS),
+        );
+    }, [transaction, parentReportAction, parentReport, session, policy, report, isBetaEnabled]);
 
     const dismissModalAndUpdateUseReject = () => {
         setIsRejectEducationalModalVisible(false);

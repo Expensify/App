@@ -475,6 +475,7 @@ function MoneyRequestReportPreviewContent({
         return getReportPreviewAction(
             violations,
             isIouReportArchived || isChatReportArchived,
+            session,
             iouReport,
             policy,
             transactions,
@@ -482,7 +483,7 @@ function MoneyRequestReportPreviewContent({
             isPaidAnimationRunning,
             isSubmittingAnimationRunning,
         );
-    }, [isPaidAnimationRunning, isSubmittingAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, invoiceReceiverPolicy, isChatReportArchived]);
+    }, [violations, isIouReportArchived, isChatReportArchived, session, iouReport, policy, transactions, invoiceReceiverPolicy, isPaidAnimationRunning, isSubmittingAnimationRunning]);
 
     const addExpenseDropdownOptions = useMemo(
         () => [

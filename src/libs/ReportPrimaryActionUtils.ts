@@ -1,7 +1,8 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportNameValuePairs, Session, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {SessionWithEmail} from '@src/types/onyx/Session';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {
@@ -38,7 +39,6 @@ import {
     isSettled,
     requiresManualSubmission,
 } from './ReportUtils';
-import {getSession} from './SessionUtils';
 import {
     allHavePendingRTERViolation,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
@@ -51,7 +51,7 @@ import {
 } from './TransactionUtils';
 
 type GetReportPrimaryActionParams = {
-    currentUserEmail: string;
+    session: SessionWithEmail;
     report: Report | undefined;
     chatReport: OnyxEntry<Report>;
     reportTransactions: Transaction[];
@@ -145,12 +145,19 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
     return isProcessingReportUtils(report);
 }
 
-function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, isChatReportArchived?: boolean, invoiceReceiverPolicy?: Policy) {
+function isPrimaryPayAction(
+    report: Report,
+    session: OnyxEntry<Session>,
+    policy?: Policy,
+    reportNameValuePairs?: ReportNameValuePairs,
+    isChatReportArchived?: boolean,
+    invoiceReceiverPolicy?: Policy,
+) {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportPayer = isPayer(getSession(), report, false, policy);
+    const isReportPayer = isPayer(session, report, false, policy);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
@@ -322,7 +329,6 @@ function getAllExpensesToHoldIfApplicable(report?: Report, reportActions?: Repor
 
 function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
     const {
-        currentUserEmail,
         report,
         reportTransactions,
         violations,
@@ -334,6 +340,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         invoiceReceiverPolicy,
         isPaidAnimationRunning,
         isSubmittingAnimationRunning,
+        session,
     } = params;
 
     if (isPaidAnimationRunning) {
@@ -346,9 +353,9 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return '';
     }
 
-    const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
+    const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, session, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
 
-    if (isMarkAsCashAction(currentUserEmail, report, reportTransactions, violations, policy)) {
+    if (isMarkAsCashAction(session.email, report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
     }
 
@@ -368,7 +375,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
-    if (isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy)) {
+    if (isPrimaryPayAction(report, session, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
 

@@ -60,6 +60,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     columns,
     groupBy,
     accountID,
+    session,
     isOffline,
     areAllOptionalColumnsHidden: areAllOptionalColumnsHiddenProp,
     newTransactionID,
@@ -84,12 +85,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
         if (!transactionsSnapshot?.data) {
             return [];
         }
-        const sectionData = getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, transactionsSnapshot?.data, accountID, formatPhoneNumber) as TransactionListItemType[];
+        const sectionData = getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, transactionsSnapshot?.data, formatPhoneNumber, session) as TransactionListItemType[];
         return sectionData.map((transactionItem) => ({
             ...transactionItem,
             isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
         }));
-    }, [isGroupByReports, transactionsSnapshot?.data, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDsSet]);
+    }, [isGroupByReports, transactionsSnapshot?.data, formatPhoneNumber, session, groupItem.transactions, selectedTransactionIDsSet]);
 
     const currentColumns = useMemo(() => {
         if (isGroupByReports) {
