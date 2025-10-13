@@ -25,7 +25,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {addComment} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
-import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {
@@ -121,7 +120,7 @@ function ReportFooter({
 
     const allPersonalDetails = usePersonalDetails();
     const {availableLoginsList} = useShortMentionsList();
-    const currentUserEmail = getCurrentUserEmail();
+    const currentUserEmail = personalDetail.email ?? '';
 
     const handleCreateTask = useCallback(
         (text: string): boolean => {
@@ -162,7 +161,7 @@ function ReportFooter({
                 description: '',
                 assigneeEmail: assignee?.login ?? '',
                 currentUserAccountID: personalDetail.accountID,
-                currentUserEmail: getCurrentUserEmail() ?? '',
+                currentUserEmail,
                 assigneeAccountID: assignee?.accountID,
                 assigneeChatReport,
                 policyID: report.policyID,

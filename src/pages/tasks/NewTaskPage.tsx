@@ -19,7 +19,6 @@ import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, getAssignee, get
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
-import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNamesWithTooltips, isAllowedToComment} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -106,7 +105,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
             description: task?.description ?? '',
             assigneeEmail: task?.assignee ?? '',
             currentUserAccountID: currentUserPersonalDetails.accountID,
-            currentUserEmail: getCurrentUserEmail() ?? '',
+            currentUserEmail: currentUserPersonalDetails.email ?? '',
             assigneeAccountID: task.assigneeAccountID,
             assigneeChatReport: task.assigneeChatReport,
             policyID: parentReport?.policyID,

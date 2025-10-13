@@ -15,7 +15,6 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
-import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
 import {getCommentLength} from '@libs/ReportUtils';
 import variables from '@styles/variables';
@@ -80,7 +79,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                 description: values.taskDescription ?? '',
                 assigneeEmail: task?.assignee ?? '',
                 currentUserAccountID: currentUserPersonalDetails.accountID,
-                currentUserEmail: getCurrentUserEmail() ?? '',
+                currentUserEmail: currentUserPersonalDetails.email ?? '',
                 assigneeAccountID: task.assigneeAccountID,
                 assigneeChatReport: task.assigneeChatReport,
                 policyID: CONST.POLICY.OWNER_EMAIL_FAKE,
