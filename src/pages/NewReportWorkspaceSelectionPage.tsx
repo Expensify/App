@@ -27,12 +27,12 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isRHPOnSearchMoneyRequestReportPage from '@navigation/helpers/isRHPOnSearchMoneyRequestReportPage';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {changeTransactionsReport} from '@userActions/Transaction';
+import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {setNameValuePair} from '@userActions/User';
 
 type WorkspaceListItem = {
     text: string;
@@ -101,6 +101,8 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
                     reportNextStep,
                 );
+
+                // eslint-disable-next-line rulesdir/no-default-id-values
                 setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, policyID, activePolicyID ?? '');
 
                 if (selectedTransactionIDs.length) {
@@ -116,6 +118,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             navigateToNewReport(optimisticReportID);
         },
         [
+            activePolicyID,
             currentUserPersonalDetails,
             isASAPSubmitBetaEnabled,
             hasViolations,
