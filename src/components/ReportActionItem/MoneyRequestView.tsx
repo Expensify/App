@@ -194,12 +194,14 @@ function MoneyRequestView({
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
 
+    const actualAttendees = isFromMergeTransaction && updatedTransaction ? updatedTransaction.comment?.attendees : transactionAttendees;
+
     // Use the updated transaction amount in merge flow to have correct positive/negative sign
     const actualAmount = isFromMergeTransaction && updatedTransaction ? updatedTransaction.amount : transactionAmount;
     const actualCurrency = updatedTransaction ? getCurrency(updatedTransaction) : transactionCurrency;
     const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!actualAmount) && actualAmount !== undefined;
     const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency) : '';
-    const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount / (transactionAttendees?.length ?? 1), actualCurrency) : '';
+    const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount / (actualAttendees?.length ?? 1), actualCurrency) : '';
 
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
@@ -529,7 +531,7 @@ function MoneyRequestView({
     }, [transactionTag, previousTransactionTag]);
 
     const getAttendeesTitle = useMemo(() => {
-        return Array.isArray(transactionAttendees) ? transactionAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : '';
+        return Array.isArray(actualAttendees) ? actualAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : ''};
     }, [transactionAttendees]);
     const attendeesCopyValue = !canEdit ? getAttendeesTitle : undefined;
 
@@ -823,7 +825,7 @@ function MoneyRequestView({
                             key="attendees"
                             title={getAttendeesTitle}
                             description={`${translate('iou.attendees')} ${
-                                Array.isArray(transactionAttendees) && transactionAttendees.length > 1 && formattedPerAttendeeAmount
+                                Array.isArray(actualAttendees) && actualAttendees.length > 1 && formattedPerAttendeeAmount
                                     ? `${CONST.DOT_SEPARATOR} ${formattedPerAttendeeAmount} ${translate('common.perPerson')}`
                                     : ''
                             }`}

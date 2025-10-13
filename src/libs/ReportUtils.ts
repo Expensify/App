@@ -3468,26 +3468,6 @@ function getIconsForInvoiceReport(
 }
 
 /**
- * Helper function to get the icons for a user-created policy room. Only to be used in getIcons().
- */
-function getIconsForUserCreatedPolicyRoom(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): Icon[] {
-    if (!report) {
-        return [];
-    }
-    if (report?.avatarUrl) {
-        return [
-            {
-                source: report.avatarUrl,
-                type: CONST.ICON_TYPE_WORKSPACE,
-                name: getReportName(report),
-                id: report?.policyID,
-            },
-        ];
-    }
-    return [getWorkspaceIcon(report, policy)];
-}
-
-/**
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
  */
@@ -3522,9 +3502,6 @@ function getIcons(
     }
     if (isDomainRoom(report)) {
         return getIconsForDomainRoom(report);
-    }
-    if (isUserCreatedPolicyRoom(report)) {
-        return getIconsForUserCreatedPolicyRoom(report, policy);
     }
     if (isAdminRoom(report) || isAnnounceRoom(report) || isChatRoom(report) || (isArchivedNonExpenseReport(report, isReportArchived) && !chatIncludesConcierge(report))) {
         return getIconsForPolicyRoom(report, personalDetails, policy, invoiceReceiverPolicy);
@@ -5427,6 +5404,10 @@ function getReportName(
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED)) {
         return getPolicyChangeLogDefaultTitleEnforcedMessage(parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+        return translateLocal('iou.paidElsewhere');
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
@@ -9676,10 +9657,13 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
                     return translateLocal(payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal', {amount: '', last4Digits});
                 }
                 translationKey = 'iou.businessBankAccount';
-                if (automaticAction && originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                    translationKey = 'iou.automaticallyPaidWithExpensify';
-                } else {
-                    translationKey = 'iou.automaticallyPaidWithBusinessBankAccount';
+
+                if (automaticAction) {
+                    if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                        translationKey = 'iou.automaticallyPaidWithExpensify';
+                    } else {
+                        translationKey = 'iou.automaticallyPaidWithBusinessBankAccount';
+                    }
                 }
                 break;
             default:
@@ -10957,10 +10941,10 @@ function prepareOnboardingOnyxData(
         hasOutstandingChildTask: false,
     };
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`];
-    const canUserPerformWriteAction1 = canUserPerformWriteAction(report);
-    const {lastMessageText = ''} = getLastVisibleMessageActionUtils(targetChatReportID, canUserPerformWriteAction1);
+    const canUserPerformWriteActionVariable = canUserPerformWriteAction(report);
+    const {lastMessageText = ''} = getLastVisibleMessageActionUtils(targetChatReportID, canUserPerformWriteActionVariable);
     if (lastMessageText) {
-        const lastVisibleAction = getLastVisibleAction(targetChatReportID, canUserPerformWriteAction1);
+        const lastVisibleAction = getLastVisibleAction(targetChatReportID, canUserPerformWriteActionVariable);
         const prevLastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;
         failureReport = {
