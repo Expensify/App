@@ -32,6 +32,7 @@ type CardDetailsProps = {
     /** 3 digit code */
     cvv?: string;
 
+    /** Callback to navigate to update address page */
     onUpdateAddressPress?: () => void;
 };
 
