@@ -380,12 +380,12 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
  * Currently, arrays are considered invalid types, but this function
  * can be easily extended to check for other invalid types as needed.
  *
- * @param {...*} values - The list of values to validate.
- * @returns {boolean} Returns `true` if any value has an invalid type (e.g., an array), otherwise `false`.
+ * @param values - The list of values to validate.
+ * @returns Returns `true` if any value has an invalid type (e.g., an array), otherwise `false`.
  *
  * @example
  * // ✅ Valid case
- * hasInvalidSearchTypes('user', 'role', 123); // false
+ * hasInvalidSearchTypes('user', 'role'); // false
  *
  * // ❌ Invalid case
  * hasInvalidSearchTypes(['user'], 'role'); // true
