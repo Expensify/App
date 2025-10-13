@@ -63,6 +63,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName, getPersonalPolicy, isPolicyAdmin, isPolicyOwner} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
+    getActionableCardFraudAlertMessage,
     getActionableMentionWhisperMessage,
     getAddedApprovalRuleMessage,
     getAddedConnectionMessage,
@@ -1337,27 +1338,7 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
             children = <ReportActionItemBasicMessage message={getRemovedFromApprovalChainMessage(action)} />;
         } else if (isActionableCardFraudAlert(action)) {
-            const fraudMessage = getOriginalMessage(action);
-            const cardLastFour = fraudMessage?.maskedCardNumber?.slice(-4) ?? '';
-
-            const formattedAmount = convertToDisplayString(fraudMessage?.triggerAmount ?? 0, fraudMessage?.currency ?? CONST.CURRENCY.USD);
-            const merchant = fraudMessage?.triggerMerchant ?? '';
-            const resolution = fraudMessage?.resolution;
-            const formattedDate = action.created ? format(getLocalDateFromDatetime(action.created), 'MMM. d - h:mma').replace(/am|pm/i, (match) => match.toUpperCase()) : '';
-
-            let message;
-            if (!resolution) {
-                message = translate('cardPage.cardFraudAlert.alertMessage', {
-                    cardLastFour,
-                    amount: formattedAmount,
-                    merchant,
-                    date: formattedDate,
-                });
-            } else if (resolution === CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED) {
-                message = translate('cardPage.cardFraudAlert.clearedMessage', {cardLastFour});
-            } else {
-                message = translate('cardPage.cardFraudAlert.deactivatedMessage', {cardLastFour});
-            }
+            const message = getActionableCardFraudAlertMessage(action, getLocalDateFromDatetime);
 
             children = (
                 <View
