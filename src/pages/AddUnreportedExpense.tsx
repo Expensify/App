@@ -166,7 +166,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     policy,
                     reportNextStep,
                     policyCategories,
-                    nextStepsCollection
+                    nextStepsCollection,
                 );
             }
         });
