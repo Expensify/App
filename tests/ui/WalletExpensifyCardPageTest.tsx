@@ -14,6 +14,7 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import ExpensifyCardPage from '@pages/settings/Wallet/ExpensifyCardPage';
 import CONST from '@src/CONST';
+import currencyList from '../unit/currencyList.json';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import * as TestHelper from '../utils/TestHelper';
@@ -179,6 +180,7 @@ describe('ExpensifyCardPage', () => {
                     fraud: null,
                 },
             });
+            await Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyList);
         });
 
         // Render the page with the specified card ID.
@@ -216,6 +218,7 @@ describe('ExpensifyCardPage', () => {
                     fraud: null,
                 },
             });
+            await Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyList);
         });
 
         // Render the page with the specified card ID.
