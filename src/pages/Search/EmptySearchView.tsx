@@ -1,3 +1,4 @@
+import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useMemo, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
@@ -48,7 +49,6 @@ import ROUTES from '@src/ROUTES';
 import type {IntroSelected, PersonalDetails, Policy, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-import {accountIDSelector} from '@selectors/Session';
 
 type EmptySearchViewProps = {
     similarSearchHash: number;
@@ -201,17 +201,11 @@ function EmptySearchViewContent({
     const inferredWorkspaceID = inferredWorkspacePolicy?.id;
 
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
-    const [reportSummaries = getEmptyArray<ReportSummary>()] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT,
-        {
-            canBeMissing: true,
-            selector: reportSummariesOnyxSelector,
-        },
-    );
-    const hasEmptyReport = useMemo(
-        () => hasEmptyReportsForPolicy(reportSummaries, inferredWorkspaceID, accountID),
-        [accountID, inferredWorkspaceID, reportSummaries],
-    );
+    const [reportSummaries = getEmptyArray<ReportSummary>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        canBeMissing: true,
+        selector: reportSummariesOnyxSelector,
+    });
+    const hasEmptyReport = useMemo(() => hasEmptyReportsForPolicy(reportSummaries, inferredWorkspaceID, accountID), [accountID, inferredWorkspaceID, reportSummaries]);
 
     const handleCreateWorkspaceReport = useCallback(() => {
         if (!inferredWorkspaceID) {

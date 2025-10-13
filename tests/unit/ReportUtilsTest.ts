@@ -7617,10 +7617,7 @@ describe('ReportUtils', () => {
         });
 
         it('marks policy IDs that have empty reports owned by the user', () => {
-            const reports = toCollection(
-                buildReport({reportID: 'policy-a', policyID}),
-                buildReport({reportID: 'policy-b', policyID: otherPolicyID}),
-            );
+            const reports = toCollection(buildReport({reportID: 'policy-a', policyID}), buildReport({reportID: 'policy-b', policyID: otherPolicyID}));
 
             expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID)).toEqual({
                 [policyID]: true,

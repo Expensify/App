@@ -153,17 +153,11 @@ function AttachmentPickerWithMenuItems({
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
-    const [reportSummaries = getEmptyArray<ReturnType<typeof reportSummariesOnyxSelector>[number]>()] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT,
-        {
-            canBeMissing: true,
-            selector: reportSummariesOnyxSelector,
-        },
-    );
-    const hasEmptyReport = useMemo(
-        () => hasEmptyReportsForPolicy(reportSummaries, report?.policyID, accountID),
-        [accountID, report?.policyID, reportSummaries],
-    );
+    const [reportSummaries = getEmptyArray<ReturnType<typeof reportSummariesOnyxSelector>[number]>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        canBeMissing: true,
+        selector: reportSummariesOnyxSelector,
+    });
+    const hasEmptyReport = useMemo(() => hasEmptyReportsForPolicy(reportSummaries, report?.policyID, accountID), [accountID, report?.policyID, reportSummaries]);
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -269,7 +263,19 @@ function AttachmentPickerWithMenuItems({
         );
 
         return moneyRequestOptionsList.flat().filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
-    }, [isDelegateAccessRestricted, isReportArchived, isRestrictedToPreferredPolicy, lastDistanceExpenseType, policy, report, reportParticipantIDs, selectOption, shouldUseNarrowLayout, showDelegateNoAccessModal, translate]);
+    }, [
+        isDelegateAccessRestricted,
+        isReportArchived,
+        isRestrictedToPreferredPolicy,
+        lastDistanceExpenseType,
+        policy,
+        report,
+        reportParticipantIDs,
+        selectOption,
+        shouldUseNarrowLayout,
+        showDelegateNoAccessModal,
+        translate,
+    ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
         if (!isPolicyExpenseChat(report) || !isPaidGroupPolicy(report) || !isReportOwner(report)) {
