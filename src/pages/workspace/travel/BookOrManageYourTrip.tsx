@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import BookTravelButton from '@components/BookTravelButton';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
-import {EmptyStateTravel} from '@components/Icon/Illustrations';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,7 +36,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                 subtitle={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.subtitle')}
                 onCtaPress={handleCtaPress}
                 illustrationBackgroundColor={colors.blue600}
-                illustration={EmptyStateTravel}
+                illustration={Illustrations.EmptyStateTravel}
                 illustrationStyle={styles.travelCardIllustration}
                 illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
                 titleStyles={styles.textHeadlineH1}
