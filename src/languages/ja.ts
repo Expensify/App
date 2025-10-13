@@ -2313,8 +2313,8 @@ const translations = {
         },
         interestedFeatures: {
             title: 'どの機能に興味がありますか？',
-            featuresAlreadyEnabled: 'あなたのワークスペースにはすでに以下が有効になっています:',
-            featureYouMayBeInterestedIn: '興味のある追加機能を有効にする:',
+            featuresAlreadyEnabled: 'こちらは最も人気のある機能です：',
+            featureYouMayBeInterestedIn: '追加機能を有効にする：',
         },
         error: {
             requiredFirstName: '続行するには、名前を入力してください。',
