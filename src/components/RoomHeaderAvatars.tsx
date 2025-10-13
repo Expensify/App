@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAvatarErrors, updatePolicyRoomAvatar} from '@libs/actions/Report';
+import {isAnonymousUser} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {isDefaultAvatar} from '@libs/UserUtils';
@@ -48,7 +49,7 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
             return;
         }
 
-        if (isPolicyRoom) {
+        if (isPolicyRoom && !isAnonymousUser()) {
             return (
                 <AvatarWithImagePicker
                     source={report.avatarUrl ?? icon.source}
