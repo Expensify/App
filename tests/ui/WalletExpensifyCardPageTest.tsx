@@ -14,11 +14,12 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import ExpensifyCardPage from '@pages/settings/Wallet/ExpensifyCardPage';
 import CONST from '@src/CONST';
-import currencyList from '../unit/currencyList.json';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import currencyList from '../unit/currencyList.json';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 
 // Set up a global fetch mock for API requests in tests.
 TestHelper.setupGlobalFetchMock();
@@ -27,6 +28,16 @@ TestHelper.setupGlobalFetchMock();
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 const userCardID = '1234';
+
+function initCurrencyList() {
+    Onyx.init({
+        keys: ONYXKEYS,
+        initialKeyStates: {
+            [ONYXKEYS.CURRENCY_LIST]: currencyList,
+        },
+    });
+    return waitForBatchedUpdates();
+}
 
 // Renders the ExpensifyCardPage inside a navigation container with necessary providers.
 const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD, initialParams: SettingsNavigatorParamList[typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD]) => {
@@ -161,6 +172,10 @@ describe('ExpensifyCardPage', () => {
     });
 
     it('should not show the PIN option on screen', async () => {
+        beforeAll(async () => {
+            await initCurrencyList();
+        });
+
         // Sign in as a test user before running the test.
         await TestHelper.signInWithTestUser();
 
@@ -180,7 +195,6 @@ describe('ExpensifyCardPage', () => {
                     fraud: null,
                 },
             });
-            await Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyList);
         });
 
         // Render the page with the specified card ID.
@@ -199,6 +213,10 @@ describe('ExpensifyCardPage', () => {
     });
 
     it('should show the PIN option on screen', async () => {
+        beforeAll(async () => {
+            await initCurrencyList();
+        });
+
         // Sign in as a test user before running the test.
         await TestHelper.signInWithTestUser();
 
@@ -218,7 +236,6 @@ describe('ExpensifyCardPage', () => {
                     fraud: null,
                 },
             });
-            await Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyList);
         });
 
         // Render the page with the specified card ID.
