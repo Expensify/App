@@ -86,7 +86,7 @@ function AttachmentModalBaseContent({
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
 
     const fallbackFile = useMemo(() => (originalFileName ? {name: originalFileName} : undefined), [originalFileName]);
-    const [files, setFilesInternal] = useState<FileObject | FileObject[] | undefined>();
+    const [files, setFilesInternal] = useState<FileObject | FileObject[] | undefined>(filesProp ?? fallbackFile);
     const [isMultipleFiles, setIsMultipleFiles] = useState<boolean>(() => Array.isArray(files));
     const fileToDisplay = useMemo(() => {
         if (isMultipleFiles) {
@@ -106,10 +106,6 @@ function AttachmentModalBaseContent({
     }, []);
 
     useEffect(() => {
-        if (!filesProp) {
-            return;
-        }
-
         setFile(filesProp ?? fallbackFile);
     }, [filesProp, fallbackFile, setFile]);
 
