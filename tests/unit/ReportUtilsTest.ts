@@ -8,8 +8,11 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
+import {getEnvironmentURL} from '@libs/Environment/Environment';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {translateLocal} from '@libs/Localize';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticChatReport,
@@ -56,6 +59,7 @@ import {
     getReportIDFromLink,
     getReportName,
     getReportStatusTranslation,
+    getReportURLForCurrentContext,
     getSearchReportName,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
@@ -92,6 +96,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {
     Beta,
     OnyxInputOrEntry,
@@ -141,6 +146,8 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('@libs/Permissions');
+
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     setNavigationActionToMicrotaskQueue: jest.fn(),
@@ -7296,6 +7303,71 @@ describe('ReportUtils', () => {
                 shouldExcludeDeleted: true,
             });
             expect(result).toEqual([1, 4]); // participant 4 has 'add' action, should not be excluded
+        });
+    });
+
+    describe('getReportURLForCurrentContext', () => {
+        const flushPromises = () =>
+            new Promise<void>((resolve) => {
+                setImmediate(resolve);
+            });
+        const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
+        let environmentURL: string;
+
+        beforeAll(async () => {
+            environmentURL = await getEnvironmentURL();
+            await flushPromises();
+        });
+
+        afterAll(() => {
+            mockIsSearchTopmostFullScreenRoute.mockRestore();
+        });
+
+        const mockGetActiveRoute = Navigation.getActiveRoute as jest.Mock;
+
+        beforeEach(() => {
+            mockIsSearchTopmostFullScreenRoute.mockReset();
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+            mockGetActiveRoute.mockReset();
+            mockGetActiveRoute.mockReturnValue('search?q=type:report');
+        });
+
+        it('returns report route when not in search context', () => {
+            const reportID = '123';
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`);
+        });
+
+        it('returns search route when in search context', () => {
+            const reportID = '456';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            const encodedBackTo = 'search%3Fq%3Dtype%3Areport';
+            mockGetActiveRoute.mockReturnValue(`search/r/999?backTo=${encodedBackTo}`);
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:report'})}`);
+        });
+
+        it('uses current search route when no backTo parameter is present', () => {
+            const reportID = '111';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            mockGetActiveRoute.mockReturnValue('search?q=type:invoice');
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:invoice'})}`);
+        });
+
+        it('normalizes leading slash in search routes', () => {
+            const reportID = '222';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            mockGetActiveRoute.mockReturnValue('/search?q=type:card');
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:card'})}`);
+        });
+
+        it('falls back to default search route when current route is unavailable', () => {
+            const reportID = '789';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            mockGetActiveRoute.mockReturnValue('');
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: ROUTES.SEARCH_ROOT.route})}`);
+        });
+
+        it('falls back to the base report path when reportID is missing', () => {
+            expect(getReportURLForCurrentContext(undefined)).toBe(`${environmentURL}/r/`);
         });
     });
 
