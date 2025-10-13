@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {render} from '@testing-library/react-native';
+import {render, renderHook} from '@testing-library/react-native';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import type {OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
 import {
@@ -21,7 +22,6 @@ import {
     getMemberInviteOptions,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
-    getShareDestinationOptions,
     getShareLogOptions,
     getValidOptions,
     optionsOrderBy,
@@ -1088,6 +1088,49 @@ describe('OptionsListUtils', () => {
             expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
             expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
         });
+
+        it('should limit recent reports when maxRecentReportElements is specified', () => {
+            // Given a set of reports and personalDetails with multiple reports
+            // When we call getValidOptions with maxRecentReportElements set to 2
+            const maxRecentReports = 2;
+            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {maxRecentReportElements: maxRecentReports});
+
+            // Then the recent reports should be limited to the specified number
+            expect(results.recentReports.length).toBeLessThanOrEqual(maxRecentReports);
+        });
+
+        it('should show all reports when maxRecentReportElements is not specified', () => {
+            // Given a set of reports and personalDetails
+            // When we call getValidOptions without maxRecentReportElements
+            const resultsWithoutLimit = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const resultsWithLimit = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {maxRecentReportElements: 2});
+
+            // Then the results without limit should have more or equal reports
+            expect(resultsWithoutLimit.recentReports.length).toBeGreaterThanOrEqual(resultsWithLimit.recentReports.length);
+        });
+
+        it('should not affect personalDetails count when maxRecentReportElements is specified', () => {
+            // Given a set of reports and personalDetails
+            // When we call getValidOptions with and without maxRecentReportElements
+            const resultsWithoutLimit = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const resultsWithLimit = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {maxRecentReportElements: 2});
+
+            // Then personalDetails should remain the same regardless of maxRecentReportElements
+            expect(resultsWithLimit.personalDetails.length).toBe(resultsWithoutLimit.personalDetails.length);
+        });
+
+        it('should respect maxRecentReportElements when combined with maxElements', () => {
+            // Given a set of reports and personalDetails
+            // When we call getValidOptions with both maxElements and maxRecentReportElements
+            const maxRecentReports = 3;
+            const maxTotalElements = 10;
+            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {maxElements: maxTotalElements, maxRecentReportElements: maxRecentReports});
+
+            // Then recent reports should be limited by maxRecentReportElements
+            expect(results.recentReports.length).toBeLessThanOrEqual(maxRecentReports);
+            // Then the total number of options (reports + personalDetails) should not exceed maxElements
+            expect(results.recentReports.length + results.personalDetails.length).toBeLessThanOrEqual(maxTotalElements);
+        });
     });
 
     describe('getShareDestinationsOptions()', () => {
@@ -1095,14 +1138,31 @@ describe('OptionsListUtils', () => {
             // Given a set of filtered current Reports (as we do in the component) before getting share destination options
             const filteredReports = Object.values(OPTIONS.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
-                if (canUserPerformWriteAction(report) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(report.reportID));
+                if (canUserPerformWriteAction(report, isReportArchived.current) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
                     filtered.push(option);
                 }
                 return filtered;
             }, []);
 
-            // When we call getShareDestinationOptions with an empty search value
-            const results = getShareDestinationOptions(filteredReports, OPTIONS.personalDetails, []);
+            // When we call getValidOptions for share destination with an empty search value
+            const results = getValidOptions(
+                {reports: filteredReports, personalDetails: OPTIONS.personalDetails},
+                {
+                    betas: [],
+                    includeMultipleParticipantReports: true,
+                    showChatPreviewLine: true,
+                    forcePolicyNamePreview: true,
+                    includeThreads: true,
+                    includeMoneyRequests: true,
+                    includeTasks: true,
+                    excludeLogins: {},
+                    includeOwnedWorkspaceChats: true,
+                    includeSelfDM: true,
+                    searchString: '',
+                    includeUserToInvite: false,
+                },
+            );
 
             // Then all the recent reports should be returned except the archived rooms and the hidden thread
             expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 2);
@@ -1112,15 +1172,32 @@ describe('OptionsListUtils', () => {
             // Given a set of filtered current Reports (as we do in the component) with workspace rooms before getting share destination options
             const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(report.reportID));
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (canUserPerformWriteAction(report) || isExpensifyOnlyParticipantInReport(report)) {
+                if (canUserPerformWriteAction(report, isReportArchived.current) || isExpensifyOnlyParticipantInReport(report)) {
                     filtered.push(option);
                 }
                 return filtered;
             }, []);
 
-            // When we call getShareDestinationOptions with an empty search value
-            const results = getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, []);
+            // When we call getValidOptions for share destination with an empty search value
+            const results = getValidOptions(
+                {reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails},
+                {
+                    betas: [],
+                    includeMultipleParticipantReports: true,
+                    showChatPreviewLine: true,
+                    forcePolicyNamePreview: true,
+                    includeThreads: true,
+                    includeMoneyRequests: true,
+                    includeTasks: true,
+                    excludeLogins: {},
+                    includeOwnedWorkspaceChats: true,
+                    includeSelfDM: true,
+                    searchString: '',
+                    includeUserToInvite: false,
+                },
+            );
 
             // Then all recent reports should be returned except the archived rooms and the hidden thread
             expect(results.recentReports.length).toBe(Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).length - 2);
@@ -1410,13 +1487,29 @@ describe('OptionsListUtils', () => {
             // Given a set of filtered current Reports (as we do in the component) before getting share destination options
             const filteredReports = Object.values(OPTIONS.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
-                if (canUserPerformWriteAction(report) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
+                if (canUserPerformWriteAction(report, false) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
                     filtered.push(option);
                 }
                 return filtered;
             }, []);
-            // When we call getShareDestinationOptions with the filteredReports
-            const options = getShareDestinationOptions(filteredReports, OPTIONS.personalDetails, []);
+            // When we call getValidOptions for share destination with the filteredReports
+            const options = getValidOptions(
+                {reports: filteredReports, personalDetails: OPTIONS.personalDetails},
+                {
+                    betas: [],
+                    includeMultipleParticipantReports: true,
+                    showChatPreviewLine: true,
+                    forcePolicyNamePreview: true,
+                    includeThreads: true,
+                    includeMoneyRequests: true,
+                    includeTasks: true,
+                    excludeLogins: {},
+                    includeOwnedWorkspaceChats: true,
+                    includeSelfDM: true,
+                    searchString: '',
+                    includeUserToInvite: false,
+                },
+            );
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
             const filteredOptions = filterAndOrderOptions(options, 'mutants', COUNTRY_CODE);
 
@@ -1429,14 +1522,30 @@ describe('OptionsListUtils', () => {
             const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (canUserPerformWriteAction(report) || isExpensifyOnlyParticipantInReport(report)) {
+                if (canUserPerformWriteAction(report, false) || isExpensifyOnlyParticipantInReport(report)) {
                     filtered.push(option);
                 }
                 return filtered;
             }, []);
 
-            // When we call getShareDestinationOptions with the filteredReports
-            const options = getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, []);
+            // When we call getValidOptions for share destination with the filteredReports
+            const options = getValidOptions(
+                {reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails},
+                {
+                    betas: [],
+                    includeMultipleParticipantReports: true,
+                    showChatPreviewLine: true,
+                    forcePolicyNamePreview: true,
+                    includeThreads: true,
+                    includeMoneyRequests: true,
+                    includeTasks: true,
+                    excludeLogins: {},
+                    includeOwnedWorkspaceChats: true,
+                    includeSelfDM: true,
+                    searchString: '',
+                    includeUserToInvite: false,
+                },
+            );
             // When we pass the returned options to filterAndOrderOptions with a search value that matches the group chat name
             const filteredOptions = filterAndOrderOptions(options, 'Avengers Room', COUNTRY_CODE);
 
@@ -1449,14 +1558,30 @@ describe('OptionsListUtils', () => {
             const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (canUserPerformWriteAction(report) || isExpensifyOnlyParticipantInReport(report)) {
+                if (canUserPerformWriteAction(report, false) || isExpensifyOnlyParticipantInReport(report)) {
                     filtered.push(option);
                 }
                 return filtered;
             }, []);
 
-            // When we call getShareDestinationOptions with the filteredReports
-            const options = getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, []);
+            // When we call getValidOptions for share destination with the filteredReports
+            const options = getValidOptions(
+                {reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails},
+                {
+                    betas: [],
+                    includeMultipleParticipantReports: true,
+                    showChatPreviewLine: true,
+                    forcePolicyNamePreview: true,
+                    includeThreads: true,
+                    includeMoneyRequests: true,
+                    includeTasks: true,
+                    excludeLogins: {},
+                    includeOwnedWorkspaceChats: true,
+                    includeSelfDM: true,
+                    searchString: '',
+                    includeUserToInvite: false,
+                },
+            );
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
             const filteredOptions = filterAndOrderOptions(options, 'Mutants Lair', COUNTRY_CODE);
 
@@ -2032,6 +2157,37 @@ describe('OptionsListUtils', () => {
             expect(result.at(0)!.reportID).toBe('1');
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(result.at(1)!.reportID).toBe('3');
+        });
+
+        it('handles negative limit by returning empty array', () => {
+            const options: OptionData[] = [
+                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z'} as OptionData,
+                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
+                {reportID: '3', lastVisibleActionCreated: '2022-01-01T09:00:00Z'} as OptionData,
+            ];
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+            const result = optionsOrderBy(options, comparator, -1);
+            expect(result).toEqual([]);
+        });
+
+        it('handles negative limit with large absolute value', () => {
+            const options: OptionData[] = [
+                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z'} as OptionData,
+                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
+            ];
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+            const result = optionsOrderBy(options, comparator, -100);
+            expect(result).toEqual([]);
+        });
+
+        it('handles limit equal to zero', () => {
+            const options: OptionData[] = [
+                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z'} as OptionData,
+                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
+            ];
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+            const result = optionsOrderBy(options, comparator, 0);
+            expect(result).toEqual([]);
         });
     });
 
