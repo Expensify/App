@@ -32,6 +32,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {setNameValuePair} from '@userActions/User';
 
 type WorkspaceListItem = {
     text: string;
@@ -55,6 +56,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -99,6 +101,8 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
                     reportNextStep,
                 );
+                setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, policyID, activePolicyID ?? '');
+
                 if (selectedTransactionIDs.length) {
                     clearSelectedTransactions(true);
                 }
