@@ -93,13 +93,8 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
     );
 }
 
-function getPerDiemCustomUnits(policies: OnyxCollection<Policy> | null, email: string | undefined): Array<{policyID: string; customUnit: CustomUnit}> {
-    return (
-        getActivePoliciesWithExpenseChat(policies, email)
-            .map((mappedPolicy) => ({policyID: mappedPolicy.id, customUnit: getPerDiemCustomUnit(mappedPolicy)}))
-            // We filter out custom units that are undefine but ts cant' figure it out.
-            .filter(({customUnit}) => !isEmptyObject(customUnit) && !!customUnit.enabled) as Array<{policyID: string; customUnit: CustomUnit}>
-    );
+function getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => policy?.arePerDiemRatesEnabled);
 }
 
 /**
@@ -188,6 +183,31 @@ function getPerDiemCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined
 function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string): Rate | undefined {
     const distanceUnit = getDistanceRateCustomUnit(policy);
     return distanceUnit?.rates[customUnitRateID];
+}
+
+function getCustomUnitsForDuplication(policy: Policy, isCustomUnitsOptionSelected: boolean, isPerDiemOptionSelected: boolean): Record<string, CustomUnit> | undefined {
+    const customUnits = policy?.customUnits;
+    if ((!isCustomUnitsOptionSelected && !isPerDiemOptionSelected) || !customUnits || Object.keys(customUnits).length === 0) {
+        return undefined;
+    }
+
+    if (isCustomUnitsOptionSelected && isPerDiemOptionSelected) {
+        return customUnits;
+    }
+
+    if (isCustomUnitsOptionSelected) {
+        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+        if (!distanceCustomUnit) {
+            return undefined;
+        }
+        return {[distanceCustomUnit.customUnitID]: distanceCustomUnit};
+    }
+
+    const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
+    if (!perDiemUnit) {
+        return undefined;
+    }
+    return {[perDiemUnit.customUnitID]: perDiemUnit};
 }
 
 /**
@@ -1534,7 +1554,6 @@ export {
     canEditTaxRate,
     escapeTagName,
     getActivePolicies,
-    getPerDiemCustomUnits,
     getAdminEmployees,
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -1675,6 +1694,7 @@ export {
     getDescriptionForPolicyDomainCard,
     getManagerAccountID,
     isPreferredExporter,
+    getCustomUnitsForDuplication,
     areAllGroupPoliciesExpenseChatDisabled,
     getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
@@ -1685,6 +1705,7 @@ export {
     isPolicyMemberWithoutPendingDelete,
     getPolicyEmployeeAccountIDs,
     isMemberPolicyAdmin,
+    getActivePoliciesWithExpenseChatAndPerDiemEnabled,
 };
 
 export type {MemberEmailsToAccountIDs};
