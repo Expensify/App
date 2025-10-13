@@ -371,7 +371,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const headerContent = (
         <>
-            <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+            <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.pt3, styles.flexRow, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                 <RenderHTML html={translate('workspace.perDiem.subtitle')} />
             </View>
             {subRatesList.length > CONST.SEARCH_ITEM_LIMIT && (
