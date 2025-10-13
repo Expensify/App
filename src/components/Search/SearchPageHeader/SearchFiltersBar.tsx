@@ -41,14 +41,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActiveAdminWorkspaces, getAllTaxRates, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
-import {
-    buildFilterFormValuesFromQuery,
-    buildQueryStringFromFilterFormValues,
-    buildSearchQueryJSON,
-    buildSearchQueryString,
-    isFilterSupported,
-    isSearchDatePreset,
-} from '@libs/SearchQueryUtils';
+import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -254,9 +247,7 @@ function SearchFiltersBar({
                 updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
             }
 
-            const filterString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
-            const searchQueryJSON = buildSearchQueryJSON(filterString);
-            const queryString = buildSearchQueryString(searchQueryJSON);
+            const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
 
             close(() => {
                 Navigation.setParams({q: queryString});

@@ -671,6 +671,7 @@ const translations = {
         link: 'リンク',
         pinned: '固定済み',
         read: '既読',
+        copyToClipboard: 'クリップボードにコピー',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -855,7 +856,7 @@ const translations = {
         expand: '展開する',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'クリップボードにコピー',
+        copyMessage: 'メッセージをコピー',
         copied: 'コピーしました！',
         copyLink: 'リンクをコピー',
         copyURLToClipboard: 'URLをクリップボードにコピー',
@@ -1041,6 +1042,10 @@ const translations = {
     receipt: {
         upload: '領収書をアップロード',
         uploadMultiple: '領収書をアップロード',
+        dragReceiptBeforeEmail: 'このページに領収書をドラッグするか、領収書を転送する',
+        dragReceiptsBeforeEmail: '領収書をこのページにドラッグするか、領収書を転送する',
+        dragReceiptAfterEmail: 'または、以下のファイルを選択してアップロードしてください。',
+        dragReceiptsAfterEmail: 'または、以下にアップロードするファイルを選択してください。',
         desktopSubtitleSingle: `またはここにドラッグ＆ドロップ`,
         desktopSubtitleMultiple: `またはここにドラッグ＆ドロップ`,
         chooseReceipt: 'アップロードするレシートを選択するか、レシートを転送してください',
@@ -1246,6 +1251,7 @@ const translations = {
         finished: '完了',
         flip: '反転',
         sendInvoice: ({amount}: RequestAmountParams) => `${amount} 請求書を送信`,
+        submitAmount: ({amount}: RequestAmountParams) => `${amount}を提出する`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `${comment} のために` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `提出済み${memo ? `、次のように言って ${memo}` : ''}`,
         automaticallySubmitted: `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">送信の遅延</a>を通じて送信されました`,
@@ -1486,6 +1492,7 @@ const translations = {
             pageTitle: '保存する詳細を選んでください：',
             noDifferences: 'トランザクション間に差異はありません',
             pleaseSelectError: ({field}: {field: string}) => `${field} を選択してください`,
+            pleaseSelectAttendees: '参加者を選択してください',
             selectAllDetailsError: '続行する前にすべての詳細を選択してください。',
         },
         confirmationPage: {
@@ -1555,10 +1562,7 @@ const translations = {
         subtitle: '二要素認証を有効にして、アカウントを安全に保ちましょう。',
         goToSecurity: 'セキュリティページに戻る',
     },
-    shareCodePage: {
-        title: 'あなたのコード',
-        subtitle: '個人用QRコードまたは紹介リンクを共有して、Expensifyにメンバーを招待しましょう。',
-    },
+    shareCodePage: {title: 'あなたのコード', subtitle: '個人用QRコードまたは紹介リンクを共有して、Expensifyにメンバーを招待しましょう。'},
     pronounsPage: {
         pronouns: '代名詞',
         isShownOnProfile: 'あなたの代名詞はプロフィールに表示されます。',
@@ -1569,8 +1573,8 @@ const translations = {
         contactMethods: '連絡方法',
         featureRequiresValidate: 'この機能を使用するには、アカウントの確認が必要です。',
         validateAccount: 'アカウントを確認してください',
-        helpTextBeforeEmail: '人々があなたを見つける方法を増やし、領収書を転送する',
-        helpTextAfterEmail: '複数のメールアドレスから。',
+        helpTextBeforeEmail: '領収書を送信する方法を追加してください。それらを転送する先は',
+        helpTextAfterEmail: 'または、47777（米国の番号のみ）にテキストメッセージを送信してください。',
         pleaseVerify: 'この連絡方法を確認してください',
         getInTouch: '私たちがあなたに連絡を取る必要がある場合、この連絡方法を使用します。',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
@@ -2008,7 +2012,7 @@ const translations = {
         workflowTitle: '支出',
         workflowDescription: '支出が発生した瞬間から、承認および支払いを含むワークフローを設定します。',
         submissionFrequency: '提出頻度',
-        submissionFrequencyDescription: '経費提出のカスタムスケジュールを選択するか、支出のリアルタイム更新のためにこれをオフにしておいてください。',
+        submissionFrequencyDescription: '経費を提出する頻度を選択します。',
         submissionFrequencyDateOfMonth: '月の日付',
         addApprovalsTitle: '承認を追加',
         addApprovalButton: '承認ワークフローを追加',
@@ -2060,6 +2064,7 @@ const translations = {
         },
     },
     workflowsDelayedSubmissionPage: {
+        autoReportingErrorMessage: '遅延した提出は変更できません。もう一度お試しいただくか、サポートにお問い合わせください。',
         autoReportingFrequencyErrorMessage: '提出頻度を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
         monthlyOffsetErrorMessage: '月次の頻度を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
     },
@@ -2344,6 +2349,23 @@ const translations = {
             testDriveEmployeeTask: {
                 title: ({testDriveURL}) => `[テストドライブ](${testDriveURL})を行う`,
                 description: ({testDriveURL}) => `[テストドライブ](${testDriveURL})を行い、チームに *3 か月間の Expensify 無料クーポン*を手に入れましょう！`,
+            },
+            addExpenseApprovalsTask: {
+                title: '経費承認を追加',
+                description: ({workspaceMoreFeaturesLink}) =>
+                    `チームの支出を確認し、管理するために*経費承認を追加*しましょう。\n` +
+                    '\n' +
+                    `手順は以下の通りです：\n` +
+                    '\n' +
+                    '1. *ワークスペース* に移動します。\n' +
+                    '2. 自分のワークスペースを選択します。\n' +
+                    '3. *その他の機能* をクリックします。\n' +
+                    '4. *ワークフロー* を有効にします。\n' +
+                    '5. ワークスペースエディターで *ワークフロー* に移動します。\n' +
+                    '6. *承認を追加* を有効にします。\n' +
+                    `7. あなたが経費承認者として設定されます。チームを招待した後、管理者に変更することもできます。\n` +
+                    '\n' +
+                    `[その他の機能に移動](${workspaceMoreFeaturesLink})。`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[ワークスペースの作成](${workspaceConfirmationLink})`,
@@ -3734,6 +3756,18 @@ const translations = {
                 createEntitiesDescription: 'Expensifyは、QuickBooks Desktopに既に存在しない場合、自動的にベンダーを作成します。',
             },
             itemsDescription: 'ExpensifyでQuickBooks Desktopの項目をどのように処理するか選択します。',
+            accountingMethods: {
+                label: 'エクスポートのタイミング',
+                description: '経費をエクスポートするタイミングを選択:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '発生主義',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '現金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自己負担の経費は最終承認時にエクスポートされます。',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自己負担の経費は支払われたときにエクスポートされます。',
+                },
+            },
         },
         qbo: {
             connectedTo: '接続済み',
@@ -5527,6 +5561,11 @@ const translations = {
                 description: 'Expensify Travelは、メンバーが宿泊施設、フライト、交通機関などを予約できる新しい法人向け旅行予約および管理プラットフォームです。',
                 onlyAvailableOnPlan: '旅行は、Collectプランで利用可能です。料金は',
             },
+            reports: {
+                title: 'レポート',
+                description: 'レポートを使用すると、経費をグループ化して追跡と整理を簡単にできます。',
+                onlyAvailableOnPlan: 'レポートは、Collectプランで利用可能です。料金は ',
+            },
             multiLevelTags: {
                 title: 'マルチレベルタグ',
                 description:
@@ -6168,7 +6207,7 @@ const translations = {
         groupBy: 'グループ',
         moneyRequestReport: {
             emptyStateTitle: 'このレポートには経費がありません。',
-            emptyStateSubtitle: 'このレポートに経費を追加するには、\n 下のボタンを使用するか、上の「その他」メニューから「経費を追加」を選択してください。',
+            emptyStateSubtitle: 'このレポートに経費を追加するには、以下のボタンを使用するか、上の「その他」メニューの「経費を追加」オプションを使用してください。',
         },
         noCategory: 'カテゴリなし',
         noTag: 'タグなし',

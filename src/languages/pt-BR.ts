@@ -659,6 +659,8 @@ const translations = {
         reschedule: 'Reagendar',
         general: 'Geral',
         workspacesTabTitle: 'Workspaces',
+        getTheApp: 'Obtenha o aplicativo',
+        scanReceiptsOnTheGo: 'Digitalize recibos do seu telefone',
         headsUp: 'Atenção!',
         submitTo: 'Enviar para',
         forwardTo: 'Encaminhar para',
@@ -671,6 +673,7 @@ const translations = {
         link: 'Link',
         pinned: 'Fixado',
         read: 'Lido',
+        copyToClipboard: 'Copiar para a área de transferência',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -854,7 +857,7 @@ const translations = {
         expand: 'Expandir',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'Copiar para a área de transferência',
+        copyMessage: 'Copiar mensagem',
         copied: 'Copiado!',
         copyLink: 'Copiar link',
         copyURLToClipboard: 'Copiar URL para a área de transferência',
@@ -1235,7 +1238,7 @@ const translations = {
         }: SettleExpensifyCardParams & {
             policyName: string;
         }) => (formattedAmount ? `Pagar ${formattedAmount} via ${policyName}` : `Pagar via ${policyName}`),
-        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pago ${amount} com conta bancária ${last4Digits}` : `Pago com conta bancária ${last4Digits}`),
+        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `pago ${amount} com conta bancária ${last4Digits}` : `pago com conta bancária ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
             `pago ${amount ? `${amount} ` : ''}com a conta bancária terminada em ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do espaço de trabalho</a>`,
         invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Conta pessoal • ${lastFour}`,
@@ -1484,6 +1487,7 @@ const translations = {
             pageTitle: 'Selecione os detalhes que deseja manter:',
             noDifferences: 'Nenhuma diferença encontrada entre as transações',
             pleaseSelectError: ({field}: {field: string}) => `Por favor selecione um(a) ${field}`,
+            pleaseSelectAttendees: 'Selecione participantes',
             selectAllDetailsError: 'Selecione todos os detalhes antes de continuar.',
         },
         confirmationPage: {
@@ -1553,10 +1557,7 @@ const translations = {
         subtitle: 'Ative a autenticação de dois fatores para manter sua conta segura.',
         goToSecurity: 'Voltar para a página de segurança',
     },
-    shareCodePage: {
-        title: 'Seu código',
-        subtitle: 'Convide membros para o Expensify compartilhando seu código QR pessoal ou link de indicação.',
-    },
+    shareCodePage: {title: 'Seu código', subtitle: 'Convide membros para o Expensify compartilhando seu código QR pessoal ou link de referência.'},
     pronounsPage: {
         pronouns: 'Pronomes',
         isShownOnProfile: 'Seus pronomes são exibidos no seu perfil.',
@@ -1567,8 +1568,8 @@ const translations = {
         contactMethods: 'Métodos de contato',
         featureRequiresValidate: 'Este recurso requer que você valide sua conta.',
         validateAccount: 'Valide sua conta',
-        helpTextBeforeEmail: 'Adicione mais maneiras para as pessoas encontrarem você e encaminharem recibos para',
-        helpTextAfterEmail: 'de vários endereços de e-mail.',
+        helpTextBeforeEmail: 'Adicione mais maneiras de enviar recibos. Encaminhe-os para',
+        helpTextAfterEmail: 'ou envie uma mensagem para 47777 (apenas números dos EUA).',
         pleaseVerify: 'Por favor, verifique este método de contato',
         getInTouch: 'Sempre que precisarmos entrar em contato com você, usaremos este método de contato.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, insira o código mágico enviado para ${contactMethod}. Ele deve chegar em um ou dois minutos.`,
@@ -2014,7 +2015,7 @@ const translations = {
         workflowTitle: 'Gastar',
         workflowDescription: 'Configurar um fluxo de trabalho desde o momento em que a despesa ocorre, incluindo aprovação e pagamento.',
         submissionFrequency: 'Frequência de envio',
-        submissionFrequencyDescription: 'Escolha um cronograma personalizado para enviar despesas ou deixe isso desativado para atualizações em tempo real sobre gastos.',
+        submissionFrequencyDescription: 'Escolha uma frequência para enviar despesas.',
         submissionFrequencyDateOfMonth: 'Data do mês',
         addApprovalsTitle: 'Adicionar aprovações',
         addApprovalButton: 'Adicionar fluxo de trabalho de aprovação',
@@ -2352,6 +2353,23 @@ const translations = {
             testDriveEmployeeTask: {
                 title: ({testDriveURL}) => `Faça um [test drive](${testDriveURL})`,
                 description: ({testDriveURL}) => `[Faça um test drive](${testDriveURL}) conosco e sua equipe ganha *3 meses grátis de Expensify!*`,
+            },
+            addExpenseApprovalsTask: {
+                title: 'Adicionar aprovações de despesas',
+                description: ({workspaceMoreFeaturesLink}) =>
+                    `*Adicione aprovações de despesas* para revisar os gastos da sua equipe e mantê-los sob controle.\n` +
+                    '\n' +
+                    `Veja como fazer:\n` +
+                    '\n' +
+                    '1. Vá para *Espaços de trabalho*.\n' +
+                    '2. Selecione seu espaço de trabalho.\n' +
+                    '3. Clique em *Mais recursos*.\n' +
+                    '4. Ative *Fluxos de trabalho*.\n' +
+                    '5. Vá para *Fluxos de trabalho* no editor do espaço de trabalho.\n' +
+                    '6. Ative *Adicionar aprovações*.\n' +
+                    `7. Você será definido como o aprovador de despesas. Pode alterar isso para qualquer administrador após convidar sua equipe.\n` +
+                    '\n' +
+                    `[Ir para mais recursos](${workspaceMoreFeaturesLink}).`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Crie](${workspaceConfirmationLink}) um espaço de trabalho`,
@@ -3753,6 +3771,18 @@ const translations = {
                 createEntitiesDescription: 'A Expensify criará automaticamente fornecedores no QuickBooks Desktop se eles ainda não existirem.',
             },
             itemsDescription: 'Escolha como lidar com itens do QuickBooks Desktop no Expensify.',
+            accountingMethods: {
+                label: 'Quando Exportar',
+                description: 'Escolha quando exportar as despesas:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Acumulação',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Dinheiro',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Despesas do próprio bolso serão exportadas quando aprovadas em definitivo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Despesas do próprio bolso serão exportadas quando pagas',
+                },
+            },
         },
         qbo: {
             connectedTo: 'Conectado a',
@@ -5566,6 +5596,11 @@ const translations = {
                 description: 'Expensify Travel é uma nova plataforma de reserva e gestão de viagens corporativas que permite aos membros reservar acomodações, voos, transporte e mais.',
                 onlyAvailableOnPlan: 'Viagens estão disponíveis no plano Collect, a partir de',
             },
+            reports: {
+                title: 'Relatórios',
+                description: 'Os relatórios permitem agrupar despesas para facilitar o acompanhamento e organização.',
+                onlyAvailableOnPlan: 'Os relatórios estão disponíveis no plano Collect, a partir de ',
+            },
             multiLevelTags: {
                 title: 'Tags multiníveis',
                 description:
@@ -6216,7 +6251,7 @@ const translations = {
         groupBy: 'Agrupar por',
         moneyRequestReport: {
             emptyStateTitle: 'Este relatório não possui despesas.',
-            emptyStateSubtitle: 'Você pode adicionar despesas a este relatório\n usando o botão abaixo ou a opção "Adicionar despesa" no menu Mais acima.',
+            emptyStateSubtitle: 'Você pode adicionar despesas a este relatório usando o botão abaixo ou a opção "Adicionar despesa" no menu Mais acima.',
         },
         noCategory: 'Sem categoria',
         noTag: 'Sem etiqueta',

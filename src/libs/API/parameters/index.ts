@@ -28,6 +28,7 @@ export type {default as UpdateNetSuiteAccountingMethodParams} from './UpdateNetS
 export type {default as UpdateQuickbooksOnlineAccountingMethodParams} from './UpdateQuickbooksOnlineAccountingMethodParams';
 export type {default as UpdateXeroAccountingMethodParams} from './UpdateXeroAccountingMethodParams';
 export type {default as UpdateSageIntacctAccountingMethodParams} from './UpdateSageIntacctAccountingMethodParams';
+export type {default as UpdateQuickbooksDesktopAccountingMethodParams} from './UpdateQuickbooksDesktopAccountingMethodParams';
 export type {default as RemovePolicyReceiptPartnersConnectionParams} from './RemovePolicyReceiptPartnersConnectionParams';
 export type {default as SyncPolicyToQuickbooksDesktopParams} from './SyncPolicyToQuickbooksDesktopParams';
 export type {default as DeleteContactMethodParams} from './DeleteContactMethodParams';
@@ -156,6 +157,7 @@ export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMem
 export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCategoriesPageParams';
 export type {default as OpenPolicyTagsPageParams} from './OpenPolicyTagsPageParams';
 export type {default as OpenDraftWorkspaceRequestParams} from './OpenDraftWorkspaceRequestParams';
+export type {default as OpenDraftPerDiemExpenseParams} from './OpenDraftPerDiemExpenseParams';
 export type {default as CreateWorkspaceFromIOUPaymentParams} from './CreateWorkspaceFromIOUPaymentParams';
 export type {default as UpdatePolicyMembersCustomFieldsParams} from './UpdatePolicyMembersCustomFieldsParams';
 export type {default as CreateTaskParams} from './CreateTaskParams';
