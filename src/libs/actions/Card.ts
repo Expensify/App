@@ -969,6 +969,10 @@ function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: numb
     API.write(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, parameters);
 }
 
+/**
+ * Resolves a fraud alert for a given card.
+ * When the user clicks on the whisper it sets the optimistic data to the resolution and calls the API
+ */
 function resolveFraudAlert(cardID: number | undefined, isFraud: boolean, reportID: string | undefined, reportActionID: string | undefined) {
     if (!reportID || !reportActionID || !cardID) {
         Log.hmmm('[resolveFraudAlert] Missing required parameters');
