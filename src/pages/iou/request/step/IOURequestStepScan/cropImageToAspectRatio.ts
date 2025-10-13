@@ -1,5 +1,7 @@
 import ImageSize from 'react-native-image-size';
+import type {Orientation} from 'react-native-vision-camera';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
+import getDeviceOrientationAwareImageSize from '@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 
 type ImageObject = {
@@ -46,18 +48,24 @@ function cropImageToAspectRatio(
 
     /** Vertically align the crop to the top (true) or center (false) */
     shouldAlignTop?: boolean,
+
+    /** Image orientation determined by react-native-image-size that depends on device orientation */
+    orientation?: Orientation,
 ): Promise<ImageObject> {
     return ImageSize.getSize(image.source)
         .then((imageSize) => {
-            const isRotated = imageSize?.rotation === 90 || imageSize?.rotation === 270;
-            const imageWidth = isRotated ? imageSize?.height : imageSize?.width;
-            const imageHeight = isRotated ? imageSize?.width : imageSize?.height;
+            const {
+                imageWidth,
+                imageHeight,
+                aspectRatioWidth: ratioWidth,
+                aspectRatioHeight: ratioHeight,
+            } = getDeviceOrientationAwareImageSize({imageSize, orientation, aspectRatioWidth, aspectRatioHeight});
 
-            if (!imageWidth || !imageHeight || !aspectRatioWidth || !aspectRatioHeight) {
+            if (!imageWidth || !imageHeight || !ratioWidth || !ratioHeight) {
                 return image;
             }
 
-            const crop = calculateCropRect(imageWidth, imageHeight, aspectRatioWidth, aspectRatioHeight, shouldAlignTop);
+            const crop = calculateCropRect(imageWidth, imageHeight, ratioWidth, ratioHeight, shouldAlignTop);
             const croppedFilename = `receipt_cropped_${Date.now()}.${IMAGE_TYPE}`;
 
             return cropOrRotateImage(image.source, [{crop}], {compress: 1, name: croppedFilename, type: IMAGE_TYPE}).then((croppedImage) => {
@@ -67,7 +75,10 @@ function cropImageToAspectRatio(
                 return {file: croppedImage, filename: croppedImage.name, source: croppedImage.uri};
             });
         })
-        .catch(() => image);
+        .catch((err) => {
+            console.error(err);
+            return image;
+        });
 }
 
 export type {ImageObject};

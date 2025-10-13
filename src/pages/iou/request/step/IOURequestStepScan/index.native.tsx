@@ -695,7 +695,7 @@ function IOURequestStepScan({
                                 : initialTransaction;
                         const transactionID = transaction?.transactionID ?? initialTransactionID;
                         const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
-                        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height).then(({filename, source}) => {
+                        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation).then(({filename, source}) => {
                             setMoneyRequestReceipt(transactionID, source, filename, !isEditing);
 
                             readFileAsync(
