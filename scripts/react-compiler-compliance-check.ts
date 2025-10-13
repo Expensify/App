@@ -67,6 +67,12 @@ function check({filesToCheck, shouldGenerateReport = false, reportFileName = DEF
     const src = createFilesGlob(filesToCheck);
     let results = runCompilerHealthcheck(src);
 
+    if (shouldFilterByDiff) {
+        const mainBaseCommitHash = Git.getMainBranchCommitHash(remote);
+        const headCommitHash = 'HEAD';
+        const diffCommits = {from: mainBaseCommitHash, to: headCommitHash};
+        results = filterResultsByDiff(results, diffCommits);
+    }
 
     const isPassed = results.failures.size === 0;
     if (isPassed) {
