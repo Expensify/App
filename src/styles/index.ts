@@ -1578,7 +1578,7 @@ const staticStyles = (theme: ThemeColors) =>
         floatingCameraButton: {
             position: 'absolute',
             top: -variables.componentSizeLarge - 16,
-            right: 12,
+            right: 16,
             zIndex: 10,
         },
 
