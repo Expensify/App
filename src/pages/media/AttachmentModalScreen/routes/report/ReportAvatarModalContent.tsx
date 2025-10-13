@@ -1,6 +1,5 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import useOnyx from '@hooks/useOnyx';
-import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultGroupAvatar, getPolicyName, getReportName, getWorkspaceIcon, isGroupChat, isThread} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
@@ -8,7 +7,6 @@ import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/Attachm
 import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.REPORT_AVATAR>) {
@@ -36,10 +34,6 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
         };
     }, [policy, report]);
 
-    const handleClose = useCallback(() => {
-        Navigation.goBack(report?.reportID ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID) : undefined);
-    }, [report?.reportID]);
-
     const onDownloadAttachment = useDownloadAttachment();
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
@@ -56,7 +50,6 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
         <AttachmentModalContainer
             navigation={navigation}
             contentProps={contentProps}
-            onClose={handleClose}
         />
     );
 }
