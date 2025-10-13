@@ -19,6 +19,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import type {PromotedAction} from '@components/PromotedActionsBar';
 import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBar';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -581,6 +582,16 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     ) : null;
 
     const renderedAvatar = useMemo(() => {
+        if (isChatRoom && !isThread) {
+            return (
+                <View style={styles.mb3}>
+                    <RoomHeaderAvatars
+                        icons={icons}
+                        report={report}
+                    />
+                </View>
+            );
+        }
         if (!isGroupChat || isThread) {
             return (
                 <View style={styles.mb3}>
@@ -617,21 +628,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 style={[styles.w100, styles.mb3]}
             />
         );
-    }, [
-        isGroupChat,
-        isThread,
-        icons,
-        report.avatarUrl,
-        report.pendingFields?.avatar,
-        report.errorFields?.avatar,
-        report.reportID,
-        styles.avatarXLarge,
-        styles.smallEditIconAccount,
-        styles.mt6,
-        styles.w100,
-        styles.mb3,
-        moneyRequestReport,
-    ]);
+    }, [isGroupChat, isThread, isChatRoom, icons, report, styles.avatarXLarge, styles.smallEditIconAccount, styles.mt6, styles.w100, styles.mb3, moneyRequestReport?.reportID]);
 
     const canJoin = canJoinChat(report, parentReportAction, policy, !!reportNameValuePairs?.private_isArchived);
 
