@@ -217,15 +217,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
         });
     }, [groupItem.transactionsQueryJSON, newTransactionID, transactionsSnapshot?.search?.offset, isExpanded]);
 
-    useEffect(() => {
-        if (isExpanded) {
-            return;
-        }
-        setTransactionsVisibleLimit(TRANSACTIONS_PAGE_SIZE);
-    }, [isExpanded]);
-
     const handleToggle = useCallback(() => {
         setIsExpanded(!isExpanded);
+        if (isExpanded) {
+            setTransactionsVisibleLimit(TRANSACTIONS_PAGE_SIZE);
+        }
     }, [isExpanded]);
 
     const onPress = useCallback(() => {
@@ -264,6 +260,19 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
         handleToggle();
     }, [isEmpty, shouldDisplayEmptyView, groupItem.transactionsQueryJSON, isExpanded, transactionsSnapshot?.search?.offset, onPress, handleToggle]);
+
+    const onShowMoreButtonPress = useCallback(() => {
+        if (isGroupByReports) {
+            setTransactionsVisibleLimit((currentPageSize) => currentPageSize + TRANSACTIONS_PAGE_SIZE);
+        } else if (!isOffline && groupItem.transactionsQueryJSON) {
+            search({
+                queryJSON: groupItem.transactionsQueryJSON,
+                searchKey: undefined,
+                offset: (transactionsSnapshotMetadata?.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE,
+                shouldCalculateTotals: false,
+            });
+        }
+    }, [isGroupByReports, isOffline, groupItem.transactionsQueryJSON, transactionsSnapshotMetadata?.offset]);
 
     const getHeader = useMemo(() => {
         const headers: Record<SearchGroupBy, React.JSX.Element> = {
@@ -400,18 +409,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     <View style={[styles.w100, styles.flexRow, isLargeScreenWidth && styles.pl10]}>
                         <Button
                             text={translate('common.showMore')}
-                            onPress={() => {
-                                if (isGroupByReports) {
-                                    setTransactionsVisibleLimit((currentPageSize) => currentPageSize + TRANSACTIONS_PAGE_SIZE);
-                                } else if (!isOffline && groupItem.transactionsQueryJSON) {
-                                    search({
-                                        queryJSON: groupItem.transactionsQueryJSON,
-                                        searchKey: undefined,
-                                        offset: (transactionsSnapshotMetadata?.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE,
-                                        shouldCalculateTotals: false,
-                                    });
-                                }
-                            }}
+                            onPress={onShowMoreButtonPress}
                             link
                             shouldUseDefaultHover={false}
                             isNested
