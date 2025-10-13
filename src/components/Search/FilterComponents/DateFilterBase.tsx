@@ -1,24 +1,27 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScrollView from '@components/ScrollView';
 import type {ReportFieldDateKey, SearchDateFilterKeys} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDatePresets} from '@libs/SearchUIUtils';
-import type {SearchDateModifier} from '@libs/SearchUIUtils';
+import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchDatePresetFilterBaseHandle} from './DatePresetFilterBase';
 import DatePresetFilterBase from './DatePresetFilterBase';
 
 type DateFilterBaseProps = {
+    title: string;
     dateKey: SearchDateFilterKeys;
+    back: () => void;
     onSubmit: (values: Record<string, string | undefined>) => void;
 };
 
-function DateFilterBase({dateKey, onSubmit}: DateFilterBaseProps) {
+function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -48,6 +51,14 @@ function DateFilterBase({dateKey, onSubmit}: DateFilterBaseProps) {
         const hasFeed = !!searchAdvancedFiltersForm?.feed?.length;
         return getDatePresets(dateKey, hasFeed);
     }, [dateKey, searchAdvancedFiltersForm?.feed]);
+
+    const computedTitle = useMemo(() => {
+        if (selectedDateModifier) {
+            return translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`);
+        }
+
+        return title;
+    }, [selectedDateModifier, title, translate]);
 
     const reset = useCallback(() => {
         if (!searchDatePresetFilterBaseRef.current) {
@@ -85,6 +96,10 @@ function DateFilterBase({dateKey, onSubmit}: DateFilterBaseProps) {
 
     return (
         <>
+            <HeaderWithBackButton
+                title={computedTitle}
+                onBackButtonPress={back}
+            />
             <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                 <DatePresetFilterBase
                     ref={searchDatePresetFilterBaseRef}

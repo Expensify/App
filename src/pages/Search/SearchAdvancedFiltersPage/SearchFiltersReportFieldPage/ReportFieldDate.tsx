@@ -19,7 +19,9 @@ function ReportFieldDate({field, close}: ReportFieldDateProps) {
 
     return (
         <DateFilterBase
+            title={field.name}
             dateKey={formKey}
+            back={close}
             onSubmit={updateFilter}
         />
     );
