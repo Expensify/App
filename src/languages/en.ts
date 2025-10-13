@@ -1687,7 +1687,6 @@ const translations = {
                 test: 'Test',
                 notificationTitle: 'Authentication successful',
                 notificationFallbackContent: 'You’ve successfully authenticated using magic code + 2FA.',
-                biometricsTest: 'Biometrics test',
                 fallbackPageTitle: "Let's verify it's you",
                 fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) =>  `Please enter the magic code sent to ${contactMethod}.`,
                 fallbackPage2FAContent: 'Please enter your authenticator code.',
