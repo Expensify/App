@@ -67,7 +67,7 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
  * @returns [currency] - The currency associated with the rate.
  * @returns [unit] - The unit of measurement for the distance.
  */
-function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>, localeCompare?: (a: string, b: string) => number): MileageRate | undefined {
+function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>): MileageRate | undefined {
     if (isEmptyObject(policy) || !policy?.customUnits) {
         return undefined;
     }
@@ -76,7 +76,7 @@ function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>, localeCompare?:
     if (!distanceUnit?.rates || !distanceUnit.attributes) {
         return;
     }
-    const mileageRates = localeCompare ? Object.values(getMileageRates(policy)).sort((a, b) => localeCompare(a.name ?? '', b.name ?? '')) : Object.values(getMileageRates(policy));
+    const mileageRates = Object.values(getMileageRates(policy));
 
     const distanceRate = mileageRates.at(0) ?? ({} as MileageRate);
 
@@ -283,13 +283,11 @@ function getCustomUnitRateID({
     isPolicyExpenseChat,
     policy,
     lastSelectedDistanceRates,
-    localeCompare,
 }: {
     reportID: string | undefined;
     isPolicyExpenseChat: boolean;
     policy: OnyxEntry<Policy> | undefined;
     lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
-    localeCompare?: (a: string, b: string) => number;
 }): string {
     let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
@@ -312,7 +310,7 @@ function getCustomUnitRateID({
         if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
             customUnitRateID = lastSelectedDistanceRateID;
         } else {
-            const defaultMileageRate = getDefaultMileageRate(policy, localeCompare);
+            const defaultMileageRate = getDefaultMileageRate(policy);
             if (!defaultMileageRate?.customUnitRateID) {
                 return customUnitRateID;
             }
