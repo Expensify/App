@@ -74,6 +74,27 @@ const cardListMock = {
     },
 } as unknown as CardList;
 
+const cardListWithPendingExpensifyCard = {
+    '99990000': {
+        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+        bank: CONST.EXPENSIFY_CARD.BANK,
+        fundID: CONST.EXPENSIFY_CARD.PENDING_EXPENSIFY_CARD,
+        domainName: 'pending.expensifycard.test',
+        lastUpdated: '2024-01-01',
+        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+        cardID: 99990000,
+    },
+    '88880000': {
+        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+        bank: CONST.EXPENSIFY_CARD.BANK,
+        fundID: '5555',
+        domainName: 'expensifycard.test',
+        lastUpdated: '2024-01-01',
+        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+        cardID: 88880000,
+    },
+} as unknown as CardList;
+
 const cardFeedAmericaExpressMock = 'oauth.americanexpressfdx.com 1001' as CompanyCardFeed;
 const cardFeedVisaMock = 'vcf' as CompanyCardFeed;
 const cardFeedCitiBankMock = 'oauth.citibank.com' as CompanyCardFeed;
@@ -144,6 +165,33 @@ describe('Card Feed Utils', () => {
         });
     });
 
+    it('ignores empty domain member feeds when building card feeds for display', () => {
+        const cardFeedsWithEmpty = {
+            ...cardFeedsMock,
+            sharedNVP_private_domain_member_9999: {},
+        } as OnyxCollection<CardFeeds>;
+        const cardListWithGhostFund = {
+            ...cardListMock,
+            '88990011': {
+                state: 1,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                fundID: '9999',
+                lastFourPAN: '4321',
+            },
+        } as unknown as CardList;
+
+        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeedsWithEmpty, cardListWithGhostFund);
+
+        expect(cardFeedsForDisplay).toEqual({
+            '5555_Expensify Card': {id: '5555_Expensify Card', fundID: '5555', feed: 'Expensify Card', name: 'Expensify Card'},
+            '1234_oauth.americanexpressfdx.com 1001': {id: '1234_oauth.americanexpressfdx.com 1001', fundID: '1234', feed: 'oauth.americanexpressfdx.com 1001', name: 'American Express'},
+            '1234_vcf': {id: '1234_vcf', fundID: '1234', feed: 'vcf', name: 'Custom feed name'},
+            '1234_oauth.citibank.com': {id: '1234_oauth.citibank.com', fundID: '1234', feed: 'oauth.citibank.com', name: 'Citibank'},
+            '1234_stripe': {id: '1234_stripe', fundID: '1234', feed: 'stripe', name: 'Stripe'},
+        });
+        expect(cardFeedsForDisplay).not.toHaveProperty('9999_Expensify Card');
+    });
+
     it('returns card feeds grouped per policy', () => {
         const cardFeedsForDisplayPerPolicy = getCardFeedsForDisplayPerPolicy(cardFeedsMock);
         expect(cardFeedsForDisplayPerPolicy).toEqual({
@@ -153,6 +201,13 @@ describe('Card Feed Utils', () => {
                 {id: '1234_oauth.citibank.com', fundID: '1234', feed: 'oauth.citibank.com', name: 'Citibank'},
             ],
             XX1YY2ZZ3: [{id: '1234_stripe', fundID: '1234', feed: 'stripe', name: 'Stripe'}],
+        });
+    });
+
+    it('filters out pending Expensify Card funds from display list', () => {
+        const cardFeedsForDisplay = getCardFeedsForDisplay({}, cardListWithPendingExpensifyCard);
+        expect(cardFeedsForDisplay).toEqual({
+            '5555_Expensify Card': {id: '5555_Expensify Card', fundID: '5555', feed: 'Expensify Card', name: 'Expensify Card'},
         });
     });
 });

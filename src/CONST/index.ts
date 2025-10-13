@@ -3348,6 +3348,7 @@ const CONST = {
             MONTHLY: 'monthly',
         },
         MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
+        PENDING_EXPENSIFY_CARD: 'pendingExpensifyCard',
     },
     COMPANY_CARDS: {
         BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,
