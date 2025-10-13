@@ -167,7 +167,12 @@ function useOnboardingFlowRouter() {
         shouldShowRequire2FAPage,
     ]);
 
-    return {isOnboardingCompleted: hasCompletedGuidedSetupFlowSelector(onboardingValues), isHybridAppOnboardingCompleted, shouldShowRequire2FAPage};
+    return {
+        isOnboardingCompleted: hasCompletedGuidedSetupFlowSelector(onboardingValues),
+        isHybridAppOnboardingCompleted,
+        shouldShowRequire2FAPage,
+        isOnboardingLoading: !!onboardingValues?.isLoading,
+    };
 }
 
 export default useOnboardingFlowRouter;

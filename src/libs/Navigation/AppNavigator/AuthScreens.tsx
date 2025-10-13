@@ -156,8 +156,7 @@ function AuthScreens() {
     });
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const [userReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, {canBeMissing: true});
-    const {isOnboardingCompleted, shouldShowRequire2FAPage} = useOnboardingFlowRouter();
-    const [isOnboardingLoading] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: (value) => !!value?.isLoading});
+    const {isOnboardingCompleted, shouldShowRequire2FAPage, isOnboardingLoading} = useOnboardingFlowRouter();
     const prevIsOnboardingLoading = usePrevious(isOnboardingLoading);
     const {initialURL, isAuthenticatedAtStartup, setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
