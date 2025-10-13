@@ -13,7 +13,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
-import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
@@ -38,7 +37,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
-import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -46,15 +44,9 @@ const ANIMATION_DURATION_IN_MS = 300;
 
 type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
-    metadata?: SearchResultsInfo;
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
     searchResults?: SearchResults;
     isMobileSelectionModeEnabled: boolean;
-    footerData: {
-        count: number | undefined;
-        total: number | undefined;
-        currency: string | undefined;
-    };
     currentSelectedPolicyID?: string | undefined;
     currentSelectedReportID?: string | undefined;
     confirmPayment?: (paymentType: PaymentMethodType | undefined) => void;
@@ -66,8 +58,6 @@ function SearchPageNarrow({
     headerButtonsOptions,
     searchResults,
     isMobileSelectionModeEnabled,
-    metadata,
-    footerData,
     currentSelectedPolicyID,
     currentSelectedReportID,
     latestBankItems,
@@ -154,8 +144,7 @@ function SearchPageNarrow({
             <ScreenWrapper
                 testID={SearchPageNarrow.displayName}
                 style={styles.pv0}
-                offlineIndicatorStyle={styles.mtAuto}
-                shouldShowOfflineIndicator={!!searchResults}
+                shouldShowOfflineIndicator={false}
             >
                 <FullPageNotFoundView
                     shouldShow={!queryJSON}
@@ -166,7 +155,6 @@ function SearchPageNarrow({
         );
     }
 
-    const shouldShowFooter = !!metadata?.count;
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!currentSearchResults?.search?.isLoading);
 
@@ -174,10 +162,9 @@ function SearchPageNarrow({
         <ScreenWrapper
             testID={SearchPageNarrow.displayName}
             shouldEnableMaxHeight
-            offlineIndicatorStyle={styles.mtAuto}
             bottomContent={<NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />}
             headerGapStyles={styles.searchHeaderGap}
-            shouldShowOfflineIndicator={!!searchResults}
+            shouldShowOfflineIndicator={false}
         >
             <View style={[styles.flex1, styles.overflowHidden]}>
                 {!isMobileSelectionModeEnabled ? (
@@ -254,13 +241,6 @@ function SearchPageNarrow({
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                         />
                     </View>
-                )}
-                {shouldShowFooter && (
-                    <SearchPageFooter
-                        count={footerData.count}
-                        total={footerData.total}
-                        currency={footerData.currency}
-                    />
                 )}
             </View>
         </ScreenWrapper>

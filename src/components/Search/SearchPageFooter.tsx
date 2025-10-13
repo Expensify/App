@@ -9,8 +9,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 
 type SearchPageFooterProps = {
-    count: number | undefined;
-    total: number | undefined;
+    count: number;
+    total: number;
     currency: string | undefined;
 };
 
@@ -40,3 +40,4 @@ function SearchPageFooter({count, total, currency}: SearchPageFooterProps) {
 SearchPageFooter.displayName = 'SearchPageFooter';
 
 export default SearchPageFooter;
+export type {SearchPageFooterProps};

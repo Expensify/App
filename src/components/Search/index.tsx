@@ -7,6 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import ScreenWrapper from '@components/ScreenWrapper';
 import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
@@ -32,6 +33,7 @@ import {canEditFieldOfMoneyRequest, selectArchivedReportsIdSet, selectFilteredRe
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {
+    calculateSearchPageFooterData,
     createAndOpenSearchTransactionThread,
     getColumnsToShow,
     getListItem,
@@ -70,6 +72,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
+import SearchPageFooter from './SearchPageFooter';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
@@ -842,6 +845,17 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         return canBeMissingColumns.every((column) => !columnsToShow.includes(column));
     }, [columnsToShow]);
 
+    const visibleData = data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+    const visibleDataLength = visibleData.length;
+    const shouldShowFooter = (type === CONST.SEARCH.DATA_TYPES.EXPENSE || type === CONST.SEARCH.DATA_TYPES.INVOICE || type === CONST.SEARCH.DATA_TYPES.TRIP) && visibleDataLength > 0;
+
+    const footerData = useMemo(() => {
+        if (!shouldShowFooter) {
+            return null;
+        }
+        return calculateSearchPageFooterData(selectedTransactions, visibleData, groupBy, searchResults?.search?.currency);
+    }, [shouldShowFooter, selectedTransactions, visibleData, groupBy, searchResults?.search?.currency]);
+
     if (shouldShowLoadingState) {
         return (
             <Animated.View
@@ -875,7 +889,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         );
     }
 
-    const visibleDataLength = data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
     if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchResults?.search?.type)) {
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
@@ -955,6 +968,24 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                     newTransactions={newTransactions}
                 />
+                <View style={[styles.mtAuto]}>
+                    <ScreenWrapper
+                        testID="SearchPageFooterWrapper"
+                        shouldShowOfflineIndicator
+                        shouldShowOfflineIndicatorInWideScreen
+                        offlineIndicatorStyle={shouldUseNarrowLayout ? [styles.mtAuto] : [styles.pAbsolute, styles.h10, styles.b0]}
+                        shouldEnableKeyboardAvoidingView={false}
+                        shouldEnableMaxHeight={false}
+                    >
+                        {!!footerData && (
+                            <SearchPageFooter
+                                count={footerData.count}
+                                total={footerData.total}
+                                currency={footerData.currency}
+                            />
+                        )}
+                    </ScreenWrapper>
+                </View>
             </Animated.View>
         </SearchScopeProvider>
     );
