@@ -1281,7 +1281,11 @@ function createAndOpenSearchTransactionThread(item: TransactionListItemType, iou
     if (!iouReportAction && iouReportID && iouReportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
         openReport(iouReportID);
     }
-    const transactionThreadReport = createTransactionThreadReport(item.report, iouReportAction ?? ({reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction), item?.transactionID);
+    const transactionThreadReport = createTransactionThreadReport(
+        item.report,
+        iouReportAction ?? ({reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction),
+        item?.transactionID,
+    );
     if (transactionThreadReport?.reportID) {
         updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
     }
