@@ -745,6 +745,20 @@ type GetSearchOnyxUpdateParams = {
     transactionThreadReportID: string | undefined;
 };
 
+type DeleteMoneyRequestMethodParams = {
+    transactionID: string | undefined;
+    reportAction: OnyxTypes.ReportAction;
+    transactions: OnyxCollection<OnyxTypes.Transaction>;
+    violations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+    chatReport: OnyxEntry<OnyxTypes.Report>;
+    isSingleTransactionView?: boolean;
+    transactionIDsPendingDeletion?: string[];
+    selectedTransactionIDs?: string[];
+    isChatIOUReportArchived?: boolean;
+    reportActionIOUReportRNVP?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
+};
+
 let allBetas: OnyxEntry<OnyxTypes.Beta[]>;
 Onyx.connect({
     key: ONYXKEYS.BETAS,
@@ -8575,19 +8589,19 @@ function cleanUpMoneyRequest(
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @return the url to navigate back once the money request is deleted
  */
-function deleteMoneyRequest(
-    transactionID: string | undefined,
-    reportAction: OnyxTypes.ReportAction,
-    transactions: OnyxCollection<OnyxTypes.Transaction>,
-    violations: OnyxCollection<OnyxTypes.TransactionViolations>,
-    iouReport: OnyxEntry<OnyxTypes.Report>,
-    chatReport: OnyxEntry<OnyxTypes.Report>,
+function deleteMoneyRequest({
+    transactionID,
+    reportAction,
+    transactions,
+    violations,
+    iouReport,
+    chatReport,
     isSingleTransactionView = false,
-    transactionIDsPendingDeletion?: string[],
-    selectedTransactionIDs?: string[],
+    transactionIDsPendingDeletion,
+    selectedTransactionIDs,
     isChatIOUReportArchived = false,
-    reportActionIOUReportRNVP?: OnyxEntry<OnyxTypes.ReportNameValuePairs>,
-) {
+    reportActionIOUReportRNVP,
+}: DeleteMoneyRequestMethodParams) {
     if (!transactionID) {
         return;
     }
@@ -8880,19 +8894,31 @@ function deleteMoneyRequest(
     return urlToNavigateBack;
 }
 
-function deleteTrackExpense(
-    chatReportID: string | undefined,
-    transactionID: string | undefined,
-    reportAction: OnyxTypes.ReportAction,
-    iouReport: OnyxEntry<OnyxTypes.Report>,
-    chatReport: OnyxEntry<OnyxTypes.Report>,
-    transactions: OnyxCollection<OnyxTypes.Transaction>,
-    violations: OnyxCollection<OnyxTypes.TransactionViolations>,
+function deleteTrackExpense({
+    chatReportID,
+    transactionID,
+    reportAction,
+    iouReport,
+    chatReport,
+    transactions,
+    violations,
     isSingleTransactionView = false,
     isChatReportArchived = false,
     isChatIOUReportArchived = false,
-    reportActionIOUReportRNVP?: OnyxEntry<OnyxTypes.ReportNameValuePairs>,
-) {
+    reportActionIOUReportRNVP,
+}: {
+    chatReportID: string | undefined;
+    transactionID: string | undefined;
+    reportAction: OnyxTypes.ReportAction;
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+    chatReport: OnyxEntry<OnyxTypes.Report>;
+    transactions: OnyxCollection<OnyxTypes.Transaction>;
+    violations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    isSingleTransactionView?: boolean;
+    isChatReportArchived?: boolean;
+    isChatIOUReportArchived?: boolean;
+    reportActionIOUReportRNVP?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
+}) {
     if (!chatReportID || !transactionID) {
         return;
     }
@@ -8901,7 +8927,7 @@ function deleteTrackExpense(
 
     // STEP 1: Get all collections we're updating
     if (!isSelfDM(chatReport)) {
-        deleteMoneyRequest(
+        deleteMoneyRequest({
             transactionID,
             reportAction,
             transactions,
@@ -8909,11 +8935,9 @@ function deleteTrackExpense(
             iouReport,
             chatReport,
             isSingleTransactionView,
-            undefined,
-            undefined,
             isChatIOUReportArchived,
             reportActionIOUReportRNVP,
-        );
+        });
         return urlToNavigateBack;
     }
 

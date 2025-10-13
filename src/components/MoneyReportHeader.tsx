@@ -1370,19 +1370,17 @@ function MoneyReportHeader({
                         // Money request should be deleted when interactions are done, to not show the not found page before navigating to goBackRoute
                         // eslint-disable-next-line deprecation/deprecation
                         InteractionManager.runAfterInteractions(() => {
-                            deleteMoneyRequest(
-                                transaction?.transactionID,
-                                requestParentReportAction,
-                                duplicateTransactions,
-                                duplicateTransactionViolations,
+                            deleteMoneyRequest({
+                                transactionID: transaction?.transactionID,
+                                reportAction: requestParentReportAction,
+                                transactions: duplicateTransactions,
+                                violations: duplicateTransactionViolations,
                                 iouReport,
-                                chatIOUReport,
-                                false,
-                                undefined,
-                                undefined,
+                                chatReport,
+                                isSingleTransactionView: false,
                                 isChatIOUReportArchived,
-                                iouReportRNVP,
-                            );
+                                reportActionIOUReportRNVP: iouReportRNVP,
+                            });
                             removeTransaction(transaction.transactionID);
                         });
                         goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, iouReport, chatIOUReport, false, isChatIOUReportArchived);

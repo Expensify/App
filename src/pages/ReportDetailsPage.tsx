@@ -794,33 +794,31 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
 
         if (isTrackExpense) {
-            deleteTrackExpense(
-                moneyRequestReport?.reportID,
-                iouTransactionID,
-                requestParentReportAction,
+            deleteTrackExpense({
+                chatReportID: moneyRequestReport?.reportID,
+                transactionID: iouTransactionID,
+                reportAction: requestParentReportAction,
                 iouReport,
-                chatIOUReport,
-                duplicateTransactions,
-                duplicateTransactionViolations,
+                chatReport: chatIOUReport,
+                transactions: duplicateTransactions,
+                violations: duplicateTransactionViolations,
                 isSingleTransactionView,
-                isMoneyRequestReportArchived,
+                isChatReportArchived: isMoneyRequestReportArchived,
                 isChatIOUReportArchived,
-                iouReportRNVP,
-            );
+                reportActionIOUReportRNVP: iouReportRNVP,
+            });
         } else {
-            deleteMoneyRequest(
-                iouTransactionID,
-                requestParentReportAction,
-                duplicateTransactions,
-                duplicateTransactionViolations,
+            deleteMoneyRequest({
+                transactionID: iouTransactionID,
+                reportAction: requestParentReportAction,
+                transactions: duplicateTransactions,
+                violations: duplicateTransactionViolations,
                 iouReport,
-                chatIOUReport,
+                chatReport: chatIOUReport,
                 isSingleTransactionView,
-                undefined,
-                undefined,
                 isChatIOUReportArchived,
-                iouReportRNVP,
-            );
+                reportActionIOUReportRNVP: iouReportRNVP,
+            });
             removeTransaction(iouTransactionID);
         }
     }, [

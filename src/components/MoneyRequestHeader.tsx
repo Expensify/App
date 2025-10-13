@@ -456,33 +456,31 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         throw new Error('Data missing');
                     }
                     if (isTrackExpenseAction(parentReportAction)) {
-                        deleteTrackExpense(
-                            report?.parentReportID,
-                            transaction.transactionID,
-                            parentReportAction,
+                        deleteTrackExpense({
+                            chatReportID: report?.parentReportID,
+                            transactionID: transaction.transactionID,
+                            reportAction: parentReportAction,
                             iouReport,
                             chatReport,
-                            duplicateTransactions,
-                            duplicateTransactionViolations,
-                            true,
-                            isParentReportArchived,
+                            transactions: duplicateTransactions,
+                            violations: duplicateTransactionViolations,
+                            isSingleTransactionView: true,
+                            isChatReportArchived: isParentReportArchived,
                             isChatIOUReportArchived,
-                            iouReportRNVP,
-                        );
+                            reportActionIOUReportRNVP: iouReportRNVP,
+                        });
                     } else {
-                        deleteMoneyRequest(
-                            transaction.transactionID,
-                            parentReportAction,
-                            duplicateTransactions,
-                            duplicateTransactionViolations,
+                        deleteMoneyRequest({
+                            transactionID: transaction.transactionID,
+                            reportAction: parentReportAction,
+                            transactions: duplicateTransactions,
+                            violations: duplicateTransactionViolations,
                             iouReport,
                             chatReport,
-                            true,
-                            undefined,
-                            undefined,
+                            isSingleTransactionView: true,
                             isChatIOUReportArchived,
-                            iouReportRNVP,
-                        );
+                            reportActionIOUReportRNVP: iouReportRNVP,
+                        });
                         removeTransaction(transaction.transactionID);
                     }
                     onBackButtonPress();

@@ -310,32 +310,28 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         if (isMoneyRequestAction(reportAction)) {
             const originalMessage = getOriginalMessage(reportAction);
             if (isTrackExpenseAction(reportAction)) {
-                deleteTrackExpense(
-                    reportIDRef.current,
-                    originalMessage?.IOUTransactionID,
+                deleteTrackExpense({
+                    chatReportID: reportIDRef.current,
+                    transactionID: originalMessage?.IOUTransactionID,
                     reportAction,
                     iouReport,
                     chatReport,
-                    duplicateTransactions,
-                    duplicateTransactionViolations,
-                    undefined,
+                    transactions: duplicateTransactions,
+                    violations: duplicateTransactionViolations,
                     isChatIOUReportArchived,
-                    reportNameValuePairs,
-                );
+                    reportActionIOUReportRNVP: reportNameValuePairs,
+                });
             } else {
-                deleteMoneyRequest(
-                    originalMessage?.IOUTransactionID,
+                deleteMoneyRequest({
+                    transactionID: originalMessage?.IOUTransactionID,
                     reportAction,
-                    duplicateTransactions,
-                    duplicateTransactionViolations,
+                    transactions: duplicateTransactions,
+                    violations: duplicateTransactionViolations,
                     iouReport,
                     chatReport,
-                    undefined,
-                    undefined,
-                    undefined,
                     isChatIOUReportArchived,
-                    reportNameValuePairs,
-                );
+                    reportActionIOUReportRNVP: reportNameValuePairs,
+                });
             }
         } else if (isReportPreviewAction(reportAction)) {
             deleteAppReport(reportAction.childReportID, reportNameValuePairs);

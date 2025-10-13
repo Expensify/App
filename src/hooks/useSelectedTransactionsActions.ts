@@ -176,19 +176,19 @@ function useSelectedTransactionsActions({
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
             const chatIOUReportID = chatReport?.reportID;
             const isChatIOUReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatIOUReportID}`);
-            deleteMoneyRequest(
+            deleteMoneyRequest({
                 transactionID,
-                action,
-                duplicateTransactions,
-                duplicateTransactionViolations,
+                reportAction: action,
+                transactions: duplicateTransactions,
+                violations: duplicateTransactionViolations,
                 iouReport,
                 chatReport,
-                false,
-                deletedTransactionIDs,
+                isSingleTransactionView: false,
+                transactionIDsPendingDeletion: deletedTransactionIDs,
                 selectedTransactionIDs,
                 isChatIOUReportArchived,
-                iouTransactionsReportRNVP,
-            );
+                reportActionIOUReportRNVP: iouTransactionsReportRNVP,
+            });
             deletedTransactionIDs.push(transactionID);
             if (action.childReportID) {
                 deletedTransactionThreadReportIDs.add(action.childReportID);
