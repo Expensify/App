@@ -226,7 +226,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             return null;
         }
         const header = (
-            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3]}>
+            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3, styles.mr6]}>
                 <View style={styles.flex3}>
                     <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.destination')}</Text>
                 </View>
@@ -458,6 +458,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         listItemTitleContainerStyles={styles.flex3}
                         showScrollIndicator={false}
+                        shouldShowRightCaret
                     />
                 )}
                 {!hasVisibleSubRates && !isLoading && (

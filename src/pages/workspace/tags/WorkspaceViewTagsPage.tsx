@@ -198,6 +198,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={hasDependentTags ? undefined : translate('common.enabled')}
+                shouldShowRightCaret
             />
         );
     };
@@ -426,6 +427,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         onDismissError={(item) => {
                             clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: route.params.orderWeight, policyTags});
                         }}
+                        shouldShowRightCaret
                     />
                 )}
                 <ConfirmModal

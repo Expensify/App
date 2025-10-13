@@ -2,29 +2,24 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAvatarErrors, updatePolicyRoomAvatar} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
-import {isDefaultAvatar} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
-import AvatarWithImagePicker from './AvatarWithImagePicker';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import Text from './Text';
 
 type RoomHeaderAvatarsProps = {
     icons: Icon[];
-    report: Report;
+    reportID: string;
 };
 
-function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
+function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
     const navigateToAvatarPage = (icon: Icon) => {
         if (icon.type === CONST.ICON_TYPE_WORKSPACE && icon.id) {
-            Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report?.reportID, icon.id.toString()));
+            Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(reportID, icon.id.toString()));
             return;
         }
 
@@ -35,7 +30,6 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const isPolicyRoom = isUserCreatedPolicyRoom(report);
 
     if (!icons.length) {
         return null;
@@ -46,30 +40,6 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
 
         if (!icon) {
             return;
-        }
-
-        if (isPolicyRoom) {
-            return (
-                <AvatarWithImagePicker
-                    source={report.avatarUrl ?? icon.source}
-                    avatarID={icon.id}
-                    isUsingDefaultAvatar={!report.avatarUrl || isDefaultAvatar(icon.source)}
-                    size={CONST.AVATAR_SIZE.X_LARGE}
-                    avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
-                    onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
-                    onImageRemoved={() => updatePolicyRoomAvatar(report.reportID)}
-                    onImageSelected={(file) => updatePolicyRoomAvatar(report.reportID, file)}
-                    editIcon={Expensicons.Camera}
-                    editIconStyle={styles.smallEditIconAccount}
-                    pendingAction={report.pendingFields?.avatar}
-                    errors={report.errorFields?.avatar ?? null}
-                    errorRowStyles={styles.mt6}
-                    onErrorClose={() => clearAvatarErrors(report.reportID)}
-                    style={[styles.w100, styles.mb3, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
-                    type={icon.type}
-                    editorMaskImage={Expensicons.ImageCropSquareMask}
-                />
-            );
         }
 
         return (
