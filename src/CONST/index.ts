@@ -6858,6 +6858,7 @@ const CONST = {
                 id: 'policyPreventMemberChangingTitle' as const,
                 alias: 'policy-prevent-member-changing-title',
                 name: undefined,
+                icon: undefined,
             },
             categories: {
                 id: 'categories' as const,
