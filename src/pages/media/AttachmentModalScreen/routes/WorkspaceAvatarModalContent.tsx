@@ -18,23 +18,25 @@ function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenP
 
     const avatarURL = policy?.avatarURL ?? getDefaultWorkspaceAvatar(policy?.name ?? fallbackLetter);
 
+    const policyKeysLength = Object.keys(policy ?? {}).length;
+
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = !Object.keys(policy ?? {}).length && !isLoadingApp && (!policyID || !fallbackLetter);
+    const shouldShowNotFoundPage = policyKeysLength === 0 && !isLoadingApp && (!policyID || !fallbackLetter);
 
     const onDownloadAttachment = useDownloadAttachment();
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
             source: getFullSizeAvatar(avatarURL, 0),
-            headerTitle: policy?.name,
-            originalFileName: policy?.originalFileName ?? policy?.id,
+            headerTitle: policy?.name ?? '',
+            originalFileName: policy?.originalFileName ?? policy?.id ?? policyID,
             shouldShowNotFoundPage,
             isWorkspaceAvatar: true,
-            isLoading: !Object.keys(policy ?? {}).length && !!isLoadingApp,
+            isLoading: policyKeysLength === 0 && !!isLoadingApp,
             maybeIcon: true,
             onDownloadAttachment,
         }),
-        [avatarURL, isLoadingApp, onDownloadAttachment, policy, shouldShowNotFoundPage],
+        [avatarURL, isLoadingApp, onDownloadAttachment, policy?.id, policy?.name, policy?.originalFileName, policyID, policyKeysLength, shouldShowNotFoundPage],
     );
 
     return (
