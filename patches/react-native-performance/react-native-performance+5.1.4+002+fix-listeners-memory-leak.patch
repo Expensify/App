@@ -130,16 +130,14 @@ index 66c94ee..131c88b 100644
      }
  
      private static void clearMarkBuffer() {
-@@ -118,27 +136,21 @@ public class PerformanceModule extends ReactContextBaseJavaModule implements Tur
+@@ -118,27 +136,19 @@ public class PerformanceModule extends ReactContextBaseJavaModule implements Tur
          return PERFORMANCE_MODULE;
      }
  
-+    @Override
 +    public void addListener(String eventName) {
 +
 +    }
 +
-+    @Override
 +    public void removeListeners(double count) {
 +
 +    }
