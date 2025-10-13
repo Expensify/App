@@ -725,7 +725,10 @@ function getOptionData({
     // Assign the actor account ID from the last action when it’s a REPORT_PREVIEW action.
     // to ensures that lastActorDetails.accountID is correctly set in case it's empty string
     if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDetails) {
-        lastActorDetails.accountID = lastAction.actorAccountID;
+        lastActorDetails = {
+            ...lastActorDetails,
+            accountID: lastAction.actorAccountID,
+        };
     }
 
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);

@@ -284,7 +284,9 @@ Onyx.connect({
                 lastReportActions[reportID] = firstReportAction;
             }
 
-            const isWriteActionAllowed = canUserPerformWriteAction(report);
+            const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+            const isReportArchived = !!reportNameValuePairs?.private_isArchived;
+            const isWriteActionAllowed = canUserPerformWriteAction(report, isReportArchived);
 
             // The report is only visible if it is the last action not deleted that
             // does not match a closed or created state.
@@ -630,6 +632,8 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (isPendingRemove(lastReportAction) && report?.reportID && isThreadParentMessage(lastReportAction, report.reportID)) {
         lastMessageTextFromReport = translateLocal('parentReportAction.hiddenMessage');
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+        lastMessageTextFromReport = translateLocal('iou.paidElsewhere');
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
         lastMessageTextFromReport = `[${translateLocal('common.attachment')}]`;
     } else if (isModifiedExpenseAction(lastReportAction)) {
