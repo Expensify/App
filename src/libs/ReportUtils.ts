@@ -3479,7 +3479,7 @@ function getIconsForUserCreatedPolicyRoom(report: OnyxInputOrEntry<Report>, poli
             {
                 source: report.avatarUrl,
                 type: CONST.ICON_TYPE_WORKSPACE,
-                name: getReportName(report),
+                name: getPolicyName({report, policy}),
                 id: report?.policyID,
             },
         ];

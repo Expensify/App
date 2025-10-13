@@ -52,7 +52,7 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
         if (isPolicyRoom && !isAnonymousUser()) {
             return (
                 <AvatarWithImagePicker
-                    source={report.avatarUrl ?? icon.source}
+                    source={icon.source || report.avatarUrl}
                     avatarID={icon.id}
                     isUsingDefaultAvatar={!report.avatarUrl || isDefaultAvatar(icon.source)}
                     size={CONST.AVATAR_SIZE.X_LARGE}
@@ -69,6 +69,7 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
                     style={[styles.w100, styles.mb3, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
                     type={icon.type}
                     editorMaskImage={Expensicons.ImageCropSquareMask}
+                    name={icon.name}
                 />
             );
         }
