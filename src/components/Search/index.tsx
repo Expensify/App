@@ -108,6 +108,7 @@ function mapTransactionItemToSelectedEntry(
             convertedAmount: item.convertedAmount,
             isFromOneTransactionReport: item.isFromOneTransactionReport,
             convertedCurrency: item.convertedCurrency,
+            currency: item.currency,
         },
     ];
 }
@@ -187,6 +188,7 @@ function prepareTransactionsList(
             amount: Math.abs(item.modifiedAmount || item.amount),
             convertedAmount: item.convertedAmount,
             convertedCurrency: item.convertedCurrency,
+            currency: item.currency,
             isFromOneTransactionReport: item.isFromOneTransactionReport,
         },
     };
@@ -442,6 +444,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         amount: transaction.modifiedAmount ?? transaction.amount,
                         convertedAmount: transaction.convertedAmount,
                         convertedCurrency: transaction.convertedCurrency,
+                        currency: transaction.currency,
                     };
                 });
             });
@@ -473,6 +476,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     amount: transaction.modifiedAmount ?? transaction.amount,
                     convertedAmount: transaction.convertedAmount,
                     convertedCurrency: transaction.convertedCurrency,
+                    currency: transaction.currency,
                 };
             });
         }

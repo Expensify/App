@@ -770,7 +770,7 @@ function shouldShowBulkOptionForRemainingTransactions(selectedTransactions: Sele
 /**
  * Checks if the current selected reports/transactions are eligible for bulk pay.
  */
-function getPayOption(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, lastPaymentMethods: OnyxEntry<LastPaymentMethod>, selectedReportIDs?: string[]) {
+function getPayOption(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, lastPaymentMethods: OnyxEntry<LastPaymentMethod>, selectedReportIDs: string[]) {
     const transactionKeys = Object.keys(selectedTransactions ?? {});
     const hasInvoiceReport = selectedReports.some((report) => isInvoiceReport(report?.reportID));
     const firstTransaction = selectedTransactions?.[transactionKeys.at(0) ?? ''];
@@ -829,7 +829,9 @@ function handleBulkPayItemSelected(
     isUserValidated: boolean | undefined,
     confirmPayment?: (paymentType: PaymentMethodType | undefined) => void,
 ) {
-    if (!isValidBulkPayOption(item)) {
+    const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);
+    // Policy id is also a last payment method so we shouldn't early return here for that case.
+    if (!isValidBulkPayOption(item) && !selectedPolicy) {
         return;
     }
     if (isAccountLocked) {
@@ -841,8 +843,6 @@ function handleBulkPayItemSelected(
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy?.id));
         return;
     }
-
-    const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);
 
     if (!!selectedPolicy || shouldSelectPaymentMethod) {
         if (!isUserValidated) {
@@ -862,6 +862,15 @@ function handleBulkPayItemSelected(
         return;
     }
     confirmPayment?.(paymentType as PaymentMethodType);
+}
+
+/**
+ * Return true if selected reports/transactions have the same USD currency.
+ */
+function isCurrencySupportWalletBulkPay(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions) {
+    return selectedReports?.length > 0
+        ? Object.values(selectedReports).every((report) => report?.currency === CONST.CURRENCY.USD)
+        : Object.values(selectedTransactions).every((transaction) => transaction.currency === CONST.CURRENCY.USD);
 }
 
 /**
@@ -951,7 +960,9 @@ export {
     getPayOption,
     isValidBulkPayOption,
     handleBulkPayItemSelected,
+    isCurrencySupportWalletBulkPay,
     getExportTemplates,
+    getReportType,
     setOptimisticDataForTransactionThreadPreview,
 };
 export type {TransactionPreviewData};
