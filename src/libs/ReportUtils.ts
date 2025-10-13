@@ -10514,7 +10514,7 @@ function sortOutstandingReportsBySelected(
     if (report2?.reportID === selectedReportID) {
         return 1;
     }
-    return localeCompare(report1?.reportName?.toLowerCase() ?? '', report2?.reportName?.toLowerCase() ?? '');
+    return localeCompare(new Date(report1?.created ?? '').toISOString(), new Date(report2?.created ?? '').toISOString());
 }
 
 /**
