@@ -49,11 +49,12 @@ function usePlaybackContextVideoRefs(resetCallback: () => void) {
             play: playVideo,
             pause: pauseVideo,
             replay: replayVideo,
+            stop: stopVideo,
             isPlaying: checkIfVideoIsPlaying,
             resetPlayerData: resetVideoPlayerData,
             updateRefs: updateCurrentVideoPlayerRefs,
         }),
-        [checkIfVideoIsPlaying, pauseVideo, playVideo, replayVideo, resetVideoPlayerData],
+        [checkIfVideoIsPlaying, pauseVideo, playVideo, replayVideo, resetVideoPlayerData, stopVideo],
     );
 }
 

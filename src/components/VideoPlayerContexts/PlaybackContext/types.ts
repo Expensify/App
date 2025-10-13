@@ -119,6 +119,11 @@ type PlaybackContextVideoRefs = {
     replay: () => void;
 
     /**
+     * Stops video playback and resets progress.
+     */
+    stop: () => void;
+
+    /**
      * Checks whether the video is currently playing.
      * @param statusCallback Callback receiving the playback status.
      */
@@ -150,6 +155,7 @@ type PlaybackContext = PlaybackContextValues & {
     playVideo: PlaybackContextVideoRefs['play'];
     pauseVideo: PlaybackContextVideoRefs['pause'];
     replayVideo: PlaybackContextVideoRefs['replay'];
+    stopVideo: PlaybackContextVideoRefs['stop'];
     checkIfVideoIsPlaying: PlaybackContextVideoRefs['isPlaying'];
     currentVideoPlayerRef: PlaybackContextVideoRefs['playerRef'];
     currentVideoViewRef: PlaybackContextVideoRefs['viewRef'];
