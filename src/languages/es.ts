@@ -656,11 +656,7 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'No tan rápido',
-        descriptionWithCommand: ({
-            command,
-        }: {
-            command?: string;
-        } = {}) =>
+        descriptionWithCommand: ({command}: {command?: string} = {}) =>
             `No estás autorizado para realizar esta acción cuando el soporte ha iniciado sesión (comando: ${command ?? ''}). Si crees que Success debería poder realizar esta acción, inicia una conversación en Slack.`,
     },
     lockedAccount: {
@@ -993,13 +989,16 @@ const translations = {
             if (!added && !updated) {
                 return 'No se han añadido ni actualizado miembros.';
             }
+
             if (added && updated) {
                 const getPluralSuffix = (count: number) => (count > 1 ? 's' : '');
                 return `${added} miembro${getPluralSuffix(added)} añadido${getPluralSuffix(added)}, ${updated} miembro${getPluralSuffix(updated)} actualizado${getPluralSuffix(updated)}.`;
             }
+
             if (updated) {
                 return updated > 1 ? `${updated} miembros han sido actualizados.` : '1 miembro ha sido actualizado.';
             }
+
             return added > 1 ? `Se han agregado ${added} miembros` : 'Se ha agregado 1 miembro.';
         },
         importTagsSuccessfulDescription: ({tags}: ImportTagsSuccessfulDescriptionParams) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
@@ -1075,11 +1074,7 @@ const translations = {
         amount: 'Importe',
         taxAmount: 'Importe del impuesto',
         taxRate: 'Tasa de impuesto',
-        approve: ({
-            formattedAmount,
-        }: {
-            formattedAmount?: string;
-        } = {}) => (formattedAmount ? `Aprobar ${formattedAmount}` : 'Aprobar'),
+        approve: ({formattedAmount}: {formattedAmount?: string} = {}) => (formattedAmount ? `Aprobar ${formattedAmount}` : 'Aprobar'),
         approved: 'Aprobado',
         cash: 'Efectivo',
         card: 'Tarjeta',
@@ -1213,12 +1208,8 @@ const translations = {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Marcar ${formattedAmount} como pagado` : `Marcar como pagado`),
         settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pagado ${amount} con cuenta personal ${last4Digits}` : `Pagado con cuenta personal`),
         settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pagado ${amount} con cuenta de empresa ${last4Digits}` : `Pagado con cuenta de empresa`),
-        payWithPolicy: ({
-            formattedAmount,
-            policyName,
-        }: SettleExpensifyCardParams & {
-            policyName: string;
-        }) => (formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`),
+        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
+            formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`,
         businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
             amount ? `Pagó ${amount} con la cuenta bancaria ${last4Digits}.` : `Pagó con la cuenta bancaria ${last4Digits}`,
         automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
@@ -1421,6 +1412,7 @@ const translations = {
         dates: 'Fechas',
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
+
         reject: {
             educationalTitle: '¿Debes retener o rechazar?',
             educationalText: 'Si no estás listo para aprobar o pagar un gasto, puedes retenerlo o rechazarlo.',
@@ -1437,6 +1429,7 @@ const translations = {
                 markedAsResolved: 'marcó el motivo del rechazo como resuelto',
             },
         },
+
         moveExpenses: () => ({one: 'Mover gasto', other: 'Mover gastos'}),
         changeApprover: {
             title: 'Cambiar aprobador',
@@ -2438,6 +2431,7 @@ ${amount} para ${merchant} - ${date}`,
             addAccountingIntegrationTask: {
                 title: ({integrationName, workspaceAccountingLink}) =>
                     `Conéctate${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' a'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'tu' : ''} ${integrationName}](${workspaceAccountingLink})`,
+
                 description: ({integrationName, workspaceAccountingLink}) =>
                     `Conéctate ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'tu' : 'a'} ${integrationName} para la clasificación y sincronización automática de gastos, lo que facilita el cierre de fin de mes.\n` +
                     '\n' +
@@ -2647,28 +2641,24 @@ ${amount} para ${merchant} - ${date}`,
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
             `No hemos podido entregar mensajes SMS a ${login}, así que lo hemos suspendido temporalmente. Por favor, intenta validar tu número:`,
         validationSuccess: '¡Tu número ha sido validado! Haz clic abajo para enviar un nuevo código mágico de inicio de sesión.',
-        validationFailed: ({
-            timeData,
-        }: {
-            timeData?: {
-                days?: number;
-                hours?: number;
-                minutes?: number;
-            } | null;
-        }) => {
+        validationFailed: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number} | null}) => {
             if (!timeData) {
                 return 'Por favor, espera un momento antes de intentarlo de nuevo.';
             }
+
             const timeParts = [];
             if (timeData.days) {
                 timeParts.push(`${timeData.days} ${timeData.days === 1 ? 'día' : 'días'}`);
             }
+
             if (timeData.hours) {
                 timeParts.push(`${timeData.hours} ${timeData.hours === 1 ? 'hora' : 'horas'}`);
             }
+
             if (timeData.minutes) {
                 timeParts.push(`${timeData.minutes} ${timeData.minutes === 1 ? 'minuto' : 'minutos'}`);
             }
+
             let timeText = '';
             if (timeParts.length === 1) {
                 timeText = timeParts.at(0) ?? '';
@@ -2677,6 +2667,7 @@ ${amount} para ${merchant} - ${date}`,
             } else if (timeParts.length === 3) {
                 timeText = `${timeParts.at(0)}, ${timeParts.at(1)}, y ${timeParts.at(2)}`;
             }
+
             return `¡Un momento! Debes esperar ${timeText} antes de intentar validar tu número nuevamente.`;
         },
     },
@@ -2770,9 +2761,11 @@ ${amount} para ${merchant} - ${date}`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Paso ${step}`;
+
         if (total) {
             result = `${result} de ${total}`;
         }
+
         if (text) {
             result = `${result}: ${text}`;
         }
@@ -3719,16 +3712,19 @@ ${amount} para ${merchant} - ${date}`,
                 [CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Factura del proveedor',
                 [CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Asiento contable',
                 [CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Cheque',
+
                 [`${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK}Description`]:
                     'Crearemos un cheque desglosado para cada informe de Expensify y lo enviaremos desde la cuenta bancaria a continuación.',
                 [`${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
                     "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de crédito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Credit Card Misc.'.",
                 [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     'Crearemos una factura de proveedor desglosada para cada informe de Expensify con la fecha del último gasto, y la añadiremos a la cuenta a continuación. Si este periodo está cerrado, lo contabilizaremos el 1º del siguiente periodo abierto.',
+
                 [`${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Elige dónde exportar las transacciones con tarjeta de crédito.',
                 [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]:
                     'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
                 [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK}AccountDescription`]: 'Elige desde dónde enviar los cheques.',
+
                 [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]:
                     'Las facturas de proveedores no están disponibles cuando las ubicaciones están habilitadas. Por favor, selecciona otra opción de exportación.',
                 [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]:
@@ -3845,6 +3841,7 @@ ${amount} para ${merchant} - ${date}`,
             outOfPocketTaxEnabledDescription:
                 'QuickBooks Online no permite impuestos en las exportaciones de entradas a los asientos contables. Como tienes los impuestos activados en tu espacio de trabajo, esta opción de exportación no está disponible.',
             outOfPocketTaxEnabledError: 'La anotacion en el diario no está disponible cuando los impuestos están activados. Por favor, selecciona otra opción de exportación diferente.',
+
             advancedConfig: {
                 autoSyncDescription: 'Expensify se sincronizará automáticamente con QuickBooks Online todos los días.',
                 inviteEmployees: 'Invitar empleados',
@@ -3864,15 +3861,18 @@ ${amount} para ${merchant} - ${date}`,
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Factura del proveedor',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Asiento contable',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Cheque',
+
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}Description`]:
                     "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de débito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Debit Card Misc.'.",
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
                     "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de crédito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Credit Card Misc.'.",
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     'Crearemos una factura de proveedor desglosada para cada informe de Expensify con la fecha del último gasto, y la añadiremos a la cuenta a continuación. Si este periodo está cerrado, lo contabilizaremos en el día 1 del siguiente periodo abierto.',
+
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Elige dónde exportar las transacciones con tarjeta de débito.',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Elige dónde exportar las transacciones con tarjeta de crédito.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]: 'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
+
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]:
                     'Las facturas de proveedores no están disponibles cuando las ubicaciones están habilitadas. Por favor, selecciona otra opción de exportación diferente.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]:
@@ -3995,6 +3995,7 @@ ${amount} para ${merchant} - ${date}`,
                 },
             },
         },
+
         sageIntacct: {
             preferredExporter: 'Exportador preferido',
             taxSolution: 'Solución fiscal',
@@ -5158,7 +5159,9 @@ ${amount} para ${merchant} - ${date}`,
                 return `¿Estás seguro de que quieres desconectar ${integrationName}?`;
             },
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
-                `¿Estás seguro de que quieres conectar a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'esta integración contable'}? Esto eliminará cualquier conexión contable existente.`,
+                `¿Estás seguro de que quieres conectar a ${
+                    CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'esta integración contable'
+                }? Esto eliminará cualquier conexión contable existente.`,
             enterCredentials: 'Ingresa tus credenciales',
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
@@ -5359,6 +5362,7 @@ ${amount} para ${merchant} - ${date}`,
                 deactivateConfirmation: 'Al desactivar esta tarjeta, se rechazarán todas las transacciones futuras y no se podrá deshacer.',
             },
         },
+
         export: {
             notReadyHeading: 'No está listo para exportar',
             notReadyDescription:
@@ -5521,6 +5525,7 @@ ${amount} para ${merchant} - ${date}`,
             errorTitle: '¡Ups! No tan rapido...',
             errorDescription: `<muted-text><centered-text>Hubo un problema al transferir la propiedad de este espacio de trabajo. Inténtalo de nuevo, o <concierge-link>contacta con Concierge</concierge-link> por ayuda.</centered-text></muted-text>`,
         },
+
         exportAgainModal: {
             title: '¡Cuidado!',
             description: ({reportName, connectionName}: ExportAgainModalDescriptionParams) =>
@@ -5897,6 +5902,7 @@ ${amount} para ${merchant} - ${date}`,
             `eliminó a ${approverName} (${approverEmail}) como aprobador para la ${field} "${name}"`,
         updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}: UpdatedPolicyApprovalRuleParams) => {
             const formatApprover = (displayName?: string, email?: string) => (displayName ? `${displayName} (${email})` : email);
+
             return `cambió el aprobador para la ${field} "${name}" a ${formatApprover(newApproverName, newApproverEmail)} (previamente ${formatApprover(oldApproverName, oldApproverEmail)})`;
         },
         addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `añadió la categoría "${categoryName}""`,
@@ -5906,6 +5912,7 @@ ${amount} para ${merchant} - ${date}`,
             if (!newValue) {
                 return `eliminó la sugerencia de descripción "${oldValue}" de la categoría "${categoryName}"`;
             }
+
             return !oldValue
                 ? `añadió la sugerencia de descripción "${newValue}" a la categoría "${categoryName}"`
                 : `cambió la sugerencia de descripción de la categoría "${categoryName}" a “${newValue}” (anteriormente “${oldValue}”)`;
@@ -5995,7 +6002,9 @@ ${amount} para ${merchant} - ${date}`,
             if (toggledOptionsCount && toggledOptionsCount > 1) {
                 return `${allEnabled ? 'habilitó' : 'deshabilitó'} todas las opciones para el campo de informe "${fieldName}"`;
             }
-            return `${allEnabled ? 'habilitó' : 'deshabilitó'} la opción "${optionName}" para el campo de informe "${fieldName}", haciendo que todas las opciones queden ${allEnabled ? 'habilitadas' : 'deshabilitadas'}`;
+            return `${allEnabled ? 'habilitó' : 'deshabilitó'} la opción "${optionName}" para el campo de informe "${fieldName}", haciendo que todas las opciones queden ${
+                allEnabled ? 'habilitadas' : 'deshabilitadas'
+            }`;
         },
         deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `eliminó el campo de informe ${fieldType} "${fieldName}"`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
@@ -6429,6 +6438,7 @@ ${amount} para ${merchant} - ${date}`,
                     if (!newValue) {
                         return `eliminó el campo personalizado 1 de ${email} (previamente "${previousValue}")`;
                     }
+
                     return !previousValue
                         ? `añadió "${newValue}" al campo personalizado 1 de ${email}`
                         : `cambió el campo personalizado 1 de ${email} a "${newValue}" (previamente "${previousValue}")`;
@@ -6437,6 +6447,7 @@ ${amount} para ${merchant} - ${date}`,
                     if (!newValue) {
                         return `eliminó el campo personalizado 2 de ${email} (previamente "${previousValue}")`;
                     }
+
                     return !previousValue
                         ? `añadió "${newValue}" al campo personalizado 2 de ${email}`
                         : `cambió el campo personalizado 2 de ${email} a "${newValue}" (previamente "${previousValue}")`;
@@ -7753,4 +7764,5 @@ ${amount} para ${merchant} - ${date}`,
         conciergeWillSend: 'Concierge te enviará el archivo en breve.',
     },
 };
+
 export default translations satisfies TranslationDeepObject<typeof en>;
