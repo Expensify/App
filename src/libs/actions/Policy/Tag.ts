@@ -972,12 +972,7 @@ type SetPolicyTagsRequiredProps = {
 
 function setPolicyTagsRequired({policyID, requiresTag, tagListIndex, policyTags}: SetPolicyTagsRequiredProps) {
     const policyTag = PolicyUtils.getTagLists(policyTags ?? {})?.at(tagListIndex);
-
-    if (!policyTag) {
-        return;
-    }
-
-    if (!policyTag.name) {
+    if (!policyTag?.name) {
         return;
     }
 
