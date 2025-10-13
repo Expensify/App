@@ -63,8 +63,8 @@ type AttachmentPickerWithMenuItemsProps = {
     /** The personal details of the current user */
     currentUserPersonalDetails: OnyxTypes.PersonalDetails;
 
-    /** Callback to open the file in the modal */
-    displayFilesInModal: (files: FileObject[]) => void;
+    /** Callback when the attachment is picked */
+    onAttachmentPicked: (url: FileObject | FileObject[]) => void;
 
     /** Whether or not the full size composer is available */
     isFullComposerAvailable: boolean;
@@ -119,7 +119,7 @@ function AttachmentPickerWithMenuItems({
     report,
     currentUserPersonalDetails,
     reportParticipantIDs,
-    displayFilesInModal,
+    onAttachmentPicked,
     isFullComposerAvailable,
     isComposerFullSize,
     reportID,
@@ -367,7 +367,7 @@ function AttachmentPickerWithMenuItems({
                 const triggerAttachmentPicker = () => {
                     onTriggerAttachmentPicker();
                     openPicker({
-                        onPicked: (data) => displayFilesInModal(data),
+                        onPicked: onAttachmentPicked,
                         onCanceled: () => {
                             onCanceledAttachmentPicker?.();
                             setIsLoaderVisible(false);

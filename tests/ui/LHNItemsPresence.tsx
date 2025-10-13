@@ -1,5 +1,5 @@
 import type * as reactNavigationNativeImport from '@react-navigation/native';
-import {screen} from '@testing-library/react-native';
+import {act, screen} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
@@ -25,6 +25,27 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // Be sure to include the mocked permissions library, as some components that are rendered
 // during the test depend on its methods.
 jest.mock('@libs/Permissions');
+
+// Mock the useRootNavigationState hook to prevent navigation errors in tests
+jest.mock('@src/hooks/useRootNavigationState', () => {
+    return jest.fn(() => ({
+        routes: [
+            {
+                name: 'Main',
+                state: {
+                    routes: [
+                        {
+                            name: 'Home',
+                            params: {},
+                        },
+                    ],
+                    index: 0,
+                },
+            },
+        ],
+        index: 0,
+    }));
+});
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native'),
@@ -113,26 +134,39 @@ describe('SidebarLinksData', () => {
     // Helper to initialize common state
     const initializeState = async (reportData?: ReportCollectionDataSet, otherData?: OnyxMultiSetInput) => {
         await waitForBatchedUpdates();
-        await Onyx.multiSet({
-            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-            [ONYXKEYS.BETAS]: betas,
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-            [ONYXKEYS.IS_LOADING_APP]: false,
-            ...(reportData ?? {}),
-            ...(otherData ?? {}),
+        await act(async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                [ONYXKEYS.BETAS]: betas,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                [ONYXKEYS.IS_LOADING_APP]: false,
+                ...(reportData ?? {}),
+                ...(otherData ?? {}),
+            });
         });
+
+        await waitForBatchedUpdatesWithAct();
     };
 
-    beforeEach(() => {
+    beforeEach(async () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         // Initialize the network key for OfflineWithFeedback
-        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
-        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
         signUpWithTestUser();
+
+        await waitForBatchedUpdatesWithAct();
     });
 
     afterEach(async () => {
-        await Onyx.clear();
+        await act(async () => {
+            await Onyx.clear();
+        });
         await waitForBatchedUpdatesWithAct();
     });
 
@@ -177,7 +211,11 @@ describe('SidebarLinksData', () => {
             await waitForBatchedUpdatesWithAct();
 
             // And a draft message is added to the report.
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${draftReport.reportID}`, 'draft report message');
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${draftReport.reportID}`, 'draft report message');
+            });
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then the sidebar should display the draft report.
             expect(getDisplayNames()).toHaveLength(1);
@@ -201,7 +239,11 @@ describe('SidebarLinksData', () => {
             await waitForBatchedUpdatesWithAct();
 
             // When the report is marked as pinned.
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {isPinned: true});
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {isPinned: true});
+            });
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then the report should appear in the sidebar because it’s pinned.
             expect(getOptionRows()).toHaveLength(1);
@@ -240,12 +282,14 @@ describe('SidebarLinksData', () => {
             const reportAction = LHNTestUtils.getFakeAdvancedReportAction();
 
             // When the report has outstanding violations
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
-                [reportAction.reportActionID]: reportAction,
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [reportAction.reportActionID]: reportAction,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, [transactionViolation]);
             });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, [transactionViolation]);
 
             await waitForBatchedUpdatesWithAct();
 
@@ -293,8 +337,12 @@ describe('SidebarLinksData', () => {
             await waitForBatchedUpdatesWithAct();
 
             // When the user is in the default mode
-            await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
+            });
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then the report should appear in the sidebar because it's archived
             expect(getOptionRows()).toHaveLength(1);
@@ -332,7 +380,11 @@ describe('SidebarLinksData', () => {
             await waitForBatchedUpdatesWithAct();
 
             // When the user is in focus mode
-            await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
+            });
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then the report should appear in the sidebar because it's unread
             expect(getOptionRows()).toHaveLength(1);
@@ -344,9 +396,13 @@ describe('SidebarLinksData', () => {
             await waitForBatchedUpdatesWithAct();
 
             // When the report is marked as read
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {
-                lastReadTime: report.lastVisibleActionCreated,
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {
+                    lastReadTime: report.lastVisibleActionCreated,
+                });
             });
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then the report should not disappear in the sidebar because we are in the focus mode
             expect(getOptionRows()).toHaveLength(0);
@@ -432,7 +488,11 @@ describe('SidebarLinksData', () => {
             });
 
             // And the defaultRooms beta is removed
-            await Onyx.merge(ONYXKEYS.BETAS, []);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.BETAS, []);
+            });
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then the default room should not appear in the sidebar.
             expect(getOptionRows()).toHaveLength(0);
@@ -466,11 +526,15 @@ describe('SidebarLinksData', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`]: transactionThreadReport,
             });
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportR14932.reportID}`, chatReportR14932);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
-                [expenseCreatedAction.reportActionID]: expenseCreatedAction,
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportR14932.reportID}`, chatReportR14932);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                    [expenseCreatedAction.reportActionID]: expenseCreatedAction,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${expenseTransaction.transactionID}`, expenseTransaction);
             });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${expenseTransaction.transactionID}`, expenseTransaction);
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then such report should not appear in the sidebar because the highest level context is on the expense chat with GBR that is visible in the LHN
             expect(getOptionRows()).toHaveLength(0);
@@ -505,10 +569,14 @@ describe('SidebarLinksData', () => {
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`, {
-                [parentReportAction.reportActionID]: parentReportAction,
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`, {
+                    [parentReportAction.reportActionID]: parentReportAction,
+                });
             });
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then report should not appear in the sidebar until the moderation feature decides if the message should be removed
             expect(getOptionRows()).toHaveLength(0);
@@ -531,15 +599,21 @@ describe('SidebarLinksData', () => {
             await waitForBatchedUpdatesWithAct();
 
             // And the user is in default mode
-            await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
+            });
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then the report should appear in the sidebar
             expect(getOptionRows()).toHaveLength(1);
 
-            await waitForBatchedUpdatesWithAct();
+            await act(async () => {
+                // When the user is in focus mode
+                await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
+            });
 
-            // When the user is in focus mode
-            await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
+            await waitForBatchedUpdatesWithAct();
 
             // Then the report should not disappear in the sidebar because it's read
             expect(getOptionRows()).toHaveLength(0);
@@ -570,10 +644,14 @@ describe('SidebarLinksData', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
 
-            // And a report action collection with only a CREATED action is added
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
-                [reportActionID]: reportAction,
+            await act(async () => {
+                // And a report action collection with only a CREATED action is added
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [reportActionID]: reportAction,
+                });
             });
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then the report should not be displayed in the sidebar
             expect(getOptionRows()).toHaveLength(0);
