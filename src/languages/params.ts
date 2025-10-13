@@ -13,6 +13,10 @@ type CharacterLimitParams = {
     limit: number | string;
 };
 
+type EmployeesSeeTagsAsParams = {
+    customTagName: string;
+};
+
 type AssigneeParams = {
     assignee: string;
 };
@@ -1235,6 +1239,7 @@ export type {
     MergeFailureDescriptionGenericParams,
     EnableContinuousReconciliationParams,
     WorkspaceUpgradeNoteParams,
+    EmployeesSeeTagsAsParams,
     ChangedApproverMessageParams,
     WorkflowSettingsParam,
     MovedActionParams,
