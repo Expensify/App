@@ -8252,18 +8252,6 @@ function isEmptyReport(report: OnyxEntry<Report>, isReportArchived = false): boo
 
 type ReportEmptyStateSummary = Pick<Report, 'policyID' | 'ownerAccountID' | 'type' | 'stateNum' | 'statusNum' | 'total' | 'nonReimbursableTotal' | 'pendingAction' | 'errors'>;
 
-const REPORT_EMPTY_STATE_SUMMARY_KEYS: Array<keyof ReportEmptyStateSummary> = [
-    'policyID',
-    'ownerAccountID',
-    'type',
-    'stateNum',
-    'statusNum',
-    'total',
-    'nonReimbursableTotal',
-    'pendingAction',
-    'errors',
-];
-
 function toReportEmptyStateSummary(report: Report | ReportEmptyStateSummary | undefined): ReportEmptyStateSummary | undefined {
     if (!report) {
         return undefined;
