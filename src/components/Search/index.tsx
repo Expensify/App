@@ -40,6 +40,7 @@ import {
     getSuggestedSearches,
     getWideAmountIndicators,
     isReportActionListItemType,
+    isReportActionEntry,
     isSearchDataLoaded,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
     isTaskListItemType,
@@ -60,11 +61,11 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {OutstandingReportsByPolicyIDDerivedValue, ReportAction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchReportAction, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -87,7 +88,7 @@ const expenseHeaders = getExpenseHeaders();
 
 function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
-    reportActions: ReportAction[],
+    reportActions: SearchReportAction[],
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
 ): [string, SelectedTransactionInfo] {
     return [
@@ -162,7 +163,7 @@ function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions:
 function prepareTransactionsList(
     item: TransactionListItemType,
     selectedTransactions: SelectedTransactions,
-    reportActions: ReportAction[],
+    reportActions: SearchReportAction[],
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
@@ -326,8 +327,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const reportActionsArray = useMemo(
         () =>
             Object.entries(searchResults?.data ?? {})
-                .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))
-                .map(([, value]) => value),
+                .filter(([key]) => isReportActionEntry(key))
+                .map(([, value]) => value as SearchReportAction),
         [searchResults?.data],
     );
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
@@ -611,7 +612,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     ...Object.fromEntries(
                         currentTransactions
                             .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID, transaction)),
+                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
                     ),
                 },
                 data,

@@ -20,6 +20,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {SearchReportAction} from '@src/types/onyx/SearchResults';
 import {convertAmountToDisplayString, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
@@ -2044,7 +2045,7 @@ function getIOUActionForReportID(reportID: string | undefined, transactionID: st
 /**
  * Get the IOU action for a transactionID from given reportActions
  */
-function getIOUActionForTransactionID(reportActions: ReportAction[], transactionID: string): OnyxEntry<ReportAction> {
+function getIOUActionForTransactionID(reportActions: ReportAction[] | SearchReportAction[], transactionID: string): OnyxEntry<ReportAction> {
     return reportActions.find((reportAction) => {
         const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined;
         return IOUTransactionID === transactionID;
