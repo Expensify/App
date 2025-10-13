@@ -15,10 +15,12 @@ import {
     canEditFieldOfMoneyRequest,
     canHoldUnholdReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    isArchivedReport,
     isInvoiceReport,
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -59,6 +61,8 @@ function useSelectedTransactionsActions({
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
 
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
@@ -82,6 +86,23 @@ function useSelectedTransactionsActions({
     const isTrackExpenseThread = isTrackExpenseReport(report);
     const isInvoice = isInvoiceReport(report);
 
+    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        canBeMissing: true,
+        selector: (all): ArchivedReportsIDSet => {
+            const ids = new Set<string>();
+            if (!all) {
+                return ids;
+            }
+
+            for (const [key, value] of Object.entries(all)) {
+                if (isArchivedReport(value)) {
+                    ids.add(key);
+                }
+            }
+            return ids;
+        },
+    });
+
     let iouType: IOUType = CONST.IOU.TYPE.SUBMIT;
 
     if (isTrackExpenseThread) {
@@ -102,17 +123,37 @@ function useSelectedTransactionsActions({
             }),
         }));
         const deletedTransactionIDs: string[] = [];
+        const deletedTransactionThreadReportIDs = new Set<string>();
         transactionsWithActions.forEach(({transactionID, action}) => {
             if (!action) {
                 return;
             }
-
-            deleteMoneyRequest(transactionID, action, duplicateTransactions, duplicateTransactionViolations, false, deletedTransactionIDs, selectedTransactionIDs);
+            const iouReportID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUReportID : undefined;
+            const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+            const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
+            const chatIOUReportID = chatReport?.reportID;
+            const isChatIOUReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatIOUReportID}`);
+            deleteMoneyRequest(
+                transactionID,
+                action,
+                duplicateTransactions,
+                duplicateTransactionViolations,
+                iouReport,
+                chatReport,
+                false,
+                deletedTransactionIDs,
+                selectedTransactionIDs,
+                isChatIOUReportArchived,
+            );
             deletedTransactionIDs.push(transactionID);
+            if (action.childReportID) {
+                deletedTransactionThreadReportIDs.add(action.childReportID);
+            }
         });
         clearSelectedTransactions(true);
         setIsDeleteModalVisible(false);
-    }, [duplicateTransactions, duplicateTransactionViolations, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
+        Navigation.removeReportScreen(deletedTransactionThreadReportIDs);
+    }, [duplicateTransactions, duplicateTransactionViolations, allReports, reportActions, selectedTransactionIDs, clearSelectedTransactions, archivedReportsIdSet]);
 
     const showDeleteModal = useCallback(() => {
         setIsDeleteModalVisible(true);
@@ -247,7 +288,7 @@ function useSelectedTransactionsActions({
                 value: MOVE,
                 onSelected: () => {
                     const shouldTurnOffSelectionMode = allTransactionsLength - selectedTransactionIDs.length <= 1;
-                    const route = ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, report?.reportID, shouldTurnOffSelectionMode);
+                    const route = ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, report?.reportID, shouldTurnOffSelectionMode, lastVisitedPath);
                     Navigation.navigate(route);
                 },
             });
@@ -299,20 +340,21 @@ function useSelectedTransactionsActions({
         selectedTransactions,
         translate,
         isReportArchived,
+        policy,
         reportActions,
         clearSelectedTransactions,
-        onExportFailed,
         allTransactionsLength,
-        iouType,
-        session?.accountID,
-        showDeleteModal,
-        outstandingReportsByPolicyID,
-        policy,
-        beginExportWithTemplate,
+        integrationsExportTemplates,
+        csvExportLayouts,
         isOffline,
         onExportOffline,
-        csvExportLayouts,
-        integrationsExportTemplates,
+        onExportFailed,
+        beginExportWithTemplate,
+        outstandingReportsByPolicyID,
+        iouType,
+        lastVisitedPath,
+        session?.accountID,
+        showDeleteModal,
     ]);
 
     return {

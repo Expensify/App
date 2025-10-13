@@ -1,15 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import {translateLocal} from '@libs/Localize';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
-import {formatReportLastMessageText, getAllReportErrors, getDisplayNameForParticipant, getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
+import {formatReportLastMessageText, getAllReportErrors} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
@@ -27,6 +25,7 @@ import {createSidebarReportsCollection, createSidebarTestData} from '../utils/co
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Mock DraftCommentUtils
 jest.mock('@libs/DraftCommentUtils', () => ({
@@ -43,14 +42,14 @@ jest.mock('@libs/PolicyUtils', () => ({
 }));
 
 describe('SidebarUtils', () => {
-    beforeAll(() => {
+    beforeAll(async () => {
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
         IntlStore.load(CONST.LOCALES.EN);
         initOnyxDerivedValues();
-        return waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
     });
 
     beforeEach(() => {
@@ -59,8 +58,10 @@ describe('SidebarUtils', () => {
     });
 
     afterAll(async () => {
-        Onyx.clear();
-        await waitForBatchedUpdates();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
     });
 
     describe('getReasonAndReportActionThatHasRedBrickRoad', () => {
@@ -109,15 +110,19 @@ describe('SidebarUtils', () => {
                 ],
             };
 
-            await Onyx.multiSet({
-                [ONYXKEYS.SESSION]: {
-                    accountID: 12345,
-                },
-                ...MOCK_REPORTS,
-                ...MOCK_TRANSACTION_VIOLATIONS,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        accountID: 12345,
+                    },
+                    ...MOCK_REPORTS,
+                    ...MOCK_TRANSACTION_VIOLATIONS,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
+                });
             });
+
+            await waitForBatchedUpdatesWithAct();
 
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
@@ -382,9 +387,11 @@ describe('SidebarUtils', () => {
                 private_isArchived: DateUtils.getDBTime(),
             };
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${MOCK_REPORT.reportID}`, reportNameValuePairs);
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${MOCK_REPORT.reportID}`, reportNameValuePairs);
+            });
 
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
 
             const MOCK_REPORT_ACTION = {
                 reportActionID: '1',
@@ -471,14 +478,16 @@ describe('SidebarUtils', () => {
                 ],
             };
 
-            await Onyx.multiSet({
-                ...MOCK_REPORTS,
-                ...MOCK_TRANSACTION_VIOLATIONS,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
-                [ONYXKEYS.SESSION]: {
-                    accountID: 12345,
-                },
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
+            await act(async () => {
+                await Onyx.multiSet({
+                    ...MOCK_REPORTS,
+                    ...MOCK_TRANSACTION_VIOLATIONS,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
+                    [ONYXKEYS.SESSION]: {
+                        accountID: 12345,
+                    },
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
+                });
             });
 
             // Simulate how components determined if a report is archived by using this hook
@@ -542,14 +551,16 @@ describe('SidebarUtils', () => {
                 ],
             };
 
-            await Onyx.multiSet({
-                ...MOCK_REPORTS,
-                ...MOCK_TRANSACTION_VIOLATIONS,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
-                [ONYXKEYS.SESSION]: {
-                    accountID: 12345,
-                },
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
+            await act(async () => {
+                await Onyx.multiSet({
+                    ...MOCK_REPORTS,
+                    ...MOCK_TRANSACTION_VIOLATIONS,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
+                    [ONYXKEYS.SESSION]: {
+                        accountID: 12345,
+                    },
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
+                });
             });
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
@@ -757,8 +768,10 @@ describe('SidebarUtils', () => {
                 waitForBatchedUpdates()
                     // When Onyx is updated to contain that report
                     .then(() =>
-                        Onyx.multiSet({
-                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                        act(async () => {
+                            await Onyx.multiSet({
+                                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                            });
                         }),
                     )
                     .then(() => {
@@ -780,10 +793,18 @@ describe('SidebarUtils', () => {
             return (
                 waitForBatchedUpdates()
                     // Given a "chat room" report (ie. a policy announce room) is stored in Onyx
-                    .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}`, MOCK_REPORT))
+                    .then(() =>
+                        act(async () => {
+                            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}`, MOCK_REPORT);
+                        }),
+                    )
 
                     // And that report is archived
-                    .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${MOCK_REPORT.reportID}`, {private_isArchived: new Date().toString()}))
+                    .then(() =>
+                        act(async () => {
+                            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${MOCK_REPORT.reportID}`, {private_isArchived: new Date().toString()});
+                        }),
+                    )
 
                     // When the welcome message is retrieved
                     .then(() => {
@@ -809,7 +830,11 @@ describe('SidebarUtils', () => {
             return (
                 waitForBatchedUpdates()
                     // Given a "chat room" report (ie. a policy announce room) is stored in Onyx
-                    .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}`, MOCK_REPORT))
+                    .then(() =>
+                        act(async () => {
+                            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}`, MOCK_REPORT);
+                        }),
+                    )
 
                     // When the welcome message is retrieved
                     .then(() => {
@@ -862,8 +887,10 @@ describe('SidebarUtils', () => {
                 originalMessage: undefined,
             };
             const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
 
             const result = SidebarUtils.getOptionData({
                 report,
@@ -922,9 +949,11 @@ describe('SidebarUtils', () => {
                 ],
             };
             const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[mentionedAccountID]: {accountID: mentionedAccountID, firstName: '', lastName: ''}});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[mentionedAccountID]: {accountID: mentionedAccountID, firstName: '', lastName: ''}});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
 
             const result = SidebarUtils.getOptionData({
                 report,
@@ -946,8 +975,10 @@ describe('SidebarUtils', () => {
 
         describe('Alternative text', () => {
             afterEach(async () => {
-                Onyx.clear();
-                await waitForBatchedUpdates();
+                await act(async () => {
+                    await Onyx.clear();
+                });
+                await waitForBatchedUpdatesWithAct();
             });
             it('The text should not contain the policy name at prefix if the report is not related to a workspace', async () => {
                 const policy: Policy = {
@@ -962,11 +993,13 @@ describe('SidebarUtils', () => {
                 };
                 const reportNameValuePairs = {};
 
-                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, {
-                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    pendingAction: null,
+                await act(async () => {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, {
+                        ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        pendingAction: null,
+                    });
                 });
 
                 const optionData = SidebarUtils.getOptionData({
@@ -1004,7 +1037,9 @@ describe('SidebarUtils', () => {
                     private_isArchived: DateUtils.getDBTime(),
                 };
 
-                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+                await act(async () => {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+                });
 
                 const optionData = SidebarUtils.getOptionData({
                     report,
@@ -1039,7 +1074,9 @@ describe('SidebarUtils', () => {
                 };
                 const reportNameValuePairs = {};
 
-                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+                await act(async () => {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+                });
 
                 const optionData = SidebarUtils.getOptionData({
                     report,
@@ -1059,7 +1096,7 @@ describe('SidebarUtils', () => {
                 expect(optionData?.alternateText).toBe(`test message`);
             });
 
-            it("For policy expense chat whose last action is a report preview linked to an expense report with non-reimbursable transaction the LHN text should be in the format 'spent $total'", async () => {
+            it('For policy expense chat whose last action is a report preview linked to an expense report with non-reimbursable transaction the LHN text should be the report name', async () => {
                 const policy: Policy = {
                     ...createRandomPolicy(1),
                     role: CONST.POLICY.ROLE.ADMIN,
@@ -1118,7 +1155,7 @@ describe('SidebarUtils', () => {
                     currency: 'ETB',
                     ownerAccountID: 20232605,
                     total: -500,
-                    nonReimbursableTotal: 0,
+                    nonReimbursableTotal: -500,
                     parentReportID: policyExpenseChat.reportID,
                     parentReportActionID: lastReportPreviewAction.reportActionID,
                     chatReportID: policyExpenseChat.reportID,
@@ -1159,11 +1196,13 @@ describe('SidebarUtils', () => {
                     isLoading: false,
                 };
 
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat.reportID}`, policyExpenseChatActions);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, iouReportActions);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await act(async () => {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat.reportID}`, policyExpenseChatActions);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, iouReportActions);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                });
 
                 const optionData = SidebarUtils.getOptionData({
                     report: policyExpenseChat,
@@ -1178,14 +1217,8 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                 });
-                const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(iouReport);
-                const formattedAmount = convertToDisplayString(totalDisplaySpend, iouReport.currency);
 
-                expect(optionData?.alternateText).toBe(
-                    formatReportLastMessageText(
-                        translateLocal('iou.payerSpentAmount', {payer: getDisplayNameForParticipant({accountID: iouReport.ownerAccountID}) ?? '', amount: formattedAmount}),
-                    ),
-                );
+                expect(optionData?.alternateText).toBe(formatReportLastMessageText(iouReport.reportName));
             });
 
             it('The text should contain the policy name at prefix if we have multiple workspace and the report is related to a workspace', async () => {
@@ -1202,11 +1235,13 @@ describe('SidebarUtils', () => {
                 };
                 const reportNameValuePairs = {};
 
-                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, {
-                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    pendingAction: null,
+                await act(async () => {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, {
+                        ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        pendingAction: null,
+                    });
                 });
 
                 const optionData = SidebarUtils.getOptionData({
@@ -1274,10 +1309,12 @@ describe('SidebarUtils', () => {
                     actionName: CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
                 };
                 const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
-                await Onyx.set(ONYXKEYS.SESSION, session);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+                await act(async () => {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+                    await Onyx.set(ONYXKEYS.SESSION, session);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+                });
                 const result = SidebarUtils.getOptionData({
                     report,
                     reportAttributes: undefined,
@@ -1400,11 +1437,13 @@ describe('SidebarUtils', () => {
                     actorAccountID: undefined,
                 };
 
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportR14932.reportID}`, iouReportR14932);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportR14932.reportID}`, chatReportR14932);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[lastAction.reportActionID]: lastAction});
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportR14932.reportID}`, {[linkedCreateAction.reportActionID]: linkedCreateAction});
+                await act(async () => {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportR14932.reportID}`, iouReportR14932);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportR14932.reportID}`, chatReportR14932);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[lastAction.reportActionID]: lastAction});
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportR14932.reportID}`, {[linkedCreateAction.reportActionID]: linkedCreateAction});
+                });
 
                 const result = SidebarUtils.getOptionData({
                     report: {...iouReportR14932, lastActorAccountID: undefined},
@@ -1511,13 +1550,15 @@ describe('SidebarUtils', () => {
                     [deletedAction.reportActionID]: deletedAction,
                 };
 
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {
-                        accountID: 12345,
-                    },
-                    ...MOCK_REPORTS,
+                await act(async () => {
+                    await Onyx.multiSet({
+                        [ONYXKEYS.SESSION]: {
+                            accountID: 12345,
+                        },
+                        ...MOCK_REPORTS,
 
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
+                    });
                 });
 
                 const result = SidebarUtils.getOptionData({
