@@ -5,7 +5,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
-import {isExpenseReport as isExpenseReportUtil, isInvoiceReport as isInvoiceReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
+import {getBankAccountRoute, isExpenseReport as isExpenseReportUtil, isInvoiceReport as isInvoiceReportUtil, isIOUReport as isIOUReportUtil,  isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil,} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AccountData, Policy} from '@src/types/onyx';
@@ -16,6 +16,11 @@ import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
 import useThemeStyles from './useThemeStyles';
+import { isCurrencySupportedForDirectReimbursement } from '@libs/actions/Policy/Policy';
+import Navigation from '@libs/Navigation/Navigation';
+import { TupleToUnion } from 'type-fest';
+
+type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 type UseBulkPayOptionProps = {
     selectedPolicyID: string | undefined;
@@ -138,6 +143,55 @@ function useBulkPayOptions({selectedPolicyID, selectedReportID, activeAdminPolic
         if (shouldShowPayElsewhereOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
         }
+
+             if (isInvoiceReport) {
+                    const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency as CurrencyType);
+                    const getInvoicesOptions = (payAsBusiness: boolean) => {
+                        const addBankAccountItem = {
+                            text: translate('bankAccount.addBankAccount'),
+                            icon: Bank,
+                            onSelected: () => {
+                                const bankAccountRoute = getBankAccountRoute(chatReport);
+                                Navigation.navigate(bankAccountRoute);
+                            },
+                            value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                        };
+                        return [
+                            ...(isCurrencySupported ? getPaymentSubitems(payAsBusiness) : []),
+                            ...(isCurrencySupported ? [addBankAccountItem] : []),
+                            {
+                                text: translate('iou.payElsewhere', {formattedAmount: ''}),
+                                icon: Cash,
+                                value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                                shouldUpdateSelectedIndex: true,
+                                onSelected: () => {
+                                    onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, payAsBusiness, undefined);
+                                },
+                            },
+                        ];
+                    };
+        
+                    if (isIndividualInvoiceRoomUtil(chatReport)) {
+                        buttonOptions.push({
+                            text: translate('iou.settlePersonal', {formattedAmount}),
+                            icon: User,
+                            value: hasIntentToPay ? CONST.IOU.PAYMENT_TYPE.EXPENSIFY : (lastPaymentMethod ?? CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
+                            backButtonText: translate('iou.individual'),
+                            subMenuItems: getInvoicesOptions(false),
+                        });
+                        buttonOptions.push({
+                            text: translate('iou.settleBusiness', {formattedAmount}),
+                            icon: Building,
+                            value: hasIntentToPay ? CONST.IOU.PAYMENT_TYPE.EXPENSIFY : (lastPaymentMethod ?? CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
+                            backButtonText: translate('iou.business'),
+                            subMenuItems: getInvoicesOptions(true),
+                        });
+                    } else {
+                        // If there is pay as business option, we should show the submenu items instead.
+                        buttonOptions.push(...getInvoicesOptions(true));
+                    }
+                }
+        
         return buttonOptions;
     }, [
         hasActivatedWallet,

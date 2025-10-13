@@ -72,6 +72,7 @@ import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/ony
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {getBankAccountFromID} from './actions/BankAccounts';
 import {
     canApproveIOU,
     canIOUBePaid,
@@ -4890,12 +4891,22 @@ function getReportPreviewMessage(
             report.isWaitingOnBankAccount
         ) {
             translatePhraseKey = 'iou.paidWithExpensify';
+            const isFromInvoice = !!originalMessage?.bankAccountID;
             if (originalMessage?.automaticAction) {
                 translatePhraseKey = 'iou.automaticallyPaidWithExpensify';
             }
 
             if (originalMessage?.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
                 translatePhraseKey = 'iou.businessBankAccount';
+            }
+
+            if (isFromInvoice) {
+                translatePhraseKey = originalMessage?.payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal';
+                const currentBankAccount = getBankAccountFromID(originalMessage?.bankAccountID);
+                return translateLocal(translatePhraseKey, {
+                    amount: formattedAmount,
+                    last4Digits: currentBankAccount?.accountData?.accountNumber?.slice(-4) ?? '',
+                });
             }
         }
 
