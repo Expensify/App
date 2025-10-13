@@ -1376,7 +1376,7 @@ function MoneyReportHeader({
                                 transactions: duplicateTransactions,
                                 violations: duplicateTransactionViolations,
                                 iouReport,
-                                chatReport,
+                                chatReport: chatIOUReport,
                                 isSingleTransactionView: false,
                                 isChatIOUReportArchived,
                                 reportActionIOUReportRNVP: iouReportRNVP,
