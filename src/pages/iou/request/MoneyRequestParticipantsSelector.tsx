@@ -79,6 +79,9 @@ type MoneyRequestParticipantsSelectorProps = {
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
 
+    /** Whether the IOU is workspaces only */
+    isWorkspacesOnly?: boolean;
+
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
 
@@ -101,6 +104,7 @@ function MoneyRequestParticipantsSelector({
     iouType,
     action,
     isPerDiemRequest = false,
+    isWorkspacesOnly = false,
     isCorporateCardTransaction = false,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
@@ -298,19 +302,22 @@ function MoneyRequestParticipantsSelector({
             shouldShow: !!chatOptions.selfDMChat,
         });
 
-        newSections.push({
-            title: translate('common.recents'),
-            data: isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports,
-            shouldShow: (isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports).length > 0,
-        });
+        if (!isWorkspacesOnly) {
+            newSections.push({
+                title: translate('common.recents'),
+                data: isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports,
+                shouldShow: (isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports).length > 0,
+            });
 
-        newSections.push({
-            title: translate('common.contacts'),
-            data: chatOptions.personalDetails,
-            shouldShow: chatOptions.personalDetails.length > 0 && !isPerDiemRequest,
-        });
+            newSections.push({
+                title: translate('common.contacts'),
+                data: chatOptions.personalDetails,
+                shouldShow: chatOptions.personalDetails.length > 0 && !isPerDiemRequest,
+            });
+        }
 
         if (
+            !isWorkspacesOnly &&
             chatOptions.userToInvite &&
             !isCurrentUser({
                 ...chatOptions.userToInvite,
@@ -347,6 +354,7 @@ function MoneyRequestParticipantsSelector({
         chatOptions.userToInvite,
         personalDetails,
         translate,
+        isWorkspacesOnly,
         isPerDiemRequest,
         showImportContacts,
         reportAttributesDerived,
@@ -644,4 +652,12 @@ function MoneyRequestParticipantsSelector({
 
 MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
 
-export default memo(MoneyRequestParticipantsSelector, (prevProps, nextProps) => deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType);
+export default memo(
+    MoneyRequestParticipantsSelector,
+    (prevProps, nextProps) =>
+        deepEqual(prevProps.participants, nextProps.participants) &&
+        prevProps.iouType === nextProps.iouType &&
+        prevProps.isWorkspacesOnly === nextProps.isWorkspacesOnly &&
+        prevProps.onParticipantsAdded === nextProps.onParticipantsAdded &&
+        prevProps.onFinish === nextProps.onFinish,
+);

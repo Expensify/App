@@ -24,6 +24,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -78,6 +79,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const kycWallRef = useContext(KYCWallContext);
     const {isBetaEnabled} = usePermissions();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -684,7 +686,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         />
                     )}
                     <MenuItem
-                        icon={Expensicons.MoneySearch}
+                        icon={expensifyIcons.MoneySearch}
                         title={translate('workspace.common.viewTransactions')}
                         onPress={() => {
                             hideCardMenu();
