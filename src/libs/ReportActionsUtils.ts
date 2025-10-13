@@ -2852,7 +2852,9 @@ function getActionableCardFraudAlertMessage(
 
     if (resolution === CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED) {
         return translateLocal('cardPage.cardFraudAlert.clearedMessage', {cardLastFour});
-    } else if (resolution === CONST.CARD_FRAUD_ALERT_RESOLUTION.FRAUD) {
+    }
+
+    if (resolution === CONST.CARD_FRAUD_ALERT_RESOLUTION.FRAUD) {
         return translateLocal('cardPage.cardFraudAlert.deactivatedMessage', {cardLastFour});
     }
 
