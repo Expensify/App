@@ -223,7 +223,7 @@ describe('ExpensifyCardPage', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // Verify that the "PIN" option is not displayed on the screen.
+        // Verify that the "PIN" option is displayed on the screen.
         await waitFor(() => {
             expect(screen.getByText(translateLocal('cardPage.physicalCardPin'))).toBeOnTheScreen();
         });
