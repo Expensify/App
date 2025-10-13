@@ -84,27 +84,24 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
                 </PressableWithFeedback>
             </View>
             <Animated.View style={[contentAnimatedStyle, contentStyle]}>
-                <View
-                style={styles.stickToTop}
-                    onLayout={(e) => {
-                        const height = e.nativeEvent.layout.height;
-                        if (height) {
-                            contentHeight.set(height);
-                        }
-                    }}
-                >
-                    {isExpanded ? (
-                        <Animated.View
-                            exiting={FadeOut}
-                            entering={FadeIn}
-                        >
-                            <View style={[styles.pv2, styles.ph3]}>
-                                <View style={[styles.borderBottom]} />
-                            </View>
-                            {children}
-                        </Animated.View>
-                    ) : null}
-                </View>
+                {isExpanded ? (
+                    <Animated.View
+                        style={styles.stickToTop}
+                        exiting={FadeOut}
+                        entering={FadeIn}
+                        onLayout={(e) => {
+                            const height = e.nativeEvent.layout.height;
+                            if (height) {
+                                contentHeight.set(height);
+                            }
+                        }}
+                    >
+                        <View style={[styles.pv2, styles.ph3]}>
+                            <View style={[styles.borderBottom]} />
+                        </View>
+                        {children}
+                    </Animated.View>
+                ) : null}
             </Animated.View>
         </View>
     );
