@@ -188,7 +188,7 @@ describe('ExpensifyCardPage', () => {
 
         // Verify that the "PIN" option is not displayed on the screen.
         await waitFor(() => {
-            expect(screen.getByText(translateLocal('cardPage.physicalCardPin'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(translateLocal('cardPage.physicalCardPin'))).not.toBeOnTheScreen();
         });
 
         // Unmount the component after assertions to clean up.
