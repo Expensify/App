@@ -316,10 +316,13 @@ describe('PopoverMenu integration — submenu open/close behaviors', () => {
             />,
         );
 
+        // Check that submenu is still open
         await waitFor(() => {
-            // Check that submenu is still open
             expect(screen.getByTestId('PopoverMenuItem-Sub B1')).toBeTruthy();
-            // Check that the new submenu item is displayed
+        });
+
+        // Check that the new submenu item is displayed
+        await waitFor(() => {
             expect(screen.getByTestId('PopoverMenuItem-Sub B3')).toBeTruthy();
         });
     });
