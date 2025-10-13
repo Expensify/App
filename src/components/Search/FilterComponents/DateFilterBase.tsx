@@ -2,17 +2,15 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import ScrollView from '@components/ScrollView';
-import type {SearchDateFilterKeys} from '@components/Search/types';
+import type {ReportFieldDateKey, SearchDateFilterKeys} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
-import Navigation from '@libs/Navigation/Navigation';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {SearchDatePresetFilterBaseHandle} from './DatePresetFilterBase';
 import DatePresetFilterBase from './DatePresetFilterBase';
 
@@ -29,25 +27,28 @@ function DateFilterBase({dateKey}: DateFilterBaseProps) {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
 
+    const dateOnKey = dateKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)
+        ? (dateKey.replace(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX, CONST.SEARCH.REPORT_FIELD.ON_PREFIX) as ReportFieldDateKey)
+        : (`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as const);
+
+    const dateBeforeKey = dateKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)
+        ? (dateKey.replace(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX, CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX) as ReportFieldDateKey)
+        : (`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as const);
+
+    const dateAfterKey = dateKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)
+        ? (dateKey.replace(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX, CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX) as ReportFieldDateKey)
+        : (`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as const);
+
     const defaultDateValues = {
-        [CONST.SEARCH.DATE_MODIFIERS.ON]: searchAdvancedFiltersForm?.[`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`],
-        [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: searchAdvancedFiltersForm?.[`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`],
-        [CONST.SEARCH.DATE_MODIFIERS.AFTER]: searchAdvancedFiltersForm?.[`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`],
+        [CONST.SEARCH.DATE_MODIFIERS.ON]: searchAdvancedFiltersForm?.[dateOnKey],
+        [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: searchAdvancedFiltersForm?.[dateBeforeKey],
+        [CONST.SEARCH.DATE_MODIFIERS.AFTER]: searchAdvancedFiltersForm?.[dateAfterKey],
     };
 
     const presets = useMemo(() => {
         const hasFeed = !!searchAdvancedFiltersForm?.feed?.length;
         return getDatePresets(dateKey, hasFeed);
     }, [dateKey, searchAdvancedFiltersForm?.feed]);
-
-    const goBack = useCallback(() => {
-        if (selectedDateModifier) {
-            setSelectedDateModifier(null);
-            return;
-        }
-
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, [selectedDateModifier]);
 
     const reset = useCallback(() => {
         if (!searchDatePresetFilterBaseRef.current) {
@@ -56,12 +57,12 @@ function DateFilterBase({dateKey}: DateFilterBaseProps) {
 
         if (selectedDateModifier) {
             searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
-            goBack();
+            setSelectedDateModifier(null);
             return;
         }
 
         searchDatePresetFilterBaseRef.current.clearDateValues();
-    }, [selectedDateModifier, goBack]);
+    }, [selectedDateModifier]);
 
     const save = useCallback(() => {
         if (!searchDatePresetFilterBaseRef.current) {
@@ -70,18 +71,17 @@ function DateFilterBase({dateKey}: DateFilterBaseProps) {
 
         if (selectedDateModifier) {
             searchDatePresetFilterBaseRef.current.setDateValueOfSelectedDateModifier();
-            goBack();
+            setSelectedDateModifier(null);
             return;
         }
 
         const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
         updateAdvancedFilters({
-            [`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`]: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
-            [`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`]: dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,
-            [`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? null,
+            [dateOnKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
+            [dateBeforeKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,
+            [dateAfterKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? null,
         });
-        goBack();
-    }, [selectedDateModifier, goBack, dateKey]);
+    }, [selectedDateModifier, dateOnKey, dateBeforeKey, dateAfterKey]);
 
     return (
         <>
