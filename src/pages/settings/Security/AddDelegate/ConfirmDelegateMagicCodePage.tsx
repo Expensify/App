@@ -26,7 +26,6 @@ function ConfirmDelegateMagicCodePage({route}: ConfirmDelegateMagicCodePageProps
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
     const addDelegateErrors = account?.delegatedAccess?.errorFields?.addDelegate?.[login];
     const validateLoginError = getLatestError(addDelegateErrors);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     useEffect(() => {
         if (!currentDelegate || !!currentDelegate.pendingFields?.email || !!addDelegateErrors) {
@@ -53,7 +52,7 @@ function ConfirmDelegateMagicCodePage({route}: ConfirmDelegateMagicCodePageProps
             title={translate('delegate.makeSureItIsYou')}
             sendValidateCode={() => requestValidateCodeAction()}
             handleSubmitForm={(validateCode) => addDelegate({email: login, role, validateCode, delegatedAccess: account?.delegatedAccess})}
-            descriptionPrimary={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? session ?? ''})}
+            descriptionPrimary={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
         />
     );
 }
