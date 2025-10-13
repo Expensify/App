@@ -11,7 +11,6 @@ C+ are contributors who are experienced at working with Expensify and have gaine
 - There isn’t a set number of hours a C+ needs to work in a week. Proposals and PRs reviews are expected to be addressed within 24 hours on weekdays. 
 - Dedicated #contributor-plus Slack room to discuss issues, processes and proposals.
 - Opportunity to work on projects and design docs for new features.
-- We currently only consider C+ for Backend Contributors  
 - A contributor must be a C+ to be considered to become a Backend Contributor.
 - C+ are already familiar with the team, company, and processes, which may help when applying for full-time roles. One C+ has been hired full-time. View current openings at https://we.are.expensify.com
 
