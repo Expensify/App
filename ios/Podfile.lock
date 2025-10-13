@@ -4638,7 +4638,7 @@ SPEC CHECKSUMS:
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: 6645bc83721568992c3c981ed057e4048a48006e
   react-native-pager-view: e9b3e17cf3222a23fedcf72c969bcbe3640667d2
-  react-native-pdf: e86cc49d0713195598f7c7c41e835297a035ed36
+  react-native-pdf: 95ac830ccce8e03bf499248b85b7e8fc4459ab40
   react-native-performance: f034c3cb6981ee7ca6cd5f5e9a2fda5c91469d32
   react-native-plaid-link-sdk: 270016bf266e89ef8a95280a1696759f516395e9
   react-native-release-profiler: a04b78ac9bf24beff9785eaacf9af297644f2103
