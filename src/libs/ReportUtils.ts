@@ -10128,14 +10128,25 @@ function hasMissingPaymentMethod(userWalletTierName: string | undefined, iouRepo
  * - we don't have an iouReport set in the chatReport
  * - we have one, but it's waiting on the payee adding a bank account
  * - we have one, but we can't add more transactions to it due to: report is approved or settled
+ * - It is a SmartScan request, the user is in the ASAP Submit beta, and the action is not "submit"
  */
-function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxInputOrEntry<Report> | undefined, chatReport: OnyxInputOrEntry<Report>, isScanRequest: boolean): boolean {
+function shouldCreateNewMoneyRequestReport(
+    existingIOUReport: OnyxInputOrEntry<Report> | undefined,
+    chatReport: OnyxInputOrEntry<Report>,
+    isScanRequest: boolean,
+    action?: IOUAction,
+): boolean {
     if (existingIOUReport && !!existingIOUReport.errorFields?.createChat) {
         return true;
     }
 
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
-    return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddTransaction(existingIOUReport) || (isScanRequest && isASAPSubmitBetaEnabled);
+    return (
+        !existingIOUReport ||
+        hasIOUWaitingOnCurrentUserBankAccount(chatReport) ||
+        !canAddTransaction(existingIOUReport) ||
+        (action !== CONST.IOU.ACTION.SUBMIT && isScanRequest && isASAPSubmitBetaEnabled)
+    );
 }
 
 function getTripIDFromTransactionParentReportID(transactionParentReportID: string | undefined): string | undefined {
