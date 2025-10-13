@@ -32,7 +32,7 @@
               style.id = "convert-hide-body";
               style.setAttribute('data-convert', '');
               style.textContent =
-                'body{position:relative;overflow:hidden}body::after{position:absolute;top:0;bottom:0;left:0;right:0;content:"";background:#03D47C;z-index:2147483647}';
+                'body{position:relative;overflow:hidden;margin:0}body::after{position:absolute;top:0;bottom:0;left:0;right:0;content:"";background:#03D47C;z-index:2147483647}';
               document.head.appendChild(style);
               var hideTimeout = 250;
               setTimeout(function () {
