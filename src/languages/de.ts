@@ -2025,7 +2025,7 @@ const translations = {
         workflowTitle: 'Ausgaben',
         workflowDescription: 'Konfigurieren Sie einen Workflow ab dem Moment, in dem Ausgaben anfallen, einschließlich Genehmigung und Zahlung.',
         submissionFrequency: 'Einreichungshäufigkeit',
-        submissionFrequencyDescription: 'Wählen Sie einen benutzerdefinierten Zeitplan für die Einreichung von Ausgaben oder lassen Sie dies für Echtzeit-Updates zu Ausgaben aus.',
+        submissionFrequencyDescription: 'Wählen Sie eine Häufigkeit für die Übermittlung von Ausgaben.',
         submissionFrequencyDateOfMonth: 'Datum des Monats',
         addApprovalsTitle: 'Genehmigungen hinzufügen',
         addApprovalButton: 'Genehmigungsworkflow hinzufügen',
@@ -2368,6 +2368,23 @@ const translations = {
             testDriveEmployeeTask: {
                 title: ({testDriveURL}) => `Mache eine [Probefahrt](${testDriveURL})`,
                 description: ({testDriveURL}) => `Probiere uns in einer [Probefahrt](${testDriveURL}) aus und sichere deinem Team *3 Monate Expensify gratis!*`,
+            },
+            addExpenseApprovalsTask: {
+                title: 'Ausgabengenehmigungen hinzufügen',
+                description: ({workspaceMoreFeaturesLink}) =>
+                    `*Füge Ausgabengenehmigungen hinzu*, um die Ausgaben deines Teams zu überprüfen und unter Kontrolle zu halten.\n` +
+                    '\n' +
+                    `So geht’s:\n` +
+                    '\n' +
+                    '1. Gehe zu *Arbeitsbereiche*.\n' +
+                    '2. Wähle deinen Arbeitsbereich aus.\n' +
+                    '3. Klicke auf *Weitere Funktionen*.\n' +
+                    '4. Aktiviere *Workflows*.\n' +
+                    '5. Navigiere im Arbeitsbereich-Editor zu *Workflows*.\n' +
+                    '6. Aktiviere *Genehmigungen hinzufügen*.\n' +
+                    `7. Du wirst als Ausgabengenehmiger festgelegt. Du kannst dies nach dem Einladen deines Teams auf einen beliebigen Administrator ändern.\n` +
+                    '\n' +
+                    `[Zu weiteren Funktionen](${workspaceMoreFeaturesLink}).`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Erstelle](${workspaceConfirmationLink}) einen Workspace`,
@@ -5579,6 +5596,11 @@ const translations = {
                     'Expensify Travel ist eine neue Plattform für die Buchung und Verwaltung von Geschäftsreisen, die es Mitgliedern ermöglicht, Unterkünfte, Flüge, Transportmittel und mehr zu buchen.',
                 onlyAvailableOnPlan: 'Reisen ist im Collect-Plan verfügbar, beginnend bei',
             },
+            reports: {
+                title: 'Berichte',
+                description: 'Berichte ermöglichen es Ihnen, Ausgaben für eine einfachere Verfolgung und Organisation zu gruppieren.',
+                onlyAvailableOnPlan: 'Berichte sind im Collect-Plan verfügbar, beginnend bei ',
+            },
             multiLevelTags: {
                 title: 'Mehrstufige Tags',
                 description:
@@ -6230,8 +6252,6 @@ const translations = {
         groupBy: 'Gruppe nach',
         moneyRequestReport: {
             emptyStateTitle: 'Dieser Bericht enthält keine Ausgaben.',
-            emptyStateSubtitle:
-                'Sie können diesem Bericht Ausgaben hinzufügen,\n indem Sie auf die Schaltfläche unten klicken oder die Option „Ausgabe hinzufügen“ im Menü „Mehr“ oben verwenden.',
         },
         noCategory: 'Keine Kategorie',
         noTag: 'Kein Tag',
