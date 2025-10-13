@@ -2003,7 +2003,7 @@ const translations = {
         workflowTitle: 'Spend',
         workflowDescription: 'Configure a workflow from the moment spend occurs, including approval and payment.',
         submissionFrequency: 'Submission frequency',
-        submissionFrequencyDescription: 'Choose a custom schedule for submitting expenses, or leave this off for realtime updates on spending.',
+        submissionFrequencyDescription: 'Choose a custom schedule for submitting expenses.',
         submissionFrequencyDateOfMonth: 'Date of month',
         addApprovalsTitle: 'Add approvals',
         addApprovalButton: 'Add approval workflow',
@@ -2339,6 +2339,23 @@ const translations = {
             testDriveEmployeeTask: {
                 title: ({testDriveURL}) => `Take a [test drive](${testDriveURL})`,
                 description: ({testDriveURL}) => `Take us for a [test drive](${testDriveURL}) and get your team *3 free months of Expensify!*`,
+            },
+            addExpenseApprovalsTask: {
+                title: 'Add expense approvals',
+                description: ({workspaceMoreFeaturesLink}) =>
+                    `*Add expense approvals* to review your team's spend and keep it under control.\n` +
+                    '\n' +
+                    `Here's how:\n` +
+                    '\n' +
+                    '1. Go to *Workspaces*.\n' +
+                    '2. Select your workspace.\n' +
+                    '3. Click *More features*.\n' +
+                    '4. Enable *Workflows*.\n' +
+                    '5. Navigate to *Workflows* in the workspace editor.\n' +
+                    '6. Enable *Add approvals*.\n' +
+                    `7. You'll be set as the expense approver. You can change this to any admin once you invite your team.\n` +
+                    '\n' +
+                    `[Take me to more features](${workspaceMoreFeaturesLink}).`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Create](${workspaceConfirmationLink}) a workspace`,

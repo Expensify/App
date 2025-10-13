@@ -1988,7 +1988,7 @@ const translations = {
         workflowTitle: '花费',
         workflowDescription: '配置从支出发生到审批和支付的工作流程。',
         submissionFrequency: '提交频率',
-        submissionFrequencyDescription: '选择自定义的费用提交时间表，或者关闭此选项以实时更新支出。',
+        submissionFrequencyDescription: '选择提交费用的频率。',
         submissionFrequencyDateOfMonth: '月份日期',
         addApprovalsTitle: '添加审批',
         addApprovalButton: '添加审批工作流程',
@@ -2323,6 +2323,23 @@ const translations = {
             testDriveEmployeeTask: {
                 title: ({testDriveURL}) => `进行[试驾](${testDriveURL})`,
                 description: ({testDriveURL}) => `进行[试驾](${testDriveURL})即可获得团队 *3 个月的 Expensify 免费使用权！*`,
+            },
+            addExpenseApprovalsTask: {
+                title: '添加费用审批',
+                description: ({workspaceMoreFeaturesLink}) =>
+                    `*添加费用审批*，以便查看团队支出并保持控制。\n` +
+                    '\n' +
+                    `操作步骤如下：\n` +
+                    '\n' +
+                    '1. 前往 *工作区*。\n' +
+                    '2. 选择你的工作区。\n' +
+                    '3. 点击 *更多功能*。\n' +
+                    '4. 启用 *工作流*。\n' +
+                    '5. 在工作区编辑器中进入 *工作流*。\n' +
+                    '6. 启用 *添加审批*。\n' +
+                    `7. 你将被设置为费用审批人。邀请团队后，你可以将其更改为任意管理员。\n` +
+                    '\n' +
+                    `[前往更多功能](${workspaceMoreFeaturesLink})。`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[创建](${workspaceConfirmationLink})一个工作区`,

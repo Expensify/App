@@ -2025,8 +2025,7 @@ const translations = {
         workflowTitle: 'Dépenser',
         workflowDescription: "Configurez un flux de travail dès que la dépense survient, y compris l'approbation et le paiement.",
         submissionFrequency: 'Fréquence de soumission',
-        submissionFrequencyDescription:
-            'Choisissez un calendrier personnalisé pour soumettre les dépenses, ou laissez cette option désactivée pour des mises à jour en temps réel sur les dépenses.',
+        submissionFrequencyDescription: 'Choisissez une fréquence pour soumettre les dépenses.',
         submissionFrequencyDateOfMonth: 'Date du mois',
         addApprovalsTitle: 'Ajouter des approbations',
         addApprovalButton: "Ajouter un flux de travail d'approbation",
@@ -2369,6 +2368,23 @@ const translations = {
             testDriveEmployeeTask: {
                 title: ({testDriveURL}) => `Faites un [essai gratuit](${testDriveURL})`,
                 description: ({testDriveURL}) => `Essayez-nous avec un [essai gratuit](${testDriveURL}) et offrez à votre équipe *3 mois gratuits sur Expensify !*`,
+            },
+            addExpenseApprovalsTask: {
+                title: 'Ajouter des validations de dépenses',
+                description: ({workspaceMoreFeaturesLink}) =>
+                    `*Ajoutez des validations de dépenses* pour examiner les dépenses de votre équipe et les garder sous contrôle.\n` +
+                    '\n' +
+                    `Voici comment faire :\n` +
+                    '\n' +
+                    '1. Allez dans *Espaces de travail*.\n' +
+                    '2. Sélectionnez votre espace de travail.\n' +
+                    '3. Cliquez sur *Plus de fonctionnalités*.\n' +
+                    '4. Activez *Flux de travail*.\n' +
+                    '5. Accédez à *Flux de travail* dans l’éditeur de l’espace de travail.\n' +
+                    '6. Activez *Ajouter des validations*.\n' +
+                    `7. Vous serez défini comme validateur des dépenses. Vous pourrez changer cela pour un autre administrateur après avoir invité votre équipe.\n` +
+                    '\n' +
+                    `[Aller à plus de fonctionnalités](${workspaceMoreFeaturesLink}).`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Créez](${workspaceConfirmationLink}) un espace de travail`,
