@@ -250,7 +250,7 @@ function EmptySearchViewContent({
                 />
             </>
         );
-    }, [styles, translate]);
+    }, [styles, translate, activePolicyID]);
 
     // Default 'Folder' lottie animation, along with its background styles
     const defaultViewItemHeader = useMemo(

@@ -18,6 +18,7 @@ import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustrat
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
+import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
 import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg';
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
@@ -65,6 +66,7 @@ const Illustrations = {
     Tag,
     CompanyCard,
     Workflows,
+    Luggage,
 
     // Legacy aliases for compatibility
     Car: CompanyCard, // Fallback for Car illustration requests
@@ -121,6 +123,8 @@ function getIllustration(illustrationName: string): unknown {
             return CompanyCardsEmptyState;
         case 'Car': // Legacy fallback
             return CompanyCard;
+        case 'Luggage':
+            return Luggage;
         default:
             // Fallback to object lookup for any other cases
             return (Illustrations as Record<string, unknown>)[illustrationName];
