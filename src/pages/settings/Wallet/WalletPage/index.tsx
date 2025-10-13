@@ -253,13 +253,17 @@ function WalletPage() {
 
     const shouldShowMakeDefaultButton =
         !isCurrentPaymentMethodDefault() &&
-        !(paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
+        !(
+            paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS
+        ) &&
+        paymentMethod.selectedPaymentMethod?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
 
     const shouldShowEnableGlobalReimbursementsButton =
         isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) &&
         paymentMethod.selectedPaymentMethod?.additionalData?.currency === CONST.CURRENCY.USD &&
         paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
-        !paymentMethod.selectedPaymentMethod?.additionalData?.corpay?.achAuthorizationForm;
+        !paymentMethod.selectedPaymentMethod?.additionalData?.corpay?.achAuthorizationForm &&
+        paymentMethod.selectedPaymentMethod?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
