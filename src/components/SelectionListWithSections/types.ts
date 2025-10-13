@@ -108,6 +108,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem) => void;
+
+    /** Whether to show the right caret */
+    shouldShowRightCaret?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -465,8 +468,8 @@ type SplitListItemType = ListItem &
         /** Original amount before split */
         originalAmount: number;
 
-        /** Indicates whether a split was opened through this transaction */
-        isTransactionLinked: boolean;
+        /** Indicates whether a split wasn't approved, paid etc. when report.statusNum < CONST.REPORT.STATUS_NUM.CLOSED */
+        isEditable: boolean;
 
         /** Function for updating amount */
         onSplitExpenseAmountChange: (currentItemTransactionID: string, value: number) => void;
@@ -910,6 +913,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Custom scroll component to use instead of the default ScrollView */
     renderScrollComponent?: (props: ScrollViewProps) => ReactElement<ScrollViewProps, string | JSXElementConstructor<unknown>>;
+
+    /** Whether to show the right caret icon */
+    shouldShowRightCaret?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

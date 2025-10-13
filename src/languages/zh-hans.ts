@@ -659,7 +659,7 @@ const translations = {
         general: '常规',
         workspacesTabTitle: '工作区',
         getTheApp: '获取应用程序',
-        scanReceiptsOnTheGo: '用手机扫描收据',
+        scanReceiptsOnTheGo: '从手机扫描收据',
         headsUp: '注意！',
         submitTo: '提交到',
         forwardTo: '转发到',
@@ -668,9 +668,11 @@ const translations = {
         unstableInternetConnection: '互联网连接不稳定。请检查你的网络，然后重试。',
         enableGlobalReimbursements: '启用全球报销',
         purchaseAmount: '购买金额',
+        frequency: '频率',
         link: '链接',
         pinned: '已固定',
         read: '已读',
+        copyToClipboard: '复制到剪贴板',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -853,7 +855,7 @@ const translations = {
         expand: '展开',
     },
     reportActionContextMenu: {
-        copyToClipboard: '复制到剪贴板',
+        copyMessage: '复制消息',
         copied: '已复制！',
         copyLink: '复制链接',
         copyURLToClipboard: '复制网址到剪贴板',
@@ -1033,11 +1035,19 @@ const translations = {
         upload: '上传收据',
         uploadMultiple: '上传收据',
         dragReceiptBeforeEmail: '将收据拖到此页面上，转发收据到',
-        dragReceiptsBeforeEmail: '将收据拖到此页面上，转发收据到',
-        dragReceiptAfterEmail: '或选择下面的文件上传。',
-        dragReceiptsAfterEmail: '或选择下面的文件上传。',
+        dragReceiptsBeforeEmail: '将收据拖到此页面，转发收据至',
+        dragReceiptAfterEmail: '或者选择下方的文件上传。',
+        dragReceiptsAfterEmail: '或选择文件上传。',
+        desktopSubtitleSingle: `或将其拖放到此处`,
+        desktopSubtitleMultiple: `或将它们拖放到此处`,
         chooseReceipt: '选择要上传的收据或转发收据到',
         chooseReceipts: '选择要上传的收据或转发收据到',
+        alternativeMethodsTitle: '添加收据的其他方式：',
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">下载应用</a>以通过手机扫描</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>将收据转发到 <a href="mailto:${email}">${email}</a></label-text>`,
+        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: {phoneNumber: string; contactMethodsUrl: string}) =>
+            `<label-text><a href="${contactMethodsUrl}">添加您的号码</a>以将收据短信发送至 ${phoneNumber}</label-text>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>将收据短信发送至 ${phoneNumber}（仅限美国号码）</label-text>`,
         takePhoto: '拍照',
         cameraAccess: '需要相机权限来拍摄收据照片。',
         deniedCameraAccess: '相机访问权限仍未授予，请按照以下步骤操作',
@@ -1092,10 +1102,14 @@ const translations = {
         splitExpense: '拆分费用',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `来自${merchant}的${amount}`,
         addSplit: '添加分账',
+        editSplits: '编辑拆分',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `总金额比原始费用多${amount}。`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `总金额比原始费用少 ${amount}。`,
         splitExpenseZeroAmount: '请在继续之前输入有效金额。',
         splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `为${merchant}编辑${amount}`,
+        splitExpenseOneMoreSplit: '没有添加分割。至少添加一个来保存。',
+        splitExpenseCannotBeEditedModalTitle: '此费用无法编辑',
+        splitExpenseCannotBeEditedModalDescription: '已批准或已支付的费用无法编辑',
         removeSplit: '移除拆分',
         paySomeone: ({name}: PaySomeoneParams = {}) => `支付${name ?? '某人'}`,
         expense: '费用',
@@ -1120,6 +1134,7 @@ const translations = {
         canceled: '已取消',
         posted: '已发布',
         deleteReceipt: '删除收据',
+        findExpense: '查找费用',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `删除了一笔费用 (${merchant} 的 ${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `移动了一笔费用${reportName ? `来自${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `移动了此费用${reportName ? `至 <a href="${reportUrl}">${reportName}</a>` : ''}`,
@@ -1222,8 +1237,8 @@ const translations = {
         invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `企业账户 • ${lastFour}`,
         nextStep: '下一步',
         finished: '完成',
+        flip: '翻转',
         sendInvoice: ({amount}: RequestAmountParams) => `发送 ${amount} 发票`,
-        submitAmount: ({amount}: RequestAmountParams) => `提交 ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `对于${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `已提交${memo ? `, 备注 ${memo}` : ''}`,
         automaticallySubmitted: `通过<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">延迟提交</a>提交`,
@@ -1459,6 +1474,7 @@ const translations = {
             pageTitle: '选择您想保留的详情：',
             noDifferences: '发现交易无差异',
             pleaseSelectError: ({field}: {field: string}) => `请选择一个${field}`,
+            pleaseSelectAttendees: '请选择参与者',
             selectAllDetailsError: '继续前请选取所有详情。',
         },
         confirmationPage: {
@@ -1528,10 +1544,7 @@ const translations = {
         subtitle: '启用双因素认证以确保您的账户安全。',
         goToSecurity: '返回安全页面',
     },
-    shareCodePage: {
-        title: '您的代码',
-        subtitle: '通过分享您的个人二维码或推荐链接邀请成员加入Expensify。',
-    },
+    shareCodePage: {title: '您的代码', subtitle: '通过分享您的个人二维码或推荐链接邀请成员加入Expensify。'},
     pronounsPage: {
         pronouns: '代词',
         isShownOnProfile: '您的代词显示在您的个人资料上。',
@@ -1542,8 +1555,8 @@ const translations = {
         contactMethods: '联系方式',
         featureRequiresValidate: '此功能需要您验证您的账户。',
         validateAccount: '验证您的账户',
-        helpTextBeforeEmail: '添加更多方式让人们找到您，并转发收据到',
-        helpTextAfterEmail: '从多个电子邮件地址。',
+        helpTextBeforeEmail: '添加更多发送收据的方式。转发到',
+        helpTextAfterEmail: '或将其发送至 47777（仅限美国号码）。',
         pleaseVerify: '请验证此联系方式',
         getInTouch: '每当我们需要联系您时，我们将使用此联系方式。',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `请输入发送到${contactMethod}的验证码。验证码将在一分钟内到达。`,
@@ -1979,8 +1992,9 @@ const translations = {
         workflowTitle: '花费',
         workflowDescription: '配置从支出发生到审批和支付的工作流程。',
         delaySubmissionTitle: '延迟提交',
-        delaySubmissionDescription: '选择自定义的费用提交时间表，或者关闭此选项以实时更新支出。',
+        delaySubmissionDescription: '选择一个自定义的报销提交时间表，或者关闭此选项以实时更新支出。',
         submissionFrequency: '提交频率',
+        submissionFrequencyDescription: '选择提交费用的频率。',
         submissionFrequencyDateOfMonth: '月份日期',
         addApprovalsTitle: '添加审批',
         addApprovalButton: '添加审批工作流程',
@@ -1994,7 +2008,7 @@ const translations = {
         },
         frequencyDescription: '选择您希望自动提交费用的频率，或者选择手动提交',
         frequencies: {
-            instant: '即时',
+            instant: '即刻',
             weekly: '每周',
             monthly: '每月',
             twiceAMonth: '每月两次',
@@ -2032,7 +2046,7 @@ const translations = {
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: '延迟提交无法更改。请重试或联系客服。',
+        autoReportingErrorMessage: '延迟提交无法更改。请重试或联系支持。',
         autoReportingFrequencyErrorMessage: '提交频率无法更改。请重试或联系客服。',
         monthlyOffsetErrorMessage: '无法更改每月频率。请重试或联系支持。',
     },
@@ -2316,6 +2330,23 @@ const translations = {
             testDriveEmployeeTask: {
                 title: ({testDriveURL}) => `进行[试驾](${testDriveURL})`,
                 description: ({testDriveURL}) => `进行[试驾](${testDriveURL})即可获得团队 *3 个月的 Expensify 免费使用权！*`,
+            },
+            addExpenseApprovalsTask: {
+                title: '添加费用审批',
+                description: ({workspaceMoreFeaturesLink}) =>
+                    `*添加费用审批*，以便查看团队支出并保持控制。\n` +
+                    '\n' +
+                    `操作步骤如下：\n` +
+                    '\n' +
+                    '1. 前往 *工作区*。\n' +
+                    '2. 选择你的工作区。\n' +
+                    '3. 点击 *更多功能*。\n' +
+                    '4. 启用 *工作流*。\n' +
+                    '5. 在工作区编辑器中进入 *工作流*。\n' +
+                    '6. 启用 *添加审批*。\n' +
+                    `7. 你将被设置为费用审批人。邀请团队后，你可以将其更改为任意管理员。\n` +
+                    '\n' +
+                    `[前往更多功能](${workspaceMoreFeaturesLink})。`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[创建](${workspaceConfirmationLink})一个工作区`,
@@ -3683,6 +3714,18 @@ const translations = {
                 createEntitiesDescription: '如果供应商尚不存在，Expensify 将在 QuickBooks Desktop 中自动创建供应商。',
             },
             itemsDescription: '选择如何在Expensify中处理QuickBooks Desktop项目。',
+            accountingMethods: {
+                label: '何时导出',
+                description: '选择何时导出费用：',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '应计',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '现金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自付费用将在最终批准时导出',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自付费用将在支付时导出',
+                },
+            },
         },
         qbo: {
             connectedTo: '已连接到',
@@ -4573,6 +4616,10 @@ const translations = {
                         automaticImport: '自动交易导入',
                     },
                 },
+                bankConnectionError: '银行连接问题',
+                connectWithPlaid: '通过 Plaid 连接',
+                connectWithExpensifyCard: '尝试使用 Expensify 卡',
+                bankConnectionDescription: '请尝试重新添加您的卡。否则，您可以',
                 disableCardTitle: '禁用公司卡',
                 disableCardPrompt: '您无法禁用公司卡，因为此功能正在使用中。请联系Concierge以获取下一步指导。',
                 disableCardButton: '与Concierge聊天',
@@ -5451,6 +5498,11 @@ const translations = {
                 description: 'Expensify Travel 是一个新的企业差旅预订和管理平台，允许会员预订住宿、航班、交通等。',
                 onlyAvailableOnPlan: '旅行功能在 Collect 计划中提供，起价为',
             },
+            reports: {
+                title: '报告',
+                description: '报告允许您对费用进行分组，以便更容易地跟踪和整理。',
+                onlyAvailableOnPlan: '报告功能在 Collect 计划中提供，起价为 ',
+            },
             multiLevelTags: {
                 title: '多级标签',
                 description: '多级标签帮助您更精确地跟踪费用。为每个项目分配多个标签，例如部门、客户或成本中心，以捕获每笔费用的完整上下文。这使得更详细的报告、审批流程和会计导出成为可能。',
@@ -6075,10 +6127,7 @@ const translations = {
         },
         has: '有',
         groupBy: '组别',
-        moneyRequestReport: {
-            emptyStateTitle: '此报告没有费用。',
-            emptyStateSubtitle: '您可以使用下方按钮，或上方“更多”菜单中的“添加费用”选项，将费用添加到此报告中。',
-        },
+        moneyRequestReport: {emptyStateTitle: '此报告没有费用。', emptyStateSubtitle: '您可以通过下面的按钮或上方“更多”菜单中的“添加费用”选项将费用添加到此报告中。'},
         noCategory: '无类别',
         noTag: '无标签',
         expenseType: '费用类型',
@@ -7090,6 +7139,7 @@ const translations = {
         exportInProgress: '正在导出',
         conciergeWillSend: 'Concierge 很快会将文件发送给您。',
     },
+    avatarPage: {title: '编辑个人资料图片', uploadPhoto: '上传照片'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
