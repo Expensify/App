@@ -1162,6 +1162,16 @@ type SettingsNavigatorParamList = {
     };
 } & ReimbursementAccountNavigatorParamList;
 
+type DomainCardNavigatorParamList = {
+    [SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL]: {
+        cardID: string;
+    };
+    [SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD]: {
+        cardID: string;
+        backTo?: Routes;
+    };
+};
+
 type TwoFactorAuthNavigatorParamList = {
     [SCREENS.TWO_FACTOR_AUTH.ROOT]: {
         backTo?: Routes;
@@ -2438,6 +2448,7 @@ export type {
     BackToParams,
     DebugParamList,
     DetailsNavigatorParamList,
+    DomainCardNavigatorParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
     ExplanationModalNavigatorParamList,
