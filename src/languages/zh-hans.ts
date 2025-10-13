@@ -4582,22 +4582,22 @@ const translations = {
                 subtitle: '设置每日津贴标准以控制员工的日常开支。',
             },
             travel: {
-                title: '',
-                subtitle: '',
+                title: '旅行',
+                subtitle: '预订、管理和核对您的所有商务旅行。',
                 getStarted: {
-                    title: '',
-                    subtitle: '',
-                    ctaText: '',
+                    title: '开始使用 Expensify Travel',
+                    subtitle: '我们只需要您企业的更多信息，然后您就可以准备出发了。',
+                    ctaText: '开始吧',
                 },
                 reviewingRequest: {
-                    title: '',
-                    subtitle: '',
-                    ctaText: '',
+                    title: '收拾行李，我们已收到您的请求...',
+                    subtitle: '我们正在审查您启用 Expensify Travel 的请求。别担心，准备就绪时我们会通知您。',
+                    ctaText: '请求已发送',
                 },
                 bookOrManageYourTrip: {
-                    title: '',
-                    subtitle: '',
-                    ctaText: '',
+                    title: '预订或管理您的旅行',
+                    subtitle: '使用 Expensify Travel 获得最佳旅行优惠，并在一个地方管理所有商务费用。',
+                    ctaText: '预订或管理',
                 },
             },
             expensifyCard: {

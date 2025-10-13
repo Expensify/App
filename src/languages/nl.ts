@@ -4678,22 +4678,22 @@ const translations = {
                 subtitle: 'Stel dagvergoedingen in om de dagelijkse uitgaven van werknemers te beheersen.',
             },
             travel: {
-                title: '',
-                subtitle: '',
+                title: 'Reizen',
+                subtitle: 'Boek, beheer en verzoen al uw zakelijke reizen.',
                 getStarted: {
-                    title: '',
-                    subtitle: '',
-                    ctaText: '',
+                    title: 'Aan de slag met Expensify Travel',
+                    subtitle: 'We hebben nog een paar extra stukjes informatie over uw bedrijf nodig, dan bent u klaar voor vertrek.',
+                    ctaText: 'Laten we gaan',
                 },
                 reviewingRequest: {
-                    title: '',
-                    subtitle: '',
-                    ctaText: '',
+                    title: 'Pak uw koffers, we hebben uw verzoek...',
+                    subtitle: 'We bekijken momenteel uw verzoek om Expensify Travel in te schakelen. Maak u geen zorgen, we laten u weten wanneer het klaar is.',
+                    ctaText: 'Verzoek verzonden',
                 },
                 bookOrManageYourTrip: {
-                    title: '',
-                    subtitle: '',
-                    ctaText: '',
+                    title: 'Boek of beheer uw reis',
+                    subtitle: 'Gebruik Expensify Travel om de beste reisaanbiedingen te krijgen en beheer al uw zakelijke uitgaven op één plek.',
+                    ctaText: 'Boeken of beheren',
                 },
             },
             expensifyCard: {

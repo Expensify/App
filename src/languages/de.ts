@@ -4668,22 +4668,22 @@ const translations = {
                 subtitle: 'Legen Sie Tagessätze fest, um die täglichen Ausgaben der Mitarbeiter zu kontrollieren.',
             },
             travel: {
-                title: '',
-                subtitle: '',
+                title: 'Reisen',
+                subtitle: 'Buchen, verwalten und abrechnen Sie alle Ihre Geschäftsreisen.',
                 getStarted: {
-                    title: '',
-                    subtitle: '',
-                    ctaText: '',
+                    title: 'Erste Schritte mit Expensify Travel',
+                    subtitle: 'Wir benötigen nur noch ein paar weitere Informationen über Ihr Unternehmen, dann sind Sie bereit für den Start.',
+                    ctaText: "Los geht's",
                 },
                 reviewingRequest: {
-                    title: '',
-                    subtitle: '',
-                    ctaText: '',
+                    title: 'Packen Sie Ihre Koffer, wir haben Ihre Anfrage...',
+                    subtitle: 'Wir prüfen derzeit Ihre Anfrage zur Aktivierung von Expensify Travel. Keine Sorge, wir lassen Sie wissen, wenn es bereit ist.',
+                    ctaText: 'Anfrage gesendet',
                 },
                 bookOrManageYourTrip: {
-                    title: '',
-                    subtitle: '',
-                    ctaText: '',
+                    title: 'Buchen oder verwalten Sie Ihre Reise',
+                    subtitle: 'Nutzen Sie Expensify Travel für die besten Reiseangebote und verwalten Sie alle Ihre Geschäftsausgaben an einem Ort.',
+                    ctaText: 'Buchen oder verwalten',
                 },
             },
             expensifyCard: {

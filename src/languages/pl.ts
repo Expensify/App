@@ -4666,22 +4666,22 @@ const translations = {
                 subtitle: 'Ustaw stawki diet, aby kontrolować dzienne wydatki pracowników.',
             },
             travel: {
-                title: '',
-                subtitle: '',
+                title: 'Podróże',
+                subtitle: 'Rezerwuj, zarządzaj i rozliczaj wszystkie swoje podróże służbowe.',
                 getStarted: {
-                    title: '',
-                    subtitle: '',
-                    ctaText: '',
+                    title: 'Rozpocznij z Expensify Travel',
+                    subtitle: 'Potrzebujemy jeszcze kilku dodatkowych informacji o Twojej firmie, a następnie będziesz gotowy do startu.',
+                    ctaText: 'Zaczynamy',
                 },
                 reviewingRequest: {
-                    title: '',
-                    subtitle: '',
-                    ctaText: '',
+                    title: 'Spakuj walizki, mamy Twoją prośbę...',
+                    subtitle: 'Obecnie przeglądamy Twoją prośbę o włączenie Expensify Travel. Nie martw się, damy Ci znać, gdy będzie gotowe.',
+                    ctaText: 'Prośba wysłana',
                 },
                 bookOrManageYourTrip: {
-                    title: '',
-                    subtitle: '',
-                    ctaText: '',
+                    title: 'Zarezerwuj lub zarządzaj swoją podróżą',
+                    subtitle: 'Użyj Expensify Travel, aby uzyskać najlepsze oferty podróży i zarządzaj wszystkimi wydatkami służbowymi w jednym miejscu.',
+                    ctaText: 'Rezerwuj lub zarządzaj',
                 },
             },
             expensifyCard: {

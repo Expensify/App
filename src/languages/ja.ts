@@ -4642,22 +4642,22 @@ const translations = {
                 subtitle: '日当料金を設定して、従業員の日々の支出を管理します。',
             },
             travel: {
-                title: '',
-                subtitle: '',
+                title: '旅行',
+                subtitle: 'すべてのビジネス旅行を予約、管理、調整します。',
                 getStarted: {
-                    title: '',
-                    subtitle: '',
-                    ctaText: '',
+                    title: 'Expensify Travelを始めましょう',
+                    subtitle: 'お客様のビジネスについてもう少し情報が必要です。その後、準備完了です。',
+                    ctaText: '始めましょう',
                 },
                 reviewingRequest: {
-                    title: '',
-                    subtitle: '',
-                    ctaText: '',
+                    title: '荷物をまとめてください。リクエストを受け取りました...',
+                    subtitle: '現在、Expensify Travelの有効化リクエストを確認中です。ご心配なく、準備ができ次第お知らせします。',
+                    ctaText: 'リクエスト送信済み',
                 },
                 bookOrManageYourTrip: {
-                    title: '',
-                    subtitle: '',
-                    ctaText: '',
+                    title: '旅行を予約または管理',
+                    subtitle: 'Expensify Travelを使用して最高の旅行オファーを取得し、すべてのビジネス経費を一箇所で管理します。',
+                    ctaText: '予約または管理',
                 },
             },
             expensifyCard: {
