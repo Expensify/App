@@ -659,6 +659,8 @@ const translations = {
         reschedule: 'Verschieben',
         general: 'Allgemein',
         workspacesTabTitle: 'Arbeitsbereiche',
+        getTheApp: 'App herunterladen',
+        scanReceiptsOnTheGo: 'Scannen Sie Belege mit Ihrem Telefon',
         headsUp: 'Achtung!',
         submitTo: 'Einreichen an',
         forwardTo: 'Weiterleiten an',
@@ -1046,6 +1048,10 @@ const translations = {
     receipt: {
         upload: 'Beleg hochladen',
         uploadMultiple: 'Belege hochladen',
+        dragReceiptBeforeEmail: 'Ziehen Sie eine Quittung auf diese Seite oder leiten Sie eine Quittung weiter an',
+        dragReceiptsBeforeEmail: 'Ziehen Sie Belege auf diese Seite oder leiten Sie Belege weiter an',
+        dragReceiptAfterEmail: 'oder wählen Sie eine Datei zum Hochladen aus.',
+        dragReceiptsAfterEmail: 'oder wählen Sie Dateien zum Hochladen unten aus.',
         desktopSubtitleSingle: `oder hierher ziehen und ablegen`,
         desktopSubtitleMultiple: `oder hierher ziehen und ablegen`,
         chooseReceipt: 'Wählen Sie eine Quittung zum Hochladen aus oder leiten Sie eine Quittung weiter an',
@@ -1493,6 +1499,7 @@ const translations = {
             pageTitle: 'Wähle die Details, die du behalten möchtest:',
             noDifferences: 'Keine Unterschiede zwischen den Transaktionen gefunden',
             pleaseSelectError: ({field}: {field: string}) => `Bitte wähle ein(e) ${field}`,
+            pleaseSelectAttendees: 'Bitte wähle teilnehmer',
             selectAllDetailsError: 'Wähle alle Details, bevor du fortfährst.',
         },
         confirmationPage: {
@@ -1562,10 +1569,7 @@ const translations = {
         subtitle: 'Aktivieren Sie die Zwei-Faktor-Authentifizierung, um Ihr Konto zu schützen.',
         goToSecurity: 'Zurück zur Sicherheitsseite',
     },
-    shareCodePage: {
-        title: 'Ihr Code',
-        subtitle: 'Laden Sie Mitglieder zu Expensify ein, indem Sie Ihren persönlichen QR-Code oder Empfehlungslink teilen.',
-    },
+    shareCodePage: {title: 'Ihr Code', subtitle: 'Laden Sie Mitglieder zu Expensify ein, indem Sie Ihren persönlichen QR-Code oder Empfehlungslink teilen.'},
     pronounsPage: {
         pronouns: 'Pronomen',
         isShownOnProfile: 'Ihre Pronomen werden in Ihrem Profil angezeigt.',
@@ -1576,8 +1580,8 @@ const translations = {
         contactMethods: 'Kontaktmethoden',
         featureRequiresValidate: 'Diese Funktion erfordert, dass Sie Ihr Konto verifizieren.',
         validateAccount: 'Bestätigen Sie Ihr Konto',
-        helpTextBeforeEmail: 'Fügen Sie weitere Möglichkeiten hinzu, damit Leute Sie finden können, und leiten Sie Belege weiter an',
-        helpTextAfterEmail: 'von mehreren E-Mail-Adressen.',
+        helpTextBeforeEmail: 'Fügen Sie weitere Möglichkeiten hinzu, Belege zu senden. Leiten Sie sie weiter an',
+        helpTextAfterEmail: 'oder senden Sie ihnen eine SMS an 47777 (nur US-Nummern).',
         pleaseVerify: 'Bitte überprüfen Sie diese Kontaktmethode',
         getInTouch: 'Wann immer wir mit Ihnen in Kontakt treten müssen, werden wir diese Kontaktmethode verwenden.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
@@ -2025,6 +2029,8 @@ const translations = {
     workflowsPage: {
         workflowTitle: 'Ausgaben',
         workflowDescription: 'Konfigurieren Sie einen Workflow ab dem Moment, in dem Ausgaben anfallen, einschließlich Genehmigung und Zahlung.',
+        delaySubmissionTitle: 'Einreichungen verzögern',
+        delaySubmissionDescription: 'Wählen Sie einen benutzerdefinierten Zeitplan für die Einreichung von Ausgaben oder lassen Sie dies aus, um Echtzeit-Updates über Ausgaben zu erhalten.',
         submissionFrequency: 'Einreichungshäufigkeit',
         submissionFrequencyDescription: 'Wählen Sie eine Häufigkeit für die Übermittlung von Ausgaben.',
         submissionFrequencyDateOfMonth: 'Datum des Monats',
@@ -2078,6 +2084,7 @@ const translations = {
         },
     },
     workflowsDelayedSubmissionPage: {
+        autoReportingErrorMessage: 'Die verspätete Einreichung konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
         autoReportingFrequencyErrorMessage: 'Die Einreichungshäufigkeit konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
         monthlyOffsetErrorMessage: 'Die monatliche Frequenz konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
     },
@@ -6253,7 +6260,7 @@ const translations = {
         groupBy: 'Gruppe nach',
         moneyRequestReport: {
             emptyStateTitle: 'Dieser Bericht enthält keine Ausgaben.',
-            emptyStateSubtitle: 'Sie können Ausgaben zu diesem Bericht hinzufügen, indem Sie den untenstehenden Button oder die Option "Ausgabe hinzufügen" im Menü "Mehr" oben verwenden.',
+            emptyStateSubtitle: 'Sie können Ausgaben zu diesem Bericht hinzufügen, indem Sie die Schaltfläche unten oder die Option "Ausgabe hinzufügen" im Menü "Mehr" oben verwenden.',
         },
         noCategory: 'Keine Kategorie',
         noTag: 'Kein Tag',
