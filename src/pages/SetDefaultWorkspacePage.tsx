@@ -64,9 +64,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
                 <>
                     <HeaderWithBackButton
                         title={translate('workspace.common.setAsDefault')}
-                        onBackButtonPress={() => {
-                            Navigation.goBack(backTo);
-                        }}
+                        onBackButtonPress={Navigation.goBack}
                     />
                     {shouldShowLoadingIndicator ? (
                         <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
