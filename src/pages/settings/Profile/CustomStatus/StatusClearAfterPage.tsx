@@ -3,8 +3,8 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -175,10 +175,9 @@ function StatusClearAfterPage() {
     const timePeriodOptions = useCallback(
         () => (
             <SelectionList
-                data={statusType}
+                sections={[{data: statusType}]}
                 ListItem={RadioListItem}
                 onSelectRow={updateMode}
-                initiallyFocusedItemKey={statusType.find((status) => status.isSelected)?.keyForList}
                 listFooterContent={listFooterContent}
                 showConfirmButton
                 confirmButtonText={translate('statusPage.save')}
