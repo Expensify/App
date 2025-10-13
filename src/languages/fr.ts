@@ -1246,7 +1246,7 @@ const translations = {
             policyName: string;
         }) => (formattedAmount ? `Payer ${formattedAmount} via ${policyName}` : `Payer via ${policyName}`),
         businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
-            amount ? `Payé ${amount} avec le compte bancaire ${last4Digits}.` : `Payé avec le compte bancaire ${last4Digits}`,
+            amount ? `payé ${amount} avec le compte bancaire ${last4Digits}.` : `payé avec le compte bancaire ${last4Digits}`,
         automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
             `payé ${amount ? `${amount} ` : ''}avec le compte bancaire se terminant par ${last4Digits} via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l’espace de travail</a>`,
         invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Compte personnel • ${lastFour}`,
@@ -1497,6 +1497,7 @@ const translations = {
             pageTitle: 'Sélectionnez les détails à conserver :',
             noDifferences: 'Aucune différence trouvée entre les transactions',
             pleaseSelectError: ({field}: {field: string}) => `Veuillez sélectionner un/une ${field}`,
+            pleaseSelectAttendees: 'Veuillez sélectionner participants',
             selectAllDetailsError: 'Sélectionnez tous les détails avant de continuer.',
         },
         confirmationPage: {
@@ -2333,8 +2334,8 @@ const translations = {
         },
         interestedFeatures: {
             title: 'Quelles fonctionnalités vous intéressent ?',
-            featuresAlreadyEnabled: 'Votre espace de travail a déjà activé les éléments suivants :',
-            featureYouMayBeInterestedIn: 'Activez des fonctionnalités supplémentaires qui pourraient vous intéresser :',
+            featuresAlreadyEnabled: 'Voici nos fonctionnalités les plus populaires :',
+            featureYouMayBeInterestedIn: 'Activer des fonctionnalités supplémentaires :',
         },
         error: {
             requiredFirstName: 'Veuillez entrer votre prénom pour continuer',
@@ -7254,7 +7255,7 @@ const translations = {
         book: {
             title: 'Planifier un appel',
             description: 'Trouvez un moment qui vous convient.',
-            slots: 'Heures disponibles pour',
+            slots: ({date}: {date: string}) => `<muted-text>Heures disponibles pour <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: "Confirmer l'appel",

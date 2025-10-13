@@ -1240,7 +1240,7 @@ const translations = {
             policyName: string;
         }) => (formattedAmount ? `Paga ${formattedAmount} tramite ${policyName}` : `Paga tramite ${policyName}`),
         businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
-            amount ? `Pagato ${amount} con conto bancario ${last4Digits}` : `Pagato con conto bancario ${last4Digits}`,
+            amount ? `pagato ${amount} con conto bancario ${last4Digits}` : `pagato con conto bancario ${last4Digits}`,
         automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
             `pagato ${amount ? `${amount} ` : ''}con il conto bancario terminante con ${last4Digits} tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
         invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Conto personale • ${lastFour}`,
@@ -1490,6 +1490,7 @@ const translations = {
             pageTitle: 'Seleziona i dettagli da conservare:',
             noDifferences: 'Nessuna differenza trovata tra le transazioni',
             pleaseSelectError: ({field}: {field: string}) => `Seleziona un/a ${field}`,
+            pleaseSelectAttendees: 'Seleziona partecipanti',
             selectAllDetailsError: 'Seleziona tutti i dettagli prima di continuare.',
         },
         confirmationPage: {
@@ -2321,8 +2322,8 @@ const translations = {
         },
         interestedFeatures: {
             title: 'Quali funzionalità ti interessano?',
-            featuresAlreadyEnabled: 'Il tuo spazio di lavoro ha già abilitato quanto segue:',
-            featureYouMayBeInterestedIn: 'Abilita funzionalità aggiuntive che potrebbero interessarti:',
+            featuresAlreadyEnabled: 'Ecco le nostre funzionalità più popolari:',
+            featureYouMayBeInterestedIn: 'Abilita funzionalità aggiuntive:',
         },
         error: {
             requiredFirstName: 'Per favore, inserisci il tuo nome per continuare',
@@ -7257,7 +7258,7 @@ const translations = {
         book: {
             title: 'Pianifica chiamata',
             description: 'Trova un orario che funzioni per te.',
-            slots: 'Orari disponibili per',
+            slots: ({date}: {date: string}) => `<muted-text>Orari disponibili per <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: 'Conferma chiamata',

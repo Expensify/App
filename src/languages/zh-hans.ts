@@ -1474,6 +1474,7 @@ const translations = {
             pageTitle: '选择您想保留的详情：',
             noDifferences: '发现交易无差异',
             pleaseSelectError: ({field}: {field: string}) => `请选择一个${field}`,
+            pleaseSelectAttendees: '请选择参与者',
             selectAllDetailsError: '继续前请选取所有详情。',
         },
         confirmationPage: {
@@ -2293,8 +2294,8 @@ const translations = {
         },
         interestedFeatures: {
             title: '您对哪些功能感兴趣？',
-            featuresAlreadyEnabled: '您的工作区已启用以下功能：',
-            featureYouMayBeInterestedIn: '启用您可能感兴趣的其他功能：',
+            featuresAlreadyEnabled: '以下是我们最受欢迎的功能：',
+            featureYouMayBeInterestedIn: '启用其他功能：',
         },
         error: {
             requiredFirstName: '请输入您的名字以继续',
@@ -7088,7 +7089,7 @@ const translations = {
         book: {
             title: '安排通话',
             description: '找到一个适合你的时间。',
-            slots: '可用时间为',
+            slots: ({date}: {date: string}) => `<muted-text>可用时间为 <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: '确认通话',

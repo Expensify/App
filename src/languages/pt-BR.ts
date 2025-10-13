@@ -1238,7 +1238,7 @@ const translations = {
         }: SettleExpensifyCardParams & {
             policyName: string;
         }) => (formattedAmount ? `Pagar ${formattedAmount} via ${policyName}` : `Pagar via ${policyName}`),
-        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pago ${amount} com conta bancária ${last4Digits}` : `Pago com conta bancária ${last4Digits}`),
+        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `pago ${amount} com conta bancária ${last4Digits}` : `pago com conta bancária ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
             `pago ${amount ? `${amount} ` : ''}com a conta bancária terminada em ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do espaço de trabalho</a>`,
         invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Conta pessoal • ${lastFour}`,
@@ -1487,6 +1487,7 @@ const translations = {
             pageTitle: 'Selecione os detalhes que deseja manter:',
             noDifferences: 'Nenhuma diferença encontrada entre as transações',
             pleaseSelectError: ({field}: {field: string}) => `Por favor selecione um(a) ${field}`,
+            pleaseSelectAttendees: 'Selecione participantes',
             selectAllDetailsError: 'Selecione todos os detalhes antes de continuar.',
         },
         confirmationPage: {
@@ -2315,8 +2316,8 @@ const translations = {
         },
         interestedFeatures: {
             title: 'Quais recursos você está interessado?',
-            featuresAlreadyEnabled: 'Seu espaço de trabalho já tem o seguinte habilitado:',
-            featureYouMayBeInterestedIn: 'Ative recursos adicionais nos quais você possa estar interessado:',
+            featuresAlreadyEnabled: 'Aqui estão nossos recursos mais populares:',
+            featureYouMayBeInterestedIn: 'Ative recursos adicionais:',
         },
         error: {
             requiredFirstName: 'Por favor, insira seu primeiro nome para continuar',
@@ -7235,7 +7236,7 @@ const translations = {
         book: {
             title: 'Agendar chamada',
             description: 'Encontre um horário que funcione para você.',
-            slots: 'Horários disponíveis para',
+            slots: ({date}: {date: string}) => `<muted-text>Horários disponíveis para <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: 'Confirmar chamada',

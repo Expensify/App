@@ -1492,6 +1492,7 @@ const translations = {
             pageTitle: '保存する詳細を選んでください：',
             noDifferences: 'トランザクション間に差異はありません',
             pleaseSelectError: ({field}: {field: string}) => `${field} を選択してください`,
+            pleaseSelectAttendees: '参加者を選択してください',
             selectAllDetailsError: '続行する前にすべての詳細を選択してください。',
         },
         confirmationPage: {
@@ -2312,8 +2313,8 @@ const translations = {
         },
         interestedFeatures: {
             title: 'どの機能に興味がありますか？',
-            featuresAlreadyEnabled: 'あなたのワークスペースにはすでに以下が有効になっています:',
-            featureYouMayBeInterestedIn: '興味のある追加機能を有効にする:',
+            featuresAlreadyEnabled: 'こちらは最も人気のある機能です：',
+            featureYouMayBeInterestedIn: '追加機能を有効にする：',
         },
         error: {
             requiredFirstName: '続行するには、名前を入力してください。',
@@ -7186,7 +7187,7 @@ const translations = {
         book: {
             title: '通話をスケジュールする',
             description: 'あなたに都合の良い時間を見つけてください。',
-            slots: '利用可能な時間',
+            slots: ({date}: {date: string}) => `<muted-text>利用可能な時間 <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: '通話を確認',

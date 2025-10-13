@@ -1499,6 +1499,7 @@ const translations = {
             pageTitle: 'Wähle die Details, die du behalten möchtest:',
             noDifferences: 'Keine Unterschiede zwischen den Transaktionen gefunden',
             pleaseSelectError: ({field}: {field: string}) => `Bitte wähle ein(e) ${field}`,
+            pleaseSelectAttendees: 'Bitte wähle teilnehmer',
             selectAllDetailsError: 'Wähle alle Details, bevor du fortfährst.',
         },
         confirmationPage: {
@@ -2336,8 +2337,8 @@ const translations = {
         },
         interestedFeatures: {
             title: 'Für welche Funktionen interessieren Sie sich?',
-            featuresAlreadyEnabled: 'Ihr Arbeitsbereich hat bereits Folgendes aktiviert:',
-            featureYouMayBeInterestedIn: 'Aktivieren Sie zusätzliche Funktionen, die Sie interessieren könnten:',
+            featuresAlreadyEnabled: 'Hier sind unsere beliebtesten Funktionen:',
+            featureYouMayBeInterestedIn: 'Aktivieren Sie zusätzliche Funktionen:',
         },
         error: {
             requiredFirstName: 'Bitte geben Sie Ihren Vornamen ein, um fortzufahren.',
@@ -7250,7 +7251,7 @@ const translations = {
         book: {
             title: 'Anruf planen',
             description: 'Finden Sie eine Zeit, die für Sie passt.',
-            slots: 'Verfügbare Zeiten für',
+            slots: ({date}: {date: string}) => `<muted-text>Verfügbare Zeiten für <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: 'Anruf bestätigen',

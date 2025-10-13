@@ -1211,7 +1211,7 @@ const translations = {
         payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
             formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`,
         businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
-            amount ? `Pagó ${amount} con la cuenta bancaria ${last4Digits}.` : `Pagó con la cuenta bancaria ${last4Digits}`,
+            amount ? `pagó ${amount} con la cuenta bancaria ${last4Digits}.` : `pagó con la cuenta bancaria ${last4Digits}`,
         automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
             `pagado ${amount ? `${amount} ` : ''}con la cuenta bancaria terminada en ${last4Digits} vía <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
         invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Cuenta personal • ${lastFour}`,
@@ -1465,6 +1465,7 @@ const translations = {
             pageTitle: 'Selecciona los detalles que deseas conservar:',
             noDifferences: 'No se encontraron diferencias entre las transacciones',
             pleaseSelectError: ({field}: {field: string}) => `Por favor, selecciona un(a) ${field}`,
+            pleaseSelectAttendees: 'Por favor, selecciona asistentes',
             selectAllDetailsError: 'Selecciona todos los detalles antes de continuar.',
         },
         confirmationPage: {
@@ -2297,8 +2298,8 @@ const translations = {
         },
         interestedFeatures: {
             title: '¿Qué funciones te interesan?',
-            featuresAlreadyEnabled: 'Tu espacio de trabajo ya tiene las siguientes funciones habilitadas:',
-            featureYouMayBeInterestedIn: 'Habilita funciones adicionales que podrían interesarte:',
+            featuresAlreadyEnabled: 'Aquí están nuestras funciones más populares:',
+            featureYouMayBeInterestedIn: 'Habilita funciones adicionales:',
         },
         error: {
             requiredFirstName: 'Introduce tu nombre para continuar',
@@ -7691,7 +7692,7 @@ const translations = {
         book: {
             title: 'Programar llamada',
             description: 'Encuentra un horario que funcione para ti.',
-            slots: 'Horarios disponibles para el ',
+            slots: ({date}: {date: string}) => `<muted-text>Horarios disponibles para el <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: 'Confirmar llamada',
