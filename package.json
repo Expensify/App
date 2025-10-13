@@ -184,7 +184,7 @@
     "react-native-key-command": "1.0.14",
     "react-native-keyboard-controller": "1.18.5",
     "react-native-launch-arguments": "^4.0.2",
-    "react-native-localize": "^2.2.6",
+    "react-native-localize": "^3.5.4",
     "react-native-nitro-modules": "0.29.4",
     "react-native-nitro-sqlite": "9.1.11",
     "react-native-onyx": "3.0.2",
