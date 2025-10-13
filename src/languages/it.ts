@@ -330,7 +330,7 @@ const translations = {
         count: 'Contare',
         cancel: 'Annulla',
         dismiss: 'Ignora',
-        proceed: 'Proceed',
+        proceed: 'Procedere',
         yes: 'Sì',
         no: 'No',
         ok: 'OK',
@@ -667,9 +667,11 @@ const translations = {
         unstableInternetConnection: 'Connessione Internet instabile. Controlla la tua rete e riprova.',
         enableGlobalReimbursements: 'Abilita i rimborsi globali',
         purchaseAmount: 'Importo di acquisto',
+        frequency: 'Frequenza',
         link: 'Link',
         pinned: 'Fissato',
         read: 'Letto',
+        copyToClipboard: 'Copia negli appunti',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -853,7 +855,7 @@ const translations = {
         expand: 'Espandi',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'Copia negli appunti',
+        copyMessage: 'Copia messaggio',
         copied: 'Copiato!',
         copyLink: 'Copia link',
         copyURLToClipboard: 'Copia URL negli appunti',
@@ -1134,6 +1136,7 @@ const translations = {
         canceled: 'Annullato',
         posted: 'Pubblicato',
         deleteReceipt: 'Elimina ricevuta',
+        findExpense: 'Trova spesa',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `ha eliminato una spesa (${amount} per ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `ha spostato una spesa${reportName ? `da ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `spostato questa spesa${reportName ? `a <a href="${reportUrl}">${reportName}</a>` : ''}`,
@@ -1240,6 +1243,7 @@ const translations = {
         invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Conto aziendale • ${lastFour}`,
         nextStep: 'Prossimi passi',
         finished: 'Finito',
+        flip: 'Inverti',
         sendInvoice: ({amount}: RequestAmountParams) => `Invia fattura di ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `per ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `inviato${memo ? `, dicendo: ${memo}` : ''}`,
@@ -2011,10 +2015,8 @@ const translations = {
     workflowsPage: {
         workflowTitle: 'Spendere',
         workflowDescription: 'Configura un flusso di lavoro dal momento in cui si verifica una spesa, inclusi approvazione e pagamento.',
-        delaySubmissionTitle: 'Ritarda invii',
-        delaySubmissionDescription: "Scegli un programma personalizzato per l'invio delle spese, oppure lascia disattivato per aggiornamenti in tempo reale sulle spese.",
         submissionFrequency: 'Frequenza di invio',
-        disableApprovalPromptDescription: 'Disabilitare le approvazioni eliminerà tutti i flussi di lavoro di approvazione esistenti.',
+        submissionFrequencyDescription: "Scegli un programma personalizzato per l'invio delle spese, oppure lascia disattivato per aggiornamenti in tempo reale sulle spese.",
         submissionFrequencyDateOfMonth: 'Data del mese',
         addApprovalsTitle: 'Aggiungi approvazioni',
         addApprovalButton: 'Aggiungi flusso di lavoro di approvazione',
@@ -2028,7 +2030,7 @@ const translations = {
         },
         frequencyDescription: 'Scegli con quale frequenza desideri che le spese vengano inviate automaticamente, oppure impostale manualmente.',
         frequencies: {
-            instant: 'Istantaneo',
+            instant: 'Immediatamente',
             weekly: 'Settimanale',
             monthly: 'Mensile',
             twiceAMonth: 'Due volte al mese',
@@ -2066,7 +2068,6 @@ const translations = {
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: 'La presentazione ritardata non può essere modificata. Per favore, riprova o contatta il supporto.',
         autoReportingFrequencyErrorMessage: "La frequenza di invio non può essere modificata. Riprova o contatta l'assistenza.",
         monthlyOffsetErrorMessage: 'La frequenza mensile non può essere modificata. Riprova o contatta il supporto.',
     },
@@ -2353,6 +2354,23 @@ const translations = {
             testDriveEmployeeTask: {
                 title: ({testDriveURL}) => `Fai un [test drive](${testDriveURL})`,
                 description: ({testDriveURL}) => `Prova un [test drive](${testDriveURL}) e ottieni *3 mesi gratuiti di Expensify!* per il tuo team`,
+            },
+            addExpenseApprovalsTask: {
+                title: 'Aggiungi approvazioni spese',
+                description: ({workspaceMoreFeaturesLink}) =>
+                    `*Aggiungi approvazioni spese* per controllare le spese del tuo team e mantenerle sotto controllo.\n` +
+                    '\n' +
+                    `Ecco come fare:\n` +
+                    '\n' +
+                    '1. Vai a *Spazi di lavoro*.\n' +
+                    '2. Seleziona il tuo spazio di lavoro.\n' +
+                    '3. Clicca su *Altre funzionalità*.\n' +
+                    '4. Abilita *Flussi di lavoro*.\n' +
+                    '5. Vai su *Flussi di lavoro* nell’editor dello spazio di lavoro.\n' +
+                    '6. Abilita *Aggiungi approvazioni*.\n' +
+                    `7. Sarai impostato come approvatore delle spese. Potrai cambiarlo con un amministratore una volta invitato il tuo team.\n` +
+                    '\n' +
+                    `[Vai a altre funzionalità](${workspaceMoreFeaturesLink}).`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Crea](${workspaceConfirmationLink}) uno spazio di lavoro`,
@@ -3755,6 +3773,18 @@ const translations = {
                 createEntitiesDescription: 'Expensify creerà automaticamente i fornitori in QuickBooks Desktop se non esistono già.',
             },
             itemsDescription: 'Scegli come gestire gli elementi di QuickBooks Desktop in Expensify.',
+            accountingMethods: {
+                label: 'Quando Esportare',
+                description: 'Scegli quando esportare le spese:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contanti',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Le spese anticipate verranno esportate quando approvate definitivamente.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate quando pagate',
+                },
+            },
         },
         qbo: {
             connectedTo: 'Connesso a',
@@ -5595,6 +5625,11 @@ const translations = {
                     'Expensify Travel è una nuova piattaforma aziendale per la prenotazione e la gestione dei viaggi che consente ai membri di prenotare alloggi, voli, trasporti e altro.',
                 onlyAvailableOnPlan: 'Il viaggio è disponibile nel piano Collect, a partire da',
             },
+            reports: {
+                title: 'Report',
+                description: `I report ti permettono di raggruppare le spese per un monitoraggio e un'organizzazione più semplici.`,
+                onlyAvailableOnPlan: 'I report sono disponibili nel piano Collect, a partire da ',
+            },
             multiLevelTags: {
                 title: 'Tag multi-livello',
                 description:
@@ -6249,7 +6284,6 @@ const translations = {
         groupBy: 'Gruppo per',
         moneyRequestReport: {
             emptyStateTitle: 'Questo report non ha spese.',
-            emptyStateSubtitle: 'Puoi aggiungere spese a questo report\n utilizzando il pulsante in basso o l\'opzione "Aggiungi spesa" nel menu Altro sopra.',
         },
         noCategory: 'Nessuna categoria',
         noTag: 'Nessun tag',
@@ -7288,6 +7322,7 @@ const translations = {
         exportInProgress: 'Esportazione in corso',
         conciergeWillSend: 'Concierge ti invierà il file a breve.',
     },
+    avatarPage: {title: 'Modifica immagine del profilo', uploadPhoto: 'Carica foto'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
