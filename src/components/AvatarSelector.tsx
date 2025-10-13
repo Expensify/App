@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {ALL_CUSTOM_AVATARS} from '@libs/Avatars/CustomAvatarCatalog';
+import {ALL_CUSTOM_AVATARS_ORDERED} from '@libs/Avatars/CustomAvatarCatalog';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import Avatar from './Avatar';
@@ -12,10 +12,10 @@ import Text from './Text';
 
 type AvatarSelectorProps = {
     /** Currently selected avatar ID */
-    selectedID?: keyof typeof ALL_CUSTOM_AVATARS;
+    selectedID?: keyof typeof ALL_CUSTOM_AVATARS_ORDERED;
 
     /** Called when an avatar is selected */
-    onSelect: (id: keyof typeof ALL_CUSTOM_AVATARS) => void;
+    onSelect: (id: keyof typeof ALL_CUSTOM_AVATARS_ORDERED) => void;
 
     /** Optional: size of avatars in grid */
     size?: AvatarSizeName;
@@ -34,9 +34,9 @@ function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.M
     const StyleUtils = useStyleUtils();
     const [selected, setSelected] = useState(selectedID);
 
-    const avatars = Object.entries(ALL_CUSTOM_AVATARS);
+    const avatars = Object.entries(ALL_CUSTOM_AVATARS_ORDERED);
 
-    const handleSelect = (id: keyof typeof ALL_CUSTOM_AVATARS) => {
+    const handleSelect = (id: keyof typeof ALL_CUSTOM_AVATARS_ORDERED) => {
         setSelected(id);
         onSelect(id);
     };
@@ -58,7 +58,7 @@ function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.M
                             accessible
                             accessibilityRole="button"
                             accessibilityLabel="Select Avatar"
-                            onPress={() => handleSelect(id as keyof typeof ALL_CUSTOM_AVATARS)}
+                            onPress={() => handleSelect(id as keyof typeof ALL_CUSTOM_AVATARS_ORDERED)}
                             style={[styles.avatarSelectorWrapper, isSelected && {borderColor: theme.success, borderWidth: 2}]}
                         >
                             <Avatar
