@@ -58,6 +58,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {reimbursementAccountErrorSelector} from '@src/selectors/ReimbursementAccount';
 import type {Policy as PolicyType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
@@ -117,6 +118,7 @@ function WorkspacesListPage() {
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: true});
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+    const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
@@ -157,7 +159,16 @@ function WorkspacesListPage() {
             return;
         }
 
-        deleteWorkspace(policyIDToDelete, policyNameToDelete, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, lastPaymentMethod);
+        deleteWorkspace(
+            policyIDToDelete,
+            policyNameToDelete,
+            lastAccessedWorkspacePolicyID,
+            defaultCardFeeds,
+            reportsToArchive,
+            transactionViolations,
+            reimbursementAccountError,
+            lastPaymentMethod,
+        );
         setIsDeleteModalOpen(false);
     };
 
@@ -304,6 +315,7 @@ function WorkspacesListPage() {
                                 isDefault={isDefault}
                                 isLoadingBill={isLoadingBill}
                                 resetLoadingSpinnerIconIndex={resetLoadingSpinnerIconIndex}
+                                isHovered={hovered}
                             />
                         )}
                     </PressableWithoutFeedback>
@@ -463,7 +475,7 @@ function WorkspacesListPage() {
                             {translate('workspace.common.workspaceType')}
                         </Text>
                     </View>
-                    <View style={[styles.workspaceRightColumn, styles.mr2]} />
+                    <View style={[styles.workspaceRightColumn, styles.mr7]} />
                 </View>
             )}
         </>

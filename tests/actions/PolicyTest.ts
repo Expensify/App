@@ -811,14 +811,12 @@ describe('actions/Policy', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 policyName: fakePolicy.name,
             };
-            const fakeReimbursementAccount = {errors: {}};
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
-            await Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, fakeReimbursementAccount);
 
             // When deleting a workspace fails
             mockFetch?.fail?.();
-            Policy.deleteWorkspace(fakePolicy.id, fakePolicy.name, undefined, undefined, [fakeReport], undefined, undefined);
+            Policy.deleteWorkspace(fakePolicy.id, fakePolicy.name, undefined, undefined, [fakeReport], undefined, {});
 
             await waitForBatchedUpdates();
 
@@ -898,13 +896,21 @@ describe('actions/Policy', () => {
                 {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
             ]);
 
-            Policy.deleteWorkspace(policyID, 'test', undefined, undefined, [expenseChatReport], {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                transactionViolations_3: [
-                    {name: 'cashExpenseWithNoReceipt', type: CONST.VIOLATION_TYPES.VIOLATION},
-                    {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
-                ],
-            });
+            Policy.deleteWorkspace(
+                policyID,
+                'test',
+                undefined,
+                undefined,
+                [expenseChatReport],
+                {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    transactionViolations_3: [
+                        {name: 'cashExpenseWithNoReceipt', type: CONST.VIOLATION_TYPES.VIOLATION},
+                        {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
+                    ],
+                },
+                undefined,
+            );
 
             await waitForBatchedUpdates();
 

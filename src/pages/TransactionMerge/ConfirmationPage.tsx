@@ -45,7 +45,10 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
     const targetTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`];
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionThreadReport?.policyID}`, {canBeMissing: true});
+    const policyID = targetTransactionThreadReport?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
 
     // Build the merged transaction data for display
     const mergedTransactionData = useMemo(() => buildMergedTransactionData(targetTransaction, mergeTransaction), [targetTransaction, mergeTransaction]);
@@ -71,7 +74,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         const reportID = mergeTransaction.reportID;
 
         setIsMergingExpenses(true);
-        mergeTransactionRequest(transactionID, mergeTransaction, targetTransaction, sourceTransaction);
+        mergeTransactionRequest({mergeTransactionID: transactionID, mergeTransaction, targetTransaction, sourceTransaction, policy, policyTags, policyCategories});
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : targetTransactionThreadReportID;
         if (reportID !== targetTransaction.reportID && reportIDToDismiss) {
@@ -79,7 +82,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         } else {
             Navigation.dismissModal();
         }
-    }, [targetTransaction, mergeTransaction, sourceTransaction, transactionID, targetTransactionThreadReportID]);
+    }, [targetTransaction, mergeTransaction, sourceTransaction, transactionID, targetTransactionThreadReportID, policy, policyTags, policyCategories]);
 
     if (isLoadingOnyxValue(mergeTransactionMetadata) || !targetTransactionThreadReport?.reportID) {
         return <FullScreenLoadingIndicator />;

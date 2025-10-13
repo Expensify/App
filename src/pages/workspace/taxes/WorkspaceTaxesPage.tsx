@@ -235,6 +235,7 @@ function WorkspaceTaxesPage({
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={translate('common.enabled')}
+                shouldShowRightCaret
             />
         );
     };
@@ -437,6 +438,7 @@ function WorkspaceTaxesPage({
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
                     showScrollIndicator={false}
                     addBottomSafeAreaPadding
+                    shouldShowRightCaret
                 />
                 <ConfirmModal
                     title={translate('workspace.taxes.actions.delete')}

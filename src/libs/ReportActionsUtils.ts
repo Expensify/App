@@ -612,11 +612,19 @@ function extractLinksFromMessageHtml(reportAction: OnyxEntry<ReportAction>): str
  */
 function findPreviousAction(reportActions: ReportAction[], actionIndex: number): OnyxEntry<ReportAction> {
     for (let i = actionIndex + 1; i < reportActions.length; i++) {
+        const action = reportActions.at(i);
+
         // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
         // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
-        if (isNetworkOffline || reportActions.at(i)?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return reportActions.at(i);
+        if (!isNetworkOffline && action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
         }
+
+        if (action?.shouldShow === false) {
+            continue;
+        }
+
+        return action;
     }
 
     return undefined;
@@ -629,11 +637,19 @@ function findPreviousAction(reportActions: ReportAction[], actionIndex: number):
  */
 function findNextAction(reportActions: ReportAction[], actionIndex: number): OnyxEntry<ReportAction> {
     for (let i = actionIndex - 1; i >= 0; i--) {
+        const action = reportActions.at(i);
+
         // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
         // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
-        if (isNetworkOffline || reportActions.at(i)?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return reportActions.at(i);
+        if (!isNetworkOffline && action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
         }
+
+        if (action?.shouldShow === false) {
+            continue;
+        }
+
+        return action;
     }
 
     return undefined;
@@ -872,12 +888,6 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 
     // Ignore closed action here since we're already displaying a footer that explains why the report was closed
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && !isMarkAsClosedAction(reportAction)) {
-        return false;
-    }
-
-    // Ignore markedAsReimbursed action here since we're already display message that explains the expense was paid
-    // elsewhere in the IOU reportAction
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) {
         return false;
     }
 

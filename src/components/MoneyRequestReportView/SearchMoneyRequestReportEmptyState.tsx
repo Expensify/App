@@ -79,7 +79,6 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
                 headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                 headerMedia={LottieAnimations.GenericEmptyState}
                 title={translate('search.moneyRequestReport.emptyStateTitle')}
-                subtitle={canAddTransactionToReport ? translate('search.moneyRequestReport.emptyStateSubtitle') : ''}
                 headerStyles={[styles.emptyStateMoneyRequestReport]}
                 lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                 headerContentStyles={styles.emptyStateFolderWebStyles}
