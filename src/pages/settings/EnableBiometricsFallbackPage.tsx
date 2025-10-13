@@ -14,8 +14,6 @@ import AccountUtils from '@libs/AccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import type { MagicCodeInputHandle } from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import BigNumberPad from '@components/BigNumberPad';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import { isValidValidateCode, isValidTwoFactorCode} from '@libs/ValidationUtils';
@@ -27,6 +25,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearAccountMessages} from '@userActions/Session';
 import type { TranslationPaths } from '@src/languages/types';
 import {resendValidateCode} from '@userActions/User';
+import * as Illustrations from '@components/Icon/Illustrations';
 // TODO: Implement those API calls
 // import {verifyBiometricsMagicCode, verifyBiometrics2FA, verifyBiometricsSmsOtp} from '@userActions/User'; ?
 
@@ -46,12 +45,10 @@ function EnableBiometricsFallbackPage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     
     // Local state
     const [hasVerifiedMagicCode, setHasVerifiedMagicCode] = useState(false);
     const [inputCode, setInputCode] = useState('');
-    const [lastPressedDigit, setLastPressedDigit] = useState('');
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
@@ -153,13 +150,6 @@ function EnableBiometricsFallbackPage() {
     }, [hasError]);
 
     /**
-     * Update lastPressedDigit with value that was pressed on BigNumberPad.
-     */
-    const updateLastPressedDigit = useCallback((key: string) => {
-        setLastPressedDigit(lastPressedDigit === key ? lastPressedDigit + key : key);
-    }, [lastPressedDigit]);
-
-    /**
      * Handle code input and clear formError upon text change
      */
     const onCodeInput = useCallback((text: string) => {
@@ -220,10 +210,10 @@ function EnableBiometricsFallbackPage() {
             setFormError({});
 
             // TODO: Replace with actual action
-            // verifyBiometricsMagicCode(email, inputCode, preferredLocale);
+            // verifyBiometricsMagicCode(email, inputCode);
             console.log('Verifying magic code:', inputCode);
             
-            // Mock success - TODO: Remove this when API is connected
+            // Mock success - TODO: Replace this with actual API call to decide the succes of a verfication
             setTimeout(() => {
                 setHasVerifiedMagicCode(true);
                 setInputCode('');
@@ -298,9 +288,8 @@ function EnableBiometricsFallbackPage() {
         inputCode,
         hasVerifiedMagicCode,
         has2FAEnabled,
-        email,
-        phoneNumber,
-        preferredLocale,
+        // email,
+        // phoneNumber,
         hasPhoneNumber,
     ]);
 
@@ -392,7 +381,6 @@ function EnableBiometricsFallbackPage() {
                             autoComplete={currentStep === 'smsOtp' ? "sms-otp" : "one-time-code"}
                             name="enableBiometricsFallbackCode"
                             value={inputCode}
-                            lastPressedDigit={lastPressedDigit}
                             onChangeText={onCodeInput}
                             onFulfill={validateAndSubmitForm}
                             errorText={canShowError && formError.inputCode ? translate(formError.inputCode as TranslationPaths) : ''}
@@ -404,9 +392,9 @@ function EnableBiometricsFallbackPage() {
                         {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
                         {renderResendCodeButton()}
                     </View>
-                    <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pv0]}>
+                    {/* <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pv0]}>
                         {canUseTouchScreen() && <BigNumberPad numberPressed={updateLastPressedDigit} />}
-                    </View>
+                    </View> */}
                     <Button
                         success
                         large
@@ -419,6 +407,7 @@ function EnableBiometricsFallbackPage() {
                 </>
             ) : (
                 <ConfirmationPage
+                    illustration={Illustrations.OpenPadlock}
                     heading={translate('initialSettingsPage.troubleshoot.biometrics.notificationTitle')}
                     description={translate('initialSettingsPage.troubleshoot.biometrics.notificationFallbackContent')}
                     shouldShowButton
