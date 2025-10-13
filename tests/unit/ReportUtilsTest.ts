@@ -44,6 +44,7 @@ import {
     getDisplayNamesWithTooltips,
     getGroupChatName,
     getIconsForParticipants,
+    getIOUReportActionDisplayMessage,
     getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
     getParentNavigationSubtitle,
@@ -69,6 +70,7 @@ import {
     isReportOutstanding,
     isRootGroupChat,
     isSelfDMOrSelfDMThread,
+    isWorkspaceMemberLeavingWorkspaceRoom,
     parseReportRouteParams,
     populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
@@ -341,6 +343,37 @@ describe('ReportUtils', () => {
         return waitForBatchedUpdates();
     });
     beforeEach(() => IntlStore.load(CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
+
+    describe('getIOUReportActionDisplayMessage', () => {
+        const iouReportID = '1234567890';
+        const policyID = 332;
+
+        const reportAction = {
+            ...createRandomReportAction(44),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {IOUReportID: iouReportID, type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
+        };
+
+        const iouReport = {...createExpenseReport(Number(iouReportID)), policyID: policyID.toString()};
+
+        const policyWithBank = {
+            ...createRandomPolicy(policyID, CONST.POLICY.TYPE.TEAM),
+            achAccount: {
+                accountNumber: 'XXXXXXXXXXXX0000',
+            },
+        };
+
+        it('should return the right message when payment type is ACH', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithBank);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {[reportAction.reportActionID]: reportAction});
+
+            const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
+            const paidSystemMessage = translateLocal('iou.businessBankAccount', {amount: '', last4Digits});
+
+            expect(getIOUReportActionDisplayMessage(reportAction, undefined, iouReport)).toBe(paidSystemMessage);
+        });
+    });
 
     describe('prepareOnboardingOnyxData', () => {
         it('provides test drive url to task title', () => {
@@ -5747,7 +5780,8 @@ describe('ReportUtils', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspace.id}`, workspace);
 
-            const result = canUserPerformWriteAction(policyAnnounceRoom);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(policyAnnounceRoom.reportID));
+            const result = canUserPerformWriteAction(policyAnnounceRoom, isReportArchived.current);
 
             // Then it should return false
             expect(result).toBe(false);
@@ -7089,8 +7123,7 @@ describe('ReportUtils', () => {
             const transaction: Transaction = {
                 ...createRandomTransaction(12345),
                 reportID: parentReport.reportID,
-                created: '',
-                modifiedCreated: '',
+                amount: 0,
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
@@ -7115,8 +7148,7 @@ describe('ReportUtils', () => {
             const transaction: Transaction = {
                 ...createRandomTransaction(12345),
                 reportID: parentReport.reportID,
-                created: '',
-                modifiedCreated: '',
+                amount: 0,
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
@@ -7330,6 +7362,66 @@ describe('ReportUtils', () => {
             policy6.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY;
             const result = requiresManualSubmission(report, policy6);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('isWorkspaceMemberLeavingWorkspaceRoom', () => {
+        test('should return false when not a policy employee', () => {
+            const report = {
+                ...createRandomReport(1),
+                visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
+                isOwnPolicyExpenseChat: true,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, false, true)).toBe(false);
+        });
+
+        test('should return true for restricted room when policy employee', () => {
+            const report = {
+                ...createRandomReport(2),
+                visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(true);
+        });
+
+        test('should return true for policy expense chat when own chat and policy employee', () => {
+            const report = {
+                ...createRandomReport(3),
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                isOwnPolicyExpenseChat: true,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(true);
+        });
+
+        test('should return true for policy expense chat when policy admin and policy employee', () => {
+            const report = {
+                ...createRandomReport(4),
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                isOwnPolicyExpenseChat: false,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, true)).toBe(true);
+        });
+
+        test('should return false for non-restricted, non-policy expense chat', () => {
+            const report = {
+                ...createRandomReport(5),
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                isOwnPolicyExpenseChat: false,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(false);
+        });
+
+        test('should return false for non-restricted policy expense chat when not own chat and not admin', () => {
+            const report = {
+                ...createRandomReport(6),
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                isOwnPolicyExpenseChat: false,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(false);
         });
     });
 
