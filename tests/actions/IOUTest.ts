@@ -5695,15 +5695,17 @@ describe('actions/IOU', () => {
                 taxRates: CONST.DEFAULT_TAX,
                 rules: {expenseRules: createCategoryTaxExpenseRules(category, ruleTaxCode)},
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {
+            const draftTransaction: Transaction = {
+                ...createRandomTransaction(1),
                 taxCode,
                 taxAmount: 0,
                 amount: 100,
-            });
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, draftTransaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
             // When setting a category of a draft split transaction
-            setDraftSplitTransaction(transactionID, {category}, fakePolicy);
+            setDraftSplitTransaction(transactionID, draftTransaction, {category}, fakePolicy);
 
             await waitForBatchedUpdates();
 
@@ -5734,15 +5736,17 @@ describe('actions/IOU', () => {
                     taxRates: CONST.DEFAULT_TAX,
                     rules: {},
                 };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {
+                const draftTransaction: Transaction = {
+                    ...createRandomTransaction(1),
                     taxCode,
                     taxAmount,
                     amount: 100,
-                });
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, draftTransaction);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When setting a category of a draft split transaction
-                setDraftSplitTransaction(transactionID, {category}, fakePolicy);
+                setDraftSplitTransaction(transactionID, draftTransaction, {category}, fakePolicy);
 
                 await waitForBatchedUpdates();
 
@@ -5771,11 +5775,15 @@ describe('actions/IOU', () => {
                     taxRates: CONST.DEFAULT_TAX,
                     rules: {expenseRules: createCategoryTaxExpenseRules(category, ruleTaxCode)},
                 };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {amount: 100});
+                const draftTransaction: Transaction = {
+                    ...createRandomTransaction(1),
+                    amount: 100,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, draftTransaction);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When setting a draft split transaction without category update
-                setDraftSplitTransaction(transactionID, {}, fakePolicy);
+                setDraftSplitTransaction(transactionID, draftTransaction, {}, fakePolicy);
 
                 await waitForBatchedUpdates();
 
