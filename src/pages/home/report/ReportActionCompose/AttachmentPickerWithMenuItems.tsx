@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentPicker from '@components/AttachmentPicker';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
@@ -35,6 +35,7 @@ import {
     isPaidGroupPolicy,
     isPolicyExpenseChat,
     isReportOwner,
+    reportSummariesOnyxSelector,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -48,6 +49,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type MoneyRequestOptions = Record<
     Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>,
@@ -151,22 +153,16 @@ function AttachmentPickerWithMenuItems({
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
-
-    const hasEmptyReportSelector = useMemo(() => {
-        if (!report?.policyID || !accountID) {
-            return () => false;
-        }
-
-        return (reports: OnyxCollection<OnyxTypes.Report>) => hasEmptyReportsForPolicy(reports, report.policyID, accountID);
-    }, [accountID, report?.policyID]);
-
-    const [hasEmptyReport = false] = useOnyx(
+    const [reportSummaries = getEmptyArray<ReturnType<typeof reportSummariesOnyxSelector>[number]>()] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT,
         {
             canBeMissing: true,
-            selector: hasEmptyReportSelector,
+            selector: reportSummariesOnyxSelector,
         },
-        [hasEmptyReportSelector],
+    );
+    const hasEmptyReport = useMemo(
+        () => hasEmptyReportsForPolicy(reportSummaries, report?.policyID, accountID),
+        [accountID, report?.policyID, reportSummaries],
     );
 
     const selectOption = useCallback(
@@ -273,19 +269,7 @@ function AttachmentPickerWithMenuItems({
         );
 
         return moneyRequestOptionsList.flat().filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
-    }, [
-        translate,
-        shouldUseNarrowLayout,
-        report,
-        policy,
-        reportParticipantIDs,
-        selectOption,
-        isDelegateAccessRestricted,
-        showDelegateNoAccessModal,
-        isReportArchived,
-        lastDistanceExpenseType,
-        isRestrictedToPreferredPolicy,
-    ]);
+    }, [isDelegateAccessRestricted, isReportArchived, isRestrictedToPreferredPolicy, lastDistanceExpenseType, policy, report, reportParticipantIDs, selectOption, shouldUseNarrowLayout, showDelegateNoAccessModal, translate]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
         if (!isPolicyExpenseChat(report) || !isPaidGroupPolicy(report) || !isReportOwner(report)) {
@@ -300,7 +284,7 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => selectOption(() => handleCreateReport(), true),
             },
         ];
-    }, [handleCreateReport, report, selectOption, translate, isASAPSubmitBetaEnabled, hasViolations]);
+    }, [handleCreateReport, report, selectOption, shouldUseNarrowLayout, translate]);
 
     /**
      * Determines if we can show the task option

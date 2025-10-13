@@ -37,7 +37,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import Permissions from '@libs/Permissions';
 import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, getInferredWorkspacePolicy, isPaidGroupPolicy, isPolicyMember} from '@libs/PolicyUtils';
-import {generateReportID, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {generateReportID, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils, reportSummariesOnyxSelector} from '@libs/ReportUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -45,8 +45,9 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {IntroSelected, PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
+import type {IntroSelected, PersonalDetails, Policy, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import {accountIDSelector} from '@selectors/Session';
 
 type EmptySearchViewProps = {
@@ -90,6 +91,8 @@ const tripsFeatures: FeatureListItem[] = [
         translationKey: 'travel.features.alerts',
     },
 ];
+
+type ReportSummary = ReturnType<typeof reportSummariesOnyxSelector>[number];
 
 function EmptySearchView({similarSearchHash, type, groupBy, hasResults}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -198,22 +201,16 @@ function EmptySearchViewContent({
     const inferredWorkspaceID = inferredWorkspacePolicy?.id;
 
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
-
-    const hasEmptyReportSelector = useMemo(() => {
-        if (!inferredWorkspaceID || !accountID) {
-            return () => false;
-        }
-
-        return (reports: OnyxCollection<Report>) => hasEmptyReportsForPolicy(reports, inferredWorkspaceID, accountID);
-    }, [accountID, inferredWorkspaceID]);
-
-    const [hasEmptyReport = false] = useOnyx(
+    const [reportSummaries = getEmptyArray<ReportSummary>()] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT,
         {
             canBeMissing: true,
-            selector: hasEmptyReportSelector,
+            selector: reportSummariesOnyxSelector,
         },
-        [hasEmptyReportSelector],
+    );
+    const hasEmptyReport = useMemo(
+        () => hasEmptyReportsForPolicy(reportSummaries, inferredWorkspaceID, accountID),
+        [accountID, inferredWorkspaceID, reportSummaries],
     );
 
     const handleCreateWorkspaceReport = useCallback(() => {
@@ -514,10 +511,6 @@ function EmptySearchViewContent({
         defaultViewItemHeader,
         hasSeenTour,
         groupPoliciesWithChatEnabled,
-        activePolicy,
-        currentUserPersonalDetails,
-        isASAPSubmitBetaEnabled,
-        hasViolations,
         tripViewChildren,
         hasTransactions,
         shouldRedirectToExpensifyClassic,

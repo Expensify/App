@@ -8216,27 +8216,29 @@ function toReportEmptyStateSummary(report: Report | ReportEmptyStateSummary | un
         return undefined;
     }
 
-    return REPORT_EMPTY_STATE_SUMMARY_KEYS.reduce<ReportEmptyStateSummary>(
-        (summary, key) => ({
-            ...summary,
-            [key]: report[key],
-        }),
-        {} as ReportEmptyStateSummary,
-    );
+    const summary: Partial<ReportEmptyStateSummary> = {};
+    REPORT_EMPTY_STATE_SUMMARY_KEYS.forEach((key) => {
+        const value = report[key];
+        if (value === null || value === undefined) {
+            return;
+        }
+
+        summary[key] = value as ReportEmptyStateSummary[typeof key];
+    });
+
+    return summary as ReportEmptyStateSummary;
 }
 
-function getReportSummariesForEmptyCheck(
-    reports: OnyxCollection<Report> | Array<Report | ReportEmptyStateSummary | null | undefined> | undefined,
-): ReportEmptyStateSummary[] {
+function getReportSummariesForEmptyCheck(reports: OnyxCollection<Report> | Array<Report | ReportEmptyStateSummary | null | undefined> | undefined): ReportEmptyStateSummary[] {
     if (!reports) {
         return [];
     }
 
     const reportsArray = Array.isArray(reports) ? reports : Object.values(reports);
-    return reportsArray
-        .map((report) => toReportEmptyStateSummary(report as Report | ReportEmptyStateSummary | undefined))
-        .filter((summary): summary is ReportEmptyStateSummary => Boolean(summary));
+    return reportsArray.map((report) => toReportEmptyStateSummary(report as Report | ReportEmptyStateSummary | undefined)).filter((summary): summary is ReportEmptyStateSummary => !!summary);
 }
+
+const reportSummariesOnyxSelector = (reports: Parameters<typeof getReportSummariesForEmptyCheck>[0]) => getReportSummariesForEmptyCheck(reports);
 
 /**
  * Checks if there are any empty (no money) open expense reports for a specific policy and user.
@@ -8285,14 +8287,15 @@ function getPolicyIDsWithEmptyReportsForAccount(
     }
 
     const summaries = getReportSummariesForEmptyCheck(reports);
+    const policyLookup: Record<string, boolean> = {};
 
-    return summaries.reduce<Record<string, boolean>>((policyLookup, report) => {
+    summaries.forEach((report) => {
         if (!report.policyID || report.ownerAccountID !== accountID) {
-            return policyLookup;
+            return;
         }
 
         if (report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errors) {
-            return policyLookup;
+            return;
         }
 
         const hasNoMoney = (report.total ?? 0) === 0 && (report.nonReimbursableTotal ?? 0) === 0;
@@ -8301,9 +8304,9 @@ function getPolicyIDsWithEmptyReportsForAccount(
         if (hasNoMoney && isOpenExpense) {
             policyLookup[report.policyID] = true;
         }
+    });
 
-        return policyLookup;
-    }, {});
+    return policyLookup;
 }
 
 /**
@@ -12098,6 +12101,7 @@ export {
     getInvoicesChatName,
     getPayeeName,
     getReportSummariesForEmptyCheck,
+    reportSummariesOnyxSelector,
     getPolicyIDsWithEmptyReportsForAccount,
     hasActionWithErrorsForTransaction,
     hasAutomatedExpensifyAccountIDs,

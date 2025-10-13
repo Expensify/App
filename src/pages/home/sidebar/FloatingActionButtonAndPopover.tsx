@@ -49,7 +49,17 @@ import {
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
-import {generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {
+    generateReportID,
+    getDisplayNameForParticipant,
+    getIcons,
+    getReportName,
+    getWorkspaceChats,
+    hasEmptyReportsForPolicy,
+    hasViolations as hasViolationsReportUtils,
+    isPolicyExpenseChat,
+    reportSummariesOnyxSelector,
+} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
 import variables from '@styles/variables';
@@ -62,6 +72,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
@@ -113,6 +124,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [reportSummaries = getEmptyArray<ReturnType<typeof reportSummariesOnyxSelector>[number]>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        canBeMissing: true,
+        selector: reportSummariesOnyxSelector,
+    });
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
@@ -187,21 +202,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
     const inferredWorkspaceID = inferredWorkspacePolicy?.id;
 
-    const hasEmptyReportSelector = useMemo(() => {
-        if (!inferredWorkspaceID || !(session?.accountID)) {
-            return () => false;
-        }
-
-        return (reports: OnyxCollection<OnyxTypes.Report>) => hasEmptyReportsForPolicy(reports, inferredWorkspaceID, session.accountID);
-    }, [inferredWorkspaceID, session?.accountID]);
-
-    const [hasEmptyReportForInferredWorkspace = false] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT,
-        {
-            canBeMissing: true,
-            selector: hasEmptyReportSelector,
-        },
-        [hasEmptyReportSelector],
+    const hasEmptyReportForInferredWorkspace = useMemo(
+        () => hasEmptyReportsForPolicy(reportSummaries, inferredWorkspaceID, session?.accountID),
+        [inferredWorkspaceID, reportSummaries, session?.accountID],
     );
 
     const handleCreateWorkspaceReport = useCallback(() => {
