@@ -1795,8 +1795,15 @@ describe('SearchUIUtils', () => {
                 [`policy_${policyID}`]: searchResults.data[`policy_${policyID}`],
             };
 
-            const resultTransactionFirst = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, testDataTransactionFirst, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS);
-            const resultReportFirst = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, testDataReportFirst, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS);
+            const resultTransactionFirst = SearchUIUtils.getSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                testDataTransactionFirst,
+                2074551,
+                formatPhoneNumber,
+                {},
+                CONST.SEARCH.GROUP_BY.REPORTS,
+            );
+            const resultReportFirst = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, testDataReportFirst, 2074551, formatPhoneNumber, {}, CONST.SEARCH.GROUP_BY.REPORTS);
 
             expect(resultTransactionFirst).toBeDefined();
             expect(Array.isArray(resultTransactionFirst)).toBe(true);

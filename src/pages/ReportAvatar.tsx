@@ -30,7 +30,7 @@ function ReportAvatar({route}: ReportAvatarProps) {
         if (isUserCreatedPolicyRoom(report)) {
             return {
                 source: report?.avatarUrl ? getFullSizeAvatar(report.avatarUrl, 0) : undefined,
-                headerTitle: getReportName(report),
+                headerTitle: getReportName({report, policyTags}),
                 isWorkspaceAvatar: false,
             };
         }
