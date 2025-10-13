@@ -63,7 +63,6 @@ import * as ApiUtils from '@libs/ApiUtils';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
-import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
@@ -1833,7 +1832,8 @@ function saveReportDraft(reportID: string, report: Report) {
  * When empty string or null is passed, it will delete the draft comment from Onyx store.
  */
 function saveReportDraftComment(reportID: string, comment: string | null, callback: () => void = () => {}) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, prepareDraftComment(comment)).then(callback);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment || null).then(callback);
 }
 
 /** Broadcasts whether or not a user is typing on a report over the report's private pusher channel. */
