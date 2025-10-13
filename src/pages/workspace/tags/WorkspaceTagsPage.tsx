@@ -209,7 +209,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean, orderWeight: number) => {
-            setPolicyTagsRequired(policyID, value, orderWeight);
+            setPolicyTagsRequired({policyID, requiresTag: value, tagListIndex: orderWeight, policyTags});
         },
         [policyID],
     );
