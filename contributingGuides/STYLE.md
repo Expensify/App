@@ -33,6 +33,7 @@
     - [Functions](#functions)
     - [`var`, `const` and `let`](#var-const-and-let)
 - [Object / Array Methods](#object--array-methods)
+- [Asynchronous code](#asynchronous-code)
 - [Accessing Object Properties and Default Values](#accessing-object-properties-and-default-values)
 - [JSDocs](#jsdocs)
 - [Component props](#component-props)
@@ -858,6 +859,13 @@ const modifiedArray = _.chain(someArray)
 const modifiedArray = someArray.filter(filterFunc).map(mapFunc);
 ```
 
+## Asynchronous code
+
+- Prefer `async/await` over `.then/.catch` across the codebase. Use raw `Promise` only when wrapping callbacks or implementing deferred signals.
+- Use `Promise.all(...)` (or `Promise.allSettled(...)`) for work that can run in parallel.
+- In UI code, start unrelated async tasks at the same time (don’t wait for one to finish before starting another), and let the UI render immediately with loading states ([see data-binding](./philosophies/DATA-BINDING.md)). 
+- See the detailed [async philosophy document](./philosophies/ASYNC.md)
+
 ## Accessing Object Properties and Default Values
 
 Use optional chaining (`?.`) to safely access object properties and nullish coalescing (`??`) to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase. Don't use the `lodashGet()` function. eslint: [`no-restricted-imports`](https://eslint.org/docs/latest/rules/no-restricted-imports)
@@ -1005,10 +1013,6 @@ class Rey extends Jedi {
 JavaScript is always changing. We are excited whenever it does! However, we tend to take our time considering whether to adopt the latest and greatest language features. The main reason for this is **consistency**. We have a style guide so that we don't have to have endless conversations about how our code looks and can focus on how it runs.
 
 So, if a new language feature isn't something we have agreed to support it's off the table. Sticking to just one way to do things reduces cognitive load in reviews and also makes sure our knowledge of language features progresses at the same pace. If a new language feature will cause considerable effort for everyone to adapt to or we're just not quite sold on the value of it yet, we won't support it.
-
-Here are a couple of things we would ask that you *avoid* to help maintain consistency in our codebase:
-
-- **Async/Await** - Use the native `Promise` instead
 
 ## React Coding Standards
 
@@ -1185,44 +1189,6 @@ export default React.forwardRef(FancyInput)
 Use hooks whenever possible, avoid using HOCs.
 
 > Why? Hooks are easier to use (can be used inside the function component), and don't need nesting or `compose` when exporting the component. It also allows us to remove `compose` completely in some components since it has been bringing up some issues with TypeScript. Read the [`compose` usage](#compose-usage) section for further information about the TypeScript issues with `compose`.
-
-Onyx provides a `useOnyx` hook that should be used over the deprecated `withOnyx` HOC.
-
-```tsx
-// BAD
-type ComponentOnyxProps = {
-    session: OnyxEntry<Session>;
-};
-
-type ComponentProps = ComponentOnyxProps & {
-    someProp: string;
-};
-
-function Component({session, someProp}: ComponentProps) {
-    const {windowWidth, windowHeight} = useWindowDimensions();
-    const {translate} = useLocalize();
-    // component's code
-}
-
-export default withOnyx<ComponentProps, ComponentOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(Component);
-
-// GOOD
-type ComponentProps = {
-    someProp: string;
-};
-
-function Component({someProp}: ComponentProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION)
-
-    const {windowWidth, windowHeight} = useWindowDimensions();
-    const {translate} = useLocalize();
-    // component's code
-}
-```
 
 ### Stateless components vs Pure Components vs Class based components vs Render Props - When to use what?
 

@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
-import ExpensifyCardImage from '@assets/images/expensify-card.svg';
+import {InteractionManager, View} from 'react-native';
 import Badge from '@components/Badge';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
@@ -17,6 +16,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -51,11 +51,12 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const [isDeactivateModalVisible, setIsDeactivateModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage'] as const);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const [isDeleted, setIsDeleted] = useState(false);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
@@ -77,24 +78,15 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         openCardDetailsPage(Number(cardID));
     }, [cardID]);
 
-    useEffect(() => {
-        if (!isDeleted) {
-            return;
-        }
-        return () => {
-            deactivateCardAction(defaultFundID, card);
-        };
-    }, [isDeleted, defaultFundID, card]);
-
     const {isOffline} = useNetwork({onReconnect: fetchCardDetails});
 
     useEffect(() => fetchCardDetails(), [fetchCardDetails]);
 
     const deactivateCard = () => {
-        setIsDeleted(true);
         setIsDeactivateModalVisible(false);
-        requestAnimationFrame(() => {
-            Navigation.goBack();
+        Navigation.goBack();
+        InteractionManager.runAfterInteractions(() => {
+            deactivateCardAction(defaultFundID, card);
         });
     };
 
@@ -120,7 +112,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                     <View style={[styles.walletCard, styles.mb3]}>
                         <ImageSVG
                             contentFit="contain"
-                            src={ExpensifyCardImage}
+                            src={illustrations.ExpensifyCardImage}
                             pointerEvents="none"
                             height={variables.cardPreviewHeight}
                             width={variables.cardPreviewWidth}
@@ -197,7 +189,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         />
                     </OfflineWithFeedback>
                     <MenuItem
-                        icon={Expensicons.MoneySearch}
+                        icon={expensifyIcons.MoneySearch}
                         title={translate('workspace.common.viewTransactions')}
                         style={styles.mt3}
                         onPress={() => {
