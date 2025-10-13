@@ -5393,6 +5393,10 @@ function getReportName(
         return getUnreportedTransactionMessage();
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
+        return getMovedTransactionMessage(parentReportAction);
+    }
+
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
         return getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(parentReportAction);
     }

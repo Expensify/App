@@ -72,7 +72,7 @@ import {
     isTaskAction,
     isTransactionThread,
 } from './ReportActionsUtils';
-import type {OptionData} from './ReportUtils';
+import {getMovedTransactionMessage, OptionData} from './ReportUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
     excludeParticipantsForDisplay,
@@ -903,6 +903,8 @@ function getOptionData({
             result.alternateText = getTravelUpdateMessage(lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
             result.alternateText = Parser.htmlToText(getChangedApproverActionMessage(lastAction));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
+            result.alternateText = Parser.htmlToText(getMovedTransactionMessage(lastAction));
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0
