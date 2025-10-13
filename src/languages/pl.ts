@@ -856,6 +856,7 @@ const translations = {
         expand: 'Rozwiń',
     },
     reportActionContextMenu: {
+        copyToClipboard: 'Kopiuj do schowka',
         copyMessage: 'Skopiuj wiadomość',
         copied: 'Skopiowano!',
         copyLink: 'Skopiuj link',
@@ -1040,6 +1041,10 @@ const translations = {
     receipt: {
         upload: 'Prześlij paragon',
         uploadMultiple: 'Prześlij paragony',
+        dragReceiptBeforeEmail: 'Przeciągnij paragon na tę stronę, prześlij paragon do',
+        dragReceiptsBeforeEmail: 'Przeciągnij paragony na tę stronę, prześlij paragony na',
+        dragReceiptAfterEmail: 'lub wybierz plik do przesłania poniżej.',
+        dragReceiptsAfterEmail: 'lub wybierz pliki do przesłania poniżej.',
         desktopSubtitleSingle: `lub przeciągnij i upuść tutaj`,
         desktopSubtitleMultiple: `lub przeciągnij i upuść je tutaj`,
         chooseReceipt: 'Wybierz paragon do przesłania lub prześlij paragon do',
@@ -1555,10 +1560,7 @@ const translations = {
         subtitle: 'Włącz uwierzytelnianie dwuskładnikowe, aby zabezpieczyć swoje konto.',
         goToSecurity: 'Wróć do strony bezpieczeństwa',
     },
-    shareCodePage: {
-        title: 'Twój kod',
-        subtitle: 'Zaproś członków do Expensify, udostępniając swój osobisty kod QR lub link referencyjny.',
-    },
+    shareCodePage: {title: 'Twój kod', subtitle: 'Zaproś członków do Expensify, udostępniając swój osobisty kod QR lub link referencyjny.'},
     pronounsPage: {
         pronouns: 'Zaimek osobowy',
         isShownOnProfile: 'Twoje zaimki są wyświetlane na Twoim profilu.',
@@ -1569,8 +1571,8 @@ const translations = {
         contactMethods: 'Metody kontaktu',
         featureRequiresValidate: 'Ta funkcja wymaga weryfikacji konta.',
         validateAccount: 'Zweryfikuj swoje konto',
-        helpTextBeforeEmail: 'Dodaj więcej sposobów, aby ludzie mogli Cię znaleźć, i przekazuj paragony do',
-        helpTextAfterEmail: 'z wielu adresów e-mail.',
+        helpTextBeforeEmail: 'Dodaj więcej sposobów na przesyłanie paragonów. Prześlij je do',
+        helpTextAfterEmail: 'lub wyślij SMS na numer 47777 (tylko numery w USA).',
         pleaseVerify: 'Proszę zweryfikować tę metodę kontaktu',
         getInTouch: 'Kiedy będziemy musieli się z Tobą skontaktować, użyjemy tej metody kontaktu.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Proszę wprowadzić magiczny kod wysłany na ${contactMethod}. Powinien dotrzeć w ciągu minuty lub dwóch.`,
@@ -2012,9 +2014,10 @@ const translations = {
     workflowsPage: {
         workflowTitle: 'Wydatki',
         workflowDescription: 'Skonfiguruj przepływ pracy od momentu wystąpienia wydatku, w tym zatwierdzenie i płatność.',
+        delaySubmissionTitle: 'Opóźnij zgłoszenia',
+        delaySubmissionDescription: 'Wybierz niestandardowy harmonogram składania wydatków lub pozostaw to wyłączone, aby otrzymywać aktualizacje wydatków w czasie rzeczywistym.',
         submissionFrequency: 'Częstotliwość składania wniosków',
-        submissionFrequencyDescription:
-            'Wybierz niestandardowy harmonogram przesyłania wydatków lub pozostaw to wyłączone, aby otrzymywać aktualizacje w czasie rzeczywistym dotyczące wydatków.',
+        submissionFrequencyDescription: 'Wybierz częstotliwość przesyłania wydatków.',
         submissionFrequencyDateOfMonth: 'Data miesiąca',
         addApprovalsTitle: 'Dodaj zatwierdzenia',
         addApprovalButton: 'Dodaj przepływ pracy zatwierdzania',
@@ -6240,6 +6243,7 @@ const translations = {
         groupBy: 'Grupa według',
         moneyRequestReport: {
             emptyStateTitle: 'Ten raport nie zawiera wydatków.',
+            emptyStateSubtitle: 'Możesz dodać wydatki do tego raportu, używając przycisku poniżej lub opcji "Dodaj wydatek" w menu Więcej powyżej.',
         },
         noCategory: 'Brak kategorii',
         noTag: 'Brak tagu',
