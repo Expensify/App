@@ -375,7 +375,7 @@ function BaseVideoPlayer({
 
     // ensure that video loads after page refresh on iOS Safari
     useEffect(() => {
-        const videoElement = videoViewRef.current?.nativeRef.current as HTMLVideoElement;
+        const videoElement = videoViewRef.current?.nativeRef?.current as HTMLVideoElement;
         if (!videoElement || hasError || !isSafari()) {
             return;
         }
