@@ -1,9 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -15,19 +13,6 @@ import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils'
 // eslint-disable-next-line import/no-cycle
 import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
-
-let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allPolicyTags = {};
-            return;
-        }
-        allPolicyTags = value;
-    },
-});
 
 /**
  * Builds the partial message fragment for a modified field on the expense.
@@ -153,13 +138,17 @@ function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<t
     return type === CONST.REPORT.MOVE_TYPE.TO ? reportActionOriginalMessage?.movedToReportID : reportActionOriginalMessage?.movedFromReport;
 }
 
-function getMovedFromOrToReportMessage(movedFromReport: OnyxEntry<Report> | undefined, movedToReport: OnyxEntry<Report> | undefined): string | undefined {
+function getMovedFromOrToReportMessage(
+    movedFromReport: OnyxEntry<Report> | undefined,
+    movedToReport: OnyxEntry<Report> | undefined,
+    policyTags: OnyxEntry<PolicyTagLists>,
+): string | undefined {
     if (movedToReport) {
         return getForExpenseMovedFromSelfDM(movedToReport);
     }
 
     if (movedFromReport) {
-        const originReportName = getReportName(movedFromReport);
+        const originReportName = getReportName({report: movedFromReport, policyTags});
         return translateLocal('iou.movedFromReport', {reportName: originReportName ?? ''});
     }
 }
@@ -172,20 +161,20 @@ function getMovedFromOrToReportMessage(movedFromReport: OnyxEntry<Report> | unde
  */
 function getForReportAction({
     reportAction,
-    policyID,
     movedFromReport,
     movedToReport,
+    policyTags,
 }: {
     reportAction: OnyxEntry<ReportAction>;
-    policyID: string | undefined;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
+    policyTags: OnyxEntry<PolicyTagLists>;
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
 
-    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(movedFromReport, movedToReport);
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(movedFromReport, movedToReport, policyTags);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }
@@ -269,7 +258,6 @@ function getForReportAction({
 
     const hasModifiedTag = isReportActionOriginalMessageAnObject && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
-        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
         const transactionTag = reportActionOriginalMessage?.tag ?? '';
         const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
         const splittedTag = getTagArrayFromName(transactionTag);
@@ -278,7 +266,8 @@ function getForReportAction({
         const sortedTagKeys = getSortedTagKeys(policyTags);
 
         sortedTagKeys.forEach((policyTagKey, index) => {
-            const policyTagListName = policyTags[policyTagKey].name || localizedTagListName;
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const policyTagListName = policyTags?.[policyTagKey].name || localizedTagListName;
 
             const newTag = splittedTag.at(index) ?? '';
             const oldTag = splittedOldTag.at(index) ?? '';

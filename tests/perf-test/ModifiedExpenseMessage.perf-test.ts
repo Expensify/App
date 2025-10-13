@@ -41,7 +41,6 @@ const mockedReportsMap = getMockedReports(1000) as Record<`${typeof ONYXKEYS.COL
 const mockedPoliciesMap = getMockedPolicies(1000) as Record<`${typeof ONYXKEYS.COLLECTION.POLICY}`, Policy>;
 
 test('[ModifiedExpenseMessage] getForReportAction on 1k reports and policies', async () => {
-    const report = createRandomReport(1);
     const reportAction = {
         ...createRandomReportAction(1),
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
@@ -59,5 +58,5 @@ test('[ModifiedExpenseMessage] getForReportAction on 1k reports and policies', a
     });
 
     await waitForBatchedUpdates();
-    await measureFunction(() => getForReportAction({reportAction, policyID: report.policyID}));
+    await measureFunction(() => getForReportAction({reportAction, policyTags: {}}));
 });

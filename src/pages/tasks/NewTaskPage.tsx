@@ -41,9 +41,11 @@ function NewTaskPage({route}: NewTaskPageProps) {
         false,
         localeCompare,
     );
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
+    const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${task?.shareDestination}`];
     const shareDestination = useMemo(
-        () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare) : undefined),
-        [task?.shareDestination, reports, personalDetails, localeCompare],
+        () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare, reportPolicyTags) : undefined),
+        [task?.shareDestination, reports, personalDetails, localeCompare, reportPolicyTags],
     );
     const parentReport = useMemo(() => (task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined), [reports, task?.shareDestination]);
     const [errorMessage, setErrorMessage] = useState('');

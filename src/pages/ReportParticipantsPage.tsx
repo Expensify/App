@@ -79,6 +79,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const currentUserAccountID = Number(session?.accountID);
     const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = useMemo(() => isGroupChatUtils(report), [report]);
@@ -378,6 +379,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         },
         [report, isCurrentUserAdmin, isGroupChat, backTo],
     );
+
     const headerTitle = useMemo(() => {
         if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report) || isMoneyRequestReport(report) || isGroupChat) {
             return translate('common.members');
@@ -414,7 +416,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                             Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
                         }
                     }}
-                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, undefined, undefined, undefined, undefined, reportAttributes))}
+                    subtitle={StringUtils.lineBreaksToSpaces(getReportName({report, reportAttributes, policyTags}))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 <ConfirmModal

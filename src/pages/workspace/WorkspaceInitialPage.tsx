@@ -135,6 +135,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const {isOffline} = useNetwork();
     const wasRendered = useRef(false);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
     const currentUserPolicyExpenseChatReportID = getPolicyExpenseChat(accountID, policy?.id, allReports)?.reportID;
     const [currentUserPolicyExpenseChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentUserPolicyExpenseChatReportID}`, {canBeMissing: true});
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(currentUserPolicyExpenseChat);
@@ -524,7 +525,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                 shouldShowErrorMessages={false}
                             >
                                 <MenuItem
-                                    title={getReportName(currentUserPolicyExpenseChat)}
+                                    title={getReportName({report: currentUserPolicyExpenseChat, policyTags})}
                                     description={translate('workspace.common.workspace')}
                                     onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID))}
                                     shouldShowRightIcon

@@ -51,6 +51,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getTransactionThreadReportID(targetTransaction)}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const currentUserLogin = session?.email;
 
     useEffect(() => {
@@ -91,10 +92,10 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const headerContent = useMemo(
         () => (
             <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow]}>
-                <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge', {reportName: getReportName(transactionThreadReport ?? report)})} />
+                <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge', {reportName: getReportName({report: transactionThreadReport ?? report, policyTags})})} />
             </View>
         ),
-        [transactionThreadReport, report, translate, styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow],
+        [transactionThreadReport, report, translate, styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow, policyTags],
     );
 
     const subTitleContent = useMemo(() => {
