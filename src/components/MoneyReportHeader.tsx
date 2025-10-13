@@ -416,10 +416,20 @@ function MoneyReportHeader({
                 }
             } else if (isInvoiceReport) {
                 startAnimation();
-                payInvoice(type, chatReport, moneyRequestReport, introSelected, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod);
+                payInvoice(
+                    type,
+                    chatReport,
+                    moneyRequestReport,
+                    introSelected,
+                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    payAsBusiness,
+                    existingB2BInvoiceReport,
+                    methodID,
+                    paymentMethod,
+                );
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true);
+                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, undefined, true);
                 if (currentSearchQueryJSON) {
                     search({
                         searchKey: currentSearchKey,
@@ -440,6 +450,7 @@ function MoneyReportHeader({
             startAnimation,
             moneyRequestReport,
             introSelected,
+            session?.accountID,
             existingB2BInvoiceReport,
             currentSearchQueryJSON,
             currentSearchKey,

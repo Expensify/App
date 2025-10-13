@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import type {EmitterSubscription, View} from 'react-native';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
+import {useSession} from '@components/OnyxListItemProvider';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
@@ -57,6 +58,7 @@ function KYCWall({
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const {formatPhoneNumber} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     const anchorRef = useRef<HTMLDivElement | View>(null);
     const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
@@ -143,7 +145,7 @@ function KYCWall({
                     if (policyID && iouReport?.policyID) {
                         savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);
                     }
-                    completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, adminsChatReportID, policyID);
+                    completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, adminsChatReportID, policyID);
                     if (workspaceChatReportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReportID, reportPreviewReportActionID));
                     }
@@ -156,7 +158,7 @@ function KYCWall({
                 Navigation.navigate(bankAccountRoute);
             }
         },
-        [onSelectPaymentMethod, iouReport, addDebitCardRoute, addBankAccountRoute, chatReport, policies, introSelected, formatPhoneNumber, lastPaymentMethod],
+        [onSelectPaymentMethod, iouReport, addDebitCardRoute, addBankAccountRoute, chatReport, policies, introSelected, session?.accountID, formatPhoneNumber, lastPaymentMethod],
     );
 
     /**

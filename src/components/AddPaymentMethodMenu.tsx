@@ -77,9 +77,9 @@ function AddPaymentMethodMenu({
             return;
         }
 
-        completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected);
+        completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
         onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
-    }, [introSelected, introSelectedStatus, introSelectedStatus.status, isPersonalOnlyOption, isVisible, onItemSelected]);
+    }, [introSelected, introSelectedStatus, introSelectedStatus.status, isPersonalOnlyOption, isVisible, onItemSelected, session?.accountID]);
 
     if (isPersonalOnlyOption) {
         return null;
@@ -106,7 +106,7 @@ function AddPaymentMethodMenu({
                               text: translate('common.personalBankAccount'),
                               icon: Expensicons.Bank,
                               onSelected: () => {
-                                  completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected);
+                                  completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
                                   onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                               },
                           },

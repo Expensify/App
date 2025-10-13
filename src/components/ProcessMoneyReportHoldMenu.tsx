@@ -63,6 +63,7 @@ function ProcessMoneyReportHoldMenu({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     const onSubmit = (full: boolean) => {
         if (isApprove) {
@@ -74,7 +75,7 @@ function ProcessMoneyReportHoldMenu({
             if (startAnimation) {
                 startAnimation();
             }
-            payMoneyRequest(paymentType, chatReport, moneyRequestReport, introSelected, undefined, full);
+            payMoneyRequest(paymentType, chatReport, moneyRequestReport, introSelected, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, undefined, full);
         }
         onClose();
     };

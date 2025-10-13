@@ -210,6 +210,7 @@ function MoneyRequestReportPreviewContent({
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {canBeMissing: true});
 
     const hasReportBeenRetracted = hasReportBeenReopenedUtils(iouReport, reportActions) || hasReportBeenRetractedUtils(iouReport, reportActions);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
 
     // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     // Or if the report has been reopened or retracted
@@ -232,13 +233,13 @@ function MoneyRequestReportPreviewContent({
             } else if (chatReport && iouReport) {
                 startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
-                    payInvoice(type, chatReport, iouReport, introSelected, payAsBusiness, existingB2BInvoiceReport);
+                    payInvoice(type, chatReport, iouReport, introSelected, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, payAsBusiness, existingB2BInvoiceReport);
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport, introSelected);
+                    payMoneyRequest(type, chatReport, iouReport, introSelected, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
                 }
             }
         },
-        [isDelegateAccessRestricted, iouReport, chatReport, showDelegateNoAccessModal, startAnimation, introSelected, existingB2BInvoiceReport],
+        [isDelegateAccessRestricted, iouReport, chatReport, showDelegateNoAccessModal, startAnimation, introSelected, session?.accountID, existingB2BInvoiceReport],
     );
 
     const confirmApproval = () => {
