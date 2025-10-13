@@ -531,7 +531,7 @@ function MoneyRequestView({
     }, [transactionTag, previousTransactionTag]);
 
     const getAttendeesTitle = useMemo(() => {
-        return Array.isArray(actualAttendees) ? actualAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : ''};
+        return Array.isArray(actualAttendees) ? actualAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : '';
     }, [transactionAttendees]);
     const attendeesCopyValue = !canEdit ? getAttendeesTitle : undefined;
 
