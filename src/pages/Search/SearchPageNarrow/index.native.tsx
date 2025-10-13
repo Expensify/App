@@ -89,6 +89,7 @@ function SearchPageNarrow({
             offlineIndicatorStyle={styles.mtAuto}
             headerGapStyles={styles.searchHeaderGap}
             shouldShowOfflineIndicator={!!searchResults}
+            style={styles.scrollPaddingWhenNoBottomTab}
         >
             <SearchPageNarrowContent
                 queryJSON={queryJSON}
