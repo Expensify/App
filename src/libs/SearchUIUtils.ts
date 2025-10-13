@@ -1369,6 +1369,7 @@ function getReportSections(
     currentAccountID: number | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
+    queryJSON?: SearchQueryJSON,
 ): TransactionGroupListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
@@ -1378,7 +1379,11 @@ function getReportSections(
     // Get violations - optimize by using a Map for faster lookups
     const allViolations = getViolations(data);
 
-    const queryJSON = getCurrentSearchQueryJSON();
+    // Check if the current search is filtering by the Submit action
+    const isSubmitActionFilter = !!queryJSON?.flatFilters
+        ?.find((filterGroup) => filterGroup.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)
+        ?.filters?.some((filter) => filter.value === CONST.SEARCH.ACTION_FILTERS.SUBMIT);
+
     const reportIDToTransactions: Record<string, TransactionReportGroupListItemType> = {};
 
     const {reportKeys, transactionKeys} = Object.keys(data).reduce(
@@ -1415,6 +1420,15 @@ function getReportSections(
                     } else {
                         shouldShow = isValidExpenseStatus(status) ? expenseStatusActionMapping[status](reportItem) : false;
                     }
+                }
+            }
+
+            // Hiding reports from archived/deleted workspaces in Submit search
+            if (shouldShow && isSubmitActionFilter) {
+                const reportNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportItem.reportID}`];
+                const chatReportNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportItem.chatReportID}`];
+                if (isArchivedReport(reportNVP) || isArchivedReport(chatReportNVP)) {
+                    shouldShow = false;
                 }
             }
 
@@ -1631,7 +1645,7 @@ function getSections(
         // eslint-disable-next-line default-case
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.REPORTS:
-                return getReportSections(data, currentSearch, currentAccountID, formatPhoneNumber, reportActions);
+                return getReportSections(data, currentSearch, currentAccountID, formatPhoneNumber, reportActions, queryJSON);
             case CONST.SEARCH.GROUP_BY.FROM:
                 return getMemberSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.CARD:
