@@ -225,7 +225,6 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
     await waitForBatchedUpdatesWithAct();
 }
 
-// Skipping this test because it is flaky and will be fixed here https://github.com/Expensify/App/issues/70126
 describe('Unread Indicators', () => {
     beforeAll(() => {
         PusherHelper.setup();
