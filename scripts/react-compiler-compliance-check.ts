@@ -12,6 +12,7 @@ import {join} from 'path';
 import type {TupleToUnion} from 'type-fest';
 import CLI from './utils/CLI';
 import Git, {GIT_ERRORS} from './utils/Git';
+import type {DiffResult} from './utils/Git';
 import {bold, info, log, error as logError, success as logSuccess, note, warn} from './utils/Logger';
 
 const DEFAULT_REPORT_FILENAME = 'react-compiler-report.json';
@@ -327,6 +328,83 @@ function createFilesGlob(filesToCheck?: string[]): string | undefined {
     }
 
     return `**/+(${filesToCheck.join('|')})`;
+}
+
+/**
+ * Filters compiler results to only include failures for lines that were changed in the git diff.
+ * This helps focus on new issues introduced by the current changes rather than pre-existing issues.
+ *
+ * @param results - The compiler results to filter
+ * @param diffCommits - The commit range to diff (from and to)
+ * @returns Filtered compiler results containing only failures in changed lines
+ */
+function filterResultsByDiff(results: CompilerResults, diffCommits: {from: string; to: string}): CompilerResults {
+    info(`Filtering results by diff between ${diffCommits.from} and ${diffCommits.to}...`);
+
+    // Get the diff between the two commits
+    const diffResult: DiffResult = Git.diff(diffCommits.from, diffCommits.to);
+
+    // If there are no changes, return empty results
+    if (!diffResult.hasChanges) {
+        return {
+            success: new Set(),
+            failures: new Map(),
+        };
+    }
+
+    // Create a map of file paths to changed line numbers for quick lookup
+    const changedLinesMap = new Map<string, Set<number>>();
+    for (const file of diffResult.files) {
+        const changedLines = new Set<number>();
+
+        // Include all added lines
+        file.addedLines.forEach((line) => changedLines.add(line));
+
+        // Include all modified lines
+        file.modifiedLines.forEach((line) => changedLines.add(line));
+
+        changedLinesMap.set(file.filePath, changedLines);
+    }
+
+    // Filter failures to only include those on changed lines
+    const filteredFailures = new Map<string, CompilerFailure>();
+    results.failures.forEach((failure, key) => {
+        const changedLines = changedLinesMap.get(failure.file);
+
+        // If the file is not in the diff, skip this failure
+        if (!changedLines) {
+            return;
+        }
+
+        // If the failure has a line number, check if it's in the changed lines
+        if (failure.line !== undefined) {
+            const isLineChanged = changedLines.has(failure.line);
+            if (isLineChanged) {
+                filteredFailures.set(key, failure);
+            }
+            return;
+        }
+
+        // If there's no line number, include the failure if the file has changes
+        filteredFailures.set(key, failure);
+    });
+
+    // Filter success set to only include files that are in the diff
+    const changedFiles = new Set(diffResult.files.map((file) => file.filePath));
+    const filteredSuccess = new Set<string>();
+    results.success.forEach((file) => {
+        if (!changedFiles.has(file)) {
+            return;
+        }
+        filteredSuccess.add(file);
+    });
+
+    info(`Filtered ${results.failures.size} failures to ${filteredFailures.size} failures in changed lines.`);
+
+    return {
+        success: filteredSuccess,
+        failures: filteredFailures,
+    };
 }
 
 function printFailureSummary({success, failures}: CompilerResults): void {
