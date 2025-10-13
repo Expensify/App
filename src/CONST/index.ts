@@ -1200,6 +1200,7 @@ const CONST = {
                 EXPORTED_TO_CSV: 'EXPORTCSV', // OldDot Action
                 EXPORTED_TO_INTEGRATION: 'EXPORTINTEGRATION', // OldDot Action
                 EXPORTED_TO_QUICK_BOOKS: 'EXPORTED', // Deprecated OldDot Action
+                FIX_VIOLATION: 'FIXVIOLATION',
                 FORWARDED: 'FORWARDED', // OldDot Action
                 HOLD: 'HOLD',
                 HOLD_COMMENT: 'HOLDCOMMENT',
@@ -3777,6 +3778,7 @@ const CONST = {
     SEARCH_QUERY_LIMIT: 1000,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
     STATE_CHARACTER_LIMIT: 32,
+    REPORT_TITLE_FORMULA_LIMIT: 500,
 
     // Test receipt data
     TEST_RECEIPT: {
@@ -6856,6 +6858,7 @@ const CONST = {
                 id: 'policyPreventMemberChangingTitle' as const,
                 alias: 'policy-prevent-member-changing-title',
                 name: undefined,
+                icon: undefined,
             },
             categories: {
                 id: 'categories' as const,
@@ -7279,6 +7282,7 @@ const CONST = {
         SPLIT_EXPENSE: 'splitExpense',
         REVIEW_WORKSPACE_SETTINGS: 'reviewWorkspaceSettings',
         INVITE_ACCOUNTANT: 'inviteAccountant',
+        ADD_EXPENSE_APPROVALS: 'addExpenseApprovals',
     },
 } as const;
 
