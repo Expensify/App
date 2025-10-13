@@ -410,7 +410,7 @@ describe('SidebarLinksData', () => {
             expect(getOptionRows()).toHaveLength(0);
         });
 
-        it('display the report with last action is report preview will not change the current user personal detail', async () => {
+        it('should not change the current user personal detail when a report with last action is REPORTPREVIEW is displayed', async () => {
             // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
