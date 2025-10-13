@@ -1,6 +1,7 @@
 import type {PropsWithChildren, Ref} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView, ScrollViewProps} from 'react-native';
+import type {ScrollViewProps} from 'react-native';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports, no-restricted-imports
+import {ScrollView} from 'react-native';
 
 type ActionSheetAwareScrollViewProps = PropsWithChildren<ScrollViewProps> & {
     /** Whether to add top spacing for sticky content in inverted list */
