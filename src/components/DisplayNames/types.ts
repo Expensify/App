@@ -20,6 +20,9 @@ type DisplayNamesProps = ForwardedFSClassProps & {
     /** The full title of the DisplayNames component (not split up) */
     fullTitle: string;
 
+    /** If the full title needs to be parsed */
+    shouldParseFullTitle?: boolean;
+
     /** Array of objects that map display names to their corresponding tooltip */
     displayNamesWithTooltips?: DisplayNameWithTooltip[];
 
