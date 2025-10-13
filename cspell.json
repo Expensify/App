@@ -760,7 +760,9 @@
         "moveElemsAttrsToGroup",
         "removeHiddenElems",
         "moveGroupAttrsToElems",
-        "expensifycard"
+        "expensifycard",
+        "mple",
+        "Selec"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
