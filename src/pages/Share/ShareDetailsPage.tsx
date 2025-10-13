@@ -70,9 +70,9 @@ function ShareDetailsPage({
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);
     const showAttachmentModalScreen = useCallback(() => {
-        reportAttachmentsContext.setCurrentAttachment({headerTitle: originalFileName, originalFileName, fallbackSource: FallbackAvatar});
+        reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.ATTACHMENTS>({headerTitle: originalFileName, originalFileName, fallbackSource: FallbackAvatar});
         Navigation.navigate(
-            ROUTES.REPORT_ATTACHMENTS.getRoute({
+            ROUTES.ATTACHMENTS.getRoute({
                 source: currentAttachment?.content,
             }),
         );

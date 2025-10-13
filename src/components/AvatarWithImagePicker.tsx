@@ -235,14 +235,14 @@ function AvatarWithImagePicker({
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);
     const showAttachmentModalScreen = useCallback(() => {
-        reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.REPORT_ATTACHMENTS>({
+        reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.ATTACHMENTS>({
             source: previewSource,
             fallbackSource: fallbackIcon,
             headerTitle,
             originalFileName,
             maybeIcon: isUsingDefaultAvatar,
         });
-        Navigation.navigate(ROUTES.REPORT_ATTACHMENTS.getRoute());
+        Navigation.navigate(ROUTES.ATTACHMENTS.getRoute());
     }, [fallbackIcon, headerTitle, isUsingDefaultAvatar, originalFileName, previewSource, reportAttachmentsContext]);
     useLayoutEffect(() => {
         if (!anchorRef.current || !isMenuVisible) {
