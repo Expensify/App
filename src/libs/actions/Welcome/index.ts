@@ -44,7 +44,8 @@ let isOnboardingInProgress = false;
 function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: HasCompletedOnboardingFlowProps) {
     isOnboardingFlowStatusKnownPromise.then(() => {
         // Don't trigger onboarding if we are showing the require 2FA page
-        if (account && !!account.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth) {
+        const shouldShowRequire2FAPage = account && !!account.needsTwoFactorAuthSetup && (!account.requiresTwoFactorAuth || !!account.twoFactorAuthSetupInProgress);
+        if (shouldShowRequire2FAPage) {
             return;
         }
 

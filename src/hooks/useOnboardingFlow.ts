@@ -48,7 +48,10 @@ function useOnboardingFlowRouter() {
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector, canBeMissing: true});
     const {typeMenuSections} = useSearchTypeMenuSections();
-    const shouldShowRequire2FAPage = useMemo(() => !!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth, [account?.needsTwoFactorAuthSetup, account?.requiresTwoFactorAuth]);
+    const shouldShowRequire2FAPage = useMemo(
+        () => !!account?.needsTwoFactorAuthSetup && (!account?.requiresTwoFactorAuth || !!account?.twoFactorAuthSetupInProgress),
+        [account?.needsTwoFactorAuthSetup, account?.requiresTwoFactorAuth, account?.twoFactorAuthSetupInProgress],
+    );
 
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
