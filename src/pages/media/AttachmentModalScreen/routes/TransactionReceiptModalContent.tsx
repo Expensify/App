@@ -25,7 +25,7 @@ import type SCREENS from '@src/SCREENS';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
-    const {reportID = '', transactionID = '', action, iouType: iouTypeParam, readonly: readonlyParam, isFromReviewDuplicates: isFromReviewDuplicatesProp} = route.params;
+    const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, isFromReviewDuplicates: isFromReviewDuplicatesParam, mergeTransactionID} = route.params;
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -36,10 +36,12 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [reportMetadata = CONST.DEFAULT_REPORT_METADATA] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
 
     // If we have a merge transaction, we need to use the receipt from the merge transaction
-    const mergeTransactionID = route.params.mergeTransactionID;
     const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, {canBeMissing: true});
 
     const isDraftTransaction = !!action;
+    const draftTransactionID = isDraftTransaction ? transactionID : undefined;
+
+    // Determine which transaction to use based on the scenario
     const transaction = useMemo(() => {
         if (isDraftTransaction) {
             return transactionDraft;
@@ -56,13 +58,12 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
         return transactionMain;
     }, [isDraftTransaction, mergeTransaction, mergeTransactionID, transactionDraft, transactionMain]);
-    const draftTransactionID = isDraftTransaction ? transactionID : undefined;
-    const receiptURIs = getThumbnailAndImageURIs(transaction);
 
+    const receiptURIs = getThumbnailAndImageURIs(transaction);
     const isLocalFile = receiptURIs.isLocalFile;
     const isAuthTokenRequired = !isLocalFile && !isDraftTransaction;
     const readonly = readonlyParam === 'true';
-    const isFromReviewDuplicates = isFromReviewDuplicatesProp === 'true';
+    const isFromReviewDuplicates = isFromReviewDuplicatesParam === 'true';
     const source = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
