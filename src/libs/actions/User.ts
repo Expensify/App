@@ -1344,8 +1344,8 @@ function updateDraftCustomStatus(status: CustomStatusDraft) {
  * custom date
  * @param date
  */
-function updateDraftCustomStatusCustomMode(date: string) {
-    Onyx.set(ONYXKEYS.CUSTOM_STATUS_DRAFT_CUSTOM_MODE, date);
+function updateStatusDraftCustomClearAfterDate(date: string) {
+    Onyx.set(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE, date);
 }
 
 /**
@@ -1504,7 +1504,7 @@ export {
     updateCustomStatus,
     clearCustomStatus,
     updateDraftCustomStatus,
-    updateDraftCustomStatusCustomMode,
+    updateStatusDraftCustomClearAfterDate,
     clearDraftCustomStatus,
     requestRefund,
     setNameValuePair,

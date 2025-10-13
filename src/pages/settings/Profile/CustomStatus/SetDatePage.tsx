@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDatePassedError, getFieldRequiredErrors} from '@libs/ValidationUtils';
-import {updateDraftCustomStatusCustomMode} from '@userActions/User';
+import {updateStatusDraftCustomClearAfterDate} from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SettingsStatusClearDateForm';
@@ -24,11 +24,11 @@ type DateTime = {
 function SetDatePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [CustomStatusCustomMode, customStatusMetadata] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT_CUSTOM_MODE);
-    const customStatusDate = CustomStatusCustomMode ?? '';
+    const [statusDraftCustomClearAfterDate, statusDraftCustomClearAfterDateMetaData] = useOnyx(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE);
+    const customStatusClearAfterDate = statusDraftCustomClearAfterDate ?? '';
 
     const onSubmit = (value: DateTime) => {
-        updateDraftCustomStatusCustomMode(DateUtils.combineDateAndTime(customStatusDate, value.dateTime));
+        updateStatusDraftCustomClearAfterDate(DateUtils.combineDateAndTime(customStatusClearAfterDate, value.dateTime));
         Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
     };
 
@@ -43,7 +43,7 @@ function SetDatePage() {
         return errors;
     }, []);
 
-    if (isLoadingOnyxValue(customStatusMetadata)) {
+    if (isLoadingOnyxValue(statusDraftCustomClearAfterDateMetaData)) {
         return <FullScreenLoadingIndicator />;
     }
 
@@ -69,7 +69,7 @@ function SetDatePage() {
                     InputComponent={DatePicker}
                     inputID={INPUT_IDS.DATE_TIME}
                     label={translate('statusPage.date')}
-                    defaultValue={DateUtils.extractDate(customStatusDate)}
+                    defaultValue={DateUtils.extractDate(customStatusClearAfterDate)}
                     minDate={new Date()}
                     shouldUseDefaultValue
                     autoFocus
