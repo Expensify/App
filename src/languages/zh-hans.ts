@@ -670,6 +670,7 @@ const translations = {
         link: '链接',
         pinned: '已固定',
         read: '已读',
+        copyToClipboard: '复制到剪贴板',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -852,7 +853,7 @@ const translations = {
         expand: '展开',
     },
     reportActionContextMenu: {
-        copyToClipboard: '复制到剪贴板',
+        copyMessage: '复制消息',
         copied: '已复制！',
         copyLink: '复制链接',
         copyURLToClipboard: '复制网址到剪贴板',
@@ -2323,6 +2324,23 @@ const translations = {
                 title: ({testDriveURL}) => `进行[试驾](${testDriveURL})`,
                 description: ({testDriveURL}) => `进行[试驾](${testDriveURL})即可获得团队 *3 个月的 Expensify 免费使用权！*`,
             },
+            addExpenseApprovalsTask: {
+                title: '添加费用审批',
+                description: ({workspaceMoreFeaturesLink}) =>
+                    `*添加费用审批*，以便查看团队支出并保持控制。\n` +
+                    '\n' +
+                    `操作步骤如下：\n` +
+                    '\n' +
+                    '1. 前往 *工作区*。\n' +
+                    '2. 选择你的工作区。\n' +
+                    '3. 点击 *更多功能*。\n' +
+                    '4. 启用 *工作流*。\n' +
+                    '5. 在工作区编辑器中进入 *工作流*。\n' +
+                    '6. 启用 *添加审批*。\n' +
+                    `7. 你将被设置为费用审批人。邀请团队后，你可以将其更改为任意管理员。\n` +
+                    '\n' +
+                    `[前往更多功能](${workspaceMoreFeaturesLink})。`,
+            },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[创建](${workspaceConfirmationLink})一个工作区`,
                 description: '创建一个工作区，并在您的设置专家的帮助下配置各项设置！',
@@ -3689,6 +3707,18 @@ const translations = {
                 createEntitiesDescription: '如果供应商尚不存在，Expensify 将在 QuickBooks Desktop 中自动创建供应商。',
             },
             itemsDescription: '选择如何在Expensify中处理QuickBooks Desktop项目。',
+            accountingMethods: {
+                label: '何时导出',
+                description: '选择何时导出费用：',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '应计',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '现金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自付费用将在最终批准时导出',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自付费用将在支付时导出',
+                },
+            },
         },
         qbo: {
             connectedTo: '已连接到',
@@ -5461,6 +5491,11 @@ const translations = {
                 description: 'Expensify Travel 是一个新的企业差旅预订和管理平台，允许会员预订住宿、航班、交通等。',
                 onlyAvailableOnPlan: '旅行功能在 Collect 计划中提供，起价为',
             },
+            reports: {
+                title: '报告',
+                description: '报告允许您对费用进行分组，以便更容易地跟踪和整理。',
+                onlyAvailableOnPlan: '报告功能在 Collect 计划中提供，起价为 ',
+            },
             multiLevelTags: {
                 title: '多级标签',
                 description: '多级标签帮助您更精确地跟踪费用。为每个项目分配多个标签，例如部门、客户或成本中心，以捕获每笔费用的完整上下文。这使得更详细的报告、审批流程和会计导出成为可能。',
@@ -6087,7 +6122,6 @@ const translations = {
         groupBy: '组别',
         moneyRequestReport: {
             emptyStateTitle: '此报告没有费用。',
-            emptyStateSubtitle: '您可以使用下方按钮，或上方“更多”菜单中的“添加费用”选项，将费用添加到此报告中。',
         },
         noCategory: '无类别',
         noTag: '无标签',

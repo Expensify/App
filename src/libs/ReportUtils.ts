@@ -199,7 +199,6 @@ import {
     isApprovedOrSubmittedReportAction,
     isCardIssuedAction,
     isCreatedTaskReportAction,
-    isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
     isExportIntegrationAction,
@@ -3470,6 +3469,26 @@ function getIconsForInvoiceReport(
 }
 
 /**
+ * Helper function to get the icons for a user-created policy room. Only to be used in getIcons().
+ */
+function getIconsForUserCreatedPolicyRoom(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): Icon[] {
+    if (!report) {
+        return [];
+    }
+    if (report?.avatarUrl) {
+        return [
+            {
+                source: report.avatarUrl,
+                type: CONST.ICON_TYPE_WORKSPACE,
+                name: getReportName(report),
+                id: report?.policyID,
+            },
+        ];
+    }
+    return [getWorkspaceIcon(report, policy)];
+}
+
+/**
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
  */
@@ -3504,6 +3523,9 @@ function getIcons(
     }
     if (isDomainRoom(report)) {
         return getIconsForDomainRoom(report);
+    }
+    if (isUserCreatedPolicyRoom(report)) {
+        return getIconsForUserCreatedPolicyRoom(report, policy);
     }
     if (isAdminRoom(report) || isAnnounceRoom(report) || isChatRoom(report) || (isArchivedNonExpenseReport(report, isReportArchived) && !chatIncludesConcierge(report))) {
         return getIconsForPolicyRoom(report, personalDetails, policy, invoiceReceiverPolicy);
@@ -4447,13 +4469,11 @@ function canEditFieldOfMoneyRequest(
         // Unreported transaction from OldDot can have the reportID as an empty string
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
-        const isUserWorkspaceMember = getActivePolicies(allPolicies ?? {}, currentUserEmail).filter((userPolicy) => isPaidGroupPolicyPolicyUtils(userPolicy)).length;
-
-        if (isUnreportedExpense && isUserWorkspaceMember) {
+        if (isUnreportedExpense) {
             return true;
         }
 
-        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID) && !isUnreportedExpense) {
+        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID)) {
             return false;
         }
 
@@ -4463,7 +4483,7 @@ function canEditFieldOfMoneyRequest(
         }
         const isOwner = moneyRequestReport?.ownerAccountID === currentUserAccountID;
 
-        if (isInvoiceReport(moneyRequestReport) && !isUnreportedExpense) {
+        if (isInvoiceReport(moneyRequestReport)) {
             return (
                 getOutstandingReportsForUser(
                     moneyRequestReport?.policyID,
@@ -4480,14 +4500,12 @@ function canEditFieldOfMoneyRequest(
             return false;
         }
 
-        return isUnreportedExpense
-            ? Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-                  getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
-              ).length > 0
-            : Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-                  getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
-              ).length > 1 ||
-                  (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID));
+        return (
+            Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
+                getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
+            ).length > 1 ||
+            (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID))
+        );
     }
 
     const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -8344,6 +8362,28 @@ function isReportNotFound(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * The <ReportActionsListItemRenderer> does not render some ancestor report actions in a thread.
+ * So we exclude report-preview action, transaction-thread action unless it is a sent-money action and
+ * trip-preview action that is the first ancestor report action in the hierarchy.
+ *
+ * @param ancestorReportAction - The ancestor report action we determine whether it should be excluded
+ * @param isFirstAncestor - Whether it is the first report action in the hierarchy
+ * @returns boolean - true if the ancestor report action should be excluded, false otherwise
+ */
+function shouldExcludeAncestorReportAction(ancestorReportAction: ReportAction, isFirstAncestor: boolean): boolean {
+    if (isTripPreview(ancestorReportAction)) {
+        return !isFirstAncestor;
+    }
+
+    // Exclude transaction threads except sent-money actions
+    if (isTransactionThread(ancestorReportAction)) {
+        return !isSentMoneyReportAction(ancestorReportAction);
+    }
+
+    return isReportPreviewAction(ancestorReportAction);
+}
+
+/**
  * Check if the report is the parent report of the currently viewed report or at least one child report has report action
  */
 function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string | undefined, isReportArchived = false): boolean {
@@ -9937,41 +9977,6 @@ function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, repor
         (isWhisperActionLocal && !isReportPreviewActionLocal && !isIOUAction) ||
         isThreadReportParentAction
     );
-}
-
-function getAllAncestorReportActions(report: Report | null | undefined, currentUpdatedReport?: OnyxEntry<Report>): Ancestor[] {
-    if (!report) {
-        return [];
-    }
-    const allAncestors: Ancestor[] = [];
-    let parentReportID = report.parentReportID;
-    let parentReportActionID = report.parentReportActionID;
-
-    while (parentReportID) {
-        const parentReport = currentUpdatedReport && currentUpdatedReport.reportID === parentReportID ? currentUpdatedReport : getReportOrDraftReport(parentReportID);
-        const parentReportAction = getReportAction(parentReportID, parentReportActionID);
-
-        if (!parentReport || !parentReportAction || (isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction)) || isReportPreviewAction(parentReportAction)) {
-            break;
-        }
-
-        // For threads, we don't want to display trip summary
-        if (isTripPreview(parentReportAction) && allAncestors.length > 0) {
-            break;
-        }
-
-        const isParentReportActionUnread = isCurrentActionUnread(parentReport, parentReportAction);
-        allAncestors.push({
-            report: parentReport,
-            reportAction: parentReportAction,
-            shouldDisplayNewMarker: isParentReportActionUnread,
-        });
-
-        parentReportID = parentReport?.parentReportID;
-        parentReportActionID = parentReport?.parentReportActionID;
-    }
-
-    return allAncestors.reverse();
 }
 
 function getAllAncestorReportActionIDs(report: Report | null | undefined, includeTransactionThread = false): AncestorIDs {
@@ -11890,6 +11895,19 @@ function getReportStatusTranslation(stateNum?: number, statusNum?: number): stri
     return '';
 }
 
+/**
+ * Checks if a workspace member is leaving a workspace room
+ * This is used to determine if we need to show special handling when a workspace member leaves a room
+ */
+function isWorkspaceMemberLeavingWorkspaceRoom(report: OnyxEntry<Report>, isPolicyEmployee: boolean, isPolicyAdminParam: boolean): boolean {
+    if (!report) {
+        return false;
+    }
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const hasAccessPolicyExpenseChat = isPolicyExpenseChat(report) && (report.isOwnPolicyExpenseChat || isPolicyAdminParam);
+    return (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || hasAccessPolicyExpenseChat) && isPolicyEmployee;
+}
+
 function getReportURLForCurrentContext(reportID: string | undefined): string {
     if (!reportID) {
         return `${environmentURL}/r/`;
@@ -12022,7 +12040,6 @@ export {
     generateReportID,
     getCreationReportErrors,
     getAllAncestorReportActionIDs,
-    getAllAncestorReportActions,
     getAllHeldTransactions,
     getAllPolicyReports,
     getAllWorkspaceReports,
@@ -12211,6 +12228,7 @@ export {
     isValidReportIDFromPath,
     isWaitingForAssigneeToCompleteAction,
     isWaitingForSubmissionFromCurrentUser,
+    isWorkspaceMemberLeavingWorkspaceRoom,
     isInvoiceRoom,
     isInvoiceRoomWithID,
     isInvoiceReport,
@@ -12290,6 +12308,7 @@ export {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     hasInvoiceReports,
     shouldUnmaskChat,
+    shouldExcludeAncestorReportAction,
     getReportMetadata,
     buildOptimisticSelfDMReport,
     isHiddenForCurrentUser,
