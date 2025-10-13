@@ -16,7 +16,7 @@ function RadioListItem<TItem extends ListItem>({
     onDismissError,
     shouldPreventEnterKeySubmit,
     rightHandSideComponent,
-    isMultilineSupported = true,
+    isMultilineSupported = false,
     isAlternateTextMultilineSupported = false,
     alternateTextNumberOfLines = 2,
     onFocus,
@@ -29,6 +29,9 @@ function RadioListItem<TItem extends ListItem>({
     const indentsLength = (item.text?.length ?? 0) - (fullTitle?.length ?? 0);
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
     const alternateTextMaxWidth = variables.sideBarWidth - styles.ph5.paddingHorizontal * 2 - styles.ml3.marginLeft - variables.iconSizeNormal;
+    console.log('****** paddingLeft ******', paddingLeft);
+
+    console.log('****** !!rightHandSideComponent ******', !!rightHandSideComponent);
 
     return (
         <BaseListItem
@@ -48,7 +51,7 @@ function RadioListItem<TItem extends ListItem>({
         >
             <>
                 {!!item.leftElement && item.leftElement}
-                <View style={[styles.flex1, styles.alignItemsStart]}>
+                <View style={[styles.flex1, styles.alignItemsStart, !!rightHandSideComponent && styles.pr2]}>
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
                         text={fullTitle ?? ''}
