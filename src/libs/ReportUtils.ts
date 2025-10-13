@@ -8409,9 +8409,12 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
         if (!potentialReport) {
             return false;
         }
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${potentialReport.policyID}`];
+        const transactions = getReportTransactions(potentialReport.reportID);
 
         return (
             !isInvoiceReport(potentialReport) &&
+            ViolationsUtils.hasVisibleViolationsForUser(potentialReport, transactionViolations, policy, transactions) &&
             (hasViolations(potentialReport.reportID, transactionViolations, true) ||
                 hasWarningTypeViolations(potentialReport.reportID, transactionViolations, true) ||
                 hasNoticeTypeViolations(potentialReport.reportID, transactionViolations, true))
