@@ -167,6 +167,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const prevIsPendingDelete = usePrevious(isPendingDelete);
     const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
     const policyLastErrorMessage = getLatestErrorMessage(policy);
+    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
 
     const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {
@@ -175,7 +176,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         openPolicyProfilePage(route.params.policyID);
     }, [policyDraft?.id, route.params.policyID]);
 
-    useNetwork({onReconnect: fetchPolicyData});
+    const {isOffline} = useNetwork({onReconnect: fetchPolicyData});
 
     // We have the same focus effect in the WorkspaceInitialPage, this way we can get the policy data in narrow
     // as well as in the wide layout when looking at policy settings.
@@ -247,8 +248,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
 
+        if (isOffline) {
+            setShouldShowOfflineModal(true);
+            return;
+        }
+
         setIsDeleteModalOpen(true);
-    }, [setIsDeletingPaidWorkspace]);
+    }, [isOffline, setIsDeletingPaidWorkspace]);
 
     const handleBackButtonPress = () => {
         if (isComingFromGlobalReimbursementsFlow) {
@@ -555,6 +561,15 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         confirmText={translate('common.buttonConfirm')}
                         shouldShowCancelButton={false}
                         success={false}
+                    />
+                    <ConfirmModal
+                        title={translate('common.youAppearToBeOffline')}
+                        isVisible={shouldShowOfflineModal}
+                        onConfirm={() => setShouldShowOfflineModal(false)}
+                        onCancel={() => setShouldShowOfflineModal(false)}
+                        confirmText={translate('common.buttonConfirm')}
+                        prompt={translate('common.offlinePrompt')}
+                        shouldShowCancelButton={false}
                     />
                 </View>
             )}

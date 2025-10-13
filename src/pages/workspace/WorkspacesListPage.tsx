@@ -140,6 +140,7 @@ function WorkspacesListPage() {
     const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyIDToDelete);
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
     const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
+    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
 
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
 
@@ -300,6 +301,13 @@ function WorkspacesListPage() {
                             return;
                         }
 
+                        if (isOffline) {
+                            setPolicyIDToDelete(undefined);
+                            setPolicyNameToDelete(undefined);
+                            setShouldShowOfflineModal(true);
+                            return;
+                        }
+
                         setIsDeleteModalOpen(true);
                     },
                     shouldKeepModalOpen: shouldCalculateBillNewDot,
@@ -379,6 +387,7 @@ function WorkspacesListPage() {
             isLoadingBill,
             resetLoadingSpinnerIconIndex,
             isRestrictedToPreferredPolicy,
+            isOffline,
         ],
     );
 
@@ -623,6 +632,15 @@ function WorkspacesListPage() {
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
                 success={false}
+            />
+            <ConfirmModal
+                title={translate('common.youAppearToBeOffline')}
+                isVisible={shouldShowOfflineModal}
+                onConfirm={() => setShouldShowOfflineModal(false)}
+                onCancel={() => setShouldShowOfflineModal(false)}
+                confirmText={translate('common.buttonConfirm')}
+                prompt={translate('common.offlinePrompt')}
+                shouldShowCancelButton={false}
             />
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         </ScreenWrapper>
