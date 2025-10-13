@@ -282,6 +282,10 @@ function parseVerboseOutput(lines: string[], results: CompilerResults): Compiler
 }
 
 function shouldSuppressCompilerError(reason: string | undefined): boolean {
+    if (!reason) {
+        return false;
+    }
+
     // Check if the error reason matches any of the suppressed error patterns
     return SUPPRESSED_COMPILER_ERRORS.some((suppressedError) => reason.includes(suppressedError));
 }
