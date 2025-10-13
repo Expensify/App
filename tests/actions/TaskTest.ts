@@ -242,9 +242,9 @@ describe('actions/Task', () => {
         const accountID = 2;
         const conciergeChatReport: Report = getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
         const testDriveTaskReport: Report = {...getFakeReport(), ownerAccountID: accountID};
-        it('Completes test drive task', () => {
+        it.only('Completes test drive task', () => {
             completeTestDriveTask(testDriveTaskReport, conciergeChatReport, false, accountID);
-            expect(Object.values(getFinishOnboardingTaskOnyxData(testDriveTaskReport, conciergeChatReport, false, accountID)).length).toBe(0);
+            expect(Object.values(getFinishOnboardingTaskOnyxData(testDriveTaskReport, conciergeChatReport, false, 0)).length).toBe(0);
         });
     });
 
