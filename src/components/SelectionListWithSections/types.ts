@@ -1,4 +1,4 @@
-import type {ForwardedRef, JSXElementConstructor, MutableRefObject, ReactElement, ReactNode} from 'react';
+import type {ForwardedRef, JSXElementConstructor, ReactElement, ReactNode, RefObject} from 'react';
 import type {
     GestureResponderEvent,
     InputModeOptions,
@@ -798,8 +798,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     alternateTextNumberOfLines?: number;
 
     /** Ref for textInput */
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    textInputRef?: MutableRefObject<TextInput | null> | ((ref: TextInput | null) => void);
+    textInputRef?: RefObject<TextInput | null> | ((ref: TextInput | null) => void);
 
     /** Styles for the section title */
     sectionTitleStyles?: StyleProp<ViewStyle>;

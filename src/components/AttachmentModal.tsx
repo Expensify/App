@@ -495,7 +495,7 @@ function AttachmentModal({
                                     attachmentID={attachmentID}
                                     report={report}
                                     onNavigate={onNavigate}
-                                    onClose={closeModal}
+                                    onSwipeDown={closeModal}
                                     source={source}
                                     setDownloadButtonVisibility={setDownloadButtonVisibility}
                                     attachmentLink={currentAttachmentLink}

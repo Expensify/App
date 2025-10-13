@@ -40,11 +40,12 @@ jest.mock('@libs/NextStepUtils', () => ({
     buildNextStepNew: jest.fn(),
 }));
 
+const MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID = '1234';
 jest.mock('@libs/ReportUtils', () => {
     const originalModule = jest.requireActual<Report>('@libs/ReportUtils');
     return {
         ...originalModule,
-        getPolicyExpenseChat: jest.fn().mockReturnValue({reportID: '1234', hasOutstandingChildRequest: false}),
+        getPolicyExpenseChat: jest.fn().mockImplementation(() => ({reportID: MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID, hasOutstandingChildRequest: false})),
     };
 });
 
@@ -2097,6 +2098,37 @@ describe('actions/Report', () => {
             // Then the new policy data should also be populated on the current search snapshot.
             expect(snapshotData?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]).toBeDefined();
         });
+
+        it('should update the chatReportID and parentReportID to the new policy expense chat report ID', async () => {
+            // Given an expense report
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+                chatReportID: '2',
+                parentReportID: '2',
+            };
+
+            const newPolicy = createRandomPolicy(2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+
+            // When moving to another workspace
+            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', false, false);
+            await waitForBatchedUpdates();
+
+            // Then the expense report chatReportID and parentReportID should be updated to the new expense chat reportID
+            const expenseReport2 = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+            expect(expenseReport2?.chatReportID).toBe(MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID);
+            expect(expenseReport2?.parentReportID).toBe(MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID);
+        });
     });
 
     describe('changeReportPolicyAndInviteSubmitter', () => {
@@ -2414,5 +2446,43 @@ describe('actions/Report', () => {
             const lowerCaseRequest = PersistedRequests.getAll().at(1);
             expect(upperCaseRequest?.data?.searchInput).toBe(lowerCaseRequest?.data?.searchInput);
         });
+    });
+
+    it('should not overwrite testDriveModalDismissed when it is already true', async () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@test.com';
+
+        await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {testDriveModalDismissed: true});
+        await waitForBatchedUpdates();
+
+        const adminsChatReportID = '7957055873634067';
+        const onboardingPolicyID = 'A70D00C752416807';
+        const engagementChoice = CONST.INTRO_CHOICES.MANAGE_TEAM;
+        const {onboardingMessages} = getOnboardingMessages();
+
+        Report.completeOnboarding({
+            engagementChoice,
+            onboardingMessage: onboardingMessages[engagementChoice],
+            adminsChatReportID,
+            onboardingPolicyID,
+            companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            userReportedIntegration: null,
+        });
+
+        await waitForBatchedUpdates();
+
+        const onboarding = await new Promise<OnyxEntry<OnyxTypes.Onboarding>>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.NVP_ONBOARDING,
+                callback: (data) => {
+                    Onyx.disconnect(connection);
+                    resolve(data);
+                },
+            });
+        });
+
+        // testDriveModalDismissed should remain true and not be overwritten to false
+        expect(onboarding?.testDriveModalDismissed).toBe(true);
     });
 });

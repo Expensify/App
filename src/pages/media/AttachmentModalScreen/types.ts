@@ -11,15 +11,26 @@ import type {AttachmentModalBaseContentProps} from './AttachmentModalBaseContent
  */
 
 type AttachmentModalContainerModalProps = {
+    /** The type of the modal */
     modalType?: ModalType;
+
+    /** Callback to fire when the modal is shown */
     onShow?: () => void;
+
+    /** Callback to fire when the modal is closed */
     onClose?: () => void;
+
+    /** Whether to handle navigation back */
     shouldHandleNavigationBack?: boolean;
+
+    /** Extra modals to be displayed in the modal */
+    ExtraContent?: React.ReactNode;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const ATTACHMENT_MODAL_SCREENS = [
     SCREENS.ATTACHMENTS,
+    SCREENS.REPORT_ADD_ATTACHMENT,
     SCREENS.REPORT_AVATAR,
     SCREENS.PROFILE_AVATAR,
     SCREENS.WORKSPACE_AVATAR,

@@ -106,7 +106,10 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: {
         backTo?: Routes;
-        forwardTo?: Routes;
+    };
+    [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE]: {
+        newContactMethod: string;
+        backTo?: Routes;
     };
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: {
         backTo?: Routes;
@@ -1206,6 +1209,7 @@ type ProfileNavigatorParamList = {
 type NewReportWorkspaceSelectionNavigatorParamList = {
     [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: {
         isMovingExpenses?: boolean;
+        backTo?: Routes;
     };
 };
 
@@ -2188,7 +2192,22 @@ type AttachmentModalScreensParamList = {
         maybeIcon?: boolean;
         file?: FileObject;
         shouldDisableSendButton?: boolean;
-        onConfirm?: (file: FileObject) => void;
+    };
+    [SCREENS.REPORT_ADD_ATTACHMENT]: AttachmentModalContainerModalProps & {
+        reportID?: string;
+        accountID?: number;
+        attachmentID?: string;
+        source?: AvatarSource;
+        file?: FileObject | FileObject[];
+        dataTransferItems?: DataTransferItem[];
+        type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+        isAuthTokenRequired?: boolean;
+        originalFileName?: string;
+        attachmentLink?: string;
+        hashKey?: number;
+        headerTitle?: string;
+        shouldDisableSendButton?: boolean;
+        onConfirm?: (file: FileObject | FileObject[]) => void;
     };
     [SCREENS.PROFILE_AVATAR]: AttachmentModalContainerModalProps & {
         accountID: number;
