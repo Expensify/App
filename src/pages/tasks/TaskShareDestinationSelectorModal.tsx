@@ -1,29 +1,29 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/UserListItem';
-import useDebouncedState from '@hooks/useDebouncedState';
+import SelectionList from '@components/SelectionListWithSections';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useReportIsArchived from '@hooks/useReportIsArchived';
+import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {filterAndOrderOptions, getHeaderMessage, getShareDestinationOptions} from '@libs/OptionsListUtils';
+import {getHeaderMessage} from '@libs/OptionsListUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
-import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport} from '@libs/ReportUtils';
+import {canCreateTaskInReport, canUserPerformWriteAction, isArchivedReport, isCanceledTaskReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {setShareDestinationValue} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportNameValuePairs} from '@src/types/onyx';
 
 const selectReportHandler = (option: unknown) => {
     HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
@@ -37,69 +37,73 @@ const selectReportHandler = (option: unknown) => {
     Navigation.goBack(ROUTES.NEW_TASK.getRoute());
 };
 
-const reportFilter = (reportOptions: Array<SearchOption<Report>>) =>
+const reportFilter = (reportOptions: Array<SearchOption<Report>>, archivedReportsIDList: ArchivedReportsIDSet) =>
     (reportOptions ?? []).reduce((filtered: Array<SearchOption<Report>>, option) => {
         const report = option.item;
-        const isReportArchived = useReportIsArchived(report?.reportID);
+        const isReportArchived = archivedReportsIDList.has(report?.reportID);
         if (canUserPerformWriteAction(report, isReportArchived) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
             filtered.push(option);
         }
         return filtered;
     }, []);
 
+const archivedReportsIdSetSelector = (all?: OnyxCollection<ReportNameValuePairs>): ArchivedReportsIDSet => {
+    const ids = new Set<string>();
+    if (!all) {
+        return ids;
+    }
+
+    const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
+    for (const [key, value] of Object.entries(all)) {
+        if (isArchivedReport(value)) {
+            const reportID = key.slice(prefixLength);
+            ids.add(reportID);
+        }
+    }
+    return ids;
+};
+
 function TaskShareDestinationSelectorModal() {
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const styles = useThemeStyles();
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const {options: optionList, areOptionsInitialized} = useOptionsList({
+
+    const {searchTerm, setSearchTerm, availableOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
+        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
+        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION,
+        includeUserToInvite: false,
+        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         shouldInitialize: didScreenTransitionEnd,
+        onSingleSelect: selectReportHandler,
     });
+
+    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        canBeMissing: true,
+        selector: archivedReportsIdSetSelector,
+    });
+
+    const filteredOptions = useMemo(() => {
+        const filteredReports = reportFilter(availableOptions.recentReports as Array<SearchOption<Report>>, archivedReportsIdSet);
+        return {
+            ...availableOptions,
+            recentReports: filteredReports ?? [],
+        };
+    }, [availableOptions, archivedReportsIdSet]);
 
     const textInputHint = useMemo(() => (isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''), [isOffline, translate]);
 
-    const defaultOptions = useMemo(() => {
-        if (!areOptionsInitialized) {
-            return {
-                recentReports: [],
-                personalDetails: [],
-                userToInvite: null,
-                currentUserOption: null,
-                header: '',
-            };
-        }
-        const filteredReports = reportFilter(optionList.reports);
-        const {recentReports} = getShareDestinationOptions(filteredReports, optionList.personalDetails, [], [], {}, true);
-        const header = getHeaderMessage(recentReports && recentReports.length !== 0, false, '');
-        return {
-            recentReports,
-            personalDetails: [],
-            userToInvite: null,
-            currentUserOption: null,
-            header,
-        };
-    }, [areOptionsInitialized, optionList.personalDetails, optionList.reports]);
-
-    const options = useMemo(() => {
-        if (debouncedSearchValue.trim() === '') {
-            return defaultOptions;
-        }
-        const filteredReports = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            canInviteUser: false,
-        });
-        const header = getHeaderMessage(filteredReports.recentReports && filteredReports.recentReports.length !== 0, false, debouncedSearchValue);
-        return {...filteredReports, header};
-    }, [debouncedSearchValue, defaultOptions]);
+    const headerMessage = useMemo(() => {
+        return getHeaderMessage(filteredOptions.recentReports && filteredOptions.recentReports.length !== 0, false, searchTerm);
+    }, [filteredOptions.recentReports, searchTerm]);
 
     const sections = useMemo(
         () =>
-            options.recentReports && options.recentReports.length > 0
+            filteredOptions.recentReports && filteredOptions.recentReports.length > 0
                 ? [
                       {
-                          data: options.recentReports.map((option) => ({
+                          data: filteredOptions.recentReports.map((option) => ({
                               ...option,
                               text: option.text ?? '',
                               alternateText: option.alternateText ?? undefined,
@@ -112,12 +116,12 @@ function TaskShareDestinationSelectorModal() {
                       },
                   ]
                 : [],
-        [options.recentReports],
+        [filteredOptions.recentReports],
     );
 
     useEffect(() => {
-        searchInServer(debouncedSearchValue);
-    }, [debouncedSearchValue]);
+        searchInServer(searchTerm);
+    }, [searchTerm]);
 
     return (
         <ScreenWrapper
@@ -136,13 +140,14 @@ function TaskShareDestinationSelectorModal() {
                         sections={areOptionsInitialized ? sections : []}
                         onSelectRow={selectReportHandler}
                         shouldSingleExecuteRowSelect
-                        onChangeText={setSearchValue}
-                        textInputValue={searchValue}
-                        headerMessage={options.header}
+                        onChangeText={setSearchTerm}
+                        textInputValue={searchTerm}
+                        headerMessage={headerMessage}
                         textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                        showLoadingPlaceholder={areOptionsInitialized && debouncedSearchValue.trim() === '' ? sections.length === 0 : !didScreenTransitionEnd}
+                        showLoadingPlaceholder={areOptionsInitialized && searchTerm.trim() === '' ? false : !didScreenTransitionEnd}
                         isLoadingNewOptions={!!isSearchingForReports}
                         textInputHint={textInputHint}
+                        onEndReached={onListEndReached}
                     />
                 </View>
             </>

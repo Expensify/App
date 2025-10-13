@@ -5,6 +5,7 @@ import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/hel
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
+import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import {shallowCompare} from '@libs/ObjectUtils';
 import getMatchingNewRoute from '@navigation/helpers/getMatchingNewRoute';
 import type {NavigationPartialRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, StackNavigationAction} from '@navigation/types';
@@ -78,7 +79,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     // It won't include the whole state that will be generated for this path but the focused route will be correct.
     // It is necessary because getActionFromState will generate RESET action for whole state generated with our custom getStateFromPath function.
     const stateFromPath = getStateFromPath(normalizedPathAfterRedirection) as PartialState<NavigationState<RootNavigatorParamList>>;
-    const currentState = navigation.getRootState() as NavigationState<RootNavigatorParamList>;
+    const currentState = navigation.getRootState() as PlatformStackNavigationState<RootNavigatorParamList>;
 
     const focusedRouteFromPath = findFocusedRoute(stateFromPath);
     const currentFocusedRoute = findFocusedRoute(currentState);
@@ -126,12 +127,17 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
 
             const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
             if (matchingFullScreenRoute && lastFullScreenRoute && matchingFullScreenRoute.name !== lastFullScreenRoute.name) {
-                const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
-                const additionalAction = StackActions.push(matchingFullScreenRoute.name, {
-                    screen: lastRouteInMatchingFullScreen?.name,
-                    params: lastRouteInMatchingFullScreen?.params,
-                });
-                navigation.dispatch(additionalAction);
+                const isMatchingRoutePreloaded = currentState.preloadedRoutes.some((preloadedRoute) => preloadedRoute.name === matchingFullScreenRoute.name);
+                if (isMatchingRoutePreloaded) {
+                    navigation.dispatch(StackActions.push(matchingFullScreenRoute.name));
+                } else {
+                    const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
+                    const additionalAction = StackActions.push(matchingFullScreenRoute.name, {
+                        screen: lastRouteInMatchingFullScreen?.name,
+                        params: lastRouteInMatchingFullScreen?.params,
+                    });
+                    navigation.dispatch(additionalAction);
+                }
             }
         }
     }

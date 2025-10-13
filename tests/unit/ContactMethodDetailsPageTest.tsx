@@ -1,5 +1,6 @@
 import {render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 // eslint-disable-next-line no-restricted-syntax
 import * as UserActions from '@libs/actions/User';
 import ContactMethodDetailsPage from '@pages/settings/Profile/Contacts/ContactMethodDetailsPage';
@@ -24,6 +25,10 @@ jest.mock('@libs/actions/User', () => {
         resetContactMethodValidateCodeSentState: jest.fn(),
     };
 });
+
+function HTMLProviderWrapper({children}: {children: React.ReactNode}) {
+    return <HTMLEngineProvider>{children}</HTMLEngineProvider>;
+}
 
 const fakeEmail = 'fake@gmail.com';
 const mockRoute = {
@@ -55,10 +60,12 @@ describe('ContactMethodDetailsPage', () => {
 
     function ContactMethodDetailsPageRenderer() {
         return (
-            <ContactMethodDetailsPage
-                // @ts-expect-error - Ignoring type errors for testing purposes
-                route={mockRoute}
-            />
+            <HTMLProviderWrapper>
+                <ContactMethodDetailsPage
+                    // @ts-expect-error - Ignoring type errors for testing purposes
+                    route={mockRoute}
+                />
+            </HTMLProviderWrapper>
         );
     }
 
@@ -79,6 +86,25 @@ describe('ContactMethodDetailsPage', () => {
         await waitForBatchedUpdates();
         mockFetch?.resume();
         await waitForBatchedUpdates();
+
+        // Then resetContactMethodValidateCodeSentState should not be called
+        expect(UserActions.resetContactMethodValidateCodeSentState).not.toHaveBeenCalled();
+    });
+
+    it('should not call resetContactMethodValidateCodeSentState when the login data has no partnerUserID', async () => {
+        // Given a login list with a contact method that has no partnerUserID
+        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
+            [fakeEmail]: {
+                partnerName: 'expensify.com',
+                partnerUserID: '',
+                validatedDate: '',
+            },
+        });
+        await waitForBatchedUpdates();
+
+        // Given the page is rendered
+        render(<ContactMethodDetailsPageRenderer />);
+        await waitForBatchedUpdatesWithAct();
 
         // Then resetContactMethodValidateCodeSentState should not be called
         expect(UserActions.resetContactMethodValidateCodeSentState).not.toHaveBeenCalled();

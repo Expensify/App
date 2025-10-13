@@ -3,7 +3,6 @@ title: Report Suspicious Activity
 description: Learn how to report suspicious activity and lock your account in Expensify Classic, what features it restricts, and how to request an unlock.
 keywords: [locked account, Expensify Classic, domain admin, secondary login, reimbursements blocked, card locked, unlock account]
 ---
-<div id="expensify-classic" markdown="1">
 
 The locked account tool prevents high-risk actions from being taken on accounts that may have been compromised. It safeguards payment activity, contact methods, and account access.
 
@@ -83,4 +82,3 @@ This button is not reversible without the assistance of an Expensify team member
 
 Account unlocks must be handled by Expensify to ensure the integrity of your data and prevent unauthorized access. Use Concierge for help, and we'll guide you through the next steps.
 
-</div>

@@ -22,14 +22,21 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
 
     const hideModal = () => {
         onModalHide();
-        if ((window.history.state as WindowState)?.shouldGoBack && shouldHandleNavigationBack) {
-            window.history.back();
-        }
     };
 
     const handlePopStateRef = useRef(() => {
         rest.onClose?.();
     });
+
+    // This useEffect is needed so that when the onClose function changes, the ref contains the current value of this function.
+    // More information can be found here: https://github.com/Expensify/App/issues/69781
+    useEffect(() => {
+        handlePopStateRef.current = () => {
+            rest.onClose?.();
+        };
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [rest.onClose]);
 
     const showModal = () => {
         if (shouldHandleNavigationBack) {
@@ -66,6 +73,9 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     const onModalWillHide = () => {
         setStatusBarColor(previousStatusBarColor);
         rest.onModalWillHide?.();
+        if ((window.history.state as WindowState)?.shouldGoBack && shouldHandleNavigationBack) {
+            window.history.back();
+        }
     };
 
     return (
@@ -78,8 +88,6 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
             onModalWillHide={onModalWillHide}
             avoidKeyboard={false}
             fullscreen={fullscreen}
-            useNativeDriver={false}
-            useNativeDriverForBackdrop={false}
             type={type}
         >
             {children}

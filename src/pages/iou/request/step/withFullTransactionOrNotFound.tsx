@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
-import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React, {forwardRef} from 'react';
+import type {ComponentType} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import useOnyx from '@hooks/useOnyx';
@@ -54,11 +54,11 @@ type MoneyRequestRouteName =
 type WithFullTransactionOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithFullTransactionOrNotFoundOnyxProps &
     PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
 
-export default function <TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>, TRef>(
-    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): React.ComponentType<Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps> & RefAttributes<TRef>> {
+export default function <TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>>(
+    WrappedComponent: ComponentType<TProps>,
+): React.ComponentType<Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>> {
     // eslint-disable-next-line rulesdir/no-negated-variables
-    function WithFullTransactionOrNotFound(props: Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>, ref: ForwardedRef<TRef>) {
+    function WithFullTransactionOrNotFound(props: Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>) {
         const {route} = props;
         const transactionID = route.params.transactionID;
         const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
@@ -87,14 +87,13 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
                 {...(props as TProps)}
                 transaction={shouldUseTransactionDraft(userAction, userType) ? transactionDraftData : transaction}
                 isLoadingTransaction={isLoadingTransaction}
-                ref={ref}
             />
         );
     }
 
     WithFullTransactionOrNotFound.displayName = `withFullTransactionOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-    return forwardRef(WithFullTransactionOrNotFound);
+    return WithFullTransactionOrNotFound;
 }
 
 export type {WithFullTransactionOrNotFoundProps};

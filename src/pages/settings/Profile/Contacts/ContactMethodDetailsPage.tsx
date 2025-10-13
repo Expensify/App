@@ -19,9 +19,7 @@ import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/V
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {
     clearContactMethod,
@@ -39,15 +37,14 @@ import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {close} from '@userActions/Modal';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
+import getDecodedContactMethodFromUriParam from './utils';
 
 type ContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
 
@@ -63,9 +60,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const {formatPhoneNumber, translate} = useLocalize();
-    const theme = useTheme();
     const themeStyles = useThemeStyles();
-    const {windowWidth} = useWindowDimensions();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
@@ -74,25 +69,10 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     /**
      * Gets the current contact method from the route params
      */
-    const contactMethod: string = useMemo(() => {
-        const contactMethodParam = route.params.contactMethod;
+    const contactMethod: string = useMemo(() => getDecodedContactMethodFromUriParam(route.params.contactMethod), [route.params.contactMethod]);
 
-        // We find the number of times the url is encoded based on the last % sign and remove them.
-        const lastPercentIndex = contactMethodParam.lastIndexOf('%');
-        const encodePercents = contactMethodParam.substring(lastPercentIndex).match(new RegExp('25', 'g'));
-        let numberEncodePercents = encodePercents?.length ?? 0;
-        const beforeAtSign = contactMethodParam.substring(0, lastPercentIndex).replace(CONST.REGEX.ENCODE_PERCENT_CHARACTER, (match) => {
-            if (numberEncodePercents > 0) {
-                numberEncodePercents--;
-                return '%';
-            }
-            return match;
-        });
-        const afterAtSign = contactMethodParam.substring(lastPercentIndex).replace(CONST.REGEX.ENCODE_PERCENT_CHARACTER, '%');
-
-        return addSMSDomainIfPhoneNumber(decodeURIComponent(beforeAtSign + afterAtSign));
-    }, [route.params.contactMethod]);
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
+
     const isDefaultContactMethod = useMemo(() => session?.email === loginData?.partnerUserID, [session?.email, loginData?.partnerUserID]);
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
     const prevPendingDeletedLogin = usePrevious(loginData?.pendingFields?.deletedLogin);
@@ -129,7 +109,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
         // Allow user to change their default contact method if they don't have a security group OR if their security group
         // does NOT restrict primary login switching.
-        return !securityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`]?.hasRestrictedPrimaryLogin;
+        return !securityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`]?.enableRestrictedPrimaryLogin;
     }, [isDefaultContactMethod, loginData?.validatedDate, session?.email, myDomainSecurityGroups, securityGroups]);
 
     /**
@@ -137,6 +117,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      */
     const toggleDeleteModal = useCallback((isOpen: boolean) => {
         if (canUseTouchScreen() && isOpen) {
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => {
                 setIsDeleteModalOpen(isOpen);
             });
@@ -157,14 +138,14 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (prevValidatedDate || !loginData?.validatedDate || !loginData) {
+        if (prevValidatedDate || !loginData?.validatedDate) {
             return;
         }
 
         // Navigate to methods page on successful magic code verification
         // validatedDate property is responsible to decide the status of the magic code verification
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
-    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo, loginData]);
+    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo]);
 
     useEffect(() => {
         setIsValidateCodeFormVisible(!loginData?.validatedDate);
@@ -172,12 +153,12 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (!loginData || loginData?.validatedDate || prevPendingDeletedLogin) {
+        if (!loginData?.partnerUserID || loginData?.validatedDate || prevPendingDeletedLogin) {
             return;
         }
         resetContactMethodValidateCodeSentState(contactMethod);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- The prevPendingDeletedLogin is a ref, so no need to add it to dependencies.
-    }, [contactMethod, loginData]);
+    }, [contactMethod, loginData?.partnerUserID, loginData?.validatedDate]);
 
     const getThreeDotsMenuItems = useCallback(() => {
         const menuItems = [];
@@ -221,6 +202,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             onConfirm={confirmDeleteAndHideModal}
             onCancel={() => toggleDeleteModal(false)}
             onModalHide={() => {
+                // eslint-disable-next-line deprecation/deprecation
                 InteractionManager.runAfterInteractions(() => {
                     validateCodeFormRef.current?.focusLastSelected?.();
                 });
@@ -267,7 +249,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     <MenuItem
                         title={translate('common.remove')}
                         icon={Trashcan}
-                        iconFill={theme.danger}
                         onPress={() => {
                             if (isActingAsDelegate) {
                                 showDelegateNoAccessModal();
@@ -285,6 +266,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         <ScreenWrapper
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => {
+                // eslint-disable-next-line deprecation/deprecation
                 InteractionManager.runAfterInteractions(() => {
                     validateCodeFormRef.current?.focus?.();
                 });
@@ -313,9 +295,9 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             <HeaderWithBackButton
                 title={formattedContactMethod}
                 threeDotsMenuItems={getThreeDotsMenuItems()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
                 shouldShowThreeDotsButton={getThreeDotsMenuItems().length > 0}
                 shouldOverlayDots
-                threeDotsAnchorPosition={themeStyles.threeDotsPopoverOffset(windowWidth)}
                 onThreeDotsButtonPress={() => {
                     // Hide the keyboard when the user clicks the three-dot menu.
                     // Use blurActiveElement() for mWeb and KeyboardUtils.dismiss() for native apps.
@@ -345,8 +327,20 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                         handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode, formatPhoneNumber)}
                         validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
-                        clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
-                        sendValidateCode={() => requestContactMethodValidateCode(contactMethod)}
+                        clearError={() => {
+                            // When removing unverified contact methods, the ValidateCodeActionForm unmounts and triggers clearError.
+                            // This causes loginData to become an object, which makes sendValidateCode trigger, so we add this check to prevent clearing the error.
+                            if (!loginData.partnerUserID) {
+                                return;
+                            }
+                            clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent');
+                        }}
+                        sendValidateCode={() => {
+                            if (!loginData.partnerUserID) {
+                                return;
+                            }
+                            requestContactMethodValidateCode(contactMethod);
+                        }}
                         descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
                         forwardedRef={validateCodeFormRef}
                         shouldSkipInitialValidation={shouldSkipInitialValidation}

@@ -33,6 +33,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || isPopoverVisible) {
             return;
         }
+        // eslint-disable-next-line deprecation/deprecation
         const focusTaskHandle = InteractionManager.runAfterInteractions(() => {
             if (inputRef.current && isMultiline) {
                 moveSelectionToEnd(inputRef.current);
@@ -69,7 +70,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
             return;
         }
 
-        ComposerFocusManager.isReadyToFocus().then(() => setIsScreenTransitionEnded(isSidePanelTransitionEnded));
+        Promise.all([ComposerFocusManager.isReadyToFocus(), isWindowReadyToFocus()]).then(() => setIsScreenTransitionEnded(isSidePanelTransitionEnded));
     }, [isSidePanelTransitionEnded, shouldHideSidePanel, prevShouldHideSidePanel]);
 
     const inputCallbackRef = (ref: TextInput | null) => {

@@ -1,7 +1,7 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, RefObject} from 'react';
-import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {
     LayoutChangeEvent,
     MeasureInWindowOnSuccessCallback,
@@ -25,7 +25,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {useSidePanelDisplayStatus} from '@hooks/useSidePanel';
+import useSidePanel from '@hooks/useSidePanel';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -100,8 +100,8 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     /** The placeholder for the input */
     inputPlaceholder: string;
 
-    /** Function to display a file in a modal */
-    displayFilesInModal: (file: FileObject[]) => void;
+    /** Callback when a file is pasted */
+    onPasteFile: (file: FileObject | FileObject[]) => void;
 
     /** Whether the input is disabled, defaults to false */
     disabled?: boolean;
@@ -144,6 +144,9 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
 
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<ComposerRef>;
 };
 
 type SwitchToCurrentReportProps = {
@@ -194,52 +197,50 @@ const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
  * However, double check if the component really needs access, as it will re-render
  * on every key press.
  */
-function ComposerWithSuggestions(
-    {
-        // Props: Report
-        reportID,
-        includeChronos,
-        lastReportAction,
-        isGroupPolicyReport,
-        policyID,
+function ComposerWithSuggestions({
+    // Props: Report
+    reportID,
+    includeChronos,
+    lastReportAction,
+    isGroupPolicyReport,
+    policyID,
 
-        // Focus
-        onFocus,
-        onBlur,
-        onValueChange,
+    // Focus
+    onFocus,
+    onBlur,
+    onValueChange,
 
-        // Composer
-        isComposerFullSize,
-        setIsFullComposerAvailable,
-        isMenuVisible,
-        inputPlaceholder,
-        displayFilesInModal,
-        disabled,
-        setIsCommentEmpty,
-        handleSendMessage,
-        shouldShowComposeInput,
-        measureParentContainer = () => {},
-        isScrollLikelyLayoutTriggered,
-        raiseIsScrollLikelyLayoutTriggered,
-        onCleared = () => {},
-        onLayout: onLayoutProps,
+    // Composer
+    isComposerFullSize,
+    setIsFullComposerAvailable,
+    isMenuVisible,
+    inputPlaceholder,
+    onPasteFile,
+    disabled,
+    setIsCommentEmpty,
+    handleSendMessage,
+    shouldShowComposeInput,
+    measureParentContainer = () => {},
+    isScrollLikelyLayoutTriggered,
+    raiseIsScrollLikelyLayoutTriggered,
+    onCleared = () => {},
+    onLayout: onLayoutProps,
 
-        // Refs
-        suggestionsRef,
-        isNextModalWillOpenRef,
+    // Refs
+    suggestionsRef,
+    isNextModalWillOpenRef,
+    ref,
 
-        // For testing
-        children,
-        didHideComposerInput,
-    }: ComposerWithSuggestionsProps,
-    ref: ForwardedRef<ComposerRef>,
-) {
+    // For testing
+    children,
+    didHideComposerInput,
+}: ComposerWithSuggestionsProps) {
     const {isKeyboardShown} = useKeyboardState();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
-    const {isSidePanelHiddenOrLargeScreen} = useSidePanelDisplayStatus();
+    const {isSidePanelHiddenOrLargeScreen} = useSidePanel();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef<Emoji[]>([]);
@@ -509,6 +510,7 @@ function ComposerWithSuggestions(
                 syncSelectionWithOnChangeTextRef.current = null;
 
                 // ensure that selection is set imperatively after all state changes are effective
+                // eslint-disable-next-line deprecation/deprecation
                 InteractionManager.runAfterInteractions(() => {
                     // note: this implementation is only available on non-web RN, thus the wrapping
                     // 'if' block contains a redundant (since the ref is only used on iOS) platform check
@@ -808,9 +810,9 @@ function ComposerWithSuggestions(
                     }}
                     onBlur={onBlur}
                     onClick={setShouldBlockSuggestionCalcToFalse}
-                    onPasteFile={(file) => {
+                    onPasteFile={(files) => {
                         textInputRef.current?.blur();
-                        displayFilesInModal([file]);
+                        onPasteFile(files);
                     }}
                     onClear={onClear}
                     isDisabled={disabled}
@@ -860,6 +862,6 @@ function ComposerWithSuggestions(
 
 ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 
-export default memo(forwardRef(ComposerWithSuggestions));
+export default memo(ComposerWithSuggestions);
 
 export type {ComposerWithSuggestionsProps, ComposerRef};

@@ -4,25 +4,26 @@ import type {OnyxEntry} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import {EmptyShelves} from '@components/Icon/Illustrations';
 import RenderHTML from '@components/RenderHTML';
-import SelectionList from '@components/SelectionList';
-import type {ListItem} from '@components/SelectionList/types';
+import ScrollView from '@components/ScrollView';
+import SelectionList from '@components/SelectionListWithSections';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import MergeExpensesSkeleton from '@components/Skeletons/MergeExpensesSkeleton';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getTransactionsForMerging, getTransactionsForMergingLocally, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import {getTransactionsForMerging, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {
     fillMissingReceiptSource,
     getMergeableDataAndConflictFields,
     getSourceTransactionFromMergeTransaction,
     getTransactionThreadReportID,
-    selectTargetAndSourceTransactionIDsForMerge,
+    selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportName} from '@libs/ReportUtils';
+import {getReportName, getReportOrDraftReport} from '@libs/ReportUtils';
+import {openReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -46,23 +47,20 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const {isOffline} = useNetwork();
     const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getTransactionThreadReportID(targetTransaction)}`, {canBeMissing: false});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: true});
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getTransactionThreadReportID(targetTransaction)}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
     const currentUserLogin = session?.email;
 
     useEffect(() => {
         // If the eligible transactions are already loaded, don't fetch them again
-        if (Array.isArray(mergeTransaction?.eligibleTransactions)) {
+        if (Array.isArray(mergeTransaction?.eligibleTransactions) || !targetTransaction) {
             return;
         }
 
-        if (isOffline) {
-            getTransactionsForMergingLocally(transactionID, transactions, policy, report, currentUserLogin);
-        } else {
-            getTransactionsForMerging(transactionID);
-        }
-    }, [transactionID, transactions, isOffline, mergeTransaction, policy, report, currentUserLogin]);
+        getTransactionsForMerging({isOffline, targetTransaction, transactions, policy, report, currentUserLogin});
+    }, [transactions, isOffline, mergeTransaction, policy, report, currentUserLogin, targetTransaction]);
 
     const sections = useMemo(() => {
         return [
@@ -92,22 +90,20 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
 
     const headerContent = useMemo(
         () => (
-            <View style={[styles.ph5, styles.pb5]}>
-                <Text style={[styles.textLabel, styles.minHeight5]}>
-                    <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge', {reportName: getReportName(report)})} />
-                </Text>
+            <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow]}>
+                <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge', {reportName: getReportName(transactionThreadReport ?? report)})} />
             </View>
         ),
-        [report, translate, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5],
+        [transactionThreadReport, report, translate, styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow],
     );
 
     const subTitleContent = useMemo(() => {
         return (
-            <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
+            <View style={[styles.renderHTML, styles.textNormal]}>
                 <RenderHTML html={translate('transactionMerge.listPage.noEligibleExpenseFoundSubtitle')} />
-            </Text>
+            </View>
         );
-    }, [translate, styles.textAlignCenter, styles.textSupporting, styles.textNormal]);
+    }, [translate, styles.renderHTML, styles.textNormal]);
 
     const handleConfirm = useCallback(() => {
         const sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction);
@@ -116,23 +112,29 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             return;
         }
 
-        const {targetTransactionID: newTargetTransactionID, sourceTransactionID: newSourceTransactionID} = selectTargetAndSourceTransactionIDsForMerge(targetTransaction, sourceTransaction);
+        // It's a temporary solution to ensure the source report is loaded, so we can display reportName in the merge transaction details page
+        // We plan to remove this in next phase of merge expenses project
+        const sourceReport = getReportOrDraftReport(sourceTransaction.reportID);
+        if (!sourceReport) {
+            openReport(sourceTransaction.reportID);
+        }
 
-        if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
+        const {targetTransaction: newTargetTransaction, sourceTransaction: newSourceTransaction} = selectTargetAndSourceTransactionsForMerge(targetTransaction, sourceTransaction);
+        if (shouldNavigateToReceiptReview([newTargetTransaction, newSourceTransaction])) {
             setMergeTransactionKey(transactionID, {
-                targetTransactionID: newTargetTransactionID,
-                sourceTransactionID: newSourceTransactionID,
+                targetTransactionID: newTargetTransaction?.transactionID,
+                sourceTransactionID: newSourceTransaction?.transactionID,
             });
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
         } else {
-            const mergedReceipt = targetTransaction?.receipt?.receiptID ? targetTransaction.receipt : sourceTransaction?.receipt;
+            const mergedReceipt = newTargetTransaction?.receipt?.receiptID ? newTargetTransaction.receipt : newSourceTransaction?.receipt;
             setMergeTransactionKey(transactionID, {
-                targetTransactionID: newTargetTransactionID,
-                sourceTransactionID: newSourceTransactionID,
+                targetTransactionID: newTargetTransaction?.transactionID,
+                sourceTransactionID: newSourceTransaction?.transactionID,
                 receipt: mergedReceipt,
             });
 
-            const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
+            const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(newTargetTransaction, newSourceTransaction);
             if (!conflictFields.length) {
                 // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
                 setMergeTransactionKey(transactionID, mergeableData);
@@ -145,16 +147,18 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
 
     if (eligibleTransactions?.length === 0) {
         return (
-            <EmptyStateComponent
-                cardStyles={[styles.appBG]}
-                cardContentStyles={[styles.p0]}
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                headerMedia={EmptyShelves}
-                title={translate('transactionMerge.listPage.noEligibleExpenseFound')}
-                subtitleText={subTitleContent}
-                headerStyles={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart]}
-                headerContentStyles={styles.emptyStateCardIllustration}
-            />
+            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                <EmptyStateComponent
+                    cardStyles={[styles.appBG]}
+                    cardContentStyles={[styles.p0]}
+                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
+                    headerMedia={EmptyShelves}
+                    title={translate('transactionMerge.listPage.noEligibleExpenseFound')}
+                    subtitleText={subTitleContent}
+                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.mb5]}
+                    headerContentStyles={styles.emptyStateTransactionMergeIllustration}
+                />
+            </ScrollView>
         );
     }
 

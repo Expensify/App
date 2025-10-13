@@ -3,7 +3,6 @@ title: Admin Rooms in Expensify Chat
 description: Use the announce and admins chat rooms to share updates and collaborate with your team.
 keywords: [New Expensify, chat rooms, announce room, admins room, workspace chat, admin permissions]
 ---
-<div id="new-expensify" markdown="1">
 
 Expensify Chat includes two automatically generated rooms for every workspace: **#announce** and **#admins**. These rooms help teams stay informed and allow Workspace Admins to collaborate behind the scenes.
 
@@ -48,4 +47,3 @@ The **#admins** room is only visible to Workspace Admins. It’s designed for se
 
 If you're seeing an unfamiliar name in your **#admins** room, it’s likely your **Expensify Setup Specialist** or **Account Manager**. These team members are added automatically to help you onboard and provide product support.
 
-</div>

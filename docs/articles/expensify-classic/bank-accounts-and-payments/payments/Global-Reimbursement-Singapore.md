@@ -3,7 +3,6 @@ title: Global Reimbursement - Singapore
 description: Learn how to enable international reimbursements if your business bank account is in Singapore.
 keywords: [Expensify Classic, global reimbursement, Singapore, SGD, international payments, DocuSign, compliance, UBO]
 ---
-<div id="expensify-classic" markdown="1">
 
 If your business operates in Singapore, you can enable global reimbursements to send international payments from your SGD account. This article walks you through the setup process and required documentation.
 
@@ -79,4 +78,3 @@ Not for live payments. You may pre-fund the account while waiting for verificati
 ## Who should sign the Board Resolution?
 It must be signed by your board of directors and identify authorized users for reimbursement activity.
 
-</div>

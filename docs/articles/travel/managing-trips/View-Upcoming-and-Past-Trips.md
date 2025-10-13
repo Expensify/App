@@ -4,7 +4,6 @@ description: Learn how to view, filter, and access upcoming, completed, and canc
 keywords: [my trips, trip history, upcoming trips, past trips, all trips, canceled trips, travel admin, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Use the **Trips** dropdown in the travel tool to view and manage upcoming, completed, and canceled trips—either your own or your entire company's if you're a Travel Admin.
 
@@ -75,4 +74,3 @@ Yes. Use the **Canceled** filter or open the **Trip view** and toggle **Show can
 ## Can I search for trips by name or traveler?
 Yes, travel admin can search for specific travelers on the **Trips** > **All Trips** page. Use the **Created by** filter and enter the name or email in the search bar. 
 
-</div>

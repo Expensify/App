@@ -149,6 +149,24 @@ const directFeedCardsSingleList: WorkspaceCardsList = {
         state: 3,
     },
 };
+
+const commercialFeedCardsSingleList: WorkspaceCardsList = {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    '21570652': {
+        accountID: 18439984,
+        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+        cardID: 21570652,
+        cardName: 'CREDIT CARD...5501',
+        domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+        fraud: 'none',
+        lastFourPAN: '5501',
+        lastScrape: '',
+        lastUpdated: '',
+        lastScrapeResult: 531,
+        scrapeMinDate: '2024-08-27',
+        state: 3,
+    },
+};
 const directFeedCardsMultipleList: WorkspaceCardsList = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     '21570655': {
@@ -572,6 +590,12 @@ describe('CardUtils', () => {
             const feedName = getBankName(feed);
             expect(feedName).toBe('');
         });
+
+        it('Should return empty string if feed is not provided (instead of TypeError crashing the app)', () => {
+            const feed = undefined;
+            const feedName = getBankName(feed as unknown as CompanyCardFeed);
+            expect(feedName).toBe('');
+        });
     });
 
     describe('getCardFeedIcon', () => {
@@ -796,6 +820,10 @@ describe('CardUtils', () => {
 
         it('should return false if all of the feed(s) cards has the lastScrapeResult equal to 200', () => {
             expect(checkIfFeedConnectionIsBroken(directFeedCardsSingleList)).toBeFalsy();
+        });
+
+        it('should return false if all of the feed(s) cards has the lastScrapeResult equal to 531', () => {
+            expect(checkIfFeedConnectionIsBroken(commercialFeedCardsSingleList)).toBeFalsy();
         });
 
         it('should return false if no feed(s) cards are provided', () => {

@@ -4,7 +4,6 @@ description: Add categories to use for coding expenses.
 keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding]
 ---
 
-<div id="new-expensify" markdown="1">
 
 In Expensify, categories represent your **chart of accounts, GL accounts, expense accounts**, or other financial coding used for reporting and accounting.
 
@@ -20,7 +19,7 @@ Admins can manually create categories for a workspace, or they can be imported a
 
 To add a category:
 
-1. In the **left-hand navigation bar (LHB)**, click **Workspaces**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **Categories**.
 4. Click **Add Category** in the top-right corner.
@@ -139,4 +138,3 @@ It will be removed from the workspace’s category list. However, it will remain
 
 GL codes are not visible to employees by default. If visibility is required, consider including the GL code in the category name itself.
 
-</div>

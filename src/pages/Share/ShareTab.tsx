@@ -1,8 +1,9 @@
-import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import type {Ref} from 'react';
+import React, {useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type {SelectionListHandle} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
+import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -10,7 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getOptimisticChatReport, saveReportDraft, searchInServer} from '@libs/actions/Report';
-import {saveUnknownUserDetails} from '@libs/actions/Share';
+import {clearUnknownUserDetails, saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
 import {combineOrderingOfReportsAndPersonalDetails, getHeaderMessage, getSearchOptions, optionsOrderBy, recentReportComparator} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -31,7 +32,12 @@ type ShareTabRef = {
     focus?: () => void;
 };
 
-function ShareTab(_: unknown, ref: React.Ref<ShareTabRef>) {
+type ShareTabProps = {
+    /** Reference to the outer element */
+    ref?: Ref<ShareTabRef>;
+};
+
+function ShareTab({ref}: ShareTabProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -103,6 +109,7 @@ function ShareTab(_: unknown, ref: React.Ref<ShareTabRef>) {
                 Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(reportID.toString()));
             });
         } else {
+            clearUnknownUserDetails();
             Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(reportID.toString()));
         }
     };
@@ -127,4 +134,4 @@ function ShareTab(_: unknown, ref: React.Ref<ShareTabRef>) {
     );
 }
 
-export default forwardRef(ShareTab);
+export default ShareTab;

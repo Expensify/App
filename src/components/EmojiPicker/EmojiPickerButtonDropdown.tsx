@@ -15,6 +15,7 @@ import {hideEmojiPicker, isEmojiPickerVisible, resetEmojiPopoverAnchor, showEmoj
 import type {OnModalHideValue} from '@libs/actions/EmojiPickerAction';
 import getButtonState from '@libs/getButtonState';
 import CONST from '@src/CONST';
+import KeyboardUtils from '@src/utils/keyboard';
 
 type EmojiPickerButtonDropdownProps = {
     /** Flag to disable the emoji picker button */
@@ -27,13 +28,13 @@ type EmojiPickerButtonDropdownProps = {
     disabled?: boolean;
     style: StyleProp<ViewStyle>;
     withoutOverlay?: boolean;
+    ref?: ForwardedRef<AnimatedTextInputRef>;
 };
 
 function EmojiPickerButtonDropdown(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    {isDisabled = false, withoutOverlay = false, onModalHide, onInputChange, value, disabled, style, ...otherProps}: EmojiPickerButtonDropdownProps,
+    {isDisabled = false, withoutOverlay = false, onModalHide, onInputChange, value, disabled, style, ref, ...otherProps}: EmojiPickerButtonDropdownProps,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ref: ForwardedRef<AnimatedTextInputRef>,
 ) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -46,21 +47,22 @@ function EmojiPickerButtonDropdown(
             hideEmojiPicker();
             return;
         }
-
-        showEmojiPicker(
-            onModalHide,
-            (emoji) => onInputChange(emoji),
-            emojiPopoverAnchor,
-            {
-                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                shiftVertical: 4,
-            },
-            () => {},
-            undefined,
-            value,
-            withoutOverlay,
-        );
+        KeyboardUtils.dismissKeyboardAndExecute(() => {
+            showEmojiPicker(
+                onModalHide,
+                (emoji) => onInputChange(emoji),
+                emojiPopoverAnchor,
+                {
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                    shiftVertical: 4,
+                },
+                () => {},
+                undefined,
+                value,
+                withoutOverlay,
+            );
+        });
     };
 
     return (
@@ -105,4 +107,4 @@ function EmojiPickerButtonDropdown(
 
 EmojiPickerButtonDropdown.displayName = 'EmojiPickerButtonDropdown';
 
-export default React.forwardRef(EmojiPickerButtonDropdown);
+export default EmojiPickerButtonDropdown;
