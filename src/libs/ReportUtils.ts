@@ -3845,11 +3845,17 @@ type ReasonAndReportActionThatRequiresAttention = {
     reportAction?: OnyxEntry<ReportAction>;
 };
 
+/**
+ * Returns the unresolved card fraud alert action for a given report.
+ */
 function getUnresolvedCardFraudAlertAction(reportID: string): OnyxEntry<ReportAction> {
     const reportActions = getAllReportActions(reportID);
     return Object.values(reportActions).find((action): action is ReportAction => isActionableCardFraudAlert(action) && !getOriginalMessage(action)?.resolution);
 }
 
+/**
+ * Checks if a given report or option has an unresolved card fraud alert.
+ */
 function hasUnresolvedCardFraudAlert(reportOrOption: OnyxEntry<Report> | OptionData): boolean {
     if (!reportOrOption?.reportID) {
         return false;
