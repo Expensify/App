@@ -7,6 +7,7 @@ import type CursorStyles from '@styles/utils/cursor/types';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type RadioListItem from './RadioListItem';
+import type TravelDomainListItem from './TravelDomainListItem';
 
 type ListItem<K extends string | number = string> = {
     /** Text to display */
@@ -229,7 +230,7 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     shouldUseDefaultRightHandSideCheckmark?: boolean;
 };
 
-type ValidListItem = typeof RadioListItem;
+type ValidListItem = typeof RadioListItem | typeof TravelDomainListItem;
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
@@ -256,6 +257,16 @@ type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type MultiSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
+type TravelDomainListItemProps<TItem extends ListItem> = BaseListItemProps<
+    TItem & {
+        /** Value of the domain */
+        value?: string;
+
+        /** Should display tag 'Recommended' */
+        isRecommended?: boolean;
+    }
+>;
+
 export type {
     BaseListItemProps,
     ExtendedTargetedEvent,
@@ -266,4 +277,5 @@ export type {
     ValidListItem,
     SingleSelectListItemProps,
     MultiSelectListItemProps,
+    TravelDomainListItemProps,
 };
