@@ -283,7 +283,9 @@ function IOURequestStepAmount({
                 );
             });
         } else {
-            navigateToParticipantPage(iouType, transactionID, reportID);
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                navigateToParticipantPage(iouType, transactionID, reportID);
+            });
         }
     };
 

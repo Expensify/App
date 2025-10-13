@@ -40,7 +40,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
+import {readFileAsync, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
@@ -554,7 +554,7 @@ function IOURequestStepScan({
                 return;
             }
 
-            setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, file.type, true);
+            setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, undefined, true);
             navigateToConfirmationStep([{file, source: file.uri, transactionID: initialTransactionID}], false, true);
         });
     }, [initialTransactionID, isEditing, navigateToConfirmationStep]);
@@ -582,7 +582,7 @@ function IOURequestStepScan({
             if (!file) {
                 return;
             }
-            setMoneyRequestReceipt(initialTransactionID, file.uri ?? '', file.name ?? '', !isEditing, file.type);
+            setMoneyRequestReceipt(initialTransactionID, file.uri ?? '', file.name ?? '', !isEditing);
             updateScanAndNavigate(file, file.uri ?? '');
             return;
         }
@@ -599,7 +599,7 @@ function IOURequestStepScan({
 
             const transactionID = transaction.transactionID ?? initialTransactionID;
             newReceiptFiles.push({file, source: file.uri ?? '', transactionID});
-            setMoneyRequestReceipt(transactionID, file.uri ?? '', file.name ?? '', true, file.type);
+            setMoneyRequestReceipt(transactionID, file.uri ?? '', file.name ?? '', true);
         });
 
         if (shouldSkipConfirmation) {
@@ -698,24 +698,33 @@ function IOURequestStepScan({
                         const transactionID = transaction?.transactionID ?? initialTransactionID;
                         const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
                         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height).then(({filename, source}) => {
-                            // react-native-vision-camera always returns JPEG format for camera captures
-                            // See: https://github.com/mrousavy/react-native-vision-camera/issues/2357#issuecomment-1882633998
-                            setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
+                            setMoneyRequestReceipt(transactionID, source, filename, !isEditing);
 
-                            if (isEditing) {
-                                updateScanAndNavigate(photo, source);
-                                return;
-                            }
+                            readFileAsync(
+                                source,
+                                filename,
+                                (file) => {
+                                    if (isEditing) {
+                                        updateScanAndNavigate(file, source);
+                                        return;
+                                    }
 
-                            const newReceiptFiles = [...receiptFiles, {file: photo, source, transactionID}];
-                            setReceiptFiles(newReceiptFiles);
+                                    const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
+                                    setReceiptFiles(newReceiptFiles);
 
-                            if (isMultiScanEnabled) {
-                                setDidCapturePhoto(false);
-                                return;
-                            }
+                                    if (isMultiScanEnabled) {
+                                        setDidCapturePhoto(false);
+                                        return;
+                                    }
 
-                            submitReceipts(newReceiptFiles);
+                                    submitReceipts(newReceiptFiles);
+                                },
+                                () => {
+                                    setDidCapturePhoto(false);
+                                    showCameraAlert();
+                                    Log.warn('Error reading photo');
+                                },
+                            );
                         });
                     })
                     .catch((error: string) => {
