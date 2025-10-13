@@ -3468,26 +3468,6 @@ function getIconsForInvoiceReport(
 }
 
 /**
- * Helper function to get the icons for a user-created policy room. Only to be used in getIcons().
- */
-function getIconsForUserCreatedPolicyRoom(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): Icon[] {
-    if (!report) {
-        return [];
-    }
-    if (report?.avatarUrl) {
-        return [
-            {
-                source: report.avatarUrl,
-                type: CONST.ICON_TYPE_WORKSPACE,
-                name: getReportName(report),
-                id: report?.policyID,
-            },
-        ];
-    }
-    return [getWorkspaceIcon(report, policy)];
-}
-
-/**
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
  */
@@ -3522,9 +3502,6 @@ function getIcons(
     }
     if (isDomainRoom(report)) {
         return getIconsForDomainRoom(report);
-    }
-    if (isUserCreatedPolicyRoom(report)) {
-        return getIconsForUserCreatedPolicyRoom(report, policy);
     }
     if (isAdminRoom(report) || isAnnounceRoom(report) || isChatRoom(report) || (isArchivedNonExpenseReport(report, isReportArchived) && !chatIncludesConcierge(report))) {
         return getIconsForPolicyRoom(report, personalDetails, policy, invoiceReceiverPolicy);
