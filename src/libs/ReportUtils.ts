@@ -97,7 +97,6 @@ import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, Onboar
 import type {AddCommentOrAttachmentParams} from './API/parameters';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import {hasValidDraftComment} from './DraftCommentUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import getEnvironment from './Environment/getEnvironment';
 import type EnvironmentType from './Environment/getEnvironment/types';
@@ -8618,6 +8617,7 @@ type ShouldReportBeInOptionListParams = {
     login?: string;
     includeDomainEmail?: boolean;
     isReportArchived?: boolean;
+    draftComment: string | undefined;
 };
 
 function reasonForReportToBeInOptionList({
@@ -8628,6 +8628,7 @@ function reasonForReportToBeInOptionList({
     betas,
     excludeEmptyChats,
     doesReportHaveViolations,
+    draftComment,
     includeSelfDM = false,
     login,
     includeDomainEmail = false,
@@ -8699,12 +8700,9 @@ function reasonForReportToBeInOptionList({
         return CONST.REPORT_IN_LHN_REASONS.IS_FOCUSED;
     }
 
-    // Retrieve the draft comment for the report and convert it to a boolean
-    const hasDraftComment = hasValidDraftComment(report.reportID);
-
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (hasDraftComment) {
+    if (draftComment) {
         return CONST.REPORT_IN_LHN_REASONS.HAS_DRAFT_COMMENT;
     }
 
@@ -10129,14 +10127,25 @@ function hasMissingPaymentMethod(userWalletTierName: string | undefined, iouRepo
  * - we don't have an iouReport set in the chatReport
  * - we have one, but it's waiting on the payee adding a bank account
  * - we have one, but we can't add more transactions to it due to: report is approved or settled
+ * - It is a SmartScan request, the user is in the ASAP Submit beta, and the action is not "submit"
  */
-function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxInputOrEntry<Report> | undefined, chatReport: OnyxInputOrEntry<Report>, isScanRequest: boolean): boolean {
+function shouldCreateNewMoneyRequestReport(
+    existingIOUReport: OnyxInputOrEntry<Report> | undefined,
+    chatReport: OnyxInputOrEntry<Report>,
+    isScanRequest: boolean,
+    action?: IOUAction,
+): boolean {
     if (existingIOUReport && !!existingIOUReport.errorFields?.createChat) {
         return true;
     }
 
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
-    return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddTransaction(existingIOUReport) || (isScanRequest && isASAPSubmitBetaEnabled);
+    return (
+        !existingIOUReport ||
+        hasIOUWaitingOnCurrentUserBankAccount(chatReport) ||
+        !canAddTransaction(existingIOUReport) ||
+        (action !== CONST.IOU.ACTION.SUBMIT && isScanRequest && isASAPSubmitBetaEnabled)
+    );
 }
 
 function getTripIDFromTransactionParentReportID(transactionParentReportID: string | undefined): string | undefined {

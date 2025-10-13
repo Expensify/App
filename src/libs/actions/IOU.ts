@@ -511,6 +511,7 @@ type MoneyRequestInformationParams = {
     optimisticReportPreviewActionID?: string;
     shouldGenerateTransactionThreadReport?: boolean;
     isSplitExpense?: boolean;
+    action?: IOUAction;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -896,12 +897,6 @@ Onyx.connect({
     },
 });
 
-let activePolicyID: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (value) => (activePolicyID = value),
-});
-
 let personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -1072,7 +1067,6 @@ function initMoneyRequest({
         transactionID: newTransactionID,
         isFromGlobalCreate,
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-        splitPayerAccountIDs: currentUserPersonalDetails ? [currentUserPersonalDetails.accountID] : undefined,
     };
 
     // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
@@ -1215,10 +1209,6 @@ function setMoneyRequestParticipants(transactionID: string, participants: Partic
 
 function setMoneyRequestReportID(transactionID: string, reportID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reportID});
-}
-
-function setSplitPayer(transactionID: string, payerAccountID: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {splitPayerAccountIDs: [payerAccountID]});
 }
 
 function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string, isTestReceipt = false, isTestDriveReceipt = false) {
@@ -3382,6 +3372,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport = true,
         isSplitExpense,
+        action,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories} = policyParams;
@@ -3444,7 +3435,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     }
 
     const isScanRequest = isScanRequestTransactionUtils({amount, receipt});
-    const shouldCreateNewMoneyRequestReport = isSplitExpense ? false : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest);
+    const shouldCreateNewMoneyRequestReport = isSplitExpense ? false : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, action);
 
     if (!iouReport || shouldCreateNewMoneyRequestReport) {
         const nonReimbursableTotal = reimbursable ? 0 : amount;
@@ -5917,6 +5908,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport,
+        action,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -7080,7 +7072,6 @@ type SplitBillActionsParams = {
     iouRequestType?: IOURequestType;
     existingSplitChatReportID?: string;
     splitShares?: SplitShares;
-    splitPayerAccountIDs?: number[];
     taxCode?: string;
     taxAmount?: number;
     isRetry?: boolean;
@@ -7106,7 +7097,6 @@ function splitBill({
     iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
     existingSplitChatReportID,
     splitShares = {},
-    splitPayerAccountIDs = [],
     taxCode = '',
     taxAmount = 0,
 }: SplitBillActionsParams) {
@@ -7150,7 +7140,6 @@ function splitBill({
         createdReportActionID: splitData.createdReportActionID,
         policyID: splitData.policyID,
         chatType: splitData.chatType,
-        splitPayerAccountIDs,
         taxCode,
         taxAmount,
         description: parsedComment,
@@ -7184,7 +7173,6 @@ function splitBillAndOpenReport({
     reimbursable = false,
     iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
     splitShares = {},
-    splitPayerAccountIDs = [],
     taxCode = '',
     taxAmount = 0,
     existingSplitChatReportID,
@@ -7229,7 +7217,6 @@ function splitBillAndOpenReport({
         createdReportActionID: splitData.createdReportActionID,
         policyID: splitData.policyID,
         chatType: splitData.chatType,
-        splitPayerAccountIDs,
         taxCode,
         taxAmount,
         description: parsedComment,
@@ -9572,23 +9559,35 @@ function getReportFromHoldRequestsOnyxData(
     };
 }
 
-function getPayMoneyRequestParams(
-    initialChatReport: OnyxTypes.Report,
-    iouReport: OnyxEntry<OnyxTypes.Report>,
-    recipient: Participant,
-    paymentMethodType: PaymentMethodType,
-    full: boolean,
-    payAsBusiness?: boolean,
-    bankAccountID?: number,
-    paymentPolicyID?: string | undefined,
-    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
-    existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>,
-): PayMoneyRequestData {
+function getPayMoneyRequestParams({
+    initialChatReport,
+    iouReport,
+    recipient,
+    paymentMethodType,
+    full,
+    payAsBusiness,
+    bankAccountID,
+    paymentPolicyID,
+    lastUsedPaymentMethod,
+    existingB2BInvoiceReport,
+    activePolicy,
+}: {
+    initialChatReport: OnyxTypes.Report;
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+    recipient: Participant;
+    paymentMethodType: PaymentMethodType;
+    full: boolean;
+    payAsBusiness?: boolean;
+    bankAccountID?: number;
+    paymentPolicyID?: string | undefined;
+    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
+    existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>;
+    activePolicy?: OnyxEntry<OnyxTypes.Policy>;
+}): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
-    const activePolicy = getPolicy(activePolicyID);
-    let payerPolicyID = activePolicyID;
+    let payerPolicyID = activePolicy?.id;
     let chatReport = initialChatReport;
     let policyParams = {};
     const optimisticData: OnyxUpdate[] = [];
@@ -9624,7 +9623,7 @@ function getPayMoneyRequestParams(
 
         optimisticData.push(...policyOptimisticData, {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: payerPolicyID});
         successData.push(...policySuccessData);
-        failureData.push(...policyFailureData, {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: activePolicyID ?? null});
+        failureData.push(...policyFailureData, {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: activePolicy?.id ?? null});
     }
 
     if (isIndividualInvoiceRoom(chatReport) && payAsBusiness && existingB2BInvoiceReport) {
@@ -11045,6 +11044,7 @@ function payMoneyRequest(
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     paymentPolicyID?: string,
     full = true,
+    activePolicy?: OnyxEntry<OnyxTypes.Policy>,
 ) {
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
@@ -11055,7 +11055,15 @@ function payMoneyRequest(
     completePaymentOnboarding(paymentSelected, introSelected);
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
-    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType, full, undefined, undefined, paymentPolicyID);
+    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams({
+        initialChatReport: chatReport,
+        iouReport,
+        recipient,
+        paymentMethodType: paymentType,
+        full,
+        paymentPolicyID,
+        activePolicy,
+    });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
     // Expensify Wallets.
@@ -11075,6 +11083,7 @@ function payInvoice(
     existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>,
     methodID?: number,
     paymentMethod?: PaymentMethod,
+    activePolicy?: OnyxTypes.Policy,
 ) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
@@ -11093,7 +11102,17 @@ function payInvoice(
             ownerEmail,
             policyName,
         },
-    } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, payAsBusiness, methodID, undefined, undefined, existingB2BInvoiceReport);
+    } = getPayMoneyRequestParams({
+        initialChatReport: chatReport,
+        iouReport: invoiceReport,
+        recipient,
+        paymentMethodType,
+        full: true,
+        payAsBusiness,
+        bankAccountID: methodID,
+        existingB2BInvoiceReport,
+        activePolicy,
+    });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
     completePaymentOnboarding(paymentSelected, introSelected);
@@ -13846,7 +13865,6 @@ export {
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
-    setSplitPayer,
     setSplitShares,
     splitBill,
     splitBillAndOpenReport,
