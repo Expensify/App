@@ -1,4 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
@@ -22,6 +22,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePermissions from '@hooks/usePermissions';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,6 +31,7 @@ import {clearInviteDraft, clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerCh
 import {
     calculateBillNewDot,
     clearAvatarErrors,
+    clearDeleteWorkspaceError,
     clearPolicyErrorField,
     deleteWorkspace,
     deleteWorkspaceAvatar,
@@ -38,11 +40,11 @@ import {
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
 import {filterInactiveCards} from '@libs/CardUtils';
-import {getLatestErrorField} from '@libs/ErrorUtils';
+import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getUserFriendlyWorkspaceType, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
+import {getUserFriendlyWorkspaceType, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
@@ -160,6 +162,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
 
+    const isFocused = useIsFocused();
+    const isPendingDelete = isPendingDeletePolicy(policy);
+    const prevIsPendingDelete = usePrevious(isPendingDelete);
+    const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
+    const policyLastErrorMessage = getLatestErrorMessage(policy);
+
     const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {
             return;
@@ -200,14 +208,18 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
 
-    const confirmDeleteAndHideModal = useCallback(() => {
+    const confirmDelete = useCallback(() => {
         if (!policy?.id || !policyName) {
             return;
         }
 
         deleteWorkspace(policy.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastPaymentMethod);
-        setIsDeleteModalOpen(false);
     }, [policy?.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastPaymentMethod]);
+
+    const hideDeleteWorkspaceErrorModal = () => {
+        setIsDeleteWorkspaceErrorModalOpen(false);
+        clearDeleteWorkspaceError(policy?.id);
+    };
 
     useEffect(() => {
         if (isLoadingBill) {
@@ -215,6 +227,18 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
         dropdownMenuRef.current?.setIsMenuVisible(false);
     }, [isLoadingBill]);
+
+    useEffect(() => {
+        if (!isFocused || !prevIsPendingDelete || isPendingDelete) {
+            return;
+        }
+        setIsDeleteModalOpen(false);
+        if (!policyLastErrorMessage) {
+            goBackFromInvalidPolicy();
+            return;
+        }
+        setIsDeleteWorkspaceErrorModalOpen(true);
+    }, [isFocused, isPendingDelete, prevIsPendingDelete, policyLastErrorMessage]);
 
     const onDeleteWorkspace = useCallback(() => {
         if (shouldCalculateBillNewDot()) {
@@ -514,12 +538,23 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     <ConfirmModal
                         title={translate('workspace.common.delete')}
                         isVisible={isDeleteModalOpen}
-                        onConfirm={confirmDeleteAndHideModal}
+                        onConfirm={confirmDelete}
                         onCancel={() => setIsDeleteModalOpen(false)}
                         prompt={hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation')}
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}
+                        isConfirmLoading={isPendingDeletePolicy(policy)}
                         danger
+                    />
+                    <ConfirmModal
+                        title={translate('workspace.common.delete')}
+                        isVisible={isDeleteWorkspaceErrorModalOpen}
+                        onConfirm={hideDeleteWorkspaceErrorModal}
+                        onCancel={hideDeleteWorkspaceErrorModal}
+                        prompt={policyLastErrorMessage}
+                        confirmText={translate('common.buttonConfirm')}
+                        shouldShowCancelButton={false}
+                        success={false}
                     />
                 </View>
             )}

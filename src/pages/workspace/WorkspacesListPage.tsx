@@ -30,6 +30,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -52,9 +53,9 @@ import {
     getPolicy,
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
+    isPendingDeletePolicy,
     isPolicyAdmin,
     shouldShowPolicy,
-    shouldShowPolicyError,
 } from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
@@ -138,8 +139,7 @@ function WorkspacesListPage() {
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
     const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyIDToDelete);
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
-    const [policyErrorMessage, setPolicyErrorMessage] = useState('');
-    const [isPolicyErrorModalOpen, setIsPolicyErrorModalOpen] = useState(false);
+    const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
 
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
 
@@ -160,13 +160,17 @@ function WorkspacesListPage() {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policyToDelete = getPolicy(policyIDToDelete);
+    const prevPolicyToDelete = usePrevious(policyToDelete);
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) ||
         !isEmptyObject(cardsList) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         ((policyToDelete?.areExpensifyCardsEnabled || policyToDelete?.areCompanyCardsEnabled) && policyToDelete?.workspaceAccountID);
+    const policyToDeleteLatestErrorMessage = getLatestErrorMessage(policyToDelete);
+    const isPendingDelete = isPendingDeletePolicy(policyToDelete);
+    const prevIsPendingDelete = isPendingDeletePolicy(prevPolicyToDelete);
 
-    const confirmDeleteAndHideModal = () => {
+    const confirmDelete = () => {
         if (!policyIDToDelete || !policyNameToDelete) {
             return;
         }
@@ -181,12 +185,15 @@ function WorkspacesListPage() {
             reimbursementAccountError,
             lastPaymentMethod,
         );
-        setIsDeleteModalOpen(false);
     };
 
-    const hideWorkspaceErrorModal = () => {
-        setIsPolicyErrorModalOpen(false);
-        setPolicyErrorMessage('');
+    const hideDeleteWorkspaceErrorModal = () => {
+        setIsDeleteWorkspaceErrorModalOpen(false);
+        setPolicyIDToDelete(undefined);
+        if (!policyToDelete) {
+            return;
+        }
+        dismissWorkspaceError(policyToDelete.id, policyToDelete.pendingAction);
     };
 
     const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn();
@@ -216,18 +223,15 @@ function WorkspacesListPage() {
     );
 
     useEffect(() => {
-        if (!isFocused || !!policyErrorMessage || isPolicyErrorModalOpen) {
+        if (!prevIsPendingDelete || isPendingDelete) {
             return;
         }
-        const workspaceWithError = Object.values(policies ?? {}).find(shouldShowPolicyError);
-        const workspaceErrorMessage = getLatestErrorMessage(workspaceWithError);
-        if (!workspaceWithError || !workspaceErrorMessage) {
+        setIsDeleteModalOpen(false);
+        if (!isFocused || !policyToDeleteLatestErrorMessage) {
             return;
         }
-        setPolicyErrorMessage(workspaceErrorMessage);
-        dismissWorkspaceError(workspaceWithError.id, workspaceWithError.pendingAction);
-        setIsPolicyErrorModalOpen(true);
-    }, [policyErrorMessage, isFocused, isPolicyErrorModalOpen, policies]);
+        setIsDeleteWorkspaceErrorModalOpen(true);
+    }, [isPendingDelete, prevIsPendingDelete, isFocused, policyToDeleteLatestErrorMessage]);
 
     /**
      * Gets the menu item for each workspace
@@ -320,6 +324,7 @@ function WorkspacesListPage() {
                     errors={item.errors}
                     style={styles.mb2}
                     shouldShowErrorMessages={false}
+                    shouldHideOnDelete={false}
                 >
                     <PressableWithoutFeedback
                         role={CONST.ROLE.BUTTON}
@@ -399,7 +404,7 @@ function WorkspacesListPage() {
         }
 
         return Object.values(policies)
-            .filter((policy): policy is PolicyType => shouldShowPolicy(policy, isOffline, session?.email))
+            .filter((policy): policy is PolicyType => shouldShowPolicy(policy, true, session?.email))
             .map((policy): WorkspaceItem => {
                 const receiptUberBrickRoadIndicator = getUberConnectionErrorDirectlyFromPolicy(policy as OnyxEntry<PolicyType>) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
@@ -449,7 +454,7 @@ function WorkspacesListPage() {
                     employeeList: policy.employeeList,
                 };
             });
-    }, [reimbursementAccount?.errors, policies, isOffline, session?.email, allConnectionSyncProgresses, theme.textLight, navigateToWorkspace]);
+    }, [reimbursementAccount?.errors, policies, session?.email, allConnectionSyncProgresses, theme.textLight, navigateToWorkspace]);
 
     const filterWorkspace = useCallback((workspace: WorkspaceItem, inputValue: string) => workspace.title.toLowerCase().includes(inputValue), []);
     const sortWorkspace = useCallback((workspaceItems: WorkspaceItem[]) => workspaceItems.sort((a, b) => localeCompare(a.title, b.title)), [localeCompare]);
@@ -601,19 +606,20 @@ function WorkspacesListPage() {
             <ConfirmModal
                 title={translate('workspace.common.delete')}
                 isVisible={isDeleteModalOpen}
-                onConfirm={confirmDeleteAndHideModal}
+                onConfirm={confirmDelete}
                 onCancel={() => setIsDeleteModalOpen(false)}
                 prompt={hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation')}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
+                isConfirmLoading={isPendingDelete}
                 danger
             />
             <ConfirmModal
                 title={translate('workspace.common.delete')}
-                isVisible={isPolicyErrorModalOpen}
-                onConfirm={hideWorkspaceErrorModal}
-                onCancel={hideWorkspaceErrorModal}
-                prompt={policyErrorMessage}
+                isVisible={isDeleteWorkspaceErrorModalOpen}
+                onConfirm={hideDeleteWorkspaceErrorModal}
+                onCancel={hideDeleteWorkspaceErrorModal}
+                prompt={policyToDeleteLatestErrorMessage}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
                 success={false}
