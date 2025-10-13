@@ -14,6 +14,7 @@ import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOURequestPolicyID, setDraftSplitTransaction, setMoneyRequestCategory, updateMoneyRequestCategory} from '@libs/actions/IOU';
@@ -40,7 +41,7 @@ function IOURequestStepCategory({
     report: reportReal,
     reportDraft,
     route: {
-        params: {transactionID, backTo, action, iouType, reportActionID},
+        params: {transactionID, backTo, action, iouType, reportActionID, reportID: routeReportID},
     },
     transaction,
 }: IOURequestStepCategoryProps) {
@@ -57,6 +58,7 @@ function IOURequestStepCategory({
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyIdDraft}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policy?.id}`, {canBeMissing: true});
 
     const report = reportReal ?? reportDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
@@ -67,6 +69,7 @@ function IOURequestStepCategory({
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionCategory = getTransactionDetails(currentTransaction)?.category ?? '';
+    useRestartOnReceiptFailure(transaction, routeReportID, iouType, action);
 
     const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
 
@@ -114,7 +117,16 @@ function IOURequestStepCategory({
             }
 
             if (isEditing && report) {
-                updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory, policy, policyTags, policyCategories, currentSearchHash);
+                updateMoneyRequestCategory(
+                    transaction.transactionID,
+                    report.reportID,
+                    updatedCategory,
+                    policy,
+                    policyTags,
+                    policyCategories,
+                    policyRecentlyUsedCategories,
+                    currentSearchHash,
+                );
                 navigateBack();
                 return;
             }
