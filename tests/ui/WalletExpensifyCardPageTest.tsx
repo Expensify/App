@@ -18,7 +18,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import currencyList from '../unit/currencyList.json';
 import * as TestHelper from '../utils/TestHelper';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Set up a global fetch mock for API requests in tests.
@@ -28,16 +27,6 @@ TestHelper.setupGlobalFetchMock();
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 const userCardID = '1234';
-
-function initCurrencyList() {
-    Onyx.init({
-        keys: ONYXKEYS,
-        initialKeyStates: {
-            [ONYXKEYS.CURRENCY_LIST]: currencyList,
-        },
-    });
-    return waitForBatchedUpdates();
-}
 
 // Renders the ExpensifyCardPage inside a navigation container with necessary providers.
 const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD, initialParams: SettingsNavigatorParamList[typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD]) => {
@@ -63,6 +52,9 @@ describe('ExpensifyCardPage', () => {
         // Initialize Onyx with required keys before running any test.
         Onyx.init({
             keys: ONYXKEYS,
+            initialKeyStates: {
+                [ONYXKEYS.CURRENCY_LIST]: currencyList,
+            },
         });
     });
 
@@ -172,10 +164,6 @@ describe('ExpensifyCardPage', () => {
     });
 
     it('should not show the PIN option on screen', async () => {
-        beforeAll(async () => {
-            await initCurrencyList();
-        });
-
         // Sign in as a test user before running the test.
         await TestHelper.signInWithTestUser();
 
@@ -187,8 +175,8 @@ describe('ExpensifyCardPage', () => {
                     state: CONST.EXPENSIFY_CARD.STATE.OPEN,
                     domainName: 'xyz',
                     nameValuePairs: {
-                        isVirtual: true,
-                        cardTitle: 'Test Virtual Card',
+                        isVirtual: false,
+                        cardTitle: 'Test Card',
                         feedCountry: CONST.COUNTRY.US,
                     },
                     availableSpend: 50000,
@@ -213,10 +201,6 @@ describe('ExpensifyCardPage', () => {
     });
 
     it('should show the PIN option on screen', async () => {
-        beforeAll(async () => {
-            await initCurrencyList();
-        });
-
         // Sign in as a test user before running the test.
         await TestHelper.signInWithTestUser();
 
@@ -228,8 +212,8 @@ describe('ExpensifyCardPage', () => {
                     state: CONST.EXPENSIFY_CARD.STATE.OPEN,
                     domainName: 'xyz',
                     nameValuePairs: {
-                        isVirtual: true,
-                        cardTitle: 'Test Virtual Card',
+                        isVirtual: false,
+                        cardTitle: 'Test Card',
                         feedCountry: CONST.COUNTRY.GB,
                     },
                     availableSpend: 50000,
