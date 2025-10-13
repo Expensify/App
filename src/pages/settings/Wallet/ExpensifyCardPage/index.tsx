@@ -34,7 +34,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {CurrencyList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useExpensifyCardContext from './useExpensifyCardContext';
@@ -195,9 +195,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         pan={cardsDetails[card.cardID]?.pan}
                                         expiration={formatCardExpiration(cardsDetails[card.cardID]?.expiration ?? '')}
                                         cvv={cardsDetails[card.cardID]?.cvv}
-                                        domain={domain}
-                                        cardID={card.cardID}
-                                        route={route}
+                                        onUpdateAddressPress={() => {
+                                            if (route.name === SCREENS.SETTINGS.WALLET.DOMAIN_CARD) {
+                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.getRoute(domain));
+                                                return;
+                                            }
+                                            Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_UPDATE_ADDRESS.getRoute(cardID.toString()));
+                                        }}
                                     />
                                 ) : (
                                     <>
@@ -252,12 +256,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             travelCards.map((card) => (
                                 <React.Fragment key={card.cardID}>
                                     {!!cardsDetails[card.cardID] && cardsDetails[card.cardID]?.cvv ? (
-                                        <CardDetails
-                                            cvv={cardsDetails[card.cardID]?.cvv}
-                                            domain={domain}
-                                            cardID={card.cardID}
-                                            route={route}
-                                        />
+                                        <CardDetails cvv={cardsDetails[card.cardID]?.cvv} />
                                     ) : (
                                         <>
                                             <MenuItemWithTopDescription
