@@ -2837,6 +2837,31 @@ function getRemovedFromApprovalChainMessage(reportAction: OnyxEntry<ReportAction
     return translateLocal('workspaceActions.removedFromApprovalWorkflow', {submittersNames, count: submittersNames.length});
 }
 
+function getActionableCardFraudAlertMessage(
+    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT>>,
+    getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'],
+) {
+    const fraudMessage = getOriginalMessage(reportAction);
+    const cardLastFour = fraudMessage?.maskedCardNumber?.slice(-4) ?? '';
+    const merchant = fraudMessage?.triggerMerchant ?? '';
+    const formattedAmount = convertToDisplayString(fraudMessage?.triggerAmount ?? 0, fraudMessage?.currency ?? CONST.CURRENCY.USD);
+    const resolution = fraudMessage?.resolution;
+    const formattedDate = reportAction?.created ? format(getLocalDateFromDatetime(reportAction?.created), 'MMM. d - h:mma').replace(/am|pm/i, (match) => match.toUpperCase()) : '';
+
+    if (resolution === CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED) {
+        return translateLocal('cardPage.cardFraudAlert.clearedMessage', {cardLastFour});
+    } else if (resolution === CONST.CARD_FRAUD_ALERT_RESOLUTION.FRAUD) {
+        return translateLocal('cardPage.cardFraudAlert.deactivatedMessage', {cardLastFour});
+    }
+
+    return translateLocal('cardPage.cardFraudAlert.alertMessage', {
+        cardLastFour,
+        amount: formattedAmount,
+        merchant,
+        date: formattedDate,
+    });
+}
+
 function getDemotedFromWorkspaceMessage(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE>>) {
     const originalMessage = getOriginalMessage(reportAction);
     const policyName = originalMessage?.policyName ?? translateLocal('workspace.common.workspace');
@@ -3246,6 +3271,7 @@ export {
     getDelegateAccountIDFromReportAction,
     isPendingHide,
     filterOutDeprecatedReportActions,
+    getActionableCardFraudAlertMessage,
 };
 
 export type {LastVisibleMessage};
