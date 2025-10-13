@@ -1221,7 +1221,7 @@ const translations = {
         settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Paid ${amount} with business account ${last4Digits}` : `Paid with business account`),
         payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
             formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`,
-        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Paid ${amount} with bank account ${last4Digits}` : `Paid with bank account ${last4Digits}`),
+        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `paid ${amount} with bank account ${last4Digits}` : `paid with bank account ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
             `paid ${amount ? `${amount} ` : ''}with bank account ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
         invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Personal account • ${lastFour}`,
@@ -1473,6 +1473,7 @@ const translations = {
                 const article = StringUtils.startsWithVowel(field) ? 'an' : 'a';
                 return `Please select ${article} ${field}`;
             },
+            pleaseSelectAttendees: 'Please select attendees',
             selectAllDetailsError: 'Select all details before continuing.',
         },
         confirmationPage: {
@@ -1560,8 +1561,8 @@ const translations = {
         contactMethods: 'Contact methods',
         featureRequiresValidate: 'This feature requires you to validate your account.',
         validateAccount: 'Validate your account',
-        helpTextBeforeEmail: 'Add more ways for people to find you, and forward receipts to ',
-        helpTextAfterEmail: ' from multiple email addresses.',
+        helpTextBeforeEmail: 'Add more ways to send receipts. Forward them to ',
+        helpTextAfterEmail: ' or text them to 47777 (US numbers only).',
         pleaseVerify: 'Please verify this contact method',
         getInTouch: "Whenever we need to get in touch with you, we'll use this contact method.",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod}. It should arrive within a minute or two.`,
@@ -2003,7 +2004,7 @@ const translations = {
         workflowTitle: 'Spend',
         workflowDescription: 'Configure a workflow from the moment spend occurs, including approval and payment.',
         submissionFrequency: 'Submission frequency',
-        submissionFrequencyDescription: 'Choose a custom schedule for submitting expenses, or leave this off for realtime updates on spending.',
+        submissionFrequencyDescription: 'Choose a custom schedule for submitting expenses.',
         submissionFrequencyDateOfMonth: 'Date of month',
         addApprovalsTitle: 'Add approvals',
         addApprovalButton: 'Add approval workflow',
@@ -2303,8 +2304,8 @@ const translations = {
         },
         interestedFeatures: {
             title: 'What features are you interested in?',
-            featuresAlreadyEnabled: 'Your workspace already has the following enabled:',
-            featureYouMayBeInterestedIn: 'Enable additional features you may be interested in:',
+            featuresAlreadyEnabled: 'Here are our most popular features:',
+            featureYouMayBeInterestedIn: 'Enable additional features:',
         },
         error: {
             requiredFirstName: 'Please input your first name to continue',
@@ -7200,7 +7201,7 @@ const translations = {
         book: {
             title: 'Schedule call',
             description: 'Find a time that works for you.',
-            slots: 'Available times for ',
+            slots: ({date}: {date: string}) => `<muted-text>Available times for <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: 'Confirm call',

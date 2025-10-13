@@ -3573,8 +3573,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.305):
-    - boost
+  - RNLiveMarkdown (0.1.307):
     - DoubleConversion
     - fast_float
     - fmt
@@ -4688,7 +4687,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 9339994ea5d1ff6ad2679b7d0cc3d49053111369
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: f580a84f3f65a9f37b9940715e094216dc5605c1
+  RNLiveMarkdown: ba5e9bd83b82d3994fb67608c7840a60ecc6e4fe
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 870cd752e1d132e05465f3074b582ce6c7e742e9
   RNNitroSQLite: d5cf8c550c51015e1ecc93ff6e7509187c6c1c9e

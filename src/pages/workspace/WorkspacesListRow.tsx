@@ -81,6 +81,9 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
 
     /** Function to reset loading spinner icon index */
     resetLoadingSpinnerIconIndex?: () => void;
+
+    /** Whether the list item is hovered */
+    isHovered?: boolean;
 };
 
 type BrickRoadIndicatorIconProps = {
@@ -128,6 +131,7 @@ function WorkspacesListRow({
     isDefault,
     isLoadingBill,
     resetLoadingSpinnerIconIndex,
+    isHovered,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -287,6 +291,17 @@ function WorkspacesListRow({
                 </View>
 
                 {!isNarrow && ThreeDotMenuOrPendingIcon}
+                {!isNarrow && (
+                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mln4]}>
+                        <Icon
+                            src={Expensicons.ArrowRight}
+                            fill={theme.icon}
+                            additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
+                            isButtonIcon
+                            medium
+                        />
+                    </View>
+                )}
             </Animated.View>
         </View>
     );

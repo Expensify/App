@@ -141,6 +141,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     isSelected,
     canShowProductTrainingTooltip,
     renderScrollComponent,
+    shouldShowRightCaret,
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -672,6 +673,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
+                    shouldShowRightCaret={shouldShowRightCaret}
                 />
             </View>
         );
