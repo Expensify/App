@@ -44,6 +44,7 @@ import {
     getDisplayNamesWithTooltips,
     getGroupChatName,
     getIconsForParticipants,
+    getIOUReportActionDisplayMessage,
     getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
     getParentNavigationSubtitle,
@@ -342,6 +343,37 @@ describe('ReportUtils', () => {
         return waitForBatchedUpdates();
     });
     beforeEach(() => IntlStore.load(CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
+
+    describe('getIOUReportActionDisplayMessage', () => {
+        const iouReportID = '1234567890';
+        const policyID = 332;
+
+        const reportAction = {
+            ...createRandomReportAction(44),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {IOUReportID: iouReportID, type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
+        };
+
+        const iouReport = {...createExpenseReport(Number(iouReportID)), policyID: policyID.toString()};
+
+        const policyWithBank = {
+            ...createRandomPolicy(policyID, CONST.POLICY.TYPE.TEAM),
+            achAccount: {
+                accountNumber: 'XXXXXXXXXXXX0000',
+            },
+        };
+
+        it('should return the right message when payment type is ACH', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithBank);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {[reportAction.reportActionID]: reportAction});
+
+            const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
+            const paidSystemMessage = translateLocal('iou.businessBankAccount', {amount: '', last4Digits});
+
+            expect(getIOUReportActionDisplayMessage(reportAction, undefined, iouReport)).toBe(paidSystemMessage);
+        });
+    });
 
     describe('prepareOnboardingOnyxData', () => {
         it('provides test drive url to task title', () => {
@@ -3599,6 +3631,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3650,6 +3683,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: true,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3671,6 +3705,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3692,6 +3727,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: 'fake draft',
                 }),
             ).toBeTruthy();
         });
@@ -3713,6 +3749,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3747,6 +3784,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3777,6 +3815,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3807,6 +3846,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3830,6 +3870,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     includeSelfDM,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3855,6 +3896,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3873,6 +3915,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3894,6 +3937,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3935,6 +3979,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3953,6 +3998,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3973,6 +4019,7 @@ describe('ReportUtils', () => {
                     login: '+@domain.com',
                     excludeEmptyChats: false,
                     includeDomainEmail: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -4017,6 +4064,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -4035,6 +4083,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -4067,6 +4116,7 @@ describe('ReportUtils', () => {
                     betas: [],
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -5748,7 +5798,8 @@ describe('ReportUtils', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspace.id}`, workspace);
 
-            const result = canUserPerformWriteAction(policyAnnounceRoom);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(policyAnnounceRoom.reportID));
+            const result = canUserPerformWriteAction(policyAnnounceRoom, isReportArchived.current);
 
             // Then it should return false
             expect(result).toBe(false);
