@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+import React, {forwardRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
@@ -7,7 +8,7 @@ import callOrReturn from '@src/types/utils/callOrReturn';
 import AmountSelectorModal from './AmountSelectorModal';
 import type {AmountPickerProps} from './types';
 
-function AmountPicker({value, description, title, errorText = '', onInputChange, furtherDetails, rightLabel, ref, ...rest}: AmountPickerProps) {
+function AmountPicker({value, description, title, errorText = '', onInputChange, furtherDetails, rightLabel, ...rest}: AmountPickerProps, forwardedRef: ForwardedRef<View>) {
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const showPickerModal = () => {
@@ -30,7 +31,7 @@ function AmountPicker({value, description, title, errorText = '', onInputChange,
     return (
         <View>
             <MenuItemWithTopDescription
-                ref={ref}
+                ref={forwardedRef}
                 shouldShowRightIcon
                 title={callOrReturn(title, value)}
                 description={description}
@@ -55,4 +56,4 @@ function AmountPicker({value, description, title, errorText = '', onInputChange,
 
 AmountPicker.displayName = 'AmountPicker';
 
-export default AmountPicker;
+export default forwardRef(AmountPicker);
