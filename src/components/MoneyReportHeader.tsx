@@ -5,7 +5,6 @@ import React, {useCallback, useContext, useEffect, useMemo, useState} from 'reac
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -113,6 +112,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {SessionWithEmail} from '@src/types/onyx/Session';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ActivityIndicator from './ActivityIndicator';
@@ -188,7 +188,6 @@ function MoneyReportHeader({
         | PlatformStackRouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>
         | PlatformStackRouteProp<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>
     >();
-    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
@@ -418,10 +417,20 @@ function MoneyReportHeader({
                 }
             } else if (isInvoiceReport) {
                 startAnimation();
-                payInvoice(type, chatReport, moneyRequestReport, introSelected, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod);
+                payInvoice(
+                    type,
+                    chatReport,
+                    moneyRequestReport,
+                    introSelected,
+                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    payAsBusiness,
+                    existingB2BInvoiceReport,
+                    methodID,
+                    paymentMethod,
+                );
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true);
+                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, undefined, true);
                 if (currentSearchQueryJSON) {
                     search({
                         searchKey: currentSearchKey,
@@ -442,6 +451,7 @@ function MoneyReportHeader({
             startAnimation,
             moneyRequestReport,
             introSelected,
+            session?.accountID,
             existingB2BInvoiceReport,
             currentSearchQueryJSON,
             currentSearchKey,
@@ -563,8 +573,11 @@ function MoneyReportHeader({
     }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
 
     const primaryAction = useMemo(() => {
+        if (!session?.email) {
+            return null;
+        }
         return getReportPrimaryAction({
-            currentUserEmail: currentUserLogin ?? '',
+            session: session as SessionWithEmail,
             report: moneyRequestReport,
             chatReport,
             reportTransactions: transactions,
@@ -578,8 +591,7 @@ function MoneyReportHeader({
             isSubmittingAnimationRunning,
         });
     }, [
-        isPaidAnimationRunning,
-        isSubmittingAnimationRunning,
+        session,
         moneyRequestReport,
         chatReport,
         transactions,
@@ -589,7 +601,8 @@ function MoneyReportHeader({
         reportActions,
         isChatReportArchived,
         invoiceReceiverPolicy,
-        currentUserLogin,
+        isPaidAnimationRunning,
+        isSubmittingAnimationRunning,
     ]);
 
     const confirmExport = useCallback(() => {
@@ -874,11 +887,11 @@ function MoneyReportHeader({
     };
 
     const secondaryActions = useMemo(() => {
-        if (!moneyRequestReport) {
+        if (!moneyRequestReport || !session?.email) {
             return [];
         }
         return getSecondaryReportActions({
-            currentUserEmail: currentUserLogin ?? '',
+            session: session as SessionWithEmail,
             report: moneyRequestReport,
             chatReport,
             reportTransactions: transactions,
@@ -890,7 +903,7 @@ function MoneyReportHeader({
             isChatReportArchived,
             isNewDotUpdateSplitsBeta: isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS),
         });
-    }, [moneyRequestReport, currentUserLogin, chatReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isChatReportArchived, isBetaEnabled]);
+    }, [moneyRequestReport, session, chatReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isChatReportArchived, isBetaEnabled]);
 
     const secondaryExportActions = useMemo(() => {
         if (!moneyRequestReport) {

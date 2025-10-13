@@ -1,7 +1,7 @@
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, Session, Transaction, TransactionViolation} from '@src/types/onyx';
 import {getCurrentUserAccountID} from './actions/Report';
 import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasIntegrationAutoSync, isPolicyAdmin, isPreferredExporter} from './PolicyUtils';
 import {isAddExpenseAction} from './ReportPrimaryActionUtils';
@@ -27,7 +27,6 @@ import {
     isSettled,
     requiresManualSubmission,
 } from './ReportUtils';
-import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isPending, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
 function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, isReportArchived: boolean, policy?: Policy, transactions?: Transaction[]) {
@@ -98,6 +97,7 @@ function canPay(
     report: Report,
     violations: OnyxCollection<TransactionViolation[]>,
     isReportArchived: boolean,
+    session: OnyxEntry<Session>,
     policy?: Policy,
     invoiceReceiverPolicy?: Policy,
     shouldConsiderViolations = true,
@@ -106,7 +106,7 @@ function canPay(
         return false;
     }
 
-    const isReportPayer = isPayer(getSession(), report, false, policy);
+    const isReportPayer = isPayer(session, report, false, policy);
     const isExpense = isExpenseReport(report);
     const isPaymentsEnabled = arePaymentsEnabled(policy);
     const isProcessing = isProcessingReport(report);
@@ -179,7 +179,14 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
     return (isApproved || isReimbursed || isClosed) && !hasAnyViolations;
 }
 
-function canReview(report: Report, violations: OnyxCollection<TransactionViolation[]>, isReportArchived: boolean, policy?: Policy, transactions?: Transaction[]) {
+function canReview(
+    report: Report,
+    session: OnyxEntry<Session>,
+    violations: OnyxCollection<TransactionViolation[]>,
+    isReportArchived: boolean,
+    policy?: Policy,
+    transactions?: Transaction[],
+) {
     const hasAnyViolations = hasMissingSmartscanFields(report.reportID, transactions) || hasAnyViolationsUtil(report.reportID, violations);
     const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenExpenseReport(report);
@@ -190,7 +197,7 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
         isReimbursed ||
         (!(isSubmitter && isOpen && policy?.areWorkflowsEnabled) &&
             !canApprove(report, violations, policy, transactions, false) &&
-            !canPay(report, violations, isReportArchived, policy, policy, false))
+            !canPay(report, violations, isReportArchived, session, policy, policy, false))
     ) {
         return false;
     }
@@ -215,6 +222,7 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
 function getReportPreviewAction(
     violations: OnyxCollection<TransactionViolation[]>,
     isReportArchived: boolean,
+    session: OnyxEntry<Session>,
     report?: Report,
     policy?: Policy,
     transactions?: Transaction[],
@@ -242,13 +250,13 @@ function getReportPreviewAction(
     if (canApprove(report, violations, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
-    if (canPay(report, violations, isReportArchived, policy, invoiceReceiverPolicy)) {
+    if (canPay(report, violations, isReportArchived, session, policy, invoiceReceiverPolicy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
     if (canExport(report, violations, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
-    if (canReview(report, violations, isReportArchived, policy, transactions)) {
+    if (canReview(report, session, violations, isReportArchived, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
     }
 
