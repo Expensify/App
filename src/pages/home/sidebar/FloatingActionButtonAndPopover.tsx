@@ -355,7 +355,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                         showDelegateNoAccessModal();
                         return;
                     }
-                    navigateToQuickAction({isValidReport, quickAction, selectOption, lastDistanceExpenseType});
+                    navigateToQuickAction({isValidReport, quickAction, selectOption, lastDistanceExpenseType, currentUserAccountID: currentUserPersonalDetails.accountID});
                 });
             };
             return [
@@ -556,6 +556,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                                   viewTourTaskReport,
                                   viewTourTaskParentReport,
                                   isViewTourTaskParentReportArchived,
+                                  currentUserPersonalDetails.accountID,
                               ),
                           ),
                   },

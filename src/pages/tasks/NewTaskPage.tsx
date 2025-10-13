@@ -9,6 +9,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -18,6 +19,7 @@ import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, getAssignee, get
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
+import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNamesWithTooltips, isAllowedToComment} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -33,6 +35,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const assignee = useMemo(() => getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails), [task?.assigneeAccountID, personalDetails]);
@@ -97,17 +100,19 @@ function NewTaskPage({route}: NewTaskPageProps) {
             return;
         }
 
-        createTaskAndNavigate(
-            parentReport?.reportID,
-            task.title,
-            task?.description ?? '',
-            task?.assignee ?? '',
-            task.assigneeAccountID,
-            task.assigneeChatReport,
-            parentReport?.policyID,
-            false,
+        createTaskAndNavigate({
+            parentReportID: parentReport?.reportID,
+            title: task.title,
+            description: task?.description ?? '',
+            assigneeEmail: task?.assignee ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            currentUserEmail: getCurrentUserEmail() ?? '',
+            assigneeAccountID: task.assigneeAccountID,
+            assigneeChatReport: task.assigneeChatReport,
+            policyID: parentReport?.policyID,
+            isCreatedUsingMarkdown: false,
             quickAction,
-        );
+        });
     };
 
     return (

@@ -5,7 +5,7 @@ import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useBetas, useSession} from '@components/OnyxListItemProvider';
+import {useBetas} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
@@ -42,7 +42,7 @@ function useOptions() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
-    const session = useSession();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const defaultOptions = useMemo(() => {
@@ -75,16 +75,16 @@ function useOptions() {
     }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
 
     const optionsWithoutCurrentUser = useMemo(() => {
-        if (!session?.accountID) {
+        if (!currentUserPersonalDetails?.accountID) {
             return defaultOptions;
         }
 
         return {
             ...defaultOptions,
-            personalDetails: defaultOptions.personalDetails.filter((detail) => detail.accountID !== session.accountID),
-            recentReports: defaultOptions.recentReports.filter((report) => report.accountID !== session.accountID),
+            personalDetails: defaultOptions.personalDetails.filter((detail) => detail.accountID !== currentUserPersonalDetails.accountID),
+            recentReports: defaultOptions.recentReports.filter((report) => report.accountID !== currentUserPersonalDetails.accountID),
         };
-    }, [defaultOptions, session?.accountID]);
+    }, [defaultOptions, currentUserPersonalDetails?.accountID]);
 
     const options = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(optionsWithoutCurrentUser, debouncedSearchValue.trim(), countryCode, {
@@ -110,7 +110,6 @@ function TaskAssigneeSelectorModal() {
     const styles = useThemeStyles();
     const route = useRoute<PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
     const {translate} = useLocalize();
-    const session = useSession();
     const backTo = route.params?.backTo;
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: false});
@@ -189,12 +188,20 @@ function TaskAssigneeSelectorModal() {
                     const assigneeChatReport = setAssigneeValue(
                         option?.login ?? '',
                         option?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        currentUserPersonalDetails.accountID,
                         report.reportID,
                         undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
                         isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? ''}),
                     );
                     // Pass through the selected assignee
-                    editTaskAssignee(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, option?.login ?? '', option?.accountID, assigneeChatReport);
+                    editTaskAssignee(
+                        report,
+                        currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        option?.login ?? '',
+                        currentUserPersonalDetails.accountID,
+                        option?.accountID,
+                        assigneeChatReport,
+                    );
                 }
                 // eslint-disable-next-line deprecation/deprecation
                 InteractionManager.runAfterInteractions(() => {
@@ -205,6 +212,7 @@ function TaskAssigneeSelectorModal() {
                 setAssigneeValue(
                     option?.login ?? '',
                     option.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserPersonalDetails.accountID,
                     task?.shareDestination ?? '',
                     undefined, // passing null as report is null in this condition
                     isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? undefined}),
@@ -215,7 +223,7 @@ function TaskAssigneeSelectorModal() {
                 });
             }
         },
-        [session?.accountID, task?.shareDestination, report, backTo],
+        [report, currentUserPersonalDetails.accountID, task?.shareDestination, backTo],
     );
 
     const handleBackButtonPress = useCallback(() => Navigation.goBack(!route.params?.reportID ? ROUTES.NEW_TASK.getRoute(backTo) : backTo), [route.params, backTo]);

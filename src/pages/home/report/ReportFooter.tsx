@@ -146,7 +146,7 @@ function ReportFooter({
                     assignee = Object.values(allPersonalDetails ?? {}).find((value) => value?.login === mentionWithDomain) ?? undefined;
                     if (!Object.keys(assignee ?? {}).length) {
                         const assigneeAccountID = generateAccountID(mentionWithDomain);
-                        const optimisticDataForNewAssignee = setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
+                        const optimisticDataForNewAssignee = setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID, personalDetail.accountID);
                         assignee = optimisticDataForNewAssignee.assignee;
                         assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
                     }
@@ -156,10 +156,22 @@ function ReportFooter({
                     title = `@${mentionWithDomain} ${title}`;
                 }
             }
-            createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID, true, quickAction);
+            createTaskAndNavigate({
+                parentReportID: report.reportID,
+                title,
+                description: '',
+                assigneeEmail: assignee?.login ?? '',
+                currentUserAccountID: personalDetail.accountID,
+                currentUserEmail: getCurrentUserEmail() ?? '',
+                assigneeAccountID: assignee?.accountID,
+                assigneeChatReport,
+                policyID: report.policyID,
+                isCreatedUsingMarkdown: true,
+                quickAction,
+            });
             return true;
         },
-        [allPersonalDetails, availableLoginsList, currentUserEmail, quickAction, report.policyID, report.reportID],
+        [allPersonalDetails, availableLoginsList, currentUserEmail, personalDetail.accountID, quickAction, report.policyID, report.reportID],
     );
 
     const onSubmitComment = useCallback(
