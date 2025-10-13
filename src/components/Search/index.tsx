@@ -1,6 +1,6 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -290,7 +290,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         [reportActions],
     );
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
-    const searchListRef = useRef<SelectionListHandle | null>(null);
 
     const clearTransactionsAndSetHashAndKey = useCallback(() => {
         clearSelectedTransactions(hash);
@@ -736,6 +735,16 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         [type, status, data, sortBy, sortOrder, groupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, localeCompare, hash],
     );
 
+    const searchListRef = useRef<SelectionListHandle | null>(null);
+
+    useLayoutEffect(() => {
+        handleSelectionListScroll(sortedSelectedData, searchListRef.current);
+
+        // We only need to run the effect on change of newSearchResultKey to scroll to the new item.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [newSearchResultKey]);
+
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
 
     useEffect(() => {
@@ -793,8 +802,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             data,
         );
     }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID]);
-
-    const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
 
     const areAllOptionalColumnsHidden = useMemo(() => {
         const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
@@ -909,7 +916,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     columns={columnsToShow}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     violations={violations}
-                    onLayout={onLayout}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                     newTransactions={newTransactions}
