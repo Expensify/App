@@ -3,6 +3,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {act, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -19,7 +20,6 @@ import SCREENS from '@src/SCREENS';
 import currencyList from '../unit/currencyList.json';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 
 // Set up a global fetch mock for API requests in tests.
 TestHelper.setupGlobalFetchMock();
