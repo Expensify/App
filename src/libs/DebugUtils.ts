@@ -627,6 +627,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 agentZeroProcessingRequestIndicator: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 expensify_text_title: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                created: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
         case 'expensify_text_title':
             return validateObject<ObjectElement<ReportNameValuePairs, 'expensify_text_title'>>(value, {
