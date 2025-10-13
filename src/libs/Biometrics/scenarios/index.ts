@@ -81,7 +81,7 @@ const biometricsScenarios = {
             if (!validateCode) {
                 requestValidateCodeAction();
                 return {
-                    httpCode: 400,
+                    httpCode: CONST.BIOMETRICS.NEED_SECOND_FACTOR_HTTP_CODE,
                     reason: 'biometrics.reason.error.validateCodeMissing',
                 };
             }
@@ -105,6 +105,7 @@ const biometricsScenarios = {
                 });
             }
         },
+        factorToStore: CONST.BIOMETRICS.FACTORS.OTP,
     },
 } as const satisfies BiometricsScenarioMap;
 

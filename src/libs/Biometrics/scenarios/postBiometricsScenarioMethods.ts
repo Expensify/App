@@ -18,7 +18,7 @@ const postAuthorizeTransactionFallback: BiometricsScenarioPostMethod<typeof CONS
     const {successful, httpCode} = result.value;
     const {otp, validateCode} = requestParams;
 
-    const isOTPRequired = httpCode === 202;
+    const isOTPRequired = httpCode === CONST.BIOMETRICS.NEED_SECOND_FACTOR_HTTP_CODE;
 
     let reason = result.reason;
 

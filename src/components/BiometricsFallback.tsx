@@ -47,9 +47,8 @@ function BiometricsFallback<T extends BiometricsFallbackScenario>({children, sce
     const BiometricsFallback = useBiometricsAuthorizationFallback(scenario);
     const [showModal, setShowModal] = useState<boolean>(false);
     const {translate} = useLocalize();
-
     // Find and validate required child components
-    const [secretComponent, contentComponent] = [BiometricsFallbackSecret, BiometricsFallbackContent].map((type) => children.find((child) => child.type === type)) as [
+    const [secretComponent, contentComponent] = [BiometricsFallbackSecret.name, BiometricsFallbackContent.name].map((name) => children.find((child) => child.type.name === name)) as [
         SecretComponent?,
         ContentComponent<T>?,
     ];
@@ -110,10 +109,9 @@ function BiometricsFallback<T extends BiometricsFallbackScenario>({children, sce
                     onClose={() => setShowModal(false)}
                 />
             )}
-
-            {BiometricsFallback.requiredFactorForNextStep === CONST.BIOMETRICS.FACTORS.VALIDATE_CODE && renderBiometricsInput('ValidateCode', 'validateCode')}
-
-            {BiometricsFallback.requiredFactorForNextStep === CONST.BIOMETRICS.FACTORS.OTP && renderBiometricsInput('OTPCode', 'otp')}
+            {BiometricsFallback.requiredFactorForNextStep === CONST.BIOMETRICS.FACTORS.VALIDATE_CODE &&
+                renderBiometricsInput('ValidateCode', CONST.BIOMETRICS.FACTORS_REQUIREMENTS.VALIDATE_CODE.parameter)}
+            {BiometricsFallback.requiredFactorForNextStep === CONST.BIOMETRICS.FACTORS.OTP && renderBiometricsInput('OTPCode', CONST.BIOMETRICS.FACTORS_REQUIREMENTS.OTP.parameter)}
         </>
     );
 }

@@ -440,6 +440,7 @@ const CONST = {
             PUBLIC_KEY: '3DS_SCA_KEY_PUBLIC',
             PRIVATE_KEY: '3DS_SCA_KEY_PRIVATE',
         },
+        NEED_SECOND_FACTOR_HTTP_CODE: 202,
         /** Type of used authentication method returned by the SecureStore mapped to names */
         AUTH_TYPE: {
             UNKNOWN: {

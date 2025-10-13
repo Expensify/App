@@ -1,14 +1,16 @@
-import {BiometricsPartialStatus} from '@hooks/useBiometricsStatus/types';
-import {biometricsScenarioRequiredFactors, biometricsScenarios} from '@libs/Biometrics/scenarios';
-import {
+import {convertBiometricsParameterNameToFactor} from '@hooks/useBiometricsAuthorizationFallback/helpers';
+import type {BiometricsPartialStatus} from '@hooks/useBiometricsStatus/types';
+import CONST from '@src/CONST';
+import {biometricsScenarioRequiredFactors, biometricsScenarios} from ".";
+import type {
+    BiometricsFactor,
     BiometricsFactors,
     BiometricsScenario,
     BiometricsScenarioMap,
     BiometricsScenarioParams,
     BiometricsScenarioResponseWithSuccess,
     BiometricsScenarioStoredValueType,
-} from '@libs/Biometrics/scenarios/types';
-import CONST from '@src/CONST';
+} from './types';
 
 /**
  * Validates that all required authentication factors are present and of the correct type/format.
@@ -69,15 +71,40 @@ function areBiometricsFactorsSufficient<T extends BiometricsScenario>(scenario: 
     };
 }
 
-const authorizeBiometricsPostMethodFallback = (status: BiometricsPartialStatus<BiometricsScenarioResponseWithSuccess, true>) => ({
-    ...status,
-    step: {
-        requiredFactorForNextStep: undefined,
-        wasRecentStepSuccessful: status.value.successful,
-        isRequestFulfilled: !!status.value.httpCode,
-    },
-    value: undefined,
-});
+const authorizeBiometricsPostMethodFallback = <T extends BiometricsScenario>(
+    status: BiometricsPartialStatus<BiometricsScenarioResponseWithSuccess, true>,
+    params: BiometricsScenarioParams<T, true>,
+    scenario?: T,
+) => {
+    const providedParams = Object.entries(params).reduce(
+        (paramsDict, paramEntry) => {
+            const [key, value] = paramEntry as [keyof BiometricsFactors<T>, unknown];
+            if (key === 'isStoredFactorVerified') {
+                return paramsDict;
+            }
+            const convertedKey = convertBiometricsParameterNameToFactor(key);
+            paramsDict[convertedKey] = !!value;
+            return paramsDict;
+        },
+        {} as Partial<Record<BiometricsFactor, boolean>>,
+    );
+
+    const missingRequiredFactor = scenario && biometricsScenarioRequiredFactors[scenario].find((factor) => !Object.keys(providedParams).includes(factor));
+
+    const emptyProvidedFactor = Object.entries(providedParams)
+        .find(([_, value]) => !value)
+        ?.at(0) as BiometricsFactor | undefined;
+
+    return {
+        ...status,
+        step: {
+            requiredFactorForNextStep: status.value.httpCode === CONST.BIOMETRICS.NEED_SECOND_FACTOR_HTTP_CODE ? emptyProvidedFactor || missingRequiredFactor : undefined,
+            wasRecentStepSuccessful: status.value.successful,
+            isRequestFulfilled: !!status.value.httpCode && status.value.httpCode !== CONST.BIOMETRICS.NEED_SECOND_FACTOR_HTTP_CODE,
+        },
+        value: undefined,
+    };
+};
 
 /**
  * Main authorization function that handles different biometric scenarios.
@@ -96,7 +123,8 @@ async function processBiometricsScenario<T extends BiometricsScenario>(
      * Selects the appropriate post-processing method based on the scenario type.
      * Uses the fallback method if no post-processing method is defined.
      */
-    const postMethod = (status: BiometricsPartialStatus<BiometricsScenarioResponseWithSuccess, true>) => (postScenarioMethod ?? authorizeBiometricsPostMethodFallback)(status, params);
+    const postMethod = (status: BiometricsPartialStatus<BiometricsScenarioResponseWithSuccess, true>) =>
+        (postScenarioMethod ?? authorizeBiometricsPostMethodFallback<T>)(status, params, scenario);
 
     const factorsCheckResult = areBiometricsFactorsSufficient(scenario, params);
 
@@ -119,3 +147,4 @@ async function processBiometricsScenario<T extends BiometricsScenario>(
 }
 
 export default processBiometricsScenario;
+export {areBiometricsFactorsSufficient};
