@@ -1,14 +1,14 @@
 # `react-native-pdf` patches
 
-### [react-native-pdf+6.7.3+001+update-podspec-to-support-new-arch.patch](react-native-pdf+6.7.3+001+update-podspec-to-support-new-arch.patch)
+### [react-native-pdf+7.0.1+001+fix-missing-page-error-when-sending-pdf.patch](react-native-pdf+7.0.1+001+fix-missing-page-error-when-sending-pdf.patch)
 
 - Reason:
 
-    ```
-    This patch updates the react-native-pdf.podspec to ensure compatibility with React Native's New Architecture on iOS by replacing manual dependency declarations
-    with Meta's recommended `install_modules_dependencies` function
+    ```md
+    The last version (7.0.1) has many bugs after the [RTL support PR](https://github.com/wonday/react-native-pdf/pull/914) has been merged
+    This patch is fixing the implementation and introduced errors
     ```
 
-- Upstream PR/issue: https://github.com/wonday/react-native-pdf/pull/803
+- Upstream PR/issue: https://github.com/wonday/react-native-pdf/pull/978
 - E/App issue: 🛑
-- PR Introducing Patch: https://github.com/Expensify/App/pull/13767
+- PR Introducing Patch: https://github.com/Expensify/App/pull/72204
