@@ -7763,7 +7763,7 @@ function setDraftSplitTransaction(
     }
     let draftSplitTransaction = splitTransactionDraft;
 
-    if (!splitTransactionDraft) {
+    if (!draftSplitTransaction) {
         draftSplitTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     }
 
@@ -13043,7 +13043,7 @@ function updateSplitExpenseField(
     originalTransactionDraft: OnyxEntry<OnyxTypes.Transaction>,
     splitExpenseTransactionID: string,
 ) {
-    if (!splitExpenseDraftTransaction || !splitExpenseTransactionID) {
+    if (!splitExpenseDraftTransaction || !splitExpenseTransactionID || !originalTransactionDraft) {
         return;
     }
 
