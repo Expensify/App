@@ -7187,7 +7187,7 @@ const translations = {
         book: {
             title: '通話をスケジュールする',
             description: 'あなたに都合の良い時間を見つけてください。',
-            slots: '利用可能な時間',
+            slots: ({date}: {date: string}) => `<muted-text>利用可能な時間 <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: '通話を確認',

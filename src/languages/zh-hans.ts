@@ -7089,7 +7089,7 @@ const translations = {
         book: {
             title: '安排通话',
             description: '找到一个适合你的时间。',
-            slots: '可用时间为',
+            slots: ({date}: {date: string}) => `<muted-text>可用时间为 <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: '确认通话',
