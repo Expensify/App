@@ -1042,6 +1042,10 @@ const translations = {
     receipt: {
         upload: '領収書をアップロード',
         uploadMultiple: '領収書をアップロード',
+        dragReceiptBeforeEmail: 'このページに領収書をドラッグするか、領収書を転送する',
+        dragReceiptsBeforeEmail: '領収書をこのページにドラッグするか、領収書を転送する',
+        dragReceiptAfterEmail: 'または、以下のファイルを選択してアップロードしてください。',
+        dragReceiptsAfterEmail: 'または、以下にアップロードするファイルを選択してください。',
         desktopSubtitleSingle: `またはここにドラッグ＆ドロップ`,
         desktopSubtitleMultiple: `またはここにドラッグ＆ドロップ`,
         chooseReceipt: 'アップロードするレシートを選択するか、レシートを転送してください',
@@ -1247,6 +1251,7 @@ const translations = {
         finished: '完了',
         flip: '反転',
         sendInvoice: ({amount}: RequestAmountParams) => `${amount} 請求書を送信`,
+        submitAmount: ({amount}: RequestAmountParams) => `${amount}を提出する`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `${comment} のために` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `提出済み${memo ? `、次のように言って ${memo}` : ''}`,
         automaticallySubmitted: `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">送信の遅延</a>を通じて送信されました`,
@@ -1556,10 +1561,7 @@ const translations = {
         subtitle: '二要素認証を有効にして、アカウントを安全に保ちましょう。',
         goToSecurity: 'セキュリティページに戻る',
     },
-    shareCodePage: {
-        title: 'あなたのコード',
-        subtitle: '個人用QRコードまたは紹介リンクを共有して、Expensifyにメンバーを招待しましょう。',
-    },
+    shareCodePage: {title: 'あなたのコード', subtitle: '個人用QRコードまたは紹介リンクを共有して、Expensifyにメンバーを招待しましょう。'},
     pronounsPage: {
         pronouns: '代名詞',
         isShownOnProfile: 'あなたの代名詞はプロフィールに表示されます。',
@@ -1570,8 +1572,8 @@ const translations = {
         contactMethods: '連絡方法',
         featureRequiresValidate: 'この機能を使用するには、アカウントの確認が必要です。',
         validateAccount: 'アカウントを確認してください',
-        helpTextBeforeEmail: '人々があなたを見つける方法を増やし、領収書を転送する',
-        helpTextAfterEmail: '複数のメールアドレスから。',
+        helpTextBeforeEmail: '領収書を送信する方法を追加してください。それらを転送する先は',
+        helpTextAfterEmail: 'または、47777（米国の番号のみ）にテキストメッセージを送信してください。',
         pleaseVerify: 'この連絡方法を確認してください',
         getInTouch: '私たちがあなたに連絡を取る必要がある場合、この連絡方法を使用します。',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
@@ -2061,6 +2063,7 @@ const translations = {
         },
     },
     workflowsDelayedSubmissionPage: {
+        autoReportingErrorMessage: '遅延した提出は変更できません。もう一度お試しいただくか、サポートにお問い合わせください。',
         autoReportingFrequencyErrorMessage: '提出頻度を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
         monthlyOffsetErrorMessage: '月次の頻度を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
     },
@@ -6203,6 +6206,7 @@ const translations = {
         groupBy: 'グループ',
         moneyRequestReport: {
             emptyStateTitle: 'このレポートには経費がありません。',
+            emptyStateSubtitle: 'このレポートに経費を追加するには、以下のボタンを使用するか、上の「その他」メニューの「経費を追加」オプションを使用してください。',
         },
         noCategory: 'カテゴリなし',
         noTag: 'タグなし',
