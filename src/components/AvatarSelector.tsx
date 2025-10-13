@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ALL_CUSTOM_AVATARS} from '@libs/Avatars/CustomAvatarCatalog';
 import {ALL_CUSTOM_AVATARS_ORDERED} from '@libs/Avatars/CustomAvatarCatalog';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
@@ -12,10 +13,10 @@ import Text from './Text';
 
 type AvatarSelectorProps = {
     /** Currently selected avatar ID */
-    selectedID?: keyof typeof ALL_CUSTOM_AVATARS_ORDERED;
+    selectedID?: keyof typeof ALL_CUSTOM_AVATARS;
 
     /** Called when an avatar is selected */
-    onSelect: (id: keyof typeof ALL_CUSTOM_AVATARS_ORDERED) => void;
+    onSelect: (id: keyof typeof ALL_CUSTOM_AVATARS) => void;
 
     /** Optional: size of avatars in grid */
     size?: AvatarSizeName;
@@ -34,9 +35,7 @@ function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.M
     const StyleUtils = useStyleUtils();
     const [selected, setSelected] = useState(selectedID);
 
-    const avatars = Object.entries(ALL_CUSTOM_AVATARS_ORDERED);
-
-    const handleSelect = (id: keyof typeof ALL_CUSTOM_AVATARS_ORDERED) => {
+    const handleSelect = (id: keyof typeof ALL_CUSTOM_AVATARS) => {
         setSelected(id);
         onSelect(id);
     };
@@ -49,7 +48,7 @@ function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.M
                 </View>
             )}
             <View style={styles.avatarSelectorListContainer}>
-                {avatars.map(([id, {url}]) => {
+                {ALL_CUSTOM_AVATARS_ORDERED.map(({id, url}) => {
                     const isSelected = selected === id;
 
                     return (
@@ -58,7 +57,7 @@ function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.M
                             accessible
                             accessibilityRole="button"
                             accessibilityLabel="Select Avatar"
-                            onPress={() => handleSelect(id as keyof typeof ALL_CUSTOM_AVATARS_ORDERED)}
+                            onPress={() => handleSelect(id)}
                             style={[styles.avatarSelectorWrapper, isSelected && {borderColor: theme.success, borderWidth: 2}]}
                         >
                             <Avatar
