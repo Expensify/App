@@ -1,5 +1,6 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import useOnyx from '@hooks/useOnyx';
+import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultGroupAvatar, getPolicyName, getReportName, getWorkspaceIcon, isGroupChat, isThread} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
@@ -7,6 +8,7 @@ import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/Attachm
 import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.REPORT_AVATAR>) {
@@ -16,7 +18,7 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
-    const attachment = useMemo(() => {
+    const attachment: AttachmentModalBaseContentProps = useMemo(() => {
         if (isGroupChat(report) && !isThread(report)) {
             return {
                 source: report?.avatarUrl ? getFullSizeAvatar(report.avatarUrl, 0) : getDefaultGroupAvatar(report?.reportID),
@@ -26,13 +28,17 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
         }
 
         return {
-            source: getFullSizeAvatar(getWorkspaceIcon(report).source, 0),
+            source: getFullSizeAvatar(getWorkspaceIcon(report, policy).source, 0),
             headerTitle: getPolicyName({report, policy}),
             // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID,
             isWorkspaceAvatar: true,
         };
     }, [policy, report]);
+
+    const handleClose = useCallback(() => {
+        Navigation.goBack(report?.reportID ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID) : undefined);
+    }, [report?.reportID]);
 
     const onDownloadAttachment = useDownloadAttachment();
 
@@ -50,6 +56,7 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
         <AttachmentModalContainer
             navigation={navigation}
             contentProps={contentProps}
+            onClose={handleClose}
         />
     );
 }
