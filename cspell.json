@@ -761,7 +761,9 @@
         "removeHiddenElems",
         "moveGroupAttrsToElems",
         "Dtype",
-        "Areport"
+        "Areport",
+        "mple",
+        "Selec"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

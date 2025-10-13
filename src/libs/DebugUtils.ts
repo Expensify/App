@@ -1338,6 +1338,7 @@ function getReasonForShowingRowInLHN({
     isReportArchived = false,
     isInFocusMode = false,
     betas = undefined,
+    draftComment,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1346,6 +1347,7 @@ function getReasonForShowingRowInLHN({
     isReportArchived?: boolean;
     isInFocusMode?: boolean;
     betas?: OnyxEntry<Beta[]>;
+    draftComment: string | undefined;
 }): TranslationPaths | null {
     if (!report) {
         return null;
@@ -1362,6 +1364,7 @@ function getReasonForShowingRowInLHN({
         doesReportHaveViolations,
         includeSelfDM: true,
         isReportArchived,
+        draftComment,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {
