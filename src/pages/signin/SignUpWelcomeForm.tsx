@@ -18,6 +18,7 @@ function SignUpWelcomeForm() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const serverErrorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
 
     return (
@@ -30,7 +31,7 @@ function SignUpWelcomeForm() {
                     text={translate('welcomeSignUpForm.join')}
                     isLoading={account?.isLoading}
                     onPress={() => {
-                        signUpUser();
+                        signUpUser(preferredLocale);
                         setReadyToShowAuthScreens(true);
                     }}
                     pressOnEnter
