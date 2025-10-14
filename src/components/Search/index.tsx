@@ -66,7 +66,7 @@ import type {OutstandingReportsByPolicyIDDerivedValue} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {SearchReportAction, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchReport, SearchPolicy, SearchReportAction, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -434,6 +434,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !areAllMatchingItemsSelected) {
                         return;
                     }
+                    const report = searchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+                    const policy = searchResults?.data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+
                     newTransactionList[transaction.transactionID] = {
                         action: transaction.action,
                         canHold: transaction.canHold,
@@ -446,6 +449,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                             undefined,
                             outstandingReportsByPolicyID,
                             true,
+                            transaction,
+                            report,
+                            policy,
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
@@ -467,6 +473,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !areAllMatchingItemsSelected) {
                     return;
                 }
+
+                const report = searchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+                const policy = searchResults?.data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+                
                 newTransactionList[transaction.transactionID] = {
                     action: transaction.action,
                     canHold: transaction.canHold,
@@ -479,6 +489,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         undefined,
                         outstandingReportsByPolicyID,
                         true,
+                        transaction,
+                        report,
+                        policy,
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
@@ -582,7 +595,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     ...Object.fromEntries(
                         currentTransactions
                             .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
+                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID, transaction, report, policy)),
                     ),
                 },
                 data,
