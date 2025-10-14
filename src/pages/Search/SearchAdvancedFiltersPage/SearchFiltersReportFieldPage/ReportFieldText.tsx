@@ -1,5 +1,6 @@
 import React from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import TextFilterBase from '@components/Search/FilterComponents/TextFilterBase';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import CONST from '@src/CONST';
@@ -20,12 +21,18 @@ function ReportFieldText({field, close}: ReportFieldListProps) {
     };
 
     return (
-        <TextFilterBase
-            filterKey={formKey}
-            title={field.name}
-            characterLimit={CONST.MAX_COMMENT_LENGTH}
-            onSubmit={updateFilter}
-        />
+        <>
+            <HeaderWithBackButton
+                title={field.name}
+                onBackButtonPress={close}
+            />
+            <TextFilterBase
+                filterKey={formKey}
+                title={field.name}
+                characterLimit={CONST.MAX_COMMENT_LENGTH}
+                onSubmit={updateFilter}
+            />
+        </>
     );
 }
 

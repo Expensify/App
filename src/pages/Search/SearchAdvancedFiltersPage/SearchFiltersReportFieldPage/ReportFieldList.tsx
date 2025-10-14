@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FixedFooter from '@components/FixedFooter';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
@@ -58,6 +59,10 @@ function ReportFieldList({field, close}: ReportFieldListProps) {
 
     return (
         <>
+            <HeaderWithBackButton
+                title={field.name}
+                onBackButtonPress={close}
+            />
             <View style={[styles.flex1]}>
                 <SelectionList
                     shouldSingleExecuteRowSelect

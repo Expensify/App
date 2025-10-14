@@ -112,12 +112,6 @@ function SearchFiltersReportFieldPage() {
                 includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
-                    title={selectedField.name}
-                    onBackButtonPress={() => {
-                        setSelectedField(null);
-                    }}
-                />
                 <UpdateReportFieldComponent
                     field={selectedField}
                     close={() => setSelectedField(null)}
