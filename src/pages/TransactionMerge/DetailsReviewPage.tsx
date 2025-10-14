@@ -18,8 +18,8 @@ import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
 import {
     buildMergeFieldsData,
     getMergeableDataAndConflictFields,
-    getMergeFieldUpdatedValues,
     getMergeFieldErrorText,
+    getMergeFieldUpdatedValues,
     getMergeFieldValue,
     getSourceTransactionFromMergeTransaction,
     getTargetTransactionFromMergeTransaction,

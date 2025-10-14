@@ -588,7 +588,7 @@ describe('areTransactionsEligibleForMerge', () => {
                 ...createRandomDistanceRequestTransaction(0),
                 amount: 1000,
                 managedCard: false,
-            }
+            };
             const distanceTransaction2 = {
                 ...createRandomDistanceRequestTransaction(1),
                 amount: 2000,
