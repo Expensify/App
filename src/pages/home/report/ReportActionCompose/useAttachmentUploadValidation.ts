@@ -126,14 +126,14 @@ function useAttachmentUploadValidation({
 
             let extractedFiles: FileObject[] = [];
 
-            if (!files) {
+            if (files) {
+                extractedFiles = Array.isArray(files) ? files : [files];
+            } else {
                 if (!dragEvent) {
                     return;
                 }
 
                 extractedFiles = getFilesFromClipboardEvent(dragEvent);
-            } else {
-                extractedFiles = Array.isArray(files) ? files : [files];
             }
 
             const dataTransferItems = Array.from(dragEvent?.dataTransfer?.items ?? []);

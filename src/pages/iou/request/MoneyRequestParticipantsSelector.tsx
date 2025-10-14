@@ -130,6 +130,7 @@ function MoneyRequestParticipantsSelector({
         shouldInitialize: didScreenTransitionEnd,
     });
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListHandle | null>(null);
@@ -176,6 +177,7 @@ function MoneyRequestParticipantsSelector({
                 reports: options.reports,
                 personalDetails: options.personalDetails.concat(contacts),
             },
+            draftComments,
             {
                 betas,
                 selectedOptions: participants as Participant[],
@@ -208,16 +210,17 @@ function MoneyRequestParticipantsSelector({
             ...orderedOptions,
         };
     }, [
-        action,
-        contacts,
         areOptionsInitialized,
-        betas,
         didScreenTransitionEnd,
-        iouType,
-        isCategorizeOrShareAction,
-        options.personalDetails,
         options.reports,
+        options.personalDetails,
+        contacts,
+        draftComments,
+        betas,
         participants,
+        iouType,
+        action,
+        isCategorizeOrShareAction,
         isPerDiemRequest,
         canShowManagerMcTest,
         isCorporateCardTransaction,
@@ -296,16 +299,11 @@ function MoneyRequestParticipantsSelector({
             shouldShow: (chatOptions.workspaceChats ?? []).length > 0,
         });
 
-        if (!isWorkspacesOnly && chatOptions.userToInvite) {
-            newSections.push({
-                title: undefined,
-                data: [chatOptions.userToInvite].map((participant) => {
-                    const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
-                }),
-                shouldShow: true,
-            });
-        }
+        newSections.push({
+            title: translate('workspace.invoices.paymentMethods.personal'),
+            data: chatOptions.selfDMChat ? [chatOptions.selfDMChat] : [],
+            shouldShow: !!chatOptions.selfDMChat,
+        });
 
         if (!isWorkspacesOnly) {
             newSections.push({
@@ -332,9 +330,12 @@ function MoneyRequestParticipantsSelector({
             !isPerDiemRequest
         ) {
             newSections.push({
-                title: translate('workspace.invoices.paymentMethods.personal'),
-                data: chatOptions.selfDMChat ? [chatOptions.selfDMChat] : [],
-                shouldShow: !!chatOptions.selfDMChat,
+                title: undefined,
+                data: [chatOptions.userToInvite].map((participant) => {
+                    const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                }),
+                shouldShow: true,
             });
         }
 
