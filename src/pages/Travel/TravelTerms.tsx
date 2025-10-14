@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import Str from 'expensify-common/dist/str';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
@@ -54,7 +55,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
             return;
         }
 
-        const message = translate('travel.verifyCompany.conciergeMessage', {domain: account?.primaryLogin?.split('@')[1] ?? ''});
+        const message = translate('travel.verifyCompany.conciergeMessage', {domain: Str.extractEmailDomain(account?.primaryLogin ?? '')});
 
         addComment(conciergeReportID, conciergeReportID, message, CONST.DEFAULT_TIME_ZONE);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
