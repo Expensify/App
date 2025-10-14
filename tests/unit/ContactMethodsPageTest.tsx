@@ -1,6 +1,12 @@
-import React from 'react';
 import {render, screen} from '@testing-library/react-native';
+import React from 'react';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import ComposeProviders from '@components/ComposeProviders';
+import ContactMethodsPage from '@pages/settings/Profile/Contacts/ContactMethodsPage';
+import DelegateNoAccessModalProvider from '@src/components/DelegateNoAccessModalProvider';
+import LockedAccountModalProvider from '@src/components/LockedAccountModalProvider';
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -11,31 +17,13 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(() => ''),
 }));
 
-// Mock contexts consumed by the page
-jest.mock('@components/DelegateNoAccessModalProvider', () => {
-    const ReactActual = jest.requireActual('react');
-    return {
-        DelegateNoAccessContext: ReactActual.createContext({isActingAsDelegate: false, showDelegateNoAccessModal: jest.fn()}),
-    };
-});
-
-jest.mock('@components/LockedAccountModalProvider', () => {
-    const ReactActual = jest.requireActual('react');
-    return {
-        LockedAccountContext: ReactActual.createContext({isAccountLocked: false, showLockedAccountModal: jest.fn()}),
-    };
-});
-
 // Replace MenuItem with a simple test double that exposes props in the tree
 jest.mock('@components/MenuItem', () => {
-    const ReactActual = require('react');
-    const {Text} = require('react-native');
-    return ({title, brickRoadIndicator}: any) => ReactActual.createElement(Text, {testID: `menu-${String(title)}`}, brickRoadIndicator ?? 'none');
+    const ReactMock = require('react') as typeof React;
+    const {Text} = require('react-native') as {Text: React.ComponentType<{testID: string; children?: React.ReactNode}>};
+    return ({title, brickRoadIndicator}: {title: string; brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>}) =>
+        ReactMock.createElement(Text, {testID: `menu-${String(title)}`}, `${brickRoadIndicator ?? 'none'}-brickRoadIndicator`);
 });
-
-// Import the component under test AFTER mocks so they take effect
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-const ContactMethodsPage = require('@pages/settings/Profile/Contacts/ContactMethodsPage').default as typeof import('@pages/settings/Profile/Contacts/ContactMethodsPage').default;
 
 describe('ContactMethodsPage', () => {
     beforeAll(() => {
@@ -48,10 +36,12 @@ describe('ContactMethodsPage', () => {
         return Onyx.clear();
     });
 
-    async function renderPage() {
+    function renderPage() {
         return render(
-            // @ts-expect-error - route typing is not necessary for this test
-            <ContactMethodsPage route={{params: {}}} />,
+            <ComposeProviders components={[LockedAccountModalProvider, DelegateNoAccessModalProvider]}>
+                {/* @ts-expect-error - route typing is not necessary for this test */}
+                <ContactMethodsPage route={{params: {}}} />
+            </ComposeProviders>,
         );
     }
 
@@ -70,10 +60,10 @@ describe('ContactMethodsPage', () => {
         });
         await waitForBatchedUpdates();
 
-        await renderPage();
+        renderPage();
         const node = screen.getByTestId(`menu-${email}`);
         // ContactMethodsPage sets brickRoadIndicator to 'error' when any errorFields are present
-        expect(node.props.children).toBe('error');
+        expect(node).toHaveTextContent('error-brickRoadIndicator');
     });
 
     it('sets info indicator when login is unvalidated and not default', async () => {
@@ -93,11 +83,10 @@ describe('ContactMethodsPage', () => {
         });
         await waitForBatchedUpdates();
 
-        await renderPage();
-        const otherNode = screen.getByTestId(`menu-${otherEmail}`);
+        renderPage();
+        const node = screen.getByTestId(`menu-${otherEmail}`);
+
         // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
-        expect(otherNode.props.children).toBe('info');
+        expect(node).toHaveTextContent('info-brickRoadIndicator');
     });
 });
-
-
