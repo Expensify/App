@@ -376,10 +376,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                                     setIsCannotMakeAllTagsOptionalModalVisible(true);
                                     return;
                                 }
-
-                                if (policy === undefined) {
-                                    return;
-                                }
                                 setPolicyTagsRequired(policyData, on, orderWeight);
                             }}
                             pendingAction={currentPolicyTag.pendingFields?.required}

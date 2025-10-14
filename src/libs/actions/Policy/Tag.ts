@@ -198,8 +198,7 @@ function importPolicyTags(policyID: string, tags: PolicyTag[]) {
 
 function setWorkspaceTagEnabled(policyData: PolicyData, tagsToUpdate: Record<string, {name: string; enabled: boolean}>, tagListIndex: number) {
     const policyTag = PolicyUtils.getTagLists(policyData.tags)?.at(tagListIndex);
-
-    if (!policyTag || tagListIndex === -1 || !policyData.policy) {
+    if (!policyTag) {
         return;
     }
 

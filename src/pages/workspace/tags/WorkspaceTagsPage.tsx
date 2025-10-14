@@ -569,9 +569,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         return;
                     }
                     setSelectedTags([]);
-                    if (policy === undefined) {
-                        return;
-                    }
                     setWorkspaceTagRequired(policyData, tagListIndexesToMarkOptional, false);
                 },
             });
@@ -584,9 +581,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.NOT_REQUIRED,
                 onSelected: () => {
                     setSelectedTags([]);
-                    if (policy === undefined) {
-                        return;
-                    }
                     setWorkspaceTagRequired(policyData, tagListIndexesToMarkRequired, true);
                 },
             });
