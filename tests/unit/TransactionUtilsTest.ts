@@ -9,8 +9,9 @@ import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {Policy, Transaction} from '../../src/types/onyx';
+import type {Policy, Report, Transaction} from '../../src/types/onyx';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
+import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
@@ -724,6 +725,26 @@ describe('TransactionUtils', () => {
             const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
             const result = TransactionUtils.isViolationDismissed(transaction, violation);
             expect(result).toBe(true);
+        });
+    });
+
+    describe('shouldShowViolation', () => {
+        it('should return false for auto approval limit violation when report is not open/processing report', () => {
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatType: undefined,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                ownerAccountID: 2,
+            };
+
+            const policy: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT)).toBe(false);
         });
     });
 });
