@@ -5835,8 +5835,7 @@ describe('ReportUtils', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspace.id}`, workspace);
 
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(policyAnnounceRoom.reportID));
-            const result = canUserPerformWriteAction(policyAnnounceRoom, isReportArchived.current);
+            const result = canUserPerformWriteAction(policyAnnounceRoom);
 
             // Then it should return false
             expect(result).toBe(false);
