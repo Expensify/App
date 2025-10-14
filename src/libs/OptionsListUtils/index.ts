@@ -2063,19 +2063,33 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
     };
 }
 
-function getAttendeeOptions(
-    reports: Array<SearchOption<Report>>,
-    personalDetails: Array<SearchOption<PersonalDetails>>,
-    betas: OnyxEntry<Beta[]>,
-    attendees: Attendee[],
-    recentAttendees: Attendee[],
-    draftComments: OnyxCollection<string>,
+type GetAttendeeOptionsParams = {
+    reports: Array<SearchOption<Report>>;
+    personalDetails: Array<SearchOption<PersonalDetails>>;
+    betas: OnyxEntry<Beta[]>;
+    attendees: Attendee[];
+    recentAttendees: Attendee[];
+    draftComments: OnyxCollection<string>;
+    includeOwnedWorkspaceChats: boolean;
+    includeP2P: boolean;
+    includeInvoiceRooms: boolean;
+    action: IOUAction | undefined;
+    countryCode: number;
+};
+
+function getAttendeeOptions({
+    reports,
+    personalDetails,
+    betas,
+    attendees,
+    recentAttendees,
+    draftComments,
     includeOwnedWorkspaceChats = false,
     includeP2P = true,
     includeInvoiceRooms = false,
-    action: IOUAction | undefined = undefined,
-    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
-) {
+    action = undefined,
+    countryCode = CONST.DEFAULT_COUNTRY_CODE,
+}: GetAttendeeOptionsParams) {
     const personalDetailList = keyBy(
         personalDetails.map(({item}) => item),
         'accountID',
