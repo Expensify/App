@@ -148,6 +148,16 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset | undef
 }
 
 /**
+ * Helper method to return default avatar name associated with the accountID
+ */
+function getDefaultAvatarName(accountID: string | number = '', avatarURL?: string): string {
+    const accountIDHashBucket = getAccountIDHashBucket(Number(accountID) || -1, avatarURL);
+    const avatarPrefix = `default-avatar`;
+
+    return `${avatarPrefix}_${accountIDHashBucket}`;
+}
+
+/**
  * Helper method to return default avatar URL associated with the accountID
  */
 function getDefaultAvatarURL(accountID: string | number = '', avatarURL?: string): string {
@@ -155,10 +165,7 @@ function getDefaultAvatarURL(accountID: string | number = '', avatarURL?: string
         return CONST.CONCIERGE_ICON_URL;
     }
 
-    const accountIDHashBucket = getAccountIDHashBucket(Number(accountID) || -1, avatarURL);
-    const avatarPrefix = `default-avatar`;
-
-    return `${CONST.CLOUDFRONT_URL}/images/avatars/${avatarPrefix}_${accountIDHashBucket}.png`;
+    return `${CONST.CLOUDFRONT_URL}/images/avatars/${getDefaultAvatarName(accountID, avatarURL)}.png`;
 }
 
 /**
@@ -234,7 +241,8 @@ function getSmallSizeAvatar(avatarSource?: AvatarSource, accountID?: number): Av
     if (source.substring(lastPeriodIndex - 4, lastPeriodIndex) === '_128') {
         return source;
     }
-    return `${source.substring(0, lastPeriodIndex)}_128${source.substring(lastPeriodIndex)}`;
+    return source;
+    // return `${source.substring(0, lastPeriodIndex)}_128${source.substring(lastPeriodIndex)}`;
 }
 
 /**
@@ -255,6 +263,7 @@ function getContactMethod(primaryLogin: string | undefined, email: string | unde
 export {
     generateAccountID,
     getAvatar,
+    getDefaultAvatarName,
     getAvatarUrl,
     getDefaultAvatarURL,
     getFullSizeAvatar,

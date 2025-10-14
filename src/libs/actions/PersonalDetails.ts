@@ -360,7 +360,10 @@ function openPublicProfilePage(accountID: number) {
 /**
  * Updates the user's avatar image
  */
-function updateAvatar(file: File | CustomRNImageManipulatorResult, currentUserPersonalDetails: Pick<CurrentUserPersonalDetails, 'avatarThumbnail' | 'avatar' | 'accountID'>) {
+function updateAvatar(
+    file: File | CustomRNImageManipulatorResult | {uri: string; name: string},
+    currentUserPersonalDetails: Pick<CurrentUserPersonalDetails, 'avatarThumbnail' | 'avatar' | 'accountID'>,
+) {
     if (!currentUserPersonalDetails.accountID) {
         return;
     }
