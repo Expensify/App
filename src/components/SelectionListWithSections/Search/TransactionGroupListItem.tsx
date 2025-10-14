@@ -80,6 +80,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [transactionsSnapshot]);
     const isGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(TRANSACTIONS_PAGE_SIZE);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     const transactions = useMemo(() => {
         if (isGroupByReports) {
@@ -96,11 +97,15 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [isGroupByReports, transactionsSnapshot?.data, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDsSet]);
 
     const visibleTransactions = useMemo(() => {
+        if (!isExpanded) {
+            return [];
+        }
+
         if (isGroupByReports) {
             return transactions.slice(0, transactionsVisibleLimit);
         }
         return transactions;
-    }, [transactions, transactionsVisibleLimit, isGroupByReports]);
+    }, [transactions, transactionsVisibleLimit, isGroupByReports, isExpanded]);
 
     const currentColumns = useMemo(() => {
         if (isGroupByReports) {
@@ -136,8 +141,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const isSelectAllChecked = selectedItemsLength === transactions.length && transactions.length > 0;
     const isIndeterminate = selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length;
-
-    const [isExpanded, setIsExpanded] = useState(false);
 
     const isEmpty = transactions.length === 0;
     const {markReportIDAsExpense} = useContext(WideRHPContext);
