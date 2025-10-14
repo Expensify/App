@@ -91,12 +91,7 @@ function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
     reportActions: SearchReportAction[],
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    searchData?: SearchResults['data'],
 ): [string, SelectedTransactionInfo] {
-    const report = searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
-    const policy = searchData?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-    const transaction = searchData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`];
-
     return [
         item.keyForList,
         {
@@ -112,9 +107,6 @@ function mapTransactionItemToSelectedEntry(
                 undefined,
                 outstandingReportsByPolicyID,
                 true,
-                transaction,
-                report,
-                policy,
             ),
             action: item.action,
             reportID: item.reportID,
@@ -175,17 +167,12 @@ function prepareTransactionsList(
     selectedTransactions: SelectedTransactions,
     reportActions: SearchReportAction[],
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    searchData?: SearchResults['data'],
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
 
         return transactions;
     }
-
-    const report = searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
-    const policy = searchData?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-    const transaction = searchData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`];
 
     return {
         ...selectedTransactions,
@@ -202,9 +189,6 @@ function prepareTransactionsList(
                 undefined,
                 outstandingReportsByPolicyID,
                 true,
-                transaction,
-                report,
-                policy,
             ),
             action: item.action,
             reportID: item.reportID,
@@ -450,8 +434,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !areAllMatchingItemsSelected) {
                         return;
                     }
-                    const report = searchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-                    const policy = searchResults?.data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
 
                     newTransactionList[transaction.transactionID] = {
                         action: transaction.action,
@@ -465,9 +447,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                             undefined,
                             outstandingReportsByPolicyID,
                             true,
-                            transaction,
-                            report,
-                            policy,
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
@@ -490,9 +469,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     return;
                 }
 
-                const report = searchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-                const policy = searchResults?.data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-                
                 newTransactionList[transaction.transactionID] = {
                     action: transaction.action,
                     canHold: transaction.canHold,
@@ -505,9 +481,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         undefined,
                         outstandingReportsByPolicyID,
                         true,
-                        transaction,
-                        report,
-                        policy,
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
@@ -589,7 +562,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 if (isTransactionPendingDelete(item)) {
                     return;
                 }
-                setSelectedTransactions(prepareTransactionsList(item, selectedTransactions, reportActionsArray, outstandingReportsByPolicyID, searchResults?.data), data);
+                setSelectedTransactions(prepareTransactionsList(item, selectedTransactions, reportActionsArray, outstandingReportsByPolicyID), data);
                 return;
             }
 
@@ -611,13 +584,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     ...Object.fromEntries(
                         currentTransactions
                             .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID, searchResults?.data)),
+                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
                     ),
                 },
                 data,
             );
         },
-        [data, reportActionsArray, selectedTransactions, outstandingReportsByPolicyID, setSelectedTransactions, searchResults?.data],
+        [data, reportActionsArray, selectedTransactions, outstandingReportsByPolicyID, setSelectedTransactions],
     );
 
     const onSelectRow = useCallback(
@@ -824,7 +797,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     (data as TransactionGroupListItemType[]).flatMap((item) =>
                         item.transactions
                             .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID, searchResults?.data)),
+                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
                     ),
                 ),
                 data,
@@ -837,11 +810,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             Object.fromEntries(
                 (data as TransactionListItemType[])
                     .filter((t) => !isTransactionPendingDelete(t))
-                    .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID, searchResults?.data)),
+                    .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
             ),
             data,
         );
-    }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID, searchResults?.data]);
+    }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID]);
 
     const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
 
