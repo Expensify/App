@@ -13,7 +13,7 @@ import type {TupleToUnion} from 'type-fest';
 import CLI from './utils/CLI';
 import Git from './utils/Git';
 import type {DiffResult} from './utils/Git';
-import {bold, info, log, error as logError, success as logSuccess, note, warn} from './utils/Logger';
+import {log, bold as logBold, error as logError, info as logInfo, note as logNote, success as logSuccess, warn as logWarn} from './utils/Logger';
 
 const DEFAULT_REPORT_FILENAME = 'react-compiler-report.json';
 
@@ -65,9 +65,9 @@ type CheckOptions = CommonCheckOptions & {
 
 function check({filesToCheck, shouldGenerateReport = false, reportFileName = DEFAULT_REPORT_FILENAME, shouldFilterByDiff = false, remote}: CheckOptions) {
     if (filesToCheck) {
-        info(`Running React Compiler check for ${filesToCheck.length} files or glob patterns...`);
+        logInfo(`Running React Compiler check for ${filesToCheck.length} files or glob patterns...`);
     } else {
-        info('Running React Compiler check for all files...');
+        logInfo('Running React Compiler check for all files...');
     }
 
     const src = createFilesGlob(filesToCheck);
@@ -100,7 +100,7 @@ type CheckChangedFilesOptions = CommonCheckOptions & {
 };
 
 async function checkChangedFiles({remote, ...restOptions}: CheckChangedFilesOptions): Promise<boolean> {
-    info('Checking changed files for React Compiler compliance...');
+    logInfo('Checking changed files for React Compiler compliance...');
 
     try {
         const mainBaseCommitHash = Git.getMainBranchCommitHash(remote);
@@ -178,7 +178,7 @@ function parseJsonOutput(lines: string[], results: CompilerResults): CompilerRes
     }
 
     if (jsonStart === -1 || jsonEnd === -1) {
-        warn('No JSON found in combined output, parsing verbose text only');
+        logWarn('No JSON found in combined output, parsing verbose text only');
 
         return results;
     }
@@ -207,7 +207,7 @@ function parseJsonOutput(lines: string[], results: CompilerResults): CompilerRes
             }
         });
     } catch (error) {
-        warn('Failed to parse JSON from combined react-compiler-healthcheck output:', error);
+        logWarn('Failed to parse JSON from combined react-compiler-healthcheck output:', error);
     }
 
     return results;
@@ -341,10 +341,10 @@ function createFilesGlob(filesToCheck?: string[]): string | undefined {
 function filterResultsByDiff(results: CompilerResults, diffFilteringCommits: DiffFilteringCommits): CompilerResults {
     // Check for uncommitted changes and warn if any exist
     if (Git.hasUncommittedChanges()) {
-        warn('Warning: You have uncommitted changes. The diff results may not accurately reflect your current working directory.');
+        logWarn('Warning: You have uncommitted changes. The diff results may not accurately reflect your current working directory.');
     }
 
-    info(`Filtering results by diff between ${diffFilteringCommits.from} and ${diffFilteringCommits.to}...`);
+    logInfo(`Filtering results by diff between ${diffFilteringCommits.from} and ${diffFilteringCommits.to}...`);
 
     // Get the diff between the two commits
     const diffResult: DiffResult = Git.diff(diffFilteringCommits.from, diffFilteringCommits.to);
@@ -400,9 +400,9 @@ function filterResultsByDiff(results: CompilerResults, diffFilteringCommits: Dif
     });
 
     if (filteredFailures.size === 0) {
-        info('No failures remain after filtering by diff.');
+        logInfo('No failures remain after filtering by diff.');
     } else {
-        info(`${filteredFailures.size} out of ${results.failures.size} files remain after filtering by diff.`);
+        logInfo(`${filteredFailures.size} out of ${results.failures.size} files remain after filtering by diff.`);
     }
 
     return {
@@ -433,9 +433,9 @@ function printFailureSummary({success, failures}: CompilerResults): void {
     // Print unique failures for the files that were checked
     failures.forEach((failure) => {
         const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
-        bold(`${failure.file}${location}`);
+        logBold(`${failure.file}${location}`);
         if (failure.reason) {
-            note(`${tab}${failure.reason}`);
+            logNote(`${tab}${failure.reason}`);
         }
     });
 
@@ -445,7 +445,7 @@ function printFailureSummary({success, failures}: CompilerResults): void {
 
 function generateReport(results: CompilerResults, outputFileName = DEFAULT_REPORT_FILENAME): void {
     log('\n');
-    info('Creating React Compiler Compliance Check report:');
+    logInfo('Creating React Compiler Compliance Check report:');
 
     // Save detailed report
     const reportFile = join(process.cwd(), outputFileName);
