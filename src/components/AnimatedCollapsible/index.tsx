@@ -60,7 +60,6 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
 
     const contentAnimatedStyle = useAnimatedStyle(() => ({
         height: animatedHeight.get(),
-        overflow: 'hidden',
     }));
 
     return (
