@@ -698,7 +698,7 @@ function MoneyRequestReportActionsList({
                             }
                         }}
                         onCancel={hideDeleteModal}
-                        prompt={translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length})} //
+                        prompt={translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length})}
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}
                         danger

@@ -746,7 +746,7 @@ function SearchPage({route}: SearchPageProps) {
                                 setIsDeleteExpensesConfirmModalVisible(false);
                             }}
                             title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
-                            prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})} //
+                            prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
                             confirmText={translate('common.delete')}
                             cancelText={translate('common.cancel')}
                             danger

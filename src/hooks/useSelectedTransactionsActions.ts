@@ -2,13 +2,12 @@ import {useCallback, useMemo, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
-import {deleteMoneyRequest, getIOUActionForTransactions, getIOURequestPolicyID, initSplitExpenseItemData, unholdRequest, updateSplitTransactions} from '@libs/actions/IOU';
+import {unholdRequest} from '@libs/actions/IOU';
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates} from '@libs/actions/Search';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, isDeletedAction} from '@libs/ReportActionsUtils';
 import {isMergeAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
@@ -16,18 +15,16 @@ import {
     canEditFieldOfMoneyRequest,
     canHoldUnholdReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    isArchivedReport,
     isInvoiceReport,
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
-import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
@@ -60,20 +57,17 @@ function useSelectedTransactionsActions({
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
-    const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
-    const [allPolicyRecentlyUsedCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES, {canBeMissing: true});
-    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const {deleteTransactions} = useDeleteTransactions({report, reportActions, policy});
     const selectedTransactions = useMemo(
         () =>
             selectedTransactionIDs.reduce((acc, transactionID) => {
@@ -90,24 +84,6 @@ function useSelectedTransactionsActions({
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const isTrackExpenseThread = isTrackExpenseReport(report);
     const isInvoice = isInvoiceReport(report);
-    const {currentSearchHash} = useSearchContext();
-
-    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
-        canBeMissing: true,
-        selector: (all): ArchivedReportsIDSet => {
-            const ids = new Set<string>();
-            if (!all) {
-                return ids;
-            }
-
-            for (const [key, value] of Object.entries(all)) {
-                if (isArchivedReport(value)) {
-                    ids.add(key);
-                }
-            }
-            return ids;
-        },
-    });
 
     let iouType: IOUType = CONST.IOU.TYPE.SUBMIT;
 
@@ -119,104 +95,11 @@ function useSelectedTransactionsActions({
     }
 
     const handleDeleteTransactions = useCallback(() => {
-        const iouActions = reportActions.filter((action) => isMoneyRequestAction(action));
-
-        const transactionsWithActions = selectedTransactionIDs.map((transactionID) => ({
-            transactionID,
-            transaction: allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`],
-            action: iouActions.find((action) => {
-                const IOUTransactionID = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action)?.IOUTransactionID;
-                return transactionID === IOUTransactionID;
-            }),
-        }));
-        const deletedTransactionIDs: string[] = [];
-        const deletedTransactionThreadReportIDs = new Set<string>();
-        const {splitTransactionsByOriginalTransactionID, nonSplitTransactions} = transactionsWithActions.reduce(
-            (acc, item) => {
-                const {transaction} = item;
-                const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
-                const originalTransactionID = transaction?.comment?.originalTransactionID;
-
-                if (isExpenseSplit && originalTransactionID) {
-                    acc.splitTransactionsByOriginalTransactionID[originalTransactionID] = acc.splitTransactionsByOriginalTransactionID[originalTransactionID] || [];
-                    acc.splitTransactionsByOriginalTransactionID[originalTransactionID].push(item);
-                } else {
-                    acc.nonSplitTransactions.push(item);
-                }
-
-                return acc;
-            },
-            {splitTransactionsByOriginalTransactionID: {}, nonSplitTransactions: []} as {
-                splitTransactionsByOriginalTransactionID: Record<string, Array<{transactionID: string; action?: ReportAction; transaction?: Transaction}>>;
-                nonSplitTransactions: Array<{transactionID: string; action?: ReportAction; transaction?: Transaction}>;
-            },
-        );
-
-        Object.keys(splitTransactionsByOriginalTransactionID).forEach((transactionID) => {
-            const splitIDs = (splitTransactionsByOriginalTransactionID[transactionID] ?? []).map(transaction => transaction.transactionID);
-            const childTransactions = getChildTransactions(allTransactions, allReports, transactionID).filter((transaction) => !splitIDs.includes(transaction?.transactionID ?? ''));
-
-            if (childTransactions.length === 0) {
-                nonSplitTransactions.push(...splitTransactionsByOriginalTransactionID[transactionID]);
-                return;
-            }
-            const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-            const originalTransactionIouActions = getIOUActionForTransactions([transactionID], report?.reportID);
-            const iouReportID = isMoneyRequestAction(originalTransactionIouActions.at(0)) ? getOriginalMessage(originalTransactionIouActions.at(0))?.IOUReportID : undefined;
-            const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
-            const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`];
-            const isChatIOUReportArchived = isArchivedReport(reportNameValuePairs);
-            const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
-            const policyRecentlyUsedCategories = allPolicyRecentlyUsedCategories?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(getIOURequestPolicyID(originalTransaction, report))}`] ?? [];
-            updateSplitTransactions({
-                allTransactionsList: allTransactions,
-                allReportsList: allReports,
-                transactionData: {
-                    reportID: report?.reportID ?? '',
-                    originalTransactionID: transactionID,
-                    splitExpenses: childTransactions.map((childTransaction) => initSplitExpenseItemData(childTransaction)),
-                },
-                hash: currentSearchHash,
-                policyCategories,
-                policy,
-                policyRecentlyUsedCategories,
-                iouReport,
-                chatReport,
-                firstIOU: originalTransactionIouActions.at(0),
-                isChatReportArchived:isChatIOUReportArchived,
-            });
-        });
-
-        nonSplitTransactions.forEach(({transactionID, action}) => {
-            if (!action) {
-                return;
-            }
-            const iouReportID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUReportID : undefined;
-            const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
-            const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
-            const chatIOUReportID = chatReport?.reportID;
-            const isChatIOUReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatIOUReportID}`);
-            deleteMoneyRequest(
-                transactionID,
-                action,
-                duplicateTransactions,
-                duplicateTransactionViolations,
-                iouReport,
-                chatReport,
-                false,
-                deletedTransactionIDs,
-                selectedTransactionIDs,
-                isChatIOUReportArchived,
-            );
-            deletedTransactionIDs.push(transactionID);
-            if (action.childReportID) {
-                deletedTransactionThreadReportIDs.add(action.childReportID);
-            }
-        });
+        const deletedThreadReportIDs = deleteTransactions(selectedTransactionIDs, duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
         clearSelectedTransactions(true);
         setIsDeleteModalVisible(false);
-        Navigation.removeReportScreen(deletedTransactionThreadReportIDs);
-    }, [reportActions, selectedTransactionIDs, clearSelectedTransactions, allTransactions, allReports, report, allReportNameValuePairs, allPolicyRecentlyUsedCategories, currentSearchHash, policyCategories, policy, archivedReportsIdSet, duplicateTransactions, duplicateTransactionViolations]);
+        Navigation.removeReportScreen(new Set(deletedThreadReportIDs));
+    }, [deleteTransactions, selectedTransactionIDs, duplicateTransactions, duplicateTransactionViolations, currentSearchHash, clearSelectedTransactions]);
 
     const showDeleteModal = useCallback(() => {
         setIsDeleteModalVisible(true);
