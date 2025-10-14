@@ -1,4 +1,4 @@
-import {renderHook, waitFor} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useOnyx from '@hooks/useOnyx';
@@ -1390,7 +1390,7 @@ describe('actions/Policy', () => {
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.areTagsEnabled = false;
 
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
@@ -1410,7 +1410,7 @@ describe('actions/Policy', () => {
             expect(optimisticPolicyTags?.Tag?.required).toBe(false);
             expect(optimisticPolicyTags?.Tag?.tags).toEqual({});
 
-            mockFetch?.resume?.();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
             // And after API success, pending fields should be cleared
@@ -1427,7 +1427,7 @@ describe('actions/Policy', () => {
             const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
             const existingTags = fakePolicyTags[tagListName]?.tags ?? {};
 
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
@@ -1448,7 +1448,7 @@ describe('actions/Policy', () => {
                 expect(optimisticPolicyTags?.[tagListName]?.tags[tagName]?.enabled).toBe(false);
             });
 
-            mockFetch?.resume?.();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
             // And after API success, pending fields should be cleared
@@ -1461,11 +1461,11 @@ describe('actions/Policy', () => {
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.areTagsEnabled = false;
 
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            mockFetch?.fail?.();
+            mockFetch.fail();
 
             // When enabling tags fails
             enablePolicyTags({policyID: fakePolicy.id, enabled: true});
@@ -1489,7 +1489,7 @@ describe('actions/Policy', () => {
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.areTagsEnabled = false;
 
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
@@ -1504,14 +1504,19 @@ describe('actions/Policy', () => {
             });
 
             // When enabling tags with data from useOnyx
-            enablePolicyTags({policyID: fakePolicy.id, enabled: true, policyTags: result.current.policyTags});
+            await act(async () => {
+                enablePolicyTags({policyID: fakePolicy.id, enabled: true, policyTags: result.current.policyTags});
+                await waitForBatchedUpdates();
+            });
             await waitForBatchedUpdates();
 
             // Then the policy should be updated optimistically
             const optimisticPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
             expect(optimisticPolicy?.areTagsEnabled).toBe(true);
 
-            mockFetch?.resume?.();
+            await act(async () => {
+                await mockFetch.resume();
+            });
             await waitForBatchedUpdates();
 
             // And after API success, policy should be enabled
