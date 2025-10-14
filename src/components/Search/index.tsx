@@ -1,4 +1,4 @@
-import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
+import {CommonActions, findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -716,6 +716,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 setOptimisticDataForTransactionThreadPreview(item, transactionPreviewData);
             }
 
+            navigationRef.dispatch({
+                ...CommonActions.preload(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, {
+                    name: SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+                    params: {reportID, backTo},
+                }),
+                target: navigationRef.getRootState().key,
+            });
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
         [isMobileSelectionModeEnabled, type, toggleTransaction, reportActionsArray, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
