@@ -1,8 +1,9 @@
 /* eslint-disable react/no-array-index-key */
-import type {ReactElement} from 'react';
 import React, {useState} from 'react';
+import type {ReactElement} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import ClickableContext from '@components/ClickableContext';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -15,8 +16,8 @@ import type {ReceiptError} from '@src/types/onyx/Transaction';
 import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import RenderHTML from './RenderHTML';
 import Text from './Text';
-import TextLink from './TextLink';
 
 type DotIndicatorMessageProps = {
     /**
@@ -65,31 +66,18 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
-            return (
-                <>
-                    <Text
-                        key={index}
-                        style={styles.offlineFeedbackText}
-                    >
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translate('iou.error.receiptFailureMessage')}</Text>
-                        <TextLink
-                            style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
-                            onPress={() => handleRetryPress(message, dismissError, setShouldShowErrorModal)}
-                        >
-                            {translate('iou.error.tryAgainMessage')}
-                        </TextLink>
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translate('common.or')}</Text>
-                        <TextLink
-                            style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
-                            onPress={() => {
-                                fileDownload(message.source, message.filename).finally(() => dismissError());
-                            }}
-                        >
-                            {translate('iou.error.saveFileMessage')}
-                        </TextLink>
+            // Map each clickable ID to its corresponding action
+            const actionHandlers = {
+                retry: () => handleRetryPress(message, dismissError, setShouldShowErrorModal),
+                download: () => fileDownload(message.source, message.filename).finally(() => dismissError()),
+            };
 
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translate('iou.error.uploadLaterMessage')}</Text>
-                    </Text>
+            return (
+                <ClickableContext.Provider
+                    key={index}
+                    value={actionHandlers}
+                >
+                    <RenderHTML html={translate('iou.error.receiptFailureMessage')} />
 
                     <ConfirmModal
                         isVisible={shouldShowErrorModal}
@@ -100,7 +88,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                         confirmText={translate('common.ok')}
                         shouldShowCancelButton={false}
                     />
-                </>
+                </ClickableContext.Provider>
             );
         }
 
