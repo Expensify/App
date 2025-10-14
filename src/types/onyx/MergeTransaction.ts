@@ -1,3 +1,4 @@
+import type {Attendee} from './IOU';
 import type Transaction from './Transaction';
 import type {Comment, Receipt, Routes, TransactionCustomUnit, WaypointCollection} from './Transaction';
 
@@ -59,6 +60,9 @@ type MergeTransaction = {
 
     /** Routes for distance requests */
     routes?: Routes | null;
+
+    /** The attendees of the transaction */
+    attendees?: Attendee[];
 };
 
 export default MergeTransaction;

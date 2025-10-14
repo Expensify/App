@@ -19,6 +19,7 @@ import {
     buildMergeFieldsData,
     getMergeableDataAndConflictFields,
     getMergeFieldUpdatedValues,
+    getMergeFieldErrorText,
     getMergeFieldValue,
     getSourceTransactionFromMergeTransaction,
     getTargetTransactionFromMergeTransaction,
@@ -45,7 +46,7 @@ type DetailsReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigator
 const hasOnceLoadedTransactionThreadReportActionsSelector = (value?: OnyxEntry<ReportMetadata>) => value?.hasOnceLoadedReportActions;
 
 function DetailsReviewPage({route}: DetailsReviewPageProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {transactionID, backTo} = route.params;
 
@@ -88,11 +89,11 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
             return;
         }
 
-        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
+        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare);
 
         setMergeTransactionKey(transactionID, mergeableData);
         setConflictFields(detectedConflictFields as MergeFieldKey[]);
-    }, [targetTransaction, sourceTransaction, transactionID]);
+    }, [targetTransaction, sourceTransaction, transactionID, localeCompare]);
 
     useEffect(() => {
         if (!isCheckingDataBeforeGoNext) {
@@ -220,7 +221,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                             key={mergeField.field}
                             mergeField={mergeField}
                             onValueSelected={handleSelect}
-                            errorText={hasErrors[mergeField.field] ? translate('transactionMerge.detailsPage.pleaseSelectError', {field: mergeField.label}) : undefined}
+                            errorText={hasErrors[mergeField.field] ? getMergeFieldErrorText(translate, mergeField) : undefined}
                         />
                     ))}
                 </ScrollView>

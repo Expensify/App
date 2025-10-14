@@ -8,8 +8,11 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
+import {getEnvironmentURL} from '@libs/Environment/Environment';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {translateLocal} from '@libs/Localize';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticChatReport,
@@ -36,7 +39,6 @@ import {
     canUserPerformWriteAction,
     excludeParticipantsForDisplay,
     findLastAccessedReport,
-    getAllAncestorReportActions,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getApprovalChain,
     getChatByParticipants,
@@ -45,6 +47,7 @@ import {
     getDisplayNamesWithTooltips,
     getGroupChatName,
     getIconsForParticipants,
+    getIOUReportActionDisplayMessage,
     getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
     getParentNavigationSubtitle,
@@ -56,6 +59,7 @@ import {
     getReportIDFromLink,
     getReportName,
     getReportStatusTranslation,
+    getReportURLForCurrentContext,
     getSearchReportName,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
@@ -70,6 +74,7 @@ import {
     isReportOutstanding,
     isRootGroupChat,
     isSelfDMOrSelfDMThread,
+    isWorkspaceMemberLeavingWorkspaceRoom,
     parseReportRouteParams,
     populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
@@ -78,6 +83,7 @@ import {
     shouldDisableRename,
     shouldDisableThread,
     shouldEnableNegative,
+    shouldExcludeAncestorReportAction,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
@@ -90,6 +96,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {
     Beta,
     OnyxInputOrEntry,
@@ -139,6 +146,8 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('@libs/Permissions');
+
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     setNavigationActionToMicrotaskQueue: jest.fn(),
@@ -341,6 +350,37 @@ describe('ReportUtils', () => {
         return waitForBatchedUpdates();
     });
     beforeEach(() => IntlStore.load(CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
+
+    describe('getIOUReportActionDisplayMessage', () => {
+        const iouReportID = '1234567890';
+        const policyID = 332;
+
+        const reportAction = {
+            ...createRandomReportAction(44),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {IOUReportID: iouReportID, type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
+        };
+
+        const iouReport = {...createExpenseReport(Number(iouReportID)), policyID: policyID.toString()};
+
+        const policyWithBank = {
+            ...createRandomPolicy(policyID, CONST.POLICY.TYPE.TEAM),
+            achAccount: {
+                accountNumber: 'XXXXXXXXXXXX0000',
+            },
+        };
+
+        it('should return the right message when payment type is ACH', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithBank);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {[reportAction.reportActionID]: reportAction});
+
+            const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
+            const paidSystemMessage = translateLocal('iou.businessBankAccount', {amount: '', last4Digits});
+
+            expect(getIOUReportActionDisplayMessage(reportAction, undefined, iouReport)).toBe(paidSystemMessage);
+        });
+    });
 
     describe('prepareOnboardingOnyxData', () => {
         it('provides test drive url to task title', () => {
@@ -3178,50 +3218,6 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('getAllAncestorReportActions', () => {
-        const reports: Report[] = [
-            {reportID: '1', lastReadTime: '2024-02-01 04:56:47.233', reportName: 'Report'},
-            {reportID: '2', lastReadTime: '2024-02-01 04:56:47.233', parentReportActionID: '1', parentReportID: '1', reportName: 'Report'},
-            {reportID: '3', lastReadTime: '2024-02-01 04:56:47.233', parentReportActionID: '2', parentReportID: '2', reportName: 'Report'},
-            {reportID: '4', lastReadTime: '2024-02-01 04:56:47.233', parentReportActionID: '3', parentReportID: '3', reportName: 'Report'},
-            {reportID: '5', lastReadTime: '2024-02-01 04:56:47.233', parentReportActionID: '4', parentReportID: '4', reportName: 'Report'},
-        ];
-
-        const reportActions: ReportAction[] = [
-            {reportActionID: '1', created: '2024-02-01 04:42:22.965', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED},
-            {reportActionID: '2', created: '2024-02-01 04:42:28.003', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED},
-            {reportActionID: '3', created: '2024-02-01 04:42:31.742', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED},
-            {reportActionID: '4', created: '2024-02-01 04:42:35.619', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED},
-        ];
-
-        beforeAll(() => {
-            const reportCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, reports, (report) => report.reportID);
-            const reportActionCollectionDataSet = toCollectionDataSet(
-                ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                reportActions.map((reportAction) => ({[reportAction.reportActionID]: reportAction})),
-                (actions) => Object.values(actions).at(0)?.reportActionID,
-            );
-            Onyx.multiSet({
-                ...reportCollectionDataSet,
-                ...reportActionCollectionDataSet,
-            });
-            return waitForBatchedUpdates();
-        });
-
-        afterAll(() => Onyx.clear());
-
-        it('should return correctly all ancestors of a thread report', () => {
-            const resultAncestors = [
-                {report: reports.at(0), reportAction: reportActions.at(0), shouldDisplayNewMarker: false},
-                {report: reports.at(1), reportAction: reportActions.at(1), shouldDisplayNewMarker: false},
-                {report: reports.at(2), reportAction: reportActions.at(2), shouldDisplayNewMarker: false},
-                {report: reports.at(3), reportAction: reportActions.at(3), shouldDisplayNewMarker: false},
-            ];
-
-            expect(getAllAncestorReportActions(reports.at(4))).toEqual(resultAncestors);
-        });
-    });
-
     describe('isChatUsedForOnboarding', () => {
         afterEach(async () => {
             await Onyx.clear();
@@ -3642,6 +3638,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3693,6 +3690,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: true,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3714,6 +3712,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3735,6 +3734,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: 'fake draft',
                 }),
             ).toBeTruthy();
         });
@@ -3756,6 +3756,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3790,6 +3791,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3820,6 +3822,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3850,6 +3853,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3873,6 +3877,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     includeSelfDM,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3898,6 +3903,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3916,6 +3922,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3937,6 +3944,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3978,6 +3986,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3996,6 +4005,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -4016,6 +4026,7 @@ describe('ReportUtils', () => {
                     login: '+@domain.com',
                     excludeEmptyChats: false,
                     includeDomainEmail: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -4060,6 +4071,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -4078,6 +4090,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -4110,6 +4123,7 @@ describe('ReportUtils', () => {
                     betas: [],
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -5791,7 +5805,8 @@ describe('ReportUtils', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspace.id}`, workspace);
 
-            const result = canUserPerformWriteAction(policyAnnounceRoom);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(policyAnnounceRoom.reportID));
+            const result = canUserPerformWriteAction(policyAnnounceRoom, isReportArchived.current);
 
             // Then it should return false
             expect(result).toBe(false);
@@ -7291,6 +7306,71 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getReportURLForCurrentContext', () => {
+        const flushPromises = () =>
+            new Promise<void>((resolve) => {
+                setImmediate(resolve);
+            });
+        const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
+        let environmentURL: string;
+
+        beforeAll(async () => {
+            environmentURL = await getEnvironmentURL();
+            await flushPromises();
+        });
+
+        afterAll(() => {
+            mockIsSearchTopmostFullScreenRoute.mockRestore();
+        });
+
+        const mockGetActiveRoute = Navigation.getActiveRoute as jest.Mock;
+
+        beforeEach(() => {
+            mockIsSearchTopmostFullScreenRoute.mockReset();
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+            mockGetActiveRoute.mockReset();
+            mockGetActiveRoute.mockReturnValue('search?q=type:report');
+        });
+
+        it('returns report route when not in search context', () => {
+            const reportID = '123';
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`);
+        });
+
+        it('returns search route when in search context', () => {
+            const reportID = '456';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            const encodedBackTo = 'search%3Fq%3Dtype%3Areport';
+            mockGetActiveRoute.mockReturnValue(`search/r/999?backTo=${encodedBackTo}`);
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:report'})}`);
+        });
+
+        it('uses current search route when no backTo parameter is present', () => {
+            const reportID = '111';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            mockGetActiveRoute.mockReturnValue('search?q=type:invoice');
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:invoice'})}`);
+        });
+
+        it('normalizes leading slash in search routes', () => {
+            const reportID = '222';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            mockGetActiveRoute.mockReturnValue('/search?q=type:card');
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:card'})}`);
+        });
+
+        it('falls back to default search route when current route is unavailable', () => {
+            const reportID = '789';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            mockGetActiveRoute.mockReturnValue('');
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: ROUTES.SEARCH_ROOT.route})}`);
+        });
+
+        it('falls back to the base report path when reportID is missing', () => {
+            expect(getReportURLForCurrentContext(undefined)).toBe(`${environmentURL}/r/`);
+        });
+    });
+
     describe('requiresManualSubmission', () => {
         it('should return true when manual submit is enabled', () => {
             const report: Report = {
@@ -7371,6 +7451,198 @@ describe('ReportUtils', () => {
             policy6.autoReporting = true;
             policy6.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY;
             const result = requiresManualSubmission(report, policy6);
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('isWorkspaceMemberLeavingWorkspaceRoom', () => {
+        test('should return false when not a policy employee', () => {
+            const report = {
+                ...createRandomReport(1),
+                visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
+                isOwnPolicyExpenseChat: true,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, false, true)).toBe(false);
+        });
+
+        test('should return true for restricted room when policy employee', () => {
+            const report = {
+                ...createRandomReport(2),
+                visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(true);
+        });
+
+        test('should return true for policy expense chat when own chat and policy employee', () => {
+            const report = {
+                ...createRandomReport(3),
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                isOwnPolicyExpenseChat: true,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(true);
+        });
+
+        test('should return true for policy expense chat when policy admin and policy employee', () => {
+            const report = {
+                ...createRandomReport(4),
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                isOwnPolicyExpenseChat: false,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, true)).toBe(true);
+        });
+
+        test('should return false for non-restricted, non-policy expense chat', () => {
+            const report = {
+                ...createRandomReport(5),
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                isOwnPolicyExpenseChat: false,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(false);
+        });
+
+        test('should return false for non-restricted policy expense chat when not own chat and not admin', () => {
+            const report = {
+                ...createRandomReport(6),
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                isOwnPolicyExpenseChat: false,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(false);
+        });
+    });
+
+    describe('shouldExcludeAncestorReportAction', () => {
+        it('should return false for trip preview action when it is the youngest descendant', () => {
+            const tripPreviewAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW,
+            };
+
+            const result = shouldExcludeAncestorReportAction(tripPreviewAction, true);
+            expect(result).toBe(false);
+        });
+
+        it('should return true for trip preview action when it is not the youngest descendant', () => {
+            const tripPreviewAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW,
+            };
+
+            const result = shouldExcludeAncestorReportAction(tripPreviewAction, false);
+            expect(result).toBe(true);
+        });
+
+        it('should return true for transaction thread CREATE actions', () => {
+            const transactionThreadAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    created: DateUtils.getDBTime(),
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+
+            const result = shouldExcludeAncestorReportAction(transactionThreadAction, false);
+            expect(result).toBe(true);
+        });
+
+        it('should return true for transaction thread TRACK actions', () => {
+            const transactionThreadAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    created: DateUtils.getDBTime(),
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                },
+            };
+
+            const result = shouldExcludeAncestorReportAction(transactionThreadAction, false);
+            expect(result).toBe(true);
+        });
+
+        it('should return false for sent money report actions (PAY with IOUDetails)', () => {
+            const sentMoneyAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    created: DateUtils.getDBTime(),
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    IOUDetails: {
+                        amount: 100,
+                        currency: 'USD',
+                        comment: '',
+                    },
+                },
+            };
+
+            const result = shouldExcludeAncestorReportAction(sentMoneyAction, true);
+            expect(result).toBe(false);
+        });
+
+        it('should return true for report preview actions', () => {
+            const reportPreviewAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+
+            const result = shouldExcludeAncestorReportAction(reportPreviewAction, true);
+            expect(result).toBe(true);
+        });
+
+        it('should return false for regular comment actions', () => {
+            const commentAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
+
+            const result = shouldExcludeAncestorReportAction(commentAction, true);
+            expect(result).toBe(false);
+        });
+
+        it('should return false for regular IOU actions that are not transaction threads', () => {
+            const iouAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    created: DateUtils.getDBTime(),
+                    type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+                },
+            };
+
+            const result = shouldExcludeAncestorReportAction(iouAction, true);
+            expect(result).toBe(false);
+        });
+
+        it('should return false for PAY actions without IOUDetails', () => {
+            const payAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    created: DateUtils.getDBTime(),
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                },
+            };
+
+            const result = shouldExcludeAncestorReportAction(payAction, true);
+            expect(result).toBe(false);
+        });
+
+        it('should return false for non-money request actions', () => {
+            const nonMoneyRequestAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
+            };
+
+            const result = shouldExcludeAncestorReportAction(nonMoneyRequestAction, true);
+            expect(result).toBe(false);
+        });
+
+        it('should handle empty object as parent report action', () => {
+            const result = shouldExcludeAncestorReportAction({} as ReportAction, true);
             expect(result).toBe(false);
         });
     });
