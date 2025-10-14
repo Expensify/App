@@ -4259,9 +4259,9 @@ function getTransactionCommentObject(transaction: OnyxEntry<Transaction>): Comme
 function canEditMoneyRequest(
     reportAction: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>,
     isChatReportArchived = false,
-    report?: OnyxEntry<Report> | SearchReport,
+    report?: OnyxInputOrEntry<Report> | SearchReport,
     policy?: OnyxEntry<Policy> | SearchPolicy,
-    linkedTransaction?: OnyxEntry<Transaction>,
+    linkedTransaction?: OnyxEntry<Transaction> | SearchTransaction,
 ): boolean {
     const isDeleted = isDeletedAction(reportAction);
 
@@ -4394,6 +4394,8 @@ function canEditFieldOfMoneyRequest(
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
     isSearchPageOption?: boolean,
     linkedTransaction?: OnyxEntry<Transaction> | SearchTransaction,
+    report?: OnyxInputOrEntry<Report> | SearchReport,
+    policy?: OnyxEntry<Policy> | SearchPolicy,
 ): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
@@ -4408,7 +4410,7 @@ function canEditFieldOfMoneyRequest(
         CONST.EDIT_REQUEST_FIELD.REPORT,
     ];
 
-    if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, linkedTransaction, isChatReportArchived)) {
+    if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, isChatReportArchived, report, policy, linkedTransaction)) {
         return false;
     }
 
@@ -4418,7 +4420,7 @@ function canEditFieldOfMoneyRequest(
     }
 
     const iouMessage = getOriginalMessage(reportAction);
-    const moneyRequestReport = iouMessage?.IOUReportID ? (getReport(iouMessage?.IOUReportID, allReports) ?? ({} as Report)) : ({} as Report);
+    const moneyRequestReport = report ?? iouMessage?.IOUReportID ? (getReport(iouMessage?.IOUReportID, allReports) ?? ({} as Report)) : ({} as Report);
     const transaction = linkedTransaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`] ?? ({} as Transaction);
 
     if (isSettled(String(moneyRequestReport.reportID)) || isReportIDApproved(String(moneyRequestReport.reportID))) {
@@ -4438,8 +4440,8 @@ function canEditFieldOfMoneyRequest(
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
-    const policy = getPolicy(moneyRequestReport?.policyID);
-    const isAdmin = isExpenseReport(moneyRequestReport) && policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const reportPolicy = policy ?? getPolicy(moneyRequestReport?.policyID);
+    const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = isExpenseReport(moneyRequestReport) && currentUserAccountID === moneyRequestReport?.managerID;
     const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
 
