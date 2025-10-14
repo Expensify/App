@@ -5,9 +5,9 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import {openReport} from '@libs/actions/Report';
-import {getValidatedImageSource} from '@libs/AvatarUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportNotFound} from '@libs/ReportUtils';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
@@ -90,10 +90,10 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         isAuthTokenRequired,
     });
 
-    const source = useMemo(() => getValidatedImageSource(sourceParam), [sourceParam]);
-    const modalType = useReportAttachmentModalType(source);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !isLoading && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID;
+    const source = useMemo(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined), [sourceParam]);
+    const modalType = useReportAttachmentModalType();
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
