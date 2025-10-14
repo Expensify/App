@@ -397,7 +397,13 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         )}
                     </View>
                 )}
-                {shouldDisplayTransactionNavigation && <MoneyRequestReportTransactionsNavigation currentReportID={reportID} />}
+                {shouldDisplayTransactionNavigation && (
+                    <MoneyRequestReportTransactionsNavigation
+                        currentReportID={reportID}
+                        parentReportID={parentReport?.reportID}
+                        policyID={parentReport?.policyID}
+                    />
+                )}
             </HeaderWithBackButton>
             {!shouldDisplayNarrowMoreButton && (
                 <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>

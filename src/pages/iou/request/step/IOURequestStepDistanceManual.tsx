@@ -244,15 +244,15 @@ function IOURequestStepDistanceManual({
                 !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
             ) {
                 const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
+                const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
+                const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({
-                    reportID: activePolicyExpenseChat?.reportID,
+                    reportID: transactionReportID,
                     isPolicyExpenseChat: true,
                     policy: defaultExpensePolicy,
                     lastSelectedDistanceRates,
                     localeCompare,
                 });
-                const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-                const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setCustomUnitRateID(transactionID, rateID);
                 setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
@@ -299,7 +299,7 @@ function IOURequestStepDistanceManual({
 
     const submitAndNavigateToNextPage = useCallback(() => {
         const value = numberFormRef.current?.getNumber() ?? '';
-        if (!value.length || parseFloat(value) < 0) {
+        if (!value.length || parseFloat(value) < 0.01) {
             setFormError(translate('iou.error.invalidDistance'));
             return;
         }
