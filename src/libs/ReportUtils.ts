@@ -8250,26 +8250,13 @@ function isEmptyReport(report: OnyxEntry<Report>, isReportArchived = false): boo
     return generateIsEmptyReport(report, isReportArchived);
 }
 
-type ReportEmptyStateSummary = Pick<Report, 'policyID' | 'ownerAccountID' | 'type' | 'stateNum' | 'statusNum' | 'total' | 'nonReimbursableTotal' | 'pendingAction' | 'errors'>;
-
-const REPORT_EMPTY_STATE_SUMMARY_KEYS: Array<keyof ReportEmptyStateSummary> = [
-    'policyID',
-    'ownerAccountID',
-    'type',
-    'stateNum',
-    'statusNum',
-    'total',
-    'nonReimbursableTotal',
-    'pendingAction',
-    'errors',
-];
-
 function toReportEmptyStateSummary(report: Report | ReportEmptyStateSummary | undefined): ReportEmptyStateSummary | undefined {
     if (!report) {
         return undefined;
     }
 
     return {
+        reportID: report.reportID ?? '',
         policyID: report.policyID ?? undefined,
         ownerAccountID: report.ownerAccountID ?? undefined,
         type: report.type ?? undefined,
@@ -8294,14 +8281,15 @@ function getReportSummariesForEmptyCheck(reports: OnyxCollection<Report> | Array
 const reportSummariesOnyxSelector = (reports: Parameters<typeof getReportSummariesForEmptyCheck>[0]) => getReportSummariesForEmptyCheck(reports);
 
 /**
- * Checks if there are any empty (no money) open expense reports for a specific policy and user.
- * An empty report is defined as having total === 0 and nonReimbursableTotal === 0.
+ * Checks if there are any empty (no transactions) open expense reports for a specific policy and user.
+ * An empty report is defined as having zero transactions.
  * This excludes reports that are being deleted or have errors.
  */
 function hasEmptyReportsForPolicy(
     reports: OnyxCollection<Report> | Array<Report | ReportEmptyStateSummary | null | undefined> | undefined,
     policyID: string | undefined,
     accountID?: number,
+    reportsTransactionsParam: Record<string, Transaction[]> = reportsTransactions,
 ): boolean {
     if (!policyID || !accountID) {
         return false;
@@ -8310,7 +8298,7 @@ function hasEmptyReportsForPolicy(
     const summaries = getReportSummariesForEmptyCheck(reports);
 
     return summaries.some((report) => {
-        if (!report.policyID || report.policyID !== policyID || report.ownerAccountID !== accountID) {
+        if (!report.reportID || !report.policyID || report.policyID !== policyID || report.ownerAccountID !== accountID) {
             return false;
         }
 
@@ -8319,21 +8307,25 @@ function hasEmptyReportsForPolicy(
             return false;
         }
 
-        const hasNoMoney = (report.total ?? 0) === 0 && (report.nonReimbursableTotal ?? 0) === 0;
         const isOpenExpense = report.type === CONST.REPORT.TYPE.EXPENSE && report.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
+        if (!isOpenExpense) {
+            return false;
+        }
 
-        return isOpenExpense && hasNoMoney;
+        const transactions = getReportTransactions(report.reportID, reportsTransactionsParam);
+        return transactions.length === 0;
     });
 }
 
 /**
- * Returns a lookup object containing the policy IDs that have empty (no money) open expense reports for a specific user.
- * An empty report is defined as having total === 0 and nonReimbursableTotal === 0.
+ * Returns a lookup object containing the policy IDs that have empty (no transactions) open expense reports for a specific user.
+ * An empty report is defined as having zero transactions.
  * This excludes reports that are being deleted or have errors.
  */
 function getPolicyIDsWithEmptyReportsForAccount(
     reports: OnyxCollection<Report> | Array<Report | ReportEmptyStateSummary | null | undefined> | undefined,
     accountID?: number,
+    reportsTransactionsParam: Record<string, Transaction[]> = reportsTransactions,
 ): Record<string, boolean> {
     if (!accountID) {
         return {};
@@ -8343,7 +8335,7 @@ function getPolicyIDsWithEmptyReportsForAccount(
     const policyLookup: Record<string, boolean> = {};
 
     summaries.forEach((report) => {
-        if (!report.policyID || report.ownerAccountID !== accountID) {
+        if (!report.reportID || !report.policyID || report.ownerAccountID !== accountID) {
             return;
         }
 
@@ -8351,10 +8343,13 @@ function getPolicyIDsWithEmptyReportsForAccount(
             return;
         }
 
-        const hasNoMoney = (report.total ?? 0) === 0 && (report.nonReimbursableTotal ?? 0) === 0;
         const isOpenExpense = report.type === CONST.REPORT.TYPE.EXPENSE && report.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
+        if (!isOpenExpense) {
+            return;
+        }
 
-        if (hasNoMoney && isOpenExpense) {
+        const transactions = getReportTransactions(report.reportID, reportsTransactionsParam);
+        if (transactions.length === 0) {
             policyLookup[report.policyID] = true;
         }
     });
@@ -12422,3 +12417,7 @@ export type {
     OptimisticNewReport,
     SelfDMParameters,
 };
+type ReportEmptyStateSummary = Pick<
+    Report,
+    'reportID' | 'policyID' | 'ownerAccountID' | 'type' | 'stateNum' | 'statusNum' | 'total' | 'nonReimbursableTotal' | 'pendingAction' | 'errors'
+>;
