@@ -73,7 +73,6 @@ const DEFAULT_SPLIT_TRANSACTION: Transaction = {
     participantsAutoAssigned: true,
     reimbursable: true,
     reportID: REPORT_ID,
-    splitPayerAccountIDs: [ACCOUNT_ID],
     transactionID: TRANSACTION_ID,
 };
 
