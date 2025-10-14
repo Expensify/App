@@ -3,12 +3,11 @@ import {View} from 'react-native';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import getPlatform from '@libs/getPlatform';
-import CONST from '@src/CONST';
 
 type SearchPageFooterProps = {
     count: number | undefined;
@@ -23,16 +22,14 @@ function SearchPageFooter({count, total, currency}: SearchPageFooterProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const platform = getPlatform(true);
-    // We want to prevent the floating camera button from covering the totals
-    const shouldShowFloatingCameraButton = platform !== CONST.PLATFORM.WEB && platform !== CONST.PLATFORM.DESKTOP;
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const valueTextStyle = useMemo(() => (isOffline ? [styles.textLabelSupporting, styles.labelStrong] : [styles.labelStrong]), [isOffline, styles]);
 
     return (
         <View
             style={[
-                shouldShowFloatingCameraButton ? styles.justifyContentStart : styles.justifyContentEnd,
+                shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd,
                 styles.borderTop,
                 styles.ph5,
                 styles.pv3,
