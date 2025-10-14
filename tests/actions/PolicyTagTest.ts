@@ -1508,7 +1508,6 @@ describe('actions/Policy', () => {
                 enablePolicyTags({policyID: fakePolicy.id, enabled: true, policyTags: result.current.policyTags});
                 await waitForBatchedUpdates();
             });
-            await waitForBatchedUpdates();
 
             // Then the policy should be updated optimistically
             const optimisticPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
@@ -1516,8 +1515,8 @@ describe('actions/Policy', () => {
 
             await act(async () => {
                 await mockFetch.resume();
+                await waitForBatchedUpdates();
             });
-            await waitForBatchedUpdates();
 
             // And after API success, policy should be enabled
             await waitFor(() => {
