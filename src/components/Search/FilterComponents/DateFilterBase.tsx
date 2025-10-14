@@ -94,11 +94,20 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
         });
     }, [selectedDateModifier, dateOnKey, dateBeforeKey, dateAfterKey, onSubmit]);
 
+    const goBack = () => {
+        if (selectedDateModifier) {
+            setSelectedDateModifier(null);
+            return;
+        }
+
+        back();
+    };
+
     return (
         <>
             <HeaderWithBackButton
                 title={computedTitle}
-                onBackButtonPress={back}
+                onBackButtonPress={goBack}
             />
             <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                 <DatePresetFilterBase
