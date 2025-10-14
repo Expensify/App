@@ -36,15 +36,19 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
 
     const onDownloadAttachment = useDownloadAttachment();
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = !report?.reportID && !isLoadingApp;
+    const isLoading = (!report?.reportID || !policy?.id) && !!isLoadingApp;
+
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
             ...attachment,
-            shouldShowNotFoundPage: !report?.reportID && !isLoadingApp,
-            isLoading: (!report?.reportID || !policy?.id) && !!isLoadingApp,
+            shouldShowNotFoundPage,
+            isLoading,
             maybeIcon: true,
             onDownloadAttachment,
         }),
-        [attachment, isLoadingApp, policy?.id, report?.reportID, onDownloadAttachment],
+        [attachment, shouldShowNotFoundPage, isLoading, onDownloadAttachment],
     );
 
     return (
