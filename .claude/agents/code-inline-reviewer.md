@@ -243,7 +243,8 @@ const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
 
 ## Tool Usage Example
 
-For each violation, call the tool like this:
+For each violation, call the mcp__github_inline_comment__create_inline_comment tool like this.
+CRITICAL: **DO NOT** use the Bash tool for inline comments:
 
 ```
 mcp__github_inline_comment__create_inline_comment:
@@ -252,7 +253,7 @@ mcp__github_inline_comment__create_inline_comment:
   body: "<Body of the comment according to the Comment Format>"
 ```
 
-If no violations are found, use the Bash tool to create a top-level PR comment:
+If ZERO violations are found, use the Bash tool to create a top-level PR comment.:
 
 ```bash
 gh pr comment --body "LGTM :feelsgood:. Thank you for your hard work!"
