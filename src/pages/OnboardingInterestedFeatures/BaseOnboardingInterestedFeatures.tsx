@@ -6,13 +6,13 @@ import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndB
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -43,6 +43,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
+    const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Accounting', 'CompanyCard', 'Workflows', 'InvoiceBlue', 'Rules', 'Car', 'Tag', 'PerDiem', 'HandCard'] as const);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -70,61 +71,61 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             {
                 id: CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
                 title: translate('workspace.moreFeatures.categories.title'),
-                icon: Illustrations.FolderOpen,
+                icon: illustrations.FolderOpen,
                 enabledByDefault: true,
             },
             {
                 id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
                 title: translate('workspace.moreFeatures.connections.title'),
-                icon: Illustrations.Accounting,
+                icon: illustrations.Accounting,
                 enabledByDefault: !!userReportedIntegration,
             },
             {
                 id: CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED,
                 title: translate('workspace.moreFeatures.companyCards.title'),
-                icon: Illustrations.CompanyCard,
+                icon: illustrations.CompanyCard,
                 enabledByDefault: true,
             },
             {
                 id: CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
                 title: translate('workspace.moreFeatures.workflows.title'),
-                icon: Illustrations.Workflows,
+                icon: illustrations.Workflows,
                 enabledByDefault: true,
             },
             {
                 id: CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED,
                 title: translate('workspace.moreFeatures.invoices.title'),
-                icon: Illustrations.InvoiceBlue,
+                icon: illustrations.InvoiceBlue,
             },
             {
                 id: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
                 title: translate('workspace.moreFeatures.rules.title'),
-                icon: Illustrations.Rules,
+                icon: illustrations.Rules,
                 requiresUpdate: true,
             },
             {
                 id: CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
                 title: translate('workspace.moreFeatures.distanceRates.title'),
-                icon: Illustrations.Car,
+                icon: illustrations.Car,
             },
             {
                 id: CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED,
                 title: translate('workspace.moreFeatures.expensifyCard.title'),
-                icon: Illustrations.HandCard,
+                icon: illustrations.HandCard,
             },
             {
                 id: CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED,
                 title: translate('workspace.moreFeatures.tags.title'),
-                icon: Illustrations.Tag,
+                icon: illustrations.Tag,
             },
             {
                 id: CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
                 title: translate('workspace.moreFeatures.perDiem.title'),
-                icon: Illustrations.PerDiem,
+                icon: illustrations.PerDiem,
                 requiresUpdate: true,
             },
         ];
-    }, [translate, userReportedIntegration]);
+    }, [illustrations, translate, userReportedIntegration]);
 
     const [selectedFeatures, setSelectedFeatures] = useState<string[]>(() => features.filter((feature) => feature.enabledByDefault).map((feature) => feature.id));
 
@@ -243,14 +244,14 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
 
     // Create items for enabled features
     const enabledFeatures: Feature[] = features
-        .filter((feature) => feature.enabledByDefault)
+        .filter((feature) => !!feature.enabledByDefault || feature.id === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED)
         .map((feature) => ({
             ...feature,
         }));
 
     // Create items for features they may be interested in
     const mayBeInterestedFeatures: Feature[] = features
-        .filter((feature) => !feature.enabledByDefault)
+        .filter((feature) => !feature.enabledByDefault && feature.id !== CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED)
         .map((feature) => ({
             ...feature,
         }));

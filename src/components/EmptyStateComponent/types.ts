@@ -17,7 +17,11 @@ type EmptyStateButton = {
     icon?: IconAsset;
     isDisabled?: boolean;
     style?: StyleProp<ViewStyle>;
-    dropDownOptions?: Array<DropdownOption<ValueOf<{readonly CREATE_NEW_EXPENSE: 'createNewExpense'; readonly ADD_UNREPORTED_EXPENSE: 'addUnreportedExpense'}>>>;
+    dropDownOptions?: Array<
+        DropdownOption<
+            ValueOf<{readonly CREATE_NEW_EXPENSE: 'createNewExpense'; readonly TRACK_DISTANCE_EXPENSE: 'trackDistanceExpense'; readonly ADD_UNREPORTED_EXPENSE: 'addUnreportedExpense'}>
+        >
+    >;
 };
 
 type SharedProps<T> = {

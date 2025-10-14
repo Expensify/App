@@ -1,5 +1,9 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+// Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import Button from '@components/Button';
@@ -21,6 +25,7 @@ import type {
 } from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -30,6 +35,7 @@ import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
+import type {TransactionPreviewData} from '@libs/actions/Search';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportAction} from '@libs/ReportActionsUtils';
@@ -40,6 +46,7 @@ import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavig
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
@@ -69,6 +76,23 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {selectedTransactions, currentSearchHash} = useSearchContext();
+
+    const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
+    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportID}`, {canBeMissing: true});
+    const [oneTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.transactionThreadReportID}`, {canBeMissing: true});
+    const [oneTransaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${oneTransactionItem?.transactionID}`, {canBeMissing: true});
+    const parentReportActionSelector = useCallback(
+        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.moneyRequestReportActionID}`],
+        [oneTransactionItem],
+    );
+    const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionItem?.reportID}`, {selector: parentReportActionSelector, canBeMissing: true}, [
+        oneTransactionItem,
+    ]);
+    const transactionPreviewData: TransactionPreviewData = useMemo(
+        () => ({hasParentReport: !!parentReport, hasTransaction: !!oneTransaction, hasParentReportAction: !!parentReportAction, hasTransactionThreadReport: !!oneTransactionThreadReport}),
+        [parentReport, oneTransaction, parentReportAction, oneTransactionThreadReport],
+    );
+
     const selectedTransactionIDs = Object.keys(selectedTransactions);
     const selectedTransactionIDsSet = useMemo(() => new Set(selectedTransactionIDs), [selectedTransactionIDs]);
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`, {canBeMissing: true});
@@ -128,6 +152,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [isExpanded, setIsExpanded] = useState(false);
 
     const isEmpty = transactions.length === 0;
+    const {markReportIDAsExpense} = useContext(WideRHPContext);
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayEmptyView = isEmpty && isGroupByReports;
     const isDisabledOrEmpty = isEmpty || isDisabled;
@@ -169,6 +194,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 createAndOpenSearchTransactionThread(transactionItem, iouAction, currentSearchHash, backTo);
                 return;
             }
+            markReportIDAsExpense(reportID);
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         };
 
@@ -209,12 +235,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const onPress = useCallback(() => {
         if (isGroupByReports || transactions.length === 0) {
-            onSelectRow(item);
+            onSelectRow(item, transactionPreviewData);
         }
         if (!isGroupByReports) {
             handleToggle();
         }
-    }, [isGroupByReports, transactions.length, onSelectRow, item, handleToggle]);
+    }, [isGroupByReports, transactions.length, onSelectRow, transactionPreviewData, item, handleToggle]);
 
     const onLongPress = useCallback(() => {
         if (isEmpty) {
@@ -249,7 +275,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             [CONST.SEARCH.GROUP_BY.REPORTS]: (
                 <ReportListItemHeader
                     report={groupItem as TransactionReportGroupListItemType}
-                    onSelectRow={onSelectRow}
+                    onSelectRow={(listItem) => onSelectRow(listItem, transactionPreviewData)}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     isFocused={isFocused}
@@ -296,7 +322,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         return headers[groupBy];
-    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, groupBy]);
+    }, [groupItem, onSelectRow, transactionPreviewData, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, groupBy]);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 

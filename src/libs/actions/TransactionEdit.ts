@@ -151,7 +151,7 @@ type BuildOptimisticTransactionParams = {
 
 function buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUserPersonalDetails, reportID}: BuildOptimisticTransactionParams): Transaction {
     const newTransactionID = generateTransactionID();
-    const {currency, iouRequestType, isFromGlobalCreate, splitPayerAccountIDs} = initialTransaction ?? {};
+    const {currency, iouRequestType, isFromGlobalCreate} = initialTransaction ?? {};
     const newTransaction = {
         amount: 0,
         created: format(new Date(), 'yyyy-MM-dd'),
@@ -162,7 +162,6 @@ function buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUs
         transactionID: newTransactionID,
         isFromGlobalCreate,
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-        splitPayerAccountIDs,
     } as Transaction;
     createDraftTransaction(newTransaction);
     return newTransaction;
