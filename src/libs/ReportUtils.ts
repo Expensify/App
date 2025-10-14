@@ -8250,7 +8250,7 @@ function isEmptyReport(report: OnyxEntry<Report>, isReportArchived = false): boo
     return generateIsEmptyReport(report, isReportArchived);
 }
 
-type ReportEmptyStateSummary = Pick<Report, 'policyID' | 'ownerAccountID' | 'type' | 'stateNum' | 'statusNum' | 'total' | 'nonReimbursableTotal' | 'pendingAction' | 'errors'>;
+type ReportEmptyStateSummary = Pick<Report, 'reportID' | 'policyID' | 'ownerAccountID' | 'type' | 'stateNum' | 'statusNum' | 'total' | 'nonReimbursableTotal' | 'pendingAction' | 'errors'>;
 
 function toReportEmptyStateSummary(report: Report | ReportEmptyStateSummary | undefined): ReportEmptyStateSummary | undefined {
     if (!report) {
@@ -12419,7 +12419,3 @@ export type {
     OptimisticNewReport,
     SelfDMParameters,
 };
-type ReportEmptyStateSummary = Pick<
-    Report,
-    'reportID' | 'policyID' | 'ownerAccountID' | 'type' | 'stateNum' | 'statusNum' | 'total' | 'nonReimbursableTotal' | 'pendingAction' | 'errors'
->;

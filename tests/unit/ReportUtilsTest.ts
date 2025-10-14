@@ -8110,11 +8110,7 @@ describe('ReportUtils', () => {
         });
 
         it('returns true when at least one qualifying report exists among mixed data', () => {
-            const reports = toCollection(
-                buildReport({reportID: 'valid-empty'}),
-                buildReport({reportID: 'with-transaction'}),
-                buildReport({reportID: 'other', policyID: otherPolicyID}),
-            );
+            const reports = toCollection(buildReport({reportID: 'valid-empty'}), buildReport({reportID: 'with-transaction'}), buildReport({reportID: 'other', policyID: otherPolicyID}));
 
             const transactions: Record<string, Transaction[]> = {
                 'valid-empty': [],
@@ -8126,11 +8122,7 @@ describe('ReportUtils', () => {
         });
 
         it('returns false when accountID is the default one', () => {
-            const reports = toCollection(
-                buildReport({reportID: 'valid-empty'}),
-                buildReport({reportID: 'with-transaction'}),
-                buildReport({reportID: 'other', policyID: otherPolicyID}),
-            );
+            const reports = toCollection(buildReport({reportID: 'valid-empty'}), buildReport({reportID: 'with-transaction'}), buildReport({reportID: 'other', policyID: otherPolicyID}));
 
             const transactions: Record<string, Transaction[]> = {
                 'valid-empty': [],
