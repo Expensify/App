@@ -408,13 +408,6 @@ function BasePopoverMenu({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [menuItems, setFocusedIndex]);
 
-    // const menuContainerStyle = useMemo(() => {
-    //     if (isSmallScreenWidth) {
-    //         return shouldEnableMaxHeight ? {maxHeight: windowHeight - 250} : {};
-    //     }
-    //     return styles.createMenuContainer;
-    // }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer]);
-
     const menuContainerStyle = useMemo(() => {
         const DEFAULT_MAX_HEIGHT_OFFSET = 250;
         const SAFE_BOTTOM_SPACE = variables.h40;
