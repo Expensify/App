@@ -5,7 +5,7 @@ type AddToWalletButtonProps = {
     card: Card;
     cardHolderName: string;
     cardDescription: string;
-    buttonStyle?: ViewStyle;
+    style?: ViewStyle;
 };
 
 export default AddToWalletButtonProps;
