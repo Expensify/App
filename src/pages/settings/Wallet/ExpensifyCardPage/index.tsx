@@ -130,6 +130,7 @@ function ExpensifyCardPage({
     const shouldShowReportLostCardButton = currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED || currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 
     const currency = getCurrencyKeyByCountryCode(currencyList, cardsToShow?.at(0)?.nameValuePairs?.feedCountry);
+    const shouldShowPIN = currency !== CONST.CURRENCY.USD;
     const formattedAvailableSpendAmount = convertToDisplayString(cardsToShow?.at(0)?.availableSpend, currency);
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(cardsToShow?.at(0)?.nameValuePairs?.limitType);
 
@@ -192,7 +193,7 @@ function ExpensifyCardPage({
                             />
                         )}
                         {virtualCards.map((card) => (
-                            <>
+                            <React.Fragment key={card.cardID}>
                                 {!!cardsDetails[card.cardID] && cardsDetails[card.cardID]?.pan ? (
                                     <CardDetails
                                         pan={cardsDetails[card.cardID]?.pan}
@@ -247,11 +248,11 @@ function ExpensifyCardPage({
                                         }}
                                     />
                                 )}
-                            </>
+                            </React.Fragment>
                         ))}
                         {isTravelCard &&
                             travelCards.map((card) => (
-                                <>
+                                <React.Fragment key={card.cardID}>
                                     {!!cardsDetails[card.cardID] && cardsDetails[card.cardID]?.cvv ? (
                                         <CardDetails
                                             cvv={cardsDetails[card.cardID]?.cvv}
@@ -292,7 +293,7 @@ function ExpensifyCardPage({
                                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
                                         />
                                     )}
-                                </>
+                                </React.Fragment>
                             ))}
                         {shouldShowReportLostCardButton && (
                             <>
@@ -302,12 +303,14 @@ function ExpensifyCardPage({
                                     interactive={false}
                                     titleStyle={styles.walletCardNumber}
                                 />
-                                <MenuItemWithTopDescription
-                                    description={translate('cardPage.physicalCardPin')}
-                                    title={maskPin(pin)}
-                                    interactive={false}
-                                    titleStyle={styles.walletCardNumber}
-                                />
+                                {shouldShowPIN && (
+                                    <MenuItemWithTopDescription
+                                        description={translate('cardPage.physicalCardPin')}
+                                        title={maskPin(pin)}
+                                        interactive={false}
+                                        titleStyle={styles.walletCardNumber}
+                                    />
+                                )}
                                 <MenuItem
                                     title={translate('reportCardLostOrDamaged.screenTitle')}
                                     icon={expensifyIcons.Flag}
