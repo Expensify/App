@@ -1,16 +1,15 @@
-import { NavigationContainer } from '@react-navigation/native';
+import {NavigationContainer} from '@react-navigation/native';
 import type * as ReactNavigation from '@react-navigation/native';
-import { render, screen } from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import type { ValueOf } from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import ProfilePage from '@pages/settings/Profile/ProfilePage';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -36,10 +35,9 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('@components/MenuItemWithTopDescription', () => {
     const ReactMock = require('react') as typeof React;
     const {Text} = require('react-native') as {Text: React.ComponentType<{testID: string; children?: React.ReactNode}>};
-    return ({brickRoadIndicator}: {brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>}) => ReactMock.createElement(Text, null, `${brickRoadIndicator ?? 'none'}-brickRoadIndicator`);
+    return ({brickRoadIndicator}: {brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>}) =>
+        ReactMock.createElement(Text, null, `${brickRoadIndicator ?? 'none'}-brickRoadIndicator`);
 });
-
-
 
 describe('ProfilePage contact method indicator', () => {
     beforeAll(() => {
@@ -57,7 +55,10 @@ describe('ProfilePage contact method indicator', () => {
             <NavigationContainer>
                 <ComposeProviders components={[DelegateNoAccessModalProvider]}>
                     {/* @ts-expect-error - route typing is not necessary for this test */}
-                    <ProfilePage route={{}} navigation={{}}/>
+                    <ProfilePage
+                        route={{}}
+                        navigation={{}}
+                    />
                 </ComposeProviders>
             </NavigationContainer>,
         );
@@ -79,7 +80,6 @@ describe('ProfilePage contact method indicator', () => {
         // Description for contact method is 'contacts.contactMethod' via mocked translate
         const node = screen.getByText('error-brickRoadIndicator');
         expect(node).toBeDefined();
-
     });
 
     it('shows info when there is an unvalidated secondary login', async () => {
@@ -98,7 +98,7 @@ describe('ProfilePage contact method indicator', () => {
         await waitForBatchedUpdates();
 
         renderPage();
-        
+
         const node = screen.getByText('info-brickRoadIndicator');
         expect(node).toBeDefined();
     });

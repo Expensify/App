@@ -234,7 +234,6 @@ function ProfilePage() {
                                     </MenuItemGroup>
                                 )}
                             </View>
-                            <View testID={JSON.stringify(publicOptions)}>
                             {publicOptions.map((detail, index) => (
                                 <MenuItemWithTopDescription
                                     // eslint-disable-next-line react/no-array-index-key
@@ -247,7 +246,6 @@ function ProfilePage() {
                                     brickRoadIndicator={detail.brickRoadIndicator}
                                 />
                             ))}
-                            </View>
                             <Button
                                 accessibilityLabel={translate('common.shareCode')}
                                 text={translate('common.share')}
