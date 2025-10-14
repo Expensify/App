@@ -1,7 +1,6 @@
-import type {TupleToUnion} from 'type-fest';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type ModalType from '@src/types/utils/ModalType';
 import type {AttachmentModalBaseContentProps} from './AttachmentModalBaseContent/types';
 
@@ -38,17 +37,14 @@ type AttachmentModalContainerModalProps = {
     ExtraContent?: React.ReactNode;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const ATTACHMENT_MODAL_SCREENS = [
-    SCREENS.ATTACHMENTS,
-    SCREENS.REPORT_ADD_ATTACHMENT,
-    SCREENS.REPORT_AVATAR,
-    SCREENS.PROFILE_AVATAR,
-    SCREENS.WORKSPACE_AVATAR,
-    SCREENS.TRANSACTION_RECEIPT,
-    SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW,
-];
-type AttachmentModalScreenType = TupleToUnion<typeof ATTACHMENT_MODAL_SCREENS>;
+type AttachmentModalScreenType =
+    | typeof SCREENS.ATTACHMENTS
+    | typeof SCREENS.REPORT_ADD_ATTACHMENT
+    | typeof SCREENS.REPORT_AVATAR
+    | typeof SCREENS.PROFILE_AVATAR
+    | typeof SCREENS.WORKSPACE_AVATAR
+    | typeof SCREENS.TRANSACTION_RECEIPT
+    | typeof SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW;
 
 type AttachmentModalScreenBaseParams = AttachmentModalBaseContentProps & AttachmentModalContainerModalProps;
 

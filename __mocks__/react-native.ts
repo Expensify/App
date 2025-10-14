@@ -2,9 +2,6 @@
 import * as ReactNative from 'react-native';
 import type StartupTimer from '@libs/StartupTimer/types';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const {BootSplash} = ReactNative.NativeModules;
-
 jest.doMock('react-native', () => {
     let url = 'https://new.expensify.com/';
     const getInitialURL = () => Promise.resolve(url);
@@ -27,7 +24,7 @@ jest.doMock('react-native', () => {
     type ReactNativeMock = typeof ReactNative & {
         NativeModules: typeof ReactNative.NativeModules & {
             BootSplash: {
-                hide: typeof BootSplash.hide;
+                hide: typeof ReactNative.NativeModules.BootSplash.hide;
                 logoSizeRatio: number;
                 navigationBarHeight: number;
             };
