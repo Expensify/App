@@ -309,6 +309,8 @@ function MoneyRequestView({
         amountTitle = translate('iou.receiptStatusTitle');
     }
 
+    const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
+
     const updatedTransactionDescription = useMemo(() => {
         if (!updatedTransaction) {
             return undefined;
@@ -713,7 +715,7 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (!policy && !shouldSelectPolicy) {
+                                if (shouldNavigateToUpgradePath) {
                                     Navigation.navigate(
                                         ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                                             action: CONST.IOU.ACTION.EDIT,
@@ -866,7 +868,7 @@ function MoneyRequestView({
                                 if (!canEditReport) {
                                     return;
                                 }
-                                if (!policyForMovingExpenses && !shouldSelectPolicy) {
+                                if (shouldNavigateToUpgradePath) {
                                     Navigation.navigate(
                                         ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                                             iouType,
