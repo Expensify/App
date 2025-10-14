@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 /**
  * This is used to trigger scroll behavior in the composer on web. On native, this is a no-op.
  * The scroll events are only emitted when the list is inverted, since it is only used in the report screen in combination with the composer.
- * Since our custom FlatList implementation can either be a `KeyboardDismissableFlatList` or a regular `FlatList`,
+ * Since our custom FlatList implementation can either be a `KeyboardDismissibleFlatList` or a regular `FlatList`,
  * we need to emit the scroll events inside the scroll handler of the specific implementation.
  * @param inverted - Whether the list is inverted.
  * @returns A function that can be used to emit the scroll events.
