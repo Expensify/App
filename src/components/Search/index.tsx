@@ -66,7 +66,7 @@ import type {OutstandingReportsByPolicyIDDerivedValue} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {SearchReport, SearchPolicy, SearchReportAction, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchReportAction, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -91,7 +91,12 @@ function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
     reportActions: SearchReportAction[],
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+    searchData?: SearchResults['data'],
 ): [string, SelectedTransactionInfo] {
+    const report = searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
+    const policy = searchData?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    const transaction = searchData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`];
+
     return [
         item.keyForList,
         {
@@ -107,6 +112,9 @@ function mapTransactionItemToSelectedEntry(
                 undefined,
                 outstandingReportsByPolicyID,
                 true,
+                transaction,
+                report,
+                policy,
             ),
             action: item.action,
             reportID: item.reportID,
@@ -167,12 +175,17 @@ function prepareTransactionsList(
     selectedTransactions: SelectedTransactions,
     reportActions: SearchReportAction[],
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+    searchData?: SearchResults['data'],
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
 
         return transactions;
     }
+
+    const report = searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
+    const policy = searchData?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    const transaction = searchData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`];
 
     return {
         ...selectedTransactions,
@@ -189,6 +202,9 @@ function prepareTransactionsList(
                 undefined,
                 outstandingReportsByPolicyID,
                 true,
+                transaction,
+                report,
+                policy,
             ),
             action: item.action,
             reportID: item.reportID,
@@ -573,7 +589,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 if (isTransactionPendingDelete(item)) {
                     return;
                 }
-                setSelectedTransactions(prepareTransactionsList(item, selectedTransactions, reportActionsArray, outstandingReportsByPolicyID), data);
+                setSelectedTransactions(prepareTransactionsList(item, selectedTransactions, reportActionsArray, outstandingReportsByPolicyID, searchResults?.data), data);
                 return;
             }
 
@@ -595,13 +611,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     ...Object.fromEntries(
                         currentTransactions
                             .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID, transaction, report, policy)),
+                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID, searchResults?.data)),
                     ),
                 },
                 data,
             );
         },
-        [data, reportActionsArray, selectedTransactions, outstandingReportsByPolicyID, setSelectedTransactions],
+        [data, reportActionsArray, selectedTransactions, outstandingReportsByPolicyID, setSelectedTransactions, searchResults?.data],
     );
 
     const onSelectRow = useCallback(
@@ -808,7 +824,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     (data as TransactionGroupListItemType[]).flatMap((item) =>
                         item.transactions
                             .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
+                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID, searchResults?.data)),
                     ),
                 ),
                 data,
@@ -821,11 +837,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             Object.fromEntries(
                 (data as TransactionListItemType[])
                     .filter((t) => !isTransactionPendingDelete(t))
-                    .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
+                    .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID, searchResults?.data)),
             ),
             data,
         );
-    }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID]);
+    }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID, searchResults?.data]);
 
     const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
 
