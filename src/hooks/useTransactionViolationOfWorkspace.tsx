@@ -1,8 +1,9 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import {extractCollectionItemID} from '@libs/CollectionUtils';
 import {getReportTransactions, isChatRoom, isPolicyExpenseChat, isPolicyRelatedReport, isTaskReport} from '@libs/ReportUtils';
 import type {OnyxCollectionKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, TransactionViolations} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
 function useTransactionViolationOfWorkspace(policyID?: string) {
@@ -20,29 +21,32 @@ function useTransactionViolationOfWorkspace(policyID?: string) {
             transactionIDSet.add(transaction.transactionID);
         }
     });
+
+    const transactionViolationSelector = (violations: OnyxCollection<TransactionViolations>) => {
+        if (!violations) {
+            return {};
+        }
+
+        const filteredViolationKeys = Object.keys(violations).filter((violationKey) => {
+            const transactionID = extractCollectionItemID(violationKey as `${OnyxCollectionKey}${string}`);
+            return transactionIDSet.has(transactionID);
+        });
+
+        const filteredViolations = filteredViolationKeys.reduce(
+            (acc, key) => {
+                acc[key] = violations[key];
+                return acc;
+            },
+            {} as typeof violations,
+        );
+
+        return filteredViolations;
+    };
+
     const [transactionViolations] = useOnyx(
         ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         {
-            selector: (violations) => {
-                if (!violations) {
-                    return {};
-                }
-
-                const filteredViolationKeys = Object.keys(violations).filter((violationKey) => {
-                    const transactionID = extractCollectionItemID(violationKey as `${OnyxCollectionKey}${string}`);
-                    return transactionIDSet.has(transactionID);
-                });
-
-                const filteredViolations = filteredViolationKeys.reduce(
-                    (acc, key) => {
-                        acc[key] = violations[key];
-                        return acc;
-                    },
-                    {} as typeof violations,
-                );
-
-                return filteredViolations;
-            },
+            selector: transactionViolationSelector,
             canBeMissing: true,
         },
         [transactionIDSet],
