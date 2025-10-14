@@ -120,6 +120,8 @@ function MoneyRequestReportPreviewContent({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const activePolicy = usePolicy(activePolicyID);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
+    const [iouChatReportRNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.chatReportID}`, {canBeMissing: true}, [iouReport?.chatReportID]);
+    const [chatReportRNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`, {canBeMissing: true}, [chatReport?.reportID]);
     const shouldShowLoading = !chatReportMetadata?.hasOnceLoadedReportActions && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
     // `hasOnceLoadedReportActions` becomes true before transactions populate fully,
     // so we defer the loading state update to ensure transactions are loaded
@@ -234,13 +236,13 @@ function MoneyRequestReportPreviewContent({
             } else if (chatReport && iouReport) {
                 startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
-                    payInvoice(type, chatReport, iouReport, introSelected, payAsBusiness, existingB2BInvoiceReport, undefined, undefined, activePolicy);
+                    payInvoice(type, chatReport, chatReportRNVP, iouReport, introSelected, payAsBusiness, existingB2BInvoiceReport, undefined, undefined, activePolicy);
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport, introSelected, undefined, true, activePolicy);
+                    payMoneyRequest(type, chatReport, chatReportRNVP, iouReport, introSelected, undefined, true, activePolicy);
                 }
             }
         },
-        [isDelegateAccessRestricted, iouReport, chatReport, showDelegateNoAccessModal, startAnimation, introSelected, existingB2BInvoiceReport, activePolicy],
+        [isDelegateAccessRestricted, iouReport, chatReport, showDelegateNoAccessModal, startAnimation, chatReportRNVP, introSelected, existingB2BInvoiceReport, activePolicy],
     );
 
     const confirmApproval = () => {
@@ -251,7 +253,7 @@ function MoneyRequestReportPreviewContent({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(iouReport, true);
+            approveMoneyRequest(iouReport, iouChatReportRNVP, true);
         }
     };
 

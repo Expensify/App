@@ -12,6 +12,7 @@ import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {deleteMoneyRequest, deleteTrackExpense} from '@libs/actions/IOU';
 import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
@@ -19,6 +20,7 @@ import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import {getOriginalMessage, isMoneyRequestAction, isReportPreviewAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
@@ -53,6 +55,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
     const isReportArchived = useReportIsArchived(reportIDRef.current);
     const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current));
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportActionRef.current?.reportID}`, {canBeMissing: true});
 
     const cursorRelativePosition = useRef({
         horizontal: 0,
@@ -307,33 +310,31 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         if (isMoneyRequestAction(reportAction)) {
             const originalMessage = getOriginalMessage(reportAction);
             if (isTrackExpenseAction(reportAction)) {
-                deleteTrackExpense(
-                    reportIDRef.current,
-                    originalMessage?.IOUTransactionID,
+                deleteTrackExpense({
+                    chatReportID: reportIDRef.current,
+                    transactionID: originalMessage?.IOUTransactionID,
                     reportAction,
                     iouReport,
                     chatReport,
-                    duplicateTransactions,
-                    duplicateTransactionViolations,
-                    undefined,
+                    transactions: duplicateTransactions,
+                    violations: duplicateTransactionViolations,
                     isChatIOUReportArchived,
-                );
+                    reportActionIOUReportRNVP: reportNameValuePairs,
+                });
             } else {
-                deleteMoneyRequest(
-                    originalMessage?.IOUTransactionID,
+                deleteMoneyRequest({
+                    transactionID: originalMessage?.IOUTransactionID,
                     reportAction,
-                    duplicateTransactions,
-                    duplicateTransactionViolations,
+                    transactions: duplicateTransactions,
+                    violations: duplicateTransactionViolations,
                     iouReport,
                     chatReport,
-                    undefined,
-                    undefined,
-                    undefined,
                     isChatIOUReportArchived,
-                );
+                    reportActionIOUReportRNVP: reportNameValuePairs,
+                });
             }
         } else if (isReportPreviewAction(reportAction)) {
-            deleteAppReport(reportAction.childReportID);
+            deleteAppReport(reportAction.childReportID, reportNameValuePairs);
         } else if (reportAction) {
             // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => {
@@ -343,7 +344,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
-    }, [duplicateTransactions, duplicateTransactionViolations, isReportArchived, isOriginalReportArchived, isChatIOUReportArchived, iouReport, chatReport]);
+    }, [iouReport, chatReport, duplicateTransactions, duplicateTransactionViolations, isChatIOUReportArchived, reportNameValuePairs, isReportArchived, isOriginalReportArchived]);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));

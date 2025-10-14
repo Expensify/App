@@ -656,6 +656,21 @@ type BuildOnyxDataForInvoiceParams = {
     participant?: Participant;
 };
 
+type GetPayMoneyRequestParams = {
+    initialChatReport: OnyxTypes.Report;
+    initialChatReportRNVP: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+    recipient: Participant;
+    paymentMethodType: PaymentMethodType;
+    full: boolean;
+    payAsBusiness?: boolean;
+    bankAccountID?: number;
+    paymentPolicyID?: string | undefined;
+    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
+    existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>;
+    activePolicy?: OnyxEntry<OnyxTypes.Policy>;
+};
+
 type GetTrackExpenseInformationTransactionParams = {
     comment: string;
     amount: number;
@@ -728,6 +743,20 @@ type GetSearchOnyxUpdateParams = {
     isFromOneTransactionReport?: boolean;
     isInvoice?: boolean;
     transactionThreadReportID: string | undefined;
+};
+
+type DeleteMoneyRequestMethodParams = {
+    transactionID: string | undefined;
+    reportAction: OnyxTypes.ReportAction;
+    transactions: OnyxCollection<OnyxTypes.Transaction>;
+    violations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+    chatReport: OnyxEntry<OnyxTypes.Report>;
+    isSingleTransactionView?: boolean;
+    transactionIDsPendingDeletion?: string[];
+    selectedTransactionIDs?: string[];
+    isChatIOUReportArchived?: boolean;
+    reportActionIOUReportRNVP?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
 };
 
 let allBetas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -8560,18 +8589,19 @@ function cleanUpMoneyRequest(
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @return the url to navigate back once the money request is deleted
  */
-function deleteMoneyRequest(
-    transactionID: string | undefined,
-    reportAction: OnyxTypes.ReportAction,
-    transactions: OnyxCollection<OnyxTypes.Transaction>,
-    violations: OnyxCollection<OnyxTypes.TransactionViolations>,
-    iouReport: OnyxEntry<OnyxTypes.Report>,
-    chatReport: OnyxEntry<OnyxTypes.Report>,
+function deleteMoneyRequest({
+    transactionID,
+    reportAction,
+    transactions,
+    violations,
+    iouReport,
+    chatReport,
     isSingleTransactionView = false,
-    transactionIDsPendingDeletion?: string[],
-    selectedTransactionIDs?: string[],
+    transactionIDsPendingDeletion,
+    selectedTransactionIDs,
     isChatIOUReportArchived = false,
-) {
+    reportActionIOUReportRNVP,
+}: DeleteMoneyRequestMethodParams) {
     if (!transactionID) {
         return;
     }
@@ -8675,7 +8705,7 @@ function deleteMoneyRequest(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedIOUReport),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedIOUReport, reportActionIOUReportRNVP),
             },
         });
     }
@@ -8702,7 +8732,7 @@ function deleteMoneyRequest(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
                 value: {
-                    hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID),
+                    hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, reportActionIOUReportRNVP),
                     iouReportID: null,
                     lastMessageText,
                     lastVisibleActionCreated,
@@ -8864,18 +8894,31 @@ function deleteMoneyRequest(
     return urlToNavigateBack;
 }
 
-function deleteTrackExpense(
-    chatReportID: string | undefined,
-    transactionID: string | undefined,
-    reportAction: OnyxTypes.ReportAction,
-    iouReport: OnyxEntry<OnyxTypes.Report>,
-    chatReport: OnyxEntry<OnyxTypes.Report>,
-    transactions: OnyxCollection<OnyxTypes.Transaction>,
-    violations: OnyxCollection<OnyxTypes.TransactionViolations>,
+function deleteTrackExpense({
+    chatReportID,
+    transactionID,
+    reportAction,
+    iouReport,
+    chatReport,
+    transactions,
+    violations,
     isSingleTransactionView = false,
     isChatReportArchived = false,
     isChatIOUReportArchived = false,
-) {
+    reportActionIOUReportRNVP,
+}: {
+    chatReportID: string | undefined;
+    transactionID: string | undefined;
+    reportAction: OnyxTypes.ReportAction;
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+    chatReport: OnyxEntry<OnyxTypes.Report>;
+    transactions: OnyxCollection<OnyxTypes.Transaction>;
+    violations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    isSingleTransactionView?: boolean;
+    isChatReportArchived?: boolean;
+    isChatIOUReportArchived?: boolean;
+    reportActionIOUReportRNVP?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
+}) {
     if (!chatReportID || !transactionID) {
         return;
     }
@@ -8884,7 +8927,17 @@ function deleteTrackExpense(
 
     // STEP 1: Get all collections we're updating
     if (!isSelfDM(chatReport)) {
-        deleteMoneyRequest(transactionID, reportAction, transactions, violations, iouReport, chatReport, isSingleTransactionView, undefined, undefined, isChatIOUReportArchived);
+        deleteMoneyRequest({
+            transactionID,
+            reportAction,
+            transactions,
+            violations,
+            iouReport,
+            chatReport,
+            isSingleTransactionView,
+            isChatIOUReportArchived,
+            reportActionIOUReportRNVP,
+        });
         return urlToNavigateBack;
     }
 
@@ -9557,6 +9610,7 @@ function getReportFromHoldRequestsOnyxData(
 
 function getPayMoneyRequestParams({
     initialChatReport,
+    initialChatReportRNVP,
     iouReport,
     recipient,
     paymentMethodType,
@@ -9567,19 +9621,7 @@ function getPayMoneyRequestParams({
     lastUsedPaymentMethod,
     existingB2BInvoiceReport,
     activePolicy,
-}: {
-    initialChatReport: OnyxTypes.Report;
-    iouReport: OnyxEntry<OnyxTypes.Report>;
-    recipient: Participant;
-    paymentMethodType: PaymentMethodType;
-    full: boolean;
-    payAsBusiness?: boolean;
-    bankAccountID?: number;
-    paymentPolicyID?: string | undefined;
-    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
-    existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>;
-    activePolicy?: OnyxEntry<OnyxTypes.Policy>;
-}): PayMoneyRequestData {
+}: GetPayMoneyRequestParams): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
@@ -9662,7 +9704,7 @@ function getPayMoneyRequestParams({
     const optimisticChatReport = {
         ...chatReport,
         lastReadTime: DateUtils.getDBTime(),
-        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID),
+        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, initialChatReportRNVP),
         iouReportID: null,
         lastMessageText: getReportActionText(optimisticIOUReportAction),
         lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
@@ -10008,7 +10050,7 @@ function canIOUBePaid(
     invoiceReceiverPolicy?: SearchPolicy,
     shouldCheckApprovedState = true,
 ) {
-    const reportNameValuePairs = chatReportRNVP ?? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`];
+    const reportNameValuePairs = chatReportRNVP;
     const isChatReportArchived = isArchivedReport(reportNameValuePairs);
     const iouSettled = isSettled(iouReport);
 
@@ -10125,7 +10167,7 @@ function isLastApprover(approvalChain: string[]): boolean {
     return approvalChain.at(-1) === currentUserEmail;
 }
 
-function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: boolean) {
+function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReportRNVP: OnyxEntry<OnyxTypes.ReportNameValuePairs>, full?: boolean) {
     if (!expenseReport) {
         return;
     }
@@ -10188,7 +10230,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedExpenseReport),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedExpenseReport, chatReportRNVP),
             },
         };
     }
@@ -11036,6 +11078,7 @@ function completePaymentOnboarding(
 function payMoneyRequest(
     paymentType: PaymentMethodType,
     chatReport: OnyxTypes.Report,
+    chatReportRNVP: OnyxEntry<OnyxTypes.ReportNameValuePairs>,
     iouReport: OnyxEntry<OnyxTypes.Report>,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     paymentPolicyID?: string,
@@ -11053,6 +11096,7 @@ function payMoneyRequest(
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams({
         initialChatReport: chatReport,
+        initialChatReportRNVP: chatReportRNVP,
         iouReport,
         recipient,
         paymentMethodType: paymentType,
@@ -11073,6 +11117,7 @@ function payMoneyRequest(
 function payInvoice(
     paymentMethodType: PaymentMethodType,
     chatReport: OnyxTypes.Report,
+    chatReportRNVP: OnyxEntry<OnyxTypes.ReportNameValuePairs>,
     invoiceReport: OnyxEntry<OnyxTypes.Report>,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     payAsBusiness = false,
@@ -11100,6 +11145,7 @@ function payInvoice(
         },
     } = getPayMoneyRequestParams({
         initialChatReport: chatReport,
+        initialChatReportRNVP: chatReportRNVP,
         iouReport: invoiceReport,
         recipient,
         paymentMethodType,

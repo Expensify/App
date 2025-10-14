@@ -66,18 +66,20 @@ function ProcessMoneyReportHoldMenu({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const activePolicy = usePolicy(activePolicyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [moneyRequestChatReportRNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
+    const [chatReportRNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.chatReportID}`, {canBeMissing: true});
 
     const onSubmit = (full: boolean) => {
         if (isApprove) {
             if (startAnimation) {
                 startAnimation();
             }
-            approveMoneyRequest(moneyRequestReport, full);
+            approveMoneyRequest(moneyRequestReport, moneyRequestChatReportRNVP, full);
         } else if (chatReport && paymentType) {
             if (startAnimation) {
                 startAnimation();
             }
-            payMoneyRequest(paymentType, chatReport, moneyRequestReport, introSelected, undefined, full, activePolicy);
+            payMoneyRequest(paymentType, chatReport, chatReportRNVP, moneyRequestReport, introSelected, undefined, full, activePolicy);
         }
         onClose();
     };

@@ -198,6 +198,7 @@ import type {
     Report,
     ReportAction,
     ReportActionReactions,
+    ReportNameValuePairs,
     ReportNextStep,
     ReportUserIsTyping,
     Transaction,
@@ -4970,7 +4971,7 @@ function clearDeleteTransactionNavigateBackUrl() {
 }
 
 /** Deletes a report and un-reports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
-function deleteAppReport(reportID: string | undefined) {
+function deleteAppReport(reportID: string | undefined, parentReportRNVP: OnyxEntry<ReportNameValuePairs>) {
     if (!reportID) {
         Log.warn('[Report] deleteReport called with no reportID');
         return;
@@ -5270,7 +5271,7 @@ function deleteAppReport(reportID: string | undefined) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
-            value: {hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, report?.reportID)},
+            value: {hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, report?.reportID, parentReportRNVP)},
         });
     }
 

@@ -94,6 +94,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         }`,
         {canBeMissing: true},
     );
+    const [iouReportRNVP] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${
+            isMoneyRequestAction(parentReportAction) ? (getOriginalMessage(parentReportAction)?.IOUReportID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID
+        }`,
+        {canBeMissing: true},
+    );
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`, {canBeMissing: true});
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
@@ -450,31 +456,31 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         throw new Error('Data missing');
                     }
                     if (isTrackExpenseAction(parentReportAction)) {
-                        deleteTrackExpense(
-                            report?.parentReportID,
-                            transaction.transactionID,
-                            parentReportAction,
+                        deleteTrackExpense({
+                            chatReportID: report?.parentReportID,
+                            transactionID: transaction.transactionID,
+                            reportAction: parentReportAction,
                             iouReport,
                             chatReport,
-                            duplicateTransactions,
-                            duplicateTransactionViolations,
-                            true,
-                            isParentReportArchived,
+                            transactions: duplicateTransactions,
+                            violations: duplicateTransactionViolations,
+                            isSingleTransactionView: true,
+                            isChatReportArchived: isParentReportArchived,
                             isChatIOUReportArchived,
-                        );
+                            reportActionIOUReportRNVP: iouReportRNVP,
+                        });
                     } else {
-                        deleteMoneyRequest(
-                            transaction.transactionID,
-                            parentReportAction,
-                            duplicateTransactions,
-                            duplicateTransactionViolations,
+                        deleteMoneyRequest({
+                            transactionID: transaction.transactionID,
+                            reportAction: parentReportAction,
+                            transactions: duplicateTransactions,
+                            violations: duplicateTransactionViolations,
                             iouReport,
                             chatReport,
-                            true,
-                            undefined,
-                            undefined,
+                            isSingleTransactionView: true,
                             isChatIOUReportArchived,
-                        );
+                            reportActionIOUReportRNVP: iouReportRNVP,
+                        });
                         removeTransaction(transaction.transactionID);
                     }
                     onBackButtonPress();
