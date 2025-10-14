@@ -349,6 +349,19 @@ const staticStyles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
         },
 
+        reportStatusContainer: {
+            paddingHorizontal: 4,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: variables.componentBorderRadiusSmall,
+            height: 16,
+        },
+
+        reportStatusText: {
+            fontSize: variables.fontSizeSmall,
+            fontWeight: FontUtils.fontWeight.normal,
+        },
+
         textSupporting: {
             color: theme.textSupporting,
         },
