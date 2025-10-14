@@ -8250,7 +8250,8 @@ function isEmptyReport(report: OnyxEntry<Report>, isReportArchived = false): boo
     return generateIsEmptyReport(report, isReportArchived);
 }
 
-type ReportEmptyStateSummary = Pick<Report, 'reportID' | 'policyID' | 'ownerAccountID' | 'type' | 'stateNum' | 'statusNum' | 'total' | 'nonReimbursableTotal' | 'pendingAction' | 'errors'>;
+type ReportEmptyStateSummary = Pick<Report, 'policyID' | 'ownerAccountID' | 'type' | 'stateNum' | 'statusNum' | 'total' | 'nonReimbursableTotal' | 'pendingAction' | 'errors'> &
+    Pick<Report, 'reportID'>;
 
 function toReportEmptyStateSummary(report: Report | ReportEmptyStateSummary | undefined): ReportEmptyStateSummary | undefined {
     if (!report) {
@@ -8258,7 +8259,7 @@ function toReportEmptyStateSummary(report: Report | ReportEmptyStateSummary | un
     }
 
     return {
-        reportID: report.reportID ?? '',
+        reportID: report.reportID,
         policyID: report.policyID ?? undefined,
         ownerAccountID: report.ownerAccountID ?? undefined,
         type: report.type ?? undefined,
@@ -8290,14 +8291,10 @@ const reportSummariesOnyxSelector = (reports: Parameters<typeof getReportSummari
 function hasEmptyReportsForPolicy(
     reports: OnyxCollection<Report> | Array<Report | ReportEmptyStateSummary | null | undefined> | undefined,
     policyID: string | undefined,
-    accountID: number | undefined,
+    accountID?: number,
     reportsTransactionsParam: Record<string, Transaction[]> = reportsTransactions,
 ): boolean {
-    if (!accountID) {
-        return false;
-    }
-
-    if (!policyID) {
+    if (!accountID || !policyID) {
         return false;
     }
 
