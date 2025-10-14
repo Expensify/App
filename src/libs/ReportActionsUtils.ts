@@ -2823,6 +2823,14 @@ function getDeletedApprovalRuleMessage(reportAction: OnyxEntry<ReportAction>) {
     return getReportActionText(reportAction);
 }
 
+function getActionableCardFraudAlertResolutionMessage(reportAction: OnyxEntry<ReportAction>) {
+    const {maskedCardNumber, resolution} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT>) ?? {};
+    if (resolution === CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED) {
+        return translateLocal('cardPage.cardFraudAlert.clearedMessage', {cardLastFour: maskedCardNumber?.slice(-4) ?? ''});
+    }
+    return translateLocal('cardPage.cardFraudAlert.deactivatedMessage', {cardLastFour: maskedCardNumber?.slice(-4) ?? ''});
+}
+
 function getUpdatedApprovalRuleMessage(reportAction: OnyxEntry<ReportAction>) {
     const {field, oldApproverEmail, oldApproverName, newApproverEmail, newApproverName, name} =
         getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE>) ?? {};
@@ -3245,6 +3253,7 @@ export {
     getFilteredReportActionsForReportView,
     wasMessageReceivedWhileOffline,
     shouldShowAddMissingDetails,
+    getActionableCardFraudAlertResolutionMessage,
     getJoinRequestMessage,
     getTravelUpdateMessage,
     getWorkspaceCategoryUpdateMessage,
