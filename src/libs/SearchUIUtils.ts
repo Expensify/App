@@ -928,6 +928,31 @@ function getTransactionViolations(allViolations: OnyxCollection<OnyxTypes.Transa
 
 /**
  * @private
+ * Creates an optimized lookup map for report actions indexed by transaction ID.
+ */
+function createReportActionsByTransactionIDMap(data: OnyxTypes.SearchResults['data']): Map<string, OnyxTypes.ReportAction> {
+    const reportActionsByTransactionID = new Map<string, OnyxTypes.ReportAction>();
+    
+    for (const key of Object.keys(data)) {
+        if (isReportActionEntry(key)) {
+            const actions = Object.values(data[key]);
+            for (const action of actions) {
+                if (isMoneyRequestAction(action)) {
+                    const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action);
+                    const transactionID = originalMessage?.IOUTransactionID;
+                    if (transactionID) {
+                        reportActionsByTransactionID.set(transactionID, action);
+                    }
+                }
+            }
+        }
+    }
+    
+    return reportActionsByTransactionID;
+}
+
+/**
+ * @private
  * Organizes data into List Sections for display, for the TransactionListItemType of Search Results.
  *
  * Do not use directly, use only via `getSections()` facade.
@@ -947,8 +972,9 @@ function getTransactionsSections(
     // Get violations - optimize by using a Map for faster lookups
     const allViolations = getViolations(data);
 
-    // Use Map for faster lookups of personal details
+    // Use Map for faster lookups of personal details and reportActions
     const personalDetailsMap = new Map(Object.entries(data.personalDetailsList || {}));
+    const reportActionsByTransactionIDMap = createReportActionsByTransactionIDMap(data);
 
     const transactionsSections: TransactionListItemType[] = [];
 
@@ -985,7 +1011,7 @@ function getTransactionsSections(
             const to = transactionItem.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(transactionItem.managerID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
-
+            const reportAction = reportActionsByTransactionIDMap.get(transactionItem.transactionID);
             const allActions = getActions(data, allViolations, key, currentSearch, currentAccountID);
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
@@ -993,6 +1019,8 @@ function getTransactionsSections(
                 action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                 allActions,
                 report,
+                policy,
+                reportAction,
                 from,
                 to,
                 formattedFrom,
