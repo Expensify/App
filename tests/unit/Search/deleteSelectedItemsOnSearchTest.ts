@@ -2,15 +2,13 @@
 import Onyx from 'react-native-onyx';
 import type {SelectedTransactionInfo} from '@components/Search/types';
 import {deleteSelectedItemsOnSearch} from '@libs/actions/Search';
-import * as Report from '@userActions/Report';
+import {deleteAppReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 
-// Mock the Report actions
 jest.mock('@userActions/Report', () => ({
     deleteAppReport: jest.fn(),
 }));
 
-// Mock the API
 jest.mock('@libs/API', () => ({
     write: jest.fn(),
 }));
@@ -64,9 +62,9 @@ describe('deleteSelectedItemsOnSearch', () => {
             deleteSelectedItemsOnSearch(hash, selectedTransactions);
 
             // Should call deleteAppReport for each empty report
-            expect(Report.deleteAppReport).toHaveBeenCalledTimes(2);
-            expect(Report.deleteAppReport).toHaveBeenCalledWith('report_123');
-            expect(Report.deleteAppReport).toHaveBeenCalledWith('report_456');
+            expect(deleteAppReport).toHaveBeenCalledTimes(2);
+            expect(deleteAppReport).toHaveBeenCalledWith('report_123');
+            expect(deleteAppReport).toHaveBeenCalledWith('report_456');
         });
 
         it('should handle mixed selection of empty reports and transactions', () => {
@@ -122,8 +120,8 @@ describe('deleteSelectedItemsOnSearch', () => {
             deleteSelectedItemsOnSearch(hash, selectedTransactions);
 
             // Should call deleteAppReport for empty report
-            expect(Report.deleteAppReport).toHaveBeenCalledTimes(1);
-            expect(Report.deleteAppReport).toHaveBeenCalledWith('report_123');
+            expect(deleteAppReport).toHaveBeenCalledTimes(1);
+            expect(deleteAppReport).toHaveBeenCalledWith('report_123');
         });
 
         it('should not delete reports when no empty reports are selected', () => {
@@ -164,7 +162,7 @@ describe('deleteSelectedItemsOnSearch', () => {
             deleteSelectedItemsOnSearch(hash, selectedTransactions);
 
             // Should not call deleteAppReport
-            expect(Report.deleteAppReport).not.toHaveBeenCalled();
+            expect(deleteAppReport).not.toHaveBeenCalled();
         });
 
         it('should handle empty selection gracefully', () => {
@@ -174,7 +172,7 @@ describe('deleteSelectedItemsOnSearch', () => {
             deleteSelectedItemsOnSearch(hash, selectedTransactions);
 
             // Should not call any deletion functions
-            expect(Report.deleteAppReport).not.toHaveBeenCalled();
+            expect(deleteAppReport).not.toHaveBeenCalled();
         });
 
         it('should only delete reports where key matches reportID for VIEW action', () => {
@@ -215,9 +213,9 @@ describe('deleteSelectedItemsOnSearch', () => {
             deleteSelectedItemsOnSearch(hash, selectedTransactions);
 
             // Should only call deleteAppReport for the first report where key === reportID
-            expect(Report.deleteAppReport).toHaveBeenCalledTimes(1);
-            expect(Report.deleteAppReport).toHaveBeenCalledWith('report_123');
-            expect(Report.deleteAppReport).not.toHaveBeenCalledWith('report_456');
+            expect(deleteAppReport).toHaveBeenCalledTimes(1);
+            expect(deleteAppReport).toHaveBeenCalledWith('report_123');
+            expect(deleteAppReport).not.toHaveBeenCalledWith('report_456');
         });
     });
 
@@ -260,7 +258,7 @@ describe('deleteSelectedItemsOnSearch', () => {
             deleteSelectedItemsOnSearch(hash, selectedTransactions);
 
             // Should not call deleteAppReport for transactions
-            expect(Report.deleteAppReport).not.toHaveBeenCalled();
+            expect(deleteAppReport).not.toHaveBeenCalled();
         });
     });
 
@@ -319,7 +317,7 @@ describe('deleteSelectedItemsOnSearch', () => {
             }).not.toThrow();
 
             // Should still process valid entries
-            expect(Report.deleteAppReport).toHaveBeenCalledWith('report_123');
+            expect(deleteAppReport).toHaveBeenCalledWith('report_123');
         });
     });
 });
