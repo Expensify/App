@@ -1842,6 +1842,7 @@ const translations = {
             'Sua conexão de contabilidade com a Xero requer o uso de autenticação de dois fatores. Para continuar usando o Expensify, por favor, ative-a.',
         twoFactorAuthCannotDisable: 'Não é possível desativar a 2FA',
         twoFactorAuthRequired: 'A autenticação de dois fatores (2FA) é necessária para sua conexão com o Xero e não pode ser desativada.',
+        explainProcessToRemoveWithRecovery: 'Para desativar a autenticação de dois fatores (2FA), insira um código de recuperação válido.',
     },
     recoveryCodeForm: {
         error: {
@@ -2316,8 +2317,8 @@ const translations = {
         },
         interestedFeatures: {
             title: 'Quais recursos você está interessado?',
-            featuresAlreadyEnabled: 'Seu espaço de trabalho já tem o seguinte habilitado:',
-            featureYouMayBeInterestedIn: 'Ative recursos adicionais nos quais você possa estar interessado:',
+            featuresAlreadyEnabled: 'Aqui estão nossos recursos mais populares:',
+            featureYouMayBeInterestedIn: 'Ative recursos adicionais:',
         },
         error: {
             requiredFirstName: 'Por favor, insira seu primeiro nome para continuar',
@@ -6251,7 +6252,6 @@ const translations = {
         groupBy: 'Agrupar por',
         moneyRequestReport: {
             emptyStateTitle: 'Este relatório não possui despesas.',
-            emptyStateSubtitle: 'Você pode adicionar despesas a este relatório usando o botão abaixo ou a opção "Adicionar despesa" no menu Mais acima.',
         },
         noCategory: 'Sem categoria',
         noTag: 'Sem etiqueta',
@@ -7236,7 +7236,7 @@ const translations = {
         book: {
             title: 'Agendar chamada',
             description: 'Encontre um horário que funcione para você.',
-            slots: 'Horários disponíveis para',
+            slots: ({date}: {date: string}) => `<muted-text>Horários disponíveis para <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: 'Confirmar chamada',

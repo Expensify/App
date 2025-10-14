@@ -1845,6 +1845,7 @@ const translations = {
         twoFactorAuthIsRequiredForAdminsDescription: 'Uw Xero-boekhoudkoppeling vereist het gebruik van tweefactorauthenticatie. Om Expensify te blijven gebruiken, schakelt u dit in.',
         twoFactorAuthCannotDisable: 'Kan 2FA niet uitschakelen',
         twoFactorAuthRequired: 'Twee-factor authenticatie (2FA) is vereist voor uw Xero-verbinding en kan niet worden uitgeschakeld.',
+        explainProcessToRemoveWithRecovery: 'Om tweefactorauthenticatie (2FA) uit te schakelen, voer een geldige herstelcode in.',
     },
     recoveryCodeForm: {
         error: {
@@ -2323,8 +2324,8 @@ const translations = {
         },
         interestedFeatures: {
             title: 'In welke functies bent u geïnteresseerd?',
-            featuresAlreadyEnabled: 'Je werkruimte heeft al het volgende ingeschakeld:',
-            featureYouMayBeInterestedIn: 'Schakel extra functies in waarin u mogelijk geïnteresseerd bent:',
+            featuresAlreadyEnabled: 'Hier zijn onze populairste functies:',
+            featureYouMayBeInterestedIn: 'Schakel extra functies in:',
         },
         error: {
             requiredFirstName: 'Voer alstublieft uw voornaam in om door te gaan',
@@ -6256,7 +6257,6 @@ const translations = {
         groupBy: 'Groep per',
         moneyRequestReport: {
             emptyStateTitle: 'Dit rapport heeft geen uitgaven.',
-            emptyStateSubtitle: 'Je kunt uitgaven aan dit rapport toevoegen met de knop hieronder of de optie "Uitgave toevoegen" in het Meer-menu hierboven.',
         },
         noCategory: 'Geen categorie',
         noTag: 'Geen tag',
@@ -7241,7 +7241,7 @@ const translations = {
         book: {
             title: 'Gesprek plannen',
             description: 'Vind een tijd die voor jou werkt.',
-            slots: 'Beschikbare tijden voor',
+            slots: ({date}: {date: string}) => `<muted-text>Beschikbare tijden voor <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: 'Oproep bevestigen',

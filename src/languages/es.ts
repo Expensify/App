@@ -1799,6 +1799,7 @@ const translations = {
             'La autenticación de dos factores (2FA) ayuda a mantener tu cuenta segura. Al iniciar sesión, deberás ingresar un código generado por tu aplicación de autenticación preferida.',
         disableTwoFactorAuth: 'Deshabilitar la autenticación de dos factores',
         explainProcessToRemove: 'Para deshabilitar la autenticación de dos factores (2FA), por favor introduce un código válido de tu aplicación de autenticación.',
+        explainProcessToRemoveWithRecovery: 'Para deshabilitar la autenticación en dos pasos (2FA), por favor introduce un código de recuperación válido.',
         disabled: 'La autenticación de dos factores está ahora deshabilitada',
         noAuthenticatorApp: 'Ya no necesitarás una aplicación de autenticación para iniciar sesión en Expensify.',
         stepCodes: 'Códigos de recuperación',
@@ -2298,8 +2299,8 @@ const translations = {
         },
         interestedFeatures: {
             title: '¿Qué funciones te interesan?',
-            featuresAlreadyEnabled: 'Tu espacio de trabajo ya tiene las siguientes funciones habilitadas:',
-            featureYouMayBeInterestedIn: 'Habilita funciones adicionales que podrían interesarte:',
+            featuresAlreadyEnabled: 'Aquí están nuestras funciones más populares:',
+            featureYouMayBeInterestedIn: 'Habilita funciones adicionales:',
         },
         error: {
             requiredFirstName: 'Introduce tu nombre para continuar',
@@ -7692,7 +7693,7 @@ const translations = {
         book: {
             title: 'Programar llamada',
             description: 'Encuentra un horario que funcione para ti.',
-            slots: 'Horarios disponibles para el ',
+            slots: ({date}: {date: string}) => `<muted-text>Horarios disponibles para el <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: 'Confirmar llamada',

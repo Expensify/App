@@ -1845,6 +1845,7 @@ const translations = {
             "La tua connessione contabile Xero richiede l'uso dell'autenticazione a due fattori. Per continuare a utilizzare Expensify, ti preghiamo di abilitarla.",
         twoFactorAuthCannotDisable: "Impossibile disabilitare l'autenticazione a due fattori (2FA)",
         twoFactorAuthRequired: "L'autenticazione a due fattori (2FA) è necessaria per la tua connessione Xero e non può essere disabilitata.",
+        explainProcessToRemoveWithRecovery: "Per disabilitare l'autenticazione a due fattori (2FA), inserisci un codice di recupero valido.",
     },
     recoveryCodeForm: {
         error: {
@@ -2322,8 +2323,8 @@ const translations = {
         },
         interestedFeatures: {
             title: 'Quali funzionalità ti interessano?',
-            featuresAlreadyEnabled: 'Il tuo spazio di lavoro ha già abilitato quanto segue:',
-            featureYouMayBeInterestedIn: 'Abilita funzionalità aggiuntive che potrebbero interessarti:',
+            featuresAlreadyEnabled: 'Ecco le nostre funzionalità più popolari:',
+            featureYouMayBeInterestedIn: 'Abilita funzionalità aggiuntive:',
         },
         error: {
             requiredFirstName: 'Per favore, inserisci il tuo nome per continuare',
@@ -6270,7 +6271,6 @@ const translations = {
         groupBy: 'Gruppo per',
         moneyRequestReport: {
             emptyStateTitle: 'Questo report non ha spese.',
-            emptyStateSubtitle: 'Puoi aggiungere spese a questo rapporto utilizzando il pulsante qui sotto o l\'opzione "Aggiungi spesa" nel menu Altro sopra.',
         },
         noCategory: 'Nessuna categoria',
         noTag: 'Nessun tag',
@@ -7258,7 +7258,7 @@ const translations = {
         book: {
             title: 'Pianifica chiamata',
             description: 'Trova un orario che funzioni per te.',
-            slots: 'Orari disponibili per',
+            slots: ({date}: {date: string}) => `<muted-text>Orari disponibili per <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: 'Conferma chiamata',
