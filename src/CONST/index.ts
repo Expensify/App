@@ -6763,8 +6763,8 @@ const CONST = {
         SEARCH_CONTEXT_GENERAL: 'general',
         SEARCH_CONTEXT_SEARCH: 'search',
         SEARCH_CONTEXT_MEMBER_INVITE: 'memberInvite',
-        SEARCH_CONTEXT_ATTENDEES: 'attendees',
         SEARCH_CONTEXT_SHARE_DESTINATION: 'shareDestination',
+        SEARCH_CONTEXT_ATTENDEES: 'attendees',
     },
     EXPENSE: {
         TYPE: {
