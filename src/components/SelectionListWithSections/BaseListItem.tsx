@@ -41,7 +41,9 @@ function BaseListItem<TItem extends ListItem>({
     onLongPressRow,
     testID,
     shouldUseDefaultRightHandSideCheckmark = true,
+    forwardedFSClass,
     accessibilityState,
+    shouldShowRightCaret = false,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -124,6 +126,7 @@ function BaseListItem<TItem extends ListItem>({
                         wrapperStyle,
                         isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                     ]}
+                    fsClass={forwardedFSClass}
                 >
                     {typeof children === 'function' ? children(hovered) : children}
 
@@ -151,6 +154,17 @@ function BaseListItem<TItem extends ListItem>({
                     )}
 
                     {rightHandSideComponentRender()}
+                    {shouldShowRightCaret && (
+                        <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.ml2]}>
+                            <Icon
+                                src={Expensicons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
+                                isButtonIcon
+                                medium
+                            />
+                        </View>
+                    )}
                 </View>
                 {FooterComponent}
             </PressableWithFeedback>

@@ -162,6 +162,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     isSelected,
     canShowProductTrainingTooltip,
     renderScrollComponent,
+    shouldShowRightCaret,
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -695,6 +696,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
+                    shouldShowRightCaret={shouldShowRightCaret}
                     accessibilityState={accessibilityState}
                 />
             </View>
@@ -797,11 +799,14 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     );
 
     const updateAndScrollToFocusedIndex = useCallback(
-        (newFocusedIndex: number) => {
+        (newFocusedIndex: number, shouldSkipWhenIndexNonZero = false) => {
+            if (shouldSkipWhenIndexNonZero && focusedIndex > 0) {
+                return;
+            }
             setFocusedIndex(newFocusedIndex);
             scrollToIndex(newFocusedIndex, true);
         },
-        [scrollToIndex, setFocusedIndex],
+        [focusedIndex, scrollToIndex, setFocusedIndex],
     );
 
     /** Function to focus text input */

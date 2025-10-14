@@ -55,6 +55,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     isUserValidated,
     personalDetails,
     userBillingFundID,
+    shouldShowRightCaret,
     accessibilityState,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
@@ -112,6 +113,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 personalDetails={personalDetails}
                 userBillingFundID={userBillingFundID}
                 index={index}
+                shouldShowRightCaret={shouldShowRightCaret}
                 accessibilityState={accessibilityState}
             />
             {item.footerContent && item.footerContent}
