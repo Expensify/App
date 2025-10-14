@@ -13,7 +13,7 @@ type ModalCardStyleInterpolatorProps = {
     shouldFadeScreen?: boolean;
     shouldAnimateSidePanel?: boolean;
     props: StackCardInterpolationProps;
-    outputRangeMultiplier?: number;
+    outputRangeMultiplier?: Animated.AnimatedNode;
     animationEnabled?: boolean;
 };
 
@@ -44,11 +44,14 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         }
 
         const translateX = Animated.multiply(
-            progress.interpolate({
-                inputRange: [0, 1],
-                outputRange: [outputRangeMultiplier * (shouldUseNarrowLayout ? screen.width : variables.sideBarWidth), 0],
-                extrapolate: 'clamp',
-            }),
+            Animated.multiply(
+                progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [shouldUseNarrowLayout ? screen.width : variables.sideBarWidth, 0],
+                    extrapolate: 'clamp',
+                }),
+                outputRangeMultiplier,
+            ),
             inverted,
         );
 

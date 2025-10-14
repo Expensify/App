@@ -293,8 +293,6 @@ type FormattedMaxLengthParams = {formattedMaxLength: string};
 
 type WalletProgramParams = {walletProgram: string};
 
-type ViolationsAutoReportedRejectedExpenseParams = {rejectedBy: string; rejectReason: string};
-
 type ViolationsCashExpenseWithNoReceiptParams = {formattedLimit?: string} | undefined;
 
 type ViolationsConversionSurchargeParams = {surcharge: number};
@@ -654,6 +652,7 @@ type DemotedFromWorkspaceParams = {
 type IntegrationExportParams = {
     integration: string;
     type?: string;
+    exportPageLink?: string;
 };
 
 type ConnectionParams = {
@@ -774,6 +773,10 @@ type PolicyExpenseChatNameParams = {
     displayName: string;
 };
 
+type ReceiptPartnersUberSubtitleParams = {
+    organizationName: string;
+};
+
 type ReviewParams = {
     amount: string;
 };
@@ -872,6 +875,11 @@ type MergeFailureDescriptionGenericParams = {
     email: string;
 };
 
+type EnableContinuousReconciliationParams = {
+    connectionName: string;
+    accountingAdvancedSettingsLink: string;
+};
+
 type WorkspaceUpgradeNoteParams = {
     subscriptionLink: string;
 };
@@ -910,8 +918,28 @@ type SubmittedWithMemoParams = {
     memo?: string;
 };
 
+type DependentMultiLevelTagsSubtitleParams = {
+    importSpreadsheetLink: string;
+};
+
 type PayAndDowngradeDescriptionParams = {
     formattedAmount: string;
+};
+
+type WalletAgreementParams = {
+    walletAgreementUrl: string;
+};
+
+type ErrorODIntegrationParams = {
+    oldDotPolicyConnectionsURL: string;
+};
+
+type DisconnectYourBankAccountParams = {
+    bankName: string;
+};
+
+type MergeAccountIntoParams = {
+    login: string;
 };
 
 export type {
@@ -1077,7 +1105,6 @@ export type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
-    ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsInvoiceMarkupParams,
@@ -1169,6 +1196,7 @@ export type {
     SubmitsToParams,
     SettlementDateParams,
     PolicyExpenseChatNameParams,
+    ReceiptPartnersUberSubtitleParams,
     YourPlanPriceValueParams,
     BusinessBankAccountParams,
     NeedCategoryForExportToIntegrationParams,
@@ -1205,6 +1233,7 @@ export type {
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
+    EnableContinuousReconciliationParams,
     WorkspaceUpgradeNoteParams,
     ChangedApproverMessageParams,
     WorkflowSettingsParam,
@@ -1218,5 +1247,10 @@ export type {
     SubmittedWithMemoParams,
     SignerInfoMessageParams,
     BusinessRegistrationNumberParams,
+    DependentMultiLevelTagsSubtitleParams,
     PayAndDowngradeDescriptionParams,
+    WalletAgreementParams,
+    ErrorODIntegrationParams,
+    DisconnectYourBankAccountParams,
+    MergeAccountIntoParams,
 };

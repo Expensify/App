@@ -1,6 +1,6 @@
 ---
 title: Global Reimbursement - Australia
-description: Set up global reimbursements with your Australian bank account. 
+description: Set up global reimbursements with your Australian bank account.
 keywords: [New Expensify, global reimbursement, Australia, AUD, international payments]
 ---
 
@@ -29,7 +29,7 @@ If your company’s business bank account is located in Australia, you can enabl
 
 # Step 1: Connect Your Australian Bank Account
 
-1. In the left-hand menu, select **Workspaces > [Workspace Name] > Overview**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Overview**.
 2. Under **Default currency**, select **AUD A$**.
 3. From the workspace settings left-hand menu, click **Workflows > enable Make or track payments**
 4. Under **Connect bank account > Confirm currency and country (Australia - AUD A$)**
@@ -64,14 +64,14 @@ If your company’s business bank account is located in Australia, you can enabl
    * They’ll receive a message prompting them to securely enter their personal information in the setup flow.
    * Once the Director has entered their info and uploaded ID and proof of address, the submission can proceed.
 
-**Note:** For global reimbursements, Expensify requires information from at least two Directors or Senior Officers for Australian companies. 
+**Note:** For global reimbursements, Expensify requires information from at least two Directors or Senior Officers for Australian companies.
 
 ---
 
 # Step 3: Confirm Test Transactions
 
 1. Expensify will send test deposits to your bank account. Once you see those transactions, contact Concierge support to confirm that you received them.
-2. After you confirm the receipt of those test transactions, Expensify will complete the bank account verification. 
+2. After you confirm the receipt of those test transactions, Expensify will complete the bank account verification.
 3. Once verified, your bank account is ready to use for global reimbursements.
 
 ---
@@ -82,7 +82,7 @@ If your company’s business bank account is located in Australia, you can enabl
 
 To begin reimbursing:
 
-1. In the left-hand menu, go to **Workspaces > [Workspace Name] > Make or track payments**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Make or track payments**.
 2. Set the verified AUD account as the default reimbursement method.
 3. Ask employees to add their personal deposit account.
 
@@ -90,7 +90,7 @@ To begin reimbursing:
 
 # FAQ
 
-## How do members add their deposit-only accounts? 
+## How do members add their deposit-only accounts?
 
 An employee can add their deposit accounts by doing the following:
 1. Navigate to **Account > Wallet**.

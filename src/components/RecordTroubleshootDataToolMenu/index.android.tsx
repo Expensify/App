@@ -44,9 +44,9 @@ function RecordTroubleshootDataToolMenu() {
                 });
             })
             .then((path: string) => {
-                return RNFetchBlob.fs.stat(path).then(({size}) => {
+                return RNFetchBlob.fs.stat(path).then(({size, path: realPath}) => {
                     setFile({
-                        path,
+                        path: realPath,
                         newFileName: zipFileName,
                         size,
                     });

@@ -22,7 +22,7 @@ Adding an additional contact method helps you:
 
 # Add or Change a Contact Method
 
-1. In the left-hand menu, click **Account > Profile**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Profile**.
 2. Under **Contact Method**, click **New Contact Method**.
 3. Enter the email address or phone number you want to add.
 4. Click **Add**.

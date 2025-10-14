@@ -3,17 +3,21 @@ import {
     buildMergedTransactionData,
     getDisplayValue,
     getMergeableDataAndConflictFields,
+    getMergeFieldErrorText,
     getMergeFieldTranslationKey,
     getMergeFieldValue,
     getSourceTransactionFromMergeTransaction,
     isEmptyMergeValue,
-    selectTargetAndSourceTransactionIDsForMerge,
+    selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
 import createRandomTransaction from '../utils/collections/transaction';
+
+// Mock localeCompare function for tests
+const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
 
 describe('MergeTransactionUtils', () => {
     describe('getSourceTransactionFromMergeTransaction', () => {
@@ -289,6 +293,28 @@ describe('MergeTransactionUtils', () => {
             // Then it should return false because the string has content
             expect(result).toBe(false);
         });
+
+        it('should return true for empty array', () => {
+            // Given an empty array
+            const value: unknown[] = [];
+
+            // When we check if it's empty
+            const result = isEmptyMergeValue(value);
+
+            // Then it should return true because empty array is considered empty
+            expect(result).toBe(true);
+        });
+
+        it('should return false for non-empty array', () => {
+            // Given a non-empty array
+            const value: unknown[] = [1, 2, 3];
+
+            // When we check if it's empty
+            const result = isEmptyMergeValue(value);
+
+            // Then it should return false because the array has content
+            expect(result).toBe(false);
+        });
     });
 
     describe('getMergeableDataAndConflictFields', () => {
@@ -323,7 +349,7 @@ describe('MergeTransactionUtils', () => {
                 created: '2025-01-02T00:00:00.000Z',
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
             // Only the different values are in the conflict fields
             expect(result.conflictFields).toEqual(['amount', 'created', 'description', 'reimbursable', 'reportID']);
@@ -334,6 +360,7 @@ describe('MergeTransactionUtils', () => {
                 category: 'Food',
                 tag: 'Same Tag',
                 billable: false,
+                attendees: [],
             });
         });
 
@@ -349,7 +376,7 @@ describe('MergeTransactionUtils', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
@@ -371,12 +398,83 @@ describe('MergeTransactionUtils', () => {
                 managedCard: false,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
                 amount: 1000, // Card transactions also return positive values when unreported
                 currency: CONST.CURRENCY.USD,
+            });
+        });
+
+        describe('merge attendees', () => {
+            it('should automatically merge attendees when they are the same', () => {
+                const targetTransaction = createRandomTransaction(0);
+                targetTransaction.comment = targetTransaction.comment ?? {};
+                targetTransaction.comment.attendees = [
+                    {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                    {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                ];
+                const sourceTransaction = createRandomTransaction(1);
+                sourceTransaction.comment = sourceTransaction.comment ?? {};
+                sourceTransaction.comment.attendees = [
+                    {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                    {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                ];
+
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+
+                expect(result.conflictFields).not.toContain('attendees');
+                expect(result.mergeableData).toMatchObject({
+                    attendees: [
+                        {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                        {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                    ],
+                });
+            });
+
+            it('should automatically merge attendees when they are same but just order is different', () => {
+                const targetTransaction = createRandomTransaction(0);
+                targetTransaction.comment = targetTransaction.comment ?? {};
+                targetTransaction.comment.attendees = [
+                    {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                    {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                ];
+                const sourceTransaction = createRandomTransaction(1);
+                sourceTransaction.comment = sourceTransaction.comment ?? {};
+                sourceTransaction.comment.attendees = [
+                    {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                    {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                ];
+
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+
+                expect(result.conflictFields).not.toContain('attendees');
+                expect(result.mergeableData).toMatchObject({
+                    attendees: [
+                        {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                        {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                    ],
+                });
+            });
+
+            it('should conflict when attendees are different', () => {
+                const targetTransaction = createRandomTransaction(0);
+                targetTransaction.comment = targetTransaction.comment ?? {};
+                targetTransaction.comment.attendees = [
+                    {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                    {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                ];
+                const sourceTransaction = createRandomTransaction(1);
+                sourceTransaction.comment = sourceTransaction.comment ?? {};
+                sourceTransaction.comment.attendees = [
+                    {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+                    {email: 'test3@example.com', displayName: 'Test User 3', avatarUrl: '', login: 'test3'},
+                ];
+
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+
+                expect(result.conflictFields).toContain('attendees');
             });
         });
     });
@@ -395,7 +493,7 @@ describe('MergeTransactionUtils', () => {
                 },
                 reimbursable: true,
                 billable: false,
-                receipt: {receiptID: 1234, source: 'original.jpg'},
+                receipt: {receiptID: 1234, source: 'original.jpg', filename: 'original.jpg'},
             };
 
             const mergeTransaction = {
@@ -407,7 +505,7 @@ describe('MergeTransactionUtils', () => {
                 description: 'Merged description',
                 reimbursable: false,
                 billable: true,
-                receipt: {receiptID: 1235, source: 'merged.jpg'},
+                receipt: {receiptID: 1235, source: 'merged.jpg', filename: 'merged.jpg'},
                 created: '2025-01-02T00:00:00.000Z',
                 reportID: '1',
             };
@@ -431,7 +529,7 @@ describe('MergeTransactionUtils', () => {
                 reimbursable: false,
                 billable: true,
                 filename: 'merged.jpg',
-                receipt: {receiptID: 1235, source: 'merged.jpg'},
+                receipt: {receiptID: 1235, source: 'merged.jpg', filename: 'merged.jpg'},
                 created: '2025-01-02T00:00:00.000Z',
                 modifiedCreated: '2025-01-02T00:00:00.000Z',
                 reportID: '1',
@@ -439,13 +537,13 @@ describe('MergeTransactionUtils', () => {
         });
     });
 
-    describe('selectTargetAndSourceTransactionIDsForMerge', () => {
+    describe('selectTargetAndSourceTransactionsForMerge', () => {
         it('should handle undefined transactions gracefully', () => {
-            const result = selectTargetAndSourceTransactionIDsForMerge(undefined, undefined);
+            const result = selectTargetAndSourceTransactionsForMerge(undefined, undefined);
 
             expect(result).toEqual({
-                targetTransactionID: undefined,
-                sourceTransactionID: undefined,
+                targetTransaction: undefined,
+                sourceTransaction: undefined,
             });
         });
 
@@ -461,11 +559,11 @@ describe('MergeTransactionUtils', () => {
                 managedCard: true,
             };
 
-            const result = selectTargetAndSourceTransactionIDsForMerge(cashTransaction, cardTransaction);
+            const result = selectTargetAndSourceTransactionsForMerge(cashTransaction, cardTransaction);
 
             expect(result).toEqual({
-                targetTransactionID: 'card1',
-                sourceTransactionID: 'cash1',
+                targetTransaction: cardTransaction,
+                sourceTransaction: cashTransaction,
             });
         });
 
@@ -481,11 +579,11 @@ describe('MergeTransactionUtils', () => {
                 managedCard: undefined,
             };
 
-            const result = selectTargetAndSourceTransactionIDsForMerge(cardTransaction, cashTransaction);
+            const result = selectTargetAndSourceTransactionsForMerge(cardTransaction, cashTransaction);
 
             expect(result).toEqual({
-                targetTransactionID: 'card1',
-                sourceTransactionID: 'cash1',
+                targetTransaction: cardTransaction,
+                sourceTransaction: cashTransaction,
             });
         });
 
@@ -501,11 +599,11 @@ describe('MergeTransactionUtils', () => {
                 managedCard: undefined,
             };
 
-            const result = selectTargetAndSourceTransactionIDsForMerge(cashTransaction1, cashTransaction2);
+            const result = selectTargetAndSourceTransactionsForMerge(cashTransaction1, cashTransaction2);
 
             expect(result).toEqual({
-                targetTransactionID: 'cash1',
-                sourceTransactionID: 'cash2',
+                targetTransaction: cashTransaction1,
+                sourceTransaction: cashTransaction2,
             });
         });
     });
@@ -588,6 +686,19 @@ describe('MergeTransactionUtils', () => {
             expect(result).toBe('Department, Engineering, Frontend');
         });
 
+        it('should return correct value for attendees field', () => {
+            const transaction = createRandomTransaction(0);
+            transaction.comment = transaction.comment ?? {};
+            transaction.comment.attendees = [
+                {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+            ];
+
+            const result = getDisplayValue('attendees', transaction, translateLocal);
+
+            expect(result).toBe('Test User 2, Test User 1');
+        });
+
         it('should return string values directly', () => {
             // Given a transaction with string fields
             const transaction = {
@@ -604,6 +715,38 @@ describe('MergeTransactionUtils', () => {
             // Then it should return the string values
             expect(merchantResult).toBe('Starbucks Coffee');
             expect(categoryResult).toBe('Food & Dining');
+        });
+    });
+
+    describe('getMergeFieldErrorText', () => {
+        it('should return specific error message for attendees field', () => {
+            // Given a merge field data object for attendees field
+            const mergeField = {
+                field: 'attendees' as const,
+                label: 'Attendees',
+                options: [],
+            };
+
+            // When we get the error text for attendees field
+            const result = getMergeFieldErrorText(translateLocal, mergeField);
+
+            // Then it should return the specific attendees error message
+            expect(result).toBe(translateLocal('transactionMerge.detailsPage.pleaseSelectAttendees'));
+        });
+
+        it('should return generic error message for merchant field', () => {
+            // Given a merge field data object for merchant field
+            const mergeField = {
+                field: 'merchant' as const,
+                label: 'Merchant',
+                options: [],
+            };
+
+            // When we get the error text for merchant field
+            const result = getMergeFieldErrorText(translateLocal, mergeField);
+
+            // Then it should return the generic error message with lowercase field name
+            expect(result).toBe(translateLocal('transactionMerge.detailsPage.pleaseSelectError', {field: 'merchant'}));
         });
     });
 });

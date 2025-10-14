@@ -16,7 +16,7 @@ Admins can manually create one level of tags or multiple levels of tags for a wo
 
 Before you can manage tags, you need to enable the **Tags** feature for your workspace.
 
-1. In the **left-hand navigation bar (LHB)**, click **Workspaces**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **More Features** in the left menu.
 4. In the **Organize** section, toggle on **Tags**.

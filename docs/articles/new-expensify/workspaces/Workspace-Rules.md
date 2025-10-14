@@ -1,7 +1,7 @@
 ---
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
-keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan]
+keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses]
 ---
 
 Workspace Rules let Admins enforce expense policies by setting custom requirements for receipts, spending limits, category behavior, auto-approvals, and more. These rules help ensure compliance and streamline the approval process.
@@ -14,7 +14,7 @@ Workspace Rules let Admins enforce expense policies by setting custom requiremen
 
 To activate Rules for your workspace:
 
-1. In the **left-hand navigation bar (LHB)**, click **Workspaces**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **More Features**.
 4. Under the **Manage** section, toggle on **Rules**.
@@ -44,10 +44,10 @@ To enable it:
 1. Go to **Workspaces > [Workspace Name] > Rules > Expenses**.
 2. Scroll to the **Prohibited Expenses** section.
 3. Toggle it on and select any categories to monitor:
-   - Alcohol  
-   - Gambling  
-   - Tobacco  
-   - Hotel Incidentals  
+   - Alcohol
+   - Gambling
+   - Tobacco
+   - Hotel Incidentals
    - Adult Entertainment
 
 If SmartScan detects one of these items on a receipt:
@@ -125,7 +125,7 @@ Only Workspace Admins on the **Control** plan can enable and configure workspace
 
 Turning off workspace rules removes any active warnings or violations from draft or outstanding expenses that relied on those rules.
 
-## Can I disable SmartScan for my workspace? 
+## Can I disable SmartScan for my workspace?
 
 No, SmartScan can’t be disabled for group (paid) workspaces. It’s always enabled by default.
 

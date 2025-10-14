@@ -1,6 +1,7 @@
 ---
 title: Expense Rules
 description: Automatically categorize, tag, and report expenses based on the merchant's name.
+keywords: [Expense Rules, individual automation, expense rule setup, personal rules, Classic, reimbursement settings]
 ---
 
 Expense rules in Expensify help automate the categorization, tagging, and reporting of expenses based on merchant names, reducing manual work. By setting up these rules at the account level, employees can streamline expense management and ensure consistency across reports.
