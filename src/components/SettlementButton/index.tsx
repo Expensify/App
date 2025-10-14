@@ -162,6 +162,25 @@ function SettlementButton({
         return formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
     }
 
+    const checkForNecessaryAction = () => {
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return true;
+        }
+
+        if (!isUserValidated) {
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
+            return true;
+        }
+
+        if (policy && shouldRestrictUserBillableActions(policy.id)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+            return true;
+        }
+
+        return false;
+    };
+
     const getPaymentSubitems = useCallback(
         (payAsBusiness: boolean) => {
             const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
@@ -188,25 +207,6 @@ function SettlementButton({
         },
         [formattedPaymentMethods, onPress],
     );
-
-    const checkForNecessaryAction = () => {
-        if (isAccountLocked) {
-            showLockedAccountModal();
-            return true;
-        }
-
-        if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
-            return true;
-        }
-
-        if (policy && shouldRestrictUserBillableActions(policy.id)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-            return true;
-        }
-
-        return false;
-    };
 
     const personalBankAccountList = getLatestPersonalBankAccount();
     const latestBankItem = getLatestBankAccountItem();
@@ -329,7 +329,9 @@ function SettlementButton({
                         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         shouldUpdateSelectedIndex: true,
                         onSelected: () => {
-                            checkForNecessaryAction();
+                            if (checkForNecessaryAction()) {
+                                return;
+                            }
                             onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, payAsBusiness, undefined);
                         },
                     },
