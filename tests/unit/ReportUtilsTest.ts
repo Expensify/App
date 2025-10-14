@@ -5667,6 +5667,28 @@ describe('ReportUtils', () => {
             expect(result).toHaveProperty('reason');
         });
 
+        it('should return HAS_UNRESOLVED_CARD_FRAUD_ALERT when report has unresolved fraud alert', async () => {
+            const report: OptionData = {
+                ...createRandomReport(40000),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                isUnreadWithMention: true,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(40000),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [reportAction.reportActionID]: reportAction,
+            });
+
+            // When the reason is retrieved
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived.current);
+
+            expect(result).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_UNRESOLVED_CARD_FRAUD_ALERT);
+        });
+
         it('should return null for an archived report', async () => {
             // Given an archived expense report that is unread with a mention
             const report: OptionData = {
@@ -5805,8 +5827,7 @@ describe('ReportUtils', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspace.id}`, workspace);
 
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(policyAnnounceRoom.reportID));
-            const result = canUserPerformWriteAction(policyAnnounceRoom, isReportArchived.current);
+            const result = canUserPerformWriteAction(policyAnnounceRoom);
 
             // Then it should return false
             expect(result).toBe(false);
