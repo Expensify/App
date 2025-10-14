@@ -90,8 +90,6 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         isAuthTokenRequired,
     });
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = !isLoading && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID;
     const source = useMemo(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined), [sourceParam]);
     const modalType = useReportAttachmentModalType();
 
@@ -100,7 +98,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
             // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
             type,
             report,
-            shouldShowNotFoundPage,
+            shouldShowNotFoundPage: !isLoading && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID,
             isAuthTokenRequired: !!isAuthTokenRequired,
             attachmentLink: attachmentLink ?? '',
             originalFileName: originalFileName ?? '',
@@ -113,21 +111,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
             onDownloadAttachment,
             onCarouselAttachmentChange,
         }),
-        [
-            accountID,
-            attachmentID,
-            attachmentLink,
-            headerTitle,
-            isAuthTokenRequired,
-            isLoading,
-            onCarouselAttachmentChange,
-            onDownloadAttachment,
-            originalFileName,
-            report,
-            shouldShowNotFoundPage,
-            source,
-            type,
-        ],
+        [accountID, attachmentID, attachmentLink, headerTitle, isAuthTokenRequired, isLoading, onCarouselAttachmentChange, onDownloadAttachment, originalFileName, report, source, type],
     );
 
     return (
