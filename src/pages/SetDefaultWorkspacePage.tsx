@@ -40,6 +40,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         if (!selectedPolicyID) {
             return;
         }
+        // eslint-disable-next-line rulesdir/no-default-id-values
         setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, selectedPolicyID, activePolicyID ?? '');
         Navigation.goBack(backTo);
     };
