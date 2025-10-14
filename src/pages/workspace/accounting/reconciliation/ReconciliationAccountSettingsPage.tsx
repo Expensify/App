@@ -55,10 +55,10 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
         }
         const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountList);
 
-        return eligibleBankAccounts.map((bankAccount, idx) => ({
+        return eligibleBankAccounts.map((bankAccount, index) => ({
             text: bankAccount.title,
             value: bankAccount.accountData?.bankAccountID,
-            keyForList: bankAccount.accountData?.bankAccountID?.toString() ?? `${bankAccount.title}-${idx}`,
+            keyForList: bankAccount.accountData?.bankAccountID?.toString() ?? `${bankAccount.title}-${index}`,
             isSelected: bankAccount.accountData?.bankAccountID === paymentBankAccountID,
         }));
     }, [bankAccountList, paymentBankAccountID]);
