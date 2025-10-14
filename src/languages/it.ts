@@ -3492,6 +3492,8 @@ ${amount} per ${merchant} - ${date}`,
         verifyCompany: {
             title: 'Inizia a viaggiare oggi stesso!',
             message: `Si prega di contattare il proprio Account Manager o salesteam@expensify.com per ottenere una demo di viaggio e attivarla per la vostra azienda.`,
+            confirmText: 'Got it',
+            conciergeMessage: ({domain}: {domain: string}) => `Abilitazione del viaggio fallita per il dominio: ${domain}. Si prega di rivedere e abilitare il viaggio per questo dominio.`,
         },
         updates: {
             bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>

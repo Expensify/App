@@ -3438,6 +3438,8 @@ ${merchant}的${amount} - ${date}`,
         verifyCompany: {
             title: '立即开始旅行吧！',
             message: `请联系您的客户经理或发送电子邮件至 salesteam@expensify.com 以获取旅行演示并为您的公司启用该功能。`,
+            confirmText: '明白了',
+            conciergeMessage: ({domain}: {domain: string}) => `域名 ${domain} 的旅行启用失败。请检查并为此域名启用旅行功能。`,
         },
         updates: {
             bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>

@@ -3485,6 +3485,8 @@ ${amount} dla ${merchant} - ${date}`,
         verifyCompany: {
             title: 'Rozpocznij podróż już dziś!',
             message: `Proszę skontaktować się z menedżerem konta lub salesteam@expensify.com, aby uzyskać demonstrację podróży i włączyć ją dla swojej firmy.`,
+            confirmText: 'Zrozumiałem',
+            conciergeMessage: ({domain}: {domain: string}) => `Włączenie podróży nie powiodło się dla domeny: ${domain}. Proszę przejrzeć i włączyć podróże dla tej domeny.`,
         },
         updates: {
             bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
