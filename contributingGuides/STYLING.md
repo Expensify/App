@@ -4,7 +4,12 @@
 
 Styles can either be theme-related or not. "Theme-related" means that a style contains some sort of color attributes (backgroundColor, color, borderColor). "Non-theme-related" styles may not contain no color attributes.
 
-All non-theme-related styles must be defined in the `/styles` directory and `styles.js` contains the final export after gathering all appropriate styles. Unlike some React Native applications, we are not using `StyleSheet.create()` and instead store styles as plain JS objects. There are also many helper styles available for direct use in components.
+All non-theme-related styles must be defined in the `/styles` directory and `styles.js` contains the final export after gathering all appropriate styles. There are also many helper styles available for direct use in components.
+
+The styles are grouped into:
+- `staticStyles` - object wrapped into `StyleSheet.create()` which contains static styles based on the `theme`.
+- `dynamicStyles` - object that contains functions which return dynamic styles
+- `plainStyles` - object that contains styles, which cannot be wrapped by StyleSheet.create eg. because of requirements of 3rd party libraries
 
 All styles that contain theme colors have to be defined in the `ThemeStylesProvider` component, as those need to be dynamically created and animated.
 

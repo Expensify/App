@@ -1,8 +1,10 @@
 import type {ValueOf} from 'type-fest';
-import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {PaymentMethod} from '@components/KYCWall/types';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
@@ -41,6 +43,12 @@ type SelectedTransactionInfo = {
 
     /** The currency that the converted amount is in */
     convertedCurrency: string;
+
+    /** The transaction currency */
+    currency: string;
+
+    /** Whether it is the only expense of the parent expense report */
+    isFromOneTransactionReport?: boolean;
 };
 
 /** Model of selected transactions */
@@ -53,6 +61,7 @@ type SelectedReports = {
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
     allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
     total: number;
+    currency?: string;
 };
 
 /** Model of payment data used by Search bulk actions */
@@ -60,6 +69,18 @@ type PaymentData = {
     reportID: string;
     amount: number;
     paymentType: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    payAsBusiness?: boolean;
+    bankAccountID?: number;
+    fundID?: number;
+    policyID?: string;
+    adminsChatReportID?: number;
+    adminsCreatedReportActionID?: number;
+    expenseChatReportID?: number;
+    expenseCreatedReportActionID?: number;
+    customUnitRateID?: string;
+    customUnitID?: string;
+    ownerEmail?: string;
+    policyName?: string;
 };
 
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
@@ -67,9 +88,8 @@ type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
 type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
 type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
 type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
-type ChatSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.CHAT>;
 type TaskSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TASK>;
-type SingularSearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus | TaskSearchStatus;
+type SingularSearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | TaskSearchStatus;
 type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
@@ -89,7 +109,7 @@ type SearchContextData = {
     shouldResetSearchQuery: boolean;
 };
 
-type SearchContext = SearchContextData & {
+type SearchContextProps = SearchContextData & {
     setCurrentSearchHashAndKey: (hash: number, key: SearchKey | undefined) => void;
     setCurrentSearchQueryJSON: (searchQueryJSON: SearchQueryJSON | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
@@ -203,7 +223,16 @@ type SearchParams = {
     queryJSON: SearchQueryJSON;
     searchKey: SearchKey | undefined;
     offset: number;
+    prevReportsLength?: number;
     shouldCalculateTotals: boolean;
+};
+
+type BankAccountMenuItem = {
+    text: string;
+    description: string;
+    icon: IconAsset;
+    methodID: number | undefined;
+    value: PaymentMethod;
 };
 
 export type {
@@ -217,7 +246,7 @@ export type {
     SearchQueryJSON,
     SearchQueryString,
     SortOrder,
-    SearchContext,
+    SearchContextProps,
     SearchContextData,
     ASTNode,
     QueryFilter,
@@ -227,7 +256,6 @@ export type {
     ExpenseSearchStatus,
     InvoiceSearchStatus,
     TripSearchStatus,
-    ChatSearchStatus,
     TaskSearchStatus,
     SearchAutocompleteResult,
     PaymentData,
@@ -241,5 +269,7 @@ export type {
     SearchAction,
     SearchCurrencyFilterKeys,
     UserFriendlyValue,
+    SelectedReports,
     SearchTextFilterKeys,
+    BankAccountMenuItem,
 };

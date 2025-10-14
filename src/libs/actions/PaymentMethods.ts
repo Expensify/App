@@ -1,9 +1,9 @@
 import {createRef} from 'react';
-import type {MutableRefObject} from 'react';
-import type {GestureResponderEvent} from 'react-native';
+import type {RefObject} from 'react';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {ContinueActionParams} from '@components/KYCWall/types';
 import * as API from '@libs/API';
 import type {
     AddPaymentCardParams,
@@ -25,19 +25,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
 import type {BankAccountList, FundList} from '@src/types/onyx';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 
 type KYCWallRef = {
-    continueAction?: (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: PaymentMethodType) => void;
+    continueAction?: (params: ContinueActionParams) => void;
 };
 
 /**
  * Sets up a ref to an instance of the KYC Wall component.
  */
-const kycWallRef: MutableRefObject<KYCWallRef | null> = createRef<KYCWallRef>();
+const kycWallRef: RefObject<KYCWallRef | null> = createRef<KYCWallRef>();
 
 /**
  * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
@@ -50,10 +49,10 @@ function continueSetup(fallbackRoute?: Route) {
 
     // Close the screen (Add Debit Card, Add Bank Account, or Enable Payments) on success and continue with setup
     Navigation.goBack(fallbackRoute);
-    kycWallRef.current.continueAction();
+    kycWallRef.current.continueAction({goBackRoute: fallbackRoute});
 }
 
-function openWalletPage() {
+function getPaymentMethods() {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -582,7 +581,7 @@ function setInvoicingTransferBankAccount(bankAccountID: number, policyID: string
 export {
     deletePaymentCard,
     addPaymentCard,
-    openWalletPage,
+    getPaymentMethods,
     makeDefaultPaymentMethod,
     kycWallRef,
     continueSetup,

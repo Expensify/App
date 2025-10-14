@@ -3,11 +3,11 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
@@ -48,6 +48,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const ICON_SIZE = 48;
+    const illustrations = useMemoizedLazyIllustrations(['MoneyReceipts', 'Tag', 'ReportReceipt'] as const);
 
     const processedHelperText = `<comment><muted-text-label>${translate('onboarding.workspace.price')}</muted-text-label></comment>`;
 
@@ -57,15 +58,15 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
 
     const section: Item[] = [
         {
-            icon: Illustrations.MoneyReceipts,
+            icon: illustrations.MoneyReceipts,
             titleTranslationKey: 'onboarding.workspace.explanationModal.descriptionOne',
         },
         {
-            icon: Illustrations.Tag,
+            icon: illustrations.Tag,
             titleTranslationKey: 'onboarding.workspace.explanationModal.descriptionTwo',
         },
         {
-            icon: Illustrations.ReportReceipt,
+            icon: illustrations.ReportReceipt,
             titleTranslationKey: 'onboarding.workspace.explanationModal.descriptionThree',
         },
     ];
@@ -82,6 +83,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             lastName: currentUserPersonalDetails.lastName,
             adminsChatReportID: onboardingAdminsChatReportID,
             onboardingPolicyID,
+            shouldSkipTestDriveModal: !!onboardingPolicyID && !onboardingAdminsChatReportID,
         });
 
         setOnboardingAdminsChatReportID();

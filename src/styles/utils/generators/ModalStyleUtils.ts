@@ -1,5 +1,5 @@
 import type {ViewStyle} from 'react-native';
-import type {ModalProps} from 'react-native-modal';
+import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import {isMobileSafari} from '@libs/Browser';
 import type {ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
@@ -26,9 +26,9 @@ type WindowDimensions = {
 type GetModalStyles = {
     modalStyle: ViewStyle;
     modalContainerStyle: ViewStyle;
-    swipeDirection: ModalProps['swipeDirection'];
-    animationIn: ModalProps['animationIn'];
-    animationOut: ModalProps['animationOut'];
+    swipeDirection: ReanimatedModalProps['swipeDirection'];
+    animationIn: ReanimatedModalProps['animationIn'];
+    animationOut: ReanimatedModalProps['animationOut'];
     hideBackdrop: boolean;
     shouldAddTopSafeAreaMargin: boolean;
     shouldAddBottomSafeAreaMargin: boolean;

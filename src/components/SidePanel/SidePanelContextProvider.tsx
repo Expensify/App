@@ -12,7 +12,6 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {SidePanel} from '@src/types/onyx';
-import KeyboardUtils from '@src/utils/keyboard';
 
 type SidePanelContextProps = {
     isSidePanelTransitionEnded: boolean;
@@ -75,17 +74,6 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- sidePanelWidth dependency caused the help panel content to slide in on window resize
     }, [shouldHideSidePanel, shouldApplySidePanelOffset]);
 
-    const openSidePanel = useCallback(() => {
-        // User shouldn't be able to open side panel if side panel NVP is undefined
-        if (!sidePanelNVP) {
-            return;
-        }
-
-        setIsSidePanelTransitionEnded(false);
-        KeyboardUtils.dismiss();
-        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth);
-    }, [isExtraLargeScreenWidth, sidePanelNVP]);
-
     const closeSidePanel = useCallback(
         (shouldUpdateNarrow = false) => {
             // User shouldn't be able to close side panel if side panel NVP is undefined
@@ -112,21 +100,13 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             shouldHideToolTip,
             sidePanelOffset,
             sidePanelTranslateX,
-            openSidePanel,
+            // Help panel is currently disabled. To open it manually, run:
+            // Onyx.set('nvp_sidePanel', { open: true }) in the console.
+            openSidePanel: () => {},
             closeSidePanel,
             sidePanelNVP,
         }),
-        [
-            closeSidePanel,
-            isSidePanelHiddenOrLargeScreen,
-            isSidePanelTransitionEnded,
-            openSidePanel,
-            shouldHideHelpButton,
-            shouldHideSidePanel,
-            shouldHideSidePanelBackdrop,
-            shouldHideToolTip,
-            sidePanelNVP,
-        ],
+        [closeSidePanel, isSidePanelHiddenOrLargeScreen, isSidePanelTransitionEnded, shouldHideHelpButton, shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideToolTip, sidePanelNVP],
     );
 
     return <SidePanelContext.Provider value={value}>{children}</SidePanelContext.Provider>;

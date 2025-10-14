@@ -77,6 +77,32 @@ describe('OnyxDerived', () => {
             });
         });
 
+        it('should clear the report attributes when the report is cleared', async () => {
+            renderLocaleContextProvider();
+            await waitForBatchedUpdates();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+
+            let derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+            expect(derivedReportAttributes).toMatchObject({
+                reports: {
+                    [mockReport.reportID]: {
+                        reportName: mockReport.reportName,
+                    },
+                },
+            });
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, null);
+
+            derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+            expect(derivedReportAttributes).toMatchObject({
+                reports: {},
+            });
+        });
+
         it('updates when locale changes', async () => {
             renderLocaleContextProvider();
             await waitForBatchedUpdates();
