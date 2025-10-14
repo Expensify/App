@@ -47,6 +47,11 @@ type CompilerFailure = {
     reason?: string;
 };
 
+type DiffFilteringCommits = {
+    from: string;
+    to: string;
+};
+
 type CommonCheckOptions = {
     remote?: string;
     shouldGenerateReport?: boolean;
@@ -71,8 +76,8 @@ function check({filesToCheck, shouldGenerateReport = false, reportFileName = DEF
     if (shouldFilterByDiff) {
         const mainBaseCommitHash = Git.getMainBranchCommitHash(remote);
         const headCommitHash = 'HEAD';
-        const diffCommits = {from: mainBaseCommitHash, to: headCommitHash};
-        results = filterResultsByDiff(results, diffCommits);
+        const diffFilteringCommits: DiffFilteringCommits = {from: mainBaseCommitHash, to: headCommitHash};
+        results = filterResultsByDiff(results, diffFilteringCommits);
     }
 
     const isPassed = results.failures.size === 0;
@@ -330,14 +335,14 @@ function createFilesGlob(filesToCheck?: string[]): string | undefined {
  * This helps focus on new issues introduced by the current changes rather than pre-existing issues.
  *
  * @param results - The compiler results to filter
- * @param diffCommits - The commit range to diff (from and to)
+ * @param diffFilteringCommits - The commit range to diff (from and to)
  * @returns Filtered compiler results containing only failures in changed lines
  */
-function filterResultsByDiff(results: CompilerResults, diffCommits: {from: string; to: string}): CompilerResults {
-    info(`Filtering results by diff between ${diffCommits.from} and ${diffCommits.to}...`);
+function filterResultsByDiff(results: CompilerResults, diffFilteringCommits: DiffFilteringCommits): CompilerResults {
+    info(`Filtering results by diff between ${diffFilteringCommits.from} and ${diffFilteringCommits.to}...`);
 
     // Get the diff between the two commits
-    const diffResult: DiffResult = Git.diff(diffCommits.from, diffCommits.to);
+    const diffResult: DiffResult = Git.diff(diffFilteringCommits.from, diffFilteringCommits.to);
 
     // If there are no changes, return empty results
     if (!diffResult.hasChanges) {
@@ -351,13 +356,8 @@ function filterResultsByDiff(results: CompilerResults, diffCommits: {from: strin
     const changedLinesMap = new Map<string, Set<number>>();
     for (const file of diffResult.files) {
         const changedLines = new Set<number>();
-
-        // Include all added lines
         file.addedLines.forEach((line) => changedLines.add(line));
-
-        // Include all modified lines
         file.modifiedLines.forEach((line) => changedLines.add(line));
-
         changedLinesMap.set(file.filePath, changedLines);
     }
 
@@ -394,7 +394,11 @@ function filterResultsByDiff(results: CompilerResults, diffCommits: {from: strin
         filteredSuccess.add(file);
     });
 
-    info(`Filtered ${results.failures.size} failures to ${filteredFailures.size} failures in changed lines.`);
+    if (filteredFailures.size === 0) {
+        info('No failures remain after filtering by diff.');
+    } else {
+        info(`${filteredFailures.size} out of ${results.failures.size} files remain after filtering by diff.`);
+    }
 
     return {
         success: filteredSuccess,
