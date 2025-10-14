@@ -1849,7 +1849,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-blob-util (0.19.4):
+  - react-native-blob-util (0.22.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3813,7 +3813,7 @@ SPEC CHECKSUMS:
   react-native-advanced-input-mask: e5fa44f25ae16ab5b8da75b5aed4236a5400a770
   react-native-airship: ff2599900d29e0e64ff2b2dd9f897c0c220a9163
   react-native-app-logs: 6540c5f6f66f33cb52d0bb62f0a10131ff3a9589
-  react-native-blob-util: a013bd1bb12de304a726c2308cc0e219f34ab66c
+  react-native-blob-util: 68f288ed8fd64a191a4d83ffa5a1dd375dc786d2
   react-native-cameraroll: d98f8a64b53620754864c33a034e054ca4a3b360
   react-native-config: ab9f9cc16883aed5355ca43478fe39e6aec5ebb9
   react-native-document-picker: 06ad77eb1650e628def114ff74f9f767f1888edd

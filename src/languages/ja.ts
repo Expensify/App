@@ -971,6 +971,7 @@ const translations = {
         buttonMySettings: '私の設定',
         fabNewChat: 'チャットを開始',
         fabNewChatExplained: 'チャットを開始 (フローティングアクション)',
+        fabScanReceiptExplained: 'レシートをスキャン（フローティングアクション）',
         chatPinned: 'チャットがピン留めされました',
         draftedMessage: '下書きメッセージ',
         listOfChatMessages: 'チャットメッセージのリスト',
@@ -1474,6 +1475,7 @@ const translations = {
                 subtitle: '承認ワークフローの残りの部分を経由する前に、このレポートの追加の承認者を選択してください。',
             },
         },
+        chooseWorkspace: 'ワークスペースを選択',
     },
     transactionMerge: {
         listPage: {
@@ -6351,8 +6353,8 @@ ${date} - ${merchant}に${amount}`,
         noActivityYet: 'まだ活動がありません',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `${fieldName}を${oldValue}から${newValue}に変更しました`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `${fieldName}を${newValue}に変更しました`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `${fieldName}を"${newValue}"に変更しました（以前は"${oldValue}"でした）`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `${fieldName}を"${newValue}"に設定しました`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `ワークスペースを変更しました${fromPolicyName ? `（以前は ${fromPolicyName}）` : ''}`;
