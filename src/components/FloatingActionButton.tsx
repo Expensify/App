@@ -92,29 +92,30 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
         onLongPress?.(event);
     };
 
-    return (
-        <PressableWithoutFeedback
-            ref={(el) => {
-                fabPressable.current = el ?? null;
-                if (buttonRef && 'current' in buttonRef) {
-                    buttonRef.current = el ?? null;
-                }
-            }}
-            style={[
-                styles.navigationTabBarFABItem,
+    if (isLHBVisible) {
+        return (
+            <PressableWithoutFeedback
+                ref={(el) => {
+                    fabPressable.current = el ?? null;
+                    if (buttonRef && 'current' in buttonRef) {
+                        buttonRef.current = el ?? null;
+                    }
+                }}
+                style={[
+                    styles.navigationTabBarFABItem,
 
-                // Prevent text selection on touch devices (e.g. on long press)
-                canUseTouchScreen() && styles.userSelectNone,
-            ]}
-            accessibilityLabel={accessibilityLabel}
-            onPress={toggleFabAction}
-            onLongPress={longPressFabAction}
-            role={role}
-            shouldUseHapticsOnLongPress
-            testID="floating-action-button"
-        >
-            {({hovered}) =>
-                isLHBVisible ? (
+                    // Prevent text selection on touch devices (e.g. on long press)
+                    canUseTouchScreen() && styles.userSelectNone,
+                    styles.flex1,
+                ]}
+                accessibilityLabel={accessibilityLabel}
+                onPress={toggleFabAction}
+                onLongPress={longPressFabAction}
+                role={role}
+                shouldUseHapticsOnLongPress
+                testID="floating-action-button"
+            >
+                {({hovered}) => (
                     <Animated.View
                         style={[styles.floatingActionButton, {borderRadius}, styles.floatingActionButtonSmall, animatedStyle, hovered && {backgroundColor: buttonHoveredBG}]}
                         testID="fab-animated-container"
@@ -129,32 +130,46 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                             />
                         </Svg>
                     </Animated.View>
-                ) : (
-                    <PressableWithFeedback
-                        onPress={toggleFabAction}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('common.create')}
-                        wrapperStyle={styles.flex1}
-                        style={styles.navigationTabBarItem}
-                    >
-                        <View>
-                            <Icon
-                                src={PlusCircle}
-                                fill={icon}
-                                width={variables.iconBottomBar}
-                                height={variables.iconBottomBar}
-                            />
-                        </View>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.textSmall, styles.textAlignCenter, styles.mt1Half, styles.textSupporting, styles.navigationTabBarLabel]}
-                        >
-                            {translate('common.create')}
-                        </Text>
-                    </PressableWithFeedback>
-                )
-            }
-        </PressableWithoutFeedback>
+                )}
+            </PressableWithoutFeedback>
+        );
+    }
+
+    return (
+        <PressableWithFeedback
+            onPress={onPress}
+            role={CONST.ROLE.BUTTON}
+            accessibilityLabel={translate('common.create')}
+            wrapperStyle={styles.flex1}
+            style={[
+                styles.navigationTabBarFABItem,
+
+                // Prevent text selection on touch devices (e.g. on long press)
+                canUseTouchScreen() && styles.userSelectNone,
+                styles.flex1,
+            ]}
+            testID="create-action-button"
+        >
+            <View
+                testID="fab-container"
+                style={styles.navigationTabBarItem}
+            >
+                <View>
+                    <Icon
+                        src={PlusCircle}
+                        fill={icon}
+                        width={variables.iconBottomBar}
+                        height={variables.iconBottomBar}
+                    />
+                </View>
+                <Text
+                    numberOfLines={1}
+                    style={[styles.textSmall, styles.textAlignCenter, styles.mt1Half, styles.textSupporting, styles.navigationTabBarLabel]}
+                >
+                    {translate('common.create')}
+                </Text>
+            </View>
+        </PressableWithFeedback>
     );
 }
 
