@@ -1269,8 +1269,11 @@ describe('DebugUtils', () => {
                         };
                         await Onyx.multiSet({
                             [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                                amount: 0,
-                                modifiedAmount: 0,
+                                transactionID: '1',
+                                reportID: '1',
+                                amount: 100,
+                                merchant: 'Test Merchant',
+                                created: '',
                             },
                             [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_IOU_REPORT,
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_REPORT_ACTIONS,
@@ -1329,8 +1332,10 @@ describe('DebugUtils', () => {
                         };
                         await Onyx.multiSet({
                             [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                                amount: 0,
-                                modifiedAmount: 0,
+                                transactionID: '1',
+                                reportID: '1',
+                                amount: 100,
+                                merchant: '',
                             },
                             [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_IOU_REPORT,
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_REPORT_ACTIONS,
@@ -1354,7 +1359,7 @@ describe('DebugUtils', () => {
                     };
                     const MOCK_IOU_REPORT: Report = {
                         reportID: '2',
-                        type: CONST.REPORT.TYPE.IOU,
+                        type: CONST.REPORT.TYPE.EXPENSE,
                         statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                         ownerAccountID: 12345,
                     };
@@ -1388,8 +1393,10 @@ describe('DebugUtils', () => {
                     };
                     await Onyx.multiSet({
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                            amount: 0,
-                            modifiedAmount: 0,
+                            transactionID: '1',
+                            reportID: '2',
+                            amount: 100,
+                            merchant: '',
                         },
                         [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_CHAT_REPORT,
                         [`${ONYXKEYS.COLLECTION.REPORT}2` as const]: MOCK_IOU_REPORT,
@@ -1409,6 +1416,7 @@ describe('DebugUtils', () => {
                         reportID: '1',
                         type: CONST.REPORT.TYPE.CHAT,
                         ownerAccountID: 1,
+                        isOwnPolicyExpenseChat: true,
                     };
                     const MOCK_IOU_REPORT: Report = {
                         reportID: '2',
@@ -1453,8 +1461,17 @@ describe('DebugUtils', () => {
                     };
                     await Onyx.multiSet({
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                            amount: 0,
-                            modifiedAmount: 0,
+                            transactionID: '1',
+                            reportID: '1',
+                            amount: 100,
+                            merchant: '',
+                            comment: {
+                                splits: [
+                                    {
+                                        chatReportID: '1',
+                                    },
+                                ],
+                            },
                         },
                         [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_CHAT_REPORT,
                         [`${ONYXKEYS.COLLECTION.REPORT}2` as const]: MOCK_IOU_REPORT,
@@ -1512,8 +1529,10 @@ describe('DebugUtils', () => {
                     };
                     await Onyx.multiSet({
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                            amount: 0,
-                            modifiedAmount: 0,
+                            transactionID: '1',
+                            reportID: '1',
+                            amount: 100,
+                            merchant: '',
                         },
                         [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_IOU_REPORT,
                         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_REPORT_ACTIONS,

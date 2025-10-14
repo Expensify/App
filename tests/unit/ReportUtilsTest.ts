@@ -7072,6 +7072,7 @@ describe('ReportUtils', () => {
         };
         const parentReport: Report = {
             ...createRandomReport(40004),
+            type: CONST.REPORT.TYPE.EXPENSE,
             statusNum: 0,
         };
         const reportAction1: ReportAction = {
@@ -7147,8 +7148,14 @@ describe('ReportUtils', () => {
             });
             const transaction: Transaction = {
                 ...createRandomTransaction(12345),
+                transactionID: '12345',
                 reportID: parentReport.reportID,
-                amount: 0,
+                amount: 100,
+                merchant: 'Test Merchant',
+                created: '',
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCANCOMPLETE,
+                },
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
