@@ -8290,7 +8290,7 @@ const reportSummariesOnyxSelector = (reports: Parameters<typeof getReportSummari
 function hasEmptyReportsForPolicy(
     reports: OnyxCollection<Report> | Array<Report | ReportEmptyStateSummary | null | undefined> | undefined,
     policyID: string | undefined,
-    accountID?: number,
+    accountID: number | undefined,
     reportsTransactionsParam: Record<string, Transaction[]> = reportsTransactions,
 ): boolean {
     if (!policyID || !accountID) {
