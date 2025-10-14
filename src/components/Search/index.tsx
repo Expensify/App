@@ -143,6 +143,7 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType)
             amount: 0,
             convertedAmount: 0,
             convertedCurrency: '',
+            currency: '',
         },
     ];
 }

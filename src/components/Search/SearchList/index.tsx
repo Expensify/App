@@ -245,7 +245,6 @@ function SearchList({
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
             const currentRoute = navigationRef.current?.getCurrentRoute();
-            const isReadonlyGroupBy = groupBy && groupBy !== CONST.SEARCH.GROUP_BY.REPORTS;
             if (currentRoute && route.key !== currentRoute.key) {
                 return;
             }
@@ -254,10 +253,7 @@ function SearchList({
             if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox) {
                 return;
             }
-            // disable long press for empty expense reports
-            if ('transactions' in item && item.transactions.length === 0 && !isReadonlyGroupBy) {
-                return;
-            }
+
             if (isMobileSelectionModeEnabled) {
                 onCheckboxPress(item);
                 return;
@@ -265,7 +261,7 @@ function SearchList({
             setLongPressedItem(item);
             setIsModalVisible(true);
         },
-        [groupBy, route.key, shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled, onCheckboxPress],
+        [route.key, shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled, onCheckboxPress],
     );
 
     const turnOnSelectionMode = useCallback(() => {
