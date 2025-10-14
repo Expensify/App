@@ -960,6 +960,7 @@ const translations = {
         buttonMySettings: 'My settings',
         fabNewChat: 'Start chat',
         fabNewChatExplained: 'Start chat (Floating action)',
+        fabScanReceiptExplained: 'Scan receipt (Floating action)',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
         listOfChatMessages: 'List of chat messages',
@@ -1452,6 +1453,7 @@ const translations = {
                 subtitle: 'Choose an additional approver for this report before we route through the rest of the approval workflow.',
             },
         },
+        chooseWorkspace: 'Choose a workspace',
     },
     transactionMerge: {
         listPage: {
