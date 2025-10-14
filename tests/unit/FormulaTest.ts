@@ -232,6 +232,85 @@ describe('CustomFormula', () => {
             const result = compute('Report with type after 4 spaces   {report:type}-and no space after computed part', mockContext);
             expect(result).toBe('Report with type after 4 spaces   Expense Report-and no space after computed part');
         });
+
+        describe('Reimbursable Amount', () => {
+            const reimbursableContext: FormulaContext = {
+                report: {
+                    reportID: '123',
+                    reportName: '',
+                    type: 'expense',
+                    policyID: 'policy1',
+                },
+                policy: {
+                    name: 'Test Policy',
+                } as Policy,
+            };
+
+            beforeEach(() => {
+                jest.clearAllMocks();
+            });
+
+            test('should compute reimbursable amount', () => {
+                reimbursableContext.report.currency = 'USD';
+                reimbursableContext.report.total = -10000; // -$100.00
+                reimbursableContext.report.nonReimbursableTotal = -2500; // -$25.00
+                // reimbursableSpend = $100.00 - $25.00 = $75.00
+                const result = compute('{report:reimbursable}', reimbursableContext);
+                expect(result).toBe('$75.00');
+            });
+
+            test('should compute reimbursable amount with different currency', () => {
+                reimbursableContext.report.currency = 'EUR';
+                reimbursableContext.report.total = -8000; // -€80.00
+                reimbursableContext.report.nonReimbursableTotal = -3000; // -€30.00
+                // reimbursableSpend = €80.00 - €30.00 = €50.00
+                const result = compute('{report:reimbursable}', reimbursableContext);
+                // TODO: Update when `formatAmount()` supports the EUR symbol; it should be '€50.00'
+                expect(result).toBe('EUR50.00');
+            });
+
+            test('should handle zero reimbursable amount', () => {
+                reimbursableContext.report.currency = 'USD';
+                reimbursableContext.report.total = -10000; // -$100.00
+                reimbursableContext.report.nonReimbursableTotal = -10000; // -$100.00 (all non-reimbursable)
+                // reimbursableSpend = $100.00 - $100.00 = $0.00
+                const result = compute('{report:reimbursable}', reimbursableContext);
+                expect(result).toBe('$0.00');
+            });
+
+            test('should handle undefined reimbursable amount', () => {
+                reimbursableContext.report.currency = 'USD';
+                reimbursableContext.report.total = undefined;
+                reimbursableContext.report.nonReimbursableTotal = undefined;
+                const result = compute('{report:reimbursable}', reimbursableContext);
+                expect(result).toBe('$0.00');
+            });
+
+            test('should handle missing currency gracefully', () => {
+                reimbursableContext.report.currency = undefined;
+                reimbursableContext.report.total = -10000; // -100.00
+                reimbursableContext.report.nonReimbursableTotal = -2500; // -25.00
+                // reimbursableSpend = 100.00 - 25.00 = 75.00
+                mockCurrencyUtils.getCurrencySymbol.mockReturnValue(undefined);
+                const result = compute('{report:reimbursable}', reimbursableContext);
+                expect(result).toBe('75.00');
+            });
+
+            test('should handle one undefined value in reimbursable amount', () => {
+                reimbursableContext.report.currency = 'USD';
+                reimbursableContext.report.total = -10000; // -$100.00
+                reimbursableContext.report.nonReimbursableTotal = undefined; // Undefined non-reimbursable total
+                // reimbursableSpend = $100.00 - $0.00 = $100.00
+                const result = compute('{report:reimbursable}', reimbursableContext);
+                expect(result).toBe('$100.00');
+
+                reimbursableContext.report.total = undefined; // Undefined total
+                reimbursableContext.report.nonReimbursableTotal = -2500; // -$25.00
+                // reimbursableSpend = $0.00 - $25.00 = -$25.00
+                const resultWithUndefinedTotal = compute('{report:reimbursable}', reimbursableContext);
+                expect(resultWithUndefinedTotal).toBe('$25.00');
+            });
+        });
     });
 
     describe('Function Modifiers', () => {
