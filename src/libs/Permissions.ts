@@ -19,10 +19,6 @@ function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?:
     const hasAllBetasEnabled = canUseAllBetas(betas);
     const isFeatureEnabled = !!betas?.includes(beta);
 
-    if (beta === CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS) {
-        return true;
-    }
-
     // Explicit only betas and exclusion betas are not enabled only by the 'all' beta. Explicit only betas must be set explicitly to enable the feature.
     // Exclusion betas are designed to disable features, so being on the 'all' beta should not disable these features as that contradicts its purpose.
     if (((betaConfiguration?.explicitOnly?.includes(beta) ?? false) || (betaConfiguration?.exclusion?.includes(beta) ?? false)) && hasAllBetasEnabled && !isFeatureEnabled) {
