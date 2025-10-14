@@ -364,6 +364,23 @@ class Git {
         return mergeBaseHash;
     }
 
+    /**
+     * Check if there are any uncommitted changes (both staged and unstaged).
+     *
+     * @returns true if there are uncommitted changes, false otherwise
+     */
+    static hasUncommittedChanges(): boolean {
+        try {
+            const status = execSync('git status --porcelain', {
+                encoding: 'utf8',
+                cwd: process.cwd(),
+            }).trim();
+            return status.length > 0;
+        } catch (error) {
+            return false;
+        }
+    }
+
     static async getChangedFiles(fromRef: string, toRef = 'HEAD'): Promise<string[]> {
         if (IS_CI) {
             const {data: changedFiles} = await GitHubUtils.octokit.pulls.listFiles({

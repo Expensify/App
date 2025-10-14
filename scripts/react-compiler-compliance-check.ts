@@ -339,6 +339,11 @@ function createFilesGlob(filesToCheck?: string[]): string | undefined {
  * @returns Filtered compiler results containing only failures in changed lines
  */
 function filterResultsByDiff(results: CompilerResults, diffFilteringCommits: DiffFilteringCommits): CompilerResults {
+    // Check for uncommitted changes and warn if any exist
+    if (Git.hasUncommittedChanges()) {
+        warn('Warning: You have uncommitted changes. The diff results may not accurately reflect your current working directory.');
+    }
+
     info(`Filtering results by diff between ${diffFilteringCommits.from} and ${diffFilteringCommits.to}...`);
 
     // Get the diff between the two commits
