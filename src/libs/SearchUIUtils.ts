@@ -932,7 +932,7 @@ function getTransactionViolations(allViolations: OnyxCollection<OnyxTypes.Transa
  */
 function createReportActionsByTransactionIDMap(data: OnyxTypes.SearchResults['data']): Map<string, OnyxTypes.ReportAction> {
     const reportActionsByTransactionID = new Map<string, OnyxTypes.ReportAction>();
-    
+
     for (const key of Object.keys(data)) {
         if (isReportActionEntry(key)) {
             const actions = Object.values(data[key]);
@@ -947,7 +947,7 @@ function createReportActionsByTransactionIDMap(data: OnyxTypes.SearchResults['da
             }
         }
     }
-    
+
     return reportActionsByTransactionID;
 }
 

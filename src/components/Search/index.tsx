@@ -85,10 +85,7 @@ type SearchProps = {
 
 const expenseHeaders = getExpenseHeaders();
 
-function mapTransactionItemToSelectedEntry(
-    item: TransactionListItemType,
-    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-): [string, SelectedTransactionInfo] {
+function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue): [string, SelectedTransactionInfo] {
     return [
         item.keyForList,
         {
@@ -162,11 +159,7 @@ function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions:
           };
 }
 
-function prepareTransactionsList(
-    item: TransactionListItemType,
-    selectedTransactions: SelectedTransactions,
-    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-) {
+function prepareTransactionsList(item: TransactionListItemType, selectedTransactions: SelectedTransactions, outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
 

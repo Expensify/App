@@ -33,12 +33,12 @@ import type {
     SearchCardGroup,
     SearchMemberGroup,
     SearchPersonalDetails,
+    SearchPolicy,
     SearchReport,
     SearchReportAction,
     SearchTask,
     SearchTransaction,
     SearchWithdrawalIDGroup,
-    SearchPolicy,
 } from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
