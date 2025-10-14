@@ -162,7 +162,7 @@ function SettlementButton({
         return formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
     }
 
-    const checkForNecessaryAction = () => {
+    const checkForNecessaryAction = useCallback(() => {
         if (isAccountLocked) {
             showLockedAccountModal();
             return true;
@@ -179,7 +179,7 @@ function SettlementButton({
         }
 
         return false;
-    };
+    }, [policy, isAccountLocked, isUserValidated]);
 
     const getPaymentSubitems = useCallback(
         (payAsBusiness: boolean) => {
@@ -207,7 +207,7 @@ function SettlementButton({
                     value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
                 }));
         },
-        [formattedPaymentMethods, onPress],
+        [formattedPaymentMethods, onPress, checkForNecessaryAction],
     );
 
     const personalBankAccountList = getLatestPersonalBankAccount();
@@ -386,6 +386,7 @@ function SettlementButton({
         onlyShowPayElsewhere,
         latestBankItem,
         activeAdminPolicies,
+        checkForNecessaryAction,
     ]);
 
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => {
