@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {InteractionManager} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import EmbeddedDemo from '@components/EmbeddedDemo';
 import Modal from '@components/Modal';
@@ -18,6 +19,7 @@ import {getTestDriveURL} from '@libs/TourUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
 import TestDriveBanner from './TestDriveBanner';
 
 function TestDriveDemo() {
@@ -34,9 +36,16 @@ function TestDriveDemo() {
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
     const {testDrive} = useOnboardingMessages();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
+    const isUserPaidPolicyAdminSelector = useCallback(
+        (policies: OnyxCollection<Policy>) => {
+            return Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, currentUserPersonalDetails.login));
+        },
+        [currentUserPersonalDetails.login],
+    );
     const [isCurrentUserPolicyAdmin = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
-        selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, currentUserPersonalDetails.login)),
+        selector: isUserPaidPolicyAdminSelector,
     });
 
     useEffect(() => {

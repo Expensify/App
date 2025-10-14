@@ -153,9 +153,17 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         canBeMissing: true,
     });
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
+
+    const isUserPaidPolicyMemberSelector = useCallback(
+        (policies: OnyxCollection<OnyxTypes.Policy>) => {
+            return Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login));
+        },
+        [currentUserPersonalDetails.login],
+    );
+
     const [isUserPaidPolicyMember = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
-        selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
+        selector: isUserPaidPolicyMemberSelector,
     });
     const reportID = useMemo(() => generateReportID(), []);
 
