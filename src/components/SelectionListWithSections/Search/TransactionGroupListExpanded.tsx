@@ -132,7 +132,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
     const onShowMoreButtonPress = useCallback(() => {
         if (isGroupByReports) {
-            setTransactionsVisibleLimit((currentPageSize) => currentPageSize + CONST.SEARCH.RESULTS_PAGE_SIZE);
+            setTransactionsVisibleLimit((currentPageSize) => currentPageSize + CONST.TRANSACTION.RESULTS_PAGE_SIZE);
         } else if (!isOffline && transactionsQueryJSON) {
             searchTransactions(CONST.SEARCH.RESULTS_PAGE_SIZE);
         }

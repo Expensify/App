@@ -86,7 +86,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`, {canBeMissing: true});
 
     const isGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
-    const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.SEARCH.RESULTS_PAGE_SIZE as number);
+    const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
     const [isExpanded, setIsExpanded] = useState(false);
 
     const transactions = useMemo(() => {
@@ -161,7 +161,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const handleToggle = useCallback(() => {
         setIsExpanded(!isExpanded);
         if (isExpanded) {
-            setTransactionsVisibleLimit(CONST.SEARCH.RESULTS_PAGE_SIZE);
+            setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
         }
     }, [isExpanded]);
 
