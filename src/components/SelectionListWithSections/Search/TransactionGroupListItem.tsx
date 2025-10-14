@@ -38,6 +38,7 @@ import {search} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import resolvePendingActionForVisualFeedback from '@libs/PendingActionUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getSections} from '@libs/SearchUIUtils';
 import {getTransactionViolations} from '@libs/TransactionUtils';
@@ -326,10 +327,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
-    const pendingAction =
-        (item.pendingAction ?? (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)))
-            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-            : undefined;
+    const pendingAction = resolvePendingActionForVisualFeedback(item.pendingAction, groupItem.transactions);
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
