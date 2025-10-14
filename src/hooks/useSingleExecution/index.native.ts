@@ -24,6 +24,7 @@ export default function useSingleExecution() {
                 isExecutingRef.current = true;
 
                 const execution = action(...params);
+                // eslint-disable-next-line deprecation/deprecation
                 InteractionManager.runAfterInteractions(() => {
                     if (!(execution instanceof Promise)) {
                         setIsExecuting(false);

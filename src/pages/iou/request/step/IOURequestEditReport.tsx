@@ -1,14 +1,20 @@
 import React from 'react';
 import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
+import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {createNewReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -32,6 +38,11 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     const session = useSession();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
 
     const selectReport = (item: TransactionGroupListItem) => {
         if (selectedTransactionIDs.length === 0 || item.value === reportID) {
@@ -47,6 +58,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             session?.email ?? '',
             allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
             reportNextStep,
+            allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
         );
         turnOffMobileSelectionMode();
         clearSelectedTransactions(true);
@@ -65,6 +77,22 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         Navigation.dismissModal();
     };
 
+    const createReport = () => {
+        if (!policyForMovingExpensesID && !shouldSelectPolicy) {
+            return;
+        }
+        if (shouldSelectPolicy) {
+            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true, backTo));
+            return;
+        }
+        if (policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
+            return;
+        }
+        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
+        selectReport({value: createdReportID});
+    };
+
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
@@ -73,6 +101,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             selectReport={selectReport}
             removeFromReport={removeFromReport}
             isEditing={action === CONST.IOU.ACTION.EDIT}
+            createReport={createReport}
         />
     );
 }

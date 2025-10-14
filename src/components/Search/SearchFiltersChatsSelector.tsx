@@ -2,8 +2,8 @@ import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -53,6 +53,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const [selectedReportIDs, setSelectedReportIDs] = useState<string[]>(initialReportIDs);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     const selectedOptions = useMemo<OptionData[]>(() => {
         return selectedReportIDs.map((id) => {
@@ -66,8 +67,8 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, undefined, false);
-    }, [areOptionsInitialized, isScreenTransitionEnd, options]);
+        return getSearchOptions({options, draftComments, betas: undefined, isUsedInChatFinder: false});
+    }, [areOptionsInitialized, draftComments, isScreenTransitionEnd, options]);
 
     const chatOptions = useMemo(() => {
         return filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, {

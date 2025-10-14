@@ -1,9 +1,9 @@
 import type {Ref} from 'react';
 import React, {useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type {SelectionListHandle} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
+import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -44,6 +44,7 @@ function ShareTab({ref}: ShareTabProps) {
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     useImperativeHandle(ref, () => ({
         focus: selectionListRef.current?.focusTextInput,
@@ -60,8 +61,17 @@ function ShareTab({ref}: ShareTabProps) {
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, betas ?? [], false, false, textInputValue, 20, true);
-    }, [areOptionsInitialized, betas, options, textInputValue]);
+        return getSearchOptions({
+            options,
+            draftComments,
+            betas: betas ?? [],
+            isUsedInChatFinder: false,
+            includeReadOnly: false,
+            searchQuery: textInputValue,
+            maxResults: 20,
+            includeUserToInvite: true,
+        });
+    }, [areOptionsInitialized, betas, draftComments, options, textInputValue]);
 
     const recentReportsOptions = useMemo(() => {
         if (textInputValue.trim() === '') {

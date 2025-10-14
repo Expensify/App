@@ -15,9 +15,9 @@ import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
 import type {SearchFilterKey, SearchQueryString} from '@components/Search/types';
-import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
-import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
-import type {SelectionListHandle} from '@components/SelectionList/types';
+import type {SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
+import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
+import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
@@ -117,6 +117,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const textInputRef = useRef<AnimatedTextInputRef>(null);
 
     const contextualReportID = useRootNavigationState((state) => {
+        // Safe handling when navigation is not yet initialized
+        if (!state) {
+            return undefined;
+        }
+
         const focusedRoute = findFocusedRoute(state);
         if (focusedRoute?.name === SCREENS.REPORT) {
             // We're guaranteed that the type of params is of SCREENS.REPORT
@@ -314,6 +319,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
             const setFocusAndScrollToRight = () => {
                 try {
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => {
                         if (!textInputRef.current) {
                             Log.info('[CMD_K_DEBUG] Focus skipped - no text input ref', false, {
@@ -466,6 +472,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
         onRouterClose();
     });
+    const updateAndScrollToFocusedIndex = useCallback(() => listRef.current?.updateAndScrollToFocusedIndex(1, true), []);
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
 
@@ -517,7 +524,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     onListItemPress={onListItemPress}
                     setTextQuery={setTextAndUpdateSelection}
                     updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
-                    onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
+                    onHighlightFirstItem={updateAndScrollToFocusedIndex}
                     ref={listRef}
                     textInputRef={textInputRef}
                     personalDetails={personalDetails}
