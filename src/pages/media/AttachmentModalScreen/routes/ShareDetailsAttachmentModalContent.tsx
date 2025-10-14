@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {getValidatedImageSource} from '@libs/AvatarUtils';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
@@ -10,7 +10,7 @@ import useReportAttachmentModalType from './hooks/useReportAttachmentModalType';
 function ShareDetailsAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT>) {
     const {source: sourceParam, originalFileName, headerTitle, onShow, onClose} = route.params;
 
-    const source = useMemo(() => getValidatedImageSource(sourceParam), [sourceParam]);
+    const source = useMemo(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined), [sourceParam]);
 
     const onDownloadAttachment = useDownloadAttachment({});
 
