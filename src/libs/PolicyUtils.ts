@@ -1422,7 +1422,14 @@ function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Pol
     return Object.values(policies).filter((policy) => isPaidGroupPolicy(policy) && policy?.isPolicyExpenseChatEnabled);
 }
 
-function getInferredWorkspacePolicy(groupPoliciesWithChatEnabled: Array<OnyxInputOrEntry<Policy>>, activePolicy?: OnyxInputOrEntry<Policy> | null): OnyxInputOrEntry<Policy> | undefined {
+/**
+ * This method checks if the active policy has expense chat enabled and is a paid group policy.
+ * If true, it returns the active policy itself, else it returns the first policy from groupPoliciesWithChatEnabled.
+ *
+ * Further, if groupPoliciesWithChatEnabled is empty, then it returns undefined
+ * and the user would be taken to the workspace selection page.
+ */
+function getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled: Array<OnyxInputOrEntry<Policy>>, activePolicy?: OnyxInputOrEntry<Policy> | null): OnyxInputOrEntry<Policy> | undefined {
     if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
         return activePolicy;
     }
@@ -1683,7 +1690,7 @@ export {
     areSettingsInErrorFields,
     settingsPendingAction,
     getGroupPaidPoliciesWithExpenseChatEnabled,
-    getInferredWorkspacePolicy,
+    getDefaultChatEnabledPolicy,
     getForwardsToAccount,
     getSubmitToAccountID,
     getWorkspaceAccountID,

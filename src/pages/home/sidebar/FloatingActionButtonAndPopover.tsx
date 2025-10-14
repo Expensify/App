@@ -42,8 +42,8 @@ import Permissions from '@libs/Permissions';
 import {
     areAllGroupPoliciesExpenseChatDisabled,
     canSendInvoice as canSendInvoicePolicyUtils,
+    getDefaultChatEnabledPolicy,
     getGroupPaidPoliciesWithExpenseChatEnabled,
-    getInferredWorkspacePolicy,
     isPaidGroupPolicy,
     isPolicyMember,
     shouldShowPolicy,
@@ -195,20 +195,20 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     }, [allPolicies]);
     const shouldShowCreateReportOption = shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0;
 
-    const inferredWorkspacePolicy = useMemo(
-        () => getInferredWorkspacePolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy),
+    const defaultChatEnabledPolicy = useMemo(
+        () => getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy),
         [activePolicy, groupPoliciesWithChatEnabled],
     );
 
-    const inferredWorkspaceID = inferredWorkspacePolicy?.id;
+    const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
 
-    const hasEmptyReportForInferredWorkspace = useMemo(
-        () => hasEmptyReportsForPolicy(reportSummaries, inferredWorkspaceID, session?.accountID),
-        [inferredWorkspaceID, reportSummaries, session?.accountID],
+    const hasEmptyReportForDefaultChatEnabledPolicy = useMemo(
+        () => hasEmptyReportsForPolicy(reportSummaries, defaultChatEnabledPolicyID, session?.accountID),
+        [defaultChatEnabledPolicyID, reportSummaries, session?.accountID],
     );
 
     const handleCreateWorkspaceReport = useCallback(() => {
-        if (!inferredWorkspaceID) {
+        if (!defaultChatEnabledPolicyID) {
             return;
         }
 
@@ -216,7 +216,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             clearLastSearchParams();
         }
 
-        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, inferredWorkspaceID);
+        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, defaultChatEnabledPolicyID);
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(
                 isSearchTopmostFullScreenRoute()
@@ -225,11 +225,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 {forceReplace: isReportInSearch},
             );
         });
-    }, [currentUserPersonalDetails, hasViolations, inferredWorkspaceID, isASAPSubmitBetaEnabled, isReportInSearch]);
+    }, [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicyID, isASAPSubmitBetaEnabled, isReportInSearch]);
 
     const {openCreateReportConfirmation: openFabCreateReportConfirmation, CreateReportConfirmationModal: FabCreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
-        policyID: inferredWorkspaceID,
-        policyName: inferredWorkspacePolicy?.name ?? '',
+        policyID: defaultChatEnabledPolicyID,
+        policyName: defaultChatEnabledPolicy?.name ?? '',
         onConfirm: handleCreateWorkspaceReport,
     });
 
@@ -524,7 +524,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                                   return;
                               }
 
-                              const workspaceIDForReportCreation = inferredWorkspaceID;
+                              const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
 
                               if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
                                   // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
@@ -534,7 +534,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
                               if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
                                   // Check if empty report confirmation should be shown
-                                  if (hasEmptyReportForInferredWorkspace) {
+                                  if (hasEmptyReportForDefaultChatEnabledPolicy) {
                                       openFabCreateReportConfirmation();
                                   } else {
                                       handleCreateWorkspaceReport();

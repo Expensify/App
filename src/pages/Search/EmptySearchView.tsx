@@ -37,7 +37,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import Permissions from '@libs/Permissions';
-import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, getInferredWorkspacePolicy, isPaidGroupPolicy, isPolicyMember} from '@libs/PolicyUtils';
+import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy, isPolicyMember} from '@libs/PolicyUtils';
 import {generateReportID, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils, reportSummariesOnyxSelector} from '@libs/ReportUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -193,34 +193,34 @@ function EmptySearchViewContent({
         return areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
     }, [allPolicies]);
 
-    const inferredWorkspacePolicy = useMemo(
-        () => getInferredWorkspacePolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<Policy>>, activePolicy),
+    const defaultChatEnabledPolicy = useMemo(
+        () => getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<Policy>>, activePolicy),
         [activePolicy, groupPoliciesWithChatEnabled],
     );
 
-    const inferredWorkspaceID = inferredWorkspacePolicy?.id;
+    const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
 
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
     const [reportSummaries = getEmptyArray<ReportSummary>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         canBeMissing: true,
         selector: reportSummariesOnyxSelector,
     });
-    const hasEmptyReport = useMemo(() => hasEmptyReportsForPolicy(reportSummaries, inferredWorkspaceID, accountID), [accountID, inferredWorkspaceID, reportSummaries]);
+    const hasEmptyReport = useMemo(() => hasEmptyReportsForPolicy(reportSummaries, defaultChatEnabledPolicyID, accountID), [accountID, defaultChatEnabledPolicyID, reportSummaries]);
 
     const handleCreateWorkspaceReport = useCallback(() => {
-        if (!inferredWorkspaceID) {
+        if (!defaultChatEnabledPolicyID) {
             return;
         }
 
-        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, inferredWorkspaceID);
+        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, defaultChatEnabledPolicyID);
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
         });
-    }, [currentUserPersonalDetails, hasViolations, inferredWorkspaceID, isASAPSubmitBetaEnabled]);
+    }, [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicyID, isASAPSubmitBetaEnabled]);
 
     const {openCreateReportConfirmation: openCreateReportFromSearch, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
-        policyID: inferredWorkspaceID,
-        policyName: inferredWorkspacePolicy?.name ?? '',
+        policyID: defaultChatEnabledPolicyID,
+        policyName: defaultChatEnabledPolicy?.name ?? '',
         onConfirm: handleCreateWorkspaceReport,
     });
 
@@ -368,7 +368,7 @@ function EmptySearchViewContent({
                                   buttonText: translate('quickAction.createReport'),
                                   buttonAction: () => {
                                       interceptAnonymousUser(() => {
-                                          const workspaceIDForReportCreation = inferredWorkspaceID;
+                                          const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
 
                                           if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
                                               // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
@@ -508,7 +508,7 @@ function EmptySearchViewContent({
         tripViewChildren,
         hasTransactions,
         shouldRedirectToExpensifyClassic,
-        inferredWorkspaceID,
+        defaultChatEnabledPolicyID,
         handleCreateReportClick,
     ]);
 
