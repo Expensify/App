@@ -7,7 +7,7 @@ import type SCREENS from '@src/SCREENS';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 import useReportAttachmentModalType from './hooks/useReportAttachmentModalType';
 
-function ShareDetailsAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.ATTACHMENTS>) {
+function ShareDetailsAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT>) {
     const {source: sourceParam, originalFileName, headerTitle, onShow, onClose} = route.params;
 
     const source = useMemo(() => getValidatedImageSource(sourceParam), [sourceParam]);
@@ -26,7 +26,7 @@ function ShareDetailsAttachmentModalContent({route, navigation}: AttachmentModal
 
     const modalType = useReportAttachmentModalType(source);
     return (
-        <AttachmentModalContainer<typeof SCREENS.ATTACHMENTS>
+        <AttachmentModalContainer<typeof SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT>
             navigation={navigation}
             contentProps={contentProps}
             modalType={modalType}
