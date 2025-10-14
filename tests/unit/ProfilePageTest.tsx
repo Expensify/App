@@ -54,8 +54,8 @@ describe('ProfilePage contact method indicator', () => {
         return render(
             <NavigationContainer>
                 <ComposeProviders components={[DelegateNoAccessModalProvider]}>
-                    {/* @ts-expect-error - route typing is not necessary for this test */}
                     <ProfilePage
+                        // @ts-expect-error - route typing is not necessary for this test
                         route={{}}
                         navigation={{}}
                     />
