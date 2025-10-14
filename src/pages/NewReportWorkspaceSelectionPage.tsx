@@ -111,7 +111,6 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 if (selectedTransactionsKeys.length) {
                     clearSelectedTransactions();
                 }
-                Navigation.dismissModal();
                 Navigation.goBack(backTo ?? ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
                 return;
             }

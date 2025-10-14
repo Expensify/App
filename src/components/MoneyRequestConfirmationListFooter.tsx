@@ -9,6 +9,7 @@ import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -267,8 +268,10 @@ function MoneyRequestConfirmationListFooter({
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {
         canBeMissing: true,
     });
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
+    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
 
     const allOutstandingReports = useMemo(() => {
         const outstandingReports = Object.values(outstandingReportsByPolicyID ?? {}).flatMap((outstandingReportsPolicy) => Object.values(outstandingReportsPolicy ?? {}));
@@ -334,7 +337,8 @@ function MoneyRequestConfirmationListFooter({
 
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
-    const shouldReportBeEditable = (isFromGlobalCreate ? allOutstandingReports.length > 1 : availableOutstandingReports.length > 1) && !isMoneyRequestReport(reportID, allReports);
+    const shouldReportBeEditable =
+        ((isFromGlobalCreate ? allOutstandingReports.length > 1 : availableOutstandingReports.length > 1) && !isMoneyRequestReport(reportID, allReports)) || isTrackExpense;
 
     const taxRates = policy?.taxRates ?? null;
     // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
@@ -744,13 +748,25 @@ function MoneyRequestConfirmationListFooter({
                         if (!transactionID || !selectedReportID) {
                             return;
                         }
+                        if (!policyForMovingExpensesID && !shouldSelectPolicy) {
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                    iouType,
+                                    action: CONST.IOU.ACTION.EDIT,
+                                    transactionID,
+                                    reportID,
+                                    upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                                }),
+                            );
+                            return;
+                        }
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, selectedReportID, Navigation.getActiveRoute(), reportActionID));
                     }}
                     interactive={shouldReportBeEditable}
                     shouldRenderAsHTML
                 />
             ),
-            shouldShow: isPolicyExpenseChat,
+            shouldShow: isPolicyExpenseChat || isTrackExpense,
         },
     ];
 

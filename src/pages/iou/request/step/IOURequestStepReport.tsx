@@ -201,7 +201,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             isEditing={isEditing}
             isUnreported={isUnreported}
             shouldShowNotFoundPage={shouldShowNotFoundPage}
-            createReport={action === CONST.IOU.ACTION.EDIT ? createReport : undefined}
+            createReport={isEditing || isCreateReport ? createReport : undefined}
         />
     );
 }
