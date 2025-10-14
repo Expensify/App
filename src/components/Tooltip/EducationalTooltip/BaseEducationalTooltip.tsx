@@ -12,9 +12,6 @@ import measureTooltipCoordinate, {getTooltipCoordinates} from './measureTooltipC
 
 type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
 
-type ScrollingEventData = {
-    isScrolling: boolean;
-};
 /**
  * A component used to wrap an element intended for displaying a tooltip.
  * This tooltip would show immediately without user's interaction and hide after 5 seconds.
@@ -109,7 +106,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
         }
 
         setTooltipPosition(false);
-        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, ({isScrolling}: ScrollingEventData = {isScrolling: false}) => {
+        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (isScrolling: boolean) => {
             setTooltipPosition(isScrolling);
         });
 

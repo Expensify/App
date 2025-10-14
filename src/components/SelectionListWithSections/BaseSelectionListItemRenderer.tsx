@@ -57,6 +57,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     isUserValidated,
     personalDetails,
     userBillingFundID,
+    shouldShowRightCaret,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isTransactionGroupListItemType(item)) {
@@ -113,6 +114,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 personalDetails={personalDetails}
                 userBillingFundID={userBillingFundID}
                 index={index}
+                shouldShowRightCaret={shouldShowRightCaret}
                 sectionIndex={sectionIndex}
             />
             {item.footerContent && item.footerContent}

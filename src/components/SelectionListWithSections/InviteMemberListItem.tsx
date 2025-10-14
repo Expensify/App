@@ -112,7 +112,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                     uniqueID={`${sectionIndex}-${index}`}
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                        {(!!item.reportID || !!accountID) && (
+                        {(!!item.reportID || !!accountID || !!item.text || !!item.alternateText) && (
                             <ReportActionAvatars
                                 subscriptAvatarBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                                 shouldShowTooltip={showTooltip}
