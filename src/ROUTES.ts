@@ -178,6 +178,7 @@ const ROUTES = {
     SETTINGS_CHANGE_CURRENCY: 'settings/add-payment-card/change-currency',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
     SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
+    SETTINGS_AVATAR: 'settings/profile/avatar',
     SETTINGS_TIMEZONE: 'settings/profile/timezone',
     SETTINGS_TIMEZONE_SELECT: 'settings/profile/timezone/select',
     SETTINGS_PRONOUNS: 'settings/profile/pronouns',
@@ -292,6 +293,7 @@ const ROUTES = {
     },
     SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: `settings/wallet/add-bank-account/${VERIFY_ACCOUNT}`,
     SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',
+    SETTINGS_ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: `settings/wallet/add-bank-account/select-country/${VERIFY_ACCOUNT}`,
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
     SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS: {
         route: 'settings/wallet/:bankAccountID/enable-global-reimbursements',
@@ -352,6 +354,16 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
+    },
+    SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: {
+        route: 'settings/profile/contact-methods/new/:newContactMethod/confirm-magic-code',
+        getRoute: (newContactMethod: string, backTo?: string) => {
+            const encodedMethod = encodeURIComponent(newContactMethod);
+            // TODO this backTo comes from drilling it through settings screens
+            // should be removed once https://github.com/Expensify/App/pull/70980 is resolved
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(`settings/profile/contact-methods/new/${encodedMethod}/confirm-magic-code`, backTo);
+        },
     },
     SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT: {
         route: 'settings/profile/contact-methods/verify',
@@ -1084,12 +1096,6 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             getUrlWithBackToParam(`${action as string}/${iouType as string}/participants/${transactionID}/${reportID}`, backTo),
     },
-    MONEY_REQUEST_STEP_SPLIT_PAYER: {
-        route: ':action/:iouType/confirmation/:transactionID/:reportID/payer',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}/payer`, backTo),
-    },
     MONEY_REQUEST_STEP_SCAN: {
         route: ':action/:iouType/scan/:transactionID/:reportID',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '') => {
@@ -1424,6 +1430,26 @@ const ROUTES = {
 
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-desktop/advanced` as const, backTo);
+        },
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC: {
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/advanced/autosync',
+        getRoute: (policyID?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC route');
+            }
+
+            return `workspaces/${policyID}/accounting/quickbooks-desktop/advanced/autosync` as const;
+        },
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD: {
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/advanced/autosync/accounting-method',
+        getRoute: (policyID?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD route');
+            }
+
+            return `workspaces/${policyID}/accounting/quickbooks-desktop/advanced/autosync/accounting-method` as const;
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: {
