@@ -41,6 +41,7 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
             ...attachment,
             shouldShowNotFoundPage: !report?.reportID && !isLoadingApp,
             isLoading: (!report?.reportID || !policy?.id) && !!isLoadingApp,
+            maybeIcon: true,
             onDownloadAttachment,
         }),
         [attachment, isLoadingApp, policy?.id, report?.reportID, onDownloadAttachment],
