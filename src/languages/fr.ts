@@ -1854,6 +1854,7 @@ const translations = {
             "Votre connexion comptable Xero nécessite l'utilisation de l'authentification à deux facteurs. Pour continuer à utiliser Expensify, veuillez l'activer.",
         twoFactorAuthCannotDisable: 'Impossible de désactiver la 2FA',
         twoFactorAuthRequired: "L'authentification à deux facteurs (2FA) est requise pour votre connexion Xero et ne peut pas être désactivée.",
+        explainProcessToRemoveWithRecovery: "Pour désactiver l'authentification à deux facteurs (2FA), veuillez entrer un code de récupération valide.",
     },
     recoveryCodeForm: {
         error: {
@@ -2334,8 +2335,8 @@ const translations = {
         },
         interestedFeatures: {
             title: 'Quelles fonctionnalités vous intéressent ?',
-            featuresAlreadyEnabled: 'Votre espace de travail a déjà activé les éléments suivants :',
-            featureYouMayBeInterestedIn: 'Activez des fonctionnalités supplémentaires qui pourraient vous intéresser :',
+            featuresAlreadyEnabled: 'Voici nos fonctionnalités les plus populaires :',
+            featureYouMayBeInterestedIn: 'Activer des fonctionnalités supplémentaires :',
         },
         error: {
             requiredFirstName: 'Veuillez entrer votre prénom pour continuer',
@@ -6266,7 +6267,6 @@ const translations = {
         groupBy: 'Groupe par',
         moneyRequestReport: {
             emptyStateTitle: "Ce rapport n'a pas de dépenses.",
-            emptyStateSubtitle: 'Vous pouvez ajouter des dépenses à ce rapport en utilisant le bouton ci-dessous ou l\'option "Ajouter une dépense" dans le menu Plus ci-dessus.',
         },
         noCategory: 'Aucune catégorie',
         noTag: 'Aucun tag',
@@ -7255,7 +7255,7 @@ const translations = {
         book: {
             title: 'Planifier un appel',
             description: 'Trouvez un moment qui vous convient.',
-            slots: 'Heures disponibles pour',
+            slots: ({date}: {date: string}) => `<muted-text>Heures disponibles pour <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: "Confirmer l'appel",
