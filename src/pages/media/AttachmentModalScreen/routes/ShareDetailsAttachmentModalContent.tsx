@@ -8,20 +8,21 @@ import useDownloadAttachment from './hooks/useDownloadAttachment';
 import useReportAttachmentModalType from './hooks/useReportAttachmentModalType';
 
 function ShareDetailsAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT>) {
-    const {source: sourceParam, originalFileName, headerTitle, onShow, onClose} = route.params;
+    const {source: sourceParam, originalFileName: originalFileNameParam, headerTitle, onShow, onClose} = route.params;
 
     const source = useMemo(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined), [sourceParam]);
+    const originalFileName = originalFileNameParam ?? '';
 
     const onDownloadAttachment = useDownloadAttachment({});
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
-            source: sourceParam,
-            originalFileName: originalFileName ?? '',
+            source,
+            originalFileName,
             headerTitle,
             onDownloadAttachment,
         }),
-        [headerTitle, onDownloadAttachment, originalFileName, sourceParam],
+        [headerTitle, onDownloadAttachment, originalFileName, source],
     );
 
     const modalType = useReportAttachmentModalType(source);
