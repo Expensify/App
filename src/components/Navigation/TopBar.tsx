@@ -9,9 +9,11 @@ import Text from '@components/Text';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import SignInButton from '@pages/home/sidebar/SignInButton';
 import {isAnonymousUser as isAnonymousUserUtil} from '@userActions/Session';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 
@@ -32,6 +34,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector, canBeMissing: true});
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     const isAnonymousUser = isAnonymousUserUtil(session);
+    const isRhpVisible = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
 
     const displaySignIn = isAnonymousUser;
     const displaySearch = !isAnonymousUser && shouldDisplaySearch;
@@ -68,7 +71,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                 {shouldDisplayHelpButton && <HelpButton />}
                 {displaySearch && <SearchButton />}
             </View>
-            <LoadingBar shouldShow={shouldShowLoadingBarForReports || shouldShowLoadingBar} />
+            <LoadingBar shouldShow={!isRhpVisible && (shouldShowLoadingBarForReports || shouldShowLoadingBar)} />
         </View>
     );
 }
