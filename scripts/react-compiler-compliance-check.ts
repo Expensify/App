@@ -32,7 +32,7 @@ const VERBOSE_OUTPUT_LINE_REGEXES = {
 
 type HealthcheckJsonResults = {
     success: string[];
-    failures: CompilerFailure[];
+    failure: CompilerFailure[];
 };
 
 type CompilerResults = {
@@ -188,7 +188,7 @@ function parseJsonOutput(lines: string[], results: CompilerResults): CompilerRes
         jsonResult.success.forEach((success) => results.success.add(success));
 
         // Process failures from JSON
-        jsonResult.failures.forEach((newFailure) => {
+        jsonResult.failure.forEach((newFailure) => {
             if (shouldSuppressCompilerError(newFailure.reason)) {
                 return;
             }
