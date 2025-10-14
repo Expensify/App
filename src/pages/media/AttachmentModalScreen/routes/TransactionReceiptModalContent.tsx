@@ -132,6 +132,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             ? !transaction
             : moneyRequestReportID !== transaction?.reportID;
 
+    const originalFileName = isDraftTransaction ? getReceiptFilenameFromTransaction(transaction) : receiptURIs?.filename;
+    const headerTitle = translate('common.receipt');
+
     /**
      * Detach the receipt and close the modal.
      */
@@ -224,9 +227,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
             source,
-            originalFileName: isDraftTransaction ? getReceiptFilenameFromTransaction(transaction) : receiptURIs?.filename,
+            originalFileName,
             report,
-            headerTitle: translate('common.receipt'),
+            headerTitle,
             threeDotsMenuItems,
             isAuthTokenRequired,
             isTrackExpenseAction: isTrackExpenseActionValue,
@@ -237,18 +240,17 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         }),
         [
             allowDownload,
+            headerTitle,
             isAuthTokenRequired,
-            isDraftTransaction,
             isTrackExpenseActionValue,
             onDownloadAttachment,
-            receiptURIs?.filename,
+            originalFileName,
             report,
             reportMetadata?.isLoadingInitialReportActions,
             shouldShowNotFoundPage,
             source,
             threeDotsMenuItems,
             transaction,
-            translate,
         ],
     );
 
