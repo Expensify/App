@@ -852,7 +852,7 @@ function MoneyRequestView({
                                 if (!canEditReport) {
                                     return;
                                 }
-                                if (!policy && !shouldSelectPolicy) {
+                                if (!policyForMovingExpenses && !shouldSelectPolicy) {
                                     Navigation.navigate(
                                         ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                                             iouType,
