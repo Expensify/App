@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import type {KeyValueMapping} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -533,9 +534,21 @@ describe('TransactionUtils', () => {
             expect(merchant).toBe('Modified Merchant');
         });
 
-        it('should return distance merchant if transaction is distance expense and pending create', () => {
+        it('should return distance merchant if transaction is distance expense and pending create', async () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {},
+            };
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`]: fakePolicy,
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_ID}`]: {
+                    policyID: fakePolicy.id,
+                },
+            } as unknown as KeyValueMapping);
+            await waitForBatchedUpdates();
             const transaction = generateTransaction({
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                reportID: FAKE_OPEN_REPORT_ID,
             });
             const merchant = TransactionUtils.getMerchant(transaction);
             expect(merchant).toBe('Pending...');
