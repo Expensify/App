@@ -8293,7 +8293,11 @@ function hasEmptyReportsForPolicy(
     accountID: number | undefined,
     reportsTransactionsParam: Record<string, Transaction[]> = reportsTransactions,
 ): boolean {
-    if (!policyID || !accountID) {
+    if (!accountID) {
+        return false;
+    }
+
+    if (!policyID) {
         return false;
     }
 
