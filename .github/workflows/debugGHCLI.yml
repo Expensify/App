@@ -1,0 +1,20 @@
+name: Debug GH CLI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check gh version
+        run: gh --version
+      - name: Show gh auth status
+        run: gh auth status
+      - name: Show user
+        run: gh api user
