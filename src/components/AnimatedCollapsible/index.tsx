@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import Animated, {FadeIn, FadeOut, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {runOnJS, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {easing} from '@components/Modal/ReanimatedModal/utils';
@@ -48,19 +48,44 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
     const styles = useThemeStyles();
     const contentHeight = useSharedValue(0);
     const hasExpanded = useSharedValue(isExpanded);
+    const [isRendered, setIsRendered] = React.useState(isExpanded);
 
     useEffect(() => {
         hasExpanded.set(isExpanded);
+        if (isExpanded) {
+            setIsRendered(true);
+        }
     }, [isExpanded, hasExpanded]);
 
     const animatedHeight = useDerivedValue(() => {
-        const target = hasExpanded.get() ? contentHeight.get() : 0;
-        return withTiming(target, {duration, easing});
-    }, [duration]);
+        if (!contentHeight.get()) {
+            return 0;
+        }
 
-    const contentAnimatedStyle = useAnimatedStyle(() => ({
-        height: animatedHeight.get(),
-    }));
+        const target = hasExpanded.get() ? contentHeight.get() : 0;
+
+        return withTiming(target, {duration, easing}, (finished) => {
+            if (!finished || target) {
+                return;
+            }
+            runOnJS(setIsRendered)(false);
+        });
+    }, []);
+
+    const animatedOpacity = useDerivedValue(() => {
+        if (!contentHeight.get()) {
+            return 0;
+        }
+
+        return withTiming(hasExpanded.get() ? 1 : 0, {duration, easing});
+    });
+
+    const contentAnimatedStyle = useAnimatedStyle(() => {
+        return {
+            height: animatedHeight.get(),
+            opacity: animatedOpacity.get(),
+        };
+    });
 
     return (
         <View style={style}>
@@ -83,11 +108,9 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
                 </PressableWithFeedback>
             </View>
             <Animated.View style={[contentAnimatedStyle, contentStyle]}>
-                {isExpanded ? (
+                {isExpanded || isRendered ? (
                     <Animated.View
                         style={styles.stickToTop}
-                        exiting={FadeOut}
-                        entering={FadeIn}
                         onLayout={(e) => {
                             const height = e.nativeEvent.layout.height;
                             if (height) {

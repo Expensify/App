@@ -263,29 +263,27 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         onPress={onExpandIconPress}
                         expandButtonStyle={styles.pv4Half}
                     >
-                        {isExpanded ? (
-                            <TransactionGroupListExpandedItem
-                                showTooltip={showTooltip}
-                                canSelectMultiple={canSelectMultiple}
-                                onCheckboxPress={onCheckboxPress}
-                                columns={columns}
-                                groupBy={groupBy}
-                                accountID={accountID}
-                                isOffline={isOffline}
-                                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                                violations={violations}
-                                transactions={transactions}
-                                transactionsVisibleLimit={transactionsVisibleLimit}
-                                setTransactionsVisibleLimit={setTransactionsVisibleLimit}
-                                isEmpty={isEmpty}
-                                shouldDisplayEmptyView={shouldDisplayEmptyView}
-                                isGroupByReports={isGroupByReports}
-                                transactionsSnapshot={transactionsSnapshot}
-                                transactionsQueryJSON={groupItem.transactionsQueryJSON}
-                                searchTransactions={searchTransactions}
-                                isInSingleTransactionReport={groupItem.transactions.length === 1}
-                            />
-                        ) : null}
+                        <TransactionGroupListExpandedItem
+                            showTooltip={showTooltip}
+                            canSelectMultiple={canSelectMultiple}
+                            onCheckboxPress={onCheckboxPress}
+                            columns={columns}
+                            groupBy={groupBy}
+                            accountID={accountID}
+                            isOffline={isOffline}
+                            areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                            violations={violations}
+                            transactions={transactions}
+                            transactionsVisibleLimit={transactionsVisibleLimit}
+                            setTransactionsVisibleLimit={setTransactionsVisibleLimit}
+                            isEmpty={isEmpty}
+                            shouldDisplayEmptyView={shouldDisplayEmptyView}
+                            isGroupByReports={isGroupByReports}
+                            transactionsSnapshot={transactionsSnapshot}
+                            transactionsQueryJSON={groupItem.transactionsQueryJSON}
+                            searchTransactions={searchTransactions}
+                            isInSingleTransactionReport={groupItem.transactions.length === 1}
+                        />
                     </AnimatedCollapsible>
                 </View>
             </PressableWithFeedback>
