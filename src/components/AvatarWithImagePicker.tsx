@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -8,14 +8,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {validateAvatarImage} from '@libs/AvatarUtils';
 import {isSafari} from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
-import Navigation from '@libs/Navigation/Navigation';
-import type {AvatarSource} from '@libs/UserUtils';
-import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import AttachmentPicker from './AttachmentPicker';
@@ -69,23 +64,11 @@ type AvatarWithImagePickerProps = Omit<AvatarButtonWithIconProps, 'text' | 'onPr
     /** The errors to display  */
     errors?: OnyxCommon.Errors | null;
 
-    /** Title for avatar preview modal */
-    headerTitle?: string;
-
-    /** Avatar source for avatar preview modal */
-    previewSource?: AvatarSource;
-
-    /** File name of the avatar */
-    originalFileName?: string;
-
-    /** Executed once click on view photo option */
+    /** If set, the AvatarWithImagePicker will show a "View Photo" option and use this callback on press */
     onViewPhotoPress?: () => void;
 
     /** Allows to open an image without Attachment Picker. */
     enablePreview?: boolean;
-
-    /** Hard disables the "View photo" option */
-    shouldDisableViewPhoto?: boolean;
 };
 
 const anchorAlignment = {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP};
@@ -104,9 +87,6 @@ function AvatarWithImagePicker({
     fallbackIcon = Expensicons.FallbackAvatar,
     size = CONST.AVATAR_SIZE.DEFAULT,
     type = CONST.ICON_TYPE_AVATAR,
-    headerTitle = '',
-    previewSource = '',
-    originalFileName = '',
     isUsingDefaultAvatar = false,
     onImageSelected = () => {},
     onImageRemoved = () => {},
@@ -115,7 +95,6 @@ function AvatarWithImagePicker({
     disabled = false,
     onViewPhotoPress,
     enablePreview = false,
-    shouldDisableViewPhoto = false,
     editIcon = Expensicons.Pencil,
 }: AvatarWithImagePickerProps) {
     const styles = useThemeStyles();
@@ -233,17 +212,6 @@ function AvatarWithImagePicker({
         [disabled, enablePreview, isUsingDefaultAvatar, onViewPhotoPress, showAvatarCropModal],
     );
 
-    const reportAttachmentsContext = useContext(AttachmentModalContext);
-    const showAttachmentModalScreen = useCallback(() => {
-        reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.ATTACHMENTS>({
-            source: previewSource,
-            fallbackSource: fallbackIcon,
-            headerTitle,
-            originalFileName,
-            maybeIcon: isUsingDefaultAvatar,
-        });
-        Navigation.navigate(ROUTES.ATTACHMENTS.getRoute());
-    }, [fallbackIcon, headerTitle, isUsingDefaultAvatar, originalFileName, previewSource, reportAttachmentsContext]);
     useLayoutEffect(() => {
         if (!anchorRef.current || !isMenuVisible) {
             return;
@@ -264,17 +232,11 @@ function AvatarWithImagePicker({
                         const menuItems = createMenuItems(openPicker);
 
                         // If the current avatar isn't a default avatar and we are not overriding this behavior allow the "View Photo" option
-                        if (!shouldDisableViewPhoto && !isUsingDefaultAvatar) {
+                        if (onViewPhotoPress && !isUsingDefaultAvatar) {
                             menuItems.push({
                                 icon: Expensicons.Eye,
                                 text: translate('avatarWithImagePicker.viewPhoto'),
-                                onSelected: () => {
-                                    if (typeof onViewPhotoPress !== 'function') {
-                                        showAttachmentModalScreen();
-                                        return;
-                                    }
-                                    onViewPhotoPress();
-                                },
+                                onSelected: onViewPhotoPress,
                                 shouldCallAfterModalHide: true,
                             });
                         }
