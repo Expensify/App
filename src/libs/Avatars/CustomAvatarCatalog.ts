@@ -172,20 +172,22 @@ const ALL_CUSTOM_AVATARS: Record<CustomAvatarID, AvatarEntry> = {
     ...SEASON_F1,
 };
 
-const ALL_CUSTOM_AVATARS_ORDERED: Array<{id: CustomAvatarID} & AvatarEntry> = (() => {
-    const allIds = Object.keys(ALL_CUSTOM_AVATARS) as CustomAvatarID[];
-    const explicit = DISPLAY_ORDER.filter((id) => id in ALL_CUSTOM_AVATARS) as CustomAvatarID[];
+const buildOrderedAvatars = (): Array<{id: CustomAvatarID} & AvatarEntry> => {
+    const allIDS = Object.keys(ALL_CUSTOM_AVATARS) as CustomAvatarID[];
+    const explicit = DISPLAY_ORDER.filter((id) => id in ALL_CUSTOM_AVATARS);
     const explicitSet = new Set(explicit);
-    const leftovers = allIds.filter((id) => !explicitSet.has(id)).sort();
-    const finalOrder = [...explicit, ...leftovers];
-    return finalOrder.map((id) => ({
+    const leftovers = allIDS.filter((id) => !explicitSet.has(id)).sort();
+    const finalIDOrder = [...explicit, ...leftovers];
+    return finalIDOrder.map((id) => ({
         id,
         ...ALL_CUSTOM_AVATARS[id],
     }));
-})();
+};
+
+const CUSTOM_AVATAR_CATALOG = buildOrderedAvatars();
 
 const getAvatarLocal = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].local;
 const getAvatarURL = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].url;
 
-export {ALL_CUSTOM_AVATARS, ALL_CUSTOM_AVATARS_ORDERED, getAvatarLocal, getAvatarURL};
+export {ALL_CUSTOM_AVATARS, CUSTOM_AVATAR_CATALOG, getAvatarLocal, getAvatarURL};
 export type {DefaultAvatarIDs, SeasonF1AvatarIDs, CustomAvatarID};

@@ -4,7 +4,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ALL_CUSTOM_AVATARS} from '@libs/Avatars/CustomAvatarCatalog';
-import {ALL_CUSTOM_AVATARS_ORDERED} from '@libs/Avatars/CustomAvatarCatalog';
+import {CUSTOM_AVATAR_CATALOG} from '@libs/Avatars/CustomAvatarCatalog';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import Avatar from './Avatar';
@@ -48,7 +48,7 @@ function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.M
                 </View>
             )}
             <View style={styles.avatarSelectorListContainer}>
-                {ALL_CUSTOM_AVATARS_ORDERED.map(({id, url}) => {
+                {CUSTOM_AVATAR_CATALOG.map(({id, local}) => {
                     const isSelected = selected === id;
 
                     return (
@@ -62,7 +62,7 @@ function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.M
                         >
                             <Avatar
                                 type={CONST.ICON_TYPE_AVATAR}
-                                source={url}
+                                source={local}
                                 size={size}
                                 containerStyles={styles.avatarSelectorContainer}
                                 testID={`AvatarSelector_${id}`}
