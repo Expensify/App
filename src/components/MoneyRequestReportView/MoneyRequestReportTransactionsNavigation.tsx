@@ -1,39 +1,68 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useOnyx from '@hooks/useOnyx';
+import {setOptimisticTransactionThread} from '@libs/actions/Report';
 import {clearActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
     currentReportID: string;
+    parentReportID?: string;
+    policyID?: string;
 };
 
-function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyRequestReportRHPNavigationButtonsProps) {
+const parentReportActionIDsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
+    const parentActions = new Map<string, string>();
+    for (const action of Object.values(reportActions ?? {})) {
+        if (!action?.childReportID) {
+            continue;
+        }
+        parentActions.set(action.childReportID, action.reportActionID);
+    }
+    return parentActions;
+};
+
+function MoneyRequestReportTransactionsNavigation({currentReportID, parentReportID, policyID}: MoneyRequestReportRHPNavigationButtonsProps) {
     const [reportIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, {
         canBeMissing: true,
     });
 
     const {markReportIDAsExpense} = useContext(WideRHPContext);
 
-    const {prevReportID, nextReportID} = useMemo(() => {
+    const [parentReportActionIDs = new Map<string, string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+        canBeMissing: true,
+        selector: parentReportActionIDsSelector,
+    });
+
+    const {prevReportID, prevParentReportActionID, nextReportID, nextParentReportActionID} = useMemo(() => {
         if (!reportIDsList || reportIDsList.length < 2) {
-            return {prevReportID: undefined, nextReportID: undefined};
+            return {prevReportID: undefined, prevParentReportActionID: undefined, nextReportID: undefined, nextParentReportActionID: undefined};
         }
 
         const currentReportIndex = reportIDsList.findIndex((id) => id === currentReportID);
 
         const prevID = currentReportIndex > 0 ? reportIDsList.at(currentReportIndex - 1) : undefined;
-        const nextID = currentReportIndex <= reportIDsList.length - 1 ? reportIDsList.at(currentReportIndex + 1) : undefined;
+        const nextID = reportIDsList.at(currentReportIndex + 1);
 
-        return {prevReportID: prevID, nextReportID: nextID};
-    }, [currentReportID, reportIDsList]);
+        return {
+            prevReportID: prevID,
+            nextReportID: nextID,
+            prevParentReportActionID: prevID ? parentReportActionIDs.get(prevID) : undefined,
+            nextParentReportActionID: nextID ? parentReportActionIDs.get(nextID) : undefined,
+        };
+    }, [currentReportID, parentReportActionIDs, reportIDsList]);
+
+    const [prevReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${prevReportID}`, {canBeMissing: true});
+    const [nextReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nextReportID}`, {canBeMissing: true});
 
     /**
      * We clear the sibling transactionThreadIDs when unmounting this component
@@ -63,7 +92,10 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
                 if (nextReportID) {
                     markReportIDAsExpense(nextReportID);
                 }
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true});
+                if (!nextReport) {
+                    setOptimisticTransactionThread(nextReportID, parentReportID, nextParentReportActionID, policyID);
+                }
+                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true}));
             }}
             onPrevious={(e) => {
                 const backTo = Navigation.getActiveRoute();
@@ -71,7 +103,10 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
                 if (prevReportID) {
                     markReportIDAsExpense(prevReportID);
                 }
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, backTo}), {forceReplace: true});
+                if (!prevReport) {
+                    setOptimisticTransactionThread(prevReportID, parentReportID, prevParentReportActionID, policyID);
+                }
+                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, backTo}), {forceReplace: true}));
             }}
         />
     );
