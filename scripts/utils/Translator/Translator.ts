@@ -36,6 +36,15 @@ abstract class Translator {
     }
 
     /**
+     * Replace Chinese full-width brackets 【 (U+3010) and 】 (U+3011) with normal ASCII brackets [ and ]
+     */
+    public fixChineseBracketsInMarkdown(text: string): string {
+        return text
+            .replaceAll('\u3010', '[') // 【
+            .replaceAll('\u3011', ']'); // 】
+    }
+
+    /**
      * Validate that placeholders are all present and unchanged before and after translation.
      */
     public validateTemplatePlaceholders(original: string, translated: string): boolean {

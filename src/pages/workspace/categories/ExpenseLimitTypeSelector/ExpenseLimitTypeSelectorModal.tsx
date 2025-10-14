@@ -2,8 +2,8 @@ import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -59,7 +59,7 @@ function ExpenseLimitTypeSelectorModal({isVisible, currentExpenseLimitType, onEx
                 />
                 <SelectionList
                     sections={[{data: expenseLimitTypes}]}
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                     onSelectRow={(item) => onExpenseLimitTypeSelected(item.value)}
                     shouldSingleExecuteRowSelect
                     containerStyle={[styles.pt3]}

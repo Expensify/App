@@ -125,7 +125,7 @@ function AttachmentView({
 }: AttachmentViewProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const {translate} = useLocalize();
-    const {updateCurrentURLAndReportID} = usePlaybackContext();
+    const {updateCurrentURLAndReportID, playVideo} = usePlaybackContext();
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const {onAttachmentError} = attachmentCarouselPagerContext ?? {};
@@ -145,7 +145,10 @@ function AttachmentView({
             return;
         }
         updateCurrentURLAndReportID(isVideo && typeof source === 'string' ? source : undefined, reportID);
-    }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID]);
+        if (isVideo && typeof source === 'string') {
+            playVideo();
+        }
+    }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID, playVideo]);
 
     const [imageError, setImageError] = useState(false);
 
@@ -245,8 +248,12 @@ function AttachmentView({
         );
     }
 
-    if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && !hasReceiptSource(transaction) && transaction) {
-        return <DistanceEReceipt transaction={transaction} />;
+    if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && transaction) {
+        // Distance eReceipts are now generated as a PDF, but to keep it backwards compatible we still show the old eReceipt view for image receipts
+        const isImageReceiptSource = checkIsFileImage(source, file?.name);
+        if (!hasReceiptSource(transaction) || isImageReceiptSource) {
+            return <DistanceEReceipt transaction={transaction} />;
+        }
     }
 
     // For this check we use both source and file.name since temporary file source is a blob

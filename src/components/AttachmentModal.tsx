@@ -437,6 +437,7 @@ function AttachmentModal({
                     }
 
                     if (isReplaceReceipt.current) {
+                        // eslint-disable-next-line deprecation/deprecation
                         InteractionManager.runAfterInteractions(() => {
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
@@ -504,7 +505,7 @@ function AttachmentModal({
                                     attachmentID={attachmentID}
                                     report={report}
                                     onNavigate={onNavigate}
-                                    onClose={closeModal}
+                                    onSwipeDown={closeModal}
                                     source={source}
                                     setDownloadButtonVisibility={setDownloadButtonVisibility}
                                     attachmentLink={currentAttachmentLink}

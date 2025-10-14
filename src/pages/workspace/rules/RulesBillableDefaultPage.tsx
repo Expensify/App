@@ -4,7 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -77,14 +77,14 @@ function RulesBillableDefaultPage({
                     <RenderHTML html={translate('workspace.rules.individualExpenseRules.billableDefaultDescription', {tagsPageLink})} />
                 </View>
                 <SelectionList
-                    sections={[{data: billableModes}]}
-                    ListItem={SingleSelectListItem}
+                    data={billableModes}
+                    ListItem={RadioListItem}
                     onSelectRow={(item) => {
                         setPolicyBillableMode(policyID, item.value);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                    initiallyFocusedItemKey={initiallyFocusedOptionKey}
                     addBottomSafeAreaPadding
                 />
             </ScreenWrapper>

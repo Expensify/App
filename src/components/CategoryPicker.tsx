@@ -11,9 +11,9 @@ import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SelectionList from './SelectionList';
-import SingleSelectListItem from './SelectionList/SingleSelectListItem';
-import type {ListItem} from './SelectionList/types';
+import SelectionList from './SelectionListWithSections';
+import RadioListItem from './SelectionListWithSections/RadioListItem';
+import type {ListItem} from './SelectionListWithSections/types';
 
 type CategoryPickerProps = {
     policyID: string | undefined;
@@ -82,7 +82,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
             textInputHint={offlineMessage}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
-            ListItem={SingleSelectListItem}
+            ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}

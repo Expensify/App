@@ -1,15 +1,14 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import {TeleScope} from '@components/Icon/Illustrations';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateXeroTenantID} from '@libs/actions/connections/Xero';
-import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -18,6 +17,7 @@ import {findCurrentXeroOrganization, getXeroTenants} from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import variables from '@styles/variables';
+import {clearXeroErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -35,7 +35,8 @@ function XeroOrganizationConfigurationPage({
     const xeroConfig = policy?.connections?.xero?.config;
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, xeroConfig?.tenantID);
 
-    const policyID = policy?.id;
+    const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
+    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
 
     const sections =
         policy?.connections?.xero?.data?.tenants.map((tenant) => ({
@@ -66,7 +67,7 @@ function XeroOrganizationConfigurationPage({
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={TeleScope}
+                icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.xero.noAccountsFound')}
@@ -74,7 +75,7 @@ function XeroOrganizationConfigurationPage({
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [illustrations.Telescope, translate, styles.pb10],
     );
 
     return (
@@ -84,7 +85,7 @@ function XeroOrganizationConfigurationPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={XeroOrganizationConfigurationPage.displayName}
             sections={sections.length ? [{data: sections}] : []}
-            listItem={SingleSelectListItem}
+            listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             onSelectRow={saveSelection}
             initiallyFocusedOptionKey={currentXeroOrganization?.id}

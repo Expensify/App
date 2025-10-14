@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {ValueSelectionListProps} from './types';
 
 function ValueSelectionList({items = [], selectedItem, onItemSelected, shouldShowTooltips = true}: ValueSelectionListProps) {
@@ -17,7 +17,7 @@ function ValueSelectionList({items = [], selectedItem, onItemSelected, shouldSho
             shouldStopPropagation
             shouldShowTooltips={shouldShowTooltips}
             shouldUpdateFocusedIndex
-            ListItem={SingleSelectListItem}
+            ListItem={RadioListItem}
             addBottomSafeAreaPadding
         />
     );

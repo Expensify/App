@@ -3,8 +3,8 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -50,11 +50,11 @@ function ThemePage() {
             />
             <Text style={[styles.mh5, styles.mv4]}>{translate('themePage.chooseThemeBelowOrSync')}</Text>
             <SelectionList
-                sections={[{data: localesToThemes}]}
-                ListItem={SingleSelectListItem}
+                data={localesToThemes}
+                ListItem={RadioListItem}
                 onSelectRow={updateTheme}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedOptionKey={localesToThemes.find((theme) => theme.isSelected)?.keyForList}
+                initiallyFocusedItemKey={localesToThemes.find((theme) => theme.isSelected)?.keyForList}
             />
         </ScreenWrapper>
     );

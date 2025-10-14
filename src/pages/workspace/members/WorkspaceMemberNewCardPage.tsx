@@ -1,15 +1,15 @@
 import React, {useState} from 'react';
-import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
@@ -59,6 +59,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const lazyIllustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage'] as const);
     const illustrations = useThemeIllustrations();
     const [cardFeeds] = useCardFeeds(policyID);
     const [selectedFeed, setSelectedFeed] = useState('');
@@ -168,7 +169,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                   isSelected: selectedFeed === CONST.EXPENSIFY_CARD.NAME,
                   leftElement: (
                       <Icon
-                          src={ExpensifyCardImage}
+                          src={lazyIllustrations.ExpensifyCardImage}
                           width={variables.cardIconWidth}
                           height={variables.cardIconHeight}
                           additionalStyles={[styles.cardIcon, styles.mr3]}
@@ -195,7 +196,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                     onBackButtonPress={goBack}
                 />
                 <SelectionList
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                     onSelectRow={handleSelectFeed}
                     sections={[{data: feeds}]}
                     shouldUpdateFocusedIndex
