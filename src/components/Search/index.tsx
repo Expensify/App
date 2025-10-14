@@ -312,7 +312,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         () =>
             Object.entries(searchResults?.data ?? {})
                 .filter(([key]) => isReportActionEntry(key))
-                .map(([, value]) => value as SearchReportAction),
+                .flatMap(([, value]) => Object.values(value) as SearchReportAction[]),
         [searchResults?.data],
     );
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
