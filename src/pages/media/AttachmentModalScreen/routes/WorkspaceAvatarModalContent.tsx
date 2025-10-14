@@ -17,26 +17,29 @@ function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenP
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true, initWithStoredValues: false});
 
     const avatarURL = policy?.avatarURL ?? getDefaultWorkspaceAvatar(policy?.name ?? fallbackLetter);
-
+    const source = getFullSizeAvatar(avatarURL, 0);
     const policyKeysLength = Object.keys(policy ?? {}).length;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = policyKeysLength === 0 && !isLoadingApp && (!policyID || !fallbackLetter);
+    const isLoading = policyKeysLength === 0 && !!isLoadingApp;
+    const originalFileName = policy?.originalFileName ?? policy?.id ?? policyID;
+    const headerTitle = policy?.name ?? '';
 
     const onDownloadAttachment = useDownloadAttachment();
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
-            source: getFullSizeAvatar(avatarURL, 0),
-            headerTitle: policy?.name ?? '',
-            originalFileName: policy?.originalFileName ?? policy?.id ?? policyID,
+            source,
+            headerTitle,
+            originalFileName,
             shouldShowNotFoundPage,
+            isLoading,
             isWorkspaceAvatar: true,
-            isLoading: policyKeysLength === 0 && !!isLoadingApp,
             maybeIcon: true,
             onDownloadAttachment,
         }),
-        [avatarURL, isLoadingApp, onDownloadAttachment, policy?.id, policy?.name, policy?.originalFileName, policyID, policyKeysLength, shouldShowNotFoundPage],
+        [headerTitle, isLoading, onDownloadAttachment, originalFileName, shouldShowNotFoundPage, source],
     );
 
     return (
