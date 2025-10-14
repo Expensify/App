@@ -21,8 +21,8 @@ import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
+import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
 import Timing from '@libs/actions/Timing';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -69,6 +69,7 @@ import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
+import openSearchReport from './openSearchReport';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
 import {SearchScopeProvider} from './SearchScopeProvider';
@@ -688,7 +689,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 setOptimisticDataForTransactionThreadPreview(item, transactionPreviewData);
             }
 
-            requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
+            openSearchReport(reportID, backTo);
         },
         [isMobileSelectionModeEnabled, type, toggleTransaction, reportActionsArray, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
     );
