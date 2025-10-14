@@ -440,7 +440,7 @@ jobs:
 
       - name: Create ExportOptions.plist
         run: |
-          cat > ExportOptions.plist << 'EOF'
+          cat > Mobile-Expensify/iOS/ExportOptions.plist << 'EOF'
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
@@ -489,7 +489,6 @@ jobs:
               }
             ]
           comment-bot: false
-          rock-build-extra-params: '--export-options-plist ./ExportOptions.plist'
 
   postGithubComment:
     runs-on: ubuntu-latest
