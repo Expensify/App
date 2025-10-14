@@ -571,7 +571,7 @@ function MoneyRequestConfirmationListFooter({
                     rightLabel={isCategoryRequired ? translate('common.required') : ''}
                 />
             ),
-            shouldShow: shouldShowCategories,
+            shouldShow: shouldShowCategories || isTrackExpense,
         },
         {
             item: (
