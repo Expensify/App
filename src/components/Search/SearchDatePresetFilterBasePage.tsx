@@ -1,5 +1,4 @@
 import React from 'react';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,7 +33,6 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton onBackButtonPress={goBack} />
             <DateFilterBase
                 title={translate(titleKey)}
                 dateKey={dateKey}
