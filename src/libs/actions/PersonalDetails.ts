@@ -357,11 +357,20 @@ function openPublicProfilePage(accountID: number) {
     API.read(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, parameters, {optimisticData, successData, failureData});
 }
 
+type DefaultAvatarResult = {uri: string; name: string; customExpensifyAvatarID: string};
+
+/**
+ * Type guard to check if a file object is a DefaultAvatarResult
+ */
+function isDefaultAvatarResult(file: File | CustomRNImageManipulatorResult | DefaultAvatarResult): file is DefaultAvatarResult {
+    return 'customExpensifyAvatarID' in file && typeof file.customExpensifyAvatarID === 'string';
+}
+
 /**
  * Updates the user's avatar image
  */
 function updateAvatar(
-    file: File | CustomRNImageManipulatorResult | {uri: string; name: string},
+    file: File | CustomRNImageManipulatorResult | DefaultAvatarResult,
     currentUserPersonalDetails: Pick<CurrentUserPersonalDetails, 'avatarThumbnail' | 'avatar' | 'accountID'>,
 ) {
     if (!currentUserPersonalDetails.accountID) {
@@ -418,7 +427,9 @@ function updateAvatar(
         },
     ];
 
-    const parameters: UpdateUserAvatarParams = {file};
+    const parameters: UpdateUserAvatarParams = isDefaultAvatarResult(file)
+        ? {customExpensifyAvatarID: file.customExpensifyAvatarID}
+        : {file};
 
     API.write(WRITE_COMMANDS.UPDATE_USER_AVATAR, parameters, {optimisticData, successData, failureData});
 }

@@ -261,23 +261,17 @@ function ProfileAvatar() {
                     success
                     text={translate('contacts.newContactMethod')}
                     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                    onPress={async () => {
+                    onPress={() => {
                         if (selected === currentUserPersonalDetails?.avatar || !selected) {
                             return;
                         }
-                        // const imgData = await fetch(ALL_CUSTOM_AVATARS[selected as CustomAvatarID]?.url);
-                        // const imgBlob = await imgData.blob();
-                        // const file = new File([imgBlob], `${selected}.png`, {type: 'image/png'});
-                        // file.uri = URL.createObjectURL(file);
-
-                        // onImageSelected(file);
-                        // setIsAvatarCropModalOpen(true);
                         updateAvatar(
                             {
                                 uri: ALL_CUSTOM_AVATARS[selected as CustomAvatarID]?.url,
                                 name: `${selected}.png`,
                                 type: 'image/png',
-                            } as File,
+                                customExpensifyAvatarID: selected,
+                            },
                             {
                                 avatar: currentUserPersonalDetails?.avatar,
                                 avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
