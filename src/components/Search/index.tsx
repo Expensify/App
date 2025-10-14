@@ -3,6 +3,7 @@ import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -19,7 +20,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {openSearch} from '@libs/actions/Search';
+import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
+import type {TransactionPreviewData} from '@libs/actions/Search';
 import Timing from '@libs/actions/Timing';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -50,7 +52,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {isOnHold, isTransactionPendingDelete, shouldShowViolation} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -60,7 +62,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {OutstandingReportsByPolicyIDDerivedValue, ReportAction} from '@src/types/onyx';
+import type Policy from '@src/types/onyx/Policy';
+import type Report from '@src/types/onyx/Report';
 import type SearchResults from '@src/types/onyx/SearchResults';
+import type {SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import {useSearchContext} from './SearchContext';
@@ -99,6 +105,7 @@ function mapTransactionItemToSelectedEntry(
                 undefined,
                 undefined,
                 outstandingReportsByPolicyID,
+                true,
             ),
             action: item.action,
             reportID: item.reportID,
@@ -180,6 +187,7 @@ function prepareTransactionsList(
                 undefined,
                 undefined,
                 outstandingReportsByPolicyID,
+                true,
             ),
             action: item.action,
             reportID: item.reportID,
@@ -194,6 +202,7 @@ function prepareTransactionsList(
 }
 
 function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch, isMobileSelectionModeEnabled, onSortPressedCallback}: SearchProps) {
+    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -227,6 +236,42 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
+    // Filter violations based on user visibility
+    const filteredViolations = useMemo(() => {
+        if (!violations || !searchResults?.data) {
+            return violations;
+        }
+
+        const filtered: Record<string, TransactionViolation[]> = {};
+
+        const transactionKeys = Object.keys(searchResults.data).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
+
+        for (const key of transactionKeys) {
+            const transaction = searchResults.data[key as keyof typeof searchResults.data] as SearchTransaction;
+            if (!transaction || typeof transaction !== 'object' || !('transactionID' in transaction) || !('reportID' in transaction)) {
+                continue;
+            }
+
+            const report = searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+            const policy = searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+
+            if (report && policy) {
+                const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+                if (transactionViolations) {
+                    const filteredTransactionViolations = transactionViolations.filter((violation) =>
+                        shouldShowViolation(report as OnyxEntry<Report>, policy as OnyxEntry<Policy>, violation.name),
+                    );
+
+                    if (filteredTransactionViolations.length > 0) {
+                        filtered[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = filteredTransactionViolations;
+                    }
+                }
+            }
+        }
+
+        return filtered;
+    }, [violations, searchResults]);
+
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
         selector: selectArchivedReportsIdSet,
@@ -241,8 +286,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
-
-    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
 
     const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
     const shouldCalculateTotals = useMemo(() => {
@@ -435,6 +478,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                             undefined,
                             undefined,
                             outstandingReportsByPolicyID,
+                            true,
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
@@ -467,6 +511,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         undefined,
                         undefined,
                         outstandingReportsByPolicyID,
+                        true,
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
@@ -580,7 +625,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     );
 
     const onSelectRow = useCallback(
-        (item: SearchListItem) => {
+        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData) => {
             if (isMobileSelectionModeEnabled) {
                 toggleTransaction(item);
                 return;
@@ -651,7 +696,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             Timing.start(CONST.TIMING.OPEN_REPORT_SEARCH);
 
             if (isTransactionGroupListItemType(item)) {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
+                const firstTransaction = item.transactions.at(0);
+                if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
+                    setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData);
+                }
+                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
                 return;
             }
 
@@ -667,7 +716,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 markReportIDAsExpense(reportID);
             }
 
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+            if (isTransactionItem && transactionPreviewData) {
+                setOptimisticDataForTransactionThreadPreview(item, transactionPreviewData);
+            }
+
+            requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
         [isMobileSelectionModeEnabled, type, toggleTransaction, reportActionsArray, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
     );
@@ -908,7 +961,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     queryJSON={queryJSON}
                     columns={columnsToShow}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                    violations={violations}
+                    violations={filteredViolations}
                     onLayout={onLayout}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
