@@ -17,11 +17,9 @@ function ClickableRenderer({tnode}: ClickableRendererProps) {
 
     const onPress = () => {
         const action = clickableActions?.[id];
-        
+
         if (action) {
             action();
-        } else {
-            console.warn(`No action found for clickable id: ${id}`);
         }
     };
 

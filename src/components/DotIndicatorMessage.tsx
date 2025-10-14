@@ -67,6 +67,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
             // Map each clickable ID to its corresponding action
+            // eslint-disable-next-line react/jsx-no-constructed-context-values
             const actionHandlers = {
                 retry: () => handleRetryPress(message, dismissError, setShouldShowErrorModal),
                 download: () => fileDownload(message.source, message.filename).finally(() => dismissError()),
