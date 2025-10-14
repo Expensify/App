@@ -5202,6 +5202,24 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: 4,
         },
 
+        avatarSelectorWrapper: {
+            margin: 5,
+            borderRadius: 50,
+            padding: 3,
+            borderWidth: 2,
+            borderColor: 'transparent',
+        },
+
+        avatarSelectorContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        avatarSelectorListContainer: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+        },
+
         expenseWidgetRadius: {
             borderRadius: variables.componentBorderRadiusNormal,
         },
