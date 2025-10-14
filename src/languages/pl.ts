@@ -6659,14 +6659,9 @@ ${amount} dla ${merchant} - ${date}`,
         copyReferralLink: 'Skopiuj link zaproszenia',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Porozmawiaj ze swoim specjalistą ds. konfiguracji w',
-            phrase2: 'po pomoc',
-        },
-        default: {
-            phrase1: 'Wiadomość',
-            phrase2: 'w celu uzyskania pomocy przy konfiguracji',
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({reportName, href}: {reportName: string; href: string}) =>
+            `Porozmawiaj ze swoim specjalistą ds. konfiguracji w <a href="${href}">${reportName}</a> po pomoc`,
+        default: `Wiadomość ${CONST?.CONCIERGE_CHAT_NAME} w celu uzyskania pomocy przy konfiguracji`,
     },
     violations: {
         allTagLevelsRequired: 'Wszystkie wymagane tagi',

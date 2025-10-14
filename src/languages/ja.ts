@@ -6623,14 +6623,9 @@ ${date} - ${merchant}に${amount}`,
         copyReferralLink: '招待リンクをコピー',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'セットアップスペシャリストとチャットする',
-            phrase2: 'ヘルプが必要な場合',
-        },
-        default: {
-            phrase1: 'メッセージ',
-            phrase2: 'セットアップのヘルプについて',
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({reportName, href}: {reportName: string; href: string}) =>
+            `セットアップスペシャリストとチャットする <a href="${href}">${reportName}</a> ヘルプが必要な場合`,
+        default: `メッセージ ${CONST?.CONCIERGE_CHAT_NAME} セットアップのヘルプについて`,
     },
     violations: {
         allTagLevelsRequired: 'すべてのタグが必要です。',

@@ -6684,14 +6684,9 @@ ${amount} pour ${merchant} - ${date}`,
         copyReferralLink: "Copier le lien d'invitation",
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Discutez avec votre spécialiste de configuration en',
-            phrase2: "pour obtenir de l'aide",
-        },
-        default: {
-            phrase1: 'Message',
-            phrase2: "pour obtenir de l'aide avec la configuration",
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({reportName, href}: {reportName: string; href: string}) =>
+            `Discutez avec votre spécialiste de configuration en <a href="${href}">${reportName}</a> pour obtenir de l'aide`,
+        default: `Message ${CONST?.CONCIERGE_CHAT_NAME} pour obtenir de l'aide avec la configuration`,
     },
     violations: {
         allTagLevelsRequired: 'Tous les tags requis',

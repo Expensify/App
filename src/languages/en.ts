@@ -6627,14 +6627,8 @@ const translations = {
         copyReferralLink: 'Copy invite link',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Chat with your setup specialist in ',
-            phrase2: ' for help',
-        },
-        default: {
-            phrase1: 'Message ',
-            phrase2: ' for help with setup',
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({reportName, href}: {reportName: string; href: string}) => `Chat with your setup specialist in <a href="${href}">${reportName}</a> for help`,
+        default: `Message ${CONST?.CONCIERGE_CHAT_NAME} for help with setup`,
     },
     violations: {
         allTagLevelsRequired: 'All tags required',

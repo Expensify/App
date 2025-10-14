@@ -6677,14 +6677,9 @@ ${amount} für ${merchant} - ${date}`,
         copyReferralLink: 'Einladungslink kopieren',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Chatte mit deinem Setup-Spezialisten in',
-            phrase2: 'für Hilfe',
-        },
-        default: {
-            phrase1: 'Nachricht',
-            phrase2: 'für Hilfe bei der Einrichtung',
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({reportName, href}: {reportName: string; href: string}) =>
+            `Chatte mit deinem Setup-Spezialisten in <a href="${href}">${reportName}</a> für Hilfe`,
+        default: `Nachricht ${CONST?.CONCIERGE_CHAT_NAME} für Hilfe bei der Einrichtung`,
     },
     violations: {
         allTagLevelsRequired: 'Alle Tags erforderlich',

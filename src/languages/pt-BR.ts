@@ -6668,14 +6668,9 @@ ${amount} para ${merchant} - ${date}`,
         copyReferralLink: 'Copiar link de convite',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Converse com seu especialista em configuração em',
-            phrase2: 'para ajuda',
-        },
-        default: {
-            phrase1: 'Mensagem',
-            phrase2: 'para ajuda com a configuração',
-        },
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({reportName, href}: {reportName: string; href: string}) =>
+            `Converse com seu especialista em configuração em <a href="${href}">${reportName}</a> para ajuda`,
+        default: `Mensagem ${CONST?.CONCIERGE_CHAT_NAME} para ajuda com a configuração`,
     },
     violations: {
         allTagLevelsRequired: 'Todas as tags são obrigatórias',
