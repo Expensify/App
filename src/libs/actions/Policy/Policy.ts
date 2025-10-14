@@ -2102,7 +2102,6 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 areExpensifyCardsEnabled: false,
-                eReceipts: true,
                 employeeList: {
                     [sessionEmail]: {
                         submitsTo: sessionEmail,
@@ -4679,6 +4678,7 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
                 maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
                 maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
                 glCodes: true,
+                eReceipts: policy?.outputCurrency === CONST.CURRENCY.USD ? true : policy?.eReceipts,
                 harvesting: {
                     enabled: false,
                 },
