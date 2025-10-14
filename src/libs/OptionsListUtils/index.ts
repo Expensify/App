@@ -1153,7 +1153,15 @@ function createOptionFromReport(report: Report, personalDetails: OnyxEntry<Perso
 
     return {
         item: report,
-        ...createOption(accountIDs, personalDetails, report, undefined, reportAttributesDerived),
+        ...createOption(
+            accountIDs,
+            personalDetails,
+            report,
+            {
+                showPersonalDetails: true,
+            },
+            reportAttributesDerived,
+        ),
     };
 }
 
