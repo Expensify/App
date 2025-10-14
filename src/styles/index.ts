@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
+import type {RefObject} from 'react';
 import type {LineLayer} from 'react-map-gl';
 import type {ImageStyle, TextStyle, ViewStyle} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -20,6 +21,7 @@ import {defaultTheme} from './theme';
 import colors from './theme/colors';
 import type {ThemeColors} from './theme/types';
 import addOutlineWidth from './utils/addOutlineWidth';
+import addToWalletButtonStyles from './utils/addToWalletButtonStyles';
 import borders from './utils/borders';
 import chatContentScrollViewPlatformStyles from './utils/chatContentScrollViewPlatformStyles';
 import cursor from './utils/cursor';
@@ -61,6 +63,20 @@ type AnchorPosition = {
     horizontal: number;
     vertical: number;
 };
+
+const getReceiptDropZoneViewStyle = (theme: ThemeColors, margin: number, paddingVertical: number): ViewStyle => ({
+    borderRadius: variables.componentBorderRadiusLarge,
+    borderColor: theme.borderFocus,
+    borderStyle: 'dotted',
+    marginBottom: margin,
+    marginLeft: margin,
+    marginRight: margin,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical,
+    gap: 4,
+    flex: 1,
+});
 
 type WebViewStyle = {
     tagStyles: MixedStyleRecord;
@@ -251,6 +267,7 @@ const staticStyles = (theme: ThemeColors) =>
         ...textDecorationLine,
         editedLabelStyles,
         emojiDefaultStyles,
+        addToWalletButtonStyles,
         autoCompleteSuggestionsContainer: {
             backgroundColor: theme.appBG,
             borderRadius: 8,
@@ -330,6 +347,19 @@ const staticStyles = (theme: ThemeColors) =>
 
         mentionSuggestionsDisplayName: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+        },
+
+        reportStatusContainer: {
+            paddingHorizontal: 4,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: variables.componentBorderRadiusSmall,
+            height: 16,
+        },
+
+        reportStatusText: {
+            fontSize: variables.fontSizeSmall,
+            fontWeight: FontUtils.fontWeight.normal,
         },
 
         textSupporting: {
@@ -997,6 +1027,7 @@ const staticStyles = (theme: ThemeColors) =>
                 : {}),
             color: theme.textSupporting,
         },
+
         uploadFileViewTextContainer: {
             paddingHorizontal: 40,
             ...sizing.w100,
@@ -1159,6 +1190,15 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: 0,
             borderRadius: 8,
             borderColor: theme.border,
+        },
+
+        cannotBeEditedSplitInputContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 4,
+            marginVertical: 15,
+            borderWidth: 1,
+            borderColor: 'transparent',
         },
 
         outlinedButton: {
@@ -1743,6 +1783,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         optionRow: {
             minHeight: variables.optionRowHeight,
+            paddingTop: 12,
+            paddingBottom: 12,
+        },
+
+        optionRowWithPadding: {
             paddingTop: 12,
             paddingBottom: 12,
         },
@@ -4929,6 +4974,12 @@ const staticStyles = (theme: ThemeColors) =>
             height: 190,
         },
 
+        errorStateCardIllustration: {
+            width: 254,
+            height: 165,
+            marginBottom: 12,
+        },
+
         emptyStateMoneyRequestReport: {
             maxHeight: 85,
             minHeight: 85,
@@ -5043,6 +5094,39 @@ const staticStyles = (theme: ThemeColors) =>
         tripEmptyStateLottieWebView: {
             width: 335,
             height: 220,
+        },
+
+        offlineFeedbackDeleted: {
+            textDecorationLine: 'line-through',
+            textDecorationStyle: 'solid',
+        },
+        offlineFeedbackPending: {
+            opacity: 0.5,
+        },
+        offlineFeedbackDefault: {
+            // fixes a crash on iOS when we attempt to remove already unmounted children
+            // see https://github.com/Expensify/App/issues/48197 for more details
+            // it's a temporary solution while we are working on a permanent fix
+            opacity: Platform.OS === 'ios' ? 0.99 : undefined,
+        },
+        offlineFeedbackError: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        offlineFeedbackContainer: {
+            ...spacing.pv2,
+        },
+        offlineFeedbackTextContainer: {
+            flexDirection: 'column',
+            flex: 1,
+        },
+        offlineFeedbackText: {
+            color: theme.textSupporting,
+            verticalAlign: 'middle',
+            fontSize: variables.fontSizeLabel,
+        },
+        offlineFeedbackErrorDot: {
+            marginRight: 12,
         },
 
         workflowApprovalVerticalLine: {
@@ -5196,19 +5280,31 @@ const staticStyles = (theme: ThemeColors) =>
             right: 0,
             width: Animated.add(variables.sideBarWidth, receiptPaneRHPWidth),
         },
-        uploadFileView: {
-            borderRadius: variables.componentBorderRadiusLarge,
-            borderColor: theme.borderFocus,
-            borderStyle: 'dotted',
-            marginBottom: variables.uploadViewMargin,
-            marginLeft: variables.uploadViewMargin,
-            marginRight: variables.uploadViewMargin,
-            justifyContent: 'center',
-            alignItems: 'center',
-            paddingVertical: 40,
-            gap: 4,
-            flex: 1,
+
+        flexibleHeight: {
+            height: 'auto',
+            minHeight: 200,
         },
+
+        receiptCellLoadingContainer: {
+            backgroundColor: theme.activeComponentBG,
+        },
+
+        wideRHPMoneyRequestReceiptViewContainer: {
+            backgroundColor: theme.appBG,
+            width: receiptPaneRHPWidth,
+            height: '100%',
+            borderRightWidth: 1,
+            borderColor: theme.border,
+        },
+
+        wideRHPMoneyRequestReceiptViewScrollViewContainer: {
+            ...spacing.pt3,
+            ...spacing.pb2,
+            minHeight: '100%',
+        },
+
+        uploadFileView: getReceiptDropZoneViewStyle(theme, variables.uploadViewMargin, 40),
 
         textInputAndIconContainer: {
             zIndex: -1,
@@ -5318,8 +5414,20 @@ const dynamicStyles = (theme: ThemeColors) =>
             paddingBottom: bottomSafeAreaOffset,
         }),
 
+        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number) => ({
+            marginLeft: inputMarginLeft,
+            width: amountWidth,
+            marginRight: 4,
+        }),
+
         uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>
             ({
+                borderWidth: isSmallScreenWidth ? 0 : 2,
+            }) satisfies ViewStyle,
+
+        chooseFilesView: (isSmallScreenWidth: boolean) =>
+            ({
+                ...getReceiptDropZoneViewStyle(theme, variables.chooseFilesViewMargin, 20),
                 borderWidth: isSmallScreenWidth ? 0 : 2,
             }) satisfies ViewStyle,
 
@@ -5399,11 +5507,21 @@ const dynamicStyles = (theme: ThemeColors) =>
                 vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             }) satisfies AnchorPosition,
 
-        overlayStyles: ({progress, hasMarginRight = false, hasMarginLeft = false}: {progress: OverlayStylesParams; hasMarginRight?: boolean; hasMarginLeft?: boolean}) =>
+        overlayStyles: ({
+            progress,
+            hasMarginRight = false,
+            hasMarginLeft = false,
+            sidePanelTranslateX,
+        }: {
+            progress: OverlayStylesParams;
+            hasMarginRight?: boolean;
+            hasMarginLeft?: boolean;
+            sidePanelTranslateX?: RefObject<Animated.Value>;
+        }) =>
             ({
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: hasMarginLeft ? variables.receiptPaneRHPMaxWidth : -2 * variables.sideBarWidth,
-                right: hasMarginRight ? variables.sideBarWidth : 0,
+                left: hasMarginLeft ? receiptPaneRHPWidth : -2 * variables.sideBarWidth,
+                right: hasMarginRight ? Animated.add(variables.sideBarWidth, sidePanelTranslateX ? Animated.subtract(variables.sideBarWidth, sidePanelTranslateX.current) : 0) : 0,
                 opacity: progress.interpolate({
                     inputRange: [0, 1],
                     outputRange: [0, variables.overlayOpacity],
@@ -5626,6 +5744,16 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: shouldUseNarrowLayout ? undefined : 500,
         }),
 
+        getMoneyRequestViewImage: (showBorderless: boolean) => ({
+            ...spacing.mh5,
+            overflow: 'hidden',
+            borderWidth: showBorderless ? 0 : 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusLarge,
+            height: 180,
+            maxWidth: '100%',
+        }),
+
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
             justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
         }),
@@ -5651,157 +5779,121 @@ const dynamicStyles = (theme: ThemeColors) =>
         },
     }) satisfies DynamicStyles;
 
-const customPickerStyles = (theme: ThemeColors) => ({
-    picker: (disabled = false, backgroundColor: string = theme.appBG) =>
-        ({
-            iconContainer: {
-                top: Math.round(variables.inputHeight * 0.5) - 11,
-                right: 0,
-                ...pointerEventsNone,
-            },
-
-            inputWeb: {
-                appearance: 'none',
-                ...(disabled ? cursor.cursorDisabled : cursor.cursorPointer),
-                ...picker(theme),
-                backgroundColor,
-            },
-
-            inputIOS: {
-                ...picker(theme),
-            },
-            done: {
-                color: theme.text,
-            },
-            doneDepressed: {
-                // Extracted from react-native-picker-select, src/styles.js
-                fontSize: 17,
-            },
-            modalViewMiddle: {
-                backgroundColor: theme.border,
-                borderTopWidth: 0,
-            },
-            modalViewBottom: {
-                backgroundColor: theme.highlightBG,
-            },
-
-            inputAndroid: {
-                ...picker(theme),
-            },
-        }) satisfies CustomPickerStyle,
-
-    pickerSmall: (disabled = false, backgroundColor: string = theme.highlightBG) =>
-        ({
-            inputIOS: {
-                ...FontUtils.fontFamily.platform.EXP_NEUE,
-                fontSize: variables.fontSizeSmall,
-                paddingLeft: 0,
-                paddingRight: 17,
-                paddingTop: 6,
-                paddingBottom: 6,
-                borderWidth: 0,
-                color: theme.text,
-                height: 26,
-                opacity: 1,
-                backgroundColor: 'transparent',
-            },
-            done: {
-                color: theme.text,
-            },
-            doneDepressed: {
-                // Extracted from react-native-picker-select, src/styles.js
-                fontSize: 17,
-            },
-            modalViewMiddle: {
-                position: 'relative',
-                backgroundColor: theme.border,
-                borderTopWidth: 0,
-            },
-            modalViewBottom: {
-                backgroundColor: theme.highlightBG,
-            },
-            inputWeb: {
-                ...FontUtils.fontFamily.platform.EXP_NEUE,
-                fontSize: variables.fontSizeSmall,
-                paddingLeft: 0,
-                paddingRight: 17,
-                paddingTop: 6,
-                paddingBottom: 6,
-                borderWidth: 0,
-                color: theme.text,
-                appearance: 'none',
-                height: 26,
-                opacity: 1,
-                backgroundColor,
-                ...(disabled ? cursor.cursorDisabled : cursor.cursorPointer),
-            },
-            inputAndroid: {
-                ...FontUtils.fontFamily.platform.EXP_NEUE,
-                fontSize: variables.fontSizeSmall,
-                paddingLeft: 0,
-                paddingRight: 17,
-                paddingTop: 6,
-                paddingBottom: 6,
-                borderWidth: 0,
-                color: theme.text,
-                height: 26,
-                opacity: 1,
-                backgroundColor: 'transparent',
-            },
-            iconContainer: {
-                top: 7,
-                ...pointerEventsNone,
-            },
-            icon: {
-                width: variables.iconSizeExtraSmall,
-                height: variables.iconSizeExtraSmall,
-            },
-            chevronContainer: {
-                pointerEvents: 'none',
-                opacity: 0,
-            },
-        }) satisfies CustomPickerStyle,
-});
-// Styles that don't satisfy the StyleSheet.create typing, because they are not defined on the top level of the object
-const nestedStyles = (theme: ThemeColors) =>
+// Styles that cannot be wrapped in StyleSheet.create because they eg. must be passed to 3rd party libraries as JS objects
+const plainStyles = (theme: ThemeColors) =>
     ({
         webViewStyles: webViewStyles(theme),
+        textInputDesktop: addOutlineWidth(theme, {}, 0),
+        noOutline: addOutlineWidth(theme, {}, 0),
+        picker: (disabled = false, backgroundColor: string = theme.appBG) =>
+            ({
+                iconContainer: {
+                    top: Math.round(variables.inputHeight * 0.5) - 11,
+                    right: 0,
+                    ...pointerEventsNone,
+                },
 
-        offlineFeedback: {
-            deleted: {
-                textDecorationLine: 'line-through',
-                textDecorationStyle: 'solid',
-            },
-            pending: {
-                opacity: 0.5,
-            },
-            default: {
-                // fixes a crash on iOS when we attempt to remove already unmounted children
-                // see https://github.com/Expensify/App/issues/48197 for more details
-                // it's a temporary solution while we are working on a permanent fix
-                opacity: Platform.OS === 'ios' ? 0.99 : undefined,
-            },
-            error: {
-                flexDirection: 'row',
-                alignItems: 'center',
-            },
-            container: {
-                ...spacing.pv2,
-            },
-            textContainer: {
-                flexDirection: 'column',
-                flex: 1,
-            },
-            text: {
-                color: theme.textSupporting,
-                verticalAlign: 'middle',
-                fontSize: variables.fontSizeLabel,
-            },
-            errorDot: {
-                marginRight: 12,
-            },
-        },
+                inputWeb: {
+                    appearance: 'none',
+                    ...(disabled ? cursor.cursorDisabled : cursor.cursorPointer),
+                    ...picker(theme),
+                    backgroundColor,
+                },
 
+                inputIOS: {
+                    ...picker(theme),
+                },
+                done: {
+                    color: theme.text,
+                },
+                doneDepressed: {
+                    // Extracted from react-native-picker-select, src/styles.js
+                    fontSize: 17,
+                },
+                modalViewMiddle: {
+                    backgroundColor: theme.border,
+                    borderTopWidth: 0,
+                },
+                modalViewBottom: {
+                    backgroundColor: theme.highlightBG,
+                },
+
+                inputAndroid: {
+                    ...picker(theme),
+                },
+            }) satisfies CustomPickerStyle,
+
+        pickerSmall: (disabled = false, backgroundColor: string = theme.highlightBG) =>
+            ({
+                inputIOS: {
+                    ...FontUtils.fontFamily.platform.EXP_NEUE,
+                    fontSize: variables.fontSizeSmall,
+                    paddingLeft: 0,
+                    paddingRight: 17,
+                    paddingTop: 6,
+                    paddingBottom: 6,
+                    borderWidth: 0,
+                    color: theme.text,
+                    height: 26,
+                    opacity: 1,
+                    backgroundColor: 'transparent',
+                },
+                done: {
+                    color: theme.text,
+                },
+                doneDepressed: {
+                    // Extracted from react-native-picker-select, src/styles.js
+                    fontSize: 17,
+                },
+                modalViewMiddle: {
+                    position: 'relative',
+                    backgroundColor: theme.border,
+                    borderTopWidth: 0,
+                },
+                modalViewBottom: {
+                    backgroundColor: theme.highlightBG,
+                },
+                inputWeb: {
+                    ...FontUtils.fontFamily.platform.EXP_NEUE,
+                    fontSize: variables.fontSizeSmall,
+                    paddingLeft: 0,
+                    paddingRight: 17,
+                    paddingTop: 6,
+                    paddingBottom: 6,
+                    borderWidth: 0,
+                    color: theme.text,
+                    appearance: 'none',
+                    height: 26,
+                    opacity: 1,
+                    backgroundColor,
+                    ...(disabled ? cursor.cursorDisabled : cursor.cursorPointer),
+                },
+                inputAndroid: {
+                    ...FontUtils.fontFamily.platform.EXP_NEUE,
+                    fontSize: variables.fontSizeSmall,
+                    paddingLeft: 0,
+                    paddingRight: 17,
+                    paddingTop: 6,
+                    paddingBottom: 6,
+                    borderWidth: 0,
+                    color: theme.text,
+                    height: 26,
+                    opacity: 1,
+                    backgroundColor: 'transparent',
+                },
+                iconContainer: {
+                    top: 7,
+                    ...pointerEventsNone,
+                },
+                icon: {
+                    width: variables.iconSizeExtraSmall,
+                    height: variables.iconSizeExtraSmall,
+                },
+                chevronContainer: {
+                    pointerEvents: 'none',
+                    opacity: 0,
+                },
+            }) satisfies CustomPickerStyle,
         mapDirection: {
             lineColor: theme.success,
             lineWidth: 7,
@@ -5811,16 +5903,13 @@ const nestedStyles = (theme: ThemeColors) =>
             layout: {'line-join': 'round', 'line-cap': 'round'},
             paint: {'line-color': theme.success, 'line-width': 7},
         },
-        textInputDesktop: addOutlineWidth(theme, {}, 0),
-        noOutline: addOutlineWidth(theme, {}, 0),
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>
     ({
         ...staticStyles(theme),
         ...dynamicStyles(theme),
-        ...customPickerStyles(theme),
-        ...nestedStyles(theme),
+        ...plainStyles(theme),
     }) satisfies Styles;
 
 type ThemeStyles = ReturnType<typeof styles>;
