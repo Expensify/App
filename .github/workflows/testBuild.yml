@@ -336,7 +336,7 @@ jobs:
 
       - name: Rock Remote Build - Android
         id: rock-remote-build-android
-        uses: callstackincubator/android@8f91b6c5dd7d2778b353f0758d7020213e7f6bc1 # v3
+        uses: callstackincubator/android@1ef36f7321e2f263a260e51aeda432b03165e5f1 # v3
         env:
           IS_HYBRID_APP: true
           GITHUB_TOKEN: ${{ github.token }}
@@ -438,6 +438,28 @@ jobs:
           op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./OldApp_AdHoc_Notification_Service.mobileprovision
           op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
+      - name: Create ExportOptions.plist
+        run: |
+          cat > ExportOptions.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>ad-hoc</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.expensify.expensifylite.adhoc</key>
+              <string>(OldApp) AdHoc</string>
+              <key>com.expensify.expensifylite.adhoc.SmartScanExtension</key>
+              <string>(OldApp) AdHoc: Share Extension</string>
+              <key>com.expensify.expensifylite.adhoc.NotificationServiceExtension</key>
+              <string>(OldApp) AdHoc: Notification Service</string>
+            </dict>
+          </dict>
+          </plist>
+          EOF
+      
       - name: Rock Remote Build - iOS
         id: rock-remote-build-ios
         uses: callstackincubator/ios@e33de1b69ca51fce36f27f7ee4bf0ea4ac5352a9 # v3
@@ -467,6 +489,7 @@ jobs:
               }
             ]
           comment-bot: false
+          rock-build-extra-params: '--export-options-plist ./ExportOptions.plist'
 
   postGithubComment:
     runs-on: ubuntu-latest
