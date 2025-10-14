@@ -286,9 +286,6 @@
 				EC29677F0A49C2946A495A33 /* Pods */,
 				A9EA265D209D4558995C9BD4 /* Resources */,
 				4FE6CFCE5D64D3182AE71756 /* ExpoModulesProviders */,
-				908CB6FE2E82941300FBE286 /* AppIcon.icon */,
-				908CB6FF2E82941300FBE286 /* AppIcon-adhoc.icon */,
-				908CB7002E82941300FBE286 /* AppIcon-dev.icon */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -489,9 +486,6 @@
 				083353EC2B5AB22A00C603C0 /* done.mp3 in Resources */,
 				083353ED2B5AB22A00C603C0 /* receive.mp3 in Resources */,
 				ED222ED90E074A5481A854FA /* ExpensifyNeue-BoldItalic.otf in Resources */,
-				908CB7012E82941300FBE286 /* AppIcon.icon in Resources */,
-				908CB7022E82941300FBE286 /* AppIcon-adhoc.icon in Resources */,
-				908CB7032E82941300FBE286 /* AppIcon-dev.icon in Resources */,
 				30581EA8AAFD4FCE88C5D191 /* ExpensifyNeue-Italic.otf in Resources */,
 				1246A3EF20E54E7A9494C8B9 /* ExpensifyNeue-Regular.otf in Resources */,
 				D27CE6B77196EF3EF450EEAC /* PrivacyInfo.xcprivacy in Resources */,
