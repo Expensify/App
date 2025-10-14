@@ -6208,7 +6208,6 @@ const translations = {
         groupBy: 'グループ',
         moneyRequestReport: {
             emptyStateTitle: 'このレポートには経費がありません。',
-            emptyStateSubtitle: 'このレポートに経費を追加するには、以下のボタンを使用するか、上の「その他」メニューの「経費を追加」オプションを使用してください。',
         },
         noCategory: 'カテゴリなし',
         noTag: 'タグなし',
