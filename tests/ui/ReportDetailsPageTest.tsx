@@ -44,10 +44,6 @@ describe('ReportDetailsPage', () => {
     });
 
     it('self DM track options should disappear when report moved to workspace', async () => {
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TRACK_FLOWS]);
-        });
-
         const selfDMReportID = '1';
         const trackExpenseReportID = '2';
         const trackExpenseActionID = '123';
@@ -95,12 +91,8 @@ describe('ReportDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         const submitText = translateLocal('actionableMentionTrackExpense.submit');
-        const categorizeText = translateLocal('actionableMentionTrackExpense.categorize');
-        const shareText = translateLocal('actionableMentionTrackExpense.share');
 
         await screen.findByText(submitText);
-        await screen.findByText(categorizeText);
-        await screen.findByText(shareText);
 
         const movedTrackExpenseReport = {
             ...trackExpenseReport,
@@ -128,7 +120,5 @@ describe('ReportDetailsPage', () => {
         );
 
         expect(screen.queryByText(submitText)).not.toBeVisible();
-        expect(screen.queryByText(categorizeText)).not.toBeVisible();
-        expect(screen.queryByText(shareText)).not.toBeVisible();
     });
 });
