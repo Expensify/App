@@ -15,6 +15,7 @@ function SelectionListWithSections<TItem extends ListItem>({shouldHideKeyboardOn
                 }
                 Keyboard.dismiss();
             }}
+            isRowMultilineSupported
         />
     );
 }

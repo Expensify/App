@@ -48,7 +48,7 @@ function RadioListItem<TItem extends ListItem>({
         >
             <>
                 {!!item.leftElement && item.leftElement}
-                <View style={[styles.flex1, styles.alignItemsStart, !!rightHandSideComponent && styles.pr2]}>
+                <View style={[styles.flex1, styles.alignItemsStart]}>
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
                         text={fullTitle ?? ''}
