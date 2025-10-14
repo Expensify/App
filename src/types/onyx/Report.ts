@@ -69,7 +69,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
         /** The date and time when the report was created in "YYYY-MM-DD HH:MM:SS" format */
-        created: string;
+        created?: string;
 
         /** Whether the report has a child that is an outstanding expense that is awaiting action from the current user */
         hasOutstandingChildRequest?: boolean;
