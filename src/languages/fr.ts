@@ -1854,6 +1854,7 @@ const translations = {
             "Votre connexion comptable Xero nécessite l'utilisation de l'authentification à deux facteurs. Pour continuer à utiliser Expensify, veuillez l'activer.",
         twoFactorAuthCannotDisable: 'Impossible de désactiver la 2FA',
         twoFactorAuthRequired: "L'authentification à deux facteurs (2FA) est requise pour votre connexion Xero et ne peut pas être désactivée.",
+        explainProcessToRemoveWithRecovery: "Pour désactiver l'authentification à deux facteurs (2FA), veuillez entrer un code de récupération valide.",
     },
     recoveryCodeForm: {
         error: {

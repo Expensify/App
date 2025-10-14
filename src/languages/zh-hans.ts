@@ -1822,6 +1822,7 @@ const translations = {
         twoFactorAuthIsRequiredForAdminsDescription: '您的Xero会计连接需要使用双重身份验证。要继续使用Expensify，请启用它。',
         twoFactorAuthCannotDisable: '无法禁用双重身份验证',
         twoFactorAuthRequired: '您的Xero连接需要双因素认证（2FA），且无法禁用。',
+        explainProcessToRemoveWithRecovery: '为了禁用双因素认证 (2FA)，请输入有效的恢复代码。',
     },
     recoveryCodeForm: {
         error: {
