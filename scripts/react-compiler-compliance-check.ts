@@ -11,7 +11,7 @@ import {writeFileSync} from 'fs';
 import {join} from 'path';
 import type {TupleToUnion} from 'type-fest';
 import CLI from './utils/CLI';
-import Git, {GIT_ERRORS} from './utils/Git';
+import Git from './utils/Git';
 import type {DiffResult} from './utils/Git';
 import {bold, info, log, error as logError, success as logSuccess, note, warn} from './utils/Logger';
 
@@ -108,12 +108,7 @@ async function checkChangedFiles({remote, ...restOptions}: CheckChangedFilesOpti
         }
 
         return check({filesToCheck, ...restOptions});
-    } catch (error) {
-        if (error instanceof Error && error.message === GIT_ERRORS.FAILED_TO_FETCH_FROM_REMOTE) {
-            logError(`Could not fetch from remote ${remote}. If your base remote is not ${remote}, please specify another remote with the --remote flag.`);
-        }
-
-        logError('Could not determine changed files:', error);
+    } catch {
         return false;
     }
 }
@@ -499,10 +494,9 @@ async function main() {
         ],
         namedArgs: {
             remote: {
-                description: 'Git remote name to use for main branch (default: origin)',
+                description: 'Git remote name to use for main branch (default: no remote locally and origin in CI)',
                 required: false,
                 supersedes: ['check-changed'],
-                default: 'origin',
             },
             reportFileName: {
                 description: 'File name to save the report to',
