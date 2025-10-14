@@ -1317,11 +1317,9 @@ const translations = {
             genericHoldExpenseFailureMessage: 'Nieoczekiwany błąd podczas wstrzymywania tego wydatku. Proszę spróbować ponownie później.',
             genericUnholdExpenseFailureMessage: 'Nieoczekiwany błąd podczas zdejmowania tego wydatku z blokady. Proszę spróbować ponownie później.',
             receiptDeleteFailureError: 'Nieoczekiwany błąd podczas usuwania tego paragonu. Proszę spróbować ponownie później.',
-            receiptFailureMessage: 'Wystąpił błąd podczas przesyłania paragonu. Proszę',
+            receiptFailureMessage:
+                '<rbr>Wystąpił błąd podczas przesyłania paragonu. Proszę <clickable id="retry">spróbuj ponownie</clickable> lub <clickable id="download">zapisz paragon</clickable> do przesłania później.</rbr>',
             receiptFailureMessageShort: 'Wystąpił błąd podczas przesyłania paragonu.',
-            tryAgainMessage: 'spróbuj ponownie',
-            saveFileMessage: 'zapisz paragon',
-            uploadLaterMessage: 'do przesłania później.',
             genericDeleteFailureMessage: 'Nieoczekiwany błąd podczas usuwania tego wydatku. Proszę spróbować ponownie później.',
             genericEditFailureMessage: 'Nieoczekiwany błąd podczas edytowania tego wydatku. Proszę spróbować ponownie później.',
             genericSmartscanFailureMessage: 'Transakcja ma brakujące pola',
