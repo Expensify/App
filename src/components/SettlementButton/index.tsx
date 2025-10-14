@@ -196,7 +196,9 @@ function SettlementButton({
                     icon: formattedPaymentMethod?.icon,
                     shouldUpdateSelectedIndex: true,
                     onSelected: () => {
-                        checkForNecessaryAction();
+                        if (checkForNecessaryAction()) {
+                            return;
+                        }
                         onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType, undefined);
                     },
                     iconStyles: formattedPaymentMethod?.iconStyles,
