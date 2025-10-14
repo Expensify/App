@@ -175,7 +175,7 @@ const report5 = {
 const reportAction1 = {
     accountID: adminAccountID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-    created: '2024-12-21 13:05:20',
+    created: '2024-12-21 13:05:21',
     message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     reportActionID: '11111111',
     originalMessage: {
@@ -189,7 +189,7 @@ const reportAction1 = {
 const reportAction2 = {
     accountID: adminAccountID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-    created: '2024-12-21 13:05:20',
+    created: '2024-12-21 13:05:22',
     message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     reportActionID: '22222222',
     originalMessage: {
@@ -203,7 +203,7 @@ const reportAction2 = {
 const reportAction3 = {
     accountID: adminAccountID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-    created: '2024-12-21 13:05:20',
+    created: '2024-12-21 13:05:23',
     message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     reportActionID: '33333333',
     originalMessage: {
@@ -217,7 +217,7 @@ const reportAction3 = {
 const reportAction4 = {
     accountID: adminAccountID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-    created: '2024-12-21 13:05:20',
+    created: '2024-12-21 13:05:24',
     message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     reportActionID: '44444444',
     originalMessage: {
@@ -361,8 +361,6 @@ const searchResults: OnyxTypes.SearchResults = {
         },
         [`reportActions_${reportID3}`]: {
             [reportAction3.reportActionID]: reportAction3,
-        },
-        [`reportActions_${reportID4}`]: {
             [reportAction4.reportActionID]: reportAction4,
         },
         [`report_${reportID}`]: report1,
@@ -538,7 +536,7 @@ const searchResults: OnyxTypes.SearchResults = {
             reportID: reportID3,
             reportType: 'iou',
             tag: '',
-            transactionID: transactionID3,
+            transactionID: transactionID4,
             transactionThreadReportID: '1014872441234902',
             transactionType: 'cash',
             description: '',
@@ -695,6 +693,23 @@ const searchResultsGroupByWithdrawalID: OnyxTypes.SearchResults = {
 
 const reportActionListItems = [
     {
+        ...reportAction1,
+        date: '2024-12-21 13:05:21',
+        formattedFrom: 'Admin',
+        from: {
+            accountID: 18439984,
+            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+            displayName: 'Admin',
+            login: adminEmail,
+        },
+        keyForList: reportAction1.reportActionID,
+        originalMessage: {
+            IOUReportID: report1.reportID,
+            IOUTransactionID: transactionID,
+        },
+        message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+    },
+    {
         accountID: 18439984,
         actionName: 'ADDCOMMENT',
         created: '2024-12-21 13:05:20',
@@ -723,6 +738,59 @@ const reportActionListItems = [
         reportActionID: 'Admin',
         reportID: '123456789',
         reportName: 'Expense Report #123',
+    },
+    {
+        ...reportAction2,
+        date: '2024-12-21 13:05:22',
+        formattedFrom: 'Admin',
+        from: {
+            accountID: 18439984,
+            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+            displayName: 'Admin',
+            login: adminEmail,
+        },
+        keyForList: reportAction2.reportActionID,
+        originalMessage: {
+            IOUReportID: report2.reportID,
+            IOUTransactionID: transactionID2,
+        },
+        message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+    },
+    {
+        ...reportAction3,
+        date: '2024-12-21 13:05:23',
+        formattedFrom: 'Admin',
+        from: {
+            accountID: 18439984,
+            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+            displayName: 'Admin',
+            login: adminEmail,
+        },
+        keyForList: reportAction3.reportActionID,
+        originalMessage: {
+            IOUReportID: report3.reportID,
+            IOUTransactionID: transactionID3,
+        },
+        message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+        reportName: 'owes ₫44.00',
+    },
+    {
+        ...reportAction4,
+        date: '2024-12-21 13:05:24',
+        formattedFrom: 'Admin',
+        from: {
+            accountID: 18439984,
+            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+            displayName: 'Admin',
+            login: adminEmail,
+        },
+        keyForList: reportAction4.reportActionID,
+        originalMessage: {
+            IOUReportID: report3.reportID,
+            IOUTransactionID: transactionID4,
+        },
+        message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+        reportName: 'owes ₫44.00',
     },
 ] as ReportActionListItemType[];
 
@@ -972,7 +1040,7 @@ const transactionsListItems = [
         reportID: '99999',
         reportType: 'iou',
         tag: '',
-        transactionID: '3',
+        transactionID: '4',
         transactionThreadReportID: '1014872441234902',
         transactionType: 'cash',
         from: {
@@ -994,7 +1062,7 @@ const transactionsListItems = [
         date: '2025-03-05',
         shouldShowMerchant: true,
         shouldShowYear: true,
-        keyForList: '3',
+        keyForList: '4',
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         receipt: undefined,
@@ -1054,6 +1122,8 @@ const transactionReportGroupListItems = [
                 action: 'submit',
                 allActions: ['submit'],
                 report: report1,
+                policy,
+                reportAction: reportAction1,
                 amount: -5000,
                 canDelete: true,
                 canHold: true,
@@ -1160,6 +1230,8 @@ const transactionReportGroupListItems = [
                 action: 'review',
                 allActions: ['review', 'approve'],
                 report: report2,
+                policy,
+                reportAction: reportAction2,
                 amount: -5000,
                 canDelete: true,
                 canHold: true,
@@ -1790,7 +1862,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 57;
+            const expectedPropertyCount = 59;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1824,7 +1896,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 57;
+            const expectedPropertyCount = 59;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
