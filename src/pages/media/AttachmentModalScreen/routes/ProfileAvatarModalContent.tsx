@@ -34,19 +34,25 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
         openPublicProfilePage(accountID);
     }, [accountID]);
 
+    const source = getFullSizeAvatar(avatarURL, accountID);
+    const originalFileName = personalDetail?.originalFileName ?? '';
+    const headerTitle = formatPhoneNumber(displayName);
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = !avatarURL;
+
     const onDownloadAttachment = useDownloadAttachment();
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
-            source: getFullSizeAvatar(avatarURL, accountID),
-            originalFileName: personalDetail?.originalFileName ?? '',
-            headerTitle: formatPhoneNumber(displayName),
+            source,
+            originalFileName,
+            headerTitle,
             isLoading,
-            shouldShowNotFoundPage: !avatarURL,
+            shouldShowNotFoundPage,
             maybeIcon: true,
             onDownloadAttachment,
         }),
-        [accountID, avatarURL, displayName, formatPhoneNumber, isLoading, onDownloadAttachment, personalDetail?.originalFileName],
+        [headerTitle, isLoading, onDownloadAttachment, originalFileName, shouldShowNotFoundPage, source],
     );
 
     return (
