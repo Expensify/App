@@ -7154,7 +7154,7 @@ describe('ReportUtils', () => {
                 merchant: 'Test Merchant',
                 created: '',
                 receipt: {
-                    state: CONST.IOU.RECEIPT_STATE.SCANCOMPLETE,
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
                 },
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
