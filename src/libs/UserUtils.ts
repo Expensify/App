@@ -1,4 +1,5 @@
 import {Str} from 'expensify-common';
+import md5 from 'md5';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
@@ -111,7 +112,7 @@ function generateAccountID(searchValue: string): number {
     return hashText(searchValue, 2 ** 32);
 }
 
-function getAccountIDHashBucket(accountID = -1, avatarURL?: string) {
+function getAccountIDHashBucket(accountID = -1, accountEmail?: string, avatarURL?: string) {
     // There are 24 possible default avatars, so we choose which one this user has based
     // on a simple modulo operation of their login number. Note that Avatar count starts at 1.
 
@@ -122,6 +123,9 @@ function getAccountIDHashBucket(accountID = -1, avatarURL?: string) {
         const match = avatarURL.match(/(default-avatar_|avatar_)(\d+)(?=\.)/);
         const lastDigit = match && parseInt(match[2], 10);
         accountIDHashBucket = lastDigit as AvatarRange;
+    } else if (accountEmail) {
+        const intVal = parseInt(md5(accountEmail, {asString: true}).substring(0, 4), 10);
+        accountIDHashBucket = ((intVal % CONST.DEFAULT_AVATAR_COUNT) + 1) as AvatarRange;
     } else if (accountID > 0) {
         accountIDHashBucket = ((accountID % CONST.DEFAULT_AVATAR_COUNT) + 1) as AvatarRange;
     }
@@ -131,7 +135,7 @@ function getAccountIDHashBucket(accountID = -1, avatarURL?: string) {
 /**
  * Helper method to return the default avatar associated with the given accountID
  */
-function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset | undefined {
+function getDefaultAvatar(accountID = -1, accountEmail?: string, avatarURL?: string): IconAsset | undefined {
     if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
         return ConciergeAvatar;
     }
@@ -139,7 +143,7 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset | undef
         return NotificationsAvatar;
     }
 
-    const accountIDHashBucket = getAccountIDHashBucket(accountID, avatarURL);
+    const accountIDHashBucket = getAccountIDHashBucket(accountID, accountEmail, avatarURL);
     if (!accountIDHashBucket) {
         return;
     }
@@ -150,12 +154,12 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset | undef
 /**
  * Helper method to return default avatar URL associated with the accountID
  */
-function getDefaultAvatarURL(accountID: string | number = '', avatarURL?: string): string {
+function getDefaultAvatarURL(accountID: string | number = '', accountEmail?: string, avatarURL?: string): string {
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
 
-    const accountIDHashBucket = getAccountIDHashBucket(Number(accountID) || -1, avatarURL);
+    const accountIDHashBucket = getAccountIDHashBucket(Number(accountID) || -1, accountEmail, avatarURL);
     const avatarPrefix = `default-avatar`;
 
     return `${CONST.CLOUDFRONT_URL}/images/avatars/${avatarPrefix}_${accountIDHashBucket}.png`;
@@ -186,9 +190,10 @@ function isDefaultAvatar(avatarSource?: AvatarSource): avatarSource is string | 
  *
  * @param avatarSource - the avatar source from user's personalDetails
  * @param accountID - the accountID of the user
+ * @param accountEmail - the email of the user, for consistency with BE logic
  */
-function getAvatar(avatarSource?: AvatarSource, accountID?: number): AvatarSource | undefined {
-    return isDefaultAvatar(avatarSource) ? getDefaultAvatar(accountID, avatarSource) : avatarSource;
+function getAvatar(avatarSource?: AvatarSource, accountID?: number, accountEmail?: string): AvatarSource | undefined {
+    return isDefaultAvatar(avatarSource) ? getDefaultAvatar(accountID, accountEmail, avatarSource) : avatarSource;
 }
 
 /**
@@ -198,16 +203,16 @@ function getAvatar(avatarSource?: AvatarSource, accountID?: number): AvatarSourc
  * @param avatarSource - the avatar source from user's personalDetails
  * @param accountID - the accountID of the user
  */
-function getAvatarUrl(avatarSource: AvatarSource | undefined, accountID: number): AvatarSource {
-    return isDefaultAvatar(avatarSource) ? getDefaultAvatarURL(accountID, avatarSource) : avatarSource;
+function getAvatarUrl(avatarSource: AvatarSource | undefined, accountID: number, accountEmail?: string): AvatarSource {
+    return isDefaultAvatar(avatarSource) ? getDefaultAvatarURL(accountID, accountEmail, avatarSource) : avatarSource;
 }
 
 /**
  * Avatars uploaded by users will have a _128 appended so that the asset server returns a small version.
  * This removes that part of the URL so the full version of the image can load.
  */
-function getFullSizeAvatar(avatarSource: AvatarSource | undefined, accountID?: number): AvatarSource | undefined {
-    const source = getAvatar(avatarSource, accountID);
+function getFullSizeAvatar(avatarSource: AvatarSource | undefined, accountID?: number, accountEmail?: string): AvatarSource | undefined {
+    const source = getAvatar(avatarSource, accountID, accountEmail);
     if (typeof source !== 'string') {
         return source;
     }
@@ -218,8 +223,8 @@ function getFullSizeAvatar(avatarSource: AvatarSource | undefined, accountID?: n
  * Small sized avatars end with _128.<file-type>. This adds the _128 at the end of the
  * source URL (before the file type) if it doesn't exist there already.
  */
-function getSmallSizeAvatar(avatarSource?: AvatarSource, accountID?: number): AvatarSource | undefined {
-    const source = getAvatar(avatarSource, accountID);
+function getSmallSizeAvatar(avatarSource?: AvatarSource, accountID?: number, accountEmail?: string): AvatarSource | undefined {
+    const source = getAvatar(avatarSource, accountID, accountEmail);
     if (typeof source !== 'string') {
         return source;
     }
