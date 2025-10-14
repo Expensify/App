@@ -482,7 +482,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     onBackButtonPress();
                 }}
                 onCancel={() => setIsDeleteModalVisible(false)}
-                prompt={translate('iou.deleteConfirmation', {count: 1})}
+                prompt={translate('iou.deleteConfirmation', {count: 1})} //
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger

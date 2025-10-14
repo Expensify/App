@@ -46,7 +46,7 @@ import {
     updateMoneyRequestAttendees,
     updateMoneyRequestCategory,
     updateSplitExpenseAmountField,
-    updateSplitTransactions,
+    updateSplitTransactionsFromSplitExpensesFlow,
 } from '@libs/actions/IOU';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
@@ -2668,7 +2668,7 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('updateSplitTransactions', () => {
+    describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         it('should delete the original transaction thread report', async () => {
             const expenseReport: Report = {
                 ...createRandomReport(1),
@@ -2727,7 +2727,7 @@ describe('actions/IOU', () => {
                 },
             });
 
-            updateSplitTransactions({
+            updateSplitTransactionsFromSplitExpensesFlow({
                 allTransactionsList: allTransactions,
                 allReportsList: allReports,
                 transactionData: {
@@ -2821,7 +2821,7 @@ describe('actions/IOU', () => {
                 },
             });
 
-            updateSplitTransactions({
+            updateSplitTransactionsFromSplitExpensesFlow({
                 allTransactionsList: allTransactions,
                 allReportsList: allReports,
                 transactionData: {
@@ -2930,7 +2930,7 @@ describe('actions/IOU', () => {
                 },
             });
 
-            updateSplitTransactions({
+            updateSplitTransactionsFromSplitExpensesFlow({
                 allTransactionsList: allTransactions,
                 allReportsList: allReports,
                 transactionData: {
@@ -7268,7 +7268,7 @@ describe('actions/IOU', () => {
             expect(updatedExpenseReport?.unheldNonReimbursableTotal).toBe(-amount);
         });
 
-        describe('updateSplitTransactions', () => {
+        describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             it("should update split transaction's description correctly ", async () => {
                 const amount = 10000;
                 let expenseReport: OnyxEntry<Report>;
@@ -7377,7 +7377,7 @@ describe('actions/IOU', () => {
                     },
                 });
 
-                updateSplitTransactions({
+                updateSplitTransactionsFromSplitExpensesFlow({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     transactionData: {
@@ -7510,7 +7510,7 @@ describe('actions/IOU', () => {
                     },
                 });
 
-                updateSplitTransactions({
+                updateSplitTransactionsFromSplitExpensesFlow({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     transactionData: {

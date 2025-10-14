@@ -2,10 +2,11 @@ import {useCallback, useMemo, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
-import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
+import {deleteMoneyRequest, getIOUActionForTransactions, getIOURequestPolicyID, initSplitExpenseItemData, unholdRequest, updateSplitTransactions} from '@libs/actions/IOU';
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates} from '@libs/actions/Search';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isMergeAction} from '@libs/ReportSecondaryActionUtils';
@@ -21,6 +22,7 @@ import {
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
+import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -63,6 +65,9 @@ function useSelectedTransactionsActions({
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
+    const [allPolicyRecentlyUsedCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES, {canBeMissing: true});
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
@@ -85,6 +90,7 @@ function useSelectedTransactionsActions({
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const isTrackExpenseThread = isTrackExpenseReport(report);
     const isInvoice = isInvoiceReport(report);
+    const {currentSearchHash} = useSearchContext();
 
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
@@ -117,6 +123,7 @@ function useSelectedTransactionsActions({
 
         const transactionsWithActions = selectedTransactionIDs.map((transactionID) => ({
             transactionID,
+            transaction: allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`],
             action: iouActions.find((action) => {
                 const IOUTransactionID = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action)?.IOUTransactionID;
                 return transactionID === IOUTransactionID;
@@ -124,7 +131,63 @@ function useSelectedTransactionsActions({
         }));
         const deletedTransactionIDs: string[] = [];
         const deletedTransactionThreadReportIDs = new Set<string>();
-        transactionsWithActions.forEach(({transactionID, action}) => {
+        const {splitTransactionsByOriginalTransactionID, nonSplitTransactions} = transactionsWithActions.reduce(
+            (acc, item) => {
+                const {transaction} = item;
+                const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
+                const originalTransactionID = transaction?.comment?.originalTransactionID;
+
+                if (isExpenseSplit && originalTransactionID) {
+                    acc.splitTransactionsByOriginalTransactionID[originalTransactionID] = acc.splitTransactionsByOriginalTransactionID[originalTransactionID] || [];
+                    acc.splitTransactionsByOriginalTransactionID[originalTransactionID].push(item);
+                } else {
+                    acc.nonSplitTransactions.push(item);
+                }
+
+                return acc;
+            },
+            {splitTransactionsByOriginalTransactionID: {}, nonSplitTransactions: []} as {
+                splitTransactionsByOriginalTransactionID: Record<string, Array<{transactionID: string; action?: ReportAction; transaction?: Transaction}>>;
+                nonSplitTransactions: Array<{transactionID: string; action?: ReportAction; transaction?: Transaction}>;
+            },
+        );
+
+        Object.keys(splitTransactionsByOriginalTransactionID).forEach((transactionID) => {
+            const splitIDs = (splitTransactionsByOriginalTransactionID[transactionID] ?? []).map(transaction => transaction.transactionID);
+            const childTransactions = getChildTransactions(allTransactions, allReports, transactionID).filter((transaction) => !splitIDs.includes(transaction?.transactionID ?? ''));
+
+            if (childTransactions.length === 0) {
+                nonSplitTransactions.push(...splitTransactionsByOriginalTransactionID[transactionID]);
+                return;
+            }
+            const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            const originalTransactionIouActions = getIOUActionForTransactions([transactionID], report?.reportID);
+            const iouReportID = isMoneyRequestAction(originalTransactionIouActions.at(0)) ? getOriginalMessage(originalTransactionIouActions.at(0))?.IOUReportID : undefined;
+            const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+            const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`];
+            const isChatIOUReportArchived = isArchivedReport(reportNameValuePairs);
+            const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
+            const policyRecentlyUsedCategories = allPolicyRecentlyUsedCategories?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(getIOURequestPolicyID(originalTransaction, report))}`] ?? [];
+            updateSplitTransactions({
+                allTransactionsList: allTransactions,
+                allReportsList: allReports,
+                transactionData: {
+                    reportID: report?.reportID ?? '',
+                    originalTransactionID: transactionID,
+                    splitExpenses: childTransactions.map((childTransaction) => initSplitExpenseItemData(childTransaction)),
+                },
+                hash: currentSearchHash,
+                policyCategories,
+                policy,
+                policyRecentlyUsedCategories,
+                iouReport,
+                chatReport,
+                firstIOU: originalTransactionIouActions.at(0),
+                isChatReportArchived:isChatIOUReportArchived,
+            });
+        });
+
+        nonSplitTransactions.forEach(({transactionID, action}) => {
             if (!action) {
                 return;
             }
@@ -153,7 +216,7 @@ function useSelectedTransactionsActions({
         clearSelectedTransactions(true);
         setIsDeleteModalVisible(false);
         Navigation.removeReportScreen(deletedTransactionThreadReportIDs);
-    }, [duplicateTransactions, duplicateTransactionViolations, allReports, reportActions, selectedTransactionIDs, clearSelectedTransactions, archivedReportsIdSet]);
+    }, [reportActions, selectedTransactionIDs, clearSelectedTransactions, allTransactions, allReports, report, allReportNameValuePairs, allPolicyRecentlyUsedCategories, currentSearchHash, policyCategories, policy, archivedReportsIdSet, duplicateTransactions, duplicateTransactionViolations]);
 
     const showDeleteModal = useCallback(() => {
         setIsDeleteModalVisible(true);

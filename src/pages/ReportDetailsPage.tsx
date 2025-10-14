@@ -998,7 +998,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         isTransactionDeleted.current = true;
                     }}
                     onCancel={() => setIsDeleteModalVisible(false)}
-                    prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation', {count: 1})}
+                    prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation', {count: 1})} //
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
