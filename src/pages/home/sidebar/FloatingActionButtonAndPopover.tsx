@@ -9,6 +9,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FloatingActionButton from '@components/FloatingActionButton';
+import FloatingReceiptButton from '@components/FloatingReceiptButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
@@ -621,7 +622,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     ];
 
     return (
-        <View style={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+        <View style={[styles.justifyContentCenter, styles.flexGrow1, styles.gap3, shouldUseNarrowLayout ? styles.w100 : styles.pv4]}>
             {FabCreateReportConfirmationModal}
             <PopoverMenu
                 onClose={hideCreateMenu}
@@ -661,6 +662,13 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 confirmText={translate('exitSurvey.goToExpensifyClassic')}
                 cancelText={translate('common.cancel')}
             />
+            {!shouldUseNarrowLayout && (
+                <FloatingReceiptButton
+                    accessibilityLabel={translate('sidebarScreen.fabScanReceiptExplained')}
+                    role={CONST.ROLE.BUTTON}
+                    onPress={startScan}
+                />
+            )}
             <FloatingActionButton
                 accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
                 role={CONST.ROLE.BUTTON}
