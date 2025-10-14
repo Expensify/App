@@ -45,6 +45,7 @@ function ShareTab({ref}: ShareTabProps) {
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     useImperativeHandle(ref, () => ({
         focus: selectionListRef.current?.focusTextInput,
@@ -61,8 +62,18 @@ function ShareTab({ref}: ShareTabProps) {
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
-        return getSearchOptions({options, betas, isUsedInChatFinder: false, includeReadOnly: false, searchQuery: textInputValue, maxResults: 20, includeUserToInvite: true, countryCode});
-    }, [areOptionsInitialized, betas, countryCode, options, textInputValue]);
+        return getSearchOptions({
+            options,
+            draftComments,
+            betas: betas ?? [],
+            isUsedInChatFinder: false,
+            includeReadOnly: false,
+            searchQuery: textInputValue,
+            maxResults: 20,
+            includeUserToInvite: true,
+            countryCode,
+        });
+    }, [areOptionsInitialized, betas, draftComments, options, textInputValue, countryCode]);
 
     const recentReportsOptions = useMemo(() => {
         if (textInputValue.trim() === '') {

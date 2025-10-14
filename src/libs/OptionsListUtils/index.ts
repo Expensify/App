@@ -284,7 +284,9 @@ Onyx.connect({
                 lastReportActions[reportID] = firstReportAction;
             }
 
-            const isWriteActionAllowed = canUserPerformWriteAction(report);
+            const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+            const isReportArchived = !!reportNameValuePairs?.private_isArchived;
+            const isWriteActionAllowed = canUserPerformWriteAction(report, isReportArchived);
 
             // The report is only visible if it is the last action not deleted that
             // does not match a closed or created state.
@@ -630,6 +632,8 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (isPendingRemove(lastReportAction) && report?.reportID && isThreadParentMessage(lastReportAction, report.reportID)) {
         lastMessageTextFromReport = translateLocal('parentReportAction.hiddenMessage');
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+        lastMessageTextFromReport = translateLocal('iou.paidElsewhere');
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
         lastMessageTextFromReport = `[${translateLocal('common.attachment')}]`;
     } else if (isModifiedExpenseAction(lastReportAction)) {
@@ -1503,7 +1507,7 @@ function getUserToInviteContactOption({
     return userToInvite;
 }
 
-function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfig): boolean {
+function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfig, draftComment: string | undefined): boolean {
     const {
         betas = [],
         includeMultipleParticipantReports = false,
@@ -1538,6 +1542,7 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
         login: option.login,
         includeDomainEmail,
         isReportArchived: !!option.private_isArchived,
+        draftComment,
     });
 
     if (!shouldBeInOptionList) {
@@ -1754,6 +1759,7 @@ function getRestrictedLogins(config: GetOptionsConfig, options: OptionList, canS
  */
 function getValidOptions(
     options: OptionList,
+    draftComments: OnyxCollection<string> | undefined,
     {
         excludeLogins = {},
         includeSelectedOptions = false,
@@ -1806,7 +1812,7 @@ function getValidOptions(
 
         const filteringFunction = (report: SearchOption<Report>) => {
             let searchText = `${report.text ?? ''}${report.login ?? ''}`;
-
+            const draftComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
             if (report.isThread) {
                 searchText += report.alternateText ?? '';
             } else if (report.isChatRoom) {
@@ -1821,12 +1827,16 @@ function getValidOptions(
                 return false;
             }
 
-            return isValidReport(report, {
-                ...getValidReportsConfig,
-                includeP2P,
-                includeDomainEmail,
-                loginsToExclude,
-            });
+            return isValidReport(
+                report,
+                {
+                    ...getValidReportsConfig,
+                    includeP2P,
+                    includeDomainEmail,
+                    loginsToExclude,
+                },
+                draftComment,
+            );
         };
 
         filteredReports = optionsOrderBy(options.reports, recentReportComparator, maxRecentReportElements ?? maxElements, filteringFunction);
@@ -1933,9 +1943,10 @@ function getValidOptions(
     };
 }
 
-type GetSearchOptionsConfig = {
+type SearchOptionsConfig = {
     options: OptionList;
-    betas?: Beta[] | undefined;
+    draftComments: OnyxCollection<string>;
+    betas?: Beta[];
     isUsedInChatFinder?: boolean;
     includeReadOnly?: boolean;
     searchQuery?: string;
@@ -1952,7 +1963,8 @@ type GetSearchOptionsConfig = {
  */
 function getSearchOptions({
     options,
-    betas = [],
+    draftComments,
+    betas,
     isUsedInChatFinder = true,
     includeReadOnly = true,
     searchQuery = '',
@@ -1962,12 +1974,13 @@ function getSearchOptions({
     includeCurrentUser = false,
     countryCode = CONST.DEFAULT_COUNTRY_CODE,
     shouldShowGBR = false,
-}: GetSearchOptionsConfig): Options {
+}: SearchOptionsConfig): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
 
     const optionList = getValidOptions(
         options,
+        draftComments,
         {
             betas,
             includeRecentReports,
@@ -1999,6 +2012,7 @@ function getSearchOptions({
 
 function getShareLogOptions(
     options: OptionList,
+    draftComments: OnyxCollection<string>,
     betas: Beta[] = [],
     searchString = '',
     maxElements?: number,
@@ -2007,6 +2021,7 @@ function getShareLogOptions(
 ): Options {
     return getValidOptions(
         options,
+        draftComments,
         {
             betas,
             includeMultipleParticipantReports: true,
@@ -2054,6 +2069,7 @@ function getAttendeeOptions(
     betas: OnyxEntry<Beta[]>,
     attendees: Attendee[],
     recentAttendees: Attendee[],
+    draftComments: OnyxCollection<string>,
     includeOwnedWorkspaceChats = false,
     includeP2P = true,
     includeInvoiceRooms = false,
@@ -2090,6 +2106,7 @@ function getAttendeeOptions(
 
     return getValidOptions(
         {reports, personalDetails},
+        draftComments,
         {
             betas,
             selectedOptions: attendees.map((attendee) => ({...attendee, login: attendee.email})),
@@ -2142,22 +2159,19 @@ function getMemberInviteOptions(
     betas: Beta[] = [],
     excludeLogins: Record<string, boolean> = {},
     includeSelectedOptions = false,
-    reports: Array<SearchOption<Report>> = [],
-    includeRecentReports = false,
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
-    searchString = '',
-    maxElements?: number,
 ): Options {
     return getValidOptions(
-        {reports, personalDetails},
+        {personalDetails, reports: []},
+        undefined,
         {
             betas,
             includeP2P: true,
             excludeLogins,
             includeSelectedOptions,
-            includeRecentReports,
-            searchString,
-            maxElements,
+            includeRecentReports: false,
+            searchString: '',
+            maxElements: undefined,
         },
         countryCode,
     );

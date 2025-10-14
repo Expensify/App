@@ -179,6 +179,7 @@ function SearchAutocompleteList({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const taxRates = getAllTaxRates();
@@ -190,18 +191,19 @@ function SearchAutocompleteList({
         }
         return getSearchOptions({
             options,
-            betas,
+            draftComments,
+            betas: betas ?? [],
             isUsedInChatFinder: true,
             includeReadOnly: true,
             searchQuery: autocompleteQueryValue,
             maxResults: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
             includeUserToInvite: true,
             includeRecentReports: true,
-            includeCurrentUser: false,
+            includeCurrentUser: true,
             countryCode,
-            shouldShowGBR: true,
+            shouldShowGBR: false,
         });
-    }, [areOptionsInitialized, options, betas, autocompleteQueryValue, countryCode]);
+    }, [areOptionsInitialized, options, draftComments, betas, autocompleteQueryValue, countryCode]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
@@ -393,14 +395,15 @@ function SearchAutocompleteList({
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
                 const participants = getSearchOptions({
                     options,
-                    betas,
+                    draftComments,
+                    betas: betas ?? [],
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
                     searchQuery: autocompleteValue,
                     maxResults: 10,
                     includeUserToInvite: false,
-                    includeRecentReports: true,
-                    includeCurrentUser: false,
+                    includeRecentReports: false,
+                    includeCurrentUser: true,
                     countryCode,
                     shouldShowGBR: true,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.includes(participant.text.toLowerCase()));
@@ -415,7 +418,8 @@ function SearchAutocompleteList({
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
                 const filteredReports = getSearchOptions({
                     options,
-                    betas,
+                    draftComments,
+                    betas: betas ?? [],
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
                     searchQuery: autocompleteValue,
@@ -582,6 +586,7 @@ function SearchAutocompleteList({
         recentCurrencyAutocompleteList,
         taxAutocompleteList,
         options,
+        draftComments,
         betas,
         countryCode,
         currentUserLogin,
@@ -594,8 +599,8 @@ function SearchAutocompleteList({
         cardAutocompleteList,
         booleanTypes,
         workspaceList,
-        hasAutocompleteList,
         isAutocompleteList,
+        hasAutocompleteList,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
