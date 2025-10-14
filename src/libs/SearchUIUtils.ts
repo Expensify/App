@@ -1402,6 +1402,7 @@ function getReportSections(
 
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
+    const reportActionsByTransactionIDMap = createReportActionsByTransactionIDMap(data);
 
     // Get violations - optimize by using a Map for faster lookups
     const allViolations = getViolations(data);
@@ -1486,6 +1487,8 @@ function getReportSections(
                 action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                 allActions,
                 report,
+                reportAction: reportActionsByTransactionIDMap.get(transactionItem.transactionID),
+                policy,
                 from,
                 to,
                 formattedFrom,

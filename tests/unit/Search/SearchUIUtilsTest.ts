@@ -172,6 +172,106 @@ const report5 = {
     unheldTotal: 0,
 } as const;
 
+const reportAction1 = {
+    accountID: adminAccountID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+    created: '2024-12-21 13:05:20',
+    message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+    reportActionID: '11111111',
+    originalMessage: {
+        IOUTransactionID: transactionID,
+        IOUReportID: report1.reportID,
+    },
+    reportID: report1.reportID,
+    reportName: report1.reportName,
+};
+
+const reportAction2 = {
+    accountID: adminAccountID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+    created: '2024-12-21 13:05:20',
+    message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+    reportActionID: '22222222',
+    originalMessage: {
+        IOUTransactionID: transactionID2,
+        IOUReportID: report2.reportID,
+    },
+    reportID: report2.reportID,
+    reportName: report2.reportName,
+};
+
+const reportAction3 = {
+    accountID: adminAccountID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+    created: '2024-12-21 13:05:20',
+    message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+    reportActionID: '33333333',
+    originalMessage: {
+        IOUTransactionID: transactionID3,
+        IOUReportID: report3.reportID,
+    },
+    reportID: report3.reportID,
+    reportName: report3.reportName,
+};
+
+const reportAction4 = {
+    accountID: adminAccountID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+    created: '2024-12-21 13:05:20',
+    message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+    reportActionID: '44444444',
+    originalMessage: {
+        IOUTransactionID: transactionID4,
+        IOUReportID: report3.reportID,
+    },
+    reportID: report3.reportID,
+    reportName: report3.reportName,
+};
+
+const policy = {
+    id: 'Admin',
+    approvalMode: 'ADVANCED',
+    autoReimbursement: {
+        limit: 0,
+    },
+    autoReimbursementLimit: 0,
+    autoReporting: true,
+    autoReportingFrequency: 'immediate',
+    harvesting: {
+        enabled: false,
+    },
+    preventSelfApproval: false,
+    owner: adminEmail,
+    reimbursementChoice: 'reimburseManual',
+    role: 'admin',
+    type: 'team',
+    employeeList: {
+        [adminEmail]: {
+            email: adminEmail,
+            role: CONST.POLICY.ROLE.ADMIN,
+            forwardsTo: '',
+            submitsTo: approverEmail,
+        },
+        [approverEmail]: {
+            email: approverEmail,
+            role: CONST.POLICY.ROLE.USER,
+            approvalLimit: 100,
+            submitsTo: adminEmail,
+            overLimitForwardsTo: overlimitApproverEmail,
+        },
+        [overlimitApproverEmail]: {
+            email: overlimitApproverEmail,
+            role: CONST.POLICY.ROLE.ADMIN,
+            submitsTo: approverEmail,
+        },
+        [submitterEmail]: {
+            email: submitterEmail,
+            role: CONST.POLICY.ROLE.USER,
+            submitsTo: adminEmail,
+        },
+    },
+} as const;
+
 const allViolations = {
     [`transactionViolations_${transactionID2}`]: [
         {
@@ -210,50 +310,9 @@ const searchResults: OnyxTypes.SearchResults = {
                 login: submitterEmail,
             },
         },
-        [`policy_${policyID}`]: {
-            id: 'Admin',
-            approvalMode: 'ADVANCED',
-            autoReimbursement: {
-                limit: 0,
-            },
-            autoReimbursementLimit: 0,
-            autoReporting: true,
-            autoReportingFrequency: 'immediate',
-            harvesting: {
-                enabled: false,
-            },
-            preventSelfApproval: false,
-            owner: adminEmail,
-            reimbursementChoice: 'reimburseManual',
-            role: 'admin',
-            type: 'team',
-            employeeList: {
-                [adminEmail]: {
-                    email: adminEmail,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    forwardsTo: '',
-                    submitsTo: approverEmail,
-                },
-                [approverEmail]: {
-                    email: approverEmail,
-                    role: CONST.POLICY.ROLE.USER,
-                    approvalLimit: 100,
-                    submitsTo: adminEmail,
-                    overLimitForwardsTo: overlimitApproverEmail,
-                },
-                [overlimitApproverEmail]: {
-                    email: overlimitApproverEmail,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    submitsTo: approverEmail,
-                },
-                [submitterEmail]: {
-                    email: submitterEmail,
-                    role: CONST.POLICY.ROLE.USER,
-                    submitsTo: adminEmail,
-                },
-            },
-        },
+        [`policy_${policyID}`]: policy,
         [`reportActions_${reportID}`]: {
+            [reportAction1.reportActionID]: reportAction1,
             test: {
                 accountID: adminAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -296,6 +355,15 @@ const searchResults: OnyxTypes.SearchResults = {
                 reportID,
                 reportName: 'Admin1',
             },
+        },
+        [`reportActions_${reportID2}`]: {
+            [reportAction2.reportActionID]: reportAction2,
+        },
+        [`reportActions_${reportID3}`]: {
+            [reportAction3.reportActionID]: reportAction3,
+        },
+        [`reportActions_${reportID4}`]: {
+            [reportAction4.reportActionID]: reportAction4,
         },
         [`report_${reportID}`]: report1,
         [`report_${reportID2}`]: report2,
@@ -665,6 +733,8 @@ const transactionsListItems = [
         allActions: ['submit'],
         amount: -5000,
         report: report1,
+        policy,
+        reportAction: reportAction1,
         canDelete: true,
         canHold: true,
         canUnhold: false,
@@ -733,6 +803,8 @@ const transactionsListItems = [
         allActions: ['review', 'approve'],
         amount: -5000,
         report: report2,
+        policy,
+        reportAction: reportAction2,
         canDelete: true,
         canHold: true,
         canUnhold: false,
@@ -806,6 +878,8 @@ const transactionsListItems = [
         action: 'view',
         allActions: ['view'],
         report: report3,
+        policy,
+        reportAction: reportAction3,
         canDelete: true,
         canHold: true,
         canUnhold: false,
@@ -874,6 +948,8 @@ const transactionsListItems = [
         action: 'view',
         allActions: ['view'],
         report: report3,
+        policy,
+        reportAction: reportAction4,
         canDelete: true,
         canHold: true,
         canUnhold: false,
