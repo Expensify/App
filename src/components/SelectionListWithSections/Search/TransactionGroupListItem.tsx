@@ -144,7 +144,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayEmptyView = isEmpty && isGroupByReports;
     const isDisabledOrEmpty = isEmpty || isDisabled;
-    const shouldDisplayShowMoreButton = isGroupByReports ? transactions.length > transactionsVisibleLimit : !!transactionsSnapshotMetadata?.hasMoreResults;
+    const shouldDisplayShowMoreButton = isGroupByReports ? transactions.length > transactionsVisibleLimit : !!transactionsSnapshotMetadata?.hasMoreResults && !isOffline;
     const currentOffset = transactionsSnapshotMetadata?.offset ?? 0;
     const shouldShowLoadingOnSearch = !!(!transactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
     const shouldDisplayLoadingIndicator = !isGroupByReports && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
