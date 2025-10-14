@@ -701,7 +701,7 @@ describe('MergeTransactionUtils', () => {
                 {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
             ];
 
-            const result = getDisplayValue('attendees', transaction, translateLocal);
+            const result = getDisplayValue('attendees', transaction, undefined, translateLocal);
 
             expect(result).toBe('Test User 2, Test User 1');
         });
