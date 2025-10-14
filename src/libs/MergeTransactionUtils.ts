@@ -438,7 +438,7 @@ function buildMergeFieldsData(
  * Build updated values for merge transaction field selection
  * Handles special cases like currency for amount field and additional fields for distance requests
  */
-function getMergeFieldUpdatedValues(transaction: OnyxEntry<Transaction>, field: MergeFieldKey, fieldValue: string | number | boolean | undefined): Partial<MergeTransaction> {
+function getMergeFieldUpdatedValues<K extends MergeFieldKey>(transaction: OnyxEntry<Transaction>, field: K, fieldValue: MergeTransaction[K]): Partial<MergeTransaction> {
     const updatedValues: Partial<MergeTransaction> = {
         [field]: fieldValue,
     };
