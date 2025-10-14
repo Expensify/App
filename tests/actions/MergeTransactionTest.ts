@@ -531,10 +531,12 @@ describe('areTransactionsEligibleForMerge', () => {
             const zeroTransaction1 = {
                 ...createRandomTransaction(0),
                 amount: 0,
+                managedCard: false,
             };
             const zeroTransaction2 = {
                 ...createRandomTransaction(1),
                 amount: 0,
+                managedCard: false,
             };
 
             // When we check if they are eligible for merge
@@ -550,11 +552,13 @@ describe('areTransactionsEligibleForMerge', () => {
                 ...createRandomTransaction(0),
                 amount: 0,
                 currency: CONST.CURRENCY.USD,
+                managedCard: false,
             };
             const nonZeroTransaction = {
                 ...createRandomTransaction(1),
                 amount: -1000, // Negative amount as stored in database
                 currency: CONST.CURRENCY.USD,
+                managedCard: false,
             };
 
             // When we check if they are eligible for merge
@@ -580,10 +584,16 @@ describe('areTransactionsEligibleForMerge', () => {
 
         it('should return true when both are distance requests with valid amounts', () => {
             // Given two distance request transactions with non-zero amounts
-            const distanceTransaction1 = createRandomDistanceRequestTransaction(0);
-            const distanceTransaction2 = createRandomDistanceRequestTransaction(1);
-            distanceTransaction1.amount = 1000;
-            distanceTransaction2.amount = 2000;
+            const distanceTransaction1 = {
+                ...createRandomDistanceRequestTransaction(0),
+                amount: 1000,
+                managedCard: false,
+            }
+            const distanceTransaction2 = {
+                ...createRandomDistanceRequestTransaction(1),
+                amount: 2000,
+                managedCard: false,
+            };
 
             // When we check if they are eligible for merge
             const result = areTransactionsEligibleForMerge(distanceTransaction1, distanceTransaction2);
