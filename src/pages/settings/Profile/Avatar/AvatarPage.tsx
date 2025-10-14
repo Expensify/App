@@ -234,6 +234,9 @@ function ProfileAvatar() {
             </ScrollView>
             <AvatarCropModal
                 onClose={() => {
+                    if (!isAvatarCropModalOpen) {
+                        return;
+                    }
                     setIsAvatarCropModalOpen(false);
                     Navigation.dismissModal();
                 }}
