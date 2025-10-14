@@ -5390,7 +5390,7 @@ function getReportName(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        return getUnreportedTransactionMessage();
+        return getUnreportedTransactionMessage(parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
@@ -6490,13 +6490,28 @@ function getMovedTransactionMessage(action: ReportAction) {
     });
 }
 
-function getUnreportedTransactionMessage() {
-    const selfDMReportID = findSelfDMReportID();
-    const reportUrl = `${environmentURL}/r/${selfDMReportID}`;
-    const message = translateLocal('iou.unreportedTransaction', {
+function getUnreportedTransactionMessage(action: ReportAction) {
+    const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
+    const {fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+
+    const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+
+    const reportName = getReportName(fromReport) ?? fromReport?.reportName ?? '';
+
+    let reportUrl = `${environmentURL}/r/${fromReport?.reportID}`;
+
+    if (fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+        const selfDMReportID = findSelfDMReportID();
+        reportUrl = `${environmentURL}/r/${selfDMReportID}`;
+        return translateLocal('iou.unreportedTransaction', {
+            reportUrl,
+        });
+    }
+
+    return translateLocal('iou.movedTransactionFrom', {
         reportUrl,
+        reportName,
     });
-    return message;
 }
 
 function getMovedActionMessage(action: ReportAction, report: OnyxEntry<Report>) {

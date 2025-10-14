@@ -1245,7 +1245,7 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
             children = (
                 <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getUnreportedTransactionMessage()}</muted-text></comment>`} />
+                    <RenderHTML html={`<comment><muted-text>${getUnreportedTransactionMessage(action)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {

@@ -590,7 +590,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
                     Clipboard.setString(getPolicyChangeLogDefaultTitleEnforcedMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-                    setClipboardMessage(getUnreportedTransactionMessage());
+                    setClipboardMessage(getUnreportedTransactionMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
                     Clipboard.setString(translateLocal('iou.paidElsewhere'));
                 } else if (isReimbursementQueuedAction(reportAction)) {
