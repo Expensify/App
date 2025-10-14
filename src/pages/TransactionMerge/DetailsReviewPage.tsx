@@ -36,7 +36,7 @@ import {createTransactionThreadReport, openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ReportMetadata, Transaction} from '@src/types/onyx';
+import type {ReportActions, ReportMetadata, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import MergeFieldReview from './MergeFieldReview';
@@ -61,18 +61,23 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     });
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
     const [iouReportForTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: true});
+    const iouActionForTargetTransactionSelector = useCallback(
+        (value: OnyxEntry<ReportActions>) => {
+            if (!hasOnceLoadedTransactionThreadReportActions || !!targetTransactionThreadReportID || !targetTransaction?.transactionID) {
+                return undefined;
+            }
+            return getIOUActionForTransactionID(Object.values(value ?? {}), targetTransaction?.transactionID);
+        },
+        [hasOnceLoadedTransactionThreadReportActions, targetTransaction?.transactionID, targetTransactionThreadReportID],
+    );
+
     const [iouActionForTargetTransaction] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransaction?.reportID}`,
         {
-            selector: (value) => {
-                if (!hasOnceLoadedTransactionThreadReportActions || !!targetTransactionThreadReportID || !targetTransaction?.transactionID) {
-                    return undefined;
-                }
-                return getIOUActionForTransactionID(Object.values(value ?? {}), targetTransaction?.transactionID);
-            },
+            selector: iouActionForTargetTransactionSelector,
             canBeMissing: true,
         },
-        [hasOnceLoadedTransactionThreadReportActions, targetTransactionThreadReportID, targetTransaction?.transactionID],
+        [iouActionForTargetTransactionSelector],
     );
     const [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
         canBeMissing: true,
