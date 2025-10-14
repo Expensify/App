@@ -63,7 +63,6 @@ import * as ApiUtils from '@libs/ApiUtils';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
-import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
@@ -76,7 +75,6 @@ import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
-import {registerPaginationConfig} from '@libs/Middleware/Pagination';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
@@ -474,20 +472,6 @@ Onyx.connect({
 let environment: EnvironmentType;
 getEnvironment().then((env) => {
     environment = env;
-});
-
-registerPaginationConfig({
-    initialCommand: WRITE_COMMANDS.OPEN_REPORT,
-    previousCommand: READ_COMMANDS.GET_OLDER_ACTIONS,
-    nextCommand: READ_COMMANDS.GET_NEWER_ACTIONS,
-    resourceCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    pageCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
-    sortItems: (reportActions, reportID) => {
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-        const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
-        return ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction, true);
-    },
-    getItemID: (reportAction) => reportAction.reportActionID,
 });
 
 function clearGroupChat() {
@@ -1020,6 +1004,7 @@ function openReport(
     participantAccountIDList: number[] = [],
     avatar?: File | CustomRNImageManipulatorResult,
     transactionID?: string,
+    isNewThread = false,
 ) {
     if (!reportID) {
         return;
@@ -1083,6 +1068,14 @@ function openReport(
             },
         },
     ];
+
+    if (isNewThread) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {errorFields: {createChatThread: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}},
+        });
+    }
 
     const finallyData: OnyxUpdate[] = [];
 
@@ -1373,12 +1366,25 @@ function getOptimisticChatReport(accountID: number): OptimisticChatReport {
 }
 
 function createTransactionThreadReport(iouReport: OnyxEntry<Report>, iouReportAction: OnyxEntry<ReportAction>): OptimisticChatReport | undefined {
-    if (!iouReport || !iouReportAction) {
-        Log.warn('Cannot build transaction thread report without iouReport and iouReportAction parameters');
+    if (!iouReportAction) {
+        Log.warn('Cannot build transaction thread report without iouReportAction parameter');
         return;
     }
+
+    let reportToUse = iouReport;
+    // For track expenses without iouReport, get the selfDM report
+    if (!iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction)) {
+        const selfDMReportID = findSelfDMReportID();
+        reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
+    }
+
+    if (!reportToUse) {
+        Log.warn('Cannot build transaction thread report without a valid report');
+        return;
+    }
+
     const optimisticTransactionThreadReportID = generateReportID();
-    const optimisticTransactionThread = buildTransactionThread(iouReportAction, iouReport, undefined, optimisticTransactionThreadReportID);
+    const optimisticTransactionThread = buildTransactionThread(iouReportAction, reportToUse, undefined, optimisticTransactionThreadReportID);
     openReport(optimisticTransactionThreadReportID, undefined, currentUserEmail ? [currentUserEmail] : [], optimisticTransactionThread, iouReportAction?.reportActionID);
     return optimisticTransactionThread;
 }
@@ -1494,7 +1500,7 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
 
         if (!childReportID) {
             const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
-            openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID);
+            openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, undefined, true);
         } else {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
         }
@@ -1826,7 +1832,8 @@ function saveReportDraft(reportID: string, report: Report) {
  * When empty string or null is passed, it will delete the draft comment from Onyx store.
  */
 function saveReportDraftComment(reportID: string, comment: string | null, callback: () => void = () => {}) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, prepareDraftComment(comment)).then(callback);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment || null).then(callback);
 }
 
 /** Broadcasts whether or not a user is typing on a report over the report's private pusher channel. */
@@ -1847,16 +1854,15 @@ function broadcastUserIsLeavingRoom(reportID: string) {
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, leavingStatus);
 }
 
-/** When a report changes in Onyx, this fetches the report from the API if the report doesn't have a name */
-function handleReportChanged(report: OnyxEntry<Report>) {
-    if (!report) {
+function handlePreexistingReport(report: Report) {
+    const {reportID, preexistingReportID, parentReportID, parentReportActionID} = report;
+
+    if (!reportID || !preexistingReportID) {
         return;
     }
 
-    const {reportID, preexistingReportID, parentReportID, parentReportActionID} = report;
-
     // Handle cleanup of stale optimistic IOU report and its report preview separately
-    if (reportID && preexistingReportID && isMoneyRequestReport(report) && parentReportActionID) {
+    if (isMoneyRequestReport(report) && parentReportActionID) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
             [parentReportActionID]: null,
         });
@@ -1867,48 +1873,46 @@ function handleReportChanged(report: OnyxEntry<Report>) {
     // It is possible that we optimistically created a DM/group-DM for a set of users for which a report already exists.
     // In this case, the API will let us know by returning a preexistingReportID.
     // We should clear out the optimistically created report and re-route the user to the preexisting report.
-    if (reportID && preexistingReportID) {
-        let callback = () => {
-            const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
+    let callback = () => {
+        const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
 
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
-                ...report,
-                reportID: preexistingReportID,
-                preexistingReportID: null,
-                // Replacing the existing report's participants to avoid duplicates
-                participants: existingReport?.participants ?? report.participants,
-            });
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
+            ...report,
+            reportID: preexistingReportID,
+            preexistingReportID: null,
+            // Replacing the existing report's participants to avoid duplicates
+            participants: existingReport?.participants ?? report.participants,
+        });
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
+    };
+    // Only re-route them if they are still looking at the optimistically created report
+    if (Navigation.getActiveRoute().includes(`/r/${reportID}`)) {
+        const currCallback = callback;
+        callback = () => {
+            currCallback();
+            Navigation.setParams({reportID: preexistingReportID.toString()});
         };
-        // Only re-route them if they are still looking at the optimistically created report
-        if (Navigation.getActiveRoute().includes(`/r/${reportID}`)) {
-            const currCallback = callback;
-            callback = () => {
-                currCallback();
-                Navigation.setParams({reportID: preexistingReportID.toString()});
-            };
 
-            // The report screen will listen to this event and transfer the draft comment to the existing report
-            // This will allow the newest draft comment to be transferred to the existing report
-            DeviceEventEmitter.emit(`switchToPreExistingReport_${reportID}`, {
-                preexistingReportID,
-                callback,
-            });
+        // The report screen will listen to this event and transfer the draft comment to the existing report
+        // This will allow the newest draft comment to be transferred to the existing report
+        DeviceEventEmitter.emit(`switchToPreExistingReport_${reportID}`, {
+            preexistingReportID,
+            callback,
+        });
 
-            return;
-        }
-
-        // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
-        // after that clear the optimistically created report
-        const draftReportComment = allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
-        if (!draftReportComment) {
-            callback();
-            return;
-        }
-
-        saveReportDraftComment(preexistingReportID, draftReportComment, callback);
+        return;
     }
+
+    // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
+    // after that clear the optimistically created report
+    const draftReportComment = allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
+    if (!draftReportComment) {
+        callback();
+        return;
+    }
+
+    saveReportDraftComment(preexistingReportID, draftReportComment, callback);
 }
 
 /** Deletes a comment from the report, basically sets it as empty string */
@@ -4419,24 +4423,27 @@ function completeOnboarding({
 
     // Only add the dismissed state of the test drive modal when the user is not redirected to oldDot,
     // because we don't want the modal to reappear when returning from oldDot.
+    // We should only set testDriveModalDismissed to false if it's not already true (i.e., if the modal hasn't been dismissed yet).
     if (!shouldSkipTestDriveModal && !(engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && willRedirectToOldDotFromOnboarding)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_ONBOARDING,
-            value: {testDriveModalDismissed: false},
-        });
+        if (onboarding?.testDriveModalDismissed !== true) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_ONBOARDING,
+                value: {testDriveModalDismissed: false},
+            });
 
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_ONBOARDING,
-            value: {testDriveModalDismissed: false},
-        });
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_ONBOARDING,
+                value: {testDriveModalDismissed: false},
+            });
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_ONBOARDING,
-            value: {testDriveModalDismissed: null},
-        });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_ONBOARDING,
+                value: {testDriveModalDismissed: null},
+            });
+        }
     }
 
     API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
@@ -5884,12 +5891,12 @@ function buildOptimisticChangePolicyData(
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        value: {parentReportActionID: optimisticReportPreviewAction.reportActionID, parentReportID: newPolicyExpenseChatReportID},
+        value: {parentReportActionID: optimisticReportPreviewAction.reportActionID, parentReportID: newPolicyExpenseChatReportID, chatReportID: newPolicyExpenseChatReportID},
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        value: {parentReportActionID: report.parentReportActionID, parentReportID: report.parentReportID},
+        value: {parentReportActionID: report.parentReportActionID, parentReportID: report.parentReportID, chatReportID: report.chatReportID},
     });
 
     // Set lastVisibleActionCreated
@@ -6109,6 +6116,36 @@ function resolveConciergeCategoryOptions(
     } as Partial<ReportActions>);
 }
 
+/**
+ * Enhances existing transaction thread reports with additional context for navigation
+ *
+ * This is NOT the same as createTransactionThreadReport - this function only adds missing
+ * context fields to existing transaction threads, while createTransactionThreadReport
+ * creates entirely new transaction threads with comprehensive data.
+ *
+ * Use this when navigating to existing transaction threads that need additional context
+ * like policyID, parentReportID, etc. for proper threading and navigation.
+ */
+function setOptimisticTransactionThread(reportID?: string, parentReportID?: string, parentReportActionID?: string, policyID?: string) {
+    if (!reportID) {
+        return;
+    }
+
+    // Use merge with selective updates to avoid overwriting existing comprehensive data
+    // This will only add/update the specified fields without overwriting existing data
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        reportID,
+        policyID,
+        parentReportID,
+        parentReportActionID,
+        chatReportID: parentReportID,
+        type: CONST.REPORT.TYPE.CHAT,
+        // Add additional fields to ensure complete report structure
+        lastReadTime: DateUtils.getDBTime(),
+        lastVisibleActionCreated: DateUtils.getDBTime(),
+    });
+}
+
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};
 
 export {
@@ -6150,7 +6187,7 @@ export {
     getNewerActions,
     getOlderActions,
     getReportPrivateNote,
-    handleReportChanged,
+    handlePreexistingReport,
     handleUserDeletedLinksInHtml,
     hasErrorInPrivateNotes,
     inviteToGroupChat,
@@ -6221,4 +6258,5 @@ export {
     removeFailedReport,
     createTransactionThreadReport,
     openUnreportedExpense,
+    setOptimisticTransactionThread,
 };
