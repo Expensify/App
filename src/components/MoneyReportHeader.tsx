@@ -20,6 +20,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -314,6 +315,7 @@ function MoneyReportHeader({
     const [isRejectEducationalModalVisible, setIsRejectEducationalModalVisible] = useState(false);
 
     const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey} = useSearchContext();
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.similarSearchHash, true);
 
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
     const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
@@ -425,7 +427,7 @@ function MoneyReportHeader({
                 if (currentSearchQueryJSON) {
                     search({
                         searchKey: currentSearchKey,
-                        shouldCalculateTotals: true,
+                        shouldCalculateTotals,
                         offset: 0,
                         queryJSON: currentSearchQueryJSON,
                         isOffline,
@@ -443,6 +445,7 @@ function MoneyReportHeader({
             moneyRequestReport,
             introSelected,
             existingB2BInvoiceReport,
+            shouldCalculateTotals,
             activePolicy,
             currentSearchQueryJSON,
             currentSearchKey,
@@ -751,7 +754,7 @@ function MoneyReportHeader({
                     if (currentSearchQueryJSON) {
                         search({
                             searchKey: currentSearchKey,
-                            shouldCalculateTotals: true,
+                            shouldCalculateTotals,
                             offset: 0,
                             queryJSON: currentSearchQueryJSON,
                             isOffline,
