@@ -172,7 +172,7 @@ const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentConta
         return <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>;
     }
     // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{children}</>;
+    return <View style={contentContainerStyle}>{children}</View>;
 };
 
 function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
@@ -408,14 +408,34 @@ function BasePopoverMenu({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [menuItems, setFocusedIndex]);
 
-    const menuContainerStyle = useMemo(() => {
-        if (isSmallScreenWidth) {
-            return shouldEnableMaxHeight ? {maxHeight: windowHeight - 250} : {};
-        }
-        return styles.createMenuContainer;
-    }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer]);
+    // const menuContainerStyle = useMemo(() => {
+    //     if (isSmallScreenWidth) {
+    //         return shouldEnableMaxHeight ? {maxHeight: windowHeight - 250} : {};
+    //     }
+    //     return styles.createMenuContainer;
+    // }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer]);
 
-    const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
+    const menuContainerStyle = useMemo(() => {
+        const DEFAULT_MAX_HEIGHT_OFFSET = 250;
+        const SAFE_BOTTOM_SPACE = variables.h40;
+
+        if (isSmallScreenWidth) {
+            return shouldEnableMaxHeight ? [{maxHeight: windowHeight - DEFAULT_MAX_HEIGHT_OFFSET}] : [];
+        }
+
+        const isTopAnchored = anchorAlignment?.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP;
+        const top = anchorPosition?.vertical;
+
+        if (isTopAnchored && typeof top === 'number' && shouldUseScrollView) {
+            const computed = windowHeight - Math.round(top) - SAFE_BOTTOM_SPACE;
+            const maxHeight = Math.min(CONST.POPOVER_MENU_MAX_HEIGHT, computed);
+            return [styles.createMenuContainer, shouldEnableMaxHeight ? {maxHeight} : {}];
+        }
+
+        return styles.createMenuContainer;
+    }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer, anchorAlignment, anchorPosition, shouldUseScrollView]);
+
+    const {...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
 
     return (
         <PopoverWithMeasuredContent
@@ -446,13 +466,12 @@ function BasePopoverMenu({
             testID={testID}
         >
             <FocusTrapForModal active={isVisible}>
-                <View
-                    onLayout={onLayout}
-                    style={[menuContainerStyle, containerStyles, {paddingTop, paddingBottom, paddingVertical, ...(isWebOrDesktop ? styles.flex1 : styles.flexGrow1)}]}
-                >
-                    {renderHeaderText()}
-                    {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    {renderWithConditionalWrapper(shouldUseScrollView, restScrollContainerStyle, renderedMenuItems)}
+                <View onLayout={onLayout}>
+                    {renderWithConditionalWrapper(
+                        shouldUseScrollView,
+                        [restScrollContainerStyle, menuContainerStyle, containerStyles, {...(isWebOrDesktop ? styles.flex1 : styles.flexGrow1)}],
+                        [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
+                    )}
                 </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
