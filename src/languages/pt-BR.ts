@@ -2011,6 +2011,25 @@ const translations = {
         validateCardTitle: 'Vamos garantir que é você',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Por favor, insira o código mágico enviado para ${contactMethod} para visualizar os detalhes do seu cartão. Ele deve chegar dentro de um ou dois minutos.`,
+        cardFraudAlert: {
+            confirmButtonText: 'Sim, eu aceito',
+            reportFraudButtonText: 'Não, não fui eu',
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) => `limpou a atividade suspeita e reativou o cartão x${cardLastFour}. Tudo pronto para continuar gastando!`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `desativou o cartão com final ${cardLastFour}`,
+            alertMessage: ({
+                cardLastFour,
+                amount,
+                merchant,
+                date,
+            }: {
+                cardLastFour: string;
+                amount: string;
+                merchant: string;
+                date: string;
+            }) => `atividade suspeita identificada no cartão com final ${cardLastFour}. Você reconhece esta cobrança?
+
+${amount} para ${merchant} - ${date}`,
+        },
     },
     workflowsPage: {
         workflowTitle: 'Gastar',
@@ -7174,6 +7193,7 @@ const translations = {
             isWaitingForAssigneeToCompleteAction: 'Está aguardando o responsável concluir a ação',
             hasChildReportAwaitingAction: 'Tem um relatório infantil aguardando ação',
             hasMissingInvoiceBankAccount: 'Falta a conta bancária da fatura',
+            hasUnresolvedCardFraudAlert: 'Tem uma alerta de fraude de cartão não resolvida',
         },
         reasonRBR: {
             hasErrors: 'Tem erros nos dados do relatório ou nas ações do relatório',
