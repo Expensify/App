@@ -38,7 +38,12 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [rest.onClose]);
 
-    // We need to pass stable version of the function to properly work in eventListener
+    // We use a stable callback here to avoid issues with stale closures in event listeners.
+    // If we directly passed `handlePopStateRef.current` to addEventListener, the listener would
+    // capture the value of `onClose` at the time it was registered and would not update when
+    // `onClose` changes. By wrapping it in a stable useCallback and referencing
+    // handlePopStateRef.current inside, we ensure that the listener always calls the latest
+    // version of `onClose` without needing to reattach the event listener.
     const handlePopState = useCallback(() => {
         handlePopStateRef.current();
     }, []);
