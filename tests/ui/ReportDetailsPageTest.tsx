@@ -91,8 +91,13 @@ describe('ReportDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         const submitText = translateLocal('actionableMentionTrackExpense.submit');
-
         await screen.findByText(submitText);
+
+        // Categorize and share are temporarily disabled
+        // const categorizeText = translateLocal('actionableMentionTrackExpense.categorize');
+        // const shareText = translateLocal('actionableMentionTrackExpense.share');
+        // await screen.findByText(categorizeText);
+        // await screen.findByText(shareText);
 
         const movedTrackExpenseReport = {
             ...trackExpenseReport,
@@ -120,5 +125,9 @@ describe('ReportDetailsPage', () => {
         );
 
         expect(screen.queryByText(submitText)).not.toBeVisible();
+
+        // Categorize and share are temporarily disabled
+        // expect(screen.queryByText(categorizeText)).not.toBeVisible();
+        // expect(screen.queryByText(shareText)).not.toBeVisible();
     });
 });
