@@ -531,7 +531,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(reportAction, expenseReportID);
                     Clipboard.setString(displayMessage);
                 } else if (isMoneyRequestAction(reportAction)) {
-                    const displayMessage = getIOUReportActionDisplayMessage(reportAction, transaction);
+                    const displayMessage = getIOUReportActionDisplayMessage(reportAction, transaction, report);
                     if (displayMessage === Parser.htmlToText(displayMessage)) {
                         Clipboard.setString(displayMessage);
                     } else {
@@ -590,6 +590,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getPolicyChangeLogDefaultTitleEnforcedMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
                     setClipboardMessage(getUnreportedTransactionMessage());
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+                    Clipboard.setString(translateLocal('iou.paidElsewhere'));
                 } else if (isReimbursementQueuedAction(reportAction)) {
                     Clipboard.setString(getReimbursementQueuedActionMessage({reportAction, reportOrID: reportID, shouldUseShortDisplayName: false}));
                 } else if (isActionableMentionWhisper(reportAction)) {
