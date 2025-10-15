@@ -27,7 +27,9 @@ jobs:
           java-version: '17'
 
       - name: Install Android via npm
-        run: npm run android
+        run: |
+            cd android
+            ./gradlew installDevelopmentDebug
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_ACTOR: ${{ github.actor }}
