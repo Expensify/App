@@ -1198,10 +1198,6 @@ function downloadMultiLevelIndependentTagsCSV(policyID: string, onDownloadFailed
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_MULTI_LEVEL_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
-function getPolicyTagsData(policyID: string | undefined) {
-    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-}
-
 export {
     buildOptimisticPolicyRecentlyUsedTags,
     setPolicyRequiresTag,
@@ -1221,7 +1217,6 @@ export {
     setPolicyTagApprover,
     importPolicyTags,
     downloadTagsCSV,
-    getPolicyTagsData,
     downloadMultiLevelIndependentTagsCSV,
     cleanPolicyTags,
     setImportedSpreadsheetIsImportingMultiLevelTags,
