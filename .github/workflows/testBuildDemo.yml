@@ -1,0 +1,35 @@
+name: Demo Android setup and install
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  androidDemo:
+    name: Setup repo and run npm android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          ref: main
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Setup Java
+        # v4
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
+        with:
+          distribution: 'oracle'
+          java-version: '17'
+
+      - name: Install Android via npm
+        run: npm run android
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_ACTOR: ${{ github.actor }}
+
+
