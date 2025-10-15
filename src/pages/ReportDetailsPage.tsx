@@ -554,7 +554,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         parentReportAction,
         iouTransactionID,
         moneyRequestReport?.reportID,
-        isBetaEnabled,
         session,
         isTaskActionable,
         isRootGroupChat,

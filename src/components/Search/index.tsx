@@ -595,7 +595,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 data,
             );
         },
-        [data, reportActionsArray, selectedTransactions, outstandingReportsByPolicyID, setSelectedTransactions],
+        [setSelectedTransactions, selectedTransactions, data, reportActionsArray, outstandingReportsByPolicyID, isUserWorkspaceMember],
     );
 
     const onSelectRow = useCallback(
@@ -819,7 +819,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             ),
             data,
         );
-    }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID]);
+    }, [groupBy, selectedTransactions, setSelectedTransactions, data, clearSelectedTransactions, reportActionsArray, outstandingReportsByPolicyID, isUserWorkspaceMember]);
 
     const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
 
