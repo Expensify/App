@@ -317,10 +317,7 @@ class Git {
     static async getMainBranchCommitHash(remote?: string): Promise<string> {
         const baseRefName = IS_CI ? (GITHUB_BASE_REF ?? GITHUB_CONSTANTS.DEFAULT_BASE_REF) : GITHUB_CONSTANTS.DEFAULT_BASE_REF;
 
-        // Fetch the main branch from the specified remote (or locally) to ensure it's available
-        if (IS_CI || remote) {
-            await this.ensureRef(baseRefName, remote);
-        }
+        execSync(`git fetch ${remote} ${baseRefName} --no-tags --depth=1 -q`, {encoding: 'utf8'});
 
         // In CI, use a simpler approach - just use the remote main branch directly
         // This avoids issues with shallow clones and merge-base calculations
