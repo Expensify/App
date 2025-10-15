@@ -87,8 +87,13 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 ?.at(membersRolesColumn)
                 ?.some((role, index) => (containsHeader ? spreadsheet?.data?.at(membersRolesColumn)?.at(index + 1) : (role ?? '')) === CONST.POLICY.ROLE.AUDITOR);
 
-        if ((containsAdvanceApprovalColumns || hasAuditorRole) && !isControlPolicy(policy)) {
+        if (containsAdvanceApprovalColumns && !isControlPolicy(policy)) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, Navigation.getActiveRoute()));
+            return;
+        }
+
+        if (hasAuditorRole && !isControlPolicy(policy)) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.auditor.alias, Navigation.getActiveRoute()));
             return;
         }
 
