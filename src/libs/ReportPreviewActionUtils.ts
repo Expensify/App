@@ -30,6 +30,7 @@ import {
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isPending, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
+import ViolationsUtils from './Violations/ViolationsUtils';
 
 function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, isReportArchived: boolean, policy?: Policy, transactions?: Transaction[]) {
     if (isReportArchived) {
@@ -182,12 +183,13 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
 
 function canReview(report: Report, violations: OnyxCollection<TransactionViolation[]>, isReportArchived: boolean, policy?: Policy, transactions?: Transaction[]) {
     const hasAnyViolations = hasMissingSmartscanFields(report.reportID, transactions) || hasAnyViolationsUtil(report.reportID, violations);
+    const hasVisibleViolations = hasAnyViolations && ViolationsUtils.hasVisibleViolationsForUser(report, violations, policy, transactions);
     const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenExpenseReport(report);
     const isReimbursed = isSettled(report);
 
     if (
-        !hasAnyViolations ||
+        !hasVisibleViolations ||
         isReimbursed ||
         (!(isSubmitter && isOpen && policy?.areWorkflowsEnabled) &&
             !canApprove(report, violations, policy, transactions, false) &&
