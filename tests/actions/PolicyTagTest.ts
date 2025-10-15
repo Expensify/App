@@ -1480,7 +1480,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
 
             // When setPolicyTagsRequired is called and API fails
-            mockFetch?.fail?.();
+            mockFetch.fail();
             setPolicyTagsRequired({policyID: fakePolicy.id, requiresTag: true, tagListIndex: 0, policyTags: fakePolicyTags});
             await waitForBatchedUpdates();
 
