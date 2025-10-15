@@ -745,8 +745,8 @@ describe('actions/Policy', () => {
             expect(policy?.eReceipts).toBe(true);
         });
 
-        it('upgradeToCorporate should set eReceipts to false when outputCurrency is not USD', async () => {
-            // Given a policy with USD currency
+        it("upgradeToCorporate shouldn't set eReceipts to true when outputCurrency is not USD", async () => {
+            // Given a policy with non-USD currency
             const fakePolicy: PolicyType = {
                 ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
                 outputCurrency: CONST.CURRENCY.EUR,
@@ -768,8 +768,7 @@ describe('actions/Policy', () => {
                 });
             });
 
-            // Then eReceipts should be disabled
-            expect(policy?.eReceipts).toBe(false);
+            expect(policy?.eReceipts).toBe(fakePolicy.eReceipts);
         });
     });
 
