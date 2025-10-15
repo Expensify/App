@@ -52,22 +52,30 @@ type DiffFilteringCommits = {
     to: string;
 };
 
-type PrintResultsOptions = {
-    shouldPrintSuccesses: boolean;
-};
-
 type CommonCheckOptions = {
     remote?: string;
     shouldGenerateReport?: boolean;
     reportFileName?: string;
     shouldFilterByDiff?: boolean;
-} & PrintResultsOptions;
+    shouldPrintSuccesses?: boolean;
+};
+
+type PrintResultsOptions = {
+    shouldPrintSuccesses: boolean;
+};
 
 type CheckOptions = CommonCheckOptions & {
     filesToCheck?: string[];
 };
 
-async function check({filesToCheck, shouldGenerateReport = false, reportFileName = DEFAULT_REPORT_FILENAME, shouldFilterByDiff = false, remote, shouldPrintSuccesses = false}: CheckOptions) {
+async function check({
+    filesToCheck,
+    shouldGenerateReport = false,
+    reportFileName = DEFAULT_REPORT_FILENAME,
+    shouldFilterByDiff = false,
+    remote,
+    shouldPrintSuccesses = false,
+}: CheckOptions): Promise<boolean> {
     if (filesToCheck) {
         logInfo(`Running React Compiler check for ${filesToCheck.length} files or glob patterns...`);
     } else {
@@ -81,7 +89,7 @@ async function check({filesToCheck, shouldGenerateReport = false, reportFileName
         const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
         const headCommitHash = 'HEAD';
         const diffFilteringCommits: DiffFilteringCommits = {from: mainBaseCommitHash, to: headCommitHash};
-        results = filterResultsByDiff(results, diffFilteringCommits, {shouldPrintSuccesses});
+        results = await filterResultsByDiff(results, diffFilteringCommits, {shouldPrintSuccesses});
     }
 
     printResults(results, {shouldPrintSuccesses});
@@ -327,9 +335,9 @@ function createFilesGlob(filesToCheck?: string[]): string | undefined {
  * @param diffFilteringCommits - The commit range to diff (from and to)
  * @returns Filtered compiler results containing only failures in changed lines
  */
-function filterResultsByDiff(results: CompilerResults, diffFilteringCommits: DiffFilteringCommits, {shouldPrintSuccesses}: PrintResultsOptions): CompilerResults {
+async function filterResultsByDiff(results: CompilerResults, diffFilteringCommits: DiffFilteringCommits, {shouldPrintSuccesses}: PrintResultsOptions): Promise<CompilerResults> {
     // Check for uncommitted changes and warn if any exist
-    if (Git.hasUncommittedChanges()) {
+    if (await Git.hasUncommittedChanges()) {
         logWarn('Warning: You have uncommitted changes. The diff results may not accurately reflect your current working directory.');
     }
 
@@ -541,6 +549,8 @@ async function main() {
 
     const commonOptions: CommonCheckOptions = {shouldGenerateReport, reportFileName, shouldFilterByDiff, shouldPrintSuccesses};
 
+    let isPassed = false;
+
     async function runCommand() {
         switch (command) {
             case 'check':
@@ -553,7 +563,6 @@ async function main() {
         }
     }
 
-    let isPassed = false;
     try {
         isPassed = await runCommand();
     } catch (error) {
