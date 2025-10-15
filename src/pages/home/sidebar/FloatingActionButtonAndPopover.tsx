@@ -247,6 +247,18 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         });
     }, [shouldRedirectToExpensifyClassic, allTransactionDrafts, reportID]);
 
+    const startQuickScan = useCallback(() => {
+        interceptAnonymousUser(() => {
+            if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
+                return;
+            }
+
+            const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
+            startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, allTransactionDrafts);
+        });
+    }, [policyChatForActivePolicy?.policyID, policyChatForActivePolicy?.reportID, reportID, allTransactionDrafts]);
+
     /**
      * Check if LHN status changed from active to inactive.
      * Used to close already opened FAB menu when open any other pages (i.e. Press Command + K on web).
@@ -624,7 +636,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 <FloatingReceiptButton
                     accessibilityLabel={translate('sidebarScreen.fabScanReceiptExplained')}
                     role={CONST.ROLE.BUTTON}
-                    onPress={startScan}
+                    onPress={startQuickScan}
                 />
             )}
             <FloatingActionButton
