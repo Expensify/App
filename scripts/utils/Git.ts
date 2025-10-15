@@ -394,7 +394,7 @@ class Git {
         }
     }
 
-    static async getChangedFiles(fromRef: string, toRef = 'HEAD'): Promise<string[]> {
+    static async getChangedFileNames(fromRef: string, toRef = 'HEAD'): Promise<string[]> {
         if (IS_CI) {
             const {data: changedFiles} = await GitHubUtils.octokit.pulls.listFiles({
                 owner: 'Expensify',

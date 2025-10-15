@@ -111,7 +111,7 @@ async function checkChangedFiles({remote, ...restOptions}: CheckChangedFilesOpti
 
     try {
         const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
-        const changedFiles = await Git.getChangedFiles(mainBaseCommitHash);
+        const changedFiles = await Git.getChangedFileNames(mainBaseCommitHash);
         const filesToCheck = [...new Set(changedFiles)];
 
         if (filesToCheck.length === 0) {
