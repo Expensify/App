@@ -74,6 +74,7 @@ function SelectionListWithSections<TItem extends ListItem>({onScroll, shouldHide
             // For example, a long press will trigger a focus event on mobile chrome.
             shouldIgnoreFocus={isMobileChrome() && isScreenTouched}
             shouldDebounceScrolling={shouldDebounceScrolling}
+            isRowMultilineSupported
         />
     );
 }
