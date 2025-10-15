@@ -555,7 +555,7 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
             const ownerAccountID = Number(entryKey.slice(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END.length));
 
             if (isPolicyOwner(policy, ownerAccountID)) {
-                return true;
+                return false;
             }
         }
     }
@@ -569,7 +569,7 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
         amountOwed > 0 &&
         isAfter(currentDate, fromUnixTime(ownerBillingGraceEndPeriod))
     ) {
-        return true;
+        return false;
     }
 
     return false;

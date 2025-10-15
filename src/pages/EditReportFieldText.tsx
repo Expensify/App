@@ -8,7 +8,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {hasCircularReferences} from '@libs/Formula';
+import {FieldList, hasCircularReferences} from '@libs/Formula';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -27,9 +27,12 @@ type EditReportFieldTextPageProps = {
 
     /** Callback to fire when the Save button is pressed  */
     onSubmit: (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => void;
+
+    /** Policy field list for circular reference detection */
+    fieldList?: FieldList;
 };
 
-function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, fieldKey}: EditReportFieldTextPageProps) {
+function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, fieldKey, fieldList}: EditReportFieldTextPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -44,13 +47,13 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
                 errors[fieldKey] = translate('common.error.fieldRequired');
             }
 
-            if (hasCircularReferences(inputValue, fieldName)) {
+            if (hasCircularReferences(inputValue, fieldName, fieldList)) {
                 errors[fieldKey] = translate('workspace.reportFields.circularReferenceError');
             }
 
             return errors;
         },
-        [fieldName, fieldKey, isRequired, translate],
+        [fieldName, fieldKey, isRequired, translate, fieldList],
     );
 
     return (

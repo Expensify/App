@@ -109,7 +109,7 @@ function WorkspaceCreateReportFieldsPage({
                 });
             }
 
-            if (type === CONST.REPORT_FIELD_TYPES.TEXT && hasCircularReferences(formInitialValue, name)) {
+            if (type === CONST.REPORT_FIELD_TYPES.TEXT && hasCircularReferences(formInitialValue, name, policy?.fieldList)) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
             }
 

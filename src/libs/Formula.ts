@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getCurrencySymbol} from './CurrencyUtils';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getReportTransactions} from './ReportUtils';
@@ -26,6 +27,8 @@ type FormulaContext = {
     policy: OnyxEntry<Policy>;
     transaction?: Transaction;
 };
+
+type FieldList = Record<string, {name: string; defaultValue: string}>;
 
 const FORMULA_PART_TYPES = {
     REPORT: 'report',
@@ -189,21 +192,74 @@ function parsePart(definition: string): FormulaPart {
 }
 
 /**
- * Check if the report field value is containing circular references, e.g example
- * fieldName (report field name): test-example
- * fieldValue (report field value / initial value): `abc {field:test-example}`
- * Output >> should return: true
+ * Check if the report field formula value is containing circular references, e.g example:  A -> A,  A->B->A,  A->B->C->A, etc
  */
-function hasCircularReferences(fieldValue: string, fieldName: string) {
+function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?: FieldList) {
     const formulaValues = extract(fieldValue);
     if (formulaValues.length === 0) {
         return false;
     }
 
-    return formulaValues.some((formula) => {
-        const fieldPath = parsePart(formula).fieldPath;
-        return fieldPath.includes(fieldName);
-    });
+    // If there's no field list, fall back to simple check (direct self-reference only)
+    if (!fieldList || isEmptyObject(fieldList)) {
+        return formulaValues.some((formula) => {
+            const fieldPath = parsePart(formula).fieldPath;
+            return fieldPath.includes(fieldName);
+        });
+    }
+
+    const visitedLists = new Set<string>();
+
+    // Helper function to check if a field has circular references
+    const hasCircularReferencesRecursive = (currentFieldValue: string, currentFieldName: string): boolean => {
+        // If we've already visited this field in the current path, return true
+        if (visitedLists.has(currentFieldName)) {
+            return true;
+        }
+
+        // Add current field to the visited lists
+        visitedLists.add(currentFieldName);
+
+        // Extract all formula values from the current field
+        const currentFormulaValues = extract(currentFieldValue);
+
+        for (const formula of currentFormulaValues) {
+            const part = parsePart(formula);
+
+            // Only check field references (skip report, user, or freetext)
+            if (part.type !== FORMULA_PART_TYPES.FIELD) {
+                continue;
+            }
+
+            // Get the referenced field name (first element in fieldPath)
+            const referencedFieldName = part.fieldPath.at(0);
+            if (!referencedFieldName) {
+                continue;
+            }
+
+            // Check if this reference creates a cycle
+            if (referencedFieldName === fieldName || visitedLists.has(referencedFieldName)) {
+                visitedLists.delete(currentFieldName);
+                return true;
+            }
+
+            const referencedField = Object.values(fieldList).find((field) => field.name === referencedFieldName);
+
+            if (referencedField?.defaultValue) {
+                // Recursively check the referenced field
+                if (hasCircularReferencesRecursive(referencedField.defaultValue, referencedFieldName)) {
+                    visitedLists.delete(currentFieldName);
+                    return true;
+                }
+            }
+        }
+
+        // Remove current field from visited lists
+        visitedLists.delete(currentFieldName);
+        return false;
+    };
+
+    return hasCircularReferencesRecursive(fieldValue, fieldName);
 }
 
 /**
@@ -523,4 +579,4 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
 
 export {FORMULA_PART_TYPES, compute, extract, parse, hasCircularReferences};
 
-export type {FormulaContext, FormulaPart};
+export type {FormulaContext, FormulaPart, FieldList};

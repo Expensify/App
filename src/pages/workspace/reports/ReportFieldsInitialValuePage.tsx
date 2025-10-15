@@ -75,7 +75,7 @@ function ReportFieldsInitialValuePage({
                 });
             }
 
-            if (reportField?.type === CONST.REPORT_FIELD_TYPES.TEXT && hasCircularReferences(formInitialValue, reportField?.name)) {
+            if (reportField?.type === CONST.REPORT_FIELD_TYPES.TEXT && hasCircularReferences(formInitialValue, reportField?.name, policy?.fieldList)) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
             }
 
