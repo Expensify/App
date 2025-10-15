@@ -238,11 +238,7 @@ function IOURequestStepScan({
                     .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
             };
 
-            // eslint-disable-next-line deprecation/deprecation
-            InteractionManager.runAfterInteractions(() => {
-                // Check initial camera permission status
-                refreshCameraPermissionStatus();
-            });
+            refreshCameraPermissionStatus();
 
             // Refresh permission status when app gain focus
             const subscription = AppState.addEventListener('change', (appState) => {
@@ -763,22 +759,7 @@ function IOURequestStepScan({
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
-        return (
-            <StepScreenWrapper
-                includeSafeAreaPaddingBottom
-                headerTitle={translate('common.receipt')}
-                onBackButtonPress={navigateBack}
-                shouldShowWrapper={!!backTo || isEditing}
-                testID={IOURequestStepScan.displayName}
-            >
-                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        color={theme.textSupporting}
-                    />
-                </View>
-            </StepScreenWrapper>
-        );
+        return null;
     }
 
     return (
