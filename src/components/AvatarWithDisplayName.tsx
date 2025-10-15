@@ -18,6 +18,7 @@ import {
     getDisplayNamesWithTooltips,
     getParentNavigationSubtitle,
     getReportName,
+    getReportStatusColorStyle,
     getReportStatusTranslation,
     isChatThread,
     isExpenseReport,
@@ -191,6 +192,7 @@ function AvatarWithDisplayName({
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false, localeCompare);
     const avatarBorderColor = avatarBorderColorProp ?? (isAnonymous ? theme.highlightBG : theme.componentBG);
     const statusText = shouldDisplayStatus ? getReportStatusTranslation(report?.stateNum, report?.statusNum) : undefined;
+    const reportStatusColorStyle = shouldDisplayStatus ? getReportStatusColorStyle(theme, report?.stateNum, report?.statusNum) : {};
 
     const actorAccountID = useRef<number | null>(null);
     useEffect(() => {
@@ -288,6 +290,8 @@ function AvatarWithDisplayName({
                                 openParentReportInCurrentTab={openParentReportInCurrentTab}
                                 statusText={statusText}
                                 textStyles={parentNavigationSubtitleTextStyles}
+                                statusTextColor={reportStatusColorStyle?.textColor}
+                                statusTextBackgroundColor={reportStatusColorStyle?.backgroundColor}
                             />
                         )}
                         {!!subtitle && (

@@ -12,9 +12,13 @@ import type {
 } from '@react-navigation/native';
 import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
-import type {StackNavigationConfig} from '@react-navigation/stack/lib/typescript/src/types';
 import type CommonProperties from '@src/types/utils/CommonProperties';
 import type {PlatformStackNavigationOptions} from './NavigationOptions';
+
+// Configuration options for stack navigation behavior. Taken from react-navigation/src/types.tsx. Copied here as it isn't exported from there.
+type StackNavigationConfig = {
+    detachInactiveScreens?: boolean;
+};
 
 // Represents the navigation state type for a platform-specific stack.
 type PlatformStackNavigationState<ParamList extends ParamListBase> = StackNavigationState<ParamList>;
