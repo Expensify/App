@@ -577,10 +577,12 @@ function MoneyReportHeader({
             isChatReportArchived,
             invoiceReceiverPolicy,
             isPaidAnimationRunning,
+            isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
         });
     }, [
         isPaidAnimationRunning,
+        isApprovedAnimationRunning,
         isSubmittingAnimationRunning,
         moneyRequestReport,
         chatReport,
