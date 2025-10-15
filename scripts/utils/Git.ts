@@ -300,7 +300,7 @@ class Git {
 
         try {
             log(`🔄 Fetching missing ref: ${ref}`);
-            await exec(`git fetch --no-tags --depth=1 --quiet ${remote} ${ref}`, {
+            await exec(`git fetch ${remote} ${ref} --no-tags --depth=1 --quiet`, {
                 encoding: 'utf8',
                 cwd: process.cwd(),
             });
@@ -317,7 +317,11 @@ class Git {
     static async getMainBranchCommitHash(remote?: string): Promise<string> {
         const baseRefName = IS_CI ? (GITHUB_BASE_REF ?? GITHUB_CONSTANTS.DEFAULT_BASE_REF) : GITHUB_CONSTANTS.DEFAULT_BASE_REF;
 
-        execSync(`git fetch ${remote ?? 'origin'} ${baseRefName} --no-tags --depth=1 -q`, {encoding: 'utf8'});
+        // Fetch the main branch from the specified remote (or locally) to ensure it's available
+        if (IS_CI || remote) {
+            // await this.ensureRef(baseRefName, remote);
+            await exec(`git fetch ${remote ?? 'origin'} ${baseRefName} --no-tags --depth=1 -q`, {encoding: 'utf8'});
+        }
 
         // In CI, use a simpler approach - just use the remote main branch directly
         // This avoids issues with shallow clones and merge-base calculations
