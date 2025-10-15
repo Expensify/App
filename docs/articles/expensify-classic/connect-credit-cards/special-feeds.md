@@ -64,7 +64,7 @@ You can request a feed from your ANZ Internet Banking portal or ANZ Direct Onlin
 1. Log in to ANZ Direct Online with your ANZ credentials.  
 2. Complete the ANZ Direct Online authority form by creating a batch and submitting the Expensify Accounts Disclosure Authority secure mail template form.  
 
-Once submitted, ANZ will set up the feed and send the details directly to Expensify. We will then add the card feed to your Expensify account and notify you when it is active.
+Once submitted, ANZ will set up the feed and send the details directly to Expensify. Expensify will then add the card feed to your Expensify account and notify you when it is active.
 
 # Brex CDF
 
@@ -75,6 +75,6 @@ To enable a Brex feed, your Brex Customer Success Manager must arrange for data 
    - Specify the earliest transaction date needed.  
    - Provide the Domain ID as a reference number.  
    - Brex will initiate delivery and confirm setup.  
-3. Notify your Expensify Account Manager once Brex confirms setup. They will coordinate the final connection of the feed.  
+3. Notify your Expensify Account Manager once Brex confirms setup. Your Expensify Account Manager will coordinate the final connection of the feed.  
 
 </div>
