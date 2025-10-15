@@ -74,9 +74,9 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     });
 
     const listData = useMemo(() => {
-        const combined = [...selectedOptionsForDisplay, ...availableOptions.personalDetails, ...availableOptions.recentReports];
+        const combinedOptions = [...selectedOptionsForDisplay, ...availableOptions.personalDetails, ...availableOptions.recentReports];
 
-        combined.sort((a, b) => {
+        combinedOptions.sort((a, b) => {
             // selected items first
             if (a.isSelected && !b.isSelected) {
                 return -1;
@@ -95,7 +95,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             return 0;
         });
 
-        return combined;
+        return combinedOptions;
     }, [availableOptions.personalDetails, availableOptions.recentReports, selectedOptionsForDisplay, accountID]);
 
     const {sections, headerMessage} = useMemo(() => {
