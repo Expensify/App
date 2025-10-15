@@ -107,7 +107,7 @@ describe('TransactionPreviewUtils', () => {
         it('returns merchant missing and amount missing message when appropriate', () => {
             const functionArgs = {
                 ...basicProps,
-                transaction: {...basicProps.transaction, merchant: '', amount: 0},
+                transaction: {...basicProps.transaction, merchant: '', amount: 0, receipt: {source: 'test-receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE}},
                 originalTransaction: undefined,
                 shouldShowRBR: true,
             };
