@@ -133,6 +133,7 @@ module.exports = {
     extends: [
         'expensify',
         'airbnb-typescript',
+        'plugin:react-hooks/recommended',
         'plugin:storybook/recommended',
         'plugin:react-native-a11y/basic',
         'plugin:@dword-design/import-alias/recommended',
@@ -141,7 +142,7 @@ module.exports = {
         'plugin:you-dont-need-lodash-underscore/all',
         'prettier',
     ],
-    plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library', 'eslint-plugin-react-compiler', 'lodash', 'deprecation'],
+    plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library', 'lodash', 'deprecation'],
     parser: '@typescript-eslint/parser',
     parserOptions: {
         project: path.resolve(__dirname, './tsconfig.json'),
