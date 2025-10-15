@@ -31,6 +31,8 @@ import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
 
 // We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ignored.
+
+// We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ignored.
 const HOLD = 'HOLD';
 const UNHOLD = 'UNHOLD';
 const MOVE = 'MOVE';
@@ -245,8 +247,12 @@ function useSelectedTransactionsActions({
             return canMoveExpense;
         });
 
-        const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
-        if (canSelectedExpensesBeMoved && canUserPerformWriteAction) {
+        const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived) ?? false;
+        const isPolicyAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+        const isReportManager = report?.managerID !== undefined && report?.managerID === session?.accountID;
+        const canShowMoveOption = canSelectedExpensesBeMoved && (canUserPerformWriteAction || isPolicyAdmin || isReportManager);
+
+        if (canShowMoveOption) {
             options.push({
                 text: translate('iou.moveExpenses', {count: selectedTransactionIDs.length}),
                 icon: Expensicons.DocumentMerge,
