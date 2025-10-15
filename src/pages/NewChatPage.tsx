@@ -128,7 +128,6 @@ function useOptions() {
         setSearchTerm,
         areOptionsInitialized: areOptionsInitialized && didScreenTransitionEnd,
         selectedOptions,
-        setSelectedOptions,
         headerMessage,
         toggleSelection,
     };
@@ -166,7 +165,6 @@ function NewChatPage({ref}: NewChatPageProps) {
         debouncedSearchTerm,
         setSearchTerm,
         selectedOptions,
-        setSelectedOptions,
         recentReports,
         personalDetails,
         userToInvite,
