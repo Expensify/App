@@ -46,7 +46,7 @@ def getCIGithubUsername() {
 }
 
 def getCIGithubToken() {
-    return System.getenv("GH_TOKEN")
+    return System.getenv("GITHUB_TOKEN")
 }
 
 def hasRequiredCIEnvs() {
@@ -68,19 +68,15 @@ def getGithubToken() {
 }
 
 def validateCredentialsContext() {
-
-    if (isCIEnvironment()) {
-        if (!hasRequiredCIEnvs()) {
-            return "Missing required CI environment variables GITHUB_ACTOR and/or GH_TOKEN."
-        }
-        return null
-    }
-
     if (!hasGithubCLI()) {
         return "No Github CLI found."
     }
 
-    if (!hasRequiredScopes()) {
+    if (isCIEnvironment() && !hasRequiredCIEnvs()) {
+        return "Missing required CI environment variables GITHUB_ACTOR and/or GITHUB_TOKEN."
+    }
+
+    if (!isCIEnvironment() && !hasRequiredScopes()) {
         return "Github token does not have required scope read:packages."
     }
 
@@ -89,7 +85,7 @@ def validateCredentialsContext() {
 
 def getCredentials() {
     try { 
-        def validationError = validateCredentialsContext()
+        def validationErrorMessage = validateCredentialsContext()
         if (validationError != null) {
             warnIfNotConfigured(validationError)
             return null
