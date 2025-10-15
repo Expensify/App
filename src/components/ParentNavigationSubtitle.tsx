@@ -132,7 +132,7 @@ function ParentNavigationSubtitle({
                 </View>
             )}
             <Text
-                style={[styles.optionAlternateText, styles.textLabelSupporting, styles.flex1]}
+                style={[styles.optionAlternateText, styles.textLabelSupporting]}
                 numberOfLines={1}
             >
                 {!!reportName && (
