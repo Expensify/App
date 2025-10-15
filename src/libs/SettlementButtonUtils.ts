@@ -82,6 +82,9 @@ const handleUnvalidatedUserNavigation = (chatReportID: string, reportID?: string
     Log.warn('Failed to navigate to the correct path');
 };
 
+/**
+ * Retrieves SettlementButton payment methods.
+ */
 const getSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translate: LocaleContextProps['translate']) => {
     return {
         [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
