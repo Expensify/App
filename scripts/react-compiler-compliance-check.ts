@@ -540,14 +540,16 @@ async function main() {
     const {remote, reportFileName} = cli.namedArgs;
     const {report: shouldGenerateReport, filterByDiff: shouldFilterByDiff, printSuccesses: shouldPrintSuccesses} = cli.flags;
 
+    const commonOptions: CommonCheckOptions = {shouldGenerateReport, reportFileName, shouldFilterByDiff, shouldPrintSuccesses};
+
     let isPassed = false;
     try {
         switch (command) {
             case 'check':
-                isPassed = Checker.check({filesToCheck: file !== '' ? [file] : undefined, shouldGenerateReport, reportFileName, shouldFilterByDiff, shouldPrintSuccesses});
+                isPassed = Checker.check({filesToCheck: file !== '' ? [file] : undefined, ...commonOptions});
                 break;
             case 'check-changed':
-                isPassed = await Checker.checkChangedFiles({remote, shouldGenerateReport, reportFileName, shouldFilterByDiff, shouldPrintSuccesses});
+                isPassed = await Checker.checkChangedFiles({remote, ...commonOptions});
                 break;
             default:
                 logError(`Unknown command: ${String(command)}`);
