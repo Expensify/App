@@ -4,9 +4,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import SelectionList from '@components/SelectionList';
-import type {ListItem} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import type {ListItem} from '@components/SelectionListWithSections/types';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
@@ -43,6 +43,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [list] = useCardsList(policy?.id, feed);
     const [cardFeeds] = useCardFeeds(policy?.id);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
@@ -153,7 +154,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             ];
         }
 
-        const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm).toLowerCase();
+        const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
         const filteredOptions = tokenizedSearch(membersDetails, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
 
         return [
@@ -163,7 +164,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 shouldShow: true,
             },
         ];
-    }, [membersDetails, debouncedSearchTerm]);
+    }, [membersDetails, debouncedSearchTerm, countryCode]);
 
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();

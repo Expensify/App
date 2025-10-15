@@ -1,3 +1,4 @@
+import reportsSelector from '@selectors/Attributes';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -26,7 +27,9 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import useParentReportAction from '@hooks/useParentReportAction';
 import usePermissions from '@hooks/usePermissions';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,6 +39,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
+import Permissions from '@libs/Permissions';
 import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {
@@ -85,6 +89,7 @@ import {
     isThread as isThreadUtil,
     isTrackExpenseReport as isTrackExpenseReportUtil,
     isUserCreatedPolicyRoom as isUserCreatedPolicyRoomUtil,
+    isWorkspaceMemberLeavingWorkspaceRoom as isWorkspaceMemberLeavingWorkspaceRoomUtil,
     navigateBackOnDeleteTransaction,
     navigateToPrivateNotes,
     shouldDisableRename as shouldDisableRenameUtil,
@@ -143,16 +148,15 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
+    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
 
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`, {canBeMissing: true});
 
-    const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
-        selector: (actions) => (report?.parentReportActionID ? actions?.[report.parentReportActionID] : undefined),
-        canBeMissing: true,
-    });
+    const parentReportAction = useParentReportAction(report);
+
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: false});
 
     const {reportActions} = usePaginatedReportActions(report.reportID);
@@ -165,7 +169,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.isDebugModeEnabled, canBeMissing: false});
+    const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
@@ -198,7 +202,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isArchivedRoom = useMemo(() => isArchivedNonExpenseReport(report, isReportArchived), [report, isReportArchived]);
     const shouldDisableRename = useMemo(() => shouldDisableRenameUtil(report, isReportArchived), [report, isReportArchived]);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isReportArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isParentReportArchived);
     const base62ReportID = getBase62ReportID(Number(report.reportID));
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => {
@@ -280,6 +284,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -305,15 +310,15 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 leaveGroupChat(report.reportID);
                 return;
             }
-            const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
+            const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
             leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
         });
-    }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility]);
+    }, [isPolicyEmployee, isRootGroupChat, report, isPolicyAdmin]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
 
-    const reportName = Parser.htmlToText(getReportName(report));
+    const reportName = Parser.htmlToText(getReportName(report, undefined, undefined, undefined, undefined, reportAttributes));
 
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom
@@ -409,10 +414,17 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.SUBMIT, actionableWhisperReportActionID);
+                    createDraftTransactionAndNavigateToParticipantSelector(
+                        iouTransactionID,
+                        actionReportID,
+                        CONST.IOU.ACTION.SUBMIT,
+                        actionableWhisperReportActionID,
+                        isRestrictedToPreferredPolicy,
+                        preferredPolicyID,
+                    );
                 },
             });
-            if (isBetaEnabled(CONST.BETAS.TRACK_FLOWS)) {
+            if (Permissions.canUseTrackFlows()) {
                 items.push({
                     key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.CATEGORIZE,
                     translationKey: 'actionableMentionTrackExpense.categorize',
@@ -548,6 +560,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isRootGroupChat,
         leaveChat,
         isSmallScreenWidth,
+        isRestrictedToPreferredPolicy,
+        preferredPolicyID,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -601,7 +615,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 errors={report.errorFields?.avatar ?? null}
                 errorRowStyles={styles.mt6}
                 onErrorClose={() => clearAvatarErrors(report.reportID)}
-                shouldUseStyleUtilityForAnchorPosition
                 style={[styles.w100, styles.mb3]}
             />
         );
@@ -777,7 +790,15 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
 
         if (isTrackExpense) {
-            deleteTrackExpense(moneyRequestReport?.reportID, iouTransactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations, isSingleTransactionView);
+            deleteTrackExpense(
+                moneyRequestReport?.reportID,
+                iouTransactionID,
+                requestParentReportAction,
+                duplicateTransactions,
+                duplicateTransactionViolations,
+                isSingleTransactionView,
+                isMoneyRequestReportArchived,
+            );
         } else {
             deleteMoneyRequest(iouTransactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations, isSingleTransactionView);
             removeTransaction(iouTransactionID);
@@ -793,6 +814,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         report,
         requestParentReportAction,
         isReportArchived,
+        isMoneyRequestReportArchived,
     ]);
 
     // A flag to indicate whether the user chose to delete the transaction or not
@@ -804,7 +826,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             if (!isTransactionDeleted.current) {
                 return;
             }
-
+            isTransactionDeleted.current = false;
             deleteTransaction();
         };
     }, [deleteTransaction]);

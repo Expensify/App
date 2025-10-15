@@ -1,4 +1,5 @@
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import Log from '@libs/Log';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -19,6 +20,11 @@ type Params = {
 
 // Gets the latest workspace navigation state, restoring from session or preserved state if needed.
 const getWorkspaceNavigationRouteState = () => {
+    if (!navigationRef.isReady()) {
+        Log.warn('[src/libs/Navigation/helpers/navigateToWorkspacesPage.ts] NavigationRef is not ready. Returning empty object.');
+        return {};
+    }
+
     const rootState = navigationRef.getRootState();
 
     // Only consider main (fullscreen) routes for top-level navigation context.
@@ -45,8 +51,8 @@ const getWorkspaceNavigationRouteState = () => {
 const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy}: Params) => {
     const {lastWorkspacesTabNavigatorRoute, topmostFullScreenRoute} = getWorkspaceNavigationRouteState();
 
-    if (!topmostFullScreenRoute) {
-        // Not in a main workspace navigation context, so do nothing.
+    if (!topmostFullScreenRoute || topmostFullScreenRoute.name === SCREENS.WORKSPACES_LIST) {
+        // Not in a main workspace navigation context or the workspaces list page is already displayed, so do nothing.
         return;
     }
 

@@ -2,10 +2,11 @@ import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import SelectionList from '@components/SelectionList';
-import type {ListItem} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import type {ListItem} from '@components/SelectionListWithSections/types';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
+import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -41,6 +42,8 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
     const {isOffline} = useNetwork();
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const currency = useCurrencyForExpensifyCard({policyID});
 
     const isEditing = issueNewCard?.isEditing;
 
@@ -49,6 +52,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
     const submit = (assignee: ListItem) => {
         const data: Partial<IssueNewCardData> = {
             assigneeEmail: assignee?.login ?? '',
+            currency,
         };
 
         if (isEditing && issueNewCard?.data?.cardTitle === getCardDefaultName(getUserNameByEmail(issueNewCard?.data?.assigneeEmail, 'firstName'))) {
@@ -94,6 +98,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
                 alternateText: email,
                 login: email,
                 accountID: personalDetail?.accountID,
+                isSelected: issueNewCard?.data?.assigneeEmail === email,
                 icons: [
                     {
                         source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
@@ -108,7 +113,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, formatPhoneNumber, localeCompare]);
+    }, [policy?.employeeList, localeCompare, isOffline, issueNewCard?.data?.assigneeEmail, formatPhoneNumber]);
 
     const sections = useMemo(() => {
         if (!debouncedSearchTerm) {
@@ -120,7 +125,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
             ];
         }
 
-        const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm).toLowerCase();
+        const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
         const filteredOptions = tokenizedSearch(membersDetails, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
 
         return [
@@ -130,7 +135,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
                 shouldShow: true,
             },
         ];
-    }, [membersDetails, debouncedSearchTerm]);
+    }, [debouncedSearchTerm, countryCode, membersDetails]);
 
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
@@ -159,6 +164,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
                 ListItem={UserListItem}
                 onSelectRow={submit}
                 addBottomSafeAreaPadding
+                initiallyFocusedOptionKey={sections[0].data.find((mode) => mode.isSelected)?.keyForList}
             />
         </InteractiveStepWrapper>
     );

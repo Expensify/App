@@ -4,8 +4,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
-import SelectionList from '@components/SelectionList';
-import CardListItem from '@components/SelectionList/Search/CardListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import CardListItem from '@components/SelectionListWithSections/Search/CardListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -119,7 +119,7 @@ function SearchFiltersCardPage() {
             feed: feeds,
         });
 
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [userCardList, selectedCards, cardFeedsSectionData.selected, workspaceCardFeeds]);
 
     const updateNewCards = useCallback(
@@ -169,7 +169,7 @@ function SearchFiltersCardPage() {
                     <HeaderWithBackButton
                         title={translate('common.card')}
                         onBackButtonPress={() => {
-                            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                         }}
                     />
                     <View style={[styles.flex1]}>

@@ -11,10 +11,13 @@ const useAutoUpdateTimezone = () => {
         const hasValidCurrentTimezone = typeof currentTimezone === 'string' && currentTimezone.trim().length > 0;
 
         if (hasValidCurrentTimezone && timezone?.automatic && timezone?.selected !== currentTimezone) {
-            updateAutomaticTimezone({
-                automatic: true,
-                selected: currentTimezone,
-            });
+            updateAutomaticTimezone(
+                {
+                    automatic: true,
+                    selected: currentTimezone,
+                },
+                currentUserPersonalDetails.accountID,
+            );
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [timezone?.automatic, timezone?.selected]);

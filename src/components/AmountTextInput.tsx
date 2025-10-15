@@ -41,7 +41,7 @@ type AmountTextInputProps = {
 
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior' | 'ref'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior' | 'ref' | 'onFocus' | 'onBlur'>;
 
 function AmountTextInput({
     formattedAmount,

@@ -69,7 +69,7 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
                             {...rest}
                             value={currentValue}
                             onInputChange={setValue}
-                            forwardedRef={(ref) => inputCallbackRef(ref)}
+                            ref={(ref) => inputCallbackRef(ref)}
                         />
                         <Button
                             success

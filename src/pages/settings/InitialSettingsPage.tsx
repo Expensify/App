@@ -23,6 +23,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -41,7 +42,7 @@ import variables from '@styles/variables';
 import {confirmReadyToOpenApp} from '@userActions/App';
 import {openExternalLink} from '@userActions/Link';
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
-import {isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
+import {hasStashedSession, isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {openInitialSettingsPage} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -91,6 +92,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [stripeCustomerId] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const network = useNetwork();
@@ -106,10 +108,11 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
+    const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
 
     const shouldLogout = useRef(false);
 
-    const freeTrialText = getFreeTrialText(policies);
+    const freeTrialText = getFreeTrialText(policies, introSelected);
 
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
@@ -118,6 +121,19 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         hasPaymentMethodError(bankAccountList, fundList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection ? 'error' : undefined;
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
+
+    const hasAccountBeenSwitched = useMemo(
+        () => currentUserPersonalDetails.accountID !== previousUserPersonalDetails.accountID,
+        [currentUserPersonalDetails.accountID, previousUserPersonalDetails.accountID],
+    );
+
+    useEffect(() => {
+        if (!hasAccountBeenSwitched) {
+            return;
+        }
+
+        Navigation.clearPreloadedRoutes();
+    }, [hasAccountBeenSwitched]);
 
     useEffect(() => {
         openInitialSettingsPage();
@@ -214,7 +230,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      * @returns object with translationKey, style and items for the general section
      */
     const generalMenuItemsData: Menu = useMemo(() => {
-        const signOutTranslationKey = isSupportAuthToken() ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
+        const signOutTranslationKey = isSupportAuthToken() && hasStashedSession() ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
         return {
             sectionStyle: {
                 ...styles.pt4,

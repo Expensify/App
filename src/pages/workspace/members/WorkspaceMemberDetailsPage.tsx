@@ -32,7 +32,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
-import {getDefaultApprover, isControlPolicy} from '@libs/PolicyUtils';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
@@ -108,8 +108,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {approvalWorkflows} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
-                employees: policy?.employeeList ?? {},
-                defaultApprover: getDefaultApprover(policy),
+                policy,
                 personalDetails: personalDetails ?? {},
                 localeCompare,
             }),
@@ -128,7 +127,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     }, [accountID, workspaceCards]);
 
     const confirmModalPrompt = useMemo(() => {
-        const isApprover = isApproverUserAction(policy, accountID);
+        const isApprover = isApproverUserAction(policy, memberLogin);
         if (!isApprover) {
             return translate('workspace.people.removeMemberPrompt', {memberName: displayName});
         }
@@ -136,7 +135,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             memberName: displayName,
             ownerName: policyOwnerDisplayName,
         });
-    }, [accountID, policy, displayName, policyOwnerDisplayName, translate]);
+    }, [memberLogin, policy, displayName, policyOwnerDisplayName, translate]);
 
     const roleItems: ListItemType[] = useMemo(
         () => [
@@ -193,7 +192,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         const removedApprover = personalDetails?.[accountID];
 
         // If the user is not an approver, proceed with member removal
-        if (!isApproverUserAction(policy, accountID) || !removedApprover?.login || !ownerEmail) {
+        if (!isApproverUserAction(policy, memberLogin) || !removedApprover?.login || !ownerEmail) {
             removeMemberAndCloseModal();
             return;
         }
@@ -217,7 +216,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
         // Remove the member and close the modal
         removeMemberAndCloseModal();
-    }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy, policyID, removeMemberAndCloseModal]);
+    }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy, policyID, removeMemberAndCloseModal, memberLogin]);
 
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
@@ -436,7 +435,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     shouldRemoveHoverBackground={isCardDeleted}
                                                     disabled={isCardDeleted}
                                                     shouldShowRightIcon={!isCardDeleted}
-                                                    style={[isCardDeleted ? styles.offlineFeedback.deleted : {}]}
+                                                    style={[isCardDeleted ? styles.offlineFeedbackDeleted : {}]}
                                                 />
                                             </OfflineWithFeedback>
                                         );

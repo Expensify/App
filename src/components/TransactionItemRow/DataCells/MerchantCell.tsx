@@ -7,28 +7,27 @@ function MerchantOrDescriptionCell({
     merchantOrDescription,
     shouldShowTooltip,
     shouldUseNarrowLayout,
-    shouldRenderAsHTML,
+    isDescription,
 }: {
     merchantOrDescription: string;
     shouldUseNarrowLayout?: boolean;
     shouldShowTooltip: boolean;
-    shouldRenderAsHTML?: boolean;
+    isDescription?: boolean;
 }) {
     const styles = useThemeStyles();
 
-    const html = useMemo(() => {
-        if (!shouldRenderAsHTML) {
+    const text = useMemo(() => {
+        if (!isDescription) {
             return merchantOrDescription;
         }
-        return Parser.replace(merchantOrDescription, {shouldEscapeText: false});
-    }, [merchantOrDescription, shouldRenderAsHTML]);
+        return Parser.htmlToText(merchantOrDescription).replace(/\n/g, ' ');
+    }, [merchantOrDescription, isDescription]);
 
     return (
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
-            text={html}
+            text={text}
             style={[!shouldUseNarrowLayout ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter, styles.flex1]}
-            shouldRenderAsHTML={shouldRenderAsHTML}
         />
     );
 }

@@ -4,7 +4,6 @@ description: Troubleshoot common NetSuite sync and export errors in Expensify an
 keywords: [NetSuite, Expensify Classic, export errors, sync issues, troubleshooting]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 This guide helps you fix common sync and export issues between Expensify and NetSuite. Each section covers an error code, explains what it means, and walks you through how to resolve it.
 
@@ -288,4 +287,3 @@ The Invite Employees & Set Approval Workflow setting will not overwrite manual c
 **Alternative fix:**
 Manually update the employee's approver in **Settings > Workspaces > Group > [Workspace Name] > Members**.
 
-</div>

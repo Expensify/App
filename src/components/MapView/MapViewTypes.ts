@@ -31,6 +31,9 @@ type MapViewProps = {
 
     // Unit of measurement for distance
     unit?: Unit;
+
+    // Reference to the outerElement
+    ref?: React.ForwardedRef<MapViewHandle>;
 };
 
 type DirectionProps = {

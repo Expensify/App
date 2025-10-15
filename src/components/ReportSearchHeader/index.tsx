@@ -10,6 +10,7 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
     const middleContent = useMemo(() => {
         return (
             <AvatarWithDisplayName
+                shouldDisplayStatus
                 report={report}
                 transactions={transactions}
                 shouldUseCustomSearchTitleName

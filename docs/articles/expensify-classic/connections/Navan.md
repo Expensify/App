@@ -3,7 +3,6 @@ title: Navan
 description: Learn how to connect Navan with Expensify to automatically sync travel receipts for easy expense reporting.
 keywords: [Navan, Expensify Classic, travel integration, expense automation, flight receipts]
 ---
-<div id="expensify-classic" markdown="1">
 
 Navan users can link their Expensify accounts to automatically sync flight receipts, making expense reporting seamless and efficient.
 
@@ -67,4 +66,3 @@ To disable the integration:
 2. Locate **Expensify**.
 3. Select the option to disable the integration.
 
-</div>

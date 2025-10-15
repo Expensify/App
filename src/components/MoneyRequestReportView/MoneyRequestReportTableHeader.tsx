@@ -1,9 +1,9 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {SearchColumnType, SortOrder, TableColumnSize} from '@components/Search/types';
-import {expenseHeaders} from '@components/SelectionList/SearchTableHeader';
-import SortableTableHeader from '@components/SelectionList/SortableTableHeader';
-import type {SortableColumnName} from '@components/SelectionList/types';
+import {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
+import SortableTableHeader from '@components/SelectionListWithSections/SortableTableHeader';
+import type {SortableColumnName} from '@components/SelectionListWithSections/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -39,6 +39,7 @@ const columnConfig: ColumnConfig[] = [
         columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
         translationKey: 'common.description',
         canBeMissing: true,
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
@@ -57,7 +58,7 @@ const columnConfig: ColumnConfig[] = [
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
-        translationKey: 'common.total',
+        translationKey: 'iou.amount',
     },
 ];
 
@@ -71,6 +72,8 @@ type SearchTableHeaderProps = {
     shouldShowSorting: boolean;
     columns: SearchColumnType[];
 };
+
+const expenseHeaders = getExpenseHeaders();
 
 function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColumnSize, shouldShowSorting, columns, amountColumnSize, taxAmountColumnSize}: SearchTableHeaderProps) {
     const styles = useThemeStyles();

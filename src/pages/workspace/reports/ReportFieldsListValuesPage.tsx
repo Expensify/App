@@ -11,10 +11,10 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
-import TableListItem from '@components/SelectionList/TableListItem';
-import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+import TableListItem from '@components/SelectionListWithSections/TableListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
@@ -106,9 +106,13 @@ function ReportFieldsListValuesPage({
                 return;
             }
 
-            setReportFieldsListValueEnabled([valueIndex], value);
+            setReportFieldsListValueEnabled({
+                valueIndexes: [valueIndex],
+                enabled: value,
+                disabledListValues,
+            });
         },
-        [policyID, reportFieldID],
+        [disabledListValues, policyID, reportFieldID],
     );
 
     useSearchBackPress({
@@ -177,11 +181,16 @@ function ReportFieldsListValuesPage({
         if (reportFieldID) {
             removeReportFieldListValue(policyID, reportFieldID, valuesToDelete);
         } else {
-            deleteReportFieldsListValue(valuesToDelete);
+            deleteReportFieldsListValue({
+                valueIndexes: valuesToDelete,
+                listValues,
+                disabledListValues,
+            });
         }
 
         setDeleteValuesConfirmModalVisible(false);
 
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             setSelectedValues({});
         });
@@ -204,6 +213,7 @@ function ReportFieldsListValuesPage({
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={translate('common.enabled')}
+                shouldShowRightCaret
             />
         );
     };
@@ -246,7 +256,11 @@ function ReportFieldsListValuesPage({
                             return;
                         }
 
-                        setReportFieldsListValueEnabled(valuesToDisable, false);
+                        setReportFieldsListValueEnabled({
+                            valueIndexes: valuesToDisable,
+                            enabled: false,
+                            disabledListValues,
+                        });
                     },
                 });
             }
@@ -278,7 +292,11 @@ function ReportFieldsListValuesPage({
                             return;
                         }
 
-                        setReportFieldsListValueEnabled(valuesToEnable, true);
+                        setReportFieldsListValueEnabled({
+                            valueIndexes: valuesToEnable,
+                            enabled: true,
+                            disabledListValues,
+                        });
                     },
                 });
             }
@@ -385,6 +403,7 @@ function ReportFieldsListValuesPage({
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         showScrollIndicator={false}
+                        shouldShowRightCaret
                     />
                 )}
                 <ConfirmModal

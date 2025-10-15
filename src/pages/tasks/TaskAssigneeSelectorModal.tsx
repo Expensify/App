@@ -8,9 +8,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useBetas, useSession} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import type {ListItem} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import type {ListItem} from '@components/SelectionListWithSections/types';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -43,6 +43,8 @@ function useOptions() {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
     const session = useSession();
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     const defaultOptions = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = memoizedGetValidOptions(
@@ -50,6 +52,7 @@ function useOptions() {
                 reports: optionsList.reports,
                 personalDetails: optionsList.personalDetails,
             },
+            draftComments,
             {
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -71,7 +74,7 @@ function useOptions() {
             currentUserOption,
             headerMessage,
         };
-    }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
+    }, [optionsList.reports, optionsList.personalDetails, draftComments, betas, isLoading]);
 
     const optionsWithoutCurrentUser = useMemo(() => {
         if (!session?.accountID) {
@@ -86,7 +89,7 @@ function useOptions() {
     }, [defaultOptions, session?.accountID]);
 
     const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(optionsWithoutCurrentUser, debouncedSearchValue.trim(), {
+        const filteredOptions = filterAndOrderOptions(optionsWithoutCurrentUser, debouncedSearchValue.trim(), countryCode, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
@@ -100,7 +103,7 @@ function useOptions() {
             ...filteredOptions,
             headerMessage,
         };
-    }, [debouncedSearchValue, optionsWithoutCurrentUser]);
+    }, [debouncedSearchValue, optionsWithoutCurrentUser, countryCode]);
 
     return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
 }
@@ -195,6 +198,7 @@ function TaskAssigneeSelectorModal() {
                     // Pass through the selected assignee
                     editTaskAssignee(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, option?.login ?? '', option?.accountID, assigneeChatReport);
                 }
+                // eslint-disable-next-line deprecation/deprecation
                 InteractionManager.runAfterInteractions(() => {
                     Navigation.dismissModalWithReport({reportID: report?.reportID});
                 });
@@ -207,6 +211,7 @@ function TaskAssigneeSelectorModal() {
                     undefined, // passing null as report is null in this condition
                     isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? undefined}),
                 );
+                // eslint-disable-next-line deprecation/deprecation
                 InteractionManager.runAfterInteractions(() => {
                     Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));
                 });

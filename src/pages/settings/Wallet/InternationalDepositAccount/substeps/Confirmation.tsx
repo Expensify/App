@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import type CustomSubStepProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
-import {clearReimbursementAccountBankCreation, createCorpayBankAccountForWalletFlow} from '@userActions/BankAccounts';
+import {clearReimbursementAccountBankCreation, createCorpayBankAccountForWalletFlow, hideBankAccountErrors} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -75,6 +75,17 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
             clearReimbursementAccountBankCreation();
         }
     }, [reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess, reimbursementAccount?.errors, onNext]);
+
+    // We want to clear errors every time we leave this page.
+    // Therefore, we use useEffect, which clears errors when unmounted.
+    // This is necessary so that when we close the BA flow or move on to another step, the error is cleared.
+    // Additionally, we add error clearing to useEffect itself so that errors are cleared if this page opens after reloading.
+    useEffect(() => {
+        hideBankAccountErrors();
+        return () => {
+            hideBankAccountErrors();
+        };
+    }, []);
 
     const summaryItems: MenuItemProps[] = [
         {
