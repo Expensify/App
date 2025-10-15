@@ -1198,10 +1198,6 @@ function changeTransactionsReport(
     allAffectedReportIDs.forEach((affectedReportID) => {
         let affectedReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`];
 
-        if (!affectedReport && affectedReportID === reportID && newReport) {
-            affectedReport = newReport;
-        }
-
         if (!affectedReport) {
             affectedReport = {
                 reportID: affectedReportID,
