@@ -966,6 +966,7 @@ const translations = {
         buttonMySettings: '我的设置',
         fabNewChat: '开始聊天',
         fabNewChatExplained: '开始聊天（浮动操作）',
+        fabScanReceiptExplained: '扫描收据（浮动操作）',
         chatPinned: '聊天已置顶',
         draftedMessage: '草稿消息',
         listOfChatMessages: '聊天消息列表',
