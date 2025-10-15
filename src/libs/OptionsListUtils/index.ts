@@ -451,13 +451,13 @@ function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDeta
 /**
  * Update alternate text for the option when applicable
  */
-function getAlternateText(option: OptionData, {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig) {
+function getAlternateText(option: OptionData, {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig, lastActorDetails: Partial<PersonalDetails> | null = {}) {
     const report = getReportOrDraftReport(option.reportID);
     const isAdminRoom = reportUtilsIsAdminRoom(report);
     const isAnnounceRoom = reportUtilsIsAnnounceRoom(report);
     const isGroupChat = reportUtilsIsGroupChat(report);
     const isExpenseThread = isMoneyRequest(report);
-    const formattedLastMessageText = formatReportLastMessageText(option.lastMessageText ?? '');
+    const formattedLastMessageText = formatReportLastMessageText(Parser.htmlToText(option.lastMessageText ?? '')) || getLastMessageTextForReport({report, lastActorDetails});
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
 
@@ -596,7 +596,7 @@ function getLastMessageTextForReport({
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
         const properSchemaForMoneyRequestMessage = getReportPreviewMessage(report, lastReportAction, true, false, null, true);
-        lastMessageTextFromReport = formatReportLastMessageText(properSchemaForMoneyRequestMessage);
+        lastMessageTextFromReport = Parser.htmlToText(formatReportLastMessageText(properSchemaForMoneyRequestMessage));
     } else if (isReportPreviewAction(lastReportAction)) {
         const iouReport = getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastReportAction));
         const lastIOUMoneyReportAction = iouReport?.reportID
@@ -607,16 +607,21 @@ function getLastMessageTextForReport({
                       isMoneyRequestAction(reportAction),
               )
             : undefined;
-        const reportPreviewMessage = getReportPreviewMessage(
-            !isEmptyObject(iouReport) ? iouReport : null,
-            lastIOUMoneyReportAction ?? lastReportAction,
-            true,
-            reportUtilsIsChatReport(report),
-            null,
-            true,
-            lastReportAction,
-        );
-        lastMessageTextFromReport = formatReportLastMessageText(reportPreviewMessage);
+        // For workspace chats, use the report title
+        if (reportUtilsIsPolicyExpenseChat(report) && !isEmptyObject(iouReport)) {
+            lastMessageTextFromReport = formatReportLastMessageText(getReportName(iouReport));
+        } else {
+            const reportPreviewMessage = getReportPreviewMessage(
+                !isEmptyObject(iouReport) ? iouReport : null,
+                lastIOUMoneyReportAction ?? lastReportAction,
+                true,
+                reportUtilsIsChatReport(report),
+                null,
+                true,
+                lastReportAction,
+            );
+            lastMessageTextFromReport = Parser.htmlToText(formatReportLastMessageText(reportPreviewMessage));
+        }
     } else if (isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, reportOrID: report});
     } else if (isReimbursementDeQueuedOrCanceledAction(lastReportAction)) {
@@ -625,6 +630,8 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (isPendingRemove(lastReportAction) && report?.reportID && isThreadParentMessage(lastReportAction, report.reportID)) {
         lastMessageTextFromReport = translateLocal('parentReportAction.hiddenMessage');
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+        lastMessageTextFromReport = translateLocal('iou.paidElsewhere');
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
         lastMessageTextFromReport = `[${translateLocal('common.attachment')}]`;
     } else if (isModifiedExpenseAction(lastReportAction)) {
@@ -643,7 +650,7 @@ function getLastMessageTextForReport({
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
-        lastMessageTextFromReport = getTaskCreatedMessage(lastReportAction);
+        lastMessageTextFromReport = getTaskCreatedMessage(lastReportAction, getReportOrDraftReport(lastReportAction?.childReportID));
     } else if (
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) ||
@@ -839,8 +846,9 @@ function createOption(
         subtitle = getChatRoomSubtitle(report, true, !!result.private_isArchived);
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
-        result.alternateText = showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview});
-
+        const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)];
+        result.alternateText =
+            showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, lastActorDetails);
         reportName = showPersonalDetails ? getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '') : getReportName(report);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1145,7 +1153,15 @@ function createOptionFromReport(report: Report, personalDetails: OnyxEntry<Perso
 
     return {
         item: report,
-        ...createOption(accountIDs, personalDetails, report, undefined, reportAttributesDerived),
+        ...createOption(
+            accountIDs,
+            personalDetails,
+            report,
+            {
+                showPersonalDetails: true,
+            },
+            reportAttributesDerived,
+        ),
     };
 }
 
@@ -1184,11 +1200,18 @@ const recentReportComparator = (option: SearchOptionData) => {
 function optionsOrderBy<T = SearchOptionData>(options: T[], comparator: (option: T) => number | string, limit?: number, filter?: (option: T) => boolean | undefined, reversed = false): T[] {
     Timing.start(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
     const heap = reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator);
+
+    // If a limit is 0 or negative, return an empty array
+    if (limit !== undefined && limit <= 0) {
+        Timing.end(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
+        return [];
+    }
+
     options.forEach((option) => {
         if (filter && !filter(option)) {
             return;
         }
-        if (limit && heap.size() >= limit) {
+        if (limit !== undefined && heap.size() >= limit) {
             const peekedValue = heap.peek();
             if (!peekedValue) {
                 throw new Error('Heap is empty, cannot peek value');
@@ -1489,7 +1512,7 @@ function getUserToInviteContactOption({
     return userToInvite;
 }
 
-function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfig): boolean {
+function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfig, draftComment: string | undefined): boolean {
     const {
         betas = [],
         includeMultipleParticipantReports = false,
@@ -1524,6 +1547,7 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
         login: option.login,
         includeDomainEmail,
         isReportArchived: !!option.private_isArchived,
+        draftComment,
     });
 
     if (!shouldBeInOptionList) {
@@ -1740,6 +1764,7 @@ function getRestrictedLogins(config: GetOptionsConfig, options: OptionList, canS
  */
 function getValidOptions(
     options: OptionList,
+    draftComments: OnyxCollection<string> | undefined,
     {
         excludeLogins = {},
         includeSelectedOptions = false,
@@ -1753,6 +1778,7 @@ function getValidOptions(
         searchString,
         maxElements,
         includeUserToInvite = false,
+        maxRecentReportElements = undefined,
         ...config
     }: GetOptionsConfig = {},
 ): Options {
@@ -1790,7 +1816,7 @@ function getValidOptions(
 
         const filteringFunction = (report: SearchOption<Report>) => {
             let searchText = `${report.text ?? ''}${report.login ?? ''}`;
-
+            const draftComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
             if (report.isThread) {
                 searchText += report.alternateText ?? '';
             } else if (report.isChatRoom) {
@@ -1805,15 +1831,19 @@ function getValidOptions(
                 return false;
             }
 
-            return isValidReport(report, {
-                ...getValidReportsConfig,
-                includeP2P,
-                includeDomainEmail,
-                loginsToExclude,
-            });
+            return isValidReport(
+                report,
+                {
+                    ...getValidReportsConfig,
+                    includeP2P,
+                    includeDomainEmail,
+                    loginsToExclude,
+                },
+                draftComment,
+            );
         };
 
-        filteredReports = optionsOrderBy(options.reports, recentReportComparator, maxElements, filteringFunction);
+        filteredReports = optionsOrderBy(options.reports, recentReportComparator, maxRecentReportElements ?? maxElements, filteringFunction);
 
         const {recentReports, workspaceOptions, selfDMOption} = getValidReports(filteredReports, {
             ...getValidReportsConfig,
@@ -1875,7 +1905,9 @@ function getValidOptions(
             return searchTerms.every((term) => searchText.includes(term));
         };
 
-        personalDetailsOptions = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxElements, filteringFunction, true);
+        // when we expect that function return eg. 50 elements and we already found 40 recent reports, we should adjust the max personal details number
+        const maxPersonalDetailsElements = maxElements ? Math.max(maxElements - recentReportOptions.length, 0) : undefined;
+        personalDetailsOptions = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxPersonalDetailsElements, filteringFunction, true);
 
         for (let i = 0; i < personalDetailsOptions.length; i++) {
             const personalDetail = personalDetailsOptions.at(i);
@@ -1898,7 +1930,9 @@ function getValidOptions(
 
     let userToInvite: SearchOptionData | null = null;
     if (includeUserToInvite) {
-        userToInvite = filterUserToInvite({currentUserOption: currentUserRef.current, recentReports: recentReportOptions, personalDetails: personalDetailsOptions}, searchString ?? '');
+        userToInvite = filterUserToInvite({currentUserOption: currentUserRef.current, recentReports: recentReportOptions, personalDetails: personalDetailsOptions}, searchString ?? '', {
+            excludeLogins: loginsToExclude,
+        });
     }
 
     return {
@@ -1911,25 +1945,40 @@ function getValidOptions(
     };
 }
 
+type SearchOptionsConfig = {
+    options: OptionList;
+    draftComments: OnyxCollection<string>;
+    betas?: Beta[];
+    isUsedInChatFinder?: boolean;
+    includeReadOnly?: boolean;
+    searchQuery?: string;
+    maxResults?: number;
+    includeUserToInvite?: boolean;
+    includeRecentReports?: boolean;
+    includeCurrentUser?: boolean;
+    shouldShowGBR?: boolean;
+};
+
 /**
  * Build the options for the Search view
  */
-function getSearchOptions(
-    options: OptionList,
-    betas: Beta[] = [],
+function getSearchOptions({
+    options,
+    draftComments,
+    betas,
     isUsedInChatFinder = true,
     includeReadOnly = true,
     searchQuery = '',
-    maxResults?: number,
-    includeUserToInvite?: boolean,
+    maxResults,
+    includeUserToInvite,
     includeRecentReports = true,
     includeCurrentUser = false,
     shouldShowGBR = false,
-): Options {
+}: SearchOptionsConfig): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
 
-    const optionList = getValidOptions(options, {
+    const optionList = getValidOptions(options, draftComments, {
         betas,
         includeRecentReports,
         includeMultipleParticipantReports: true,
@@ -1956,8 +2005,8 @@ function getSearchOptions(
     return optionList;
 }
 
-function getShareLogOptions(options: OptionList, betas: Beta[] = [], searchString = '', maxElements?: number, includeUserToInvite = false): Options {
-    return getValidOptions(options, {
+function getShareLogOptions(options: OptionList, draftComments: OnyxCollection<string>, betas: Beta[] = [], searchString = '', maxElements?: number, includeUserToInvite = false): Options {
+    return getValidOptions(options, draftComments, {
         betas,
         includeMultipleParticipantReports: true,
         includeP2P: true,
@@ -2002,6 +2051,7 @@ function getAttendeeOptions(
     betas: OnyxEntry<Beta[]>,
     attendees: Attendee[],
     recentAttendees: Attendee[],
+    draftComments: OnyxCollection<string>,
     includeOwnedWorkspaceChats = false,
     includeP2P = true,
     includeInvoiceRooms = false,
@@ -2035,58 +2085,19 @@ function getAttendeeOptions(
         }))
         .map((attendee) => getParticipantsOption(attendee, personalDetailList as never));
 
-    return getValidOptions(
-        {reports, personalDetails},
-        {
-            betas,
-            selectedOptions: attendees.map((attendee) => ({...attendee, login: attendee.email})),
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            includeOwnedWorkspaceChats,
-            includeRecentReports: false,
-            includeP2P,
-            includeSelectedOptions: false,
-            includeSelfDM: false,
-            includeInvoiceRooms,
-            action,
-            recentAttendees: filteredRecentAttendees,
-        },
-    );
-}
-
-/**
- * Build the options for the Share Destination for a Task
- */
-
-function getShareDestinationOptions(
-    reports: Array<SearchOption<Report>> = [],
-    personalDetails: Array<SearchOption<PersonalDetails>> = [],
-    betas: OnyxEntry<Beta[]> = [],
-    selectedOptions: Array<Partial<SearchOptionData>> = [],
-    excludeLogins: Record<string, boolean> = {},
-    includeOwnedWorkspaceChats = true,
-    searchString = '',
-    maxElements?: number,
-    includeUserToInvite = false,
-) {
-    return getValidOptions(
-        {reports, personalDetails},
-        {
-            betas,
-            selectedOptions,
-            includeMultipleParticipantReports: true,
-            showChatPreviewLine: true,
-            forcePolicyNamePreview: true,
-            includeThreads: true,
-            includeMoneyRequests: true,
-            includeTasks: true,
-            excludeLogins,
-            includeOwnedWorkspaceChats,
-            includeSelfDM: true,
-            searchString,
-            maxElements,
-            includeUserToInvite,
-        },
-    );
+    return getValidOptions({reports, personalDetails}, draftComments, {
+        betas,
+        selectedOptions: attendees.map((attendee) => ({...attendee, login: attendee.email})),
+        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+        includeOwnedWorkspaceChats,
+        includeRecentReports: false,
+        includeP2P,
+        includeSelectedOptions: false,
+        includeSelfDM: false,
+        includeInvoiceRooms,
+        action,
+        recentAttendees: filteredRecentAttendees,
+    });
 }
 
 /**
@@ -2124,23 +2135,16 @@ function getMemberInviteOptions(
     betas: Beta[] = [],
     excludeLogins: Record<string, boolean> = {},
     includeSelectedOptions = false,
-    reports: Array<SearchOption<Report>> = [],
-    includeRecentReports = false,
-    searchString = '',
-    maxElements?: number,
 ): Options {
-    return getValidOptions(
-        {reports, personalDetails},
-        {
-            betas,
-            includeP2P: true,
-            excludeLogins,
-            includeSelectedOptions,
-            includeRecentReports,
-            searchString,
-            maxElements,
-        },
-    );
+    return getValidOptions({personalDetails, reports: []}, undefined, {
+        betas,
+        includeP2P: true,
+        excludeLogins,
+        includeSelectedOptions,
+        includeRecentReports: false,
+        searchString: '',
+        maxElements: undefined,
+    });
 }
 
 /**
@@ -2587,6 +2591,7 @@ export {
     combineOrderingOfReportsAndPersonalDetails,
     createOptionFromReport,
     createOptionList,
+    createOption,
     filterAndOrderOptions,
     filterOptions,
     filterReports,
@@ -2619,7 +2624,6 @@ export {
     getReportOption,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
-    getShareDestinationOptions,
     getShareLogOptions,
     getUserToInviteContactOption,
     getUserToInviteOption,

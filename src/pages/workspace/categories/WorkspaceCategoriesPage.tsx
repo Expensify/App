@@ -9,7 +9,6 @@ import DecisionModal from '@components/DecisionModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
@@ -26,10 +25,11 @@ import Text from '@components/Text';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
-import useIsOnboardingTaskParentReportArchived from '@hooks/useIsOnboardingTaskParentReportArchived';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -91,8 +91,13 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
+    const illustrations = useMemoizedLazyIllustrations(['FolderOpen'] as const);
 
-    const isSetupCategoryTaskParentReportArchived = useIsOnboardingTaskParentReportArchived(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
+    const {
+        taskReport: setupCategoryTaskReport,
+        taskParentReport: setupCategoryTaskParentReport,
+        isOnboardingTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
 
     const fetchCategories = useCallback(() => {
         openPolicyCategoriesPage(policyId);
@@ -144,9 +149,18 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean, categoryName: string) => {
-            setWorkspaceCategoryEnabled(policyId, {[categoryName]: {name: categoryName, enabled: value}}, isSetupCategoryTaskParentReportArchived, policyTagLists, allTransactionViolations);
+            setWorkspaceCategoryEnabled(
+                policyId,
+                {[categoryName]: {name: categoryName, enabled: value}},
+                isSetupCategoryTaskParentReportArchived,
+                setupCategoryTaskReport,
+                setupCategoryTaskParentReport,
+                policyCategories,
+                policyTagLists,
+                allTransactionViolations,
+            );
         },
-        [policyId, isSetupCategoryTaskParentReportArchived, policyTagLists, allTransactionViolations],
+        [policyId, isSetupCategoryTaskParentReportArchived, setupCategoryTaskReport, setupCategoryTaskParentReport, policyCategories, policyTagLists, allTransactionViolations],
     );
 
     const categoryList = useMemo<PolicyOption[]>(() => {
@@ -228,6 +242,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={translate('common.enabled')}
+                shouldShowRightCaret
             />
         );
     };
@@ -253,11 +268,20 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const dismissError = (item: PolicyOption) => {
-        clearCategoryErrors(policyId, item.keyForList);
+        clearCategoryErrors(policyId, item.keyForList, policyCategories);
     };
 
     const handleDeleteCategories = () => {
-        deleteWorkspaceCategories(policyId, selectedCategories, isSetupCategoryTaskParentReportArchived, policyTagLists, allTransactionViolations);
+        deleteWorkspaceCategories(
+            policyId,
+            selectedCategories,
+            isSetupCategoryTaskParentReportArchived,
+            setupCategoryTaskReport,
+            setupCategoryTaskParentReport,
+            policyTagLists,
+            policyCategories,
+            allTransactionViolations,
+        );
         setDeleteCategoriesConfirmModalVisible(false);
 
         // eslint-disable-next-line deprecation/deprecation
@@ -362,7 +386,16 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             return;
                         }
                         setSelectedCategories([]);
-                        setWorkspaceCategoryEnabled(policyId, categoriesToDisable, isSetupCategoryTaskParentReportArchived, policyTagLists, allTransactionViolations);
+                        setWorkspaceCategoryEnabled(
+                            policyId,
+                            categoriesToDisable,
+                            isSetupCategoryTaskParentReportArchived,
+                            setupCategoryTaskReport,
+                            setupCategoryTaskParentReport,
+                            policyCategories,
+                            policyTagLists,
+                            allTransactionViolations,
+                        );
                     },
                 });
             }
@@ -384,7 +417,16 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedCategories([]);
-                        setWorkspaceCategoryEnabled(policyId, categoriesToEnable, isSetupCategoryTaskParentReportArchived, policyTagLists, allTransactionViolations);
+                        setWorkspaceCategoryEnabled(
+                            policyId,
+                            categoriesToEnable,
+                            isSetupCategoryTaskParentReportArchived,
+                            setupCategoryTaskReport,
+                            setupCategoryTaskParentReport,
+                            policyCategories,
+                            policyTagLists,
+                            allTransactionViolations,
+                        );
                     },
                 });
             }
@@ -494,7 +536,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 <HeaderWithBackButton
                     shouldShowBackButton={shouldUseNarrowLayout}
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.categories')}
-                    icon={!selectionModeHeader ? Illustrations.FolderOpen : undefined}
+                    icon={!selectionModeHeader ? illustrations.FolderOpen : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
@@ -551,6 +593,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         showScrollIndicator={false}
                         addBottomSafeAreaPadding
+                        shouldShowRightCaret
                     />
                 )}
                 {!hasVisibleCategories && !isLoading && inputValue.length === 0 && (

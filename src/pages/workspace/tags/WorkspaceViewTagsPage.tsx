@@ -113,9 +113,9 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
     const updateWorkspaceTagEnabled = useCallback(
         (value: boolean, tagName: string) => {
-            setWorkspaceTagEnabled(policyID, {[tagName]: {name: tagName, enabled: value}}, route.params.orderWeight);
+            setWorkspaceTagEnabled({policyID, tagsToUpdate: {[tagName]: {name: tagName, enabled: value}}, tagListIndex: route.params.orderWeight, policyTags});
         },
-        [policyID, route.params.orderWeight],
+        [policyID, route.params.orderWeight, policyTags],
     );
 
     const tagList = useMemo<TagListItem[]>(
@@ -131,7 +131,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 enabled: tag.enabled,
                 isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 rightElement: hasDependentTags ? (
-                    <ListItemRightCaretWithLabel shouldShowCaret />
+                    <ListItemRightCaretWithLabel />
                 ) : (
                     <Switch
                         isOn={tag.enabled}
@@ -198,6 +198,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={hasDependentTags ? undefined : translate('common.enabled')}
+                shouldShowRightCaret
             />
         );
     };
@@ -282,7 +283,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         return;
                     }
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyID, tagsToDisable, route.params.orderWeight);
+                    setWorkspaceTagEnabled({policyID, tagsToUpdate: tagsToDisable, tagListIndex: route.params.orderWeight, policyTags});
                 },
             });
         }
@@ -294,7 +295,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyID, tagsToEnable, route.params.orderWeight);
+                    setWorkspaceTagEnabled({policyID, tagsToUpdate: tagsToEnable, tagListIndex: route.params.orderWeight, policyTags});
                 },
             });
         }
@@ -379,7 +380,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             }}
                             pendingAction={currentPolicyTag.pendingFields?.required}
                             errors={currentPolicyTag?.errorFields?.required ?? undefined}
-                            onCloseError={() => clearPolicyTagListErrorField(policyID, route.params.orderWeight, 'required')}
+                            onCloseError={() => clearPolicyTagListErrorField({policyID, tagListIndex: route.params.orderWeight, errorField: 'required', policyTags})}
                             disabled={!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)}
                             showLockIcon={isMakingLastRequiredTagListOptional(policy, policyTags, [currentPolicyTag])}
                         />
@@ -426,6 +427,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         onDismissError={(item) => {
                             clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: route.params.orderWeight, policyTags});
                         }}
+                        shouldShowRightCaret
                     />
                 )}
                 <ConfirmModal
