@@ -2,7 +2,7 @@ import {context} from '@actions/github';
 import {execSync, exec as execWithCallback} from 'child_process';
 import {promisify} from 'util';
 import GitHubUtils from '@github/libs/GithubUtils';
-import {error as logError, warn as logWarn} from './Logger';
+import {log, error as logError, warn as logWarn} from './Logger';
 
 const exec = promisify(execWithCallback);
 
@@ -292,13 +292,12 @@ class Git {
      * @throws Error when the reference cannot be fetched or is invalid
      */
     static async ensureRef(ref: string, remote = 'origin'): Promise<void> {
-        console.log('isValidRef', this.isValidRef(ref));
         if (this.isValidRef(ref)) {
             return; // Reference is already available locally
         }
 
         try {
-            console.log(`🔄 Fetching missing ref: ${ref}`);
+            log(`🔄 Fetching missing ref: ${ref}`);
             await exec(`git fetch --no-tags --depth=1 --quiet ${remote} ${ref}`, {
                 encoding: 'utf8',
                 cwd: process.cwd(),
@@ -313,13 +312,11 @@ class Git {
         }
     }
 
-    static getMainBranchCommitHash(remote?: string): string {
+    static async getMainBranchCommitHash(remote?: string): Promise<string> {
         // Fetch the main branch from the specified remote (or locally) to ensure it's available
         if (IS_CI || remote) {
-            this.ensureRef('main', remote);
+            await this.ensureRef('main', remote);
         }
-
-        console.log(IS_CI, remote);
 
         // In CI, use a simpler approach - just use the remote main branch directly
         // This avoids issues with shallow clones and merge-base calculations
