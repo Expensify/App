@@ -12560,7 +12560,7 @@ class Git {
      */
     static isValidRef(ref) {
         try {
-            (0, child_process_1.execSync)(`git rev-parse --verify "${ref}"`, {
+            (0, child_process_1.execSync)(`git rev-parse --verify "${ref}^{object}"`, {
                 encoding: 'utf8',
                 cwd: process.cwd(),
                 stdio: 'pipe', // Suppress output
@@ -12684,6 +12684,10 @@ class Git {
                         type: 'removed',
                         content,
                     });
+                }
+                else if (firstChar === ' ') {
+                    // Context line - skip it (we only care about added/removed lines)
+                    continue;
                 }
                 else {
                     throw new Error(`Unknown line type! First character of line is ${firstChar}`);
