@@ -141,7 +141,7 @@ module.exports = {
         'plugin:you-dont-need-lodash-underscore/all',
         'prettier',
     ],
-    plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library', 'lodash', 'deprecation'],
+    plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library', 'eslint-plugin-react-compiler', 'lodash', 'deprecation'],
     parser: '@typescript-eslint/parser',
     parserOptions: {
         project: path.resolve(__dirname, './tsconfig.json'),
