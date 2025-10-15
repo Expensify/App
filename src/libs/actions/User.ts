@@ -1339,10 +1339,8 @@ function updateDraftCustomStatus(status: CustomStatusDraft) {
 }
 
 /**
- * Sets a custom status custom date
+ * Sets a clear after date for the custom status
  *
- * custom date
- * @param date
  */
 function updateStatusDraftCustomClearAfterDate(date: string) {
     Onyx.set(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE, date);
