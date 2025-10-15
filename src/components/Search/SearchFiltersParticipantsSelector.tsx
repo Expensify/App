@@ -10,7 +10,6 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import useSearchSelector from '@hooks/useSearchSelector';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatSectionsFromSearchTerm} from '@libs/OptionsListUtils';
-import type {Option} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -18,11 +17,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
-
-function getSelectedOptionData(option: Option): OptionData {
-    // eslint-disable-next-line rulesdir/no-default-id-values
-    return {...option, selected: true, reportID: option.reportID ?? '-1', isSelected: true};
-}
 
 type SearchFiltersParticipantsSelectorProps = {
     initialAccountIDs: string[];
@@ -99,7 +93,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
 
         newSections.push({
             ...formattedResults.section,
-            data: formattedResults.section.data.map(getSelectedOptionData),
+            data: formattedResults.section.data as OptionData[],
         });
 
         newSections.push({
@@ -147,7 +141,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                     return;
                 }
 
-                return getSelectedOptionData(participant);
+                return participant as OptionData;
             })
             .filter((option): option is NonNullable<OptionData> => {
                 return !!option;

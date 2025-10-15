@@ -1,7 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
 import isEmpty from 'lodash/isEmpty';
-import reject from 'lodash/reject';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {Ref} from 'react';
 import {Keyboard} from 'react-native';
@@ -29,7 +28,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {Option, Section} from '@libs/OptionsListUtils';
-import {filterAndOrderOptions, formatSectionsFromSearchTerm, getFirstKeyForList, getHeaderMessage, getPersonalDetailSearchTerms, getUserToInviteOption} from '@libs/OptionsListUtils';
+import {formatSectionsFromSearchTerm, getFirstKeyForList, getHeaderMessage, getPersonalDetailSearchTerms, getUserToInviteOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -40,11 +39,8 @@ import KeyboardUtils from '@src/utils/keyboard';
 
 const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
-type SelectedOption = ListItem & OptionData;
-
 function useOptions() {
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const personalData = useCurrentUserPersonalDetails();
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
@@ -53,7 +49,15 @@ function useOptions() {
     });
     const {contacts} = useContactImport();
 
-    const {selectedOptions, setSelectedOptions, searchTerm, setSearchTerm, availableOptions, debouncedSearchTerm} = useSearchSelector({
+    const {
+        selectedOptions,
+        setSelectedOptions,
+        searchTerm,
+        setSearchTerm,
+        debouncedSearchTerm,
+        searchOptions: options,
+        toggleSelection,
+    } = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -62,15 +66,6 @@ function useOptions() {
         contactOptions: contacts,
         includeSelfDM: true,
     });
-
-    const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(availableOptions, searchTerm, countryCode, {
-            selectedOptions,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        });
-
-        return filteredOptions;
-    }, [availableOptions, searchTerm, countryCode, selectedOptions]);
 
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const headerMessage = useMemo(() => {
@@ -135,6 +130,7 @@ function useOptions() {
         selectedOptions,
         setSelectedOptions,
         headerMessage,
+        toggleSelection,
     };
 }
 
@@ -164,8 +160,19 @@ function NewChatPage({ref}: NewChatPageProps) {
         focus: selectionListRef.current?.focusTextInput,
     }));
 
-    const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
-        useOptions();
+    const {
+        headerMessage,
+        searchTerm,
+        debouncedSearchTerm,
+        setSearchTerm,
+        selectedOptions,
+        setSelectedOptions,
+        recentReports,
+        personalDetails,
+        userToInvite,
+        areOptionsInitialized,
+        toggleSelection,
+    } = useOptions();
 
     const [sections, firstKeyForList] = useMemo(() => {
         const sectionsList: Section[] = [];
@@ -215,25 +222,13 @@ function NewChatPage({ref}: NewChatPageProps) {
      */
     const toggleOption = useCallback(
         (option: ListItem & Partial<OptionData>) => {
-            const isOptionInList = !!option.isSelected;
-
-            let newSelectedOptions: SelectedOption[];
-
-            if (isOptionInList) {
-                newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
-            } else {
-                // eslint-disable-next-line rulesdir/no-default-id-values
-                newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? '-1'}];
-                selectionListRef?.current?.scrollToIndex(0, true);
-            }
-
             selectionListRef?.current?.clearInputAfterSelect?.();
             if (!canUseTouchScreen()) {
                 selectionListRef.current?.focusTextInput();
             }
-            setSelectedOptions(newSelectedOptions);
+            toggleSelection(option as OptionData);
         },
-        [selectedOptions, setSelectedOptions],
+        [toggleSelection],
     );
 
     /**

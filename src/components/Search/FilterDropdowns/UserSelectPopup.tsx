@@ -15,16 +15,9 @@ import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import {getParticipantsOption} from '@libs/OptionsListUtils';
-import type {Option} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-function getSelectedOptionData(option: Option) {
-    // eslint-disable-next-line rulesdir/no-default-id-values
-    return {...option, reportID: `${option.reportID ?? -1}`, selected: true, isSelected: true};
-}
 
 type Sections = Array<SectionListData<OptionData, Section<OptionData>>>;
 
@@ -49,7 +42,6 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: accountIDSelector});
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const initialSelectedOptions = useMemo(() => {
         return value.reduce<OptionData[]>((acc, id) => {
             const participant = personalDetails?.[id];
@@ -57,9 +49,8 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 return acc;
             }
 
-            const optionData = getSelectedOptionData(getParticipantsOption(participant, personalDetails));
-            if (optionData) {
-                acc.push(optionData);
+            if (participant) {
+                acc.push(participant as OptionData);
             }
 
             return acc;
