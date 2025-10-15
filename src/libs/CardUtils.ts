@@ -84,8 +84,8 @@ function getCompanyCardDescription(transactionCardName?: string, cardID?: number
     return card.cardName;
 }
 
-function isCash(item: Card | Record<string, string>): boolean {
-    return item?.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME;
+function isCash(item: Card | Record<string, string>): item is Card {
+    return typeof item === 'object' && 'cardName' in item && item.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME;
 }
 
 function isCardHiddenFromSearch(card: Card) {
