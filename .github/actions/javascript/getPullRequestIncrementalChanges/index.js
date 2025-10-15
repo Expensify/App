@@ -12536,7 +12536,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.GIT_ERRORS = void 0;
 const github_1 = __nccwpck_require__(5438);
 const child_process_1 = __nccwpck_require__(2081);
 const util_1 = __nccwpck_require__(3837);
@@ -12544,10 +12543,6 @@ const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const Logger_1 = __nccwpck_require__(8891);
 const exec = (0, util_1.promisify)(child_process_1.exec);
 const IS_CI = process.env.CI === 'true';
-const GIT_ERRORS = {
-    FAILED_TO_FETCH_FROM_REMOTE: 'Failed to fetch from remote',
-};
-exports.GIT_ERRORS = GIT_ERRORS;
 /**
  * Utility class for git operations.
  */
@@ -12790,19 +12785,17 @@ class Git {
             throw new Error(`Failed to fetch git reference ${ref}: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
-    static getMainBaseCommitHash(remote) {
-        // Fetch the main branch from the specified remote to ensure it's available
-        try {
-            (0, child_process_1.execSync)(`git fetch ${remote} main --no-tags --depth=1 -q`, { encoding: 'utf8' });
-        }
-        catch (error) {
-            throw new Error(GIT_ERRORS.FAILED_TO_FETCH_FROM_REMOTE);
+    static getMainBranchCommitHash(remote) {
+        // Fetch the main branch from the specified remote (or locally) to ensure it's available
+        if (IS_CI || remote) {
+            this.ensureRef('main', remote);
         }
         // In CI, use a simpler approach - just use the remote main branch directly
         // This avoids issues with shallow clones and merge-base calculations
         if (IS_CI) {
+            const mainBaseRef = remote ? `${remote}/main` : 'origin/main';
             try {
-                const mergeBaseHash = (0, child_process_1.execSync)(`git rev-parse ${remote}/main`, { encoding: 'utf8' }).trim();
+                const mergeBaseHash = (0, child_process_1.execSync)(`git rev-parse ${mainBaseRef}`, { encoding: 'utf8' }).trim();
                 // Validate the output is a proper SHA hash
                 if (!mergeBaseHash || !/^[a-fA-F0-9]{40}$/.test(mergeBaseHash)) {
                     throw new Error(`git rev-parse returned unexpected output: ${mergeBaseHash}`);
@@ -12810,25 +12803,25 @@ class Git {
                 return mergeBaseHash;
             }
             catch (error) {
-                (0, Logger_1.error)(`Failed to get commit hash for ${remote}/main:`, error);
-                throw new Error(`Could not get commit hash for ${remote}/main`);
+                (0, Logger_1.error)(`Failed to get commit hash for ${mainBaseRef}:`, error);
+                throw new Error(`Could not get commit hash for ${mainBaseRef}`);
             }
         }
+        const mainBaseRef = remote ? `${remote}/main` : 'main';
         // For local development, try to find the actual merge base
         let mergeBaseHash;
         try {
-            mergeBaseHash = (0, child_process_1.execSync)(`git merge-base ${remote}/main HEAD`, { encoding: 'utf8' }).trim();
+            mergeBaseHash = (0, child_process_1.execSync)(`git merge-base ${mainBaseRef} HEAD`, { encoding: 'utf8' }).trim();
         }
-        catch (error) {
+        catch {
+            (0, Logger_1.warn)(`Warning: Could not find merge base between ${mainBaseRef} and HEAD.`);
             // If merge-base fails locally, fall back to using the remote main branch
             try {
-                mergeBaseHash = (0, child_process_1.execSync)(`git rev-parse ${remote}/main`, { encoding: 'utf8' }).trim();
-                (0, Logger_1.error)(`Warning: Could not find merge base between ${remote}/main and HEAD. Using ${remote}/main as base.`);
+                mergeBaseHash = (0, child_process_1.execSync)(`git rev-parse ${mainBaseRef}`, { encoding: 'utf8' }).trim();
             }
             catch (fallbackError) {
-                (0, Logger_1.error)(`Failed to find merge base with ${remote}/main:`, error);
-                (0, Logger_1.error)(`Fallback also failed:`, fallbackError);
-                throw new Error(`Could not determine merge base with ${remote}/main`);
+                (0, Logger_1.error)(`Failed to find merge base with ${mainBaseRef}:`, fallbackError);
+                throw new Error(`Could not determine merge base with ${mainBaseRef}`);
             }
         }
         // Validate the output is a proper SHA hash
@@ -12837,7 +12830,24 @@ class Git {
         }
         return mergeBaseHash;
     }
-    static async getChangedFiles(remote) {
+    /**
+     * Check if there are any uncommitted changes (both staged and unstaged).
+     *
+     * @returns true if there are uncommitted changes, false otherwise
+     */
+    static hasUncommittedChanges() {
+        try {
+            const status = (0, child_process_1.execSync)('git status --porcelain', {
+                encoding: 'utf8',
+                cwd: process.cwd(),
+            }).trim();
+            return status.length > 0;
+        }
+        catch (error) {
+            return false;
+        }
+    }
+    static async getChangedFiles(fromRef, toRef = 'HEAD') {
         if (IS_CI) {
             const { data: changedFiles } = await GithubUtils_1.default.octokit.pulls.listFiles({
                 owner: 'Expensify',
@@ -12848,19 +12858,12 @@ class Git {
             return changedFiles.map((file) => file.filename);
         }
         try {
-            // Get files changed in the current branch/commit
-            const mainBaseCommitHash = this.getMainBaseCommitHash(remote);
             // Get the diff output and check status
-            const gitDiffOutput = (0, child_process_1.execSync)(`git diff --diff-filter=AMR --name-only ${mainBaseCommitHash} HEAD`, {
-                encoding: 'utf8',
-            });
-            const files = gitDiffOutput.trim().split('\n');
+            const diffResult = this.diff(fromRef, toRef);
+            const files = diffResult.files.map((file) => file.filePath);
             return files;
         }
         catch (error) {
-            if (error instanceof Error && error.message === GIT_ERRORS.FAILED_TO_FETCH_FROM_REMOTE) {
-                throw error;
-            }
             (0, Logger_1.error)('Could not determine changed files:', error);
             throw error;
         }
