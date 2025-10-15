@@ -63,7 +63,6 @@ import * as ApiUtils from '@libs/ApiUtils';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
-import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
@@ -153,6 +152,7 @@ import {
     hasOutstandingChildRequest,
     isChatThread as isChatThreadReportUtils,
     isConciergeChatReport,
+    isCurrentUserSubmitter,
     isExpenseReport,
     isGroupChat as isGroupChatReportUtils,
     isHiddenForCurrentUser,
@@ -1848,7 +1848,8 @@ function saveReportDraft(reportID: string, report: Report) {
  * When empty string or null is passed, it will delete the draft comment from Onyx store.
  */
 function saveReportDraftComment(reportID: string, comment: string | null, callback: () => void = () => {}) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, prepareDraftComment(comment)).then(callback);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment || null).then(callback);
 }
 
 /** Broadcasts whether or not a user is typing on a report over the report's private pusher channel. */
@@ -5794,6 +5795,15 @@ function buildOptimisticChangePolicyData(
         });
     }
 
+    let shouldSetOutstandingChildRequest = false;
+    if (newStatusNum === CONST.REPORT.STATUS_NUM.OPEN || isOpenOrSubmitted) {
+        if (newStatusNum === CONST.REPORT.STATUS_NUM.OPEN) {
+            shouldSetOutstandingChildRequest = isCurrentUserSubmitter(report);
+        } else if (isProcessingReport(report)) {
+            shouldSetOutstandingChildRequest = report.managerID === currentUserAccountID;
+        }
+    }
+
     // 2. If this is a thread, we have to mark the parent report preview action as deleted to properly update the UI
     if (report.parentReportID && report.parentReportActionID) {
         const oldWorkspaceChatReportID = report.parentReportID;
@@ -5918,12 +5928,15 @@ function buildOptimisticChangePolicyData(
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${newPolicyExpenseChatReportID}`,
-        value: {lastVisibleActionCreated: optimisticReportPreviewAction?.created},
+        value: {
+            lastVisibleActionCreated: optimisticReportPreviewAction?.created,
+            ...(shouldSetOutstandingChildRequest ? {hasOutstandingChildRequest: true} : {}),
+        },
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${newPolicyExpenseChatReportID}`,
-        value: {lastVisibleActionCreated: policyExpenseChat?.lastVisibleActionCreated},
+        value: {lastVisibleActionCreated: policyExpenseChat?.lastVisibleActionCreated, hasOutstandingChildRequest: policyExpenseChat?.hasOutstandingChildRequest},
     });
 
     // 4. Optimistically create a CHANGE_POLICY reportAction on the report using the reportActionID
@@ -6131,6 +6144,36 @@ function resolveConciergeCategoryOptions(
     } as Partial<ReportActions>);
 }
 
+/**
+ * Enhances existing transaction thread reports with additional context for navigation
+ *
+ * This is NOT the same as createTransactionThreadReport - this function only adds missing
+ * context fields to existing transaction threads, while createTransactionThreadReport
+ * creates entirely new transaction threads with comprehensive data.
+ *
+ * Use this when navigating to existing transaction threads that need additional context
+ * like policyID, parentReportID, etc. for proper threading and navigation.
+ */
+function setOptimisticTransactionThread(reportID?: string, parentReportID?: string, parentReportActionID?: string, policyID?: string) {
+    if (!reportID) {
+        return;
+    }
+
+    // Use merge with selective updates to avoid overwriting existing comprehensive data
+    // This will only add/update the specified fields without overwriting existing data
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        reportID,
+        policyID,
+        parentReportID,
+        parentReportActionID,
+        chatReportID: parentReportID,
+        type: CONST.REPORT.TYPE.CHAT,
+        // Add additional fields to ensure complete report structure
+        lastReadTime: DateUtils.getDBTime(),
+        lastVisibleActionCreated: DateUtils.getDBTime(),
+    });
+}
+
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};
 
 export {
@@ -6243,4 +6286,5 @@ export {
     removeFailedReport,
     createTransactionThreadReport,
     openUnreportedExpense,
+    setOptimisticTransactionThread,
 };
