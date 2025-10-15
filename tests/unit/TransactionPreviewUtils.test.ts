@@ -104,7 +104,7 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.text).toEqual('$0.00');
         });
 
-        it('returns merchant missing and amount missing message when appropriate', () => {
+        it('returns merchant missing message when appropriate', () => {
             const functionArgs = {
                 ...basicProps,
                 transaction: {...basicProps.transaction, merchant: '', amount: 0, receipt: {source: 'test-receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE}},
@@ -112,7 +112,7 @@ describe('TransactionPreviewUtils', () => {
                 shouldShowRBR: true,
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.RBRMessage.translationPath).toEqual('violations.reviewRequired');
+            expect(result.RBRMessage.translationPath).toEqual('iou.missingMerchant');
         });
 
         it('should display showCashOrCard in previewHeaderText', () => {
