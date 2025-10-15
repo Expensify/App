@@ -48,7 +48,7 @@ class OpenAIUtils {
     /**
      * Prompt the Chat Completions API.
      */
-    public async promptChatCompletions({userPrompt, systemPrompt = '', model = 'gpt-4o'}: {userPrompt: string; systemPrompt?: string; model?: ChatModel}): Promise<string> {
+    public async promptChatCompletions({userPrompt, systemPrompt = '', model = 'gpt-5'}: {userPrompt: string; systemPrompt?: string; model?: ChatModel}): Promise<string> {
         const messages: ChatCompletionMessageParam[] = [{role: 'user', content: userPrompt}];
         if (systemPrompt) {
             messages.unshift({role: 'system', content: systemPrompt});
@@ -59,7 +59,8 @@ class OpenAIUtils {
                 this.client.chat.completions.create({
                     model,
                     messages,
-                    temperature: 0.3,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    reasoning_effort: 'low',
                 }),
             {isRetryable: (err) => OpenAIUtils.isRetryableError(err)},
         );
