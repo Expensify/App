@@ -2620,7 +2620,7 @@ ${amount} para ${merchant} - ${date}`,
                 descriptionTwo: 'Categorizar e etiquetar despesas',
                 descriptionThree: 'Criar e compartilhar relatórios',
             },
-            price: 'Experimente gratuitamente por 30 dias, depois faça o upgrade por apenas <strong>US$5/mês</strong>.',
+            price: 'Experimente gratuitamente por 30 dias, depois faça o upgrade por apenas <strong>US$5/usuário/mês</strong>.',
             createWorkspace: 'Criar espaço de trabalho',
         },
         confirmWorkspace: {

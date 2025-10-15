@@ -2602,7 +2602,7 @@ const translations = {
                 descriptionTwo: 'Categorize and tag expenses',
                 descriptionThree: 'Create and share reports',
             },
-            price: 'Try it free for 30 days, then upgrade for just <strong>$5/month</strong>.',
+            price: 'Try it free for 30 days, then upgrade for just <strong>$5/user/month</strong>.',
             createWorkspace: 'Create workspace',
         },
         confirmWorkspace: {

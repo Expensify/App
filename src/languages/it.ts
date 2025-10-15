@@ -2627,7 +2627,7 @@ ${amount} per ${merchant} - ${date}`,
                 descriptionTwo: 'Categorizza e tagga le spese',
                 descriptionThree: 'Crea e condividi rapporti',
             },
-            price: 'Provalo gratis per 30 giorni, poi passa al piano superiore per soli <strong>$5/mese</strong>.',
+            price: 'Provalo gratis per 30 giorni, poi passa al piano superiore per soli <strong>$5/utente/mese</strong>.',
             createWorkspace: 'Crea workspace',
         },
         confirmWorkspace: {
