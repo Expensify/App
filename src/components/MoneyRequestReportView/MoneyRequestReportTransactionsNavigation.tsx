@@ -105,6 +105,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID}: MoneyR
             const transactionThreadReport = createTransactionThreadReport(parentReport, nextParentReportAction);
             navigationParams.reportID = transactionThreadReport?.reportID;
         }
+        // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating
         requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(navigationParams), {forceReplace: true}));
     };
 
@@ -127,6 +128,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID}: MoneyR
             const transactionThreadReport = createTransactionThreadReport(parentReport, prevParentReportAction);
             navigationParams.reportID = transactionThreadReport?.reportID;
         }
+        // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating
         requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(navigationParams), {forceReplace: true}));
     };
 
