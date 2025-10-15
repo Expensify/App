@@ -11,6 +11,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
+import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import TextBlock from '@components/TextBlock';
 import useLocalize from '@hooks/useLocalize';
@@ -47,25 +48,45 @@ import type {LHNOptionsListProps, RenderItemProps} from './types';
 
 const keyExtractor = (item: Report) => `report_${item.reportID}`;
 
-function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
+function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}, isLoading}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
     const flashListRef = useRef<FlashListRef<Report>>(null);
     const route = useRoute();
     const isScreenFocused = useIsFocused();
 
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
-    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
-    const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: false});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
+    const [reports, reportsFetchStatus] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [reportAttributes, reportAttributesFetchStatus] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: reportsSelector,
+        canBeMissing: true,
+    });
+    const [reportNameValuePairs, reportNameValuePairsFetchStatus] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+    const [reportActions, reportActionsFetchStatus] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
+    const [policy, policyFetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [personalDetails, personalDetailsFetchStatus] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [transactions, transactionsFetchStatus] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const [draftComments, draftCommentsFetchStatus] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: false});
+    const [transactionViolations, transactionViolationsFetchStatus] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
+    const [activePolicyID, activePolicyIDFetchStatus] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [introSelected, introSelectedFetchStatus] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [isFullscreenVisible, isFullscreenVisibleFetchStatus] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
+
+    const fetchStatuses = [
+        reportsFetchStatus,
+        reportAttributesFetchStatus,
+        reportNameValuePairsFetchStatus,
+        reportActionsFetchStatus,
+        policyFetchStatus,
+        personalDetailsFetchStatus,
+        transactionsFetchStatus,
+        draftCommentsFetchStatus,
+        transactionViolationsFetchStatus,
+        activePolicyIDFetchStatus,
+        introSelectedFetchStatus,
+        isFullscreenVisibleFetchStatus,
+    ];
+
+    const isAnyLoading = fetchStatuses.some((statusObj) => statusObj?.status === 'loading') || isLoading;
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -407,37 +428,45 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         }
     }, [data, shouldShowEmptyLHN, route, reports, reportActions, policy, personalDetails]);
 
+    const lhnContent = shouldShowEmptyLHN ? (
+        <BlockingView
+            animation={LottieAnimations.Fireworks}
+            animationStyles={styles.emptyLHNAnimation}
+            animationWebStyle={styles.emptyLHNAnimation}
+            title={translate('common.emptyLHN.title')}
+            CustomSubtitle={emptyLHNSubtitle}
+            accessibilityLabel={translate('common.emptyLHN.title')}
+        />
+    ) : (
+        <FlashList
+            ref={flashListRef}
+            indicatorStyle="white"
+            keyboardShouldPersistTaps="always"
+            CellRendererComponent={OptionRowRendererComponent}
+            contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
+            data={data}
+            testID="lhn-options-list"
+            keyExtractor={keyExtractor}
+            renderItem={renderItem}
+            extraData={extraData}
+            showsVerticalScrollIndicator={false}
+            onLayout={onLayout}
+            onScroll={onScroll}
+            initialScrollIndex={isWebOrDesktop ? getScrollIndex(route) : undefined}
+            maintainVisibleContentPosition={{disabled: true}}
+            drawDistance={1000}
+            removeClippedSubviews
+        />
+    );
+
     return (
         <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>
-            {shouldShowEmptyLHN ? (
-                <BlockingView
-                    animation={LottieAnimations.Fireworks}
-                    animationStyles={styles.emptyLHNAnimation}
-                    animationWebStyle={styles.emptyLHNAnimation}
-                    title={translate('common.emptyLHN.title')}
-                    CustomSubtitle={emptyLHNSubtitle}
-                    accessibilityLabel={translate('common.emptyLHN.title')}
-                />
+            {isAnyLoading ? (
+                <View style={[StyleSheet.absoluteFillObject, styles.appBG, styles.mt3]}>
+                    <OptionsListSkeletonView shouldAnimate />
+                </View>
             ) : (
-                <FlashList
-                    ref={flashListRef}
-                    indicatorStyle="white"
-                    keyboardShouldPersistTaps="always"
-                    CellRendererComponent={OptionRowRendererComponent}
-                    contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
-                    data={data}
-                    testID="lhn-options-list"
-                    keyExtractor={keyExtractor}
-                    renderItem={renderItem}
-                    extraData={extraData}
-                    showsVerticalScrollIndicator={false}
-                    onLayout={onLayout}
-                    onScroll={onScroll}
-                    initialScrollIndex={isWebOrDesktop ? getScrollIndex(route) : undefined}
-                    maintainVisibleContentPosition={{disabled: true}}
-                    drawDistance={1000}
-                    removeClippedSubviews
-                />
+                lhnContent
             )}
         </View>
     );
