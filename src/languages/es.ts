@@ -1025,8 +1025,6 @@ const translations = {
         uploadMultiple: 'Subir recibos',
         desktopSubtitleSingle: 'o arrastra y suéltalo aquí',
         desktopSubtitleMultiple: 'o arrástralos y suéltalos aquí',
-        chooseReceipt: 'Elige un recibo para subir o reenvía un recibo a ',
-        chooseReceipts: 'Elige recibos para subir o reenvía recibos a ',
         alternativeMethodsTitle: 'Otras formas de añadir recibos:',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
             `<label-text><a href="${downloadUrl}">Descarga la aplicación</a> para escanear desde tu teléfono</label-text>`,
@@ -1036,8 +1034,7 @@ const translations = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Envía recibos por SMS a ${phoneNumber} (solo números de EE.UU.)</label-text>`,
         takePhoto: 'Haz una foto',
         cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
-        deniedCameraAccess: 'No se ha concedido el acceso a la cámara, siga ',
-        deniedCameraAccessInstructions: 'estas instrucciones',
+        deniedCameraAccess: `No se ha concedido el acceso a la cámara, siga <a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">estas instrucciones</a>.`,
         cameraErrorTitle: 'Error en la cámara',
         locationAccessTitle: 'Permitir acceso a la ubicación',
         locationAccessMessage: 'El acceso a la ubicación nos ayuda a mantener tu zona horaria y moneda precisas dondequiera que vayas.',
