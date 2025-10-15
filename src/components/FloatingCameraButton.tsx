@@ -53,7 +53,7 @@ function FloatingCameraButton() {
             }
 
             const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
-            startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, allTransactionDrafts);
+            startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, allTransactionDrafts);
         });
     };
 
