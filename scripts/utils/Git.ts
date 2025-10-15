@@ -306,7 +306,7 @@ class Git {
 
             // Verify the ref is now available
             if (!this.isValidRef(ref)) {
-                throw new Error(`Reference ${ref} is still not valid after fetching`);
+                throw new Error(`Reference ${ref} is still not valid after fetching from remote ${remote}`);
             }
         } catch (error) {
             throw new Error(`Failed to fetch git reference ${ref}: ${error instanceof Error ? error.message : String(error)}`);
@@ -407,15 +407,10 @@ class Git {
             return changedFiles.map((file) => file.filename);
         }
 
-        try {
-            // Get the diff output and check status
-            const diffResult = this.diff(fromRef, toRef);
-            const files = diffResult.files.map((file) => file.filePath);
-            return files;
-        } catch (error) {
-            logError('Could not determine changed files:', error);
-            throw error;
-        }
+        // Get the diff output and check status
+        const diffResult = this.diff(fromRef, toRef);
+        const files = diffResult.files.map((file) => file.filePath);
+        return files;
     }
 }
 

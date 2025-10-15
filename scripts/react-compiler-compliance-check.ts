@@ -106,21 +106,16 @@ type CheckChangedFilesOptions = CommonCheckOptions;
 async function checkChangedFiles({remote, ...restOptions}: CheckChangedFilesOptions): Promise<boolean> {
     logInfo('Checking changed files for React Compiler compliance...');
 
-    try {
-        const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
-        const changedFiles = await Git.getChangedFileNames(mainBaseCommitHash);
-        const filesToCheck = [...new Set(changedFiles)];
+    const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
+    const changedFiles = await Git.getChangedFileNames(mainBaseCommitHash);
+    const filesToCheck = [...new Set(changedFiles)];
 
-        if (filesToCheck.length === 0) {
-            logSuccess('No React files changed, skipping check.');
-            return true;
-        }
-
-        return await check({filesToCheck, ...restOptions});
-    } catch (error) {
-        logError('Error checking changed files for React Compiler compliance:', error);
-        return false;
+    if (filesToCheck.length === 0) {
+        logSuccess('No React files changed, skipping check.');
+        return true;
     }
+
+    return check({filesToCheck, ...restOptions});
 }
 
 function runCompilerHealthcheck(src?: string): CompilerResults {
