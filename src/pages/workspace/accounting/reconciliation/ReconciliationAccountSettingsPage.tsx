@@ -1,10 +1,11 @@
 import React, {useCallback, useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
+import RenderHTML from '@components/RenderHTML';
 import SelectionList from '@components/SelectionListWithSections';
 import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -49,6 +50,8 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
 
     const domainName = cardSettings?.domainName ?? getDomainNameForPolicy(policyID);
 
+    const {environmentURL} = useEnvironment();
+
     const sections = useMemo(() => {
         if (!bankAccountList || isEmptyObject(bankAccountList)) {
             return [];
@@ -87,11 +90,12 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
         >
             <Text style={[styles.textNormal, styles.mb5, styles.ph5]}>{translate('workspace.accounting.chooseReconciliationAccount.chooseBankAccount')}</Text>
             <Text style={[styles.textNormal, styles.mb6, styles.ph5]}>
-                {translate('workspace.accounting.chooseReconciliationAccount.accountMatches')}
-                <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID, Navigation.getActiveRoute()))}>
-                    {translate('workspace.accounting.chooseReconciliationAccount.settlementAccount')}
-                </TextLink>
-                {translate('workspace.accounting.chooseReconciliationAccount.reconciliationWorks', {lastFourPAN: settlementAccountEnding})}
+                <RenderHTML
+                    html={translate('workspace.accounting.chooseReconciliationAccount.settlementAccountReconciliation', {
+                        settlementAccountUrl: `${environmentURL}/${ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID, Navigation.getActiveRoute())}`,
+                        lastFourPAN: settlementAccountEnding,
+                    })}
+                />
             </Text>
 
             <SelectionList

@@ -593,8 +593,6 @@ type LastSyncAccountingParams = {relativeDate: string};
 
 type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage};
 
-type ReconciliationWorksParams = {lastFourPAN: string};
-
 type DelegateRoleParams = {role: DelegateRole};
 
 type DelegatorParams = {delegator: string};
@@ -934,6 +932,11 @@ type ErrorODIntegrationParams = {
     oldDotPolicyConnectionsURL: string;
 };
 
+type SettlementAccountReconciliationParams = {
+    settlementAccountUrl: string;
+    lastFourPAN: string;
+};
+
 type DisconnectYourBankAccountParams = {
     bankName: string;
 };
@@ -943,6 +946,7 @@ type MergeAccountIntoParams = {
 };
 
 export type {
+    SettlementAccountReconciliationParams,
     ContactMethodsRouteParams,
     ContactMethodParams,
     SplitExpenseEditTitleParams,
@@ -971,7 +975,6 @@ export type {
     DelegateRoleParams,
     DelegatorParams,
     VacationDelegateParams,
-    ReconciliationWorksParams,
     LastSyncAccountingParams,
     SyncStageNameConnectionsParams,
     RequiredFieldParams,
