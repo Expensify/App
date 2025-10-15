@@ -154,7 +154,7 @@ function useSelectedTransactionsActions({
         clearSelectedTransactions(true);
         setIsDeleteModalVisible(false);
         Navigation.removeReportScreen(deletedTransactionThreadReportIDs);
-    }, [duplicateTransactions, duplicateTransactionViolations, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
+    }, [duplicateTransactions, duplicateTransactionViolations, reportActions, selectedTransactionIDs, clearSelectedTransactions, allReports, archivedReportsIdSet]);
 
     const showDeleteModal = useCallback(() => {
         setIsDeleteModalVisible(true);
