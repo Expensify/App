@@ -292,6 +292,7 @@ class Git {
      * @throws Error when the reference cannot be fetched or is invalid
      */
     static async ensureRef(ref: string, remote = 'origin'): Promise<void> {
+        console.log('isValidRef', this.isValidRef(ref));
         if (this.isValidRef(ref)) {
             return; // Reference is already available locally
         }
