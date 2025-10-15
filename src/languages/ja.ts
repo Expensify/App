@@ -1842,6 +1842,7 @@ const translations = {
         twoFactorAuthIsRequiredForAdminsDescription: 'Xeroの会計接続には二要素認証の使用が必要です。Expensifyを引き続き使用するには、有効にしてください。',
         twoFactorAuthCannotDisable: '2FAを無効にできません',
         twoFactorAuthRequired: 'Xeroの接続には二要素認証（2FA）が必要であり、無効にすることはできません。',
+        explainProcessToRemoveWithRecovery: '二要素認証 (2FA) を無効にするには、有効なリカバリーコードを入力してください。',
     },
     recoveryCodeForm: {
         error: {
@@ -2313,8 +2314,8 @@ const translations = {
         },
         interestedFeatures: {
             title: 'どの機能に興味がありますか？',
-            featuresAlreadyEnabled: 'あなたのワークスペースにはすでに以下が有効になっています:',
-            featureYouMayBeInterestedIn: '興味のある追加機能を有効にする:',
+            featuresAlreadyEnabled: 'こちらは最も人気のある機能です：',
+            featureYouMayBeInterestedIn: '追加機能を有効にする：',
         },
         error: {
             requiredFirstName: '続行するには、名前を入力してください。',
@@ -7187,7 +7188,7 @@ const translations = {
         book: {
             title: '通話をスケジュールする',
             description: 'あなたに都合の良い時間を見つけてください。',
-            slots: '利用可能な時間',
+            slots: ({date}: {date: string}) => `<muted-text>利用可能な時間 <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: '通話を確認',
