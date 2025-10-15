@@ -319,6 +319,8 @@ class Git {
             this.ensureRef('main', remote);
         }
 
+        console.log(IS_CI, remote);
+
         // In CI, use a simpler approach - just use the remote main branch directly
         // This avoids issues with shallow clones and merge-base calculations
         if (IS_CI) {
