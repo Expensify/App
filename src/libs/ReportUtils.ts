@@ -4297,7 +4297,7 @@ function getNextApproverAccountID(report: OnyxEntry<Report>, isUnapproved = fals
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(report?.policyID);
 
-    // Check if someone took control and should be the next approver
+    // If the current user took control, then they are the final approver and we don't have a next approver
     const bypassApprover = getBypassApproverIfTakenControl(report);
     if (bypassApprover === currentUserAccountID) {
         return undefined;
@@ -11448,7 +11448,6 @@ function getBypassApproverIfTakenControl(expenseReport: OnyxEntry<Report>): numb
         return null;
     }
 
-    // Early return if report is not in processing state
     if (!isProcessingReport(expenseReport)) {
         return null;
     }
@@ -11465,7 +11464,6 @@ function getBypassApproverIfTakenControl(expenseReport: OnyxEntry<Report>): numb
     // If we find a SUBMITTED action, there's no valid take control since any take control would be older
     for (const action of sortedActions) {
         if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED)) {
-            // If we find a SUBMITTED action, no take control is valid since it would be older
             return null;
         }
 
