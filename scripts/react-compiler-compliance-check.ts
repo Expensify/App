@@ -57,13 +57,18 @@ type CommonCheckOptions = {
     shouldGenerateReport?: boolean;
     reportFileName?: string;
     shouldFilterByDiff?: boolean;
+    shouldPrintSuccesses?: boolean;
+};
+
+type PrintResultsOptions = {
+    shouldPrintSuccesses: boolean;
 };
 
 type CheckOptions = CommonCheckOptions & {
     filesToCheck?: string[];
 };
 
-function check({filesToCheck, shouldGenerateReport = false, reportFileName = DEFAULT_REPORT_FILENAME, shouldFilterByDiff = false, remote}: CheckOptions) {
+function check({filesToCheck, shouldGenerateReport = false, reportFileName = DEFAULT_REPORT_FILENAME, shouldFilterByDiff = false, remote, shouldPrintSuccesses = false}: CheckOptions) {
     if (filesToCheck) {
         logInfo(`Running React Compiler check for ${filesToCheck.length} files or glob patterns...`);
     } else {
@@ -77,7 +82,7 @@ function check({filesToCheck, shouldGenerateReport = false, reportFileName = DEF
         const mainBaseCommitHash = Git.getMainBranchCommitHash(remote);
         const headCommitHash = 'HEAD';
         const diffFilteringCommits: DiffFilteringCommits = {from: mainBaseCommitHash, to: headCommitHash};
-        results = filterResultsByDiff(results, diffFilteringCommits);
+        results = filterResultsByDiff(results, diffFilteringCommits, {shouldPrintSuccesses});
     }
 
     const isPassed = results.failures.size === 0;
@@ -86,7 +91,7 @@ function check({filesToCheck, shouldGenerateReport = false, reportFileName = DEF
         return true;
     }
 
-    printFailureSummary(results);
+    printResults(results, {shouldPrintSuccesses});
 
     if (shouldGenerateReport) {
         generateReport(results, reportFileName);
@@ -328,7 +333,7 @@ function createFilesGlob(filesToCheck?: string[]): string | undefined {
  * @param diffFilteringCommits - The commit range to diff (from and to)
  * @returns Filtered compiler results containing only failures in changed lines
  */
-function filterResultsByDiff(results: CompilerResults, diffFilteringCommits: DiffFilteringCommits): CompilerResults {
+function filterResultsByDiff(results: CompilerResults, diffFilteringCommits: DiffFilteringCommits, {shouldPrintSuccesses}: PrintResultsOptions): CompilerResults {
     // Check for uncommitted changes and warn if any exist
     if (Git.hasUncommittedChanges()) {
         logWarn('Warning: You have uncommitted changes. The diff results may not accurately reflect your current working directory.');
@@ -381,27 +386,35 @@ function filterResultsByDiff(results: CompilerResults, diffFilteringCommits: Dif
 
     // Filter success set to only include files that are in the diff
     const changedFiles = new Set(diffResult.files.map((file) => file.filePath));
-    const filteredSuccess = new Set<string>();
+    const filteredSuccesses = new Set<string>();
     results.success.forEach((file) => {
         if (!changedFiles.has(file)) {
             return;
         }
-        filteredSuccess.add(file);
+        filteredSuccesses.add(file);
     });
+
+    if (shouldPrintSuccesses) {
+        if (filteredSuccesses.size === 0) {
+            logInfo('No successes remain after filtering by diff.');
+        } else {
+            logInfo(`${filteredSuccesses.size} out of ${results.success.size} successes remain after filtering by diff.`);
+        }
+    }
 
     if (filteredFailures.size === 0) {
         logInfo('No failures remain after filtering by diff.');
     } else {
-        logInfo(`${filteredFailures.size} out of ${results.failures.size} files remain after filtering by diff.`);
+        logInfo(`${filteredFailures.size} out of ${results.failures.size} failures remain after filtering by diff.`);
     }
 
     return {
-        success: filteredSuccess,
+        success: filteredSuccesses,
         failures: filteredFailures,
     };
 }
 
-function printFailureSummary({success, failures}: CompilerResults): void {
+function printResults({success, failures}: CompilerResults, {shouldPrintSuccesses}: PrintResultsOptions): void {
     // const failedFileNames = getDistinctFileNames(Array.from(failures.values()), (f) => f.file, fileToCheck);
 
     if (success.size > 0) {
@@ -416,11 +429,20 @@ function printFailureSummary({success, failures}: CompilerResults): void {
         distinctFileNames.add(failure.file);
     });
 
+    if (shouldPrintSuccesses) {
+        log();
+        logSuccess('Successfully compiled files:');
+        log();
+
+        success.forEach((successFile) => {
+            logSuccess(`${successFile}`);
+        });
+    }
+
     log();
     logError(`Failed to compile ${distinctFileNames.size} files with React Compiler:`);
     log();
 
-    // Print unique failures for the files that were checked
     failures.forEach((failure) => {
         const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
         logBold(`${failure.file}${location}`);
@@ -512,21 +534,26 @@ async function main() {
                 required: false,
                 default: false,
             },
+            printSuccesses: {
+                description: 'Print the successes',
+                required: false,
+                default: false,
+            },
         },
     });
 
     const {command, file} = cli.positionalArgs;
     const {remote, reportFileName} = cli.namedArgs;
-    const {report: shouldGenerateReport, filterByDiff: shouldFilterByDiff} = cli.flags;
+    const {report: shouldGenerateReport, filterByDiff: shouldFilterByDiff, printSuccesses: shouldPrintSuccesses} = cli.flags;
 
     let isPassed = false;
     try {
         switch (command) {
             case 'check':
-                isPassed = Checker.check({filesToCheck: file !== '' ? [file] : undefined, shouldGenerateReport, reportFileName, shouldFilterByDiff});
+                isPassed = Checker.check({filesToCheck: file !== '' ? [file] : undefined, shouldGenerateReport, reportFileName, shouldFilterByDiff, shouldPrintSuccesses});
                 break;
             case 'check-changed':
-                isPassed = await Checker.checkChangedFiles({remote, shouldGenerateReport, reportFileName, shouldFilterByDiff});
+                isPassed = await Checker.checkChangedFiles({remote, shouldGenerateReport, reportFileName, shouldFilterByDiff, shouldPrintSuccesses});
                 break;
             default:
                 logError(`Unknown command: ${String(command)}`);
