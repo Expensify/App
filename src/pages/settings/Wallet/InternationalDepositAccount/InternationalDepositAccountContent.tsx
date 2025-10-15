@@ -6,7 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useRootNavigationState from '@hooks/useRootNavigationState';
-import useSubStep from '@hooks/useSubStep';
+import useSubStepWithURL from '@hooks/useSubStepWithURL';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
@@ -35,8 +35,6 @@ type InternationalDepositAccountContentProps = {
     country: OnyxEntry<string>;
     isAccountLoading: boolean;
 };
-
-const formSteps = [CountrySelection, BankAccountDetails, AccountType, BankInformation, AccountHolderInformation, Confirmation, Success];
 
 function getSkippedSteps(skipAccountTypeStep: boolean, skipAccountHolderInformationStep: boolean) {
     const skippedSteps = [];
@@ -90,6 +88,37 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
         goBack();
     }, [goBack]);
 
+    const bodyContent = [
+        {
+            screenName: CONST.CORPAY_FIELDS.STEPS_NAME.COUNTRY_SELECTOR,
+            component: CountrySelection,
+        },
+        {
+            screenName: CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS,
+            component: BankAccountDetails,
+        },
+        // {
+        //     screenName: CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE,
+        //     component: AccountType,
+        // },
+        {
+            screenName: CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION,
+            component: BankInformation,
+        },
+        {
+            screenName: CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION,
+            component: AccountHolderInformation,
+        },
+        {
+            screenName: CONST.CORPAY_FIELDS.STEPS_NAME.CONFIRMATION,
+            component: Confirmation,
+        },
+        {
+            screenName: CONST.CORPAY_FIELDS.STEPS_NAME.SUCCESS,
+            component: Success,
+        },
+    ];
+
     const {
         componentToRender: SubStep,
         isEditing,
@@ -98,28 +127,15 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
         screenIndex,
         moveTo,
         resetScreenIndex,
-    } = useSubStep<CustomSubStepProps>({bodyContent: formSteps, startFrom, onFinished: handleFinishStep, skipSteps: skippedSteps});
+    } = useSubStepWithURL<CustomSubStepProps>({
+        bodyContent,
+        startFrom,
+        onFinished: handleFinishStep,
+        skipSteps: skippedSteps,
+    });
 
     const handleBackButtonPress = () => {
-        if (isEditing) {
-            resetScreenIndex(CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION);
-            return true;
-        }
-
-        // Clicking back on the first screen should dismiss the modal
-        if (screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.COUNTRY_SELECTOR) {
-            clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
-            goBack();
-            return true;
-        }
-
-        // Clicking back on the success screen should dismiss the modal
-        if (screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS) {
-            clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
-            goBack();
-            return true;
-        }
-        prevScreen();
+        Navigation.goBack();
         return true;
     };
 

@@ -113,7 +113,7 @@ function openPersonalBankAccountSetupView({exitReportID, policyID, source, shoul
             Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT);
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute('Country'));
     });
 }
 
