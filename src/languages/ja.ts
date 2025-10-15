@@ -5532,6 +5532,11 @@ const translations = {
                 description: '独自の料金を作成および管理し、マイルまたはキロメートルで追跡し、距離経費のデフォルトカテゴリを設定します。',
                 onlyAvailableOnPlan: '距離料金は、Collectプランで利用可能で、料金は',
             },
+            auditor: {
+                title: '監査人',
+                description: '監査人はすべてのレポートに対して読み取り専用アクセスが可能で、完全な可視性とコンプライアンス監視を提供します。',
+                onlyAvailableOnPlan: '監査人は Control プランでのみ利用可能、開始価格は ',
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: '複数の承認レベル',
                 description: '複数の承認レベルは、払い戻しが行われる前に複数の人がレポートを承認する必要がある企業向けのワークフローツールです。',

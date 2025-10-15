@@ -5572,6 +5572,11 @@ const translations = {
                 description: 'Maak en beheer je eigen tarieven, volg in mijlen of kilometers, en stel standaardcategorieën in voor afstandskosten.',
                 onlyAvailableOnPlan: 'Afstandstarieven zijn beschikbaar op het Collect-abonnement, beginnend bij',
             },
+            auditor: {
+                title: 'Auditor',
+                description: 'Auditors krijgen alleen-lezen toegang tot alle rapporten voor volledige zichtbaarheid en nalevingscontrole.',
+                onlyAvailableOnPlan: 'Auditors zijn alleen beschikbaar in het Control-plan, vanaf ',
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Meerdere goedkeuringsniveaus',
                 description: 'Meerdere goedkeuringsniveaus is een workflowtool voor bedrijven die vereisen dat meer dan één persoon een rapport goedkeurt voordat het kan worden vergoed.',

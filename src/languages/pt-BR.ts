@@ -5571,6 +5571,11 @@ const translations = {
                 description: 'Crie e gerencie suas próprias tarifas, acompanhe em milhas ou quilômetros e defina categorias padrão para despesas de distância.',
                 onlyAvailableOnPlan: 'As tarifas de distância estão disponíveis no plano Collect, começando em',
             },
+            auditor: {
+                title: 'Auditor',
+                description: 'Os auditores têm acesso somente de leitura a todos os relatórios para visibilidade total e monitoramento de conformidade.',
+                onlyAvailableOnPlan: 'Os auditores estão disponíveis apenas no plano Control, a partir de ',
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Vários níveis de aprovação',
                 description:

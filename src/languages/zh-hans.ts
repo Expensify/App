@@ -5465,6 +5465,11 @@ const translations = {
                 description: '创建和管理您自己的费率，以英里或公里为单位进行跟踪，并为距离费用设置默认类别。',
                 onlyAvailableOnPlan: '在 Collect 计划中提供的距离费率，起价为',
             },
+            auditor: {
+                title: '审计员',
+                description: '审计员可对所有报告进行只读访问，以实现全面可见性和合规监控。',
+                onlyAvailableOnPlan: '审计员仅在 Control 计划中提供，起价为 ',
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: '多级审批',
                 description: '多级审批是一种工作流工具，适用于要求一人以上审批报销单后才能进行报销的公司。',

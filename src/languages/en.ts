@@ -5542,6 +5542,11 @@ const translations = {
                 description: 'Create and manage your own rates, track in miles or kilometers, and set default categories for distance expenses.',
                 onlyAvailableOnPlan: 'Distance rates are available on the Collect plan, starting at ',
             },
+            auditor: {
+                title: 'Auditor',
+                description: 'Auditors get read-only access to all reports for full visibility and compliance monitoring.',
+                onlyAvailableOnPlan: 'Auditors are only available on the Control plan, starting at ',
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Multiple approval levels',
                 description: 'Multiple approval levels is a workflow tool for companies that require more than one person to approve a report before it can be reimbursed.',

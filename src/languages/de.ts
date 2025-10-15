@@ -5571,6 +5571,11 @@ const translations = {
                 description: 'Erstellen und verwalten Sie Ihre eigenen Tarife, verfolgen Sie in Meilen oder Kilometern und legen Sie Standardkategorien für Entfernungsausgaben fest.',
                 onlyAvailableOnPlan: 'Entfernungsraten sind im Collect-Plan verfügbar, beginnend bei',
             },
+            auditor: {
+                title: 'Prüfer',
+                description: 'Prüfer erhalten schreibgeschützten Zugriff auf alle Berichte für volle Transparenz und Überwachung der Compliance.',
+                onlyAvailableOnPlan: 'Prüfer sind nur im Control-Plan verfügbar, beginnend bei ',
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Mehrere Genehmigungsstufen',
                 description:
