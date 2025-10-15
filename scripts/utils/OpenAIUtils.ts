@@ -59,7 +59,6 @@ class OpenAIUtils {
                 this.client.chat.completions.create({
                     model,
                     messages,
-                    temperature: 0.3,
                 }),
             {isRetryable: (err) => OpenAIUtils.isRetryableError(err)},
         );
