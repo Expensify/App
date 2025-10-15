@@ -1,5 +1,5 @@
-import type {RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
-import {CommonActions, StackActions} from '@react-navigation/native';
+import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
+import {StackActions} from '@react-navigation/native';
 import type {ParamListBase, Router} from '@react-navigation/routers';
 import SCREENS_WITH_NAVIGATION_TAB_BAR from '@components/Navigation/TopLevelNavigationTabBar/SCREENS_WITH_NAVIGATION_TAB_BAR';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -146,32 +146,13 @@ function handleDismissModalAction(
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
     const lastRoute = state.routes.at(-1);
+    const newAction = StackActions.pop();
 
     if (!lastRoute?.name || !MODAL_ROUTES_TO_DISMISS.includes(lastRoute?.name)) {
         Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
         return null;
     }
 
-    if (lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && lastRoute?.state) {
-        const rhpRoutes = lastRoute?.state?.routes;
-        // This handles closing the modal when wide rhp is visible
-        const wideRhpIndex = rhpRoutes.findLastIndex((rhpRoute) => rhpRoute.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
-        if (wideRhpIndex > -1 && wideRhpIndex !== rhpRoutes.length - 1) {
-            const modifiedRhp = {
-                ...lastRoute,
-                state: {
-                    ...lastRoute.state,
-                    index: wideRhpIndex,
-                    routes: lastRoute.state.routes.slice(0, wideRhpIndex + 1),
-                    history: lastRoute.state.history?.slice(0, wideRhpIndex + 1),
-                },
-            };
-            const modifiedState = {...state, routes: [...state.routes.slice(0, -1), modifiedRhp]};
-            const action = CommonActions.reset(modifiedState);
-            return stackRouter.getStateForAction(state, action, configOptions);
-        }
-    }
-    const newAction = StackActions.pop();
     return stackRouter.getStateForAction(state, newAction, configOptions);
 }
 

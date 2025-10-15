@@ -1,5 +1,4 @@
 import type {RouteProp} from '@react-navigation/native';
-import {StackActions, useNavigation} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {memo, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
@@ -13,7 +12,7 @@ import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import SupportalPermissionDeniedModalProvider from '@components/SupportalPermissionDeniedModalProvider';
-import WideRHPContextProvider from '@components/WideRHPContextProvider';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useAutoUpdateTimezone from '@hooks/useAutoUpdateTimezone';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
@@ -158,6 +157,7 @@ function AuthScreens() {
     const prevIsOnboardingLoading = usePrevious(isOnboardingLoading);
     const {initialURL, isAuthenticatedAtStartup, setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
+    const {shouldRenderSecondaryOverlay, dismissToWideReport} = useContext(WideRHPContext);
 
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
@@ -357,6 +357,11 @@ function AuthScreens() {
                     return;
                 }
 
+                if (shouldRenderSecondaryOverlay) {
+                    dismissToWideReport();
+                    return;
+                }
+
                 Navigation.dismissModal();
             },
             shortcutConfig.descriptionKey,
@@ -365,7 +370,7 @@ function AuthScreens() {
             true,
         );
         return () => unsubscribeEscapeKey();
-    }, [modal?.disableDismissOnEscape, modal?.willAlertModalBecomeVisible]);
+    }, [dismissToWideReport, modal?.disableDismissOnEscape, modal?.willAlertModalBecomeVisible, shouldRenderSecondaryOverlay]);
 
     // Animation is disabled when navigating to the sidebar screen
     const getWorkspaceSplitNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
@@ -479,7 +484,6 @@ function AuthScreens() {
                 LockedAccountModalProvider,
                 DelegateNoAccessModalProvider,
                 SupportalPermissionDeniedModalProvider,
-                WideRHPContextProvider,
             ]}
         >
             <RootStack.Navigator
