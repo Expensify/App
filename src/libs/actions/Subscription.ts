@@ -292,6 +292,16 @@ function requestTaxExempt() {
     API.write(WRITE_COMMANDS.REQUEST_TAX_EXEMPTION, null);
 }
 
+function addReportSubscription(reportId: string, currentIds: string[] = []) {
+    const isNewId = !currentIds.includes(reportId);
+
+    if (!isNewId) {
+        return;
+    }
+
+    Onyx.merge(ONYXKEYS.SUBSCRIBED_REPORT_IDS, [...currentIds, reportId]);
+}
+
 export {
     openSubscriptionPage,
     updateSubscriptionAutoRenew,
@@ -302,4 +312,5 @@ export {
     clearOutstandingBalance,
     cancelBillingSubscription,
     requestTaxExempt,
+    addReportSubscription,
 };

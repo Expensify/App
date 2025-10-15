@@ -53,6 +53,8 @@ export default function () {
             },
             // Ensure the Supportal permission modal doesn't persist across reloads
             [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: null,
+            // Clear subscribed report IDs on app startup
+            [ONYXKEYS.SUBSCRIBED_REPORT_IDS]: [],
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
     });
