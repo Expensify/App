@@ -41,8 +41,9 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
     const lastSelectedExpensifyCardFeedID = lastSelectedExpensifyCardFeed ?? defaultFundID;
 
     const allExpensifyCardFeeds = useExpensifyCardFeeds(policyID);
+    const x = {...allExpensifyCardFeeds, ...allExpensifyCardFeeds, ...allExpensifyCardFeeds};
 
-    const feeds: ExpensifyFeedListItem[] = Object.entries(allExpensifyCardFeeds ?? {}).map(([key, value]) => {
+    const feeds: ExpensifyFeedListItem[] = Object.entries(x ?? {}).map(([key, value]) => {
         const fundID = getFundIdFromSettingsKey(key) ?? CONST.DEFAULT_NUMBER_ID;
         return {
             value: fundID,
@@ -66,6 +67,8 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
         updateSelectedExpensifyCardFeed(feed.value, policyID);
         goBack();
     };
+
+    console.log('DUPA');
 
     return (
         <AccessOrNotFoundWrapper
