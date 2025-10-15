@@ -10,7 +10,7 @@ type DomainsListRowProps = {
     /** Name of the domain */
     title: string;
 
-    /** Whether the row is hovered so we can modify its style */
+    /** Whether the row is hovered, so we can modify its style */
     isHovered: boolean;
 };
 
