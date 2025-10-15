@@ -1471,7 +1471,7 @@ describe('actions/Policy', () => {
             enablePolicyTags({policyID: fakePolicy.id, enabled: true});
             await waitForBatchedUpdates();
 
-            mockFetch?.resume?.();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
             // Then the policy should be reset to original state
