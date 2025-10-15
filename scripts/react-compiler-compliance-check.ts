@@ -85,19 +85,14 @@ function check({filesToCheck, shouldGenerateReport = false, reportFileName = DEF
         results = filterResultsByDiff(results, diffFilteringCommits, {shouldPrintSuccesses});
     }
 
-    const isPassed = results.failures.size === 0;
-    if (isPassed) {
-        logSuccess('All changed files pass React Compiler compliance check!');
-        return true;
-    }
-
     printResults(results, {shouldPrintSuccesses});
 
     if (shouldGenerateReport) {
         generateReport(results, reportFileName);
     }
 
-    return false;
+    const isPassed = results.failures.size === 0;
+    return isPassed;
 }
 
 type CheckChangedFilesOptions = CommonCheckOptions & {
@@ -415,11 +410,10 @@ function filterResultsByDiff(results: CompilerResults, diffFilteringCommits: Dif
 }
 
 function printResults({success, failures}: CompilerResults, {shouldPrintSuccesses}: PrintResultsOptions): void {
-    // const failedFileNames = getDistinctFileNames(Array.from(failures.values()), (f) => f.file, fileToCheck);
-
-    if (success.size > 0) {
-        log();
-        logSuccess(`Successfully compiled ${success.size} files with React Compiler:`);
+    const isPassed = failures.size === 0;
+    if (isPassed) {
+        logSuccess('All changed files pass React Compiler compliance check!');
+        return;
     }
 
     const tab = '    ';
@@ -431,7 +425,7 @@ function printResults({success, failures}: CompilerResults, {shouldPrintSuccesse
 
     if (shouldPrintSuccesses) {
         log();
-        logSuccess('Successfully compiled files:');
+        logSuccess(`Successfully compiled ${success.size} files with React Compiler:`);
         log();
 
         success.forEach((successFile) => {
