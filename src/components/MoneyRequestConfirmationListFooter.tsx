@@ -353,10 +353,9 @@ function MoneyRequestConfirmationListFooter({
     // since the destination is already determined and there's no need to show a selectable list.
     const shouldReportBeEditable = (isFromGlobalCreate ? allOutstandingReports.length > 1 : availableOutstandingReports.length > 1) && !isMoneyRequestReport(reportID, allReports);
 
-    const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const taxRates = policy?.taxRates ?? null;
     // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
-    const shouldShowDate = (shouldShowSmartScanFields || isDistanceRequest) && !isTypeSend;
+    const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
     // Determines whether the tax fields can be modified.
     // The tax fields can only be modified if the component is not in read-only mode
     // and it is not a distance request.

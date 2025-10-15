@@ -759,7 +759,11 @@
         "مثال",
         "moveElemsAttrsToGroup",
         "removeHiddenElems",
-        "moveGroupAttrsToElems"
+        "moveGroupAttrsToElems",
+        "Dtype",
+        "Areport",
+        "mple",
+        "Selec"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
