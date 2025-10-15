@@ -57,7 +57,6 @@ import Alert from '@assets/images/simple-illustrations/simple-illustration__aler
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
-import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';

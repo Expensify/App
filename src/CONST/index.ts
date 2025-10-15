@@ -6989,6 +6989,7 @@ const CONST = {
                 title: 'workspace.upgrade.auditor.title' as const,
                 description: 'workspace.upgrade.auditor.description' as const,
                 icon: 'BlueShield',
+            },
             reports: {
                 id: 'reports' as const,
                 alias: 'reports',
