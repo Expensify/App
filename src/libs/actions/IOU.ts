@@ -8354,16 +8354,15 @@ function getNavigationUrlOnMoneyRequestDelete(transactionID: string | undefined,
  * @returns The URL to navigate to
  */
 function getNavigationUrlAfterTrackExpenseDelete(
-    chatReportID: string | undefined,
+    chatReport: OnyxEntry<OnyxTypes.Report> | undefined,
     transactionID: string | undefined,
     reportAction: OnyxTypes.ReportAction,
     isSingleTransactionView = false,
 ): Route | undefined {
+    const chatReportID = chatReport?.reportID;
     if (!chatReportID || !transactionID) {
         return undefined;
     }
-
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
 
     // If not a self DM, handle it as a regular money request
     if (!isSelfDM(chatReport)) {
@@ -8849,7 +8848,7 @@ function deleteMoneyRequest(
 }
 
 function deleteTrackExpense(
-    chatReportID: string | undefined,
+    chatReport: OnyxEntry<OnyxTypes.Report> | undefined,
     transactionID: string | undefined,
     reportAction: OnyxTypes.ReportAction,
     transactions: OnyxCollection<OnyxTypes.Transaction>,
@@ -8857,14 +8856,14 @@ function deleteTrackExpense(
     isSingleTransactionView = false,
     isChatReportArchived = false,
 ) {
+    const chatReportID = chatReport?.reportID;
     if (!chatReportID || !transactionID) {
         return;
     }
 
-    const urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(chatReportID, transactionID, reportAction, isSingleTransactionView);
+    const urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(chatReport, transactionID, reportAction, isSingleTransactionView);
 
     // STEP 1: Get all collections we're updating
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
     if (!isSelfDM(chatReport)) {
         deleteMoneyRequest(transactionID, reportAction, transactions, violations, isSingleTransactionView);
         return urlToNavigateBack;

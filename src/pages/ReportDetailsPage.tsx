@@ -791,7 +791,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
         if (isTrackExpense) {
             deleteTrackExpense(
-                moneyRequestReport?.reportID,
+                moneyRequestReport,
                 iouTransactionID,
                 requestParentReportAction,
                 duplicateTransactions,
@@ -809,7 +809,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         caseID,
         iouTransactionID,
         isSingleTransactionView,
-        moneyRequestReport?.reportID,
+        moneyRequestReport,
         removeTransaction,
         report,
         requestParentReportAction,
@@ -845,7 +845,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         if (!isEmptyObject(requestParentReportAction)) {
             const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
             if (isTrackExpense) {
-                urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(moneyRequestReport?.reportID, iouTransactionID, requestParentReportAction, isSingleTransactionView);
+                urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(moneyRequestReport, iouTransactionID, requestParentReportAction, isSingleTransactionView);
             } else {
                 urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(iouTransactionID, requestParentReportAction, isSingleTransactionView);
             }
@@ -857,7 +857,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
             navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
         }
-    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport?.reportID]);
+    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 

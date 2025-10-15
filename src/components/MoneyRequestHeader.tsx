@@ -448,15 +448,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         throw new Error('Data missing');
                     }
                     if (isTrackExpenseAction(parentReportAction)) {
-                        deleteTrackExpense(
-                            report?.parentReportID,
-                            transaction.transactionID,
-                            parentReportAction,
-                            duplicateTransactions,
-                            duplicateTransactionViolations,
-                            true,
-                            isParentReportArchived,
-                        );
+                        deleteTrackExpense(parentReport, transaction.transactionID, parentReportAction, duplicateTransactions, duplicateTransactionViolations, true, isParentReportArchived);
                     } else {
                         deleteMoneyRequest(transaction.transactionID, parentReportAction, duplicateTransactions, duplicateTransactionViolations, true);
                         removeTransaction(transaction.transactionID);
