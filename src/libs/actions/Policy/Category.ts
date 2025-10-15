@@ -1142,7 +1142,8 @@ function enablePolicyCategories(
 
     const parameters: EnablePolicyCategoriesParams = {policyID, enabled};
 
-    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, parameters, onyxData);
+    // We can't use writeWithNoDuplicatesEnableFeatureConflicts because the categories data is also changed when disabling/enabling this feature
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout() && shouldGoBack) {
         goBackWhenEnableFeature(policyID);
