@@ -133,7 +133,6 @@ function AddPlaidBankAccount({
         subscribedKeyboardShortcuts.current = [];
     };
 
-    // dummy comment
     useEffect(() => {
         subscribeToNavigationShortcuts();
 
