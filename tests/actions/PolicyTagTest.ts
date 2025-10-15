@@ -1524,7 +1524,7 @@ describe('actions/Policy', () => {
             const tagListName = 'Test Tag List';
             const fakePolicyTags = createRandomPolicyTags(tagListName, 1);
             const tagName = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {}).at(0) ?? '';
-            const newGLCode = 'NEW_GL_CODE_FROM_USEONYX';
+            const newGLCode = 'NEW_GL_CODE_123';
 
             fakePolicyTags[tagListName].tags[tagName] = {
                 ...fakePolicyTags[tagListName].tags[tagName],
