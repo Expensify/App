@@ -8,7 +8,8 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {FieldList, hasCircularReferences} from '@libs/Formula';
+import {hasCircularReferences} from '@libs/Formula';
+import type {FieldList} from '@libs/Formula';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
