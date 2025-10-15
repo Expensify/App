@@ -31,7 +31,6 @@ import {
     hasMissingSmartscanFields,
     hasNoticeTypeViolation,
     hasPendingRTERViolation,
-    hasReceipt,
     hasViolation,
     hasWarningTypeViolation,
     isCardTransaction,
