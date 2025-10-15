@@ -4613,6 +4613,28 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: currentTransactionViolations,
         });
+
+        const duplicateViolation = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]?.find(
+            (violation: OnyxTypes.TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+        );
+        if (hasModifiedAmount && !!transaction?.transactionID) {
+            const duplicateTransactionIDs = duplicateViolation?.data?.duplicates;
+            duplicateTransactionIDs?.push(transaction?.transactionID);
+            const currentTransactionViolationsData = duplicateTransactionIDs?.map((id) => ({transactionID: id, violations: allTransactionViolations?.[id] ?? []}));
+            const optimisticDataTransactionViolations: OnyxUpdate[] | undefined = currentTransactionViolationsData?.map((transactionViolations) => ({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
+                value: transactionViolations.violations?.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+            }));
+            optimisticData.push(...(optimisticDataTransactionViolations ?? []));
+            const failureDataTransactionViolations: OnyxUpdate[] = (currentTransactionViolationsData ?? []).map((transactionViolations) => ({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
+                value: allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [],
+            }));
+            failureData.push(...failureDataTransactionViolations);
+        }
+
         if (hash) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
