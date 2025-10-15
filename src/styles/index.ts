@@ -5212,7 +5212,7 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             flexWrap: 'wrap',
             marginLeft: 'auto',
-            marginRight: 'auto'
+            marginRight: 'auto',
         },
 
         // We have to use 10000 here as sidePanel has to be displayed on top of modals which have z-index of 9999

@@ -4,7 +4,7 @@ import useLetterAvatars from '@hooks/useLetterAvatars';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {CUSTOM_AVATAR_CATALOG} from '@libs/Avatars/CustomAvatarCatalog';
+// import {CUSTOM_AVATAR_CATALOG} from '@libs/Avatars/CustomAvatarCatalog';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import Avatar from './Avatar';
