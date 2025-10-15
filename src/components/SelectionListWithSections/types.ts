@@ -910,6 +910,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Custom scroll component to use instead of the default ScrollView */
     renderScrollComponent?: (props: ScrollViewProps) => ReactElement<ScrollViewProps, string | JSXElementConstructor<unknown>>;
+
+    /** Styles to apply to the list footer component */
+    ListFooterComponentStyle?: StyleProp<ViewStyle>;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
