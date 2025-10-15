@@ -20,12 +20,6 @@ import {getCurrentUserAccountID} from './Report';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
 
-let stashedCredentials: Credentials = {};
-Onyx.connect({
-    key: ONYXKEYS.STASHED_CREDENTIALS,
-    callback: (value) => (stashedCredentials = value ?? {}),
-});
-
 let session: Session = {};
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -94,6 +88,12 @@ type WithFieldName = {
 type WithOldDotFlag = {
     isFromOldDot?: boolean;
 };
+
+type WithStashedCredentials = {
+    stashedCredentials: Credentials | undefined;
+};
+
+type DisconnectParams = WithStashedCredentials;
 
 // Clear delegator-level errors
 type ClearDelegatorErrorsParams = WithDelegatedAccess;
@@ -227,7 +227,7 @@ function connect({email, delegatedAccess, credentials, isFromOldDot = false}: Co
         });
 }
 
-function disconnect() {
+function disconnect({stashedCredentials}: DisconnectParams) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
