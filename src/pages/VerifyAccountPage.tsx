@@ -6,8 +6,8 @@ import type {Route} from '@src/ROUTES';
 import VerifyAccountPageBase from './settings/VerifyAccountPageBase';
 
 function VerifyAccountPage() {
-    const state = useNavigationState((focusedRoute) => findFocusedRoute(focusedRoute));
-    const path = state?.path ?? '';
+    const focusedRoute = useNavigationState((state) => findFocusedRoute(state));
+    const path = focusedRoute?.path ?? '';
 
     const backTo = path ? (path.replace(`/${VERIFY_ACCOUNT}`, '') as Route) : ROUTES.HOME;
     const forwardTo = getForwardToFromPath(path ?? '');
