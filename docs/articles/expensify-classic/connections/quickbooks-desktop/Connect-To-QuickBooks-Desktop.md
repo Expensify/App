@@ -71,7 +71,7 @@ Expensify supports the latest three versions of QuickBooks Desktop (US and Canad
   - Professional Services
   - Nonprofit
 
-## Where Should QuickBooks Desktop and the Web Connector Be Installed with a terminal server?
+## Where should QuickBooks Desktop and the Web Connector be installed with a Terminal Server?
 
 If you're using QuickBooks Desktop in a file server and client setup, it's important to install both QuickBooks Desktop and the **QuickBooks Web Connector** on the same computer where QuickBooks Desktop is actively being used.
 
