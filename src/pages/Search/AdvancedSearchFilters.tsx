@@ -9,7 +9,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
-import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterKey, SearchGroupBy} from '@components/Search/types';
+import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchDatePreset, SearchFilterKey, SearchGroupBy} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
@@ -371,8 +371,6 @@ function getFilterDisplayTitle(
 
     key = filterKey as Exclude<SearchFilterKey, SearchDateFilterKeys | SearchAmountFilterKeys>;
 
-    // JACK_TODO: Update this based on the result of this conversation:
-    // https://new.expensify.com//r/3594838085067419/5438745387543660410
     if (key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
         const values: string[] = [];
 
@@ -395,7 +393,9 @@ function getFilterDisplayTitle(
                 .join(' ');
 
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.ON_PREFIX)) {
-                const dateString = translate('search.filters.date.on', {date: fieldValue as string}).toLowerCase();
+                const dateString = isSearchDatePreset(fieldValue as string)
+                    ? translate(`search.filters.date.presets.${fieldValue as SearchDatePreset}`)
+                    : translate('search.filters.date.on', {date: fieldValue as string});
                 values.push(`${fieldName} ${dateString}`);
             }
 
