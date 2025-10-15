@@ -370,10 +370,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, [
         policy,
         bankAccountList,
+        currentUserLogin,
         styles,
         translate,
         onPressAutoReportingFrequency,
         isSmartLimitEnabled,
+        filteredApprovalWorkflows,
         addApprovalAction,
         isOffline,
         isPolicyAdmin,
@@ -385,7 +387,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         hasValidExistingAccounts,
         shouldShowContinueModal,
         showLockedAccountModal,
-        filteredApprovalWorkflows,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (

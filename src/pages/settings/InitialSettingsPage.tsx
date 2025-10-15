@@ -225,7 +225,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         walletBrickRoadIndicator,
         hasActivatedWallet,
         userWallet?.currentBalance,
-        hasBankAccountInSetupState,
+        bankAccountList,
         styles.badgeSuccess,
         styles.accountSettingsSectionContainer,
         subscriptionPlan,
