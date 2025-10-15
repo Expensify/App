@@ -1,6 +1,7 @@
 import type {ReactElement, ReactNode} from 'react';
 import type {AccessibilityState, NativeSyntheticEvent, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
@@ -269,6 +270,8 @@ type TravelDomainListItemProps<TItem extends ListItem> = BaseListItemProps<
     }
 >;
 
+type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & ForwardedFSClassProps;
+
 export type {
     BaseListItemProps,
     ExtendedTargetedEvent,
@@ -280,4 +283,5 @@ export type {
     SingleSelectListItemProps,
     MultiSelectListItemProps,
     TravelDomainListItemProps,
+    UserListItemProps,
 };
