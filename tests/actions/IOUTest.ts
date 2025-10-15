@@ -11,6 +11,7 @@ import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransact
 import type {PerDiemExpenseTransactionParams, RequestMoneyParticipantParams} from '@libs/actions/IOU';
 import {
     addSplitExpenseField,
+    approveMoneyRequest,
     calculateDiffAmount,
     canApproveIOU,
     canCancelPayment,
@@ -105,6 +106,7 @@ import PusherHelper from '../utils/PusherHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import {getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 const topMostReportID = '23423423';
@@ -2707,7 +2709,7 @@ describe('actions/IOU', () => {
                     originalTransactionID: transaction.transactionID,
                 },
             };
-            saveSplitTransactions(draftTransaction, 1, undefined, undefined);
+            saveSplitTransactions(draftTransaction, 1, undefined, undefined, []);
 
             await waitForBatchedUpdates();
 
@@ -2766,7 +2768,7 @@ describe('actions/IOU', () => {
 
             // When splitting the expense
             const hash = 1;
-            saveSplitTransactions(draftTransaction, hash, undefined, undefined);
+            saveSplitTransactions(draftTransaction, hash, undefined, undefined, []);
 
             await waitForBatchedUpdates();
 
@@ -2840,7 +2842,7 @@ describe('actions/IOU', () => {
 
             // When splitting the expense
             const hash = 1;
-            saveSplitTransactions(draftTransaction, hash, undefined, undefined);
+            saveSplitTransactions(draftTransaction, hash, undefined, undefined, []);
 
             await waitForBatchedUpdates();
 
@@ -3995,7 +3997,7 @@ describe('actions/IOU', () => {
                     taxCode: '',
                     policy: {
                         id: '123',
-                        role: 'user',
+                        role: CONST.POLICY.ROLE.USER,
                         type: CONST.POLICY.TYPE.TEAM,
                         name: '',
                         owner: '',
@@ -4821,7 +4823,15 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (policy) {
-                        deleteWorkspace(policy.id, policy.name, undefined, undefined);
+                        const reportToArchive = [];
+                        if (expenseReport) {
+                            reportToArchive.push(expenseReport);
+                        }
+                        if (chatReport) {
+                            reportToArchive.push(chatReport);
+                        }
+                        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                        deleteWorkspace(policy.id, policy.name, undefined, undefined, reportToArchive, undefined, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -5557,7 +5567,7 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {reportID: transactionThreadReportID});
 
             // When updating a money request category
-            updateMoneyRequestCategory(transactionID, transactionThreadReportID, category, fakePolicy, undefined, undefined);
+            updateMoneyRequestCategory(transactionID, transactionThreadReportID, category, fakePolicy, undefined, undefined, []);
 
             await waitForBatchedUpdates();
 
@@ -5622,7 +5632,7 @@ describe('actions/IOU', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When updating a money request category
-                updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined);
+                updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined, []);
 
                 await waitForBatchedUpdates();
 
@@ -5654,7 +5664,7 @@ describe('actions/IOU', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When updating the money request category
-                updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined);
+                updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined, []);
 
                 await waitForBatchedUpdates();
 
@@ -5932,7 +5942,7 @@ describe('actions/IOU', () => {
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
             // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
             expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return false if we have only scan failure transactions', async () => {
@@ -5988,7 +5998,7 @@ describe('actions/IOU', () => {
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
             // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
             expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return false if all transactions are pending card or scan failure transaction', async () => {
@@ -6035,7 +6045,7 @@ describe('actions/IOU', () => {
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
             // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
             expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return true if at least one transactions is not pending card or scan failure transaction', async () => {
@@ -6087,7 +6097,7 @@ describe('actions/IOU', () => {
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeTruthy();
             // Then should return true when passing transactions directly as the third parameter instead of relying on Onyx data
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
             expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeTruthy();
         });
 
@@ -6302,7 +6312,6 @@ describe('actions/IOU', () => {
             transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
             isFromGlobalCreate: true,
             merchant: '(none)',
-            splitPayerAccountIDs: [3],
         };
 
         const currentDate = '2025-04-01';
@@ -6405,7 +6414,7 @@ describe('actions/IOU', () => {
                 taxCode: '',
                 policy: {
                     id: '123',
-                    role: 'user',
+                    role: CONST.POLICY.ROLE.USER,
                     type: CONST.POLICY.TYPE.TEAM,
                     name: '',
                     owner: '',
@@ -6465,7 +6474,7 @@ describe('actions/IOU', () => {
                 taxCode: '',
                 policy: {
                     id: '123',
-                    role: 'user',
+                    role: CONST.POLICY.ROLE.USER,
                     type: CONST.POLICY.TYPE.TEAM,
                     name: '',
                     owner: '',
@@ -7196,7 +7205,7 @@ describe('actions/IOU', () => {
                     },
                 };
 
-                saveSplitTransactions(draftTransaction, -2, undefined, undefined);
+                saveSplitTransactions(draftTransaction, -2, undefined, undefined, []);
                 await waitForBatchedUpdates();
 
                 const split1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}235`);
@@ -7296,7 +7305,7 @@ describe('actions/IOU', () => {
                     },
                 };
 
-                saveSplitTransactions(draftTransaction, -2, undefined, undefined);
+                saveSplitTransactions(draftTransaction, -2, undefined, undefined, []);
                 await waitForBatchedUpdates();
 
                 const split1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}235`);
@@ -8725,6 +8734,294 @@ describe('actions/IOU', () => {
                     }),
                 ]),
             );
+        });
+    });
+
+    describe('approveMoneyRequest with take control', () => {
+        const adminAccountID = 1;
+        const managerAccountID = 2;
+        const employeeAccountID = 3;
+        const adminEmail = 'admin@test.com';
+        const managerEmail = 'manager@test.com';
+        const employeeEmail = 'employee@test.com';
+
+        let expenseReport: Report;
+        let policy: Policy;
+
+        beforeEach(async () => {
+            await Onyx.clear();
+
+            // Set up personal details
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [adminAccountID]: {
+                    accountID: adminAccountID,
+                    login: adminEmail,
+                    displayName: 'Admin User',
+                },
+                [managerAccountID]: {
+                    accountID: managerAccountID,
+                    login: managerEmail,
+                    displayName: 'Manager User',
+                },
+                [employeeAccountID]: {
+                    accountID: employeeAccountID,
+                    login: employeeEmail,
+                    displayName: 'Employee User',
+                },
+            });
+
+            // Set up session as admin (who will approve)
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: adminEmail,
+                accountID: adminAccountID,
+            });
+
+            // Create policy with approval hierarchy
+            policy = {
+                id: '1',
+                name: 'Test Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: adminEmail,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [employeeEmail]: {
+                        email: employeeEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: managerEmail,
+                    },
+                    [managerEmail]: {
+                        email: managerEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: adminEmail,
+                        forwardsTo: adminEmail,
+                    },
+                    [adminEmail]: {
+                        email: adminEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: '',
+                        forwardsTo: '',
+                    },
+                },
+            };
+
+            // Create expense report
+            expenseReport = {
+                reportID: '123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: employeeAccountID,
+                managerID: managerAccountID,
+                policyID: policy.id,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                total: 1000,
+                currency: 'USD',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+        });
+
+        it('should set report to approved when admin takes control and approves', async () => {
+            // Admin takes control
+            const takeControlAction = {
+                reportActionID: 'takeControl1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                actorAccountID: adminAccountID,
+                created: '2023-01-01T10:00:00.000Z',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [takeControlAction.reportActionID]: takeControlAction,
+            });
+
+            // Admin approves the report
+            approveMoneyRequest(expenseReport);
+            await waitForBatchedUpdates();
+
+            // Should be approved since admin took control and is the last approver
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+        });
+
+        it('should invalidate take control when report is resubmitted after take control', async () => {
+            // Admin takes control first
+            const takeControlAction = {
+                reportActionID: 'takeControl3',
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                actorAccountID: adminAccountID,
+                created: '2023-01-01T10:00:00.000Z',
+            };
+
+            // Employee resubmits after take control (invalidates it)
+            const submittedAction = {
+                reportActionID: 'submitted1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                actorAccountID: employeeAccountID,
+                created: '2023-01-01T11:00:00.000Z', // After take control
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [takeControlAction.reportActionID]: takeControlAction,
+                [submittedAction.reportActionID]: submittedAction,
+            });
+
+            // Set session as manager (normal approver)
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: managerEmail,
+                accountID: managerAccountID,
+            });
+
+            // Manager approves the report
+            approveMoneyRequest(expenseReport);
+            await waitForBatchedUpdates();
+
+            // Should be submitted to admin (normal flow) since take control was invalidated
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+        });
+    });
+
+    describe('approveMoneyRequest with normal approval chain', () => {
+        const adminAccountID = 1;
+        const managerAccountID = 2;
+        const employeeAccountID = 3;
+        const adminEmail = 'admin@test.com';
+        const managerEmail = 'manager@test.com';
+        const employeeEmail = 'employee@test.com';
+
+        let expenseReport: Report;
+        let policy: Policy;
+
+        beforeEach(async () => {
+            await Onyx.clear();
+
+            // Set up personal details
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [adminAccountID]: {
+                    accountID: adminAccountID,
+                    login: adminEmail,
+                    displayName: 'Admin User',
+                },
+                [managerAccountID]: {
+                    accountID: managerAccountID,
+                    login: managerEmail,
+                    displayName: 'Manager User',
+                },
+                [employeeAccountID]: {
+                    accountID: employeeAccountID,
+                    login: employeeEmail,
+                    displayName: 'Employee User',
+                },
+            });
+
+            // Create policy with approval hierarchy
+            policy = {
+                id: '1',
+                name: 'Test Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: adminEmail,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [employeeEmail]: {
+                        email: employeeEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: managerEmail,
+                    },
+                    [managerEmail]: {
+                        email: managerEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: adminEmail,
+                        forwardsTo: adminEmail,
+                    },
+                    [adminEmail]: {
+                        email: adminEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: '',
+                        forwardsTo: '',
+                    },
+                },
+            };
+
+            // Create expense report
+            expenseReport = {
+                reportID: '123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: employeeAccountID,
+                managerID: managerAccountID,
+                policyID: policy.id,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                total: 1000,
+                currency: 'USD',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+        });
+
+        it('should follow normal approval chain when manager approves without take control', async () => {
+            // Set session as manager (first approver in the chain)
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: managerEmail,
+                accountID: managerAccountID,
+            });
+
+            // Manager approves the report (no take control actions)
+            approveMoneyRequest(expenseReport);
+            await waitForBatchedUpdates();
+
+            // Should be submitted to admin (next in approval chain) since manager is not the final approver
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+            expect(updatedReport?.managerID).toBe(adminAccountID); // Should be forwarded to admin
+        });
+
+        it('should handle multi-step approval chain correctly', async () => {
+            // First, manager approves
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: managerEmail,
+                accountID: managerAccountID,
+            });
+
+            approveMoneyRequest(expenseReport);
+            await waitForBatchedUpdates();
+
+            // Should be submitted to admin
+            let updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+            expect(updatedReport?.managerID).toBe(adminAccountID);
+
+            // Then, admin approves
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: adminEmail,
+                accountID: adminAccountID,
+            });
+
+            approveMoneyRequest(updatedReport);
+            await waitForBatchedUpdates();
+
+            // Should be fully approved
+            updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
         });
     });
 });

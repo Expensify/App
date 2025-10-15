@@ -2,8 +2,9 @@ import React, {useContext, useMemo} from 'react';
 import SCREENS from '@src/SCREENS';
 import AttachmentModalContext from './AttachmentModalContext';
 import ProfileAvatarModalContent from './routes/ProfileAvatarModalContent';
+import ReportAddAttachmentModalContent from './routes/report/ReportAddAttachmentModalContent';
+import ReportAvatarModalContent from './routes/report/ReportAvatarModalContent';
 import ReportAttachmentModalContent from './routes/ReportAttachmentModalContent';
-import ReportAvatarModalContent from './routes/ReportAvatarModalContent';
 import TransactionReceiptModalContent from './routes/TransactionReceiptModalContent';
 import WorkspaceAvatarModalContent from './routes/WorkspaceAvatarModalContent';
 import type {AttachmentModalScreenProps, AttachmentModalScreenType} from './types';
@@ -31,6 +32,15 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
             <ReportAttachmentModalContent
                 route={routeWithContext as RouteType<typeof SCREENS.ATTACHMENTS>}
                 navigation={navigation as NavigationType<typeof SCREENS.ATTACHMENTS>}
+            />
+        );
+    }
+
+    if (route.name === SCREENS.REPORT_ADD_ATTACHMENT) {
+        return (
+            <ReportAddAttachmentModalContent
+                route={routeWithContext as RouteType<typeof SCREENS.REPORT_ADD_ATTACHMENT>}
+                navigation={navigation as NavigationType<typeof SCREENS.REPORT_ADD_ATTACHMENT>}
             />
         );
     }
