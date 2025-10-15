@@ -140,7 +140,17 @@ function IOURequestEditReportCommon({
                 }
                 return true;
             })
-            .filter((report) => canAddTransaction(report))
+            .filter((report) => {
+                if (canAddTransaction(report)) {
+                    return true;
+                }
+
+                const policy = report.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
+                const isReportPolicyAdmin = isPolicyAdmin(policy);
+                const isReportManager = report.managerID === currentUserPersonalDetails.accountID;
+
+                return isReportPolicyAdmin || isReportManager;
+            })
             .map((report) => {
                 const matchingOption = options.reports.find((option) => option.reportID === report.reportID);
                 return {
@@ -154,7 +164,17 @@ function IOURequestEditReportCommon({
                     policyID: matchingOption?.policyID ?? report.policyID,
                 };
             });
-    }, [outstandingReportsByPolicyID, debouncedSearchValue, expenseReports, selectedReportID, options.reports, localeCompare, allPolicies, isPerDiemRequest]);
+    }, [
+        outstandingReportsByPolicyID,
+        debouncedSearchValue,
+        expenseReports,
+        selectedReportID,
+        options.reports,
+        localeCompare,
+        allPolicies,
+        isPerDiemRequest,
+        currentUserPersonalDetails.accountID,
+    ]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -163,7 +183,7 @@ function IOURequestEditReportCommon({
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions, translate]);
 
     const createReportOption = useMemo(() => {
-        if (!createReport) {
+        if (!createReport || (isEditing && !isOwner)) {
             return undefined;
         }
 
@@ -175,11 +195,11 @@ function IOURequestEditReportCommon({
                 icon={Expensicons.Document}
             />
         );
-    }, [createReport, translate, policyForMovingExpenses?.name]);
+    }, [createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
-        if (createReport) {
+        if (createReportOption) {
             return false;
         }
 
@@ -196,7 +216,7 @@ function IOURequestEditReportCommon({
         const isSubmitter = isReportOwner(selectedReport);
         // If the report is Open, then only submitters, admins can move expenses
         return isOpen && !isAdmin && !isSubmitter;
-    }, [createReport, expenseReports.length, shouldShowNotFoundPageFromProps, selectedReport, reportPolicy]);
+    }, [createReportOption, expenseReports.length, shouldShowNotFoundPageFromProps, selectedReport, reportPolicy]);
 
     return (
         <StepScreenWrapper
