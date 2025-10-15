@@ -1997,7 +1997,6 @@ function willFieldBeAutomaticallyFilled(transaction: OnyxEntry<Transaction>, fie
     return autoFillableFields.includes(fieldType);
 }
 
-// Temporarily only for use in the Unreported Expense project
 function isExpenseUnreported(transaction?: Transaction): transaction is UnreportedTransaction {
     return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 }
