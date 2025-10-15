@@ -325,11 +325,7 @@ class Git {
             const mainBaseRef = remote ? `${remote}/main` : 'origin/main';
 
             try {
-                const {stdout: revParseOutput} = await exec(`git rev-parse ${mainBaseRef}`, {
-                    encoding: 'utf8',
-                    cwd: process.cwd(),
-                });
-                const mergeBaseHash = revParseOutput.trim();
+                const mergeBaseHash = execSync(`git rev-parse ${mainBaseRef}`, {encoding: 'utf8'}).trim();
 
                 // Validate the output is a proper SHA hash
                 if (!mergeBaseHash || !/^[a-fA-F0-9]{40}$/.test(mergeBaseHash)) {
@@ -348,21 +344,13 @@ class Git {
         // For local development, try to find the actual merge base
         let mergeBaseHash: string;
         try {
-            const {stdout: mergeBaseOutput} = await exec(`git merge-base ${mainBaseRef} HEAD`, {
-                encoding: 'utf8',
-                cwd: process.cwd(),
-            });
-            mergeBaseHash = mergeBaseOutput.trim();
+            mergeBaseHash = execSync(`git merge-base ${mainBaseRef} HEAD`, {encoding: 'utf8'}).trim();
         } catch {
             logWarn(`Warning: Could not find merge base between ${mainBaseRef} and HEAD.`);
 
             // If merge-base fails locally, fall back to using the remote main branch
             try {
-                const {stdout: revParseOutput} = await exec(`git rev-parse ${mainBaseRef}`, {
-                    encoding: 'utf8',
-                    cwd: process.cwd(),
-                });
-                mergeBaseHash = revParseOutput.trim();
+                mergeBaseHash = execSync(`git rev-parse ${mainBaseRef}`, {encoding: 'utf8'}).trim();
             } catch (fallbackError) {
                 logError(`Failed to find merge base with ${mainBaseRef}:`, fallbackError);
                 throw new Error(`Could not determine merge base with ${mainBaseRef}`);
@@ -382,13 +370,12 @@ class Git {
      *
      * @returns true if there are uncommitted changes, false otherwise
      */
-    static async hasUncommittedChanges(): Promise<boolean> {
+    static hasUncommittedChanges(): boolean {
         try {
-            const {stdout} = await exec('git status --porcelain', {
+            const status = execSync('git status --porcelain', {
                 encoding: 'utf8',
                 cwd: process.cwd(),
-            });
-            const status = stdout.trim();
+            }).trim();
             return status.length > 0;
         } catch (error) {
             return false;
