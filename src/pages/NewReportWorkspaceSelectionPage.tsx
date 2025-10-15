@@ -27,6 +27,7 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isRHPOnSearchMoneyRequestReportPage from '@navigation/helpers/isRHPOnSearchMoneyRequestReportPage';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {changeTransactionsReport} from '@userActions/Transaction';
+import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,9 +43,9 @@ type WorkspaceListItem = {
 type NewReportWorkspaceSelectionPageProps = PlatformStackScreenProps<NewReportWorkspaceSelectionNavigatorParamList, typeof SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT>;
 
 function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPageProps) {
-    const {isMovingExpenses} = route.params ?? {};
+    const {isMovingExpenses, backTo} = route.params ?? {};
     const {isOffline} = useNetwork();
-    const {selectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactions, selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
@@ -55,6 +56,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -87,10 +89,11 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             }
             const optimisticReportID = createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policyID);
             const selectedTransactionsKeys = Object.keys(selectedTransactions);
-            if (isMovingExpenses && !!selectedTransactionsKeys.length) {
+
+            if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
                 const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReportID}`];
                 changeTransactionsReport(
-                    selectedTransactionsKeys,
+                    selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs,
                     optimisticReportID,
                     isASAPSubmitBetaEnabled,
                     currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -98,23 +101,35 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
                     reportNextStep,
                 );
-                clearSelectedTransactions();
+
+                // eslint-disable-next-line rulesdir/no-default-id-values
+                setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, policyID, activePolicyID ?? '');
+
+                if (selectedTransactionIDs.length) {
+                    clearSelectedTransactions(true);
+                }
+                if (selectedTransactionsKeys.length) {
+                    clearSelectedTransactions();
+                }
                 Navigation.dismissModal();
-                Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+                Navigation.goBack(backTo ?? ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
                 return;
             }
             navigateToNewReport(optimisticReportID);
         },
         [
-            allReportNextSteps,
-            clearSelectedTransactions,
+            activePolicyID,
             currentUserPersonalDetails,
             isASAPSubmitBetaEnabled,
-            isMovingExpenses,
-            navigateToNewReport,
-            policies,
-            selectedTransactions,
             hasViolations,
+            selectedTransactions,
+            isMovingExpenses,
+            selectedTransactionIDs,
+            navigateToNewReport,
+            allReportNextSteps,
+            policies,
+            clearSelectedTransactions,
+            backTo,
         ],
     );
 

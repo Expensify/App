@@ -87,7 +87,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             listeners={{
                                 beforeRemove: () => {
                                     // eslint-disable-next-line deprecation/deprecation
-                                    InteractionManager.runAfterInteractions(clearTwoFactorAuthData);
+                                    InteractionManager.runAfterInteractions(() => clearTwoFactorAuthData(true));
                                 },
                             }}
                         />

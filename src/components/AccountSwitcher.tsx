@@ -48,6 +48,8 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+    const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
 
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
@@ -140,7 +142,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             close(() => setShouldShowOfflineModal(true));
                             return;
                         }
-                        disconnect();
+                        disconnect({stashedCredentials});
                     },
                 }),
                 currentUserMenuItem,
@@ -160,7 +162,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             close(() => setShouldShowOfflineModal(true));
                             return;
                         }
-                        connect({email, delegatedAccess: account?.delegatedAccess, credentials});
+                        connect({email, delegatedAccess: account?.delegatedAccess, credentials, session});
                     },
                 });
             });

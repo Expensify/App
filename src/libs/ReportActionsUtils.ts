@@ -34,7 +34,6 @@ import {getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByI
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {isOnHoldByTransactionID} from './TransactionUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
 
 type LastVisibleMessage = {
@@ -149,7 +148,7 @@ function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean 
 }
 
 function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): boolean {
-    if (isInviteOrRemovedAction(reportAction) || isActionableMentionWhisper(reportAction)) {
+    if (isInviteOrRemovedAction(reportAction) || isActionableMentionWhisper(reportAction) || isActionableCardFraudAlert(reportAction)) {
         return false;
     }
 
@@ -613,11 +612,19 @@ function extractLinksFromMessageHtml(reportAction: OnyxEntry<ReportAction>): str
  */
 function findPreviousAction(reportActions: ReportAction[], actionIndex: number): OnyxEntry<ReportAction> {
     for (let i = actionIndex + 1; i < reportActions.length; i++) {
+        const action = reportActions.at(i);
+
         // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
         // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
-        if (isNetworkOffline || reportActions.at(i)?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return reportActions.at(i);
+        if (!isNetworkOffline && action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
         }
+
+        if (action?.shouldShow === false) {
+            continue;
+        }
+
+        return action;
     }
 
     return undefined;
@@ -630,11 +637,19 @@ function findPreviousAction(reportActions: ReportAction[], actionIndex: number):
  */
 function findNextAction(reportActions: ReportAction[], actionIndex: number): OnyxEntry<ReportAction> {
     for (let i = actionIndex - 1; i >= 0; i--) {
+        const action = reportActions.at(i);
+
         // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
         // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
-        if (isNetworkOffline || reportActions.at(i)?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return reportActions.at(i);
+        if (!isNetworkOffline && action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
         }
+
+        if (action?.shouldShow === false) {
+            continue;
+        }
+
+        return action;
     }
 
     return undefined;
@@ -864,6 +879,13 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
+    if (isMovedTransactionAction(reportAction)) {
+        const movedTransactionOriginalMessage = getOriginalMessage(reportAction);
+        const toReportID = movedTransactionOriginalMessage?.toReportID;
+        const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
+        return !!toReport;
+    }
+
     // Ignore closed action here since we're already displaying a footer that explains why the report was closed
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && !isMarkAsClosedAction(reportAction)) {
         return false;
@@ -878,7 +900,10 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     }
 
     if (
-        (isActionableReportMentionWhisper(reportAction) || isActionableJoinRequestPendingReportAction(reportAction) || isActionableMentionWhisper(reportAction)) &&
+        (isActionableReportMentionWhisper(reportAction) ||
+            isActionableJoinRequestPendingReportAction(reportAction) ||
+            isActionableMentionWhisper(reportAction) ||
+            isActionableCardFraudAlert(reportAction)) &&
         !canUserPerformWriteAction
     ) {
         return false;
@@ -1129,8 +1154,7 @@ function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): NonNu
 /**
  * Find the transaction associated with this reportAction, if one exists.
  */
-function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportAction> | undefined, reportID?: string): string | undefined {
-    const reportAction = typeof reportActionOrID === 'string' ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionOrID] : reportActionOrID;
+function getLinkedTransactionID(reportAction: OnyxEntry<ReportAction> | undefined): string | undefined {
     if (!reportAction || !isMoneyRequestAction(reportAction)) {
         return undefined;
     }
@@ -1984,14 +2008,6 @@ function getDismissedViolationMessageText(originalMessage: ReportAction<typeof C
     return translateLocal(`violationDismissal.${violationName}.${reason}` as TranslationPaths);
 }
 
-/**
- * Check if the linked transaction is on hold
- */
-function isLinkedTransactionHeld(reportActionID: string | undefined, reportID: string | undefined): boolean {
-    const linkedTransactionID = getLinkedTransactionID(reportActionID, reportID);
-    return linkedTransactionID ? isOnHoldByTransactionID(linkedTransactionID) : false;
-}
-
 function getMentionedAccountIDsFromAction(reportAction: OnyxInputOrEntry<ReportAction>) {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) ? (getOriginalMessage(reportAction)?.mentionedAccountIDs ?? []) : [];
 }
@@ -2056,6 +2072,12 @@ function getTrackExpenseActionableWhisper(transactionID: string | undefined, cha
  */
 function isActionableAddPaymentCard(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD> {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD;
+}
+/**
+ * Checks if a given report action corresponds to a actionable card fraud alert action.
+ */
+function isActionableCardFraudAlert(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT> {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT;
 }
 
 function getExportIntegrationLastMessageText(reportAction: OnyxEntry<ReportAction>): string {
@@ -2201,7 +2223,7 @@ function getPolicyChangeLogUpdateEmployee(reportAction: OnyxInputOrEntry<ReportA
     }
 
     const originalMessage = getOriginalMessage(reportAction);
-    const email = originalMessage?.email ?? '';
+    const email = formatPhoneNumber(originalMessage?.email ?? '');
     const field = originalMessage?.field;
     const customFieldType = Object.values(CONST.CUSTOM_FIELD_KEYS).find((value) => value === field);
     if (customFieldType) {
@@ -2736,7 +2758,7 @@ function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<Re
         return '';
     }
     const originalMessage = getOriginalMessage(reportAction);
-    const email = originalMessage?.email ?? '';
+    const email = formatPhoneNumber(originalMessage?.email ?? '');
     const role = translateLocal('workspace.common.roleName', {role: originalMessage?.role ?? ''}).toLowerCase();
     return translateLocal('report.actions.type.removeMember', {email, role});
 }
@@ -2801,6 +2823,14 @@ function getDeletedApprovalRuleMessage(reportAction: OnyxEntry<ReportAction>) {
     return getReportActionText(reportAction);
 }
 
+function getActionableCardFraudAlertResolutionMessage(reportAction: OnyxEntry<ReportAction>) {
+    const {maskedCardNumber, resolution} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT>) ?? {};
+    if (resolution === CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED) {
+        return translateLocal('cardPage.cardFraudAlert.clearedMessage', {cardLastFour: maskedCardNumber?.slice(-4) ?? ''});
+    }
+    return translateLocal('cardPage.cardFraudAlert.deactivatedMessage', {cardLastFour: maskedCardNumber?.slice(-4) ?? ''});
+}
+
 function getUpdatedApprovalRuleMessage(reportAction: OnyxEntry<ReportAction>) {
     const {field, oldApproverEmail, oldApproverName, newApproverEmail, newApproverName, name} =
         getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE>) ?? {};
@@ -2825,6 +2855,33 @@ function getRemovedFromApprovalChainMessage(reportAction: OnyxEntry<ReportAction
         currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
     }).map(({displayName, login}) => displayName ?? login ?? 'Unknown Submitter');
     return translateLocal('workspaceActions.removedFromApprovalWorkflow', {submittersNames, count: submittersNames.length});
+}
+
+function getActionableCardFraudAlertMessage(
+    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT>>,
+    getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'],
+) {
+    const fraudMessage = getOriginalMessage(reportAction);
+    const cardLastFour = fraudMessage?.maskedCardNumber?.slice(-4) ?? '';
+    const merchant = fraudMessage?.triggerMerchant ?? '';
+    const formattedAmount = convertToDisplayString(fraudMessage?.triggerAmount ?? 0, fraudMessage?.currency ?? CONST.CURRENCY.USD);
+    const resolution = fraudMessage?.resolution;
+    const formattedDate = reportAction?.created ? format(getLocalDateFromDatetime(reportAction?.created), 'MMM. d - h:mma').replace(/am|pm/i, (match) => match.toUpperCase()) : '';
+
+    if (resolution === CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED) {
+        return translateLocal('cardPage.cardFraudAlert.clearedMessage', {cardLastFour});
+    }
+
+    if (resolution === CONST.CARD_FRAUD_ALERT_RESOLUTION.FRAUD) {
+        return translateLocal('cardPage.cardFraudAlert.deactivatedMessage', {cardLastFour});
+    }
+
+    return translateLocal('cardPage.cardFraudAlert.alertMessage', {
+        cardLastFour,
+        amount: formattedAmount,
+        merchant,
+        date: formattedDate,
+    });
 }
 
 function getDemotedFromWorkspaceMessage(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE>>) {
@@ -2978,10 +3035,6 @@ function getRoomChangeLogMessage(reportAction: ReportAction) {
     return `${actionText} ${targetAccountIDs.length} ${userText}`;
 }
 
-function getReportActions(report: Report) {
-    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
-}
-
 /**
  * @private
  */
@@ -3133,7 +3186,6 @@ export {
     isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
-    isLinkedTransactionHeld,
     isMemberChangeAction,
     isExportIntegrationAction,
     isIntegrationMessageAction,
@@ -3183,6 +3235,7 @@ export {
     wasActionTakenByCurrentUser,
     isInviteOrRemovedAction,
     isActionableAddPaymentCard,
+    isActionableCardFraudAlert,
     getExportIntegrationActionFragments,
     getExportIntegrationLastMessageText,
     getExportIntegrationMessageHTML,
@@ -3200,6 +3253,7 @@ export {
     getFilteredReportActionsForReportView,
     wasMessageReceivedWhileOffline,
     shouldShowAddMissingDetails,
+    getActionableCardFraudAlertResolutionMessage,
     getJoinRequestMessage,
     getTravelUpdateMessage,
     getWorkspaceCategoryUpdateMessage,
@@ -3225,7 +3279,6 @@ export {
     getTagListNameUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
     getRoomChangeLogMessage,
-    getReportActions,
     getReopenedMessage,
     getLeaveRoomMessage,
     getRetractedMessage,
@@ -3241,6 +3294,7 @@ export {
     getDelegateAccountIDFromReportAction,
     isPendingHide,
     filterOutDeprecatedReportActions,
+    getActionableCardFraudAlertMessage,
 };
 
 export type {LastVisibleMessage};
