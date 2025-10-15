@@ -96,10 +96,10 @@ function useMemoizedLazyAsset<T extends IconAsset>(importFn: () => Promise<{defa
  * @param names - Array of illustration names (use `as const` for type safety)
  * @returns Object with illustration names as keys and IconAsset as values
  */
-function useMemoizedLazyIllustrations<TName extends string>(names: readonly TName[]): Record<TName, IconAsset> {
+function useMemoizedLazyIllustrations<const TName extends readonly IllustrationName[]>(names: TName): Record<TName[number], IconAsset> {
     const [assets, setAssets] = useState<Record<string, IconAsset>>({});
     const namesKey = useMemo(() => names.join(','), [names]);
-    const namesList = useMemo(() => namesKey.split(',') as TName[], [namesKey]);
+    const namesList = useMemo(() => namesKey.split(',') as Array<TName[number]>, [namesKey]);
 
     useEffect(() => {
         let isMounted = true;
@@ -112,7 +112,7 @@ function useMemoizedLazyIllustrations<TName extends string>(names: readonly TNam
 
                 const loaded: Record<string, IconAsset> = {};
                 namesList.forEach((name) => {
-                    loaded[name as string] = chunk.getIllustration(name as IllustrationName) ?? PlaceholderIcon;
+                    loaded[name as string] = chunk.getIllustration(name) ?? PlaceholderIcon;
                 });
                 setAssets(loaded);
             })
@@ -133,7 +133,7 @@ function useMemoizedLazyIllustrations<TName extends string>(names: readonly TNam
         };
     }, [namesList]);
 
-    return useMemo(() => Object.fromEntries(namesList.map((name) => [name, assets[name as string] ?? PlaceholderIcon])) as Record<TName, IconAsset>, [assets, namesList]);
+    return useMemo(() => Object.fromEntries(namesList.map((name) => [name, assets[name as string] ?? PlaceholderIcon])) as Record<TName[number], IconAsset>, [assets, namesList]);
 }
 
 /**
@@ -142,10 +142,10 @@ function useMemoizedLazyIllustrations<TName extends string>(names: readonly TNam
  * @param names - Array of Expensify icon names (use `as const` for type safety)
  * @returns Object with icon names as keys and IconAsset as values
  */
-function useMemoizedLazyExpensifyIcons<TName extends string>(names: readonly TName[]): Record<TName, IconAsset> {
+function useMemoizedLazyExpensifyIcons<const TName extends readonly ExpensifyIconName[]>(names: TName): Record<TName[number], IconAsset> {
     const [assets, setAssets] = useState<Record<string, IconAsset>>({});
     const namesKey = useMemo(() => names.join(','), [names]);
-    const namesList = useMemo(() => namesKey.split(',') as TName[], [namesKey]);
+    const namesList = useMemo(() => namesKey.split(',') as Array<TName[number]>, [namesKey]);
 
     useEffect(() => {
         let isMounted = true;
@@ -158,7 +158,7 @@ function useMemoizedLazyExpensifyIcons<TName extends string>(names: readonly TNa
 
                 const loaded: Record<string, IconAsset> = {};
                 namesList.forEach((name) => {
-                    loaded[name as string] = chunk.getExpensifyIcon(name as ExpensifyIconName) ?? PlaceholderIcon;
+                    loaded[name as string] = chunk.getExpensifyIcon(name) ?? PlaceholderIcon;
                 });
                 setAssets(loaded);
             })
@@ -179,7 +179,7 @@ function useMemoizedLazyExpensifyIcons<TName extends string>(names: readonly TNa
         };
     }, [namesList]);
 
-    return useMemo(() => Object.fromEntries(namesList.map((name) => [name, assets[name as string] ?? PlaceholderIcon])) as Record<TName, IconAsset>, [assets, namesList]);
+    return useMemo(() => Object.fromEntries(namesList.map((name) => [name, assets[name as string] ?? PlaceholderIcon])) as Record<TName[number], IconAsset>, [assets, namesList]);
 }
 
 export {useMemoizedLazyAsset, useMemoizedLazyIllustrations, useMemoizedLazyExpensifyIcons, type LazyAssetResult};

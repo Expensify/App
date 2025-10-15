@@ -326,7 +326,7 @@ function MoneyRequestConfirmationList({
     // A flag for showing the categories field
     const shouldShowCategories = (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
-    const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest && !isTypeSend && !isPerDiemRequest;
+    const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest;
 
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 

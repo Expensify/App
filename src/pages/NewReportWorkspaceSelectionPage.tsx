@@ -27,6 +27,7 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isRHPOnSearchMoneyRequestReportPage from '@navigation/helpers/isRHPOnSearchMoneyRequestReportPage';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {changeTransactionsReport} from '@userActions/Transaction';
+import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,6 +56,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -99,6 +101,10 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
                     reportNextStep,
                 );
+
+                // eslint-disable-next-line rulesdir/no-default-id-values
+                setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, policyID, activePolicyID ?? '');
+
                 if (selectedTransactionIDs.length) {
                     clearSelectedTransactions(true);
                 }
@@ -112,6 +118,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             navigateToNewReport(optimisticReportID);
         },
         [
+            activePolicyID,
             currentUserPersonalDetails,
             isASAPSubmitBetaEnabled,
             hasViolations,
