@@ -29,7 +29,7 @@ jobs:
       - name: Install Android via npm
         run: |
             cd android
-            ./gradlew installDevelopmentDebug
+            ./gradlew installDevelopmentDebug -PreactNativeArchitectures=arm64-v8a
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_ACTOR: ${{ github.actor }}
