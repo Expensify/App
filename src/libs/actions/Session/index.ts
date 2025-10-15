@@ -361,11 +361,6 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
         Log.info('No stashed session found, clearing the session');
     }
 
-    console.log('shouldRestoreStashedSession && !shouldStashSession && hasStashedSession()', shouldRestoreStashedSession && !shouldStashSession && hasStashedSession());
-    console.log('shouldRestoreStashedSession', shouldRestoreStashedSession);
-    console.log('!shouldStashSession', !shouldStashSession);
-    console.log('hasStashedSession()', hasStashedSession());
-
     // Wait for signOut (if called), then redirect and update Onyx.
     return signOutPromise
         .then((response) => {
