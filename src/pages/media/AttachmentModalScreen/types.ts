@@ -38,7 +38,7 @@ type AttachmentModalContainerModalProps = {
 };
 
 type AttachmentModalScreenType =
-    | typeof SCREENS.ATTACHMENTS
+    | typeof SCREENS.REPORT_ATTACHMENTS
     | typeof SCREENS.REPORT_ADD_ATTACHMENT
     | typeof SCREENS.REPORT_AVATAR
     | typeof SCREENS.PROFILE_AVATAR

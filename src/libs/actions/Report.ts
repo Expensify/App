@@ -152,6 +152,7 @@ import {
     hasOutstandingChildRequest,
     isChatThread as isChatThreadReportUtils,
     isConciergeChatReport,
+    isCurrentUserSubmitter,
     isExpenseReport,
     isGroupChat as isGroupChatReportUtils,
     isHiddenForCurrentUser,
@@ -5794,6 +5795,15 @@ function buildOptimisticChangePolicyData(
         });
     }
 
+    let shouldSetOutstandingChildRequest = false;
+    if (newStatusNum === CONST.REPORT.STATUS_NUM.OPEN || isOpenOrSubmitted) {
+        if (newStatusNum === CONST.REPORT.STATUS_NUM.OPEN) {
+            shouldSetOutstandingChildRequest = isCurrentUserSubmitter(report);
+        } else if (isProcessingReport(report)) {
+            shouldSetOutstandingChildRequest = report.managerID === currentUserAccountID;
+        }
+    }
+
     // 2. If this is a thread, we have to mark the parent report preview action as deleted to properly update the UI
     if (report.parentReportID && report.parentReportActionID) {
         const oldWorkspaceChatReportID = report.parentReportID;
@@ -5918,12 +5928,15 @@ function buildOptimisticChangePolicyData(
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${newPolicyExpenseChatReportID}`,
-        value: {lastVisibleActionCreated: optimisticReportPreviewAction?.created},
+        value: {
+            lastVisibleActionCreated: optimisticReportPreviewAction?.created,
+            ...(shouldSetOutstandingChildRequest ? {hasOutstandingChildRequest: true} : {}),
+        },
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${newPolicyExpenseChatReportID}`,
-        value: {lastVisibleActionCreated: policyExpenseChat?.lastVisibleActionCreated},
+        value: {lastVisibleActionCreated: policyExpenseChat?.lastVisibleActionCreated, hasOutstandingChildRequest: policyExpenseChat?.hasOutstandingChildRequest},
     });
 
     // 4. Optimistically create a CHANGE_POLICY reportAction on the report using the reportActionID

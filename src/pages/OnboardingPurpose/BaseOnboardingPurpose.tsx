@@ -89,11 +89,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 }
 
                 if (isPrivateDomainAndHasAccessiblePolicies && personalDetailsForm?.firstName) {
-                    if (choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
-                        Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE.getRoute(route.params?.backTo));
-                        return;
-                    }
-
                     completeOnboarding({
                         engagementChoice: choice,
                         onboardingMessage: onboardingMessages[choice],
