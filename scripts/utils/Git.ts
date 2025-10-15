@@ -317,7 +317,7 @@ class Git {
     static async getMainBranchCommitHash(remote?: string): Promise<string> {
         const baseRefName = IS_CI ? (GITHUB_BASE_REF ?? GITHUB_CONSTANTS.DEFAULT_BASE_REF) : GITHUB_CONSTANTS.DEFAULT_BASE_REF;
 
-        execSync(`git fetch ${remote} ${baseRefName} --no-tags --depth=1 -q`, {encoding: 'utf8'});
+        execSync(`git fetch ${remote ?? 'origin'} ${baseRefName} --no-tags --depth=1 -q`, {encoding: 'utf8'});
 
         // In CI, use a simpler approach - just use the remote main branch directly
         // This avoids issues with shallow clones and merge-base calculations
