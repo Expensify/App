@@ -10,6 +10,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
 import updateUnread from './updateUnread';
 
+let triggerUnreadUpdate = () => {};
+
 let allReports: OnyxCollection<Report> = {};
 // This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
 Onyx.connectWithoutView({
@@ -17,6 +19,7 @@ Onyx.connectWithoutView({
     waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
+        triggerUnreadUpdate();
     },
 });
 
@@ -74,7 +77,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
 
 const memoizedGetUnreadReportsForUnreadIndicator = memoize(getUnreadReportsForUnreadIndicator, {maxArgs: 1});
 
-const triggerUnreadUpdate = debounce(() => {
+triggerUnreadUpdate = debounce(() => {
     const currentReportID = navigationRef?.isReady?.() ? Navigation.getTopmostReportId() : undefined;
 
     // We want to keep notification count consistent with what can be accessed from the LHN list
@@ -87,4 +90,4 @@ navigationRef?.addListener?.('state', () => {
     triggerUnreadUpdate();
 });
 
-export {triggerUnreadUpdate, getUnreadReportsForUnreadIndicator};
+export default {getUnreadReportsForUnreadIndicator};
