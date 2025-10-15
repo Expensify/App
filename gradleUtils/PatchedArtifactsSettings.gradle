@@ -41,7 +41,7 @@ def hasRequiredScopes() {
     return ['read:packages', 'write:packages'].any { scope -> scopes.contains(scope) }
 }
 
-def getCIGithubUsername() {
+def getCIGithubActor() {
     return System.getenv("GITHUB_ACTOR")
 }
 
@@ -50,12 +50,12 @@ def getCIGithubToken() {
 }
 
 def hasRequiredCIEnvs() {
-    return getCIGithubUsername() != null && getCIGithubToken() != null
+    return getCIGithubActor() != null && getCIGithubToken() != null
 }
 
 def getGithubUsername() {
     if (isCIEnvironment()) {
-        return getCIGithubUsername()
+        return getCIGithubActor()
     }
     return new JsonSlurper().parseText(runCommand(["gh", "api", "user"]).output).login
 }
@@ -86,8 +86,8 @@ def validateCredentialsContext() {
 def getCredentials() {
     try { 
         def validationErrorMessage = validateCredentialsContext()
-        if (validationError != null) {
-            warnIfNotConfigured(validationError)
+        if (validationErrorMessage != null) {
+            warnIfNotConfigured(validationErrorMessage)
             return null
         }
 
