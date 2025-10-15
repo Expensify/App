@@ -1,4 +1,4 @@
-import {renderHook, waitFor} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useOnyx from '@hooks/useOnyx';
@@ -1540,9 +1540,11 @@ describe('actions/Policy', () => {
                 expect(result.current[0]).toBeDefined();
             });
 
-            // When setPolicyTagGLCode is called with data from useOnyx
-            setPolicyTagGLCode({policyID: fakePolicy.id, tagName, tagListIndex: 0, glCode: newGLCode, policyTags: result.current[0]});
-            await waitForBatchedUpdates();
+            await act(async () => {
+                // When setPolicyTagGLCode is called with data from useOnyx
+                setPolicyTagGLCode({policyID: fakePolicy.id, tagName, tagListIndex: 0, glCode: newGLCode, policyTags: result.current[0]});
+                await waitForBatchedUpdates();
+            });
 
             // Then the tag should have updated GL code
             const updatedPolicyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
