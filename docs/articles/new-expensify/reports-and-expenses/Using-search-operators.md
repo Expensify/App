@@ -12,17 +12,7 @@ The search operator framework lets you quickly filter, sort, and group items lik
 
 # Who can use search operators in Expensify
 
-Anyone can use search operators when filtering data in features like Expenses, Reports, Invoices, Chats, and Tasks. This is especially helpful for Workspace Admins, accountants, and finance teams looking to analyze or export targeted data.
-
----
-
-# Where to find search operators in Expensify
-
-You can use search operators directly in:
-
-- The **Expenses**, **Reports**, or **Invoices** navigation tabs on the left (web)
-- The **Search** bar at the top of your workspace inbox
-- Inside advanced filters for Reports, Tasks, or Chats
+Anyone can use search operators when filtering data in features like Expenses, Reports, Chats, and Tasks. This is especially helpful for Workspace Admins, accountants, and finance teams looking to analyze or export targeted data.
 
 ---
 
@@ -46,7 +36,7 @@ These filters help you refine searches across object types, workspaces, or user-
 
 | **Syntax**       | **Description**                                                               | **Example**                  |
 |------------------|-------------------------------------------------------------------------------|------------------------------|
-| `type:`          | Filter by object type: `expense`, `chat`, `invoice`, `trip`, or `task`       | `type:expense`               |
+| `type:`          | Filter by object type: `expense`, `chat`, `trip`, or `task`       | `type:expense`               |
 | `workspace:`     | Filter by workspace name (wrap in quotes if the name has spaces)             | `workspace:"Acme Inc."`      |
 | `from:`          | Filter by sender (email, phone, display name, or `me` for yourself)          | `from:alice@acme.com`        |
 | `to:`            | Filter by recipient (email, phone, display name, or `me` for yourself)       | `to:me`                      |
@@ -74,7 +64,7 @@ type:expense merchant:Starbucks category:Meals amount>20 has:receipt
 - `attendee:` – expense attendees, e.g. `attendee:"Jason Mills"`
 - `posted:` – credit card posted date, e.g. `posted:last-statement`
 
-## Reports and Invoices
+## Available filters for Reports
 
 ```
 type:expense-report status:paid exported:never
@@ -83,7 +73,7 @@ type:expense-report status:paid exported:never
 - `report-id:` – unique report reference
 - `status:` – draft, outstanding, approved, paid, done
 - `submitted:` / `approved:` / `paid:` / `exported:` – supports absolute or relative dates
-- `title:` – report or invoice title
+- `title:` – report title
 - `total:` – total amount with relative comparisons
 - `withdrawn:` – ACH withdrawal date
 - `withdrawal-type:` – reimbursement or expensify-card
