@@ -106,7 +106,7 @@ Onyx.connect({
     callback: (val) => (allTransactionViolations = val ?? []),
 });
 
-// TODO: remove `allPolicyTags` from this file (https://github.com/Expensify/App/issues/71491)
+// TODO: remove `allPolicyTags` from this file (https://github.com/Expensify/App/issues/67774)
 // `allPolicyTags` was moved here temporarily from `src/libs/actions/Policy/Tag.ts` during the `Deprecate Onyx.connect` refactor.
 // All uses of this variable should be replaced with `useOnyx`.
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
@@ -777,7 +777,7 @@ function changeTransactionsReport(
     let transactionsMoved = false;
     let shouldFixViolations = false;
 
-    // TODO: Replace getPolicyTagsData  with useOnyx hook (https://github.com/Expensify/App/issues/71491)
+    // TODO: Replace getPolicyTagsData  with useOnyx hook (https://github.com/Expensify/App/issues/67774)
     // eslint-disable-next-line deprecation/deprecation
     const policyTagList = getPolicyTagsData(policy?.id);
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
