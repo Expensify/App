@@ -61,6 +61,9 @@ type AvatarButtonWithIconProps = {
 
     /** Optionally override the default "Edit" icon */
     editIcon?: IconAsset;
+
+    /** The name associated with avatar */
+    name?: string;
 };
 
 /**
@@ -82,6 +85,7 @@ function AvatarButtonWithIcon({
     disabled = false,
     editIcon = Expensicons.Pencil,
     anchorRef,
+    name = '',
 }: AvatarButtonWithIconProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -110,6 +114,7 @@ function AvatarButtonWithIcon({
                             fallbackIcon={fallbackIcon}
                             size={size}
                             type={type}
+                            name={name}
                         />
                     ) : (
                         <DefaultAvatar />

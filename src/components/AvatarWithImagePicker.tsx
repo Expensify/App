@@ -83,6 +83,9 @@ type AvatarWithImagePickerProps = Omit<AvatarButtonWithIconProps, 'text' | 'onPr
 
     /** Hard disables the "View photo" option */
     shouldDisableViewPhoto?: boolean;
+
+    /** The name associated with avatar */
+    name?: string;
 };
 
 const anchorAlignment = {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP};
@@ -114,6 +117,7 @@ function AvatarWithImagePicker({
     enablePreview = false,
     shouldDisableViewPhoto = false,
     editIcon = Expensicons.Pencil,
+    name = '',
 }: AvatarWithImagePickerProps) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -295,6 +299,7 @@ function AvatarWithImagePicker({
                                                 type={type}
                                                 disabledStyle={disabledStyle}
                                                 editIconStyle={editIconStyle}
+                                                name={name}
                                             />
                                         </OfflineWithFeedback>
                                         <PopoverMenu

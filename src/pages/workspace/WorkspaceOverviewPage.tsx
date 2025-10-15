@@ -355,6 +355,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             source={policy?.avatarURL ?? ''}
                             avatarID={policy?.id}
                             size={CONST.AVATAR_SIZE.X_LARGE}
+                            name={policyName}
                             avatarStyle={styles.avatarXLarge}
                             enablePreview
                             DefaultAvatar={DefaultAvatar}
