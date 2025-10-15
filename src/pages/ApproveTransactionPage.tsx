@@ -25,10 +25,10 @@ import type {ContextMenuAnchor} from './home/report/ContextMenu/ReportActionCont
 
 function ApproveTransactionPage() {
     // FAKE DATA 
-    const transactionID = "361389456238920468"; // TODO: replace with actual transactionID
-    const chatReportID = "3531155455336816"; // TODO: replace with actual chatReportID
-    const reportID = "7632535948757192"; // TODO: replace with actual reportID -> very often its same as chatReportID
-    const iouReportID = "7632535948757192"; // TODO: replace with actual iouReportID
+    const transactionID = "9084365218195969699"; // TODO: replace with actual transactionID
+    const chatReportID = "1995450016258047"; // TODO: replace with actual chatReportID
+    const reportID = "3711684730350502"; // TODO: replace with actual reportID -> very often its same as chatReportID
+    const iouReportID = "3711684730350502"; // TODO: replace with actual iouReportID
     const action = {} as ReportAction; // TODO: replace with actual action
     const contextMenuAnchor = {} as ContextMenuAnchor; // TODO: replace with actual contextMenuAnchor
     const shouldDisplayContextMenu = false; // TODO: replace with actual shouldDisplayContextMenu

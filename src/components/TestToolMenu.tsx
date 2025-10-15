@@ -46,8 +46,8 @@ function TestToolMenu() {
     const {translate} = useLocalize();
 
     // ONLY FOR TESTING: this whole section needs to be removed later
-    const transactionID = '361389456238920468';
-    const reportID = '7632535948757192';
+    const transactionID = '9084365218195969699';
+    const reportID = '3711684730350502';
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const navigateToApproveTransactionPage = singleExecution(waitForNavigate(() => {
@@ -56,8 +56,6 @@ function TestToolMenu() {
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
-
-    const [showBiometricsModal, setShowBiometricsModal] = useState(false);
 
     const biometricsTitle = 'initialSettingsPage.troubleshoot.biometrics.biometricsNotRegistered';
 
@@ -118,7 +116,7 @@ function TestToolMenu() {
                         />
                     </TestToolRow>
 
-                    {/* Starts Biometrics test flow -> possible only on native */}
+                    {/* Allows to test the Biometrics flow */}
                     <TestToolRow title={translate(biometricsTitle as TranslationPaths)}>
                         <View style={[styles.flexRow, styles.gap2]}>
                             <Button
@@ -128,10 +126,6 @@ function TestToolMenu() {
                             />
                         </View>
                     </TestToolRow>
-                    <EnableBiometricsModal
-                        isVisible={showBiometricsModal}
-                        onClose={() => setShowBiometricsModal(false)}
-                    />
                 </>
             )}
 
