@@ -1647,6 +1647,7 @@ const CONST = {
     // we set this height threshold to 30dpi, since gesture bars will never be taller than that. (Samsung & Huawei: ~14-15dpi)
     NAVIGATION_BAR_ANDROID_SOFT_KEYS_MINIMUM_HEIGHT_THRESHOLD: 30,
     TRANSACTION: {
+        RESULTS_PAGE_SIZE: 20,
         DEFAULT_MERCHANT: 'Expense',
         UNKNOWN_MERCHANT: 'Unknown Merchant',
         PARTIAL_TRANSACTION_MERCHANT: '(none)',
