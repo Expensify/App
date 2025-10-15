@@ -1471,6 +1471,7 @@ function resetSMSDeliveryFailureStatus(login: string) {
 }
 
 export {
+    KEYS_TO_PRESERVE_SUPPORTAL,
     beginSignIn,
     beginAppleSignIn,
     beginGoogleSignIn,

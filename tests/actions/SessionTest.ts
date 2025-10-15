@@ -2,6 +2,7 @@ import {beforeEach, jest, test} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {confirmReadyToOpenApp, openApp, reconnectApp} from '@libs/actions/App';
+import * as Link from '@libs/actions/Link';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
 // eslint-disable-next-line no-restricted-syntax
@@ -15,7 +16,7 @@ import '@libs/Notification/PushNotification/subscribeToPushNotifications';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import * as SessionUtil from '@src/libs/actions/Session';
-import {signOutAndRedirectToSignIn} from '@src/libs/actions/Session';
+import {KEYS_TO_PRESERVE_SUPPORTAL, signOutAndRedirectToSignIn} from '@src/libs/actions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials, Session} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
@@ -242,50 +243,91 @@ describe('Session', () => {
         expect(getAllPersistedRequests().length).toBe(0);
     });
 
-    test('SignOutAndRedirectToSignIn should redirect to OldDot when LogOut returns truthy hasOldDotAuthCookies', async () => {
-        await TestHelper.signInWithTestUser();
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+    describe('SignOutAndRedirectToSignIn', () => {
+        test('SignOutAndRedirectToSignIn should redirect to OldDot when LogOut returns truthy hasOldDotAuthCookies', async () => {
+            await TestHelper.signInWithTestUser();
+            await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
-            // This will make the call to OpenApp below return with an expired session code
-            .mockImplementationOnce(() =>
-                Promise.resolve({
-                    jsonCode: CONST.JSON_CODE.SUCCESS,
-                    hasOldDotAuthCookies: true,
-                }),
-            );
+            (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
+                // This will make the call to OpenApp below return with an expired session code
+                .mockImplementationOnce(() =>
+                    Promise.resolve({
+                        jsonCode: CONST.JSON_CODE.SUCCESS,
+                        hasOldDotAuthCookies: true,
+                    }),
+                );
 
-        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
 
-        signOutAndRedirectToSignIn();
+            signOutAndRedirectToSignIn();
 
-        await waitForBatchedUpdates();
+            await waitForBatchedUpdates();
 
-        expect(asyncOpenURL).toHaveBeenCalledWith(Promise.resolve(), `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`, true, true);
-        expect(redirectToSignInSpy).toHaveBeenCalled();
-        jest.clearAllMocks();
-    });
+            expect(asyncOpenURL).toHaveBeenCalledWith(expect.any(Promise), `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`, true, true);
+            expect(redirectToSignInSpy).toHaveBeenCalled();
+            jest.clearAllMocks();
+        });
 
-    test('SignOutAndRedirectToSignIn should not redirect to OldDot when LogOut return falsy hasOldDotAuthCookies', async () => {
-        await TestHelper.signInWithTestUser();
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        test('SignOutAndRedirectToSignIn should not redirect to OldDot when LogOut return falsy hasOldDotAuthCookies', async () => {
+            await TestHelper.signInWithTestUser();
+            await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
-            // This will make the call to OpenApp below return with an expired session code
-            .mockImplementationOnce(() =>
-                Promise.resolve({
-                    jsonCode: CONST.JSON_CODE.SUCCESS,
-                }),
-            );
+            (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
+                // This will make the call to OpenApp below return with an expired session code
+                .mockImplementationOnce(() =>
+                    Promise.resolve({
+                        jsonCode: CONST.JSON_CODE.SUCCESS,
+                    }),
+                );
 
-        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
 
-        signOutAndRedirectToSignIn();
+            signOutAndRedirectToSignIn();
 
-        await waitForBatchedUpdates();
+            await waitForBatchedUpdates();
 
-        expect(asyncOpenURL).not.toHaveBeenCalled();
-        expect(redirectToSignInSpy).toHaveBeenCalled();
-        jest.clearAllMocks();
+            expect(asyncOpenURL).not.toHaveBeenCalled();
+            expect(redirectToSignInSpy).toHaveBeenCalled();
+            jest.clearAllMocks();
+        });
+
+        test('SignOutAndRedirectToSignIn should restore stashed session and redirect to OldDot supportal of supportal agent', async () => {
+            jest.spyOn(SessionUtil, 'isSupportAuthToken').mockReturnValue(true);
+            jest.spyOn(SessionUtil, 'hasStashedSession').mockReturnValue(true);
+            jest.spyOn(SessionUtil, 'signOut').mockResolvedValue(undefined);
+
+            jest.spyOn(Onyx, 'clear').mockResolvedValue(undefined);
+            jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
+
+            const testStashedCredentials = {login: 'stashed@expensify.com', autoGeneratedLogin: 'stashedAutoLogin', autoGeneratedPassword: 'stashedAutoPassword'};
+            const testStashedSession = {authToken: 'stashedAuthToken', email: 'stashed@expensify.com', accountID: 123, creationDate: new Date().getTime()};
+
+            await Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, testStashedCredentials);
+            await Onyx.set(ONYXKEYS.STASHED_SESSION, testStashedSession);
+
+            await waitForBatchedUpdates();
+
+            const buildOldDotURLSpy = jest.spyOn(Link, 'buildOldDotURL').mockResolvedValue('mockOldDotURL');
+            const openExternalLinkSpy = jest.spyOn(Link, 'openExternalLink').mockImplementation(() => {});
+
+            const onyxClearSpy = Onyx.clear as jest.Mock;
+            const onyxMultiSetSpy = Onyx.multiSet as jest.Mock;
+
+            signOutAndRedirectToSignIn(false, false, true, true);
+
+            await waitForBatchedUpdates();
+
+            expect(SessionUtil.signOut).not.toHaveBeenCalled();
+
+            expect(onyxClearSpy).toHaveBeenCalledWith(KEYS_TO_PRESERVE_SUPPORTAL);
+
+            expect(onyxMultiSetSpy).toHaveBeenCalledWith({
+                [ONYXKEYS.CREDENTIALS]: testStashedCredentials,
+                [ONYXKEYS.SESSION]: testStashedSession,
+            });
+
+            expect(buildOldDotURLSpy).toHaveBeenCalledWith(CONST.OLDDOT_URLS.SUPPORTAL_RESTORE_STASHED_LOGIN);
+            expect(openExternalLinkSpy).toHaveBeenCalledWith('mockOldDotURL', undefined, true);
+        });
     });
 });
