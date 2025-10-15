@@ -38,6 +38,9 @@ type UseSearchSelectorConfig = {
     /** Whether to include recent reports (for getMemberInviteOptions) */
     includeRecentReports?: boolean;
 
+    /** Whether to include current user */
+    includeCurrentUser?: boolean;
+
     /** Enable phone contacts integration */
     enablePhoneContacts?: boolean;
 
@@ -130,6 +133,7 @@ function useSearchSelectorBase({
     includeUserToInvite = true,
     excludeLogins = CONST.EMPTY_OBJECT,
     includeRecentReports = false,
+    includeCurrentUser = false,
     getValidOptionsConfig = CONST.EMPTY_OBJECT,
     onSelectionChange,
     onSingleSelect,
@@ -225,6 +229,7 @@ function useSearchSelectorBase({
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
                 return getValidOptions(optionsWithContacts, draftComments, {
+                    ...getValidOptionsConfig,
                     betas: betas ?? [],
                     includeP2P: true,
                     includeSelectedOptions: false,
@@ -233,6 +238,7 @@ function useSearchSelectorBase({
                     maxElements: maxResults,
                     searchString: computedSearchTerm,
                     includeUserToInvite,
+                    includeCurrentUser,
                 });
             default:
                 return getEmptyOptions();

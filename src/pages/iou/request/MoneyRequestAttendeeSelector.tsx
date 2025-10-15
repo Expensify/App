@@ -88,12 +88,9 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         includeUserToInvite: true,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeRecentReports: true,
+        includeCurrentUser: true,
         getValidOptionsConfig: {
-            betas: betas ?? [],
-            selectedOptions: initialSelectedOptions,
-            includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT,
             includeP2P: true,
-            includeSelectedOptions: false,
             includeSelfDM: false,
             includeInvoiceRooms: false,
             action,
@@ -101,6 +98,20 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         },
         initialSelected: initialSelectedOptions,
         shouldInitialize: didScreenTransitionEnd,
+        onSelectionChange: (newSelectedOptions) => {
+            const newAttendees: Attendee[] = newSelectedOptions.map((option) => ({
+                accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                login: option.login ?? option.text,
+                email: option.login ?? option.text ?? '',
+                displayName: option.text ?? '',
+                selected: true,
+                searchText: option.searchText,
+                avatarUrl: option.avatarUrl ?? '',
+                iouType,
+            }));
+            onAttendeesAdded(newAttendees);
+        },
+        maxRecentReportsToShow: 5,
     });
 
     useEffect(() => {
@@ -133,27 +144,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             workspaceChats: orderedOptions.workspaceChats,
         };
     }, [availableOptions, isPaidGroupPolicy, areOptionsInitialized, searchTerm, action]);
-
-    const handleSelectionChange = useCallback(
-        (newSelectedOptions: OptionData[]) => {
-            const newAttendees: Attendee[] = newSelectedOptions.map((option) => ({
-                accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                login: option.login ?? option.text,
-                email: option.login ?? option.text ?? '',
-                displayName: option.text ?? '',
-                selected: true,
-                searchText: option.searchText,
-                avatarUrl: option.avatarUrl ?? '',
-                iouType,
-            }));
-            onAttendeesAdded(newAttendees);
-        },
-        [iouType, onAttendeesAdded],
-    );
-
-    useEffect(() => {
-        handleSelectionChange(selectedOptions);
-    }, [selectedOptions, handleSelectionChange]);
 
     const shouldShowErrorMessage = selectedOptions.length < 1;
 
@@ -206,10 +196,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         }
 
         const cleanSearchTerm = searchTerm.trim().toLowerCase();
-        const fiveRecents = [...orderedAvailableOptions.recentReports].slice(0, 5);
-        const restOfRecents = [...orderedAvailableOptions.recentReports].slice(5);
-        const contactsWithRestOfRecents = [...restOfRecents, ...orderedAvailableOptions.personalDetails];
-
         const formatResults = formatSectionsFromSearchTerm(
             cleanSearchTerm,
             attendees.map((attendee) => ({
@@ -232,17 +218,19 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             data: formatResults.section.data as OptionData[],
         });
 
-        newSections.push({
-            title: translate('common.recents'),
-            data: fiveRecents,
-            shouldShow: fiveRecents.length > 0,
-        });
+        if (orderedAvailableOptions.recentReports.length > 0) {
+            newSections.push({
+                title: translate('common.recents'),
+                data: orderedAvailableOptions.recentReports,
+            });
+        }
 
-        newSections.push({
-            title: translate('common.contacts'),
-            data: contactsWithRestOfRecents,
-            shouldShow: contactsWithRestOfRecents.length > 0,
-        });
+        if (orderedAvailableOptions.personalDetails.length > 0) {
+            newSections.push({
+                title: translate('common.contacts'),
+                data: orderedAvailableOptions.personalDetails,
+            });
+        }
 
         if (
             orderedAvailableOptions.userToInvite &&
