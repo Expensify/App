@@ -164,7 +164,6 @@ function getReportKey(reportID: string): OnyxKey {
  * Check if a report should have its name automatically computed
  */
 function shouldComputeReportName(report: Report, context: UpdateContext): boolean {
-    console.log('morwa report', report);
     if (!report) {
         return false;
     }
@@ -176,7 +175,6 @@ function shouldComputeReportName(report: Report, context: UpdateContext): boolea
     // Only compute names for expense reports with policies that have title fields
     // Check if the report has a title field with a formula in policy
     const policyTitleField = getTitleFieldFromPolicy(report.policyID, context);
-    console.log('morwa policyTitleField', policyTitleField);
     if (!policyTitleField?.defaultValue) {
         return false;
     }
@@ -216,7 +214,6 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
     }
 
     const titleField = getTitleFieldFromPolicy(targetReport.policyID, context);
-    console.log('morwa titleField', titleField);
 
     // Quick check: see if the update might affect the report name
     const updateType = determineObjectTypeByKey(incomingUpdate.key);
