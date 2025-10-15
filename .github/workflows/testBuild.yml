@@ -336,7 +336,7 @@ jobs:
 
       - name: Rock Remote Build - Android
         id: rock-remote-build-android
-        uses: callstackincubator/android@1ef36f7321e2f263a260e51aeda432b03165e5f1 # v3
+        uses: callstackincubator/android@1585a4a0b32801c26d2dae67a09f0df530df25c0 # v3
         env:
           IS_HYBRID_APP: true
           GITHUB_TOKEN: ${{ github.token }}
