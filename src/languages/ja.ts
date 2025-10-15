@@ -1057,7 +1057,7 @@ const translations = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>領収書を ${phoneNumber} にテキスト送信（米国の番号のみ）</label-text>`,
         takePhoto: '写真を撮る',
         cameraAccess: '領収書の写真を撮るためにカメラへのアクセスが必要です。',
-        deniedCameraAccess: 'カメラへのアクセスがまだ許可されていません。以下の手順に従ってください。<a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">これらの手順</a>.',
+        deniedCameraAccess: `カメラへのアクセスがまだ許可されていません。以下の手順に従ってください。<a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">これらの手順</a>.`,
         cameraErrorTitle: 'カメラエラー',
         cameraErrorMessage: '写真を撮る際にエラーが発生しました。もう一度お試しください。',
         locationAccessTitle: '位置情報へのアクセスを許可',
