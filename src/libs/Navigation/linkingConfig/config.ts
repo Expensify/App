@@ -1249,6 +1249,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS]: {
                             path: ROUTES.SETTINGS_DOMAIN_CARD_UPDATE_ADDRESS.route,
                         },
+                        [SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
+                            path: ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: {

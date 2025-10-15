@@ -354,6 +354,7 @@ const SCREENS = {
         DOMAIN_CARD_DETAIL: 'Domain_Card_Detail',
         DOMAIN_CARD_REPORT_FRAUD: 'Domain_Card_Report_Fraud',
         DOMAIN_CARD_UPDATE_ADDRESS: 'Domain_Card_Update_Address',
+        DOMAIN_CARD_CONFIRM_MAGIC_CODE: 'Domain_Card_Confirm_Magic_Code',
     },
 
     SETTINGS_TAGS: {

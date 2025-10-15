@@ -199,11 +199,11 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         expiration={formatCardExpiration(cardsDetails[card.cardID]?.expiration ?? '')}
                                         cvv={cardsDetails[card.cardID]?.cvv}
                                         onUpdateAddressPress={() => {
-                                            if (route.name === SCREENS.SETTINGS.WALLET.DOMAIN_CARD) {
-                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.getRoute(domain));
+                                            if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
+                                                Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_UPDATE_ADDRESS.getRoute(String(card.cardID)));
                                                 return;
                                             }
-                                            Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_UPDATE_ADDRESS.getRoute(cardID.toString()));
+                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.getRoute(domain));
                                         }}
                                     />
                                 ) : (
@@ -221,6 +221,10 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                         onPress={() => {
                                                             if (isAccountLocked) {
                                                                 showLockedAccountModal();
+                                                                return;
+                                                            }
+                                                            if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
+                                                                Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
                                                                 return;
                                                             }
                                                             Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));

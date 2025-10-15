@@ -1171,6 +1171,9 @@ type DomainCardNavigatorParamList = {
         cardID: string;
         backTo?: Routes;
     };
+    [SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
+        cardID: string;
+    };
 };
 
 type TwoFactorAuthNavigatorParamList = {
