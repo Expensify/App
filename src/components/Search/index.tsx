@@ -12,6 +12,7 @@ import type {ReportActionListItemType, SearchListItem, SelectionListHandle, Tran
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -29,6 +30,7 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
+import {getActivePolicies, isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, selectArchivedReportsIdSet, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
@@ -90,6 +92,7 @@ function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
     reportActions: ReportAction[],
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+    canMoveExpense = true,
 ): [string, SelectedTransactionInfo] {
     return [
         item.keyForList,
@@ -105,7 +108,7 @@ function mapTransactionItemToSelectedEntry(
                 undefined,
                 undefined,
                 outstandingReportsByPolicyID,
-                true,
+                canMoveExpense,
             ),
             action: item.action,
             reportID: item.reportID,
@@ -166,6 +169,7 @@ function prepareTransactionsList(
     selectedTransactions: SelectedTransactions,
     reportActions: ReportAction[],
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+    canMoveExpense = true,
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
@@ -187,7 +191,7 @@ function prepareTransactionsList(
                 undefined,
                 undefined,
                 outstandingReportsByPolicyID,
-                true,
+                canMoveExpense,
             ),
             action: item.action,
             reportID: item.reportID,
@@ -234,6 +238,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const isUserWorkspaceMember = !!getActivePolicies(allPolicies ?? {}, currentUserLogin).filter((userPolicy) => isPaidGroupPolicyPolicyUtils(userPolicy)).length;
 
     // Filter violations based on user visibility
     const filteredViolations = useMemo(() => {
@@ -559,7 +567,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 if (isTransactionPendingDelete(item)) {
                     return;
                 }
-                setSelectedTransactions(prepareTransactionsList(item, selectedTransactions, reportActionsArray, outstandingReportsByPolicyID), data);
+                setSelectedTransactions(prepareTransactionsList(item, selectedTransactions, reportActionsArray, outstandingReportsByPolicyID, isUserWorkspaceMember), data);
                 return;
             }
 
@@ -581,7 +589,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     ...Object.fromEntries(
                         currentTransactions
                             .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
+                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID, isUserWorkspaceMember)),
                     ),
                 },
                 data,
@@ -794,7 +802,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     (data as TransactionGroupListItemType[]).flatMap((item) =>
                         item.transactions
                             .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
+                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID, isUserWorkspaceMember)),
                     ),
                 ),
                 data,
@@ -807,7 +815,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             Object.fromEntries(
                 (data as TransactionListItemType[])
                     .filter((t) => !isTransactionPendingDelete(t))
-                    .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
+                    .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID, isUserWorkspaceMember)),
             ),
             data,
         );
