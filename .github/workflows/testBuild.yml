@@ -256,6 +256,9 @@ jobs:
     if: ${{ inputs.ANDROID }}
     needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
     runs-on: ubuntu-latest-xl
+    permissions:
+      contents: read
+      packages: read
     outputs:
       S3_APK_PATH: ${{ steps.exportAndroidS3Path.outputs.S3_APK_PATH }}
     steps:
@@ -340,6 +343,8 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
           ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
           ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_ACTOR: ${{ github.actor }}
         run: bundle exec fastlane android build_adhoc_hybrid
 
       - name: Configure AWS Credentials

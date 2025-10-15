@@ -1822,6 +1822,7 @@ const translations = {
         twoFactorAuthIsRequiredForAdminsDescription: '您的Xero会计连接需要使用双重身份验证。要继续使用Expensify，请启用它。',
         twoFactorAuthCannotDisable: '无法禁用双重身份验证',
         twoFactorAuthRequired: '您的Xero连接需要双因素认证（2FA），且无法禁用。',
+        explainProcessToRemoveWithRecovery: '为了禁用双因素认证 (2FA)，请输入有效的恢复代码。',
     },
     recoveryCodeForm: {
         error: {
@@ -6127,7 +6128,9 @@ const translations = {
         },
         has: '有',
         groupBy: '组别',
-        moneyRequestReport: {emptyStateTitle: '此报告没有费用。', emptyStateSubtitle: '您可以通过下面的按钮或上方“更多”菜单中的“添加费用”选项将费用添加到此报告中。'},
+        moneyRequestReport: {
+            emptyStateTitle: '此报告没有费用。',
+        },
         noCategory: '无类别',
         noTag: '无标签',
         expenseType: '费用类型',
