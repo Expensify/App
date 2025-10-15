@@ -131,7 +131,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 enabled: tag.enabled,
                 isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 rightElement: hasDependentTags ? (
-                    <ListItemRightCaretWithLabel shouldShowCaret />
+                    <ListItemRightCaretWithLabel />
                 ) : (
                     <Switch
                         isOn={tag.enabled}
