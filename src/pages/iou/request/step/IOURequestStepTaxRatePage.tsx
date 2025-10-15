@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
@@ -31,7 +32,7 @@ function getTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transact
 
 function IOURequestStepTaxRatePage({
     route: {
-        params: {action, backTo, iouType, transactionID},
+        params: {action, backTo, iouType, transactionID, reportID: reportIDFromRoute},
     },
     transaction,
     report,
@@ -42,6 +43,7 @@ function IOURequestStepTaxRatePage({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+    useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;

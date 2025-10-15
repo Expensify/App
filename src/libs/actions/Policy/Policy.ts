@@ -51,6 +51,7 @@ import type {
     SetPolicyProhibitedExpensesParams,
     SetPolicyRulesEnabledParams,
     SetWorkspaceApprovalModeParams,
+    SetWorkspaceAutoHarvestingParams,
     SetWorkspaceAutoReportingFrequencyParams,
     SetWorkspaceAutoReportingMonthlyOffsetParams,
     SetWorkspacePayerParams,
@@ -116,7 +117,6 @@ import type {
     PolicyCategories,
     PolicyCategory,
     PolicyEmployee,
-    ReimbursementAccount,
     Report,
     ReportAction,
     ReportActions,
@@ -268,12 +268,6 @@ Onyx.connect({
     callback: (val) => (allPersonalDetails = val),
 });
 
-let reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-Onyx.connect({
-    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    callback: (val) => (reimbursementAccount = val),
-});
-
 let allRecentlyUsedCurrencies: string[];
 Onyx.connect({
     key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
@@ -383,6 +377,7 @@ function deleteWorkspace(
     policyCardFeeds: CardFeeds | undefined,
     reportsToArchive: Report[],
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
+    reimbursementAccountError: Errors | undefined,
     lastUsedPaymentMethods?: LastPaymentMethod,
 ) {
     if (!allPolicies) {
@@ -428,7 +423,7 @@ function deleteWorkspace(
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
             value: {
-                errors: reimbursementAccount?.errors ?? null,
+                errors: reimbursementAccountError ?? null,
             },
         },
         {
@@ -599,6 +594,62 @@ function deleteWorkspace(
     if (policyID === lastAccessedWorkspacePolicyID) {
         updateLastAccessedWorkspace(undefined);
     }
+}
+
+/* Set the auto harvesting on a workspace. This goes in tandem with auto reporting. so when you enable/disable
+ * harvesting, you are enabling/disabling auto reporting too.
+ */
+function setWorkspaceAutoHarvesting(policy: Policy, enabled: boolean) {
+    const policyID = policy.id;
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                autoReporting: enabled,
+                harvesting: {enabled},
+                pendingFields: {
+                    autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                errorFields: {
+                    autoReporting: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                autoReporting: policy?.autoReporting ?? null,
+                harvesting: policy?.harvesting ?? null,
+                pendingFields: {
+                    autoReporting: null,
+                },
+                errorFields: {
+                    autoReporting: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsDelayedSubmissionPage.autoReportingFrequencyErrorMessage'),
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    autoReporting: null,
+                },
+            },
+        },
+    ];
+
+    const params: SetWorkspaceAutoHarvestingParams = {policyID, enabled};
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_HARVESTING, params, {optimisticData, failureData, successData});
 }
 
 function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>) {
@@ -2489,8 +2540,9 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
                     reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
                 defaultBillable: false,
-                disabledFields: {defaultBillable: true},
+                disabledFields: {defaultBillable: true, reimbursable: false},
                 requiresCategory: true,
+                defaultReimbursable: true,
             },
         },
         {
@@ -3371,8 +3423,9 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
             reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         },
         defaultBillable: false,
-        disabledFields: {defaultBillable: true},
+        disabledFields: {defaultBillable: true, reimbursable: false},
         requiresCategory: true,
+        defaultReimbursable: true,
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -4625,6 +4678,7 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
                 maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
                 maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
                 glCodes: true,
+                eReceipts: policy?.outputCurrency === CONST.CURRENCY.USD ? true : policy?.eReceipts,
                 harvesting: {
                     enabled: false,
                 },
@@ -4656,6 +4710,7 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
                 glCodes: policy?.glCodes ?? null,
                 harvesting: policy?.harvesting ?? null,
                 isAttendeeTrackingEnabled: null,
+                eReceipts: policy?.eReceipts,
             },
         },
     ];
@@ -6378,6 +6433,7 @@ export {
     buildOptimisticRecentlyUsedCurrencies,
     setWorkspaceInviteMessageDraft,
     setWorkspaceApprovalMode,
+    setWorkspaceAutoHarvesting,
     setWorkspaceAutoReportingFrequency,
     setWorkspaceAutoReportingMonthlyOffset,
     updateWorkspaceDescription,
