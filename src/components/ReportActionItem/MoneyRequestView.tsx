@@ -205,7 +205,7 @@ function MoneyRequestView({
             ((isDistanceRequest && hasRoute) || (!!actualAmount && hasReceipt(updatedTransaction ?? transaction)) || !hasReceipt(updatedTransaction ?? transaction)) &&
             actualAmount !== undefined
         );
-    }, [isDistanceRequest, hasRoute, actualAmount, updatedTransaction, transaction]);
+    }, [isDistanceRequest, hasRoute, actualAmount, updatedTransaction?.receipt, transaction?.receipt]);
     const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency) : '';
     const formattedPerAttendeeAmount =
         shouldDisplayTransactionAmount && actualAmount !== undefined ? convertToDisplayString(actualAmount / (transactionAttendees?.length ?? 1), actualCurrency) : '';
