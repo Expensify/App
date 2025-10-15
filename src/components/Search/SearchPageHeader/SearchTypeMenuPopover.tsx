@@ -28,7 +28,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
                 <PopoverMenu
                     menuItems={allMenuItems}
                     isVisible={isPopoverVisible}
-                    anchorPosition={styles.createMenuPositionSearchBar(windowHeight)}
+                    anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                     onClose={closeMenu}
                     onItemSelected={closeMenu}
                     anchorRef={buttonRef}
