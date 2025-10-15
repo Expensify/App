@@ -103,7 +103,7 @@ async function checkChangedFiles({remote, ...restOptions}: CheckChangedFilesOpti
     logInfo('Checking changed files for React Compiler compliance...');
 
     try {
-        const mainBaseCommitHash = Git.getMainBranchCommitHash(remote);
+        const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
         const changedFiles = await Git.getChangedFiles(mainBaseCommitHash);
         const filesToCheck = [...new Set(changedFiles)];
 
