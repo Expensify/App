@@ -740,5 +740,4 @@ export {
     removeDelegate,
     openSecuritySettingsPage,
     KEYS_TO_PRESERVE_DELEGATE_ACCESS,
-    KEYS_TO_PRESERVE_SUPPORTAL,
 };
