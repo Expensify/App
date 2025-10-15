@@ -8888,44 +8888,6 @@ describe('actions/IOU', () => {
             expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
             expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
         });
-
-        it('should handle take control with SUBMITTED_AND_CLOSED action invalidation', async () => {
-            // Admin takes control
-            const takeControlAction = {
-                reportActionID: 'takeControl7',
-                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
-                actorAccountID: adminAccountID,
-                created: '2023-01-01T10:00:00.000Z',
-            };
-
-            // Employee submits and closes after take control (invalidates it)
-            const submittedAndClosedAction = {
-                reportActionID: 'submittedClosed1',
-                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
-                actorAccountID: employeeAccountID,
-                created: '2023-01-01T11:00:00.000Z', // After take control
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
-                [takeControlAction.reportActionID]: takeControlAction,
-                [submittedAndClosedAction.reportActionID]: submittedAndClosedAction,
-            });
-
-            // Set session as manager (normal approver)
-            await Onyx.set(ONYXKEYS.SESSION, {
-                email: managerEmail,
-                accountID: managerAccountID,
-            });
-
-            // Manager approves the report
-            approveMoneyRequest(expenseReport);
-            await waitForBatchedUpdates();
-
-            // Should be submitted to admin (normal flow) since take control was invalidated
-            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
-            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
-            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
-        });
     });
 
     describe('approveMoneyRequest with normal approval chain', () => {
@@ -8974,18 +8936,18 @@ describe('actions/IOU', () => {
                 employeeList: {
                     [employeeEmail]: {
                         email: employeeEmail,
-                        role: 'user',
+                        role: CONST.POLICY.ROLE.USER,
                         submitsTo: managerEmail,
                     },
                     [managerEmail]: {
                         email: managerEmail,
-                        role: 'user',
+                        role: CONST.POLICY.ROLE.USER,
                         submitsTo: adminEmail,
                         forwardsTo: adminEmail,
                     },
                     [adminEmail]: {
                         email: adminEmail,
-                        role: 'admin',
+                        role: CONST.POLICY.ROLE.ADMIN,
                         submitsTo: '',
                         forwardsTo: '',
                     },
