@@ -12,6 +12,7 @@ import {paginateRest} from '@octokit/plugin-paginate-rest';
 import {throttling} from '@octokit/plugin-throttling';
 import {createObjectCsvWriter} from 'csv-writer';
 import fs from 'fs';
+import GITHUB_CONSTANTS from './GITHUB_CONSTANTS';
 
 type OctokitOptions = {method: string; url: string; request: {retryCount: number}};
 type IssueType = 'bug' | 'feature' | 'other';
@@ -112,7 +113,7 @@ async function getProjectsForIssue(issueNumber: number): Promise<string> {
     const response = await octokit.graphql(
         `
         {
-                  repository(owner: "Expensify", name: "App") {
+                  repository(owner: "${GITHUB_CONSTANTS.GITHUB_OWNER}", name: "${GITHUB_CONSTANTS.GITHUB_REPO}") {
                     issue(number: ${issueNumber}) {
                       projectsV2(last: 30) {
                         nodes {
@@ -134,8 +135,8 @@ async function getGitHubData() {
         console.info(`Fetching ${issueNumber}`);
         const result = await octokit.rest.issues
             .get({
-                owner: 'Expensify',
-                repo: 'App',
+                owner: GITHUB_CONSTANTS.GITHUB_OWNER,
+                repo: GITHUB_CONSTANTS.GITHUB_REPO,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 issue_number: issueNumber,
             })

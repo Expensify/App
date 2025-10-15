@@ -2,6 +2,7 @@ import {context} from '@actions/github';
 import {execSync, exec as execWithCallback} from 'child_process';
 import {promisify} from 'util';
 import GitHubUtils from '@github/libs/GithubUtils';
+import GITHUB_CONSTANTS from '@scripts/GITHUB_CONSTANTS';
 import {log, error as logError, warn as logWarn} from './Logger';
 
 const exec = promisify(execWithCallback);
@@ -397,8 +398,8 @@ class Git {
     static async getChangedFileNames(fromRef: string, toRef = 'HEAD'): Promise<string[]> {
         if (IS_CI) {
             const {data: changedFiles} = await GitHubUtils.octokit.pulls.listFiles({
-                owner: 'Expensify',
-                repo: 'App',
+                owner: GITHUB_CONSTANTS.GITHUB_OWNER,
+                repo: GITHUB_CONSTANTS.GITHUB_REPO,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 pull_number: context.payload.pull_request?.number ?? 0,
             });
