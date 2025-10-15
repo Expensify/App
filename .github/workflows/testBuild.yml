@@ -256,9 +256,6 @@ jobs:
     if: ${{ inputs.ANDROID }}
     needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
     runs-on: ubuntu-latest-xl
-    permissions:
-      contents: read
-      packages: read
     outputs:
       S3_APK_PATH: ${{ steps.exportAndroidS3Path.outputs.S3_APK_PATH }}
     steps:
