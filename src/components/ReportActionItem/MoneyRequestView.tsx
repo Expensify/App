@@ -722,7 +722,6 @@ function MoneyRequestView({
                                             iouType,
                                             transactionID: transaction.transactionID,
                                             reportID: report.reportID,
-                                            backTo: getReportRHPActiveRoute(),
                                             upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
                                         }),
                                     );
