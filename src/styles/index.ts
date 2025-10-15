@@ -5186,6 +5186,24 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: 4,
         },
 
+        avatarSelectorWrapper: {
+            margin: 5,
+            borderRadius: 50,
+            padding: 3,
+            borderWidth: 2,
+            borderColor: 'transparent',
+        },
+
+        avatarSelectorContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        avatarSelectorListContainer: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+        },
+
         expenseWidgetRadius: {
             borderRadius: variables.componentBorderRadiusNormal,
         },
@@ -5197,6 +5215,13 @@ const staticStyles = (theme: ThemeColors) =>
         stickToBottom: {
             position: 'absolute',
             bottom: 0,
+            left: 0,
+            right: 0,
+        },
+
+        stickToTop: {
+            position: 'absolute',
+            top: 0,
             left: 0,
             right: 0,
         },
