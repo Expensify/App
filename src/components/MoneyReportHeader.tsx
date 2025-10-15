@@ -5,7 +5,9 @@ import React, {useCallback, useContext, useEffect, useMemo, useState} from 'reac
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -14,8 +16,10 @@ import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePaymentOptions from '@hooks/usePaymentOptions';
+import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -70,6 +74,7 @@ import {
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
+    getOriginalTransactionWithSplitInfo,
     hasDuplicateTransactions,
     isDuplicate,
     isExpensifyCardTransaction,
@@ -183,9 +188,8 @@ function MoneyReportHeader({
         | PlatformStackRouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>
         | PlatformStackRouteProp<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>
     >();
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
@@ -194,8 +198,10 @@ function MoneyReportHeader({
     const isDownloadingPDF = download?.isDownloading ?? false;
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const activePolicy = usePolicy(activePolicyID);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Buildings'] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const exportTemplates = useMemo(() => getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, policy), [integrationsExportTemplates, csvExportLayouts, policy]);
 
@@ -256,6 +262,7 @@ function MoneyReportHeader({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const isOnHold = isOnHoldTransactionUtils(transaction);
+    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
@@ -306,6 +313,7 @@ function MoneyReportHeader({
     const [isRejectEducationalModalVisible, setIsRejectEducationalModalVisible] = useState(false);
 
     const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey} = useSearchContext();
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.similarSearchHash, true);
 
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
     const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
@@ -410,14 +418,14 @@ function MoneyReportHeader({
                 }
             } else if (isInvoiceReport) {
                 startAnimation();
-                payInvoice(type, chatReport, moneyRequestReport, introSelected, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod);
+                payInvoice(type, chatReport, moneyRequestReport, introSelected, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod, activePolicy);
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true);
+                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true, activePolicy);
                 if (currentSearchQueryJSON) {
                     search({
                         searchKey: currentSearchKey,
-                        shouldCalculateTotals: true,
+                        shouldCalculateTotals,
                         offset: 0,
                         queryJSON: currentSearchQueryJSON,
                         isOffline,
@@ -435,6 +443,8 @@ function MoneyReportHeader({
             moneyRequestReport,
             introSelected,
             existingB2BInvoiceReport,
+            shouldCalculateTotals,
+            activePolicy,
             currentSearchQueryJSON,
             currentSearchKey,
             isOffline,
@@ -556,6 +566,7 @@ function MoneyReportHeader({
 
     const primaryAction = useMemo(() => {
         return getReportPrimaryAction({
+            currentUserEmail: currentUserLogin ?? '',
             report: moneyRequestReport,
             chatReport,
             reportTransactions: transactions,
@@ -580,6 +591,7 @@ function MoneyReportHeader({
         reportActions,
         isChatReportArchived,
         invoiceReceiverPolicy,
+        currentUserLogin,
     ]);
 
     const confirmExport = useCallback(() => {
@@ -740,7 +752,7 @@ function MoneyReportHeader({
                     if (currentSearchQueryJSON) {
                         search({
                             searchKey: currentSearchKey,
-                            shouldCalculateTotals: true,
+                            shouldCalculateTotals,
                             offset: 0,
                             queryJSON: currentSearchQueryJSON,
                             isOffline,
@@ -868,6 +880,7 @@ function MoneyReportHeader({
             return [];
         }
         return getSecondaryReportActions({
+            currentUserEmail: currentUserLogin ?? '',
             report: moneyRequestReport,
             chatReport,
             reportTransactions: transactions,
@@ -878,7 +891,7 @@ function MoneyReportHeader({
             policies,
             isChatReportArchived,
         });
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, chatReport, isChatReportArchived]);
+    }, [moneyRequestReport, currentUserLogin, chatReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isChatReportArchived]);
 
     const secondaryExportActions = useMemo(() => {
         if (!moneyRequestReport) {
@@ -930,7 +943,7 @@ function MoneyReportHeader({
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
-            text: translate('iou.approve', getAmount(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)),
+            text: translate('iou.approve'),
             icon: Expensicons.ThumbsUp,
             value: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
             onSelected: confirmApproval,
@@ -991,7 +1004,7 @@ function MoneyReportHeader({
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.SPLIT]: {
-            text: translate('iou.split'),
+            text: isExpenseSplit ? translate('iou.editSplits') : translate('iou.split'),
             icon: Expensicons.ArrowSplit,
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
@@ -1019,7 +1032,7 @@ function MoneyReportHeader({
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE]: {
             text: translate('iou.changeWorkspace'),
-            icon: Expensicons.Buildings,
+            icon: expensifyIcons.Buildings,
             value: CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE,
             onSelected: () => {
                 if (!moneyRequestReport) {
@@ -1149,7 +1162,7 @@ function MoneyReportHeader({
 
     if (isMobileSelectionModeEnabled) {
         // If mobile selection mode is enabled but only one or no transactions remain, turn it off
-        const visibleTransactions = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const visibleTransactions = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
         if (visibleTransactions.length <= 1) {
             turnOffMobileSelectionMode();
         }
@@ -1210,6 +1223,10 @@ function MoneyReportHeader({
         </KYCWall>
     );
 
+    const showNextStepBar = shouldShowNextStep && !!optimisticNextStep?.message?.length;
+    const showNextStepSkeleton = shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
+    const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || !!statusBarProps || isReportInSearch;
+
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
             <HeaderWithBackButton
@@ -1260,24 +1277,26 @@ function MoneyReportHeader({
                     </View>
                 ))}
 
-            <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
-                <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
-                    {shouldShowNextStep && !!optimisticNextStep?.message?.length && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
-                    {shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline && <MoneyReportHeaderStatusBarSkeleton />}
-                    {!!statusBarProps && (
-                        <MoneyRequestHeaderStatusBar
-                            icon={statusBarProps.icon}
-                            description={statusBarProps.description}
+            {shouldShowMoreContent && (
+                <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
+                    <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
+                        {showNextStepBar && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
+                        {showNextStepSkeleton && <MoneyReportHeaderStatusBarSkeleton />}
+                        {!!statusBarProps && (
+                            <MoneyRequestHeaderStatusBar
+                                icon={statusBarProps.icon}
+                                description={statusBarProps.description}
+                            />
+                        )}
+                    </View>
+                    {isReportInSearch && (
+                        <MoneyRequestReportNavigation
+                            reportID={moneyRequestReport?.reportID}
+                            shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
                         />
                     )}
                 </View>
-                {isReportInSearch && (
-                    <MoneyRequestReportNavigation
-                        reportID={moneyRequestReport?.reportID}
-                        shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
-                    />
-                )}
-            </View>
+            )}
 
             <LoadingBar shouldShow={shouldShowLoadingBar && shouldUseNarrowLayout} />
             {isHoldMenuVisible && requestType !== undefined && (
