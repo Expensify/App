@@ -259,7 +259,7 @@ function getContactMethodsOptions(loginList?: LoginList, defaultEmail?: string) 
         return [];
     }
 
-    const sortedLoginList = Object.entries(loginList).sort(([_, loginData]) => (loginData.partnerUserID === defaultEmail ? -1 : 1));
+    const sortedLoginList = Object.entries(loginList).sort(([, loginData]) => (loginData.partnerUserID === defaultEmail ? -1 : 1));
 
     return sortedLoginList.map(([loginName, login]) => {
         const isDefaultContactMethod = defaultEmail === login?.partnerUserID;
