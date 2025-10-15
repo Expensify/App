@@ -32,7 +32,7 @@ const VERBOSE_OUTPUT_LINE_REGEXES = {
 
 type HealthcheckJsonResults = {
     success: string[];
-    failure: CompilerFailure[];
+    failure: string[];
 };
 
 type CompilerResults = {
@@ -131,21 +131,6 @@ function runCompilerHealthcheck(src?: string): CompilerResults {
         cwd: process.cwd(),
     });
 
-    // // Use Map keyed by unique file key to deduplicate failures
-    // const failureMap = new Map<string, CompilerFailure>();
-    // results.failures.forEach((failure) => {
-    //     const key = getUniqueFileKey(failure);
-    //     // Prefer the first occurrence that has a reason
-    //     const existing = failureMap.get(key);
-    //     if (!existing) {
-    //         failureMap.set(key, failure);
-    //         return;
-    //     }
-    //     if (!existing.reason && failure.reason) {
-    //         failureMap.set(key, failure);
-    //     }
-    // });
-
     const results = parseHealthcheckOutput(output);
     return results;
 }
@@ -158,8 +143,8 @@ function parseHealthcheckOutput(output: string): CompilerResults {
         failures: new Map<string, CompilerFailure>(),
     };
 
-    const resultsAfterJson = parseJsonOutput(lines, initialResults);
-    const finalResults = parseVerboseOutput(lines, resultsAfterJson);
+    const verboseResults = parseVerboseOutput(lines, initialResults);
+    const finalResults = parseJsonOutput(lines, verboseResults);
 
     return finalResults;
 }
@@ -190,21 +175,23 @@ function parseJsonOutput(lines: string[], results: CompilerResults): CompilerRes
         const jsonResult = JSON.parse(jsonStr) as HealthcheckJsonResults;
 
         // Process successful compilations from JSON
-        jsonResult.success.forEach((success) => results.success.add(success));
+        jsonResult.success.forEach((successfulFile) => results.success.add(successfulFile));
 
         // Process failures from JSON
-        jsonResult.failure.forEach((newFailure) => {
-            if (shouldSuppressCompilerError(newFailure.reason)) {
+        jsonResult.failure.forEach((failedFile) => {
+            // Get all failures for this file (all lines and columns)
+            const fileFailures = Array.from(results.failures.entries()).filter(([, failure]) => failure.file === failedFile);
+
+            // Only add JSON file failure if no failure for this file exists already (all lines and columns)
+            if (fileFailures.length > 0) {
                 return;
             }
 
+            const newFailure: CompilerFailure = {
+                file: failedFile,
+            };
             const key = getUniqueFileKey(newFailure);
-
-            // Only add if not already exists, or if existing one has no reason
-            const existing = results.failures.get(key);
-            if (!existing?.reason) {
-                results.failures.set(key, newFailure);
-            }
+            results.failures.set(key, newFailure);
         });
     } catch (error) {
         logWarn('Failed to parse JSON from combined react-compiler-healthcheck output:', error);
@@ -315,7 +302,10 @@ function shouldSuppressCompilerError(reason: string | undefined): boolean {
 }
 
 function getUniqueFileKey({file, line, column}: CompilerFailure): string {
-    return `${file}:${line}:${column}`;
+    const isLineSet = line !== undefined;
+    const isLineAndColumnSet = isLineSet && column !== undefined;
+
+    return file + (isLineSet ? `:${line}` : '') + (isLineAndColumnSet ? `:${column}` : '');
 }
 
 function createFilesGlob(filesToCheck?: string[]): string | undefined {
@@ -434,9 +424,7 @@ function printFailureSummary({success, failures}: CompilerResults): void {
     failures.forEach((failure) => {
         const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
         logBold(`${failure.file}${location}`);
-        if (failure.reason) {
-            logNote(`${tab}${failure.reason}`);
-        }
+        logNote(`${tab}${failure.reason ?? 'No reason provided'}`);
     });
 
     log();
