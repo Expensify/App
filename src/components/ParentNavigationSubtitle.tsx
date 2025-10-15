@@ -132,29 +132,29 @@ function ParentNavigationSubtitle({
                         },
                     ]}
                 >
-                    <Text style={[styles.reportStatusText, {color: statusTextColor}]}>{statusText}</Text>
+                    <Text style={[styles.reportStatusText, textStyles, {color: statusTextColor}]}>{statusText}</Text>
                 </View>
             )}
             <Text
-                style={[styles.optionAlternateText, styles.textLabelSupporting, styles.flex1]}
+                style={[styles.optionAlternateText, styles.textLabelSupporting, styles.flex1, textStyles]}
                 numberOfLines={1}
             >
                 {!!reportName && (
                     <>
-                        <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{`${translate('threads.from')} `}</Text>
+                        <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{`${translate('threads.from')} `}</Text>
                         <TextLink
                             onMouseEnter={onMouseEnter}
                             onMouseLeave={onMouseLeave}
                             onPress={onPress}
                             accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
-                            style={[pressableStyles, styles.optionAlternateText, styles.textLabelSupporting, hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link]}
+                            style={[pressableStyles, styles.optionAlternateText, styles.textLabelSupporting, hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link, textStyles]}
                         >
                             {reportName}
                         </TextLink>
                     </>
                 )}
                 {!!workspaceName && workspaceName !== reportName && (
-                    <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>
+                    <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>
                 )}
             </Text>
         </View>

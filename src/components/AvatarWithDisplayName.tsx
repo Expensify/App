@@ -73,6 +73,7 @@ type AvatarWithDisplayNameProps = {
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
 
+    /** The style of the custom display name text */
     customDisplayNameStyle?: TextStyle;
 
     /** The style of the parent navigation subtitle text */

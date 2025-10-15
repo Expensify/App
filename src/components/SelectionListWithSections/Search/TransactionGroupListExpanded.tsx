@@ -155,7 +155,13 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         <>
             {isLargeScreenWidth && (
                 <View
-                    style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl9, isGroupByReports ? styles.pr10 : styles.pr3]}
+                    style={[
+                        styles.searchListHeaderContainerStyle,
+                        styles.groupSearchListTableContainerStyle,
+                        styles.bgTransparent,
+                        styles.pl9,
+                        isGroupByReports && isLargeScreenWidth ? styles.pr10 : styles.pr3,
+                    ]}
                 >
                     <SearchTableHeader
                         canSelectMultiple
@@ -194,7 +200,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         onButtonPress={() => {
                             openReportInRHP(transaction);
                         }}
-                        style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half], isGroupByReports && styles.pr10]}
+                        style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half], isGroupByReports && isLargeScreenWidth && styles.pr10]}
                         isReportItemChild
                         isInSingleTransactionReport={isInSingleTransactionReport}
                         areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
