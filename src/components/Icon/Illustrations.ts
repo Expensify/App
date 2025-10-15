@@ -84,6 +84,7 @@ import BankArrow from '@assets/images/simple-illustrations/simple-illustration__
 import BigRocket from '@assets/images/simple-illustrations/simple-illustration__bigrocket.svg';
 import PinkBill from '@assets/images/simple-illustrations/simple-illustration__bill.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
+import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
@@ -340,4 +341,5 @@ export {
     PaperAirplane,
     CardReplacementSuccess,
     EmptyShelves,
+    BlueShield,
 };
