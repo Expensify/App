@@ -269,7 +269,7 @@ function updateReportsToDisplayInLHN(
     const displayedReportsCopy = {...displayedReports};
     updatedReportsKeys.forEach((reportID) => {
         const report = reports?.[reportID];
-        if (!report || !report.reportID) {
+        if (!report?.reportID) {
             return;
         }
 
