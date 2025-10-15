@@ -3,7 +3,7 @@ import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -30,7 +30,7 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {getActivePolicies, isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils} from '@libs/PolicyUtils';
+import {getPolicyRole, isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, selectArchivedReportsIdSet, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
@@ -205,6 +205,10 @@ function prepareTransactionsList(
     };
 }
 
+const activePaidPoliciesSelector = (allPolicies: OnyxCollection<Policy>): OnyxCollection<Policy> => {
+    return Object.fromEntries(Object.entries(allPolicies ?? {}).filter(([, userPolicy]) => isPaidGroupPolicyPolicyUtils(userPolicy)));
+};
+
 function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch, isMobileSelectionModeEnabled, onSortPressedCallback}: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
     const {isOffline} = useNetwork();
@@ -239,9 +243,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [activePaidPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: activePaidPoliciesSelector,
+        canBeMissing: true
+    });
+
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const isUserWorkspaceMember = !!getActivePolicies(allPolicies ?? {}, currentUserLogin).filter((userPolicy) => isPaidGroupPolicyPolicyUtils(userPolicy)).length;
+    const isUserWorkspaceMember = !!Object.values(activePaidPolicies ?? {}).filter((userPolicy) => getPolicyRole(userPolicy, currentUserLogin)).length;
 
     // Filter violations based on user visibility
     const filteredViolations = useMemo(() => {
