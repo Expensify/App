@@ -2,6 +2,8 @@
 import type {SvgProps} from 'react-native-svg';
 import * as SeasonF1 from '@components/Icon/CustomAvatars/SeasonF1';
 import * as DefaultAvatars from '@components/Icon/DefaultAvatars';
+import * as WorkspaceDefaultAvatars from '@components/Icon/WorkspaceDefaultAvatars';
+import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
 type DefaultAvatarIDs =
@@ -56,10 +58,70 @@ type SeasonF1AvatarIDs =
     | 'trophy-yellow600'
     | 'wrenches-pink600';
 
+type WorkspaceDefaultAvatarIDs =
+    | 'workspace-default-avatar_0'
+    | 'workspace-default-avatar_1'
+    | 'workspace-default-avatar_2'
+    | 'workspace-default-avatar_3'
+    | 'workspace-default-avatar_4'
+    | 'workspace-default-avatar_5'
+    | 'workspace-default-avatar_6'
+    | 'workspace-default-avatar_7'
+    | 'workspace-default-avatar_8'
+    | 'workspace-default-avatar_9'
+    | 'workspace-default-avatar_a'
+    | 'workspace-default-avatar_b'
+    | 'workspace-default-avatar_c'
+    | 'workspace-default-avatar_d'
+    | 'workspace-default-avatar_e'
+    | 'workspace-default-avatar_f'
+    | 'workspace-default-avatar_g'
+    | 'workspace-default-avatar_h'
+    | 'workspace-default-avatar_i'
+    | 'workspace-default-avatar_j'
+    | 'workspace-default-avatar_k'
+    | 'workspace-default-avatar_l'
+    | 'workspace-default-avatar_m'
+    | 'workspace-default-avatar_n'
+    | 'workspace-default-avatar_o'
+    | 'workspace-default-avatar_p'
+    | 'workspace-default-avatar_q'
+    | 'workspace-default-avatar_r'
+    | 'workspace-default-avatar_s'
+    | 'workspace-default-avatar_t'
+    | 'workspace-default-avatar_u'
+    | 'workspace-default-avatar_v'
+    | 'workspace-default-avatar_w'
+    | 'workspace-default-avatar_x'
+    | 'workspace-default-avatar_y'
+    | 'workspace-default-avatar_z';
+
 const CDN_DEFAULT_AVATARS = `${CONST.CLOUDFRONT_URL}/images/avatars`;
 const CDN_SEASON_F1 = `${CONST.CLOUDFRONT_URL}/images/avatars/custom-avatars/season-f1`;
 
-type AvatarEntry = {local: React.FC<SvgProps>; url: string};
+type SVGAvatarColorStyle = {backgroundColor: string; fillColor: string};
+
+const LETTER_AVATAR_COLORS: SVGAvatarColorStyle[] = [
+    {backgroundColor: colors.blue100, fillColor: colors.blue600},
+    {backgroundColor: colors.blue400, fillColor: colors.blue700},
+    {backgroundColor: colors.blue700, fillColor: colors.blue200},
+    {backgroundColor: colors.green100, fillColor: colors.green600},
+    {backgroundColor: colors.green400, fillColor: colors.green700},
+    {backgroundColor: colors.green700, fillColor: colors.green200},
+    {backgroundColor: colors.yellow100, fillColor: colors.yellow600},
+    {backgroundColor: colors.yellow400, fillColor: colors.yellow700},
+    {backgroundColor: colors.yellow700, fillColor: colors.yellow200},
+    {backgroundColor: colors.tangerine100, fillColor: colors.tangerine600},
+    {backgroundColor: colors.tangerine400, fillColor: colors.tangerine700},
+    {backgroundColor: colors.tangerine700, fillColor: colors.tangerine200},
+    {backgroundColor: colors.pink100, fillColor: colors.pink600},
+    {backgroundColor: colors.pink400, fillColor: colors.pink700},
+    {backgroundColor: colors.pink700, fillColor: colors.pink200},
+    {backgroundColor: colors.ice100, fillColor: colors.ice600},
+    {backgroundColor: colors.ice400, fillColor: colors.ice700},
+    {backgroundColor: colors.ice700, fillColor: colors.ice200},
+];
+type AvatarEntry = {local: React.FC<SvgProps>; url?: string};
 type CustomAvatarID = DefaultAvatarIDs | SeasonF1AvatarIDs;
 
 const DEFAULTS: Record<DefaultAvatarIDs, AvatarEntry> = {
@@ -115,6 +177,72 @@ const SEASON_F1: Record<SeasonF1AvatarIDs, AvatarEntry> = {
     'trophy-yellow600': {local: SeasonF1.TrophyYellow600, url: `${CDN_SEASON_F1}/trophy-yellow600.png`},
     'wrenches-pink600': {local: SeasonF1.WrenchesPink600, url: `${CDN_SEASON_F1}/wrenches-pink600.png`},
 };
+
+const WORKSPACE_DEFAULTS: Record<WorkspaceDefaultAvatarIDs, AvatarEntry> = {
+    'workspace-default-avatar_0': {local: WorkspaceDefaultAvatars.Workspace0},
+    'workspace-default-avatar_1': {local: WorkspaceDefaultAvatars.Workspace1},
+    'workspace-default-avatar_2': {local: WorkspaceDefaultAvatars.Workspace2},
+    'workspace-default-avatar_3': {local: WorkspaceDefaultAvatars.Workspace3},
+    'workspace-default-avatar_4': {local: WorkspaceDefaultAvatars.Workspace4},
+    'workspace-default-avatar_5': {local: WorkspaceDefaultAvatars.Workspace5},
+    'workspace-default-avatar_6': {local: WorkspaceDefaultAvatars.Workspace6},
+    'workspace-default-avatar_7': {local: WorkspaceDefaultAvatars.Workspace7},
+    'workspace-default-avatar_8': {local: WorkspaceDefaultAvatars.Workspace8},
+    'workspace-default-avatar_9': {local: WorkspaceDefaultAvatars.Workspace9},
+    'workspace-default-avatar_a': {local: WorkspaceDefaultAvatars.WorkspaceA},
+    'workspace-default-avatar_b': {local: WorkspaceDefaultAvatars.WorkspaceB},
+    'workspace-default-avatar_c': {local: WorkspaceDefaultAvatars.WorkspaceC},
+    'workspace-default-avatar_d': {local: WorkspaceDefaultAvatars.WorkspaceD},
+    'workspace-default-avatar_e': {local: WorkspaceDefaultAvatars.WorkspaceE},
+    'workspace-default-avatar_f': {local: WorkspaceDefaultAvatars.WorkspaceF},
+    'workspace-default-avatar_g': {local: WorkspaceDefaultAvatars.WorkspaceG},
+    'workspace-default-avatar_h': {local: WorkspaceDefaultAvatars.WorkspaceH},
+    'workspace-default-avatar_i': {local: WorkspaceDefaultAvatars.WorkspaceI},
+    'workspace-default-avatar_j': {local: WorkspaceDefaultAvatars.WorkspaceJ},
+    'workspace-default-avatar_k': {local: WorkspaceDefaultAvatars.WorkspaceK},
+    'workspace-default-avatar_l': {local: WorkspaceDefaultAvatars.WorkspaceL},
+    'workspace-default-avatar_m': {local: WorkspaceDefaultAvatars.WorkspaceM},
+    'workspace-default-avatar_n': {local: WorkspaceDefaultAvatars.WorkspaceN},
+    'workspace-default-avatar_o': {local: WorkspaceDefaultAvatars.WorkspaceO},
+    'workspace-default-avatar_p': {local: WorkspaceDefaultAvatars.WorkspaceP},
+    'workspace-default-avatar_q': {local: WorkspaceDefaultAvatars.WorkspaceQ},
+    'workspace-default-avatar_r': {local: WorkspaceDefaultAvatars.WorkspaceR},
+    'workspace-default-avatar_s': {local: WorkspaceDefaultAvatars.WorkspaceS},
+    'workspace-default-avatar_t': {local: WorkspaceDefaultAvatars.WorkspaceT},
+    'workspace-default-avatar_u': {local: WorkspaceDefaultAvatars.WorkspaceU},
+    'workspace-default-avatar_v': {local: WorkspaceDefaultAvatars.WorkspaceV},
+    'workspace-default-avatar_w': {local: WorkspaceDefaultAvatars.WorkspaceW},
+    'workspace-default-avatar_x': {local: WorkspaceDefaultAvatars.WorkspaceX},
+    'workspace-default-avatar_y': {local: WorkspaceDefaultAvatars.WorkspaceY},
+    'workspace-default-avatar_z': {local: WorkspaceDefaultAvatars.WorkspaceZ},
+};
+
+type ColorShade = 'light' | 'medium' | 'dark';
+type LetterAvatarVariant = {
+    backgroundColor: string;
+    fillColor: string;
+    component: React.FC<SvgProps>;
+};
+
+/**
+ * Generates a list of workspace letter avatar components with different background colors and shades
+ * @param initial - The letter/character to use (0-9, A-Z)
+ * @returns An array of avatar variants with different colors and shades for given initial
+ */
+function generateLetterAvatars(initial: string): LetterAvatarVariant[] {
+    const normalizedInitial = initial.toLowerCase();
+    const workspaceKey = `workspace-default-avatar_${normalizedInitial}` as WorkspaceDefaultAvatarIDs;
+
+    if (!(workspaceKey in WORKSPACE_DEFAULTS)) {
+        return [];
+    }
+
+    return LETTER_AVATAR_COLORS.map(({fillColor, backgroundColor}) => ({
+        backgroundColor,
+        fillColor,
+        component: WORKSPACE_DEFAULTS[workspaceKey].local,
+    }));
+}
 
 const DISPLAY_ORDER = [
     'car-blue100',
@@ -189,5 +317,5 @@ const CUSTOM_AVATAR_CATALOG = buildOrderedAvatars();
 const getAvatarLocal = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].local;
 const getAvatarURL = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].url;
 
-export {ALL_CUSTOM_AVATARS, CUSTOM_AVATAR_CATALOG, getAvatarLocal, getAvatarURL};
-export type {DefaultAvatarIDs, SeasonF1AvatarIDs, CustomAvatarID};
+export {ALL_CUSTOM_AVATARS, CUSTOM_AVATAR_CATALOG, getAvatarLocal, getAvatarURL, WORKSPACE_DEFAULTS, generateLetterAvatars};
+export type {DefaultAvatarIDs, SeasonF1AvatarIDs, WorkspaceDefaultAvatarIDs, CustomAvatarID, ColorShade};
