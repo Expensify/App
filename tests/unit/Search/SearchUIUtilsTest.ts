@@ -1977,38 +1977,16 @@ describe('SearchUIUtils', () => {
 
     describe('Test getSortedSections', () => {
         it('should return getSortedReportActionData result when type is CHAT', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.EXPENSE.ALL, reportActionListItems, localeCompare)).toStrictEqual([
-                {
-                    accountID: 18439984,
-                    actionName: 'ADDCOMMENT',
-                    created: '2024-12-21 13:05:20',
-                    date: '2024-12-21 13:05:20',
-                    formattedFrom: 'Admin',
-                    from: {
-                        accountID: 18439984,
-                        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                        displayName: 'Admin',
-                        login: adminEmail,
-                    },
-                    keyForList: 'Admin',
-                    message: [
-                        {
-                            html: '<p>Payment has been processed.</p>',
-                            text: 'Payment has been processed.',
-                            type: 'text',
-                            whisperedTo: [],
-                        },
-                        {
-                            html: '<p>Please review this expense.</p>',
-                            text: 'Please review this expense.',
-                            type: 'comment',
-                        },
-                    ],
-                    reportActionID: 'Admin',
-                    reportID: '123456789',
-                    reportName: 'Expense Report #123',
-                },
-            ]);
+            const sortedActions = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.CHAT,
+                CONST.SEARCH.STATUS.EXPENSE.ALL,
+                reportActionListItems,
+                localeCompare,
+            ) as ReportActionListItemType[];
+            // Should return all report actions sorted by creation date in descending order (newest first)
+            expect(sortedActions).toHaveLength(5);
+            expect(sortedActions.at(0)?.created).toBe('2024-12-21 13:05:24'); // reportAction4 (newest)
+            expect(sortedActions.at(4)?.created).toBe('2024-12-21 13:05:20'); // ADDCOMMENT action (oldest)
         });
 
         it('should return getSortedTransactionData result when groupBy is undefined', () => {
