@@ -52,16 +52,15 @@ type DiffFilteringCommits = {
     to: string;
 };
 
-type CommonCheckOptions = {
-    remote?: string;
-    shouldGenerateReport?: boolean;
-    reportFileName?: string;
-    shouldFilterByDiff?: boolean;
-    shouldPrintSuccesses?: boolean;
-};
-
 type PrintResultsOptions = {
     shouldPrintSuccesses: boolean;
+};
+
+type CommonCheckOptions = PrintResultsOptions & {
+    remote?: string;
+    reportFileName?: string;
+    shouldGenerateReport?: boolean;
+    shouldFilterByDiff?: boolean;
 };
 
 type CheckOptions = CommonCheckOptions & {
@@ -102,9 +101,7 @@ async function check({
     return isPassed;
 }
 
-type CheckChangedFilesOptions = CommonCheckOptions & {
-    reportFileName?: string;
-};
+type CheckChangedFilesOptions = CommonCheckOptions;
 
 async function checkChangedFiles({remote, ...restOptions}: CheckChangedFilesOptions): Promise<boolean> {
     logInfo('Checking changed files for React Compiler compliance...');
@@ -120,7 +117,8 @@ async function checkChangedFiles({remote, ...restOptions}: CheckChangedFilesOpti
         }
 
         return await check({filesToCheck, ...restOptions});
-    } catch {
+    } catch (error) {
+        logError('Error checking changed files for React Compiler compliance:', error);
         return false;
     }
 }
@@ -549,8 +547,6 @@ async function main() {
 
     const commonOptions: CommonCheckOptions = {shouldGenerateReport, reportFileName, shouldFilterByDiff, shouldPrintSuccesses};
 
-    let isPassed = false;
-
     async function runCommand() {
         switch (command) {
             case 'check':
@@ -563,9 +559,11 @@ async function main() {
         }
     }
 
+    let isPassed = false;
     try {
         isPassed = await runCommand();
     } catch (error) {
+        logError('Error running react-compiler-compliance-check:', error);
         isPassed = false;
     } finally {
         process.exit(isPassed ? 0 : 1);
