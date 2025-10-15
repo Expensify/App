@@ -55,7 +55,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID}: MoneyR
         const currentTransactionIndex = transactionIDsList.findIndex((id) => id === currentTransactionID);
 
         const prevID = currentTransactionIndex > 0 ? transactionIDsList.at(currentTransactionIndex - 1) : undefined;
-        const nextID = currentTransactionIndex <= transactionIDsList.length - 1 ? transactionIDsList.at(currentTransactionIndex + 1) : undefined;
+        const nextID = transactionIDsList.at(currentTransactionIndex + 1);
 
         return {
             prevTransactionID: prevID,
