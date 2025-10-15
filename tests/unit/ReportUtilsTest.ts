@@ -8,8 +8,11 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
+import {getEnvironmentURL} from '@libs/Environment/Environment';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {translateLocal} from '@libs/Localize';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticChatReport,
@@ -21,6 +24,7 @@ import {
     buildReportNameFromParticipantNames,
     buildTransactionThread,
     canAddTransaction,
+    canCreateRequest,
     canDeleteReportAction,
     canDeleteTransaction,
     canEditMoneyRequest,
@@ -35,7 +39,6 @@ import {
     canUserPerformWriteAction,
     excludeParticipantsForDisplay,
     findLastAccessedReport,
-    getAllAncestorReportActions,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getApprovalChain,
     getChatByParticipants,
@@ -44,6 +47,7 @@ import {
     getDisplayNamesWithTooltips,
     getGroupChatName,
     getIconsForParticipants,
+    getIOUReportActionDisplayMessage,
     getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
     getParentNavigationSubtitle,
@@ -51,9 +55,11 @@ import {
     getPolicyExpenseChat,
     getPolicyExpenseChatName,
     getReasonAndReportActionThatRequiresAttention,
+    getReportActionActorAccountID,
     getReportIDFromLink,
     getReportName,
     getReportStatusTranslation,
+    getReportURLForCurrentContext,
     getSearchReportName,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
@@ -67,6 +73,8 @@ import {
     isPayer,
     isReportOutstanding,
     isRootGroupChat,
+    isSelfDMOrSelfDMThread,
+    isWorkspaceMemberLeavingWorkspaceRoom,
     parseReportRouteParams,
     populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
@@ -74,6 +82,8 @@ import {
     requiresManualSubmission,
     shouldDisableRename,
     shouldDisableThread,
+    shouldEnableNegative,
+    shouldExcludeAncestorReportAction,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
@@ -86,6 +96,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {
     Beta,
     OnyxInputOrEntry,
@@ -136,8 +147,12 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('@libs/Permissions');
 
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
+
 jest.mock('@libs/Navigation/Navigation', () => ({
     setNavigationActionToMicrotaskQueue: jest.fn(),
+    navigate: jest.fn(),
+    getActiveRoute: jest.fn(() => 'mock-route'),
     navigationRef: {
         getCurrentRoute: jest.fn(() => ({
             params: {
@@ -335,6 +350,37 @@ describe('ReportUtils', () => {
         return waitForBatchedUpdates();
     });
     beforeEach(() => IntlStore.load(CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
+
+    describe('getIOUReportActionDisplayMessage', () => {
+        const iouReportID = '1234567890';
+        const policyID = 332;
+
+        const reportAction = {
+            ...createRandomReportAction(44),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {IOUReportID: iouReportID, type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
+        };
+
+        const iouReport = {...createExpenseReport(Number(iouReportID)), policyID: policyID.toString()};
+
+        const policyWithBank = {
+            ...createRandomPolicy(policyID, CONST.POLICY.TYPE.TEAM),
+            achAccount: {
+                accountNumber: 'XXXXXXXXXXXX0000',
+            },
+        };
+
+        it('should return the right message when payment type is ACH', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithBank);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {[reportAction.reportActionID]: reportAction});
+
+            const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
+            const paidSystemMessage = translateLocal('iou.businessBankAccount', {amount: '', last4Digits});
+
+            expect(getIOUReportActionDisplayMessage(reportAction, undefined, iouReport)).toBe(paidSystemMessage);
+        });
+    });
 
     describe('prepareOnboardingOnyxData', () => {
         it('provides test drive url to task title', () => {
@@ -2053,6 +2099,26 @@ describe('ReportUtils', () => {
             expect(requiresAttentionFromCurrentUser(report)).toBe(true);
         });
 
+        it('returns true for @here mention in an admin room', () => {
+            const adminRoom = createAdminRoom(42);
+            const report = {
+                ...adminRoom,
+                lastReadTime: '2024-03-01 12:00:00.000',
+                lastMentionedTime: '2024-03-01 12:00:01.000',
+            };
+            expect(requiresAttentionFromCurrentUser(report)).toBe(true);
+        });
+
+        it('returns false for @here in an admin room when user already read after mention', () => {
+            const adminRoom2 = createAdminRoom(43);
+            const report = {
+                ...adminRoom2,
+                lastReadTime: '2024-03-01 12:00:02.000',
+                lastMentionedTime: '2024-03-01 12:00:01.000',
+            };
+            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+        });
+
         it('returns true when the report is an outstanding task', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -2102,6 +2168,43 @@ describe('ReportUtils', () => {
             };
 
             expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+        });
+
+        it('returns true when expense report is awaiting current user approval without parent access', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                managerID: currentUserAccountID,
+                hasParentAccess: false,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            expect(requiresAttentionFromCurrentUser(report)).toBe(true);
+        });
+
+        it('returns false when awaiting approval but parent accessible or user is not approver', () => {
+            const reportWithParentAccess = {
+                ...LHNTestUtils.getFakeReport(),
+                managerID: currentUserAccountID,
+                hasParentAccess: true,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            expect(requiresAttentionFromCurrentUser(reportWithParentAccess)).toBe(false);
+
+            const reportWithDifferentManager = {
+                ...LHNTestUtils.getFakeReport(),
+                managerID: 999999,
+                hasParentAccess: false,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            expect(requiresAttentionFromCurrentUser(reportWithDifferentManager)).toBe(false);
         });
     });
 
@@ -2678,6 +2781,191 @@ describe('ReportUtils', () => {
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(false);
             });
         });
+
+        describe('Preferred policy restrictions', () => {
+            // Self DM - TRACK should always be allowed regardless of restrictions
+            it('should allow TRACK requests for self DMs', () => {
+                const selfDMReport = {
+                    reportID: '1234',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                    participants: {
+                        [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+                const selfDMParticipants = [currentUserAccountID];
+
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(selfDMReport, undefined, selfDMParticipants, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(selfDMReport, undefined, selfDMParticipants, false, true);
+
+                expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+                expect(withRestrictionsResult.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+            });
+
+            // DM - SUBMIT, PAY, SPLIT should be restricted
+            it('should restrict SUBMIT requests for DMs', () => {
+                const otherUserAccountID = participantsAccountIDs.at(0) ?? 0;
+                const dmReport = {
+                    reportID: '1235',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [otherUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+                const dmParticipants = [currentUserAccountID, otherUserAccountID];
+
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, false, true);
+
+                expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
+                expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SUBMIT)).toBe(false);
+            });
+
+            it('should restrict PAY requests for DMs', () => {
+                const otherUserAccountID = participantsAccountIDs.at(0) ?? 0;
+                const dmReport = {
+                    reportID: '1236',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [otherUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+                const dmParticipants = [currentUserAccountID, otherUserAccountID];
+
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, false, true);
+
+                if (withoutRestrictionsResult.includes(CONST.IOU.TYPE.PAY)) {
+                    expect(withRestrictionsResult.includes(CONST.IOU.TYPE.PAY)).toBe(false);
+                }
+            });
+
+            it('should restrict SPLIT requests for DMs', () => {
+                const otherUserAccountID = participantsAccountIDs.at(0) ?? 0;
+                const dmReport = {
+                    reportID: '1237',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [otherUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+                const dmParticipants = [currentUserAccountID, otherUserAccountID];
+
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, false, true);
+
+                expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
+                expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
+
+            // Group Chat - Only SPLIT functionality available, should be restricted
+
+            it('should restrict SPLIT requests for group chats', () => {
+                const groupParticipants = [currentUserAccountID, ...participantsAccountIDs.slice(0, 3)];
+                const groupChatReport = {
+                    ...LHNTestUtils.getFakeReport(groupParticipants),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: undefined,
+                };
+
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(groupChatReport, undefined, groupParticipants, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(groupChatReport, undefined, groupParticipants, false, true);
+
+                expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
+                expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
+
+            // Policy Rooms - SPLIT should be restricted
+
+            it('should restrict SPLIT requests for user-created policy rooms', () => {
+                const policyRoomParticipants = [currentUserAccountID, participantsAccountIDs.at(0) ?? 0];
+                const policyRoomReport = {
+                    ...LHNTestUtils.getFakeReport(policyRoomParticipants),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                };
+
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(policyRoomReport, undefined, policyRoomParticipants, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(policyRoomReport, undefined, policyRoomParticipants, false, true);
+
+                expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
+                expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
+        });
+    });
+
+    describe('canCreateRequest', () => {
+        describe('Preferred policy restrictions', () => {
+            const participantsAccountIDs = Object.keys(participantsPersonalDetails).map(Number);
+
+            // Self DM - TRACK should always be allowed regardless of restrictions
+            it('should allow TRACK requests for self DMs', () => {
+                const selfDMReport = {
+                    reportID: '2234',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                    participants: {
+                        [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+
+                const withoutRestrictionsResult = canCreateRequest(selfDMReport, undefined, CONST.IOU.TYPE.TRACK, false, false);
+                const withRestrictionsResult = canCreateRequest(selfDMReport, undefined, CONST.IOU.TYPE.TRACK, false, true);
+
+                expect(withoutRestrictionsResult).toBe(true);
+                expect(withRestrictionsResult).toBe(true);
+            });
+
+            // DM - SPLIT should be restricted
+
+            it('should restrict SPLIT requests for DMs', () => {
+                const otherUserAccountID = participantsAccountIDs.at(0) ?? 0;
+                const dmReport = {
+                    reportID: '2237',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [otherUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+
+                const withoutRestrictionsResult = canCreateRequest(dmReport, undefined, CONST.IOU.TYPE.SPLIT, false, false);
+                const withRestrictionsResult = canCreateRequest(dmReport, undefined, CONST.IOU.TYPE.SPLIT, false, true);
+
+                expect(withoutRestrictionsResult).toBe(true);
+                expect(withRestrictionsResult).toBe(false);
+            });
+
+            // Group Chat - Only SPLIT functionality available, should be restricted
+
+            it('should restrict SPLIT requests for group chats', () => {
+                const groupChat = LHNTestUtils.getFakeReport([currentUserAccountID, ...participantsAccountIDs.slice(0, 3)]);
+
+                const withoutRestrictionsResult = canCreateRequest(groupChat, undefined, CONST.IOU.TYPE.SPLIT, false, false);
+                const withRestrictionsResult = canCreateRequest(groupChat, undefined, CONST.IOU.TYPE.SPLIT, false, true);
+
+                expect(withoutRestrictionsResult).toBe(true);
+                expect(withRestrictionsResult).toBe(false);
+            });
+
+            // Policy Rooms - SPLIT should be restricted
+
+            it('should restrict SPLIT requests for user-created policy rooms', () => {
+                const policyRoom = {
+                    ...LHNTestUtils.getFakeReport([currentUserAccountID, participantsAccountIDs.at(0) ?? 0]),
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                };
+
+                const withoutRestrictionsResult = canCreateRequest(policyRoom, undefined, CONST.IOU.TYPE.SPLIT, false, false);
+                const withRestrictionsResult = canCreateRequest(policyRoom, undefined, CONST.IOU.TYPE.SPLIT, false, true);
+
+                expect(withoutRestrictionsResult).toBe(true);
+                expect(withRestrictionsResult).toBe(false);
+            });
+        });
     });
 
     describe('getReportIDFromLink', () => {
@@ -2927,50 +3215,6 @@ describe('ReportUtils', () => {
                 // Then the thread should be disabled
                 expect(isThreadDisabled).toBeTruthy();
             });
-        });
-    });
-
-    describe('getAllAncestorReportActions', () => {
-        const reports: Report[] = [
-            {reportID: '1', lastReadTime: '2024-02-01 04:56:47.233', reportName: 'Report'},
-            {reportID: '2', lastReadTime: '2024-02-01 04:56:47.233', parentReportActionID: '1', parentReportID: '1', reportName: 'Report'},
-            {reportID: '3', lastReadTime: '2024-02-01 04:56:47.233', parentReportActionID: '2', parentReportID: '2', reportName: 'Report'},
-            {reportID: '4', lastReadTime: '2024-02-01 04:56:47.233', parentReportActionID: '3', parentReportID: '3', reportName: 'Report'},
-            {reportID: '5', lastReadTime: '2024-02-01 04:56:47.233', parentReportActionID: '4', parentReportID: '4', reportName: 'Report'},
-        ];
-
-        const reportActions: ReportAction[] = [
-            {reportActionID: '1', created: '2024-02-01 04:42:22.965', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED},
-            {reportActionID: '2', created: '2024-02-01 04:42:28.003', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED},
-            {reportActionID: '3', created: '2024-02-01 04:42:31.742', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED},
-            {reportActionID: '4', created: '2024-02-01 04:42:35.619', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED},
-        ];
-
-        beforeAll(() => {
-            const reportCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, reports, (report) => report.reportID);
-            const reportActionCollectionDataSet = toCollectionDataSet(
-                ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                reportActions.map((reportAction) => ({[reportAction.reportActionID]: reportAction})),
-                (actions) => Object.values(actions).at(0)?.reportActionID,
-            );
-            Onyx.multiSet({
-                ...reportCollectionDataSet,
-                ...reportActionCollectionDataSet,
-            });
-            return waitForBatchedUpdates();
-        });
-
-        afterAll(() => Onyx.clear());
-
-        it('should return correctly all ancestors of a thread report', () => {
-            const resultAncestors = [
-                {report: reports.at(0), reportAction: reportActions.at(0), shouldDisplayNewMarker: false},
-                {report: reports.at(1), reportAction: reportActions.at(1), shouldDisplayNewMarker: false},
-                {report: reports.at(2), reportAction: reportActions.at(2), shouldDisplayNewMarker: false},
-                {report: reports.at(3), reportAction: reportActions.at(3), shouldDisplayNewMarker: false},
-            ];
-
-            expect(getAllAncestorReportActions(reports.at(4))).toEqual(resultAncestors);
         });
     });
 
@@ -3394,6 +3638,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3445,6 +3690,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: true,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3466,6 +3712,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3487,6 +3734,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: 'fake draft',
                 }),
             ).toBeTruthy();
         });
@@ -3508,6 +3756,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3542,6 +3791,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3572,6 +3822,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3602,6 +3853,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3625,6 +3877,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     includeSelfDM,
+                    draftComment: '',
                 }),
             ).toBeTruthy();
         });
@@ -3650,6 +3903,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3668,6 +3922,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3689,6 +3944,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3730,6 +3986,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3748,6 +4005,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3768,6 +4026,7 @@ describe('ReportUtils', () => {
                     login: '+@domain.com',
                     excludeEmptyChats: false,
                     includeDomainEmail: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3812,6 +4071,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3830,6 +4090,7 @@ describe('ReportUtils', () => {
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -3862,6 +4123,7 @@ describe('ReportUtils', () => {
                     betas: [],
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
+                    draftComment: '',
                 }),
             ).toBeFalsy();
         });
@@ -4176,6 +4438,52 @@ describe('ReportUtils', () => {
             };
 
             expect(canDeleteReportAction(moneyRequestAction, '1', transaction, undefined, undefined)).toBe(true);
+        });
+
+        it('should return false for unreported card expense imported with deleting disabled', async () => {
+            // Given the unreported card expense import with deleting disabled
+            const selfDMReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                managedCard: true,
+                comment: {
+                    liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT,
+                },
+            };
+
+            const trackExpenseAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    IOUTransactionID: transaction.transactionID,
+                    IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: '$1.00 expense',
+                        text: '$1.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                    },
+                ],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // Then it should return false since the unreported card expense is imported with deleting disabled
+            expect(canDeleteReportAction(trackExpenseAction, selfDMReport.reportID, transaction, undefined, undefined)).toBe(false);
         });
 
         it("should return false for ADD_COMMENT report action the current user (admin of the personal policy) didn't comment", async () => {
@@ -5227,6 +5535,22 @@ describe('ReportUtils', () => {
             // Then the result is false
             expect(result).toBe(false);
         });
+
+        it('should return false for a closed report', async () => {
+            // Given a closed expense report
+            const report: Report = {
+                ...createRandomReport(10002),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canAddTransaction(report, isReportArchived.current);
+
+            // Then the result is false
+            expect(result).toBe(false);
+        });
     });
 
     describe('canDeleteTransaction', () => {
@@ -5259,6 +5583,22 @@ describe('ReportUtils', () => {
             // When it's checked if the transactions can be deleted
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
             const result = canDeleteTransaction(report, isReportArchived.current);
+
+            // Then the result is false
+            expect(result).toBe(false);
+        });
+
+        it('should return false for a closed report', async () => {
+            // Given a closed expense report
+            const report: Report = {
+                ...createRandomReport(10002),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canAddTransaction(report, isReportArchived.current);
 
             // Then the result is false
             expect(result).toBe(false);
@@ -5325,6 +5665,28 @@ describe('ReportUtils', () => {
 
             // There should be some kind of a reason (any reason is fine)
             expect(result).toHaveProperty('reason');
+        });
+
+        it('should return HAS_UNRESOLVED_CARD_FRAUD_ALERT when report has unresolved fraud alert', async () => {
+            const report: OptionData = {
+                ...createRandomReport(40000),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                isUnreadWithMention: true,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(40000),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [reportAction.reportActionID]: reportAction,
+            });
+
+            // When the reason is retrieved
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived.current);
+
+            expect(result).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_UNRESOLVED_CARD_FRAUD_ALERT);
         });
 
         it('should return null for an archived report', async () => {
@@ -6965,6 +7327,71 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getReportURLForCurrentContext', () => {
+        const flushPromises = () =>
+            new Promise<void>((resolve) => {
+                setImmediate(resolve);
+            });
+        const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
+        let environmentURL: string;
+
+        beforeAll(async () => {
+            environmentURL = await getEnvironmentURL();
+            await flushPromises();
+        });
+
+        afterAll(() => {
+            mockIsSearchTopmostFullScreenRoute.mockRestore();
+        });
+
+        const mockGetActiveRoute = Navigation.getActiveRoute as jest.Mock;
+
+        beforeEach(() => {
+            mockIsSearchTopmostFullScreenRoute.mockReset();
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+            mockGetActiveRoute.mockReset();
+            mockGetActiveRoute.mockReturnValue('search?q=type:report');
+        });
+
+        it('returns report route when not in search context', () => {
+            const reportID = '123';
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`);
+        });
+
+        it('returns search route when in search context', () => {
+            const reportID = '456';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            const encodedBackTo = 'search%3Fq%3Dtype%3Areport';
+            mockGetActiveRoute.mockReturnValue(`search/r/999?backTo=${encodedBackTo}`);
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:report'})}`);
+        });
+
+        it('uses current search route when no backTo parameter is present', () => {
+            const reportID = '111';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            mockGetActiveRoute.mockReturnValue('search?q=type:invoice');
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:invoice'})}`);
+        });
+
+        it('normalizes leading slash in search routes', () => {
+            const reportID = '222';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            mockGetActiveRoute.mockReturnValue('/search?q=type:card');
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:card'})}`);
+        });
+
+        it('falls back to default search route when current route is unavailable', () => {
+            const reportID = '789';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            mockGetActiveRoute.mockReturnValue('');
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: ROUTES.SEARCH_ROOT.route})}`);
+        });
+
+        it('falls back to the base report path when reportID is missing', () => {
+            expect(getReportURLForCurrentContext(undefined)).toBe(`${environmentURL}/r/`);
+        });
+    });
+
     describe('requiresManualSubmission', () => {
         it('should return true when manual submit is enabled', () => {
             const report: Report = {
@@ -7046,6 +7473,678 @@ describe('ReportUtils', () => {
             policy6.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY;
             const result = requiresManualSubmission(report, policy6);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('isWorkspaceMemberLeavingWorkspaceRoom', () => {
+        test('should return false when not a policy employee', () => {
+            const report = {
+                ...createRandomReport(1),
+                visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
+                isOwnPolicyExpenseChat: true,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, false, true)).toBe(false);
+        });
+
+        test('should return true for restricted room when policy employee', () => {
+            const report = {
+                ...createRandomReport(2),
+                visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(true);
+        });
+
+        test('should return true for policy expense chat when own chat and policy employee', () => {
+            const report = {
+                ...createRandomReport(3),
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                isOwnPolicyExpenseChat: true,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(true);
+        });
+
+        test('should return true for policy expense chat when policy admin and policy employee', () => {
+            const report = {
+                ...createRandomReport(4),
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                isOwnPolicyExpenseChat: false,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, true)).toBe(true);
+        });
+
+        test('should return false for non-restricted, non-policy expense chat', () => {
+            const report = {
+                ...createRandomReport(5),
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                isOwnPolicyExpenseChat: false,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(false);
+        });
+
+        test('should return false for non-restricted policy expense chat when not own chat and not admin', () => {
+            const report = {
+                ...createRandomReport(6),
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                isOwnPolicyExpenseChat: false,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(isWorkspaceMemberLeavingWorkspaceRoom(report, true, false)).toBe(false);
+        });
+    });
+
+    describe('shouldExcludeAncestorReportAction', () => {
+        it('should return false for trip preview action when it is the youngest descendant', () => {
+            const tripPreviewAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW,
+            };
+
+            const result = shouldExcludeAncestorReportAction(tripPreviewAction, true);
+            expect(result).toBe(false);
+        });
+
+        it('should return true for trip preview action when it is not the youngest descendant', () => {
+            const tripPreviewAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW,
+            };
+
+            const result = shouldExcludeAncestorReportAction(tripPreviewAction, false);
+            expect(result).toBe(true);
+        });
+
+        it('should return true for transaction thread CREATE actions', () => {
+            const transactionThreadAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    created: DateUtils.getDBTime(),
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+
+            const result = shouldExcludeAncestorReportAction(transactionThreadAction, false);
+            expect(result).toBe(true);
+        });
+
+        it('should return true for transaction thread TRACK actions', () => {
+            const transactionThreadAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    created: DateUtils.getDBTime(),
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                },
+            };
+
+            const result = shouldExcludeAncestorReportAction(transactionThreadAction, false);
+            expect(result).toBe(true);
+        });
+
+        it('should return false for sent money report actions (PAY with IOUDetails)', () => {
+            const sentMoneyAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    created: DateUtils.getDBTime(),
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    IOUDetails: {
+                        amount: 100,
+                        currency: 'USD',
+                        comment: '',
+                    },
+                },
+            };
+
+            const result = shouldExcludeAncestorReportAction(sentMoneyAction, true);
+            expect(result).toBe(false);
+        });
+
+        it('should return true for report preview actions', () => {
+            const reportPreviewAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+
+            const result = shouldExcludeAncestorReportAction(reportPreviewAction, true);
+            expect(result).toBe(true);
+        });
+
+        it('should return false for regular comment actions', () => {
+            const commentAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
+
+            const result = shouldExcludeAncestorReportAction(commentAction, true);
+            expect(result).toBe(false);
+        });
+
+        it('should return false for regular IOU actions that are not transaction threads', () => {
+            const iouAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    created: DateUtils.getDBTime(),
+                    type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+                },
+            };
+
+            const result = shouldExcludeAncestorReportAction(iouAction, true);
+            expect(result).toBe(false);
+        });
+
+        it('should return false for PAY actions without IOUDetails', () => {
+            const payAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    created: DateUtils.getDBTime(),
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                },
+            };
+
+            const result = shouldExcludeAncestorReportAction(payAction, true);
+            expect(result).toBe(false);
+        });
+
+        it('should return false for non-money request actions', () => {
+            const nonMoneyRequestAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
+            };
+
+            const result = shouldExcludeAncestorReportAction(nonMoneyRequestAction, true);
+            expect(result).toBe(false);
+        });
+
+        it('should handle empty object as parent report action', () => {
+            const result = shouldExcludeAncestorReportAction({} as ReportAction, true);
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('shouldEnableNegative', () => {
+        let expenseReport: Report;
+        let chatReport: Report;
+        let corporatePolicy: Policy;
+        let teamPolicy: Policy;
+        let personalPolicy: Policy;
+
+        beforeEach(() => {
+            // Create test reports using the proper pattern
+            expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            chatReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            // Create test policies using the existing pattern
+            corporatePolicy = {
+                ...createRandomPolicy(1),
+                type: CONST.POLICY.TYPE.CORPORATE,
+            };
+
+            teamPolicy = {
+                ...createRandomPolicy(2),
+                type: CONST.POLICY.TYPE.TEAM,
+            };
+
+            personalPolicy = {
+                ...createRandomPolicy(3),
+                type: CONST.POLICY.TYPE.PERSONAL,
+            };
+        });
+
+        describe('when report is an expense report', () => {
+            it('should return true for expense report with undefined iouType', () => {
+                expect(shouldEnableNegative(expenseReport)).toBe(true);
+            });
+
+            it('should return true for expense report with null iouType', () => {
+                expect(shouldEnableNegative(expenseReport, undefined, undefined)).toBe(true);
+            });
+
+            it('should return true for expense report with CREATE iouType', () => {
+                expect(shouldEnableNegative(expenseReport, undefined, CONST.IOU.TYPE.CREATE)).toBe(true);
+            });
+
+            it('should return true for expense report with REQUEST iouType', () => {
+                expect(shouldEnableNegative(expenseReport, undefined, CONST.IOU.TYPE.REQUEST)).toBe(true);
+            });
+
+            it('should return false for expense report with SPLIT iouType', () => {
+                expect(shouldEnableNegative(expenseReport, undefined, CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
+
+            it('should return false for expense report with INVOICE iouType', () => {
+                expect(shouldEnableNegative(expenseReport, undefined, CONST.IOU.TYPE.INVOICE)).toBe(false);
+            });
+        });
+
+        describe('when policy is a group policy (CORPORATE)', () => {
+            it('should return true for corporate policy with undefined iouType', () => {
+                expect(shouldEnableNegative(chatReport, corporatePolicy)).toBe(true);
+            });
+
+            it('should return true for corporate policy with CREATE iouType', () => {
+                expect(shouldEnableNegative(chatReport, corporatePolicy, CONST.IOU.TYPE.CREATE)).toBe(true);
+            });
+
+            it('should return true for corporate policy with REQUEST iouType', () => {
+                expect(shouldEnableNegative(chatReport, corporatePolicy, CONST.IOU.TYPE.REQUEST)).toBe(true);
+            });
+
+            it('should return false for corporate policy with SPLIT iouType', () => {
+                expect(shouldEnableNegative(chatReport, corporatePolicy, CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
+
+            it('should return false for corporate policy with INVOICE iouType', () => {
+                expect(shouldEnableNegative(chatReport, corporatePolicy, CONST.IOU.TYPE.INVOICE)).toBe(false);
+            });
+        });
+
+        describe('when policy is a group policy (TEAM)', () => {
+            it('should return true for team policy with undefined iouType', () => {
+                expect(shouldEnableNegative(chatReport, teamPolicy)).toBe(true);
+            });
+
+            it('should return true for team policy with CREATE iouType', () => {
+                expect(shouldEnableNegative(chatReport, teamPolicy, CONST.IOU.TYPE.CREATE)).toBe(true);
+            });
+
+            it('should return true for team policy with REQUEST iouType', () => {
+                expect(shouldEnableNegative(chatReport, teamPolicy, CONST.IOU.TYPE.REQUEST)).toBe(true);
+            });
+
+            it('should return false for team policy with SPLIT iouType', () => {
+                expect(shouldEnableNegative(chatReport, teamPolicy, CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
+
+            it('should return false for team policy with INVOICE iouType', () => {
+                expect(shouldEnableNegative(chatReport, teamPolicy, CONST.IOU.TYPE.INVOICE)).toBe(false);
+            });
+        });
+
+        describe('when iouType is CREATE', () => {
+            it('should return true for CREATE iouType with personal policy', () => {
+                expect(shouldEnableNegative(chatReport, personalPolicy, CONST.IOU.TYPE.CREATE)).toBe(true);
+            });
+
+            it('should return true for CREATE iouType with no policy', () => {
+                expect(shouldEnableNegative(chatReport, undefined, CONST.IOU.TYPE.CREATE)).toBe(true);
+            });
+
+            it('should return true for CREATE iouType with null policy', () => {
+                expect(shouldEnableNegative(chatReport, undefined, CONST.IOU.TYPE.CREATE)).toBe(true);
+            });
+
+            it('should return true for CREATE iouType with expense report', () => {
+                expect(shouldEnableNegative(expenseReport, personalPolicy, CONST.IOU.TYPE.CREATE)).toBe(true);
+            });
+        });
+
+        describe('exclusion cases for SPLIT and INVOICE iouTypes', () => {
+            it('should return false for SPLIT iouType regardless of report type', () => {
+                expect(shouldEnableNegative(expenseReport, corporatePolicy, CONST.IOU.TYPE.SPLIT)).toBe(false);
+                expect(shouldEnableNegative(chatReport, teamPolicy, CONST.IOU.TYPE.SPLIT)).toBe(false);
+                expect(shouldEnableNegative(chatReport, personalPolicy, CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
+
+            it('should return false for INVOICE iouType regardless of report type', () => {
+                expect(shouldEnableNegative(expenseReport, corporatePolicy, CONST.IOU.TYPE.INVOICE)).toBe(false);
+                expect(shouldEnableNegative(chatReport, teamPolicy, CONST.IOU.TYPE.INVOICE)).toBe(false);
+                expect(shouldEnableNegative(chatReport, personalPolicy, CONST.IOU.TYPE.INVOICE)).toBe(false);
+            });
+
+            it('should return true for SPLIT_EXPENSE iouType with expense report (different from SPLIT)', () => {
+                // SPLIT_EXPENSE is different from SPLIT - only SPLIT and INVOICE are excluded
+                expect(shouldEnableNegative(expenseReport, corporatePolicy, CONST.IOU.TYPE.SPLIT_EXPENSE)).toBe(true);
+            });
+        });
+
+        describe('edge cases with null/undefined values', () => {
+            it('should return false when all parameters are null/undefined', () => {
+                expect(shouldEnableNegative(undefined, undefined, undefined)).toBe(false);
+            });
+
+            it('should return true when report is null but policy is group policy', () => {
+                expect(shouldEnableNegative(undefined, corporatePolicy)).toBe(true);
+                expect(shouldEnableNegative(undefined, teamPolicy)).toBe(true);
+            });
+
+            it('should return false when report is null and policy is personal', () => {
+                expect(shouldEnableNegative(undefined, personalPolicy)).toBe(false);
+            });
+
+            it('should return true when report is null but iouType is CREATE', () => {
+                expect(shouldEnableNegative(undefined, undefined, CONST.IOU.TYPE.CREATE)).toBe(true);
+            });
+
+            it('should handle undefined policy type gracefully', () => {
+                const policyWithUndefinedType = {
+                    ...createRandomPolicy(4),
+                    type: undefined,
+                } as unknown as Policy;
+                expect(shouldEnableNegative(chatReport, policyWithUndefinedType)).toBe(false);
+            });
+
+            it('should handle empty string policy type gracefully', () => {
+                const policyWithEmptyType = {
+                    ...createRandomPolicy(5),
+                    type: '',
+                } as unknown as Policy;
+                expect(shouldEnableNegative(chatReport, policyWithEmptyType)).toBe(false);
+            });
+        });
+
+        describe('combination scenarios', () => {
+            it('should return true when expense report AND group policy', () => {
+                expect(shouldEnableNegative(expenseReport, corporatePolicy)).toBe(true);
+                expect(shouldEnableNegative(expenseReport, teamPolicy)).toBe(true);
+            });
+
+            it('should return true when expense report AND CREATE iouType', () => {
+                expect(shouldEnableNegative(expenseReport, personalPolicy, CONST.IOU.TYPE.CREATE)).toBe(true);
+            });
+
+            it('should return true when group policy AND CREATE iouType', () => {
+                expect(shouldEnableNegative(chatReport, corporatePolicy, CONST.IOU.TYPE.CREATE)).toBe(true);
+                expect(shouldEnableNegative(chatReport, teamPolicy, CONST.IOU.TYPE.CREATE)).toBe(true);
+            });
+
+            it('should return false when none of the enabling conditions are met', () => {
+                // Chat report + personal policy + no iouType
+                expect(shouldEnableNegative(chatReport, personalPolicy)).toBe(false);
+
+                // Chat report + personal policy + non-CREATE iouType
+                expect(shouldEnableNegative(chatReport, personalPolicy, CONST.IOU.TYPE.REQUEST)).toBe(false);
+                expect(shouldEnableNegative(chatReport, personalPolicy, CONST.IOU.TYPE.TRACK)).toBe(false);
+                expect(shouldEnableNegative(chatReport, personalPolicy, CONST.IOU.TYPE.SEND)).toBe(false);
+            });
+
+            it('should prioritize exclusion over inclusion', () => {
+                // Even if expense report + group policy, SPLIT should still exclude
+                expect(shouldEnableNegative(expenseReport, corporatePolicy, CONST.IOU.TYPE.SPLIT)).toBe(false);
+
+                // Even if expense report + CREATE iouType, INVOICE should still exclude
+                expect(shouldEnableNegative(expenseReport, undefined, CONST.IOU.TYPE.INVOICE)).toBe(false);
+
+                // Even if group policy + CREATE iouType, SPLIT should still exclude
+                expect(shouldEnableNegative(chatReport, teamPolicy, CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
+        });
+    });
+
+    describe('isSelfDMOrSelfDMThread', () => {
+        let standardSelfDMReport: Report;
+        let movedSelfDMReport: Report;
+        let regularDMReport: Report;
+        let groupChatReport: Report;
+
+        beforeEach(() => {
+            // Standard self-DM with proper chatType
+            standardSelfDMReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+
+            // Self-DM that was moved from workspace (empty chatType)
+            movedSelfDMReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: undefined,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+
+            // Regular 1:1 DM with another user
+            regularDMReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: undefined,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    12345678: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+
+            // Group chat with multiple participants
+            groupChatReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    12345678: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    87654321: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+        });
+
+        describe('standard self-DM detection', () => {
+            it('should return true for standard self-DM with proper chatType', () => {
+                expect(isSelfDMOrSelfDMThread(standardSelfDMReport)).toBe(true);
+            });
+
+            it('should return true for moved self-DM with empty chatType', () => {
+                expect(isSelfDMOrSelfDMThread(movedSelfDMReport)).toBe(true);
+            });
+        });
+
+        describe('non-self-DM reports', () => {
+            it('should return false for regular 1:1 DM', () => {
+                expect(isSelfDMOrSelfDMThread(regularDMReport)).toBe(false);
+            });
+
+            it('should return false for group chat', () => {
+                expect(isSelfDMOrSelfDMThread(groupChatReport)).toBe(false);
+            });
+        });
+
+        describe('edge cases', () => {
+            it('should return false for undefined report', () => {
+                expect(isSelfDMOrSelfDMThread(undefined)).toBe(false);
+            });
+
+            it('should return false for report with no participants', () => {
+                const reportWithNoParticipants = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: undefined,
+                    participants: {},
+                };
+                expect(isSelfDMOrSelfDMThread(reportWithNoParticipants)).toBe(false);
+            });
+
+            it('should return false for non-chat report types', () => {
+                const expenseReport = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    participants: {
+                        [currentUserAccountID]: {
+                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                        },
+                    },
+                };
+                expect(isSelfDMOrSelfDMThread(expenseReport)).toBe(false);
+            });
+        });
+    });
+
+    describe('getReportActionActorAccountID', () => {
+        it('should return report owner account id if action is REPORTPREVIEW and report is a policy expense chat', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(10);
+        });
+
+        it('should return report manager account id if action is REPORTPREVIEW and report is not a policy expense chat', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: undefined,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(20);
+        });
+
+        it('should return admin account id if action is SUBMITTED taken by an admin on behalf the submitter', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                adminAccountID: 30,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(30);
+        });
+
+        it('should return report owner account id if action is SUBMITTED taken by the submitter himself', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(10);
+        });
+
+        it('should return admin account id if action is SUBMITTED_AND_CLOSED taken by an admin on behalf the submitter', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                adminAccountID: 30,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(30);
+        });
+
+        it('should return report owner account id if action is SUBMITTED_AND_CLOSED taken by the submitter himself', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(10);
+        });
+
+        it('should return original actor account id if action is ADDCOMMENT', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: 123,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(123);
         });
     });
 });

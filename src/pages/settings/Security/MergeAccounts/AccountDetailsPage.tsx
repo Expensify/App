@@ -12,8 +12,8 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues, FormRef} from '@components/Form/types';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -83,6 +83,7 @@ function AccountDetailsPage() {
 
     useFocusEffect(
         useCallback(() => {
+            // eslint-disable-next-line deprecation/deprecation
             const task = InteractionManager.runAfterInteractions(() => {
                 if (!validateCodeSent || !email) {
                     return;
@@ -97,6 +98,7 @@ function AccountDetailsPage() {
 
     useFocusEffect(
         useCallback(() => {
+            // eslint-disable-next-line deprecation/deprecation
             const task = InteractionManager.runAfterInteractions(() => {
                 if (!errorKey || !email) {
                     return;
@@ -110,6 +112,7 @@ function AccountDetailsPage() {
 
     useFocusEffect(
         useCallback(() => {
+            // eslint-disable-next-line deprecation/deprecation
             const task = InteractionManager.runAfterInteractions(() => {
                 if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.INVOICING) {
                     return;
@@ -186,11 +189,8 @@ function AccountDetailsPage() {
                     ref={formRef}
                 >
                     <View style={[styles.flexGrow1, styles.mt3]}>
-                        <View>
-                            <Text>
-                                {translate('mergeAccountsPage.accountDetails.accountToMergeInto')}
-                                <Text style={styles.textStrong}>{userEmailOrPhone}</Text>
-                            </Text>
+                        <View style={[styles.renderHTML]}>
+                            <RenderHTML html={translate('mergeAccountsPage.accountDetails.accountToMergeInto', {login: userEmailOrPhone ?? ''})} />
                         </View>
                         <InputWrapper
                             ref={inputCallbackRef}
