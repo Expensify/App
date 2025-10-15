@@ -30,15 +30,15 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
 
     const dateOnKey = dateKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)
-        ? (dateKey.replace(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX, CONST.SEARCH.REPORT_FIELD.ON_PREFIX) as ReportFieldDateKey)
+        ? (dateKey.replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, CONST.SEARCH.REPORT_FIELD.ON_PREFIX) as ReportFieldDateKey)
         : (`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as const);
 
     const dateBeforeKey = dateKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)
-        ? (dateKey.replace(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX, CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX) as ReportFieldDateKey)
+        ? (dateKey.replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX) as ReportFieldDateKey)
         : (`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as const);
 
     const dateAfterKey = dateKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)
-        ? (dateKey.replace(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX, CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX) as ReportFieldDateKey)
+        ? (dateKey.replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX) as ReportFieldDateKey)
         : (`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as const);
 
     const defaultDateValues = {
