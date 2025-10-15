@@ -49,8 +49,8 @@ function useOnboardingFlowRouter() {
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector, canBeMissing: true});
     const {typeMenuSections} = useSearchTypeMenuSections();
     const shouldShowRequire2FAPage = useMemo(
-        () => !!account?.needsTwoFactorAuthSetup && (!account?.requiresTwoFactorAuth || !!account?.twoFactorAuthSetupInProgress),
-        [account?.needsTwoFactorAuthSetup, account?.requiresTwoFactorAuth, account?.twoFactorAuthSetupInProgress],
+        () => (!!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth) || (!!account?.twoFactorAuthSetupInProgress && !hasCompletedGuidedSetupFlowSelector(onboardingValues)),
+        [account?.needsTwoFactorAuthSetup, account?.requiresTwoFactorAuth, account?.twoFactorAuthSetupInProgress, onboardingValues],
     );
 
     useEffect(() => {
