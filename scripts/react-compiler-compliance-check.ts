@@ -550,18 +550,21 @@ async function main() {
     const commonOptions: CommonCheckOptions = {shouldGenerateReport, reportFileName, shouldFilterByDiff, shouldPrintSuccesses};
 
     let isPassed = false;
-    try {
+
+    async function runCommand() {
         switch (command) {
             case 'check':
-                isPassed = await Checker.check({filesToCheck: file !== '' ? [file] : undefined, ...commonOptions});
-                break;
+                return Checker.check({filesToCheck: file !== '' ? [file] : undefined, ...commonOptions});
             case 'check-changed':
-                isPassed = await Checker.checkChangedFiles({remote, ...commonOptions});
-                break;
+                return Checker.checkChangedFiles({remote, ...commonOptions});
             default:
                 logError(`Unknown command: ${String(command)}`);
-                isPassed = false;
+                return Promise.resolve(false);
         }
+    }
+
+    try {
+        isPassed = await runCommand();
     } catch (error) {
         isPassed = false;
     } finally {
