@@ -319,7 +319,6 @@ class Git {
 
         // Fetch the main branch from the specified remote (or locally) to ensure it's available
         if (IS_CI || remote) {
-            // await this.ensureRef(baseRefName, remote);
             await exec(`git fetch ${remote ?? 'origin'} ${baseRefName} --no-tags --depth=1 -q`, {encoding: 'utf8'});
         }
 
