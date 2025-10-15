@@ -2,7 +2,7 @@ import {beforeEach, jest, test} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {confirmReadyToOpenApp, openApp, reconnectApp} from '@libs/actions/App';
-import * as Link from '@libs/actions/Link';
+import {buildOldDotURL, openExternalLink} from '@libs/actions/Link';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
 // eslint-disable-next-line no-restricted-syntax
@@ -31,6 +31,13 @@ jest.mock('@libs/Notification/PushNotification');
 
 // Mocked to check SignOutAndRedirectToSignIn behavior
 jest.mock('@libs/asyncOpenURL');
+
+jest.mock('@libs/actions/Link', () => {
+    return {
+        buildOldDotURL: jest.fn(() => Promise.resolve('mockOldDotURL')),
+        openExternalLink: jest.fn(),
+    };
+});
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -109,13 +116,13 @@ describe('Session', () => {
     test('Push notifications are subscribed after signing in', async () => {
         await TestHelper.signInWithTestUser();
         await waitForBatchedUpdates();
-        expect(PushNotification.register).toBeCalled();
+        expect(PushNotification.register).toHaveBeenCalled();
     });
 
     test('Push notifications are unsubscribed after signing out', async () => {
         await TestHelper.signInWithTestUser();
         await TestHelper.signOutTestUser();
-        expect(PushNotification.deregister).toBeCalled();
+        expect(PushNotification.deregister).toHaveBeenCalled();
     });
 
     test('ReconnectApp should push request to the queue', async () => {
@@ -295,7 +302,6 @@ describe('Session', () => {
             jest.spyOn(SessionUtil, 'isSupportAuthToken').mockReturnValue(true);
             jest.spyOn(SessionUtil, 'hasStashedSession').mockReturnValue(true);
             jest.spyOn(SessionUtil, 'signOut').mockResolvedValue(undefined);
-
             jest.spyOn(Onyx, 'clear').mockResolvedValue(undefined);
             jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
 
@@ -306,9 +312,6 @@ describe('Session', () => {
             await Onyx.set(ONYXKEYS.STASHED_SESSION, testStashedSession);
 
             await waitForBatchedUpdates();
-
-            const buildOldDotURLSpy = jest.spyOn(Link, 'buildOldDotURL').mockResolvedValue('mockOldDotURL');
-            const openExternalLinkSpy = jest.spyOn(Link, 'openExternalLink').mockImplementation(() => {});
 
             const onyxClearSpy = Onyx.clear as jest.Mock;
             const onyxMultiSetSpy = Onyx.multiSet as jest.Mock;
@@ -326,8 +329,8 @@ describe('Session', () => {
                 [ONYXKEYS.SESSION]: testStashedSession,
             });
 
-            expect(buildOldDotURLSpy).toHaveBeenCalledWith(CONST.OLDDOT_URLS.SUPPORTAL_RESTORE_STASHED_LOGIN);
-            expect(openExternalLinkSpy).toHaveBeenCalledWith('mockOldDotURL', undefined, true);
+            expect(buildOldDotURL).toHaveBeenCalledWith(CONST.OLDDOT_URLS.SUPPORTAL_RESTORE_STASHED_LOGIN);
+            expect(openExternalLink).toHaveBeenCalledWith('mockOldDotURL', undefined, true);
         });
     });
 });
