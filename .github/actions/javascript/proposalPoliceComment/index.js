@@ -12706,6 +12706,8 @@ class OpenAIUtils {
         const response = await (0, retryWithBackoff_1.default)(() => this.client.chat.completions.create({
             model,
             messages,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            reasoning_effort: 'low',
         }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
         const result = response.choices.at(0)?.message?.content?.trim();
         if (!result) {
