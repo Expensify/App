@@ -104,10 +104,10 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.text).toEqual('$0.00');
         });
 
-        it('returns merchant missing message when appropriate', () => {
+        it('returns missing field message when appropriate', () => {
             const functionArgs = {
                 ...basicProps,
-                transaction: {...basicProps.transaction, merchant: '', amount: 0, receipt: {source: 'test-receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE}},
+                transaction: {...basicProps.transaction, created: '', amount: 100},
                 originalTransaction: undefined,
                 shouldShowRBR: true,
             };
