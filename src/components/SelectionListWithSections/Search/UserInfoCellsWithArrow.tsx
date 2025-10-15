@@ -82,7 +82,7 @@ function UserInfoCellsWithArrow({
                         avatarSize={avatarSize}
                         textStyle={infoCellsTextStyle}
                         avatarStyle={infoCellsAvatarStyle}
-                        containerStyle={[styles.mw50, styles.flexShrink1, fromRecipientStyle, styles.mlhalf]}
+                        containerStyle={[styles.mw50, styles.flexShrink1, fromRecipientStyle, styles.mlHalf]}
                     />
                 </>
             )}

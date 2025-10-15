@@ -183,7 +183,7 @@ export default {
         marginLeft: 0,
     },
 
-    mlhalf: {
+    mlHalf: {
         marginLeft: 2,
     },
 
