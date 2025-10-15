@@ -28,6 +28,7 @@ import type CustomStatusDraft from './CustomStatusDraft';
 import type {OutstandingReportsByPolicyIDDerivedValue, ReportAttributesDerivedValue, ReportTransactionsAndViolationsDerivedValue} from './DerivedValues';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
+import type Domain from './Domain';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
@@ -283,4 +284,5 @@ export type {
     BillingReceiptDetails,
     ExportTemplate,
     HybridApp,
+    Domain,
 };

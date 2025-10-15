@@ -696,6 +696,12 @@ const ONYXKEYS = {
 
         /** Stores the information about the state of issuing a new card */
         ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard_',
+
+        /** User's domains general information */
+        DOMAIN: 'domain_',
+
+        /** Used for identifying user as admin of a domain */
+        SHARED_NVP_PRIVATE_DOMAIN_ACCESS: 'sharedNVP_private_admin_access_',
     },
 
     /** List of Form ids */
@@ -1079,6 +1085,8 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED]: OnyxTypes.FundID;
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST]: OnyxTypes.CardOnWaitlist;
     [ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
+    [ONYXKEYS.COLLECTION.DOMAIN]: OnyxTypes.Domain;
+    [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_ACCESS]: boolean;
 };
 
 type OnyxValuesMapping = {
