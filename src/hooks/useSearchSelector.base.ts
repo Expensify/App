@@ -254,6 +254,7 @@ function useSearchSelectorBase({
         computedSearchTerm,
         maxResults,
         includeUserToInvite,
+        includeCurrentUser,
         excludeLogins,
         includeRecentReports,
         maxRecentReportsToShow,

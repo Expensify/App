@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
-import keyBy from 'lodash/keyBy';
 import lodashOrderBy from 'lodash/orderBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -134,7 +133,6 @@ import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils
 import {generateAccountID} from '@libs/UserUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
-import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
