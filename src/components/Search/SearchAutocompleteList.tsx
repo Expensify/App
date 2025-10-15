@@ -6,10 +6,10 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SelectionList from '@components/SelectionListWithSections';
+import NewChatListItem from '@components/SelectionListWithSections/NewChatListItem';
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -148,7 +148,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
         );
     }
     return (
-        <UserListItem
+        <NewChatListItem
             pressableStyle={[styles.br2, styles.ph3]}
             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             // eslint-disable-next-line react/jsx-props-no-spreading

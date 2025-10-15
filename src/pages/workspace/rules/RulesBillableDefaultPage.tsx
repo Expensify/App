@@ -4,7 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -78,7 +78,7 @@ function RulesBillableDefaultPage({
                 </View>
                 <SelectionList
                     data={billableModes}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={(item) => {
                         setPolicyBillableMode(policyID, item.value);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);

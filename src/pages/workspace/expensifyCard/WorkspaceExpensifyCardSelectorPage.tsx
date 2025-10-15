@@ -3,7 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
@@ -82,7 +82,7 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
                     onBackButtonPress={goBack}
                 />
                 <SelectionList
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={selectFeed}
                     sections={[{data: feeds}]}
                     shouldUpdateFocusedIndex

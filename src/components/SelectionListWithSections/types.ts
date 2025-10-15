@@ -1,5 +1,6 @@
 import type {ForwardedRef, JSXElementConstructor, MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {
+    AccessibilityState,
     GestureResponderEvent,
     InputModeOptions,
     LayoutChangeEvent,
@@ -112,6 +113,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to show the right caret */
     shouldShowRightCaret?: boolean;
+
+    /** Accessibility State tells a person using either VoiceOver on iOS or TalkBack on Android the state of the element currently focused on */
+    accessibilityState?: AccessibilityState;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;

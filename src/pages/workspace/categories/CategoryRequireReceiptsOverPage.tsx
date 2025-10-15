@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -90,7 +90,7 @@ function CategoryRequireReceiptsOverPage({
                 />
                 <SelectionList
                     sections={[{data: requireReceiptsOverListData}]}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={(item) => {
                         if (typeof item.value === 'number') {
                             setPolicyCategoryReceiptsRequired(policyID, categoryName, item.value, policyCategories);

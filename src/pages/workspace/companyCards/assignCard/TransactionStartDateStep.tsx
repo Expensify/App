@@ -5,7 +5,7 @@ import Button from '@components/Button';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -97,7 +97,7 @@ function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDate
             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
             <View style={styles.flex1}>
                 <SelectionList
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={({value}) => handleSelectDateOption(value)}
                     sections={[{data: dateOptions}]}
                     shouldSingleExecuteRowSelect

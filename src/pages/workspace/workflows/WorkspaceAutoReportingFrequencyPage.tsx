@@ -7,7 +7,7 @@ import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -134,7 +134,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                         contentContainerStyle={styles.flex1}
                     >
                         <SelectionList
-                            ListItem={RadioListItem}
+                            ListItem={SingleSelectListItem}
                             sections={[{data: autoReportingFrequencyItems}]}
                             onSelectRow={onSelectAutoReportingFrequency}
                             initiallyFocusedOptionKey={autoReportingFrequency}

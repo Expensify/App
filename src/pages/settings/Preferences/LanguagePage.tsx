@@ -3,7 +3,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -50,7 +50,7 @@ function LanguagePage() {
             <FullPageOfflineBlockingView>
                 <SelectionList
                     data={locales}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={updateLanguage}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={locales.find((locale) => locale.isSelected)?.keyForList}
