@@ -300,7 +300,7 @@ function EnableBiometricsFallbackPage() {
         if (!hasVerifiedMagicCode) {
             return (
                 <Text style={[styles.mh5, styles.mb6, styles.textNormal]}>
-                    {translate('initialSettingsPage.troubleshoot.biometrics.fallbackPageMagicCodeContent', { contactMethod: email})}
+                    {translate('multiFactorAuthentication.biometrics.fallbackPageMagicCodeContent', { contactMethod: email})}
                 </Text>
             );
         }
@@ -308,14 +308,14 @@ function EnableBiometricsFallbackPage() {
         if (has2FAEnabled) {
             return (
                 <Text style={[styles.mh5, styles.mb6, styles.textNormal]}>
-                    {translate('initialSettingsPage.troubleshoot.biometrics.fallbackPage2FAContent')}
+                    {translate('multiFactorAuthentication.biometrics.fallbackPage2FAContent')}
                 </Text>
             );
         }
 
         return (
             <Text style={[styles.mh5, styles.mb6, styles.textNormal]}>
-                {translate('initialSettingsPage.troubleshoot.biometrics.fallbackPageSMSotpContent', { contactMethod: phoneNumber })}
+                {translate('multiFactorAuthentication.biometrics.fallbackPageSMSotpContent', { contactMethod: phoneNumber })}
             </Text>
         );
     };
@@ -368,7 +368,7 @@ function EnableBiometricsFallbackPage() {
     return (
         <ScreenWrapper testID={EnableBiometricsFallbackPage.displayName}>
             <HeaderWithBackButton
-                title={translate('initialSettingsPage.troubleshoot.biometrics.fallbackPageTitle')}
+                title={translate('multiFactorAuthentication.biometrics.fallbackPageTitle')}
                 onBackButtonPress={onGoBackPress}
                 shouldShowBackButton
             />
@@ -408,8 +408,8 @@ function EnableBiometricsFallbackPage() {
             ) : (
                 <ConfirmationPage
                     illustration={Illustrations.OpenPadlock}
-                    heading={translate('initialSettingsPage.troubleshoot.biometrics.notificationTitle')}
-                    description={translate('initialSettingsPage.troubleshoot.biometrics.notificationFallbackContent')}
+                    heading={translate('multiFactorAuthentication.biometrics.notificationTitle')}
+                    description={translate('multiFactorAuthentication.biometrics.notificationFallbackContent')}
                     shouldShowButton
                     buttonText={translate('common.buttonConfirm')}
                     onButtonPress={onGoBackPress}

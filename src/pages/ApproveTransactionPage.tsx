@@ -84,7 +84,7 @@ function ApproveTransactionPage() {
     return (
         <ScreenWrapper testID={ApproveTransactionPage.displayName}>
             <HeaderWithBackButton
-                title={translate('approveTransaction.headerButtonTitle')}
+                title={translate('multiFactorAuthentication.approveTransaction.headerButtonTitle')}
                 onBackButtonPress={onGoBackPress}
                 shouldShowBackButton
             />
@@ -92,15 +92,15 @@ function ApproveTransactionPage() {
                 <View>
                     <View style={[styles.gap2, styles.mb4]}>
                         <Text style={styles.textHeadlineLineHeightXXL}>
-                            {translate('approveTransaction.pageTitle')}
+                            {translate('multiFactorAuthentication.approveTransaction.pageTitle')}
                         </Text>
                         <Text style={styles.textSupporting}>
-                            {translate('approveTransaction.pageContent')}
+                            {translate('multiFactorAuthentication.approveTransaction.pageContent')}
                         </Text>
                     </View>
                     <View style={styles.mb2}>
                         <Text style={styles.textMicroSupporting}>
-                            {translate('approveTransaction.transactionDetails')}
+                            {translate('multiFactorAuthentication.approveTransaction.transactionDetails')}
                         </Text>
                     </View>
                     <TransactionPreview
@@ -128,7 +128,7 @@ function ApproveTransactionPage() {
                         large
                         style={[styles.mvAuto, styles.mtAuto, styles.mhAuto, {width: '50%'}]}
                         onPress={onGoBackPress}
-                        text={translate('approveTransaction.deny')}
+                        text={translate('multiFactorAuthentication.approveTransaction.deny')}
                         // isLoading={isValidateCodeFormSubmitting}
                         // isDisabled={isOffline}
                     />
@@ -137,7 +137,7 @@ function ApproveTransactionPage() {
                         large
                         style={[styles.mvAuto, styles.mtAuto, styles.mhAuto, {width: '50%'}]}
                         onPress={approveTransaction}
-                        text={translate('approveTransaction.approve')}
+                        text={translate('multiFactorAuthentication.approveTransaction.approve')}
                         // isLoading={isValidateCodeFormSubmitting}
                         // isDisabled={isOffline}
                     />

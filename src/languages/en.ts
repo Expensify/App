@@ -668,14 +668,6 @@ const translations = {
         read: 'Read',
         copyToClipboard: 'Copy to clipboard',
     },
-    approveTransaction: {
-        headerButtonTitle: 'Approve transaction',
-        pageTitle: 'Please approve this transaction',
-        pageContent: 'An Expensify Card transaction requires your approval, please review it below.',
-        transactionDetails: 'Transaction Details',
-        deny: 'Deny',
-        approve: 'Approve',
-    },
     supportalNoAccess: {
         title: 'Not so fast',
         descriptionWithCommand: ({command}: {command?: string} = {}) =>
@@ -1693,16 +1685,6 @@ const translations = {
             recordTroubleshootData: 'Record Troubleshoot Data',
             softKillTheApp: 'Soft kill the app',
             kill: 'Kill',
-            biometrics: {
-                biometricsNotRegistered: 'Biometrics (Not registered)',
-                test: 'Test',
-                notificationTitle: 'Authentication successful',
-                notificationFallbackContent: 'You’ve successfully authenticated using magic code + 2FA.',
-                fallbackPageTitle: "Let's verify it's you",
-                fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) =>  `Please enter the magic code sent to ${contactMethod}.`,
-                fallbackPage2FAContent: 'Please enter your authenticator code.',
-                fallbackPageSMSotpContent: ({contactMethod}: EnterMagicCodeParams) => `Please enter the code sent to ${contactMethod}.`,
-            },
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -7286,6 +7268,27 @@ const translations = {
         expenseLevelExport: 'All Data - expense level',
         exportInProgress: 'Export in progress',
         conciergeWillSend: 'Concierge will send you the file shortly.',
+    },
+    multiFactorAuthentication: {
+        approveTransaction: {
+            headerButtonTitle: 'Approve transaction',
+            pageTitle: 'Please approve this transaction',
+            pageContent: 'An Expensify Card transaction requires your approval, please review it below.',
+            transactionDetails: 'Transaction Details',
+            deny: 'Deny',
+            approve: 'Approve',
+        },
+        biometrics: {
+            biometricsNotRegistered: 'Biometrics (Not registered)',
+            biometricsRegistered: 'Biometrics (Registered)',
+            test: 'Test',
+            notificationTitle: 'Authentication successful',
+            notificationFallbackContent: 'You’ve successfully authenticated using magic code + 2FA.',
+            fallbackPageTitle: "Let's verify it's you",
+            fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) =>  `Please enter the magic code sent to ${contactMethod}.`,
+            fallbackPage2FAContent: 'Please enter your authenticator code.',
+            fallbackPageSMSotpContent: ({contactMethod}: EnterMagicCodeParams) => `Please enter the code sent to ${contactMethod}.`,
+        },
     },
 };
 

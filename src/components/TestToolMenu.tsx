@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -24,7 +24,6 @@ import Switch from './Switch';
 import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
-import EnableBiometricsModal from './EnableBiometricsModal';
 
 const ACCOUNT_DEFAULT: AccountOnyx = {
     isSubscribedToNewsletter: false,
@@ -121,7 +120,7 @@ function TestToolMenu() {
                         <View style={[styles.flexRow, styles.gap2]}>
                             <Button
                                 small
-                                text={translate('initialSettingsPage.troubleshoot.biometrics.test')}
+                                text={translate('multiFactorAuthentication.biometrics.test')}
                                 onPress={() => navigateToApproveTransactionPage()}
                             />
                         </View>
