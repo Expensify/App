@@ -1064,7 +1064,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     originalAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     originalCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitShares: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                    splitPayerAccountIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     shouldShowOriginalAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     actionableWhisperReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     linkedTrackedExpenseReportAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1181,8 +1180,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 },
                 'number',
             );
-        case 'splitPayerAccountIDs':
-            return validateArray(value, 'number');
         case 'linkedTrackedExpenseReportAction':
             return validateObject<ReportAction>(value, {
                 accountID: 'number',
@@ -1340,6 +1337,7 @@ function getReasonForShowingRowInLHN({
     isReportArchived = false,
     isInFocusMode = false,
     betas = undefined,
+    draftComment,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1348,6 +1346,7 @@ function getReasonForShowingRowInLHN({
     isReportArchived?: boolean;
     isInFocusMode?: boolean;
     betas?: OnyxEntry<Beta[]>;
+    draftComment: string | undefined;
 }): TranslationPaths | null {
     if (!report) {
         return null;
@@ -1364,6 +1363,7 @@ function getReasonForShowingRowInLHN({
         doesReportHaveViolations,
         includeSelfDM: true,
         isReportArchived,
+        draftComment,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {
