@@ -245,7 +245,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const [activePaidPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: activePaidPoliciesSelector,
-        canBeMissing: true
+        canBeMissing: true,
     });
 
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
