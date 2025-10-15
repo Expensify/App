@@ -4707,6 +4707,25 @@ ${amount} per ${merchant} - ${date}`,
                 title: 'Per diem',
                 subtitle: 'Imposta le tariffe diarie per controllare le spese giornaliere dei dipendenti.',
             },
+            travel: {
+                title: 'Viaggi',
+                subtitle: 'Prenota, gestisci e riconcilia tutti i tuoi viaggi di lavoro.',
+                getStarted: {
+                    title: 'Inizia con Expensify Travel',
+                    subtitle: 'Abbiamo solo bisogno di alcune informazioni aggiuntive sulla tua azienda, poi sarai pronto per partire.',
+                    ctaText: 'Iniziamo',
+                },
+                reviewingRequest: {
+                    title: 'Fai le valigie, abbiamo la tua richiesta...',
+                    subtitle: 'Stiamo attualmente esaminando la tua richiesta per abilitare Expensify Travel. Non preoccuparti, ti faremo sapere quando sarà pronto.',
+                    ctaText: 'Richiesta inviata',
+                },
+                bookOrManageYourTrip: {
+                    title: 'Prenota o gestisci il tuo viaggio',
+                    subtitle: 'Usa Expensify Travel per ottenere le migliori offerte di viaggio e gestisci tutte le tue spese aziendali in un unico posto.',
+                    ctaText: 'Prenota o gestisci',
+                },
+            },
             expensifyCard: {
                 title: 'Expensify Card',
                 subtitle: 'Ottieni informazioni e controllo sulle spese.',
