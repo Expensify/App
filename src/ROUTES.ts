@@ -477,15 +477,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`${baseRoute}${queryString}` as const, backTo);
         },
     },
-    REPORT_AVATAR: {
-        route: 'r/:reportID/avatar',
-        getRoute: (reportID: string, policyID?: string) => {
-            if (policyID) {
-                return `r/${reportID}/avatar?policyID=${policyID}` as const;
-            }
-            return `r/${reportID}/avatar` as const;
-        },
-    },
     ATTACHMENTS: {
         route: 'attachment',
         getRoute: (params?: ReportAttachmentsRouteParams) => getAttachmentModalScreenRoute('attachment', params),
@@ -494,6 +485,15 @@ const ROUTES = {
         route: 'r/:reportID/attachment/add',
         getRoute: (reportID: string, params?: ReportAddAttachmentRouteParams) => {
             return getAttachmentModalScreenRoute(`r/${reportID}/attachment/add`, params);
+        },
+    },
+    REPORT_AVATAR: {
+        route: 'r/:reportID/avatar',
+        getRoute: (reportID: string, policyID?: string) => {
+            if (policyID) {
+                return `r/${reportID}/avatar?policyID=${policyID}` as const;
+            }
+            return `r/${reportID}/avatar` as const;
         },
     },
     EDIT_CURRENCY_REQUEST: {
