@@ -90,7 +90,7 @@ function BaseInvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) 
     );
 
     const maintainVisibleContentPosition = useMemo(() => {
-        if (isInitialData || isQueueRendering) {
+        if (!initialScrollKey && (!isInitialData || !isQueueRendering)) {
             return undefined;
         }
 
@@ -104,7 +104,7 @@ function BaseInvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) 
         }
 
         return config;
-    }, [isInitialData, isQueueRendering, data.length, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
+    }, [initialScrollKey, isInitialData, isQueueRendering, data.length, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
 
     const listRef = useRef<RNFlatList | null>(null);
     useImperativeHandle(ref, () => {
