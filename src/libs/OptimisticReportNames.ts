@@ -1,4 +1,4 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
@@ -11,7 +11,7 @@ import {compute, FORMULA_PART_TYPES, parse} from './Formula';
 import Log from './Log';
 import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
 import Permissions from './Permissions';
-import {isArchivedReport, isValidReport} from './ReportUtils';
+import {isArchivedReport} from './ReportUtils';
 
 /**
  * Get the title field from report name value pairs
@@ -176,49 +176,6 @@ function isValidReportType(reportType?: string): boolean {
 }
 
 /**
- * Checks if a report is partial/incomplete by validating essential fields.
- */
-function isPartialReport(report: Partial<Report>): boolean {
-    if (!report) {
-        return true;
-    }
-
-    // These fields are the ONLY ones ALWAYS set in ALL optimistic report building functions
-    const hasEssentialFields = report.reportID && report.type && report.ownerAccountID !== undefined && report.stateNum !== undefined && report.statusNum !== undefined;
-
-    return !hasEssentialFields;
-}
-
-/**
- * Returns the first update containing the most complete Report in the batch.
- */
-function getReportFromUpdates(reportID: string, updates: OnyxUpdate[]): Report | undefined {
-    if (!reportID) {
-        return undefined;
-    }
-    const reportKey = getReportKey(reportID);
-
-    const report = updates.find((update) => {
-        if (update.key !== reportKey) {
-            return false;
-        }
-
-        const reportUpdate = update.value as OnyxEntry<Report> | undefined;
-        if (!reportUpdate || !isValidReport(reportUpdate) || !isValidReportType(reportUpdate.type)) {
-            return false;
-        }
-
-        if (isPartialReport(reportUpdate)) {
-            return false;
-        }
-
-        return true;
-    })?.value as Report | undefined;
-
-    return report;
-}
-
-/**
  * Compute a new report name if needed based on an optimistic update
  */
 function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: OnyxUpdate, context: UpdateContext): string | null {
@@ -364,15 +321,6 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                     report = getReportByID(transactionUpdate.reportID, allReports);
                 } else {
                     report = getReportByTransactionID(getTransactionIDFromKey(update.key), context);
-                }
-
-                // Send the latest report data to `compute()` for transaction updates, just like for report updates.
-                // Without this, if a batch includes both report and transaction updates,
-                // the report name could be computed with stale data and overwrite the correct one.
-                const reportID = report?.reportID ?? transactionUpdate.reportID;
-                const reportUpdate = reportID ? getReportFromUpdates(reportID, updates) : undefined;
-                if (reportUpdate) {
-                    report = {...(report ?? {}), ...reportUpdate};
                 }
 
                 if (report) {
