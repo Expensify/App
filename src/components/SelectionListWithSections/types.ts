@@ -26,7 +26,7 @@ import type SpendCategorySelectorListItem from '@pages/workspace/categories/Spen
 import type CursorStyles from '@styles/utils/cursor/types';
 import type {TransactionPreviewData} from '@userActions/Search';
 import type CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
@@ -529,6 +529,22 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     violations?: Record<string, TransactionViolations | undefined> | undefined;
 };
 
+type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
+    TransactionGroupListItemProps<TItem>,
+    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations' | 'areAllOptionalColumnsHidden'
+> & {
+    transactions: TransactionListItemType[];
+    transactionsVisibleLimit: number;
+    setTransactionsVisibleLimit: React.Dispatch<React.SetStateAction<number>>;
+    isEmpty: boolean;
+    isExpenseReportType: boolean;
+    transactionsSnapshot?: SearchResults;
+    shouldDisplayEmptyView: boolean;
+    transactionsQueryJSON?: SearchQueryJSON;
+    isInSingleTransactionReport: boolean;
+    searchTransactions: (pageSize?: number) => void;
+};
+
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     queryJSONHash?: number;
 
@@ -982,6 +998,7 @@ export type {
     SingleSelectListItemProps,
     MultiSelectListItemProps,
     TransactionGroupListItemProps,
+    TransactionGroupListExpandedProps,
     TransactionGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionMemberGroupListItemType,
