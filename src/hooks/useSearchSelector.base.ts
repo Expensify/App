@@ -221,6 +221,7 @@ function useSearchSelectorBase({
                     maxElements: maxResults,
                     maxRecentReportElements: maxRecentReportsToShow,
                     includeUserToInvite,
+                    excludeLogins,
                     loginsToExclude: excludeLogins,
                     includeCurrentUser,
                     includeSelfDM,

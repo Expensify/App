@@ -159,18 +159,8 @@ function NewChatPage({ref}: NewChatPageProps) {
         focus: selectionListRef.current?.focusTextInput,
     }));
 
-    const {
-        headerMessage,
-        searchTerm,
-        debouncedSearchTerm,
-        setSearchTerm,
-        selectedOptions,
-        recentReports,
-        personalDetails,
-        userToInvite,
-        areOptionsInitialized,
-        toggleSelection,
-    } = useOptions();
+    const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized, toggleSelection} =
+        useOptions();
 
     const [sections, firstKeyForList] = useMemo(() => {
         const sectionsList: Section[] = [];

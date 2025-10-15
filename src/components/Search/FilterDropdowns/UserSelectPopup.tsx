@@ -15,6 +15,7 @@ import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import {getParticipantsOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,8 +50,13 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 return acc;
             }
 
-            if (participant) {
-                acc.push(participant as OptionData);
+            const optionData = {
+                ...getParticipantsOption(participant, personalDetails),
+                isSelected: true,
+            };
+
+            if (optionData) {
+                acc.push(optionData as OptionData);
             }
 
             return acc;

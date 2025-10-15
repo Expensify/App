@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {formatSectionsFromSearchTerm} from '@libs/OptionsListUtils';
+import {formatSectionsFromSearchTerm, getParticipantsOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -52,6 +52,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         const chatOptions = {...availableOptions};
         const currentUserOption = chatOptions.currentUserOption;
 
+        // Ensure current user is not in personalDetails when they should be excluded
         if (currentUserOption) {
             chatOptions.personalDetails = chatOptions.personalDetails.filter((detail) => detail.accountID !== currentUserOption.accountID);
         }
@@ -93,7 +94,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
 
         newSections.push({
             ...formattedResults.section,
-            data: formattedResults.section.data as OptionData[],
+            data: formattedResults.section.data.map((option) => ({...option, isSelected: true})) as OptionData[],
         });
 
         newSections.push({
@@ -141,7 +142,11 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                     return;
                 }
 
-                return participant as OptionData;
+                const optionData = {
+                    ...getParticipantsOption(participant, personalDetails),
+                    isSelected: true,
+                };
+                return optionData as OptionData;
             })
             .filter((option): option is NonNullable<OptionData> => {
                 return !!option;
