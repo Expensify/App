@@ -241,8 +241,7 @@ function getSmallSizeAvatar(avatarSource?: AvatarSource, accountID?: number): Av
     if (source.substring(lastPeriodIndex - 4, lastPeriodIndex) === '_128') {
         return source;
     }
-    return source;
-    // return `${source.substring(0, lastPeriodIndex)}_128${source.substring(lastPeriodIndex)}`;
+    return `${source.substring(0, lastPeriodIndex)}_128${source.substring(lastPeriodIndex)}`;
 }
 
 /**
