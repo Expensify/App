@@ -452,7 +452,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                             undefined,
                             undefined,
                             outstandingReportsByPolicyID,
-                            true,
+                            isUserWorkspaceMember,
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
@@ -485,7 +485,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         undefined,
                         undefined,
                         outstandingReportsByPolicyID,
-                        true,
+                        isUserWorkspaceMember,
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
@@ -507,7 +507,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
         isRefreshingSelection.current = true;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [data, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID]);
+    }, [data, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isUserWorkspaceMember]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
