@@ -133,7 +133,6 @@ module.exports = {
     extends: [
         'expensify',
         'airbnb-typescript',
-        'plugin:react-hooks/recommended',
         'plugin:storybook/recommended',
         'plugin:react-native-a11y/basic',
         'plugin:@dword-design/import-alias/recommended',
