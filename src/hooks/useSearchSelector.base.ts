@@ -314,7 +314,6 @@ function useSearchSelectorBase({
             }
 
             const isSelected = selectedOptions.some((selected) => isOptionMatch(selected, option));
-
             const newSelected = isSelected ? selectedOptions.filter((selected) => !isOptionMatch(selected, option)) : [...selectedOptions, {...option, isSelected: true}];
 
             setSelectedOptions(newSelected);
