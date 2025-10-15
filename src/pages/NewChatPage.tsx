@@ -28,7 +28,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {Option, Section} from '@libs/OptionsListUtils';
-import {formatSectionsFromSearchTerm, getFirstKeyForList, getHeaderMessage, getPersonalDetailSearchTerms, getUserToInviteOption} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, formatSectionsFromSearchTerm, getFirstKeyForList, getHeaderMessage, getPersonalDetailSearchTerms, getUserToInviteOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -48,6 +48,7 @@ function useOptions() {
         shouldInitialize: didScreenTransitionEnd,
     });
     const {contacts} = useContactImport();
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const {
         selectedOptions,
@@ -55,8 +56,9 @@ function useOptions() {
         searchTerm,
         setSearchTerm,
         debouncedSearchTerm,
-        searchOptions: options,
+        // searchOptions: options,
         toggleSelection,
+        availableOptions,
     } = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
@@ -66,6 +68,15 @@ function useOptions() {
         contactOptions: contacts,
         includeSelfDM: true,
     });
+
+    const options = useMemo(() => {
+        const filteredOptions = filterAndOrderOptions(availableOptions, debouncedSearchTerm, countryCode, {
+            selectedOptions,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        });
+
+        return filteredOptions;
+    }, [debouncedSearchTerm, availableOptions, selectedOptions, countryCode]);
 
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const headerMessage = useMemo(() => {
@@ -210,6 +221,9 @@ function NewChatPage({ref}: NewChatPageProps) {
      */
     const toggleOption = useCallback(
         (option: ListItem & Partial<OptionData>) => {
+            if (!option.isSelected) {
+                selectionListRef?.current?.scrollToIndex(0, true);
+            }
             selectionListRef?.current?.clearInputAfterSelect?.();
             if (!canUseTouchScreen()) {
                 selectionListRef.current?.focusTextInput();
