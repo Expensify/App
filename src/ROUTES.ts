@@ -3296,6 +3296,11 @@ const ROUTES = {
     },
 
     ENABLE_BIOMETRICS_FALLBACK: 'settings/troubleshoot/enable-biometrics-fallback',
+
+    APPROVE_TRANSACTION: {
+        route: 'approve-transaction/:transactionID/:reportID',
+        getRoute: (transactionID: string, reportID: string) => `approve-transaction/${transactionID}/${reportID}` as const,        
+    },
 } as const;
 
 /**

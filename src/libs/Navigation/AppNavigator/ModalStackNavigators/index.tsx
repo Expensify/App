@@ -48,6 +48,7 @@ import type {
     WalletStatementNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
     WorkspaceDuplicateNavigatorParamList,
+    ApproveTransactionParamList,
 } from '@navigation/types';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
@@ -905,6 +906,10 @@ const ScheduleCallModalStackNavigator = createModalStackNavigator<ScheduleCallPa
     [SCREENS.SCHEDULE_CALL.CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/ScheduleCall/ScheduleCallConfirmationPage').default,
 });
 
+const ApproveTransactionStackNavigator = createModalStackNavigator<ApproveTransactionParamList>({
+    [SCREENS.APPROVE_TRANSACTION.ROOT]: () => require<ReactComponentModule>('../../../../pages/ApproveTransactionPage').default,
+});
+
 export {
     AddPersonalBankAccountModalStackNavigator,
     EditRequestStackNavigator,
@@ -950,4 +955,5 @@ export {
     AddUnreportedExpenseModalStackNavigator,
     ScheduleCallModalStackNavigator,
     MergeTransactionStackNavigator,
+    ApproveTransactionStackNavigator,
 };

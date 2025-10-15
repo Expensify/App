@@ -668,6 +668,14 @@ const translations = {
         read: 'Read',
         copyToClipboard: 'Copy to clipboard',
     },
+    approveTransaction: {
+        headerButtonTitle: 'Approve transaction',
+        pageTitle: 'Please approve this transaction',
+        pageContent: 'An Expensify Card transaction requires your approval, please review it below.',
+        transactionDetails: 'Transaction Details',
+        deny: 'Deny',
+        approve: 'Approve',
+    },
     supportalNoAccess: {
         title: 'Not so fast',
         descriptionWithCommand: ({command}: {command?: string} = {}) =>

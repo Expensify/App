@@ -1859,6 +1859,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: NavigatorScreenParams<ReportChangeApproverParamList>;
     [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.APPROVE_TRANSACTION]: NavigatorScreenParams<ApproveTransactionParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -2403,6 +2404,13 @@ type TestToolsModalModalNavigatorParamList = {
     };
 };
 
+type ApproveTransactionParamList = {
+    [SCREENS.APPROVE_TRANSACTION.ROOT]: {
+        transactionID: string;
+        reportID: string;
+    };
+};
+
 type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & SearchFullscreenNavigatorParamList;
 
 type OnboardingFlowName = keyof OnboardingModalNavigatorParamList;
@@ -2505,4 +2513,5 @@ export type {
     TestToolsModalModalNavigatorParamList,
     MergeTransactionNavigatorParamList,
     AttachmentModalScreensParamList,
+    ApproveTransactionParamList,
 };

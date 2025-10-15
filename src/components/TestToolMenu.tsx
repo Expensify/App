@@ -14,6 +14,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account as AccountOnyx} from '@src/types/onyx';
 import { View } from 'react-native';
 import type { TranslationPaths } from '@src/languages/types';
+import ROUTES from '@src/ROUTES';
+import Navigation from '@libs/Navigation/Navigation';
+import useSingleExecution from '@hooks/useSingleExecution';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
@@ -40,6 +44,15 @@ function TestToolMenu() {
     const shouldShowTransactionThreadReportToggle = isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    // ONLY FOR TESTING: this whole section needs to be removed later
+    const transactionID = '361389456238920468';
+    const reportID = '7632535948757192';
+    const {singleExecution} = useSingleExecution();
+    const waitForNavigate = useWaitForNavigation();
+    const navigateToApproveTransactionPage = singleExecution(waitForNavigate(() => {
+        Navigation.navigate(ROUTES.APPROVE_TRANSACTION.getRoute(transactionID, reportID));
+    }));
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
@@ -111,7 +124,7 @@ function TestToolMenu() {
                             <Button
                                 small
                                 text={translate('initialSettingsPage.troubleshoot.biometrics.test')}
-                                onPress={() => setShowBiometricsModal(true)}
+                                onPress={() => navigateToApproveTransactionPage()}
                             />
                         </View>
                     </TestToolRow>

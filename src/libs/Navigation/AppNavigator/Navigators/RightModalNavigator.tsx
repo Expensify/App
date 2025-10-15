@@ -252,6 +252,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             name={SCREENS.RIGHT_MODAL.SCHEDULE_CALL}
                             component={ModalStackNavigators.ScheduleCallModalStackNavigator}
                         />
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.APPROVE_TRANSACTION}
+                            component={ModalStackNavigators.ApproveTransactionStackNavigator}
+                        />
                     </Stack.Navigator>
                 </Animated.View>
                 {/* The second overlay is here to cover the wide rhp screen underneath */}
