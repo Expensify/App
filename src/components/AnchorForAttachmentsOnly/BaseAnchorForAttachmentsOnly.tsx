@@ -12,6 +12,7 @@ import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import {setDownload} from '@userActions/Download';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type AnchorForAttachmentsOnlyProps from './types';
 
 type BaseAnchorForAttachmentsOnlyProps = AnchorForAttachmentsOnlyProps & {
@@ -66,6 +67,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                         isDeleted={!!isDeleted}
                         isUploading={!sourceID}
                         isAuthTokenRequired={!!sourceID}
+                        isUploaded={!isEmptyObject(report)}
                     />
                 </PressableWithoutFeedback>
             )}

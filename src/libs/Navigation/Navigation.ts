@@ -137,6 +137,11 @@ function getActiveRoute(): string {
  * Returns the route of a report opened in RHP.
  */
 function getReportRHPActiveRoute(): string {
+    // Safe handling when navigation is not yet initialized
+    if (!navigationRef.isReady()) {
+        Log.warn('[src/libs/Navigation/Navigation.ts] NavigationRef is not ready. Returning empty string.');
+        return '';
+    }
     if (isReportOpenInRHP(navigationRef.getRootState())) {
         return getActiveRoute();
     }

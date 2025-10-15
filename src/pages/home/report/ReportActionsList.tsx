@@ -117,6 +117,9 @@ type ReportActionsListProps = {
 
     /** Should enable auto scroll to top threshold */
     shouldEnableAutoScrollToTopThreshold?: boolean;
+
+    /** Whether the optimistic CREATED report action was added */
+    hasCreatedActionAdded?: boolean;
 };
 
 // In the component we are subscribing to the arrival of new actions.
@@ -155,7 +158,9 @@ function ReportActionsList({
     listID,
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
+    hasCreatedActionAdded,
 }: ReportActionsListProps) {
+    const prevHasCreatedActionAdded = usePrevious(hasCreatedActionAdded);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
@@ -351,7 +356,7 @@ function ReportActionsList({
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
             onScroll?.(event);
-            if (shouldScrollToEndAfterLayout) {
+            if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
                 setShouldScrollToEndAfterLayout(false);
             }
         },
@@ -370,6 +375,14 @@ function ReportActionsList({
         previousLastIndex.current = lastActionIndex;
         reportActionSize.current = sortedVisibleReportActions.length;
     }, [lastActionIndex, sortedVisibleReportActions, reportScrollManager, hasNewestReportAction, linkedReportActionID, setIsFloatingMessageCounterVisible]);
+
+    useEffect(() => {
+        const shouldTriggerScroll = shouldFocusToTopOnMount && prevHasCreatedActionAdded && !hasCreatedActionAdded;
+        if (!shouldTriggerScroll) {
+            return;
+        }
+        requestAnimationFrame(() => reportScrollManager.scrollToEnd());
+    }, [hasCreatedActionAdded, prevHasCreatedActionAdded, shouldFocusToTopOnMount, shouldScrollToEndAfterLayout, reportScrollManager]);
 
     useEffect(() => {
         userActiveSince.current = DateUtils.getDBTime();
@@ -405,11 +418,11 @@ function ReportActionsList({
 
         // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
-            setIsFloatingMessageCounterVisible(false);
-
-            if (!shouldScrollToEndAfterLayout) {
-                reportScrollManager.scrollToBottom();
+            if (shouldScrollToEndAfterLayout) {
+                return;
             }
+            setIsFloatingMessageCounterVisible(false);
+            reportScrollManager.scrollToBottom();
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -727,13 +740,13 @@ function ReportActionsList({
                 reportScrollManager.scrollToBottom();
                 setIsScrollToBottomEnabled(false);
             }
-            if (shouldScrollToEndAfterLayout) {
+            if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
                 requestAnimationFrame(() => {
                     reportScrollManager.scrollToEnd();
                 });
             }
         },
-        [isScrollToBottomEnabled, onLayout, reportScrollManager, shouldScrollToEndAfterLayout],
+        [isOffline, isScrollToBottomEnabled, onLayout, reportScrollManager, hasCreatedActionAdded, shouldScrollToEndAfterLayout],
     );
 
     const retryLoadNewerChatsError = useCallback(() => {

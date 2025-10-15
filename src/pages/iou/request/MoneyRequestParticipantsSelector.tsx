@@ -130,6 +130,7 @@ function MoneyRequestParticipantsSelector({
         shouldInitialize: didScreenTransitionEnd,
     });
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListHandle | null>(null);
@@ -176,6 +177,7 @@ function MoneyRequestParticipantsSelector({
                 reports: options.reports,
                 personalDetails: options.personalDetails.concat(contacts),
             },
+            draftComments,
             {
                 betas,
                 selectedOptions: participants as Participant[],
@@ -208,16 +210,17 @@ function MoneyRequestParticipantsSelector({
             ...orderedOptions,
         };
     }, [
-        action,
-        contacts,
         areOptionsInitialized,
-        betas,
         didScreenTransitionEnd,
-        iouType,
-        isCategorizeOrShareAction,
-        options.personalDetails,
         options.reports,
+        options.personalDetails,
+        contacts,
+        draftComments,
+        betas,
         participants,
+        iouType,
+        action,
+        isCategorizeOrShareAction,
         isPerDiemRequest,
         canShowManagerMcTest,
         isCorporateCardTransaction,

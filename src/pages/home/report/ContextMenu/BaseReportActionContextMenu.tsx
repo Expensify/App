@@ -131,7 +131,7 @@ function BaseReportActionContextMenu({
 }: BaseReportActionContextMenuProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, getLocalDateFromDatetime} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const menuItemRefs = useRef<MenuItemRefs>({});
@@ -365,6 +365,7 @@ function BaseReportActionContextMenu({
                             childReport,
                             movedFromReport,
                             movedToReport,
+                            getLocalDateFromDatetime,
                         };
 
                         if ('renderContent' in contextAction) {
