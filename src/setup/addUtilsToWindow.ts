@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import {isProduction as isProductionLib} from '@libs/Environment/Environment';
-import markAllPolicyReportsAsRead from '@libs/markAllPolicyReportsAsRead';
 import {setSupportAuthToken} from '@userActions/Session';
 import type {OnyxKey} from '@src/ONYXKEYS';
 
@@ -43,8 +42,5 @@ export default function addUtilsToWindow() {
         };
 
         window.setSupportToken = setSupportAuthToken;
-
-        // Workaround to give employees the ability to mark reports as read via the JS console
-        window.markAllPolicyReportsAsRead = markAllPolicyReportsAsRead;
     });
 }
