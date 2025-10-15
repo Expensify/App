@@ -3997,7 +3997,7 @@ describe('actions/IOU', () => {
                     taxCode: '',
                     policy: {
                         id: '123',
-                        role: 'user',
+                        role: CONST.POLICY.ROLE.USER,
                         type: CONST.POLICY.TYPE.TEAM,
                         name: '',
                         owner: '',
@@ -6414,7 +6414,7 @@ describe('actions/IOU', () => {
                 taxCode: '',
                 policy: {
                     id: '123',
-                    role: 'user',
+                    role: CONST.POLICY.ROLE.USER,
                     type: CONST.POLICY.TYPE.TEAM,
                     name: '',
                     owner: '',
@@ -6474,7 +6474,7 @@ describe('actions/IOU', () => {
                 taxCode: '',
                 policy: {
                     id: '123',
-                    role: 'user',
+                    role: CONST.POLICY.ROLE.USER,
                     type: CONST.POLICY.TYPE.TEAM,
                     name: '',
                     owner: '',
@@ -8789,18 +8789,18 @@ describe('actions/IOU', () => {
                 employeeList: {
                     [employeeEmail]: {
                         email: employeeEmail,
-                        role: 'user',
+                        role: CONST.POLICY.ROLE.USER,
                         submitsTo: managerEmail,
                     },
                     [managerEmail]: {
                         email: managerEmail,
-                        role: 'user',
+                        role: CONST.POLICY.ROLE.USER,
                         submitsTo: adminEmail,
                         forwardsTo: adminEmail,
                     },
                     [adminEmail]: {
                         email: adminEmail,
-                        role: 'admin',
+                        role: CONST.POLICY.ROLE.ADMIN,
                         submitsTo: '',
                         forwardsTo: '',
                     },
