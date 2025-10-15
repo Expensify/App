@@ -44,7 +44,7 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
         <ValidateCodeActionContent
             clearError={clearError}
             validateCodeActionErrorField="updateDelegateRole"
-            onClose={() => Navigation.goBack(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(login, newRole))}
+            onClose={() => Navigation.goBack(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(login, currentDelegate?.role ?? ''))}
             validateError={updateDelegateErrors}
             title={translate('delegate.makeSureItIsYou')}
             sendValidateCode={() => requestValidateCodeAction()}

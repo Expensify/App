@@ -2,7 +2,8 @@ import {DomUtils, parseDocument} from 'htmlparser2';
 import type {ReactElement, ReactNode} from 'react';
 import React, {createContext, useCallback, useEffect, useMemo, useState} from 'react';
 import type {ValueOf} from 'type-fest';
-import {getEnvironment, getEnvironmentURL} from '@libs/Environment/Environment';
+import {getEnvironmentURL} from '@libs/Environment/Environment';
+import getEnvironment from '@libs/Environment/getEnvironment';
 import CONST from '@src/CONST';
 
 type EnvironmentProviderProps = {
