@@ -124,11 +124,11 @@ type UseSearchSelectorReturn = {
     onListEndReached: () => void;
 };
 
-const isOptionMatch = (opt1: OptionData, opt2: OptionData) => {
+const isOptionMatch = (option1: OptionData, option2: OptionData) => {
     return (
-        (opt1.accountID && opt1.accountID === opt2.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-        (opt1.reportID && opt1.reportID !== '-1' && opt1.reportID === opt2.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-        (opt1.login && opt1.login === opt2.login)
+        (option1.accountID && option1.accountID === option2.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
+        (option1.reportID && option1.reportID !== '-1' && option1.reportID === option2.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
+        (option1.login && option1.login === option2.login)
     );
 };
 
