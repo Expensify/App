@@ -68,7 +68,14 @@ type CheckOptions = CommonCheckOptions & {
     filesToCheck?: string[];
 };
 
-function check({filesToCheck, shouldGenerateReport = false, reportFileName = DEFAULT_REPORT_FILENAME, shouldFilterByDiff = false, remote, shouldPrintSuccesses = false}: CheckOptions) {
+async function check({
+    filesToCheck,
+    shouldGenerateReport = false,
+    reportFileName = DEFAULT_REPORT_FILENAME,
+    shouldFilterByDiff = false,
+    remote,
+    shouldPrintSuccesses = false,
+}: CheckOptions): Promise<boolean> {
     if (filesToCheck) {
         logInfo(`Running React Compiler check for ${filesToCheck.length} files or glob patterns...`);
     } else {
@@ -79,10 +86,10 @@ function check({filesToCheck, shouldGenerateReport = false, reportFileName = DEF
     let results = runCompilerHealthcheck(src);
 
     if (shouldFilterByDiff) {
-        const mainBaseCommitHash = Git.getMainBranchCommitHash(remote);
+        const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
         const headCommitHash = 'HEAD';
         const diffFilteringCommits: DiffFilteringCommits = {from: mainBaseCommitHash, to: headCommitHash};
-        results = filterResultsByDiff(results, diffFilteringCommits, {shouldPrintSuccesses});
+        results = await filterResultsByDiff(results, diffFilteringCommits, {shouldPrintSuccesses});
     }
 
     printResults(results, {shouldPrintSuccesses});
@@ -112,7 +119,7 @@ async function checkChangedFiles({remote, ...restOptions}: CheckChangedFilesOpti
             return true;
         }
 
-        return check({filesToCheck, ...restOptions});
+        return await check({filesToCheck, ...restOptions});
     } catch {
         return false;
     }
@@ -328,9 +335,9 @@ function createFilesGlob(filesToCheck?: string[]): string | undefined {
  * @param diffFilteringCommits - The commit range to diff (from and to)
  * @returns Filtered compiler results containing only failures in changed lines
  */
-function filterResultsByDiff(results: CompilerResults, diffFilteringCommits: DiffFilteringCommits, {shouldPrintSuccesses}: PrintResultsOptions): CompilerResults {
+async function filterResultsByDiff(results: CompilerResults, diffFilteringCommits: DiffFilteringCommits, {shouldPrintSuccesses}: PrintResultsOptions): Promise<CompilerResults> {
     // Check for uncommitted changes and warn if any exist
-    if (Git.hasUncommittedChanges()) {
+    if (await Git.hasUncommittedChanges()) {
         logWarn('Warning: You have uncommitted changes. The diff results may not accurately reflect your current working directory.');
     }
 
@@ -546,7 +553,7 @@ async function main() {
     try {
         switch (command) {
             case 'check':
-                isPassed = Checker.check({filesToCheck: file !== '' ? [file] : undefined, ...commonOptions});
+                isPassed = await Checker.check({filesToCheck: file !== '' ? [file] : undefined, ...commonOptions});
                 break;
             case 'check-changed':
                 isPassed = await Checker.checkChangedFiles({remote, ...commonOptions});
