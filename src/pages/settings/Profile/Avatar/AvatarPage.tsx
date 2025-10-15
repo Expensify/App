@@ -19,10 +19,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {ALL_CUSTOM_AVATARS} from '@libs/Avatars/CustomAvatarCatalog';
 import type {CustomAvatarID} from '@libs/Avatars/CustomAvatarCatalog';
 import {validateAvatarImage} from '@libs/AvatarUtils';
-import {isSafari} from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDefaultAvatarName, isDefaultAvatar} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserUtils';
+import {isDefaultAvatar} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
 import DiscardChangesConfirmation from '@pages/iou/request/step/DiscardChangesConfirmation';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
@@ -36,10 +36,19 @@ type ErrorData = {
     phraseParam: Record<string, unknown>;
 };
 
+type ImageData = {
+    uri: string;
+    name: string;
+    type: string;
+    file: File | CustomRNImageManipulatorResult | null;
+};
+
 type OpenPickerParams = {
     onPicked: (image: FileObject[]) => void;
 };
 type OpenPicker = (args: OpenPickerParams) => void;
+
+const EMPTY_FILE = {uri: '', name: '', type: '', file: null};
 
 function ProfileAvatar() {
     const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseParam: {}});
@@ -47,27 +56,23 @@ function ProfileAvatar() {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [imageData, setImageData] = useState({
-        uri: '',
-        name: '',
-        type: '',
-    });
+    const [imageData, setImageData] = useState<ImageData>({...EMPTY_FILE});
 
     const [selected, setSelected] = useState<string | undefined>();
+
+    const isDirty = imageData.uri !== '' || !!selected;
 
     const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart, styles.alignSelfCenter];
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    const avatarURL = selected ? ALL_CUSTOM_AVATARS[selected as CustomAvatarID]?.url : (currentUserPersonalDetails?.avatar ?? '');
+    let avatarURL: AvatarSource = imageData.uri;
+    if (selected) {
+        avatarURL = ALL_CUSTOM_AVATARS[selected as CustomAvatarID]?.url ?? '';
+    } else {
+        avatarURL = currentUserPersonalDetails?.avatar ?? '';
+    }
     const isUsingDefaultAvatar = isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '');
-
-    useEffect(() => {
-        if (!isUsingDefaultAvatar) {
-            return;
-        }
-        setSelected(getDefaultAvatarName(accountID));
-    }, [accountID, isUsingDefaultAvatar]);
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({
@@ -93,6 +98,7 @@ function ProfileAvatar() {
                     uri: image.uri ?? '',
                     name: image.name ?? '',
                     type: image.type ?? '',
+                    file: null,
                 });
             })
             .catch(() => {
@@ -107,16 +113,16 @@ function ProfileAvatar() {
         openPublicProfilePage(accountID);
     }, [accountID]);
 
-    const onImageSelected = useCallback(
-        (file: File | CustomRNImageManipulatorResult) => {
-            updateAvatar(file, {
-                avatar: currentUserPersonalDetails?.avatar,
-                avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
-                accountID: currentUserPersonalDetails?.accountID,
-            });
-        },
-        [currentUserPersonalDetails],
-    );
+    const onImageSelected = useCallback((file: File | CustomRNImageManipulatorResult) => {
+        setSelected(undefined);
+        setImageData({
+            uri: file?.uri ?? '',
+            name: file?.name,
+            file,
+            type: '',
+        });
+        setIsAvatarCropModalOpen(false);
+    }, []);
 
     const onImageRemoved = useCallback(() => {
         deleteAvatar({
@@ -124,6 +130,8 @@ function ProfileAvatar() {
             fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
             accountID: currentUserPersonalDetails?.accountID,
         });
+        setSelected(undefined);
+        Navigation.dismissModal();
     }, [currentUserPersonalDetails]);
 
     /**
@@ -136,9 +144,6 @@ function ProfileAvatar() {
                     icon: Expensicons.Upload,
                     text: translate('avatarWithImagePicker.uploadPhoto'),
                     onSelected: () => {
-                        if (isSafari()) {
-                            return;
-                        }
                         openPicker({
                             onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
                         });
@@ -256,36 +261,39 @@ function ProfileAvatar() {
             </ScrollView>
             <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                 <Button
-                    isDisabled={selected === currentUserPersonalDetails?.avatar || !selected}
+                    isDisabled={!isDirty}
                     large
                     success
-                    text={translate('contacts.newContactMethod')}
-                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                    text={translate('common.save')}
                     onPress={() => {
-                        if (selected === currentUserPersonalDetails?.avatar || !selected) {
+                        if (!isDirty) {
                             return;
                         }
-                        updateAvatar(
-                            {
-                                uri: ALL_CUSTOM_AVATARS[selected as CustomAvatarID]?.url,
-                                name: `${selected}.png`,
-                                type: 'image/png',
-                                customExpensifyAvatarID: selected,
-                            },
-                            {
-                                avatar: currentUserPersonalDetails?.avatar,
-                                avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
-                                accountID: currentUserPersonalDetails?.accountID,
-                            },
-                        );
+                        const file = imageData.file ?? {
+                            uri: ALL_CUSTOM_AVATARS[selected as CustomAvatarID]?.url,
+                            name: `${selected}.png`,
+                            type: 'image/png',
+                            customExpensifyAvatarID: selected ?? '',
+                        };
+                        updateAvatar(file, {
+                            avatar: currentUserPersonalDetails?.avatar,
+                            avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
+                            accountID: currentUserPersonalDetails?.accountID,
+                        });
+                        setSelected(undefined);
+                        setImageData({...EMPTY_FILE});
+
+                        Navigation.dismissModal();
                     }}
                     pressOnEnter
                 />
             </FixedFooter>
             <AvatarCropModal
                 onClose={() => {
+                    if (!isAvatarCropModalOpen) {
+                        return;
+                    }
                     setIsAvatarCropModalOpen(false);
-                    Navigation.dismissModal();
                 }}
                 isVisible={isAvatarCropModalOpen}
                 onSave={onImageSelected}
@@ -293,7 +301,7 @@ function ProfileAvatar() {
                 imageName={imageData.name}
                 imageType={imageData.type}
             />
-            <DiscardChangesConfirmation getHasUnsavedChanges={() => !!imageData.uri || getDefaultAvatarName(accountID) !== selected} />
+            <DiscardChangesConfirmation getHasUnsavedChanges={() => isDirty} />
         </ScreenWrapper>
     );
 }
