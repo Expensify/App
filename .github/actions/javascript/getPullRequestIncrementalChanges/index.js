@@ -12771,8 +12771,8 @@ class Git {
             return; // Reference is already available locally
         }
         try {
-            console.log(`🔄 Fetching missing ref: ${ref}`);
-            await exec(`git fetch --no-tags --depth=1 ${remote} ${ref}`, {
+            (0, Logger_1.log)(`🔄 Fetching missing ref: ${ref}`);
+            await exec(`git fetch --no-tags --depth=1 --quiet ${remote} ${ref}`, {
                 encoding: 'utf8',
                 cwd: process.cwd(),
             });
@@ -12785,17 +12785,21 @@ class Git {
             throw new Error(`Failed to fetch git reference ${ref}: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
-    static getMainBranchCommitHash(remote) {
+    static async getMainBranchCommitHash(remote) {
         // Fetch the main branch from the specified remote (or locally) to ensure it's available
         if (IS_CI || remote) {
-            this.ensureRef('main', remote);
+            await this.ensureRef('main', remote);
         }
         // In CI, use a simpler approach - just use the remote main branch directly
         // This avoids issues with shallow clones and merge-base calculations
         if (IS_CI) {
             const mainBaseRef = remote ? `${remote}/main` : 'origin/main';
             try {
-                const mergeBaseHash = (0, child_process_1.execSync)(`git rev-parse ${mainBaseRef}`, { encoding: 'utf8' }).trim();
+                const { stdout: revParseOutput } = await exec(`git rev-parse ${mainBaseRef}`, {
+                    encoding: 'utf8',
+                    cwd: process.cwd(),
+                });
+                const mergeBaseHash = revParseOutput.trim();
                 // Validate the output is a proper SHA hash
                 if (!mergeBaseHash || !/^[a-fA-F0-9]{40}$/.test(mergeBaseHash)) {
                     throw new Error(`git rev-parse returned unexpected output: ${mergeBaseHash}`);
@@ -12811,13 +12815,21 @@ class Git {
         // For local development, try to find the actual merge base
         let mergeBaseHash;
         try {
-            mergeBaseHash = (0, child_process_1.execSync)(`git merge-base ${mainBaseRef} HEAD`, { encoding: 'utf8' }).trim();
+            const { stdout: mergeBaseOutput } = await exec(`git merge-base ${mainBaseRef} HEAD`, {
+                encoding: 'utf8',
+                cwd: process.cwd(),
+            });
+            mergeBaseHash = mergeBaseOutput.trim();
         }
         catch {
             (0, Logger_1.warn)(`Warning: Could not find merge base between ${mainBaseRef} and HEAD.`);
             // If merge-base fails locally, fall back to using the remote main branch
             try {
-                mergeBaseHash = (0, child_process_1.execSync)(`git rev-parse ${mainBaseRef}`, { encoding: 'utf8' }).trim();
+                const { stdout: revParseOutput } = await exec(`git rev-parse ${mainBaseRef}`, {
+                    encoding: 'utf8',
+                    cwd: process.cwd(),
+                });
+                mergeBaseHash = revParseOutput.trim();
             }
             catch (fallbackError) {
                 (0, Logger_1.error)(`Failed to find merge base with ${mainBaseRef}:`, fallbackError);
@@ -12835,12 +12847,13 @@ class Git {
      *
      * @returns true if there are uncommitted changes, false otherwise
      */
-    static hasUncommittedChanges() {
+    static async hasUncommittedChanges() {
         try {
-            const status = (0, child_process_1.execSync)('git status --porcelain', {
+            const { stdout } = await exec('git status --porcelain', {
                 encoding: 'utf8',
                 cwd: process.cwd(),
-            }).trim();
+            });
+            const status = stdout.trim();
             return status.length > 0;
         }
         catch (error) {
