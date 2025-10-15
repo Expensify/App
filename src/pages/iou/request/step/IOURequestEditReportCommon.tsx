@@ -145,10 +145,9 @@ function IOURequestEditReportCommon({
                     return true;
                 }
 
-                const policy = report.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
+                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                 const isReportPolicyAdmin = isPolicyAdmin(policy);
                 const isReportManager = report.managerID === currentUserPersonalDetails.accountID;
-
                 return isReportPolicyAdmin || isReportManager;
             })
             .map((report) => {
