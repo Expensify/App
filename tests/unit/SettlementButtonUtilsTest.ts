@@ -50,11 +50,6 @@ describe('SettlementButtonUtils', () => {
                 mockChatReportID,
             ),
         },
-        {
-            description: 'navigate to ROUTES.MONEY_REQUEST_CREATE_VERIFY_ACCOUNT when active route is ROUTES.MONEY_REQUEST_CREATE',
-            mockActiveRoute: ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, mockChatReportID),
-            expectedRouteToNavigate: ROUTES.MONEY_REQUEST_CREATE_VERIFY_ACCOUNT.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, mockChatReportID),
-        },
     ])('$description', ({mockActiveRoute, expectedRouteToNavigate}) => {
         (Navigation.getActiveRoute as jest.Mock).mockReturnValue(mockActiveRoute);
         handleUnvalidatedUserNavigation(mockChatReportID, mockReportID);

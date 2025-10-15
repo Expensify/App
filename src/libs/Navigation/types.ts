@@ -1460,12 +1460,6 @@ type MoneyRequestNavigatorParamList = {
         backToReport?: string;
         reportActionID?: string;
     };
-    [SCREENS.MONEY_REQUEST.CREATE_VERIFY_ACCOUNT]: {
-        action: IOUAction;
-        iouType: IOUType;
-        transactionID: string;
-        reportID: string;
-    };
     [SCREENS.MONEY_REQUEST.START]: {
         iouType: IOUType;
         reportID: string;
