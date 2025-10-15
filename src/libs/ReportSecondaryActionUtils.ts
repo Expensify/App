@@ -74,7 +74,7 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
     return canAddTransaction(report, isReportArchived);
 }
 
-function isSplitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, isNewDotUpdateSplitsBeta = true): boolean {
+function isSplitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
     if (Number(reportTransactions?.length) !== 1) {
         return false;
     }
@@ -91,12 +91,8 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
         return false;
     }
 
-    const {isBillSplit, isExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction);
+    const {isBillSplit} = getOriginalTransactionWithSplitInfo(reportTransaction);
     if (isBillSplit) {
-        return false;
-    }
-
-    if (isExpenseSplit && !isNewDotUpdateSplitsBeta) {
         return false;
     }
 
@@ -578,7 +574,6 @@ function getSecondaryReportActions({
     reportActions,
     policies,
     isChatReportArchived = false,
-    isNewDotUpdateSplitsBeta,
 }: {
     currentUserEmail: string;
     report: Report;
@@ -591,7 +586,6 @@ function getSecondaryReportActions({
     policies?: OnyxCollection<Policy>;
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
-    isNewDotUpdateSplitsBeta?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -651,7 +645,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 
-    if (isSplitAction(report, reportTransactions, policy, isNewDotUpdateSplitsBeta)) {
+    if (isSplitAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
@@ -707,7 +701,6 @@ function getSecondaryTransactionThreadActions(
     reportAction: ReportAction | undefined,
     policy: OnyxEntry<Policy>,
     transactionThreadReport?: OnyxEntry<Report>,
-    isNewDotUpdateSplitsBeta?: boolean,
 ): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -723,7 +716,7 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
-    if (isSplitAction(parentReport, [reportTransaction], policy, isNewDotUpdateSplitsBeta)) {
+    if (isSplitAction(parentReport, [reportTransaction], policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
 

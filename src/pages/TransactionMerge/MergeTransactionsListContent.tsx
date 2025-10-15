@@ -40,7 +40,7 @@ type MergeTransactionsListContentProps = {
 type MergeTransactionListItemType = Transaction & ListItem;
 
 function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTransactionsListContentProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
@@ -134,7 +134,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
                 receipt: mergedReceipt,
             });
 
-            const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(newTargetTransaction, newSourceTransaction);
+            const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(newTargetTransaction, newSourceTransaction, localeCompare);
             if (!conflictFields.length) {
                 // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
                 setMergeTransactionKey(transactionID, mergeableData);
@@ -143,7 +143,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             }
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
         }
-    }, [mergeTransaction, transactionID, targetTransaction]);
+    }, [mergeTransaction, transactionID, targetTransaction, localeCompare]);
 
     if (eligibleTransactions?.length === 0) {
         return (

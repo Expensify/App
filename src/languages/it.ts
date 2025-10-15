@@ -969,6 +969,7 @@ const translations = {
         buttonMySettings: 'Le mie impostazioni',
         fabNewChat: 'Inizia chat',
         fabNewChatExplained: 'Avvia chat (Azione flottante)',
+        fabScanReceiptExplained: 'Scansiona ricevuta (Azione flottante)',
         chatPinned: 'Chat fissata',
         draftedMessage: 'Messaggio redatto',
         listOfChatMessages: 'Elenco dei messaggi di chat',
@@ -1040,6 +1041,10 @@ const translations = {
     receipt: {
         upload: 'Carica ricevuta',
         uploadMultiple: 'Carica ricevute',
+        dragReceiptBeforeEmail: 'Trascina una ricevuta su questa pagina, inoltra una ricevuta a',
+        dragReceiptsBeforeEmail: 'Trascina le ricevute su questa pagina, inoltra le ricevute a',
+        dragReceiptAfterEmail: 'o scegli un file da caricare qui sotto.',
+        dragReceiptsAfterEmail: 'o scegli i file da caricare qui sotto.',
         desktopSubtitleSingle: `oppure trascinala qui`,
         desktopSubtitleMultiple: `oppure trascinale qui`,
         chooseReceipt: 'Scegli una ricevuta da caricare o inoltra una ricevuta a',
@@ -1236,7 +1241,7 @@ const translations = {
             policyName: string;
         }) => (formattedAmount ? `Paga ${formattedAmount} tramite ${policyName}` : `Paga tramite ${policyName}`),
         businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
-            amount ? `Pagato ${amount} con conto bancario ${last4Digits}` : `Pagato con conto bancario ${last4Digits}`,
+            amount ? `pagato ${amount} con conto bancario ${last4Digits}` : `pagato con conto bancario ${last4Digits}`,
         automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
             `pagato ${amount ? `${amount} ` : ''}con il conto bancario terminante con ${last4Digits} tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
         invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Conto personale • ${lastFour}`,
@@ -1468,6 +1473,7 @@ const translations = {
                 subtitle: 'Scegli un approvatore aggiuntivo per questo report prima di instradarlo attraverso il resto del flusso di lavoro di approvazione.',
             },
         },
+        chooseWorkspace: "Scegli un'area di lavoro",
     },
     transactionMerge: {
         listPage: {
@@ -1486,6 +1492,7 @@ const translations = {
             pageTitle: 'Seleziona i dettagli da conservare:',
             noDifferences: 'Nessuna differenza trovata tra le transazioni',
             pleaseSelectError: ({field}: {field: string}) => `Seleziona un/a ${field}`,
+            pleaseSelectAttendees: 'Seleziona partecipanti',
             selectAllDetailsError: 'Seleziona tutti i dettagli prima di continuare.',
         },
         confirmationPage: {
@@ -1555,10 +1562,7 @@ const translations = {
         subtitle: "Abilita l'autenticazione a due fattori per mantenere sicuro il tuo account.",
         goToSecurity: 'Torna alla pagina di sicurezza',
     },
-    shareCodePage: {
-        title: 'Il tuo codice',
-        subtitle: 'Invita i membri a Expensify condividendo il tuo codice QR personale o il link di riferimento.',
-    },
+    shareCodePage: {title: 'Il tuo codice', subtitle: 'Invita membri a Expensify condividendo il tuo codice QR personale o il link di riferimento.'},
     pronounsPage: {
         pronouns: 'Pronomi',
         isShownOnProfile: 'I tuoi pronomi sono mostrati nel tuo profilo.',
@@ -1569,8 +1573,8 @@ const translations = {
         contactMethods: 'Metodi di contatto',
         featureRequiresValidate: 'Questa funzione richiede di convalidare il tuo account.',
         validateAccount: 'Convalida il tuo account',
-        helpTextBeforeEmail: 'Aggiungi più modi per farti trovare e inoltra le ricevute a',
-        helpTextAfterEmail: 'da più indirizzi email.',
+        helpTextBeforeEmail: 'Aggiungi più modi per inviare le ricevute. Inoltrale a',
+        helpTextAfterEmail: 'o inviarli al 47777 (solo numeri USA).',
         pleaseVerify: 'Si prega di verificare questo metodo di contatto',
         getInTouch: 'Ogni volta che avremo bisogno di contattarti, useremo questo metodo di contatto.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Per favore, inserisci il codice magico inviato a ${contactMethod}. Dovrebbe arrivare entro un minuto o due.`,
@@ -1843,6 +1847,7 @@ const translations = {
             "La tua connessione contabile Xero richiede l'uso dell'autenticazione a due fattori. Per continuare a utilizzare Expensify, ti preghiamo di abilitarla.",
         twoFactorAuthCannotDisable: "Impossibile disabilitare l'autenticazione a due fattori (2FA)",
         twoFactorAuthRequired: "L'autenticazione a due fattori (2FA) è necessaria per la tua connessione Xero e non può essere disabilitata.",
+        explainProcessToRemoveWithRecovery: "Per disabilitare l'autenticazione a due fattori (2FA), inserisci un codice di recupero valido.",
     },
     recoveryCodeForm: {
         error: {
@@ -2011,12 +2016,34 @@ const translations = {
         validateCardTitle: 'Verifichiamo che sei tu',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Inserisci il codice magico inviato a ${contactMethod} per visualizzare i dettagli della tua carta. Dovrebbe arrivare entro un minuto o due.`,
+        cardFraudAlert: {
+            confirmButtonText: 'Sì, lo faccio',
+            reportFraudButtonText: 'No, non ero io',
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) =>
+                `abbiamo eliminato l'attività sospetta e riattivato la carta x${cardLastFour}. Tutto pronto per continuare a registrare le spese!`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `disattivato la carta che termina con ${cardLastFour}`,
+            alertMessage: ({
+                cardLastFour,
+                amount,
+                merchant,
+                date,
+            }: {
+                cardLastFour: string;
+                amount: string;
+                merchant: string;
+                date: string;
+            }) => `attività sospetta identificata sulla carta che termina con ${cardLastFour}. Riconosci questo addebito?
+
+${amount} per ${merchant} - ${date}`,
+        },
     },
     workflowsPage: {
         workflowTitle: 'Spendere',
         workflowDescription: 'Configura un flusso di lavoro dal momento in cui si verifica una spesa, inclusi approvazione e pagamento.',
+        delaySubmissionTitle: 'Ritarda invii',
+        delaySubmissionDescription: "Scegli un programma personalizzato per l'invio delle spese, oppure lascialo disattivato per aggiornamenti in tempo reale sulle spese.",
         submissionFrequency: 'Frequenza di invio',
-        submissionFrequencyDescription: "Scegli un programma personalizzato per l'invio delle spese, oppure lascia disattivato per aggiornamenti in tempo reale sulle spese.",
+        submissionFrequencyDescription: 'Scegli una frequenza per inviare le spese.',
         submissionFrequencyDateOfMonth: 'Data del mese',
         addApprovalsTitle: 'Aggiungi approvazioni',
         addApprovalButton: 'Aggiungi flusso di lavoro di approvazione',
@@ -2068,6 +2095,7 @@ const translations = {
         },
     },
     workflowsDelayedSubmissionPage: {
+        autoReportingErrorMessage: 'La presentazione ritardata non può essere modificata. Riprova o contatta il supporto.',
         autoReportingFrequencyErrorMessage: "La frequenza di invio non può essere modificata. Riprova o contatta l'assistenza.",
         monthlyOffsetErrorMessage: 'La frequenza mensile non può essere modificata. Riprova o contatta il supporto.',
     },
@@ -2317,8 +2345,8 @@ const translations = {
         },
         interestedFeatures: {
             title: 'Quali funzionalità ti interessano?',
-            featuresAlreadyEnabled: 'Il tuo spazio di lavoro ha già abilitato quanto segue:',
-            featureYouMayBeInterestedIn: 'Abilita funzionalità aggiuntive che potrebbero interessarti:',
+            featuresAlreadyEnabled: 'Ecco le nostre funzionalità più popolari:',
+            featureYouMayBeInterestedIn: 'Abilita funzionalità aggiuntive:',
         },
         error: {
             requiredFirstName: 'Per favore, inserisci il tuo nome per continuare',
@@ -2354,6 +2382,23 @@ const translations = {
             testDriveEmployeeTask: {
                 title: ({testDriveURL}) => `Fai un [test drive](${testDriveURL})`,
                 description: ({testDriveURL}) => `Prova un [test drive](${testDriveURL}) e ottieni *3 mesi gratuiti di Expensify!* per il tuo team`,
+            },
+            addExpenseApprovalsTask: {
+                title: 'Aggiungi approvazioni spese',
+                description: ({workspaceMoreFeaturesLink}) =>
+                    `*Aggiungi approvazioni spese* per controllare le spese del tuo team e mantenerle sotto controllo.\n` +
+                    '\n' +
+                    `Ecco come fare:\n` +
+                    '\n' +
+                    '1. Vai a *Spazi di lavoro*.\n' +
+                    '2. Seleziona il tuo spazio di lavoro.\n' +
+                    '3. Clicca su *Altre funzionalità*.\n' +
+                    '4. Abilita *Flussi di lavoro*.\n' +
+                    '5. Vai su *Flussi di lavoro* nell’editor dello spazio di lavoro.\n' +
+                    '6. Abilita *Aggiungi approvazioni*.\n' +
+                    `7. Sarai impostato come approvatore delle spese. Potrai cambiarlo con un amministratore una volta invitato il tuo team.\n` +
+                    '\n' +
+                    `[Vai a altre funzionalità](${workspaceMoreFeaturesLink}).`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Crea](${workspaceConfirmationLink}) uno spazio di lavoro`,
@@ -6248,7 +6293,6 @@ const translations = {
         groupBy: 'Gruppo per',
         moneyRequestReport: {
             emptyStateTitle: 'Questo report non ha spese.',
-            emptyStateSubtitle: 'Puoi aggiungere spese a questo report\n utilizzando il pulsante in basso o l\'opzione "Aggiungi spesa" nel menu Altro sopra.',
         },
         noCategory: 'Nessuna categoria',
         noTag: 'Nessun tag',
@@ -6373,8 +6417,8 @@ const translations = {
         noActivityYet: 'Nessuna attività ancora',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `modificato ${fieldName} da ${oldValue} a ${newValue}`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `modificato ${fieldName} in ${newValue}`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `ha modificato ${fieldName} in "${newValue}" (precedentemente "${oldValue}")`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `ha impostato ${fieldName} su "${newValue}"`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `Spazio di lavoro modificato${fromPolicyName ? ` (precedentemente ${fromPolicyName})` : ''}`;
@@ -7174,6 +7218,7 @@ const translations = {
             isWaitingForAssigneeToCompleteAction: "In attesa che l'assegnatario completi l'azione",
             hasChildReportAwaitingAction: 'Ha un rapporto figlio in attesa di azione',
             hasMissingInvoiceBankAccount: 'Manca il conto bancario della fattura',
+            hasUnresolvedCardFraudAlert: 'Ha una alerta di fraude di carta non risolta',
         },
         reasonRBR: {
             hasErrors: 'Ha errori nei dati del report o delle azioni del report',
@@ -7236,7 +7281,7 @@ const translations = {
         book: {
             title: 'Pianifica chiamata',
             description: 'Trova un orario che funzioni per te.',
-            slots: 'Orari disponibili per',
+            slots: ({date}: {date: string}) => `<muted-text>Orari disponibili per <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: 'Conferma chiamata',
