@@ -68,8 +68,6 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
         goBack();
     };
 
-    console.log('DUPA');
-
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
