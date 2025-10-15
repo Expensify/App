@@ -34,6 +34,7 @@ import type {
     PersonalDetails,
     Policy,
     PolicyCategories,
+    PolicyTagLists,
     RecentWaypoint,
     Report,
     ReportAction,
@@ -47,7 +48,6 @@ import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/type
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
-import {getPolicyTagsData} from './Policy/Tag';
 
 let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({
@@ -105,6 +105,31 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     callback: (val) => (allTransactionViolations = val ?? []),
 });
+
+// TODO: remove `allPolicyTags` from this file (https://github.com/Expensify/App/issues/71491)
+// `allPolicyTags` was moved here temporarily from `src/libs/actions/Policy/Tag.ts` during the `Deprecate Onyx.connect` refactor.
+// All uses of this variable should be replaced with `useOnyx`.
+let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTags = {};
+            return;
+        }
+
+        allPolicyTags = value;
+    },
+});
+
+/**
+ * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
+ * All usages of this function should be replaced with useOnyx hook in React components.
+ */
+function getPolicyTagsData(policyID: string | undefined) {
+    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+}
 
 // Helper to safely check for a string 'name' property
 function isViolationWithName(violation: unknown): violation is {name: string} {
@@ -752,6 +777,8 @@ function changeTransactionsReport(
     let transactionsMoved = false;
     let shouldFixViolations = false;
 
+    // TODO: Replace getPolicyTagsData  with useOnyx hook (https://github.com/Expensify/App/issues/71491)
+    // eslint-disable-next-line deprecation/deprecation
     const policyTagList = getPolicyTagsData(policy?.id);
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
 
