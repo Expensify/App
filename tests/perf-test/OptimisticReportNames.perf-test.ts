@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import type {UpdateContext} from '@libs/OptimisticReportNames';
-import {computeReportNameIfNeeded, updateOptimisticReportNamesFromUpdates} from '@libs/OptimisticReportNames';
+import {computeReportName, computeReportNames} from '@libs/OptimisticReportNames';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -93,7 +93,8 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 value: {total: -20000},
             };
 
-            await measureFunction(() => computeReportNameIfNeeded(report, update, mockContext));
+            // eslint-disable-next-line rulesdir/no-default-id-values
+            await measureFunction(() => computeReportName(report?.reportID ?? '', mockContext, update, {}));
         });
     });
 
@@ -111,7 +112,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 },
             }));
 
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, mockContext));
+            await measureFunction(() => computeReportNames(updates, mockContext));
         });
 
         test('[OptimisticReportNames] updateOptimisticReportNamesFromUpdates() with 50 existing report updates', async () => {
@@ -122,7 +123,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 value: {total: -(Math.random() * 100000)},
             }));
 
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, mockContext));
+            await measureFunction(() => computeReportNames(updates, mockContext));
         });
 
         test('[OptimisticReportNames] updateOptimisticReportNamesFromUpdates() with 100 mixed updates', async () => {
@@ -148,7 +149,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
 
             const allUpdates = [...newReportUpdates, ...existingReportUpdates];
 
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(allUpdates, mockContext));
+            await measureFunction(() => computeReportNames(allUpdates, mockContext));
         });
     });
 
@@ -161,7 +162,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             };
 
             // This should trigger name computation for all reports using policy1
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates([policyUpdate], mockContext));
+            await measureFunction(() => computeReportNames([policyUpdate], mockContext));
         });
 
         test('[OptimisticReportNames] multiple policy updates', async () => {
@@ -171,7 +172,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 value: {name: `Bulk Updated Policy ${i}`},
             }));
 
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(policyUpdates, mockContext));
+            await measureFunction(() => computeReportNames(policyUpdates, mockContext));
         });
     });
 
@@ -189,7 +190,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 },
             }));
 
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, mockContext));
+            await measureFunction(() => computeReportNames(updates, mockContext));
         });
 
         test('[OptimisticReportNames] worst case: many irrelevant updates', async () => {
@@ -200,7 +201,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 value: {description: `Updated transaction ${i}`},
             }));
 
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(irrelevantUpdates, mockContext));
+            await measureFunction(() => computeReportNames(irrelevantUpdates, mockContext));
         });
     });
 
@@ -248,7 +249,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 },
             }));
 
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, contextWithoutFormulas));
+            await measureFunction(() => computeReportNames(updates, contextWithoutFormulas));
         });
 
         test('[OptimisticReportNames] missing policies and reports', async () => {
@@ -272,7 +273,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 },
             }));
 
-            await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, contextWithMissingData));
+            await measureFunction(() => computeReportNames(updates, contextWithMissingData));
         });
     });
 });
