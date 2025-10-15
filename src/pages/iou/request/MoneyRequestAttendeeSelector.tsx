@@ -20,6 +20,7 @@ import {searchInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {
     formatSectionsFromSearchTerm,
+    getFilteredRecentAttendees,
     getHeaderMessage,
     getParticipantsOption,
     getPersonalDetailSearchTerms,
@@ -67,6 +68,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
     const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyFn(policy), [policy]);
 
+    const recentAttendeeLists = useMemo(() => getFilteredRecentAttendees(personalDetails, attendees, recentAttendees ?? []), [personalDetails, attendees, recentAttendees]);
     const initialSelectedOptions = useMemo(
         () =>
             attendees.map((attendee) => ({
@@ -86,14 +88,14 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES,
         includeUserToInvite: true,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        includeRecentReports: true,
+        includeRecentReports: false,
         includeCurrentUser: true,
         getValidOptionsConfig: {
             includeP2P: true,
             includeSelfDM: false,
             includeInvoiceRooms: false,
             action,
-            recentAttendees: recentAttendees ?? [],
+            recentAttendees: recentAttendeeLists,
         },
         initialSelected: initialSelectedOptions,
         shouldInitialize: didScreenTransitionEnd,

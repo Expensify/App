@@ -234,6 +234,7 @@ function useSearchSelectorBase({
                     includeP2P: true,
                     includeSelectedOptions: false,
                     excludeLogins,
+                    loginsToExclude: excludeLogins,
                     includeRecentReports,
                     maxElements: maxResults,
                     maxRecentReportElements: maxRecentReportsToShow,

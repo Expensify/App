@@ -2045,23 +2045,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
     };
 }
 
-function getAttendeeOptions(
-    reports: Array<SearchOption<Report>>,
-    personalDetails: Array<SearchOption<PersonalDetails>>,
-    betas: OnyxEntry<Beta[]>,
-    attendees: Attendee[],
-    recentAttendees: Attendee[],
-    draftComments: OnyxCollection<string>,
-    includeOwnedWorkspaceChats = false,
-    includeP2P = true,
-    includeInvoiceRooms = false,
-    action: IOUAction | undefined = undefined,
-) {
-    const personalDetailList = keyBy(
-        personalDetails.map(({item}) => item),
-        'accountID',
-    );
-
+function getFilteredRecentAttendees(personalDetails: OnyxEntry<PersonalDetailsList>, attendees: Attendee[], recentAttendees: Attendee[]) {
     const recentAttendeeHasCurrentUser = recentAttendees.find((attendee) => attendee.email === currentUserLogin || attendee.login === currentUserLogin);
     if (!recentAttendeeHasCurrentUser && currentUserLogin) {
         const details = getPersonalDetailByEmail(currentUserLogin);
@@ -2083,21 +2067,9 @@ function getAttendeeOptions(
             login: attendee.email ?? attendee.displayName,
             ...getPersonalDetailByEmail(attendee.email),
         }))
-        .map((attendee) => getParticipantsOption(attendee, personalDetailList as never));
+        .map((attendee) => getParticipantsOption(attendee, personalDetails));
 
-    return getValidOptions({reports, personalDetails}, draftComments, {
-        betas,
-        selectedOptions: attendees.map((attendee) => ({...attendee, login: attendee.email})),
-        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        includeOwnedWorkspaceChats,
-        includeRecentReports: false,
-        includeP2P,
-        includeSelectedOptions: false,
-        includeSelfDM: false,
-        includeInvoiceRooms,
-        action,
-        recentAttendees: filteredRecentAttendees,
-    });
+    return filteredRecentAttendees;
 }
 
 /**
@@ -2603,7 +2575,7 @@ export {
     formatMemberForList,
     formatSectionsFromSearchTerm,
     getAlternateText,
-    getAttendeeOptions,
+    getFilteredRecentAttendees,
     getCurrentUserSearchTerms,
     getEmptyOptions,
     getFirstKeyForList,
