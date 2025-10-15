@@ -61,7 +61,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
     const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
 
-    const originalFileName = currentAttachment?.content.split('/').pop();
     const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
     const validateFileName = shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
     const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? CONST.SHARE_FILE_MIMETYPE.JPEG) : (currentAttachment?.mimeType ?? '');
@@ -70,12 +69,12 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const showAttachmentModalScreen = useCallback(() => {
         reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT>({
             source: currentAttachment?.content,
-            headerTitle: originalFileName,
-            originalFileName,
+            headerTitle: validateFileName,
+            originalFileName: validateFileName,
             fallbackSource: FallbackAvatar,
         });
         Navigation.navigate(ROUTES.SHARE_DETAILS_ATTACHMENT);
-    }, [reportAttachmentsContext, currentAttachment?.content, originalFileName]);
+    }, [reportAttachmentsContext, currentAttachment?.content, validateFileName]);
 
     useEffect(() => {
         if (!currentAttachment?.content || errorTitle) {
