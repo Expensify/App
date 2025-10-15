@@ -30,6 +30,7 @@ import {
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isPending, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
+import ViolationsUtils from './Violations/ViolationsUtils';
 
 function hasAnyError(reportID: string, violations: OnyxCollection<TransactionViolation[]>, transactions?: Transaction[]) {
     return hasAnyViolationsUtil(reportID, violations) || hasMissingSmartscanFields(reportID, transactions) || transactions?.some(hasReceiptError);
@@ -187,12 +188,13 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
 
 function canReview(report: Report, violations: OnyxCollection<TransactionViolation[]>, isReportArchived: boolean, policy?: Policy, transactions?: Transaction[]) {
     const hasAnyViolations = hasAnyError(report.reportID, violations, transactions);
+    const hasVisibleViolations = hasAnyViolations && (!!transactions?.some(hasReceiptError) || ViolationsUtils.hasVisibleViolationsForUser(report, violations, policy, transactions));
     const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenExpenseReport(report);
     const isReimbursed = isSettled(report);
 
     if (
-        !hasAnyViolations ||
+        !hasVisibleViolations ||
         isReimbursed ||
         (!(isSubmitter && isOpen && policy?.areWorkflowsEnabled) &&
             !canApprove(report, violations, policy, transactions, false) &&
