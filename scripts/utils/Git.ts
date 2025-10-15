@@ -8,6 +8,7 @@ import {log, error as logError, warn as logWarn} from './Logger';
 const exec = promisify(execWithCallback);
 
 const IS_CI = process.env.CI === 'true';
+const GITHUB_BASE_REF = process.env.GITHUB_BASE_REF as string | undefined;
 
 /**
  * Represents a single changed line in a git diff.
@@ -314,15 +315,17 @@ class Git {
     }
 
     static async getMainBranchCommitHash(remote?: string): Promise<string> {
+        const baseRefName = IS_CI ? (GITHUB_BASE_REF ?? GITHUB_CONSTANTS.DEFAULT_BASE_REF) : GITHUB_CONSTANTS.DEFAULT_BASE_REF;
+
         // Fetch the main branch from the specified remote (or locally) to ensure it's available
         if (IS_CI || remote) {
-            await this.ensureRef('main', remote);
+            await this.ensureRef(baseRefName, remote);
         }
 
         // In CI, use a simpler approach - just use the remote main branch directly
         // This avoids issues with shallow clones and merge-base calculations
         if (IS_CI) {
-            const mainBaseRef = remote ? `${remote}/main` : 'origin/main';
+            const mainBaseRef = remote ? `${remote}/${baseRefName}` : `origin/${baseRefName}`;
 
             try {
                 const {stdout: revParseOutput} = await exec(`git rev-parse ${mainBaseRef}`, {
@@ -343,7 +346,7 @@ class Git {
             }
         }
 
-        const mainBaseRef = remote ? `${remote}/main` : 'main';
+        const mainBaseRef = remote ? `${remote}/${baseRefName}` : baseRefName;
 
         // For local development, try to find the actual merge base
         let mergeBaseHash: string;
