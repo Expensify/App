@@ -4,7 +4,7 @@ import AttachmentModalContext from './AttachmentModalContext';
 import ProfileAvatarModalContent from './routes/ProfileAvatarModalContent';
 import ReportAddAttachmentModalContent from './routes/report/ReportAddAttachmentModalContent';
 import ReportAttachmentModalContent from './routes/report/ReportAttachmentModalContent';
-import ReportAvatarModalContent from './routes/ReportAvatarModalContent';
+import ReportAvatarModalContent from './routes/report/ReportAvatarModalContent';
 import TransactionReceiptModalContent from './routes/TransactionReceiptModalContent';
 import WorkspaceAvatarModalContent from './routes/WorkspaceAvatarModalContent';
 import type {AttachmentModalScreenProps, AttachmentModalScreenType} from './types';

@@ -116,13 +116,78 @@ const SEASON_F1: Record<SeasonF1AvatarIDs, AvatarEntry> = {
     'wrenches-pink600': {local: SeasonF1.WrenchesPink600, url: `${CDN_SEASON_F1}/wrenches-pink600.png`},
 };
 
+const DISPLAY_ORDER = [
+    'car-blue100',
+    'default-avatar_1',
+    'helmet-blue400',
+    'default-avatar_13',
+    'default-avatar_7',
+    'podium-blue400',
+    'flag-blue600',
+    'default-avatar_19',
+    'car-green100',
+    'default-avatar_2',
+    'helmet-green400',
+    'default-avatar_14',
+    'default-avatar_8',
+    'tire-green400',
+    'champagne-green400',
+    'default-avatar_20',
+    'car-yellow100',
+    'default-avatar_3',
+    'helmet-yellow400',
+    'default-avatar_15',
+    'default-avatar_9',
+    'medal-yellow400',
+    'trophy-yellow600',
+    'default-avatar_21',
+    'car-tangerine100',
+    'default-avatar_4',
+    'helmet-tangerine400',
+    'default-avatar_16',
+    'default-avatar_10',
+    'gasoline-tangerine400',
+    'cone-tangerine700',
+    'default-avatar_22',
+    'car-pink100',
+    'default-avatar_5',
+    'helmet-pink400',
+    'default-avatar_17',
+    'default-avatar_11',
+    'steeringwheel-pink400',
+    'wrenches-pink600',
+    'default-avatar_23',
+    'car-ice100',
+    'default-avatar_6',
+    'helmet-ice400',
+    'default-avatar_18',
+    'default-avatar_12',
+    'speedometer-ice400',
+    'stopwatch-ice600',
+    'default-avatar_24',
+] as const satisfies readonly CustomAvatarID[];
+
 const ALL_CUSTOM_AVATARS: Record<CustomAvatarID, AvatarEntry> = {
     ...DEFAULTS,
     ...SEASON_F1,
 };
 
+const buildOrderedAvatars = (): Array<{id: CustomAvatarID} & AvatarEntry> => {
+    const allIDS = Object.keys(ALL_CUSTOM_AVATARS) as CustomAvatarID[];
+    const explicit = DISPLAY_ORDER.filter((id) => id in ALL_CUSTOM_AVATARS);
+    const explicitSet = new Set(explicit);
+    const leftovers = allIDS.filter((id) => !explicitSet.has(id)).sort();
+    const finalIDOrder = [...explicit, ...leftovers];
+    return finalIDOrder.map((id) => ({
+        id,
+        ...ALL_CUSTOM_AVATARS[id],
+    }));
+};
+
+const CUSTOM_AVATAR_CATALOG = buildOrderedAvatars();
+
 const getAvatarLocal = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].local;
 const getAvatarURL = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].url;
 
-export {ALL_CUSTOM_AVATARS, getAvatarLocal, getAvatarURL};
+export {ALL_CUSTOM_AVATARS, CUSTOM_AVATAR_CATALOG, getAvatarLocal, getAvatarURL};
 export type {DefaultAvatarIDs, SeasonF1AvatarIDs, CustomAvatarID};
