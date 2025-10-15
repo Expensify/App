@@ -110,6 +110,7 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
             <Animated.View style={[contentAnimatedStyle, contentStyle]}>
                 {isExpanded || isRendered ? (
                     <Animated.View
+                        testID="animated-collapsible-content"
                         style={styles.stickToTop}
                         onLayout={(e) => {
                             const height = e.nativeEvent.layout.height;

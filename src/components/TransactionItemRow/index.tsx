@@ -397,7 +397,10 @@ function TransactionItemRow({
 
     if (shouldUseNarrowLayout) {
         return (
-            <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, bgActiveStyles, style, styles.overflowHidden]}>
+            <View
+                style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, bgActiveStyles, style, styles.overflowHidden]}
+                testID="transaction-item-row"
+            >
                 <View style={[styles.flexRow]}>
                     {shouldShowCheckbox && (
                         <Checkbox
