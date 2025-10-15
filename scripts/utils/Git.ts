@@ -298,7 +298,7 @@ class Git {
 
         try {
             console.log(`🔄 Fetching missing ref: ${ref}`);
-            await exec(`git fetch --no-tags --depth=1 ${remote} ${ref}`, {
+            await exec(`git fetch --no-tags --depth=1 --quiet ${remote} ${ref}`, {
                 encoding: 'utf8',
                 cwd: process.cwd(),
             });
