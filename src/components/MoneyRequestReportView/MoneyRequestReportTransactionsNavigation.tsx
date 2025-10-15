@@ -87,10 +87,12 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID}: MoneyR
     }
 
     const onNext = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
+        e?.preventDefault();
+
         const backTo = Navigation.getActiveRoute();
         const nextThreadReportID = nextParentReportAction?.childReportID;
         const navigationParams = {reportID: nextThreadReportID, backTo};
-        e?.preventDefault();
+
         if (nextThreadReportID) {
             markReportIDAsExpense(nextThreadReportID);
         }
@@ -107,10 +109,12 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID}: MoneyR
     };
 
     const onPrevious = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
+        e?.preventDefault();
+
         const backTo = Navigation.getActiveRoute();
         const prevThreadReportID = prevParentReportAction?.childReportID;
         const navigationParams = {reportID: prevThreadReportID, backTo};
-        e?.preventDefault();
+
         if (prevThreadReportID) {
             markReportIDAsExpense(prevThreadReportID);
         }
