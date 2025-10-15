@@ -66,9 +66,11 @@ function ProfileAvatar() {
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    let avatarURL: AvatarSource = imageData.uri;
+    let avatarURL: AvatarSource = '';
     if (selected) {
         avatarURL = ALL_CUSTOM_AVATARS[selected as CustomAvatarID]?.url ?? '';
+    } else if (imageData.uri) {
+        avatarURL = imageData.uri;
     } else {
         avatarURL = currentUserPersonalDetails?.avatar ?? '';
     }
@@ -246,7 +248,10 @@ function ProfileAvatar() {
                 <View style={[styles.ph5, styles.flexColumn, styles.flex1, styles.gap6, styles.alignItemsCenter]}>
                     <AvatarSelector
                         selectedID={selected as CustomAvatarID}
-                        onSelect={setSelected}
+                        onSelect={(id) => {
+                            setSelected(id);
+                            setImageData({...EMPTY_FILE});
+                        }}
                     />
 
                     {!!errorData.validationError && (

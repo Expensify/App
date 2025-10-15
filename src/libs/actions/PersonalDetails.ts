@@ -427,9 +427,7 @@ function updateAvatar(
         },
     ];
 
-    const parameters: UpdateUserAvatarParams = isDefaultAvatarResult(file)
-        ? {customExpensifyAvatarID: file.customExpensifyAvatarID}
-        : {file};
+    const parameters: UpdateUserAvatarParams = isDefaultAvatarResult(file) ? {customExpensifyAvatarID: file.customExpensifyAvatarID} : {file};
 
     API.write(WRITE_COMMANDS.UPDATE_USER_AVATAR, parameters, {optimisticData, successData, failureData});
 }
