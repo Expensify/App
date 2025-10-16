@@ -415,17 +415,19 @@ function BasePopoverMenu({
             return shouldEnableMaxHeight ? [{maxHeight: windowHeight - DEFAULT_MAX_HEIGHT_OFFSET}] : [];
         }
 
+        const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer)];
         const isTopAnchored = anchorAlignment?.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP;
         const top = anchorPosition?.vertical;
 
-        if (isTopAnchored && typeof top === 'number' && shouldUseScrollView) {
-            return [styles.createMenuContainer, shouldEnableMaxHeight ? {maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT} : {}];
+        if (isTopAnchored && typeof top === 'number' && shouldUseScrollView && shouldEnableMaxHeight) {
+            stylesArray.push({maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT});
         }
 
-        return styles.createMenuContainer;
+        return stylesArray;
     }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer, anchorAlignment, anchorPosition, shouldUseScrollView]);
 
-    const {...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
+    const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
+    const {paddingVertical: menuContainerPaddingVertical, ...restMenuContainerStyle} = StyleSheet.flatten(menuContainerStyle) ?? {};
 
     return (
         <PopoverWithMeasuredContent
@@ -456,10 +458,13 @@ function BasePopoverMenu({
             testID={testID}
         >
             <FocusTrapForModal active={isVisible}>
-                <View onLayout={onLayout}>
+                <View
+                    onLayout={onLayout}
+                    style={[containerStyles, restMenuContainerStyle, {...(isWebOrDesktop ? styles.flex1 : styles.flexGrow1)}]}
+                >
                     {renderWithConditionalWrapper(
                         shouldUseScrollView,
-                        [restScrollContainerStyle, menuContainerStyle, containerStyles, {...(isWebOrDesktop ? styles.flex1 : styles.flexGrow1)}],
+                        [{paddingTop, paddingBottom, paddingVertical: paddingVertical ?? menuContainerPaddingVertical ?? 0}, restScrollContainerStyle],
                         [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
                     )}
                 </View>
