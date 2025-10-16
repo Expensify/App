@@ -23,7 +23,7 @@ import type SCREENS from '@src/SCREENS';
 type SetDefaultWorkspacePageProps = PlatformStackScreenProps<SetDefaultWorkspaceNavigatorParamList, typeof SCREENS.SET_DEFAULT_WORKSPACE.ROOT>;
 
 function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
-    const {backTo} = route.params ?? {};
+    const {navigateTo} = route.params ?? {};
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -37,12 +37,12 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
     const session = useSession();
 
     const selectPolicy = (selectedPolicyID?: string) => {
-        if (!selectedPolicyID) {
+        if (!selectedPolicyID || !navigateTo) {
             return;
         }
         // eslint-disable-next-line rulesdir/no-default-id-values
         setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, selectedPolicyID, activePolicyID ?? '');
-        Navigation.goBack(backTo);
+        Navigation.navigate(navigateTo);
     };
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
