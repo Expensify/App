@@ -157,7 +157,7 @@ function IOURequestStepDistance({
 
             const IOUpolicyID = getIOURequestPolicyID(transaction, policyReport);
             // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const IOUpolicy = getPolicy(report?.policyID ?? IOUpolicyID);
             const policyCurrency = policy?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -388,14 +388,14 @@ function IOURequestStepDistance({
             !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
         ) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
+            const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
+            const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
             const rateID = DistanceRequestUtils.getCustomUnitRateID({
-                reportID: activePolicyExpenseChat?.reportID,
+                reportID: transactionReportID,
                 isPolicyExpenseChat: true,
                 policy: defaultExpensePolicy,
                 lastSelectedDistanceRates,
             });
-            const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-            const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
             setTransactionReport(transactionID, {reportID: transactionReportID}, true);
             setCustomUnitRateID(transactionID, rateID);
             setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
