@@ -1280,7 +1280,7 @@ function getTaskSections(
 
 /**
  * @private
- * 
+ *
  * Extracts the core Transaction fields from a TransactionListItemType
  * This removes UI-specific fields like formattedFrom, hash, violations, etc.
  */

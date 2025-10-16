@@ -2780,14 +2780,29 @@ describe('SearchUIUtils', () => {
 
             // When iouReportAction is undefined, should pass transaction and violations
             // Extract the transaction by removing UI-specific fields
-            const {keyForList, action, allActions, report, from, to, formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, shouldShowMerchant, shouldShowYear, isAmountColumnWide, isTaxAmountColumnWide, violations, hash: itemHash, moneyRequestReportActionID, ...expectedTransaction} = transactionListItem;
-            
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(
-                report1, 
-                {reportActionID: moneyRequestReportActionID}, 
-                expect.objectContaining(expectedTransaction),
-                violations
-            );
+            const {
+                keyForList,
+                action,
+                allActions,
+                report,
+                from,
+                to,
+                formattedFrom,
+                formattedTo,
+                formattedTotal,
+                formattedMerchant,
+                date,
+                shouldShowMerchant,
+                shouldShowYear,
+                isAmountColumnWide,
+                isTaxAmountColumnWide,
+                violations,
+                hash: itemHash,
+                moneyRequestReportActionID,
+                ...expectedTransaction
+            } = transactionListItem;
+
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, {reportActionID: moneyRequestReportActionID}, expect.objectContaining(expectedTransaction), violations);
             expect(updateSearchResultsWithTransactionThreadReportID).toHaveBeenCalledWith(hash, transactionID, threadReportID);
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
         });
