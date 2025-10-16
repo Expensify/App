@@ -5,6 +5,7 @@ import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {hasAuthToken} from '@libs/actions/Session';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -37,6 +38,8 @@ import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
 import './libs/Notification/PushNotification/subscribeToPushNotifications';
+// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
+import './libs/registerPaginationConfig';
 import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
 import StartupTimer from './libs/StartupTimer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
@@ -234,7 +237,8 @@ function Expensify() {
 
         // Open chat report from a deep link (only mobile native)
         linkingChangeListener.current = Linking.addEventListener('url', (state) => {
-            Report.openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated);
+            const isCurrentlyAuthenticated = hasAuthToken();
+            Report.openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated);
         });
         if (CONFIG.IS_HYBRID_APP) {
             HybridAppModule.onURLListenerAdded();
