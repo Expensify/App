@@ -673,6 +673,7 @@ const translations = {
         pinned: '已固定',
         read: '已读',
         copyToClipboard: '复制到剪贴板',
+        domains: '域名',
     },
     supportalNoAccess: {
         title: '慢一点',
