@@ -13,7 +13,9 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@navigation/Navigation';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
@@ -48,7 +50,7 @@ type VideoPlayerPreviewProps = {
     isDeleted?: boolean;
 };
 
-const isOnAttachmentRoute = () => Navigation.getActiveRouteWithoutParams() === `/${ROUTES.ATTACHMENTS.route}`;
+const isOnAttachmentRoute = () => Navigation.getActiveRouteWithoutParams() === `/${ROUTES.REPORT_ATTACHMENTS.route}`;
 
 function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDimensions, videoDuration, onShowModalPress, isDeleted}: VideoPlayerPreviewProps) {
     const styles = useThemeStyles();
@@ -64,6 +66,32 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
     const isOnSearch = useIsOnSearch();
     const navigation = useNavigation();
+
+    useEffect(() => {
+        const platform = getPlatform();
+        // On web and desktop platforms, we can use the DOM video element to get accurate video dimensions
+        // by loading the video metadata. On mobile platforms, we rely on the provided videoDimensions
+        // since document.createElement is not available in React Native environments.
+        if (videoUrl && (platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP)) {
+            const video = document.createElement('video');
+            video.onloadedmetadata = () => {
+                if (video.videoWidth === measuredDimensions.width && video.videoHeight === measuredDimensions.height) {
+                    return;
+                }
+                setMeasuredDimensions({
+                    width: video.videoWidth,
+                    height: video.videoHeight,
+                });
+            };
+            video.src = videoUrl;
+            video.load();
+
+            return () => {
+                video.src = '';
+            };
+        }
+        setMeasuredDimensions(videoDimensions);
+    }, [videoUrl, measuredDimensions.width, measuredDimensions.height, videoDimensions]);
 
     // We want to play the video only when the user is on the page where it was initially rendered
     const doesUserRemainOnFirstRenderRoute = useCheckIfRouteHasRemainedUnchanged(videoUrl);
