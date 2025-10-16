@@ -18,16 +18,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import { isValidValidateCode, isValidTwoFactorCode} from '@libs/ValidationUtils';
 import Text from '@components/Text';
-import ConfirmationPage from '@components/ConfirmationPage';
 import RenderHTML from '@components/RenderHTML';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearAccountMessages} from '@userActions/Session';
 import type { TranslationPaths } from '@src/languages/types';
 import {resendValidateCode} from '@userActions/User';
-import * as Illustrations from '@components/Icon/Illustrations';
+import ROUTES from '@src/ROUTES';
 // TODO: Implement those API calls
-// import {verifyBiometricsMagicCode, verifyBiometrics2FA, verifyBiometricsSmsOtp} from '@userActions/User'; ?
+// import {verifyBiometricsMagicCode, verifyBiometrics2FA, verifyBiometricsSmsOtp} from '@userActions/User'; ????????
 
 type FormError = {
     inputCode?: string;
@@ -70,6 +69,13 @@ function EnableBiometricsFallbackPage() {
     // const hasSuccessfullyEnabledBiometrics = account?.biometricsEnabled ?? false;
     const [hasSuccessfullyEnabledBiometrics, setHasSuccessfullyEnabledBiometrics] = useState(false);
     
+    useEffect(() => {
+        if (!hasSuccessfullyEnabledBiometrics) {
+            return;
+        }
+        Navigation.navigate(ROUTES.BIOMETRICS_NOTIFICATIONS_PAGE.getRoute('authentication-successful'));
+    }, [hasSuccessfullyEnabledBiometrics]);
+
     // Derived state
     const hasError = !!account && !isEmptyObject(account?.errors) && !needToClearError;
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
@@ -372,50 +378,36 @@ function EnableBiometricsFallbackPage() {
                 onBackButtonPress={onGoBackPress}
                 shouldShowBackButton
             />
-            {!hasSuccessfullyEnabledBiometrics ? (
-                <>
-                    {renderMagicCodeContent()} 
-                    <View style={[styles.mh5]}>
-                        <MagicCodeInput
-                            isDisableKeyboard
-                            autoComplete={currentStep === 'smsOtp' ? "sms-otp" : "one-time-code"}
-                            name="enableBiometricsFallbackCode"
-                            value={inputCode}
-                            onChangeText={onCodeInput}
-                            onFulfill={validateAndSubmitForm}
-                            errorText={canShowError && formError.inputCode ? translate(formError.inputCode as TranslationPaths) : ''}
-                            hasError={hasError}
-                            ref={inputRef}
-                            maxLength={currentStep === 'twoFactorAuth' ? CONST.TFA_CODE_LENGTH : CONST.MAGIC_CODE_LENGTH}
-                            key={currentStep}
-                        />
-                        {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
-                        {renderResendCodeButton()}
-                    </View>
-                    {/* <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pv0]}>
-                        {canUseTouchScreen() && <BigNumberPad numberPressed={updateLastPressedDigit} />}
-                    </View> */}
-                    <Button
-                        success
-                        large
-                        style={[styles.w100, styles.p5, styles.mtAuto]}
-                        onPress={validateAndSubmitForm}
-                        text={translate(bottomButtonText)}
-                        isLoading={isValidateCodeFormSubmitting}
-                        isDisabled={isOffline}
-                    />
-                </>
-            ) : (
-                <ConfirmationPage
-                    illustration={Illustrations.OpenPadlock}
-                    heading={translate('multiFactorAuthentication.biometrics.notificationTitle')}
-                    description={translate('multiFactorAuthentication.biometrics.notificationFallbackContent')}
-                    shouldShowButton
-                    buttonText={translate('common.buttonConfirm')}
-                    onButtonPress={onGoBackPress}
-                    containerStyle={styles.flex1}
+            {renderMagicCodeContent()} 
+            <View style={[styles.mh5]}>
+                <MagicCodeInput
+                    isDisableKeyboard
+                    autoComplete={currentStep === 'smsOtp' ? "sms-otp" : "one-time-code"}
+                    name="enableBiometricsFallbackCode"
+                    value={inputCode}
+                    onChangeText={onCodeInput}
+                    onFulfill={validateAndSubmitForm}
+                    errorText={canShowError && formError.inputCode ? translate(formError.inputCode as TranslationPaths) : ''}
+                    hasError={hasError}
+                    ref={inputRef}
+                    maxLength={currentStep === 'twoFactorAuth' ? CONST.TFA_CODE_LENGTH : CONST.MAGIC_CODE_LENGTH}
+                    key={currentStep}
                 />
-            )}
+                {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
+                {renderResendCodeButton()}
+            </View>
+            {/* <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pv0]}>
+                {canUseTouchScreen() && <BigNumberPad numberPressed={updateLastPressedDigit} />}
+            </View> */}
+            <Button
+                success
+                large
+                style={[styles.w100, styles.p5, styles.mtAuto]}
+                onPress={validateAndSubmitForm}
+                text={translate(bottomButtonText)}
+                isLoading={isValidateCodeFormSubmitting}
+                isDisabled={isOffline}
+            />
         </ScreenWrapper>
     );
 }

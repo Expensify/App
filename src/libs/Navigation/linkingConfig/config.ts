@@ -1711,6 +1711,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     },
                 },
                 [SCREENS.RIGHT_MODAL.APPROVE_TRANSACTION]: ROUTES.APPROVE_TRANSACTION.route,
+                [SCREENS.RIGHT_MODAL.BIOMETRICS_NOTIFICATIONS_PAGE]: ROUTES.BIOMETRICS_NOTIFICATIONS_PAGE.route,
             },
         },
 

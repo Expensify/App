@@ -27,6 +27,7 @@ import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyRe
 import type {CompanyCardFeed} from '@src/types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
+import type { notificationType } from '@pages/BiometricsNotificationsPage';
 import type {SIDEBAR_TO_SPLIT} from './linkingConfig/RELATIONS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootNavigatorParamList>;
@@ -1860,6 +1861,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: NavigatorScreenParams<ReportChangeApproverParamList>;
     [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.APPROVE_TRANSACTION]: NavigatorScreenParams<ApproveTransactionParamList>;
+    [SCREENS.RIGHT_MODAL.BIOMETRICS_NOTIFICATIONS_PAGE]: NavigatorScreenParams<BiometricsNotificaitonsParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -2411,6 +2413,12 @@ type ApproveTransactionParamList = {
     };
 };
 
+type BiometricsNotificaitonsParamList = {
+    [SCREENS.BIOMETRICS_NOTIFICATIONS_PAGE.ROOT]: {
+        notificationType: notificationType;
+    };
+};
+
 type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & SearchFullscreenNavigatorParamList;
 
 type OnboardingFlowName = keyof OnboardingModalNavigatorParamList;
@@ -2514,4 +2522,5 @@ export type {
     MergeTransactionNavigatorParamList,
     AttachmentModalScreensParamList,
     ApproveTransactionParamList,
+    BiometricsNotificaitonsParamList,
 };

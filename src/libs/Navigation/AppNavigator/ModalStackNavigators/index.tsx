@@ -910,6 +910,10 @@ const ApproveTransactionStackNavigator = createModalStackNavigator<ApproveTransa
     [SCREENS.APPROVE_TRANSACTION.ROOT]: () => require<ReactComponentModule>('../../../../pages/ApproveTransactionPage').default,
 });
 
+const BiometricsStackNavigator = createModalStackNavigator<ApproveTransactionParamList>({
+    [SCREENS.BIOMETRICS_NOTIFICATIONS_PAGE.ROOT]: () => require<ReactComponentModule>('../../../../pages/BiometricsNotificationsPage').default,
+});
+
 export {
     AddPersonalBankAccountModalStackNavigator,
     EditRequestStackNavigator,
@@ -956,4 +960,5 @@ export {
     ScheduleCallModalStackNavigator,
     MergeTransactionStackNavigator,
     ApproveTransactionStackNavigator,
+    BiometricsStackNavigator,
 };

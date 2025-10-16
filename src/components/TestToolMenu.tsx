@@ -56,7 +56,7 @@ function TestToolMenu() {
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
 
-    const biometricsTitle = 'initialSettingsPage.troubleshoot.biometrics.biometricsNotRegistered';
+    const biometricsTitle = 'multiFactorAuthentication.biometrics.biometricsNotRegistered';
 
     return (
         <>

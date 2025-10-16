@@ -254,6 +254,7 @@ const SCREENS = {
         REPORT_CHANGE_APPROVER: 'Report_Change_Approver',
         MERGE_TRANSACTION: 'MergeTransaction',
         APPROVE_TRANSACTION: 'Approve_Transaction',
+        BIOMETRICS_NOTIFICATIONS_PAGE: 'BiometricsNotifications',
     },
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
@@ -810,6 +811,9 @@ const SCREENS = {
     },
     APPROVE_TRANSACTION: {
         ROOT: 'ApproveTransaction_Root',
+    },
+    BIOMETRICS_NOTIFICATIONS_PAGE: {
+        ROOT: 'BiometricsNotificationsPage_Root',
     },
 } as const;
 
