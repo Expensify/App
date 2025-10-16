@@ -310,6 +310,7 @@ describe('Session', () => {
 
             await Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, testStashedCredentials);
             await Onyx.set(ONYXKEYS.STASHED_SESSION, testStashedSession);
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
 
             await waitForBatchedUpdates();
 
