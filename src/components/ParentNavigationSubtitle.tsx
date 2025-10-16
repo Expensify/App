@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
-import type {ColorValue, StyleProp, TextStyle} from 'react-native';
+import type {ColorValue, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
@@ -50,6 +50,9 @@ type ParentNavigationSubtitleProps = {
 
     /** The text color for the status text */
     statusTextColor?: ColorValue;
+
+    /** The style of the status text container */
+    statusTextContainerStyles?: StyleProp<ViewStyle>;
 };
 
 function ParentNavigationSubtitle({
@@ -62,6 +65,7 @@ function ParentNavigationSubtitle({
     textStyles,
     statusTextBackgroundColor,
     statusTextColor,
+    statusTextContainerStyles,
 }: ParentNavigationSubtitleProps) {
     const currentRoute = useRoute();
     const styles = useThemeStyles();
@@ -130,9 +134,10 @@ function ParentNavigationSubtitle({
                         {
                             backgroundColor: statusTextBackgroundColor,
                         },
+                        statusTextContainerStyles,
                     ]}
                 >
-                    <Text style={[styles.reportStatusText, textStyles, {color: statusTextColor}]}>{statusText}</Text>
+                    <Text style={[styles.reportStatusText, {color: statusTextColor}]}>{statusText}</Text>
                 </View>
             )}
             <Text
