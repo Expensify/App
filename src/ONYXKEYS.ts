@@ -701,7 +701,7 @@ const ONYXKEYS = {
         DOMAIN: 'domain_',
 
         /** Used for identifying user as admin of a domain */
-        SHARED_NVP_PRIVATE_DOMAIN_ACCESS: 'sharedNVP_private_admin_access_',
+        SHARED_NVP_PRIVATE_ADMIN_ACCESS: 'sharedNVP_private_admin_access_',
     },
 
     /** List of Form ids */
@@ -1086,7 +1086,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST]: OnyxTypes.CardOnWaitlist;
     [ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
     [ONYXKEYS.COLLECTION.DOMAIN]: OnyxTypes.Domain;
-    [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_ACCESS]: boolean;
+    [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS]: boolean;
 };
 
 type OnyxValuesMapping = {

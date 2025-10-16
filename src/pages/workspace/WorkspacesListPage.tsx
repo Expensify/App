@@ -141,7 +141,7 @@ function WorkspacesListPage() {
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
 
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
-    const [domainAccess] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_ACCESS, {canBeMissing: false});
+    const [adminAccess] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS, {canBeMissing: false});
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
@@ -520,10 +520,10 @@ function WorkspacesListPage() {
                 .map((domain) => ({
                     title: Str.extractEmailDomain(domain.email),
                     action: navigateToDomain,
-                    disabled: !domainAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_ACCESS}${domain.accountID}`],
+                    disabled: !adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domain.accountID}`],
                     pendingAction: domain.pendingAction,
                 })) satisfies DomainItem[],
-        [navigateToDomain, allDomains, domainAccess],
+        [navigateToDomain, allDomains, adminAccess],
     );
 
     useEffect(() => {
