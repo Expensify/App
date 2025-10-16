@@ -6992,6 +6992,7 @@ function createSplitsAndOnyxData({
                     transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
                 },
                 policyRecentlyUsed: {
+                    categories: optimisticPolicyRecentlyUsedCategories,
                     tags: optimisticPolicyRecentlyUsedTags,
                     currencies: optimisticRecentlyUsedCurrencies,
                 },
