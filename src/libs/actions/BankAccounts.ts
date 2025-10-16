@@ -23,6 +23,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
+import * as NetworkStore from '@libs/Network/NetworkStore';
 import {getPersonalPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -1273,6 +1274,54 @@ function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm
     return API.write(WRITE_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY, parameters, onyxData);
 }
 
+function initiateBankAccountUnlock(bankAccountID: number) {
+    const authToken = NetworkStore.getAuthToken();
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK,
+                value: {
+                    isLoading: true,
+                    isSuccess: false,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK,
+                value: {
+                    errors: null,
+                    isSuccess: true,
+                    bankAccountIDToUnlock: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK,
+                value: {
+                    isSuccess: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        ],
+    };
+
+    return API.write(WRITE_COMMANDS.INITIATE_BANK_ACCOUNT_UNLOCK, {bankAccountID, authToken}, onyxData);
+}
+
+function pressedOnLockedBankAccount(bankAccountID: number) {
+    Onyx.merge(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK, {bankAccountIDToUnlock: bankAccountID});
+}
+
+function clearInitiatingBankAccountUnlock() {
+    Onyx.merge(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK, {bankAccountIDToUnlock: null, isSuccess: null, errors: null});
+}
+
 export {
     acceptACHContractForBankAccount,
     addBusinessWebsiteForDraft,
@@ -1321,4 +1370,7 @@ export {
     clearEnterSignerInformationFormSave,
     sendReminderForCorpaySignerInformation,
     clearReimbursementAccountSendReminderForCorpaySignerInformation,
+    initiateBankAccountUnlock,
+    pressedOnLockedBankAccount,
+    clearInitiatingBankAccountUnlock,
 };

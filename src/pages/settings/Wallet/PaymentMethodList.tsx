@@ -166,6 +166,14 @@ function keyExtractor(item: PaymentMethod | string) {
     return item.key ?? '';
 }
 
+function isAccountInSetupState(account: PaymentMethodItem) {
+    return account.accountData && 'state' in account.accountData && account.accountData.state === CONST.BANK_ACCOUNT.STATE.SETUP;
+}
+
+function isBusinessBankAccountLocked(account: PaymentMethodItem) {
+    return account.accountData && 'state' in account.accountData && account.accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED && account.accountData.allowDebit;
+}
+
 function PaymentMethodList({
     actionPaymentMethodType = '',
     activePaymentMethodID = '',
@@ -418,6 +426,25 @@ function PaymentMethodList({
         return filteredPaymentMethods;
     }, [filteredPaymentMethods, shouldShowBankAccountSections, translate]);
 
+    const getBadgeText = useCallback(
+        (item: PaymentMethodItem) => {
+            if (isBusinessBankAccountLocked(item)) {
+                return translate('common.locked');
+            }
+            if (isAccountInSetupState(item)) {
+                return translate('common.actionRequired');
+            }
+            return shouldShowDefaultBadge(
+                filteredPaymentMethods,
+                invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.methodID === userWallet?.walletLinkedAccountID,
+                shouldHideDefaultBadge,
+            )
+                ? translate('paymentMethodList.defaultPaymentMethod')
+                : undefined;
+        },
+        [filteredPaymentMethods, invoiceTransferBankAccountID, shouldHideDefaultBadge, translate, userWallet?.walletLinkedAccountID],
+    );
+
     /**
      * Create a menuItem for each passed paymentMethod
      */
@@ -450,15 +477,10 @@ function PaymentMethodList({
                         iconHeight={item.iconHeight ?? item.iconSize}
                         iconWidth={item.iconWidth ?? item.iconSize}
                         iconStyles={item.iconStyles}
-                        badgeText={
-                            shouldShowDefaultBadge(
-                                filteredPaymentMethods,
-                                invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.methodID === userWallet?.walletLinkedAccountID,
-                                shouldHideDefaultBadge,
-                            )
-                                ? translate('paymentMethodList.defaultPaymentMethod')
-                                : undefined
-                        }
+                        badgeText={getBadgeText(item)}
+                        badgeIcon={(isAccountInSetupState(item) ?? isBusinessBankAccountLocked(item)) ? Expensicons.DotIndicator : undefined}
+                        badgeSuccess={isAccountInSetupState(item) ? true : undefined}
+                        badgeError={isBusinessBankAccountLocked(item) ? true : undefined}
                         wrapperStyle={[styles.paymentMethod, listItemStyle]}
                         iconRight={item.iconRight}
                         badgeStyle={styles.badgeBordered}
@@ -481,14 +503,10 @@ function PaymentMethodList({
             styles.mb1,
             styles.textLabel,
             styles.colorMuted,
-            filteredPaymentMethods,
-            invoiceTransferBankAccountID,
-            userWallet?.walletLinkedAccountID,
-            translate,
+            getBadgeText,
             listItemStyle,
             shouldShowSelectedState,
             selectedMethodID,
-            shouldHideDefaultBadge,
         ],
     );
 

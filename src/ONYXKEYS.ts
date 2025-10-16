@@ -580,6 +580,9 @@ const ONYXKEYS = {
     /** Is unreported transactions loading */
     IS_LOADING_UNREPORTED_TRANSACTIONS: 'isLoadingUnreportedTransactions',
 
+    /** Stores information for InitiateBankAccountUnlock API call */
+    INITIATING_BANK_ACCOUNT_UNLOCK: 'initiatingBankAccountUnlock',
+
     /** List of transaction IDs used when navigating to prev/next transaction when viewing it in RHP */
     TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS: 'transactionThreadNavigationTransactionIDs',
 
@@ -1270,6 +1273,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW]: boolean | undefined;
     [ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS]: boolean | undefined;
     [ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS]: boolean | undefined;
+    [ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK]: OnyxTypes.InitiatingBankAccountUnlock;
     [ONYXKEYS.NVP_LAST_ECASH_IOS_LOGIN]: string;
     [ONYXKEYS.NVP_LAST_ECASH_ANDROID_LOGIN]: string;
     [ONYXKEYS.NVP_LAST_IPHONE_LOGIN]: string;

@@ -43,9 +43,10 @@ import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import variables from '@styles/variables';
-import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
+import {deletePaymentBankAccount, openPersonalBankAccountSetupView, pressedOnLockedBankAccount, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {close as closeModal} from '@userActions/Modal';
 import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMethods, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods} from '@userActions/PaymentMethods';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -147,6 +148,12 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
      * Display the delete/default menu, or the add payment method menu
      */
     const paymentMethodPressed = ({event, accountData, accountType, methodID, isDefault, icon, description}: PaymentMethodPressHandlerParams) => {
+        if (accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED && accountData?.bankAccountID) {
+            pressedOnLockedBankAccount(accountData?.bankAccountID);
+            navigateToConciergeChat();
+            return;
+        }
+
         if (shouldShowDefaultDeleteMenu) {
             setShouldShowDefaultDeleteMenu(false);
             return;

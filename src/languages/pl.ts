@@ -672,6 +672,8 @@ const translations = {
         pinned: 'Przypięte',
         read: 'Przeczytane',
         copyToClipboard: 'Skopiuj do schowka',
+        actionRequired: 'Wymagane działanie',
+        locked: 'Zablokowany',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -2829,6 +2831,10 @@ ${amount} dla ${merchant} - ${date}`,
         hasBeenThrottledError: 'Wystąpił błąd podczas dodawania Twojego konta bankowego. Proszę poczekać kilka minut i spróbować ponownie.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Ups! Wygląda na to, że waluta Twojego miejsca pracy jest ustawiona na inną niż USD. Aby kontynuować, przejdź do <a href="${workspaceRoute}">ustawienia Twojego miejsca pracy</a> ustawić na USD i spróbować ponownie.`,
+        lockedBankAccount: 'Zablokowane konto bankowe',
+        unlockBankAccount: 'Odblokuj konto bankowe',
+        youCantPayThis: 'Nie możesz zapłacić za ten raport, ponieważ masz',
+        tapBelow: 'Stuknij poniżej, a Concierge pomoże Ci w kolejnych krokach odblokowania.',
         error: {
             youNeedToSelectAnOption: 'Proszę wybrać opcję, aby kontynuować',
             noBankAccountAvailable: 'Przepraszamy, nie ma dostępnego konta bankowego.',

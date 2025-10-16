@@ -667,6 +667,8 @@ const translations = {
         pinned: 'Pinned',
         read: 'Read',
         copyToClipboard: 'Copy to clipboard',
+        actionRequired: 'Action required',
+        locked: 'Locked',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -2808,6 +2810,10 @@ const translations = {
         hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please go to <a href="${workspaceRoute}">your workspace settings</a> to set it to USD and try again.`,
+        lockedBankAccount: 'Locked bank account',
+        unlockBankAccount: 'Unlock bank account',
+        youCantPayThis: "You can't pay this report because you have a",
+        tapBelow: 'Tap below and Concierge will help with the next steps to unlock it.',
         error: {
             youNeedToSelectAnOption: 'Please select an option to proceed',
             noBankAccountAvailable: "Sorry, there's no bank account available",

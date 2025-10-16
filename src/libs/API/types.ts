@@ -513,6 +513,7 @@ const WRITE_COMMANDS = {
     ADD_REPORT_APPROVER: 'AddReportApprover',
     REQUEST_UNLOCK_ACCOUNT: 'RequestUnlockAccount',
     SEND_SCHEDULE_CALL_NUDGE: 'SendScheduleCallNudge',
+    INITIATE_BANK_ACCOUNT_UNLOCK: 'InitiateBankAccountUnlock',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -609,6 +610,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT]: Parameters.AddPersonalBankAccountParams;
     [WRITE_COMMANDS.RESTART_BANK_ACCOUNT_SETUP]: Parameters.RestartBankAccountSetupParams;
     [WRITE_COMMANDS.RESET_BANK_ACCOUNT_SETUP]: Parameters.ResetBankAccountSetupParams;
+    [WRITE_COMMANDS.INITIATE_BANK_ACCOUNT_UNLOCK]: Parameters.InitiateBankAccountUnlockParams;
     [WRITE_COMMANDS.RESEND_VALIDATE_CODE]: null;
     [WRITE_COMMANDS.READ_NEWEST_ACTION]: Parameters.ReadNewestActionParams;
     [WRITE_COMMANDS.MARK_ALL_MESSAGES_AS_READ]: Parameters.MarkAllMessagesAsReadParams;

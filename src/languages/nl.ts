@@ -671,6 +671,8 @@ const translations = {
         pinned: 'Vastgezet',
         read: 'Gelezen',
         copyToClipboard: 'Kopiëren naar klembord',
+        actionRequired: 'Actie vereist',
+        locked: 'Geblokkeerd',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -2836,6 +2838,10 @@ ${amount} voor ${merchant} - ${date}`,
         hasBeenThrottledError: 'Er is een fout opgetreden bij het toevoegen van uw bankrekening. Wacht een paar minuten en probeer het opnieuw.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Oeps! Het lijkt erop dat de valuta van uw werkruimte is ingesteld op een andere valuta dan USD. Om verder te gaan, ga naar <a href="${workspaceRoute}">uw werkruimte-instellingen</a> om het in te stellen op USD en het opnieuw te proberen.`,
+        lockedBankAccount: 'Geblokkeerde bankrekening',
+        unlockBankAccount: 'Deblokkeer bankrekening',
+        youCantPayThis: 'Je kunt dit rapport niet betalen omdat je een',
+        tapBelow: 'Tik hieronder en de Concierge helpt je met de volgende stappen om deze te deblokkeren.',
         error: {
             youNeedToSelectAnOption: 'Selecteer een optie om verder te gaan.',
             noBankAccountAvailable: 'Sorry, er is geen bankrekening beschikbaar',
