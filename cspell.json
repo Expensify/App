@@ -760,6 +760,8 @@
         "moveElemsAttrsToGroup",
         "removeHiddenElems",
         "moveGroupAttrsToElems",
+        "Dtype",
+        "Areport",
         "mple",
         "Selec"
     ],
