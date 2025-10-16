@@ -998,6 +998,7 @@ function clearAvatarErrors(reportID: string) {
  * @param avatar The avatar file to upload for a new group chat
  * @param transaction The transaction object for legacy transactions that don't have a transaction thread or money request preview yet
  * @param isNewThread Whether this is a new thread being created
+ * @param transactionViolations The violations for the transaction, if any
  */
 function openReport(
     reportID: string | undefined,
@@ -1010,6 +1011,7 @@ function openReport(
     avatar?: File | CustomRNImageManipulatorResult,
     transaction?: Transaction,
     isNewThread = false,
+    transactionViolations?: TransactionViolations,
 ) {
     if (!reportID) {
         return;
@@ -1116,6 +1118,15 @@ function openReport(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: transaction,
         });
+
+        // Add violations if they exist
+        if (transactionViolations) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+                value: transactionViolations,
+            });
+        }
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1375,7 +1386,7 @@ function getOptimisticChatReport(accountID: number): OptimisticChatReport {
     });
 }
 
-function createTransactionThreadReport(iouReport?: OnyxEntry<Report>, iouReportAction?: OnyxEntry<ReportAction>, transaction?: Transaction): OptimisticChatReport | undefined {
+function createTransactionThreadReport(iouReport?: OnyxEntry<Report>, iouReportAction?: OnyxEntry<ReportAction>, transaction?: Transaction, transactionViolations?: TransactionViolations): OptimisticChatReport | undefined {
     let reportToUse = iouReport;
     // For track expenses without iouReport, get the selfDM report
     if (!iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction)) {
@@ -1401,6 +1412,7 @@ function createTransactionThreadReport(iouReport?: OnyxEntry<Report>, iouReportA
         undefined,
         transaction,
         false,
+        transactionViolations,
     );
     return optimisticTransactionThread;
 }
