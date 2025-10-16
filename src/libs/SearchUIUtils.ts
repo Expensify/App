@@ -1320,10 +1320,16 @@ function createAndOpenSearchTransactionThread(item: TransactionListItemType, iou
     if (!iouReportAction && iouReportID && iouReportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
         openReport(iouReportID);
     }
+
+    // Only pass transaction data if there's no iouReportAction (legacy transaction case)
+    // When iouReportAction exists, the transaction should already be in Onyx from the parent report
+    const transaction = !iouReportAction ? getTransactionFromTransactionListItem(item) : undefined;
+    const transactionViolations = !iouReportAction ? item.violations : undefined;
     const transactionThreadReport = createTransactionThreadReport(
         item.report,
         iouReportAction ?? ({reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction),
-        item?.transactionID,
+        transaction,
+        transactionViolations,
     );
     if (transactionThreadReport?.reportID) {
         updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
