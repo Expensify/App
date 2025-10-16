@@ -18,7 +18,6 @@ The navigation in the app is built on top of the `react-navigation` library. To 
     - [Finding the code that calls the navigation function](#finding-the-code-that-calls-the-navigation-function)
   - [How to remove backTo from URL](#how-to-remove-backto-from-url)
     - [Separating routes for each screen instance](#separating-routes-for-each-screen-instance)
-    - [Maintaining the order of screens in forms](#maintaining-the-order-of-screens-in-forms)
   - [Generating state from a path](#generating-state-from-a-path)
   - [Setting the correct screen underneath RHP](#setting-the-correct-screen-underneath-rhp)
   - [Performance solutions](#performance-solutions)
@@ -590,32 +589,6 @@ VerifyAccountPage.displayName = 'VerifyAccountPage';
 export default VerifyAccountPage;
 
 ```
-
-### Maintaining the order of screens in forms
-Another case where maintaining the screen order after a refresh is important is in forms. There are several methods to achieve this:
-1. For multi-step forms, append the values from each screen to the URL. This approach makes it easy to recreate the screen order with the appropriate values.
-
-We have a three-stage form where each screen is responsible for entering another value.
-
-Form fields:
-- First name
-- Last name
-- Date of birth
-
-We should use the following url pattern:
-- FirstNamePage: `/example-form/:firstName`
-- LastNamePage: `/example-form/:firstName/:lastName`
-- DateOfBirthPage: `/example-form/:firstName:/:lastName/:dateOfBirth`
-
-Thanks to this structure, we are able to easily recreate the order of screens with the appropriate values ​​in the form.
-
-> [!WARNING]
-> This approach is not suggested for more complex forms with a large number of inputs.
-
-
-2. Store form data in Onyx.
-3. Reset the form to the first screen after a refresh.
-If we do not want to preserve the form's values after a refresh, we should reset the form. To handle this properly, we can perform a replace on the current screen (replace it with the first screen in the form's sequence).
 
 ## Generating state from a path
 
