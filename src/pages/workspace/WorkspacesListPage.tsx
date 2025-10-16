@@ -34,6 +34,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -46,12 +47,21 @@ import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/
 import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import {getDefaultApprover, getPolicy, getPolicyBrickRoadIndicatorStatus, getUberConnectionErrorDirectlyFromPolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {
+    getDefaultApprover,
+    getPolicy,
+    getPolicyBrickRoadIndicatorStatus,
+    getUberConnectionErrorDirectlyFromPolicy,
+    isPendingDeletePolicy,
+    isPolicyAdmin,
+    shouldShowPolicy,
+} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
@@ -138,9 +148,12 @@ function WorkspacesListPage() {
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
+    // The workspace was deleted in this page
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
     const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyIDToDelete);
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
+    const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
+    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
 
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
 
@@ -159,15 +172,19 @@ function WorkspacesListPage() {
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policyToDelete = getPolicy(policyIDToDelete);
+    const prevPolicyToDelete = usePrevious(policyToDelete);
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) ||
         !isEmptyObject(cardsList) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         ((policyToDelete?.areExpensifyCardsEnabled || policyToDelete?.areCompanyCardsEnabled) && policyToDelete?.workspaceAccountID);
+    const policyToDeleteLatestErrorMessage = getLatestErrorMessage(policyToDelete);
+    const isPendingDelete = isPendingDeletePolicy(policyToDelete);
+    const prevIsPendingDelete = isPendingDeletePolicy(prevPolicyToDelete);
 
-    const confirmDeleteAndHideModal = () => {
+    const confirmDelete = () => {
         if (!policyIDToDelete || !policyNameToDelete) {
             return;
         }
@@ -182,7 +199,15 @@ function WorkspacesListPage() {
             reimbursementAccountError,
             lastPaymentMethod,
         );
-        setIsDeleteModalOpen(false);
+    };
+
+    const hideDeleteWorkspaceErrorModal = () => {
+        setIsDeleteWorkspaceErrorModalOpen(false);
+        setPolicyIDToDelete(undefined);
+        if (!policyToDelete) {
+            return;
+        }
+        dismissWorkspaceError(policyToDelete.id, policyToDelete.pendingAction);
     };
 
     const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn();
@@ -210,6 +235,17 @@ function WorkspacesListPage() {
         },
         [session?.accountID],
     );
+
+    useEffect(() => {
+        if (!prevIsPendingDelete || isPendingDelete) {
+            return;
+        }
+        setIsDeleteModalOpen(false);
+        if (!isFocused || !policyToDeleteLatestErrorMessage) {
+            return;
+        }
+        setIsDeleteWorkspaceErrorModalOpen(true);
+    }, [isPendingDelete, prevIsPendingDelete, isFocused, policyToDeleteLatestErrorMessage]);
 
     /**
      * Gets the menu item for each workspace
@@ -278,6 +314,13 @@ function WorkspacesListPage() {
                             return;
                         }
 
+                        if (isOffline) {
+                            setPolicyIDToDelete(undefined);
+                            setPolicyNameToDelete(undefined);
+                            setShouldShowOfflineModal(true);
+                            return;
+                        }
+
                         setIsDeleteModalOpen(true);
                     },
                     shouldKeepModalOpen: shouldCalculateBillNewDot,
@@ -302,6 +345,7 @@ function WorkspacesListPage() {
                     errors={item.errors}
                     style={styles.mb2}
                     shouldShowErrorMessages={false}
+                    shouldHideOnDelete={false}
                 >
                     <PressableWithoutFeedback
                         role={CONST.ROLE.BUTTON}
@@ -343,9 +387,9 @@ function WorkspacesListPage() {
             translate,
             policies,
             fundList,
+            styles.ph5,
             styles.mb2,
             styles.mh5,
-            styles.ph5,
             styles.hoveredComponentBG,
             styles.offlineFeedbackDeleted,
             loadingSpinnerIconIndex,
@@ -356,6 +400,7 @@ function WorkspacesListPage() {
             isLoadingBill,
             resetLoadingSpinnerIconIndex,
             isRestrictedToPreferredPolicy,
+            isOffline,
         ],
     );
 
@@ -412,7 +457,7 @@ function WorkspacesListPage() {
         }
 
         return Object.values(policies)
-            .filter((policy): policy is PolicyType => shouldShowPolicy(policy, isOffline, session?.email))
+            .filter((policy): policy is PolicyType => shouldShowPolicy(policy, true, session?.email))
             .map((policy): WorkspaceItem => {
                 const receiptUberBrickRoadIndicator = getUberConnectionErrorDirectlyFromPolicy(policy as OnyxEntry<PolicyType>) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
@@ -462,7 +507,7 @@ function WorkspacesListPage() {
                     employeeList: policy.employeeList,
                 };
             });
-    }, [reimbursementAccount?.errors, policies, isOffline, session?.email, allConnectionSyncProgresses, theme.textLight, navigateToWorkspace]);
+    }, [reimbursementAccount?.errors, policies, session?.email, allConnectionSyncProgresses, theme.textLight, navigateToWorkspace]);
 
     const filterWorkspace = useCallback((workspace: WorkspaceItem, inputValue: string) => workspace.title.toLowerCase().includes(inputValue), []);
     const sortWorkspace = useCallback((workspaceItems: WorkspaceItem[]) => workspaceItems.sort((a, b) => localeCompare(a.title, b.title)), [localeCompare]);
@@ -488,7 +533,8 @@ function WorkspacesListPage() {
         const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicateWorkspace.policyID);
         if (duplicateWorkspaceIndex > 0) {
             listRef.current?.scrollToIndex(duplicateWorkspaceIndex);
-            // eslint-disable-next-line deprecation/deprecation
+
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearDuplicateWorkspace();
             });
@@ -638,12 +684,32 @@ function WorkspacesListPage() {
             <ConfirmModal
                 title={translate('workspace.common.delete')}
                 isVisible={isDeleteModalOpen}
-                onConfirm={confirmDeleteAndHideModal}
+                onConfirm={confirmDelete}
                 onCancel={() => setIsDeleteModalOpen(false)}
                 prompt={hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation')}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
+                isConfirmLoading={isPendingDelete}
                 danger
+            />
+            <ConfirmModal
+                title={translate('workspace.common.delete')}
+                isVisible={isDeleteWorkspaceErrorModalOpen}
+                onConfirm={hideDeleteWorkspaceErrorModal}
+                onCancel={hideDeleteWorkspaceErrorModal}
+                prompt={policyToDeleteLatestErrorMessage}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+                success={false}
+            />
+            <ConfirmModal
+                title={translate('common.youAppearToBeOffline')}
+                isVisible={shouldShowOfflineModal}
+                onConfirm={() => setShouldShowOfflineModal(false)}
+                onCancel={() => setShouldShowOfflineModal(false)}
+                confirmText={translate('common.buttonConfirm')}
+                prompt={translate('common.offlinePrompt')}
+                shouldShowCancelButton={false}
             />
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         </ScreenWrapper>
