@@ -254,11 +254,16 @@ function getContactMethod(primaryLogin: string | undefined, email: string | unde
     return primaryLogin ?? email ?? '';
 }
 
+/**
+ * Gets details about contact methods to be displayed as MenuItems
+ */
 function getContactMethodsOptions(loginList?: LoginList, defaultEmail?: string) {
     if (!loginList) {
         return [];
     }
 
+    // Sort the login list by placing the one corresponding to the default contact method as the first item.
+    // The default contact method is determined by checking against the session email (the current login).
     const sortedLoginList = Object.entries(loginList).sort(([, loginData]) => (loginData.partnerUserID === defaultEmail ? -1 : 1));
 
     return sortedLoginList.map(([loginName, login]) => {
