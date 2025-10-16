@@ -1,98 +1,233 @@
-import { findFocusedRoute } from '@react-navigation/native';
-import { format as timezoneFormat, toZonedTime } from 'date-fns-tz';
-import { Str } from 'expensify-common';
+import {findFocusedRoute} from '@react-navigation/native';
+import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
+import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
-import { DeviceEventEmitter, InteractionManager, Linking } from 'react-native';
-import type { NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate } from 'react-native-onyx';
+import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
+import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type { PartialDeep, ValueOf } from 'type-fest';
-import type { Emoji } from '@assets/emojis/types';
-import type { CurrentUserPersonalDetails } from '@components/CurrentUserPersonalDetailsProvider';
-import type { LocaleContextProps } from '@components/LocaleContextProvider';
+import type {PartialDeep, ValueOf} from 'type-fest';
+import type {Emoji} from '@assets/emojis/types';
+import type {CurrentUserPersonalDetails} from '@components/CurrentUserPersonalDetailsProvider';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as API from '@libs/API';
-import type { AddCommentOrAttachmentParams, AddEmojiReactionParams, AddWorkspaceRoomParams, CompleteGuidedSetupParams, DeleteAppReportParams, DeleteCommentParams, ExpandURLPreviewParams, ExportReportPDFParams, FlagCommentParams, GetNewerActionsParams, GetOlderActionsParams, GetReportPrivateNoteParams, InviteToGroupChatParams, InviteToRoomParams, LeaveRoomParams, MarkAllMessagesAsReadParams, MarkAsExportedParams, MarkAsUnreadParams, MoveIOUReportToExistingPolicyParams, MoveIOUReportToPolicyAndInviteSubmitterParams, OpenReportParams, OpenRoomMembersPageParams, ReadNewestActionParams, RemoveEmojiReactionParams, RemoveFromGroupChatParams, RemoveFromRoomParams, ReportExportParams, ResolveActionableMentionWhisperParams, ResolveActionableReportMentionWhisperParams, SearchForReportsParams, SearchForRoomsToMentionParams, TogglePinnedChatParams, TransactionThreadInfo, UpdateChatNameParams, UpdateCommentParams, UpdateGroupChatAvatarParams, UpdateGroupChatMemberRolesParams, UpdatePolicyRoomNameParams, UpdateReportNotificationPreferenceParams, UpdateReportPrivateNoteParams, UpdateReportWriteCapabilityParams, UpdateRoomDescriptionParams } from '@libs/API/parameters';
+import type {
+    AddCommentOrAttachmentParams,
+    AddEmojiReactionParams,
+    AddWorkspaceRoomParams,
+    CompleteGuidedSetupParams,
+    DeleteAppReportParams,
+    DeleteCommentParams,
+    ExpandURLPreviewParams,
+    ExportReportPDFParams,
+    FlagCommentParams,
+    GetNewerActionsParams,
+    GetOlderActionsParams,
+    GetReportPrivateNoteParams,
+    InviteToGroupChatParams,
+    InviteToRoomParams,
+    LeaveRoomParams,
+    MarkAllMessagesAsReadParams,
+    MarkAsExportedParams,
+    MarkAsUnreadParams,
+    MoveIOUReportToExistingPolicyParams,
+    MoveIOUReportToPolicyAndInviteSubmitterParams,
+    OpenReportParams,
+    OpenRoomMembersPageParams,
+    ReadNewestActionParams,
+    RemoveEmojiReactionParams,
+    RemoveFromGroupChatParams,
+    RemoveFromRoomParams,
+    ReportExportParams,
+    ResolveActionableMentionWhisperParams,
+    ResolveActionableReportMentionWhisperParams,
+    SearchForReportsParams,
+    SearchForRoomsToMentionParams,
+    TogglePinnedChatParams,
+    TransactionThreadInfo,
+    UpdateChatNameParams,
+    UpdateCommentParams,
+    UpdateGroupChatAvatarParams,
+    UpdateGroupChatMemberRolesParams,
+    UpdatePolicyRoomNameParams,
+    UpdateReportNotificationPreferenceParams,
+    UpdateReportPrivateNoteParams,
+    UpdateReportWriteCapabilityParams,
+    UpdateRoomDescriptionParams,
+} from '@libs/API/parameters';
 import type ExportReportCSVParams from '@libs/API/parameters/ExportReportCSVParams';
 import type UpdateRoomVisibilityParams from '@libs/API/parameters/UpdateRoomVisibilityParams';
-import { READ_COMMANDS, WRITE_COMMANDS } from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import * as CollectionUtils from '@libs/CollectionUtils';
-import type { CustomRNImageManipulatorResult } from '@libs/cropOrRotateImage/types';
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
-import { getOldDotURLFromEnvironment } from '@libs/Environment/Environment';
+import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import getEnvironment from '@libs/Environment/getEnvironment';
 import type EnvironmentType from '@libs/Environment/getEnvironment/types';
-import { getMicroSecondOnyxErrorWithTranslationKey, getMicroSecondTranslationErrorWithTranslationKey } from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey, getMicroSecondTranslationErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import HttpUtils from '@libs/HttpUtils';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
-import { isEmailPublicDomain } from '@libs/LoginUtils';
-import { registerPaginationConfig } from '@libs/Middleware/Pagination';
-import { getMovedReportID } from '@libs/ModifiedExpenseMessage';
-import { isOnboardingFlowName } from '@libs/Navigation/helpers/isNavigatorName';
-import type { LinkToOptions } from '@libs/Navigation/helpers/linkTo/types';
+import {isEmailPublicDomain} from '@libs/LoginUtils';
+import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
+import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
-import Navigation, { navigationRef } from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
-import type { NetworkStatus } from '@libs/NetworkConnection';
+import type {NetworkStatus} from '@libs/NetworkConnection';
 import NetworkConnection from '@libs/NetworkConnection';
-import { buildNextStepNew } from '@libs/NextStepUtils';
+import {buildNextStepNew} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
-import { rand64 } from '@libs/NumberUtils';
-import { shouldOnboardingRedirectToOldDot } from '@libs/OnboardingUtils';
+import {rand64} from '@libs/NumberUtils';
+import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import Parser from '@libs/Parser';
-import { getParsedMessageWithShortMentions } from '@libs/ParsingUtils';
+import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import { getDefaultApprover, getMemberAccountIDsForWorkspace, getPolicy, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyMember } from '@libs/PolicyUtils';
+import {getDefaultApprover, getMemberAccountIDsForWorkspace, getPolicy, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyMember} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
-import type { UserIsLeavingRoomEvent, UserIsTypingEvent } from '@libs/Pusher/types';
+import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import { updateTitleFieldToMatchPolicy } from '@libs/ReportTitleUtils';
-import type { OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters } from '@libs/ReportUtils';
-import { buildOptimisticAddCommentReportAction, buildOptimisticChangeFieldAction, buildOptimisticChangePolicyReportAction, buildOptimisticChatReport, buildOptimisticCreatedReportAction, buildOptimisticEmptyReport, buildOptimisticExportIntegrationAction, buildOptimisticGroupChatReport, buildOptimisticIOUReportAction, buildOptimisticMovedReportAction, buildOptimisticRenamedRoomReportAction, buildOptimisticReportPreview, buildOptimisticRoomDescriptionUpdatedReportAction, buildOptimisticSelfDMReport, buildOptimisticUnHoldReportAction, buildOptimisticUnreportedTransactionAction, buildTransactionThread, canUserPerformWriteAction as canUserPerformWriteActionReportUtils, findLastAccessedReport, findSelfDMReportID, formatReportLastMessageText, generateReportID, getAllPolicyReports, getChatByParticipants, getChildReportNotificationPreference, getDefaultNotificationPreferenceForReport, getFieldViolation, getLastVisibleMessage, getNextApproverAccountID, getOptimisticDataForParentReportAction, getOriginalReportID, getOutstandingChildRequest, getParsedComment, getPendingChatMembers, getPolicyExpenseChat, getReportFieldKey, getReportFieldsByPolicyID, getReportIDFromLink, getReportLastMessage, getReportLastVisibleActionCreated, getReportMetadata, getReportNotificationPreference, getReportOrDraftReport, getReportPreviewMessage, getReportTransactions, getReportViolations, getRouteFromLink, getTitleReportField, hasOutstandingChildRequest, isChatThread as isChatThreadReportUtils, isConciergeChatReport, isExpenseReport, isGroupChat as isGroupChatReportUtils, isHiddenForCurrentUser, isIOUReportUsingReport, isMoneyRequestReport, isOpenExpenseReport, isProcessingReport, isReportManuallyReimbursed, isSelfDM, isUnread, isValidReportIDFromPath, populateOptimisticReportFormula, prepareOnboardingOnyxData } from '@libs/ReportUtils';
-import { getCurrentSearchQueryJSON } from '@libs/SearchQueryUtils';
+import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
+import type {OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
+import {
+    buildOptimisticAddCommentReportAction,
+    buildOptimisticChangeFieldAction,
+    buildOptimisticChangePolicyReportAction,
+    buildOptimisticChatReport,
+    buildOptimisticCreatedReportAction,
+    buildOptimisticEmptyReport,
+    buildOptimisticExportIntegrationAction,
+    buildOptimisticGroupChatReport,
+    buildOptimisticIOUReportAction,
+    buildOptimisticMovedReportAction,
+    buildOptimisticRenamedRoomReportAction,
+    buildOptimisticReportPreview,
+    buildOptimisticRoomDescriptionUpdatedReportAction,
+    buildOptimisticSelfDMReport,
+    buildOptimisticUnHoldReportAction,
+    buildOptimisticUnreportedTransactionAction,
+    buildTransactionThread,
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    findLastAccessedReport,
+    findSelfDMReportID,
+    formatReportLastMessageText,
+    generateReportID,
+    getAllPolicyReports,
+    getChatByParticipants,
+    getChildReportNotificationPreference,
+    getDefaultNotificationPreferenceForReport,
+    getFieldViolation,
+    getLastVisibleMessage,
+    getNextApproverAccountID,
+    getOptimisticDataForParentReportAction,
+    getOriginalReportID,
+    getOutstandingChildRequest,
+    getParsedComment,
+    getPendingChatMembers,
+    getPolicyExpenseChat,
+    getReportFieldKey,
+    getReportFieldsByPolicyID,
+    getReportIDFromLink,
+    getReportLastMessage,
+    getReportLastVisibleActionCreated,
+    getReportMetadata,
+    getReportNotificationPreference,
+    getReportOrDraftReport,
+    getReportPreviewMessage,
+    getReportTransactions,
+    getReportViolations,
+    getRouteFromLink,
+    getTitleReportField,
+    hasOutstandingChildRequest,
+    isChatThread as isChatThreadReportUtils,
+    isConciergeChatReport,
+    isCurrentUserSubmitter,
+    isExpenseReport,
+    isGroupChat as isGroupChatReportUtils,
+    isHiddenForCurrentUser,
+    isIOUReportUsingReport,
+    isMoneyRequestReport,
+    isOpenExpenseReport,
+    isProcessingReport,
+    isReportManuallyReimbursed,
+    isSelfDM,
+    isUnread,
+    isValidReportIDFromPath,
+    populateOptimisticReportFormula,
+    prepareOnboardingOnyxData,
+} from '@libs/ReportUtils';
+import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
-import playSound, { SOUNDS } from '@libs/Sound';
-import { isOnHold } from '@libs/TransactionUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
+import {isOnHold} from '@libs/TransactionUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
-import type { FileObject } from '@pages/media/AttachmentModalScreen/types';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONFIG from '@src/CONFIG';
-import type { OnboardingAccounting } from '@src/CONST';
+import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Route } from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
-import type { Account, DismissedProductTraining, IntroSelected, InvitedEmailsToAccountIDs, NewGroupChatDraft, Onboarding, OnboardingPurpose, PersonalDetailsList, Policy, PolicyEmployee, PolicyEmployeeList, PolicyReportField, QuickAction, RecentlyUsedReportFields, Report, ReportAction, ReportActionReactions, ReportNextStep, ReportUserIsTyping, Transaction, TransactionViolations } from '@src/types/onyx';
-import type { Decision } from '@src/types/onyx/OriginalMessage';
-import type { Timezone } from '@src/types/onyx/PersonalDetails';
-import type { ConnectionName } from '@src/types/onyx/Policy';
-import type { NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability } from '@src/types/onyx/Report';
-import type { Message, ReportActions } from '@src/types/onyx/ReportAction';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
-import { clearByKey } from './CachedPDFPaths';
-import { setDownload } from './Download';
-import { close } from './Modal';
+import type {
+    Account,
+    DismissedProductTraining,
+    IntroSelected,
+    InvitedEmailsToAccountIDs,
+    NewGroupChatDraft,
+    Onboarding,
+    OnboardingPurpose,
+    PersonalDetailsList,
+    Policy,
+    PolicyEmployee,
+    PolicyEmployeeList,
+    PolicyReportField,
+    QuickAction,
+    RecentlyUsedReportFields,
+    Report,
+    ReportAction,
+    ReportActionReactions,
+    ReportNextStep,
+    ReportUserIsTyping,
+    Transaction,
+    TransactionViolations,
+} from '@src/types/onyx';
+import type {Decision} from '@src/types/onyx/OriginalMessage';
+import type {Timezone} from '@src/types/onyx/PersonalDetails';
+import type {ConnectionName} from '@src/types/onyx/Policy';
+import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
+import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {clearByKey} from './CachedPDFPaths';
+import {setDownload} from './Download';
+import {close} from './Modal';
 import navigateFromNotification from './navigateFromNotification';
-import { getAll } from './PersistedRequests';
-import { addMembersToWorkspace, buildAddMembersToWorkspaceOnyxData, buildRoomMembersOnyxData } from './Policy/Member';
-import { createPolicyExpenseChats } from './Policy/Policy';
-import { createUpdateCommentMatcher, resolveCommentDeletionConflicts, resolveDuplicationConflictAction, resolveEditCommentWithNewAddCommentRequest, resolveOpenReportDuplicationConflictAction } from './RequestConflictUtils';
-import { canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn } from './Session';
-import { isOnboardingFlowCompleted, onServerDataReady, setOnboardingErrorMessage } from './Welcome';
-import { getOnboardingMessages, startOnboardingFlow } from './Welcome/OnboardingFlow';
-import type { OnboardingCompanySize, OnboardingMessage } from './Welcome/OnboardingFlow';
-
+import {getAll} from './PersistedRequests';
+import {addMembersToWorkspace, buildAddMembersToWorkspaceOnyxData, buildRoomMembersOnyxData} from './Policy/Member';
+import {createPolicyExpenseChats} from './Policy/Policy';
+import {
+    createUpdateCommentMatcher,
+    resolveCommentDeletionConflicts,
+    resolveDuplicationConflictAction,
+    resolveEditCommentWithNewAddCommentRequest,
+    resolveOpenReportDuplicationConflictAction,
+} from './RequestConflictUtils';
+import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
+import {isOnboardingFlowCompleted, onServerDataReady, setOnboardingErrorMessage} from './Welcome';
+import {getOnboardingMessages, startOnboardingFlow} from './Welcome/OnboardingFlow';
+import type {OnboardingCompanySize, OnboardingMessage} from './Welcome/OnboardingFlow';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined) => void;
 
@@ -338,20 +473,6 @@ Onyx.connect({
 let environment: EnvironmentType;
 getEnvironment().then((env) => {
     environment = env;
-});
-
-registerPaginationConfig({
-    initialCommand: WRITE_COMMANDS.OPEN_REPORT,
-    previousCommand: READ_COMMANDS.GET_OLDER_ACTIONS,
-    nextCommand: READ_COMMANDS.GET_NEWER_ACTIONS,
-    resourceCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    pageCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
-    sortItems: (reportActions, reportID) => {
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-        const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
-        return ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction, true);
-    },
-    getItemID: (reportAction) => reportAction.reportActionID,
 });
 
 function clearGroupChat() {
@@ -1065,7 +1186,7 @@ function openReport(
             parameters.file = avatar;
         }
 
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             clearGroupChat();
         });
@@ -1827,23 +1948,14 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
 
     // If we are deleting the last visible message, let's find the previous visible one (or set an empty one if there are none) and update the lastMessageText in the LHN.
     // Similarly, if we are deleting the last read comment we will want to update the lastVisibleActionCreated to use the previous visible message.
-    let optimisticReport: Partial<Report> = {
-        lastMessageText: '',
-        lastVisibleActionCreated: '',
-    };
-    const {lastMessageText = ''} = getLastVisibleMessage(originalReportID, isOriginalReportArchived, optimisticReportActions as ReportActions);
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
-    if (lastMessageText) {
-        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, canUserPerformWriteAction, optimisticReportActions as ReportActions);
-        const lastVisibleActionCreated = lastVisibleAction?.created;
-        const lastActorAccountID = lastVisibleAction?.actorAccountID;
-        optimisticReport = {
-            lastMessageText,
-            lastVisibleActionCreated,
-            lastActorAccountID,
-        };
-    }
+    const optimisticLastReportData = optimisticReportLastData(originalReportID, optimisticReportActions as ReportActions, canUserPerformWriteAction, isOriginalReportArchived);
+
+    const optimisticReport: Partial<Report> = {
+        ...optimisticLastReportData,
+    };
+
     const didCommentMentionCurrentUser = ReportActionsUtils.didMessageMentionCurrentUser(reportAction);
     if (didCommentMentionCurrentUser && reportAction.created === report?.lastMentionedTime) {
         const reportActionsForReport = allReportActions?.[reportID];
@@ -2829,7 +2941,7 @@ function createNewReport(
     shouldNotifyNewAction = false,
 ) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
@@ -2855,36 +2967,6 @@ function createNewReport(
     }
 
     return optimisticReportID;
-}
-
-// TODO: try to merge with createNewReport after verifying there are no regressions
-function createNewReportForExpense(
-    creatorPersonalDetails: CurrentUserPersonalDetails,
-    hasViolationsParam: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    policy: OnyxEntry<Policy>,
-) {
-    const optimisticReportID = generateReportID();
-    const reportActionID = rand64();
-    const reportPreviewReportActionID = rand64();
-
-    const {optimisticReportName, optimisticData, successData, failureData, parentReportID} = buildNewReportOptimisticData(
-        policy,
-        optimisticReportID,
-        reportActionID,
-        creatorPersonalDetails,
-        reportPreviewReportActionID,
-        hasViolationsParam,
-        isASAPSubmitBetaEnabled,
-    );
-
-    API.write(
-        WRITE_COMMANDS.CREATE_APP_REPORT,
-        {reportName: optimisticReportName, type: CONST.REPORT.TYPE.EXPENSE, policyID: policy?.id, reportID: optimisticReportID, reportActionID, reportPreviewReportActionID},
-        {optimisticData, successData, failureData},
-    );
-
-    return {optimisticReportID, parentReportID};
 }
 
 /**
@@ -3053,7 +3135,7 @@ function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, sh
         Navigation.goBack();
     }
     navigateToConciergeChat();
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);
     });
@@ -3440,7 +3522,7 @@ function openReportFromDeepLink(
     }
 
     // Navigate to the report after sign-in/sign-up.
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
             const connection = Onyx.connect({
@@ -4024,6 +4106,21 @@ function removeFromGroupChat(reportID: string, accountIDList: number[]) {
     removeFromRoom(reportID, accountIDList);
 }
 
+function optimisticReportLastData(
+    reportID: string,
+    optimisticReportActions: Record<string, NullishDeep<ReportAction> | null> = {},
+    canUserPerformWriteAction?: boolean,
+    isReportArchived?: boolean,
+) {
+    const lastMessageText = getLastVisibleMessage(reportID, isReportArchived, optimisticReportActions).lastMessageText ?? '';
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, canUserPerformWriteAction, optimisticReportActions);
+    return {
+        lastMessageText,
+        lastVisibleActionCreated: lastVisibleAction?.created ?? '',
+        lastActorAccountID: lastMessageText ? lastVisibleAction?.actorAccountID : CONST.DEFAULT_NUMBER_ID,
+    };
+}
+
 /** Flag a comment as offensive */
 function flagComment(reportAction: OnyxEntry<ReportAction>, severity: string, originalReport: OnyxEntry<Report> | undefined, isOriginalReportArchived = false) {
     const originalReportID = originalReport?.reportID;
@@ -4077,28 +4174,21 @@ function flagComment(reportAction: OnyxEntry<ReportAction>, severity: string, or
         },
     ];
 
-    let optimisticReport: Partial<Report> = {
-        lastMessageText: '',
-        lastVisibleActionCreated: '',
-    };
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
+    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
 
-    const {lastMessageText = ''} = getLastVisibleMessage(originalReportID, isOriginalReportArchived, {
-        [reportActionID]: {...reportAction, message: [updatedMessage], pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-    } as ReportActions);
-
-    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(originalReport, isOriginalReportArchived);
-    if (lastMessageText) {
-        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, canUserPerformWriteAction, {
+    const optimisticLastReportData = optimisticReportLastData(
+        originalReportID ?? String(CONST.DEFAULT_NUMBER_ID),
+        {
             [reportActionID]: {...reportAction, message: [updatedMessage], pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-        } as ReportActions);
-        const lastVisibleActionCreated = lastVisibleAction?.created;
-        const lastActorAccountID = lastVisibleAction?.actorAccountID;
-        optimisticReport = {
-            lastMessageText,
-            lastVisibleActionCreated,
-            lastActorAccountID,
-        };
-    }
+        } as ReportActions,
+        canUserPerformWriteAction,
+        isOriginalReportArchived,
+    );
+
+    const optimisticReport: Partial<Report> = {
+        ...optimisticLastReportData,
+    };
 
     if (shouldHideMessage) {
         optimisticData.push({
@@ -5042,7 +5132,7 @@ function deleteAppReport(reportID: string | undefined) {
         const updatedReportAction = {
             ...reportAction,
             originalMessage: {
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 ...reportAction.originalMessage,
                 IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 type: CONST.IOU.TYPE.TRACK,
@@ -5612,7 +5702,7 @@ function navigateToTrainingModal(dismissedProductTrainingNVP: OnyxEntry<Dismisse
         return;
     }
 
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(reportID)));
     });
@@ -5687,6 +5777,15 @@ function buildOptimisticChangePolicyData(
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
             value: reportNextStep,
         });
+    }
+
+    let shouldSetOutstandingChildRequest = false;
+    if (newStatusNum === CONST.REPORT.STATUS_NUM.OPEN || isOpenOrSubmitted) {
+        if (newStatusNum === CONST.REPORT.STATUS_NUM.OPEN) {
+            shouldSetOutstandingChildRequest = isCurrentUserSubmitter(report);
+        } else if (isProcessingReport(report)) {
+            shouldSetOutstandingChildRequest = report.managerID === currentUserAccountID;
+        }
     }
 
     // 2. If this is a thread, we have to mark the parent report preview action as deleted to properly update the UI
@@ -5813,12 +5912,15 @@ function buildOptimisticChangePolicyData(
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${newPolicyExpenseChatReportID}`,
-        value: {lastVisibleActionCreated: optimisticReportPreviewAction?.created},
+        value: {
+            lastVisibleActionCreated: optimisticReportPreviewAction?.created,
+            ...(shouldSetOutstandingChildRequest ? {hasOutstandingChildRequest: true} : {}),
+        },
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${newPolicyExpenseChatReportID}`,
-        value: {lastVisibleActionCreated: policyExpenseChat?.lastVisibleActionCreated},
+        value: {lastVisibleActionCreated: policyExpenseChat?.lastVisibleActionCreated, hasOutstandingChildRequest: policyExpenseChat?.hasOutstandingChildRequest},
     });
 
     // 4. Optimistically create a CHANGE_POLICY reportAction on the report using the reportActionID
@@ -6168,6 +6270,6 @@ export {
     removeFailedReport,
     createTransactionThreadReport,
     openUnreportedExpense,
+    optimisticReportLastData,
     setOptimisticTransactionThread,
-    createNewReportForExpense,
 };

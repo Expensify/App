@@ -17,7 +17,6 @@ import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -129,7 +128,6 @@ function MoneyRequestView({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
     const {translate, toLocaleDigit} = useLocalize();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
@@ -234,7 +232,7 @@ function MoneyRequestView({
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived) && isEditable;
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
-    const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], policy, isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS));
+    const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], policy);
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount =
@@ -453,7 +451,7 @@ function MoneyRequestView({
                             return;
                         }
 
-                        if (isExpenseSplit && isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS)) {
+                        if (isExpenseSplit) {
                             initSplitExpense(transaction);
                             return;
                         }
@@ -484,7 +482,7 @@ function MoneyRequestView({
                             return;
                         }
 
-                        if (isExpenseSplit && isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS)) {
+                        if (isExpenseSplit) {
                             initSplitExpense(transaction);
                             return;
                         }
@@ -633,7 +631,7 @@ function MoneyRequestView({
                                 return;
                             }
 
-                            if (isExpenseSplit && isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS)) {
+                            if (isExpenseSplit) {
                                 initSplitExpense(transaction);
                                 return;
                             }
