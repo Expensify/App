@@ -44,6 +44,7 @@ function useOptions() {
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     const defaultOptions = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = memoizedGetValidOptions(
@@ -51,6 +52,7 @@ function useOptions() {
                 reports: optionsList.reports,
                 personalDetails: optionsList.personalDetails,
             },
+            draftComments,
             {
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -72,7 +74,7 @@ function useOptions() {
             currentUserOption,
             headerMessage,
         };
-    }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
+    }, [optionsList.reports, optionsList.personalDetails, draftComments, betas, isLoading]);
 
     const optionsWithoutCurrentUser = useMemo(() => {
         if (!currentUserPersonalDetails?.accountID) {
@@ -203,7 +205,7 @@ function TaskAssigneeSelectorModal() {
                         assigneeChatReport,
                     );
                 }
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     Navigation.dismissModalWithReport({reportID: report?.reportID});
                 });
@@ -217,7 +219,7 @@ function TaskAssigneeSelectorModal() {
                     undefined, // passing null as report is null in this condition
                     isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? undefined}),
                 );
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));
                 });

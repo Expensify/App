@@ -319,7 +319,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
             const setFocusAndScrollToRight = () => {
                 try {
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         if (!textInputRef.current) {
                             Log.info('[CMD_K_DEBUG] Focus skipped - no text input ref', false, {
@@ -472,6 +472,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
         onRouterClose();
     });
+    const updateAndScrollToFocusedIndex = useCallback(() => listRef.current?.updateAndScrollToFocusedIndex(1, true), []);
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
 
@@ -523,7 +524,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     onListItemPress={onListItemPress}
                     setTextQuery={setTextAndUpdateSelection}
                     updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
-                    onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
+                    onHighlightFirstItem={updateAndScrollToFocusedIndex}
                     ref={listRef}
                     textInputRef={textInputRef}
                     personalDetails={personalDetails}
