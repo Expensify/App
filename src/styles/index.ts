@@ -5195,6 +5195,18 @@ const staticStyles = (theme: ThemeColors) =>
             padding: 16,
         },
 
+        // We have to use 10000 here as sidePanel has to be displayed on top of modals which have z-index of 9999
+        sidePanelContainer: {zIndex: 10000},
+
+        reportPreviewArrowButton: {
+            borderRadius: 50,
+            width: variables.w28,
+            height: variables.h28,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginLeft: 4,
+        },
+
         avatarSelectorWrapper: {
             margin: 1,
             borderRadius: 50,
@@ -5213,18 +5225,6 @@ const staticStyles = (theme: ThemeColors) =>
             flexWrap: 'wrap',
             marginLeft: 'auto',
             marginRight: 'auto',
-        },
-
-        // We have to use 10000 here as sidePanel has to be displayed on top of modals which have z-index of 9999
-        sidePanelContainer: {zIndex: 10000},
-
-        reportPreviewArrowButton: {
-            borderRadius: 50,
-            width: variables.w28,
-            height: variables.h28,
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginLeft: 4,
         },
 
         expenseWidgetRadius: {

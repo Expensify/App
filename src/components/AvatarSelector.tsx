@@ -75,7 +75,7 @@ function AvatarSelector({selectedID, onSelect, label, firstName, size = CONST.AV
                         </PressableWithFeedback>
                     );
                 })} */}
-                {avatars.map(({id, component}) => {
+                {avatars.map(({id, StyledLetterAvatar: component}) => {
                     const isSelected = selected === id;
 
                     return (

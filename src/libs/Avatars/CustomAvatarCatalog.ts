@@ -1,107 +1,16 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import type {SvgProps} from 'react-native-svg';
+import {SvgProps} from 'react-native-svg';
 import * as SeasonF1 from '@components/Icon/CustomAvatars/SeasonF1';
 import * as DefaultAvatars from '@components/Icon/DefaultAvatars';
-import * as WorkspaceDefaultAvatars from '@components/Icon/WorkspaceDefaultAvatars';
+import * as LetterDefaultAvatars from '@components/Icon/WorkspaceDefaultAvatars';
+import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
-
-type DefaultAvatarIDs =
-    | 'default-avatar_1'
-    | 'default-avatar_2'
-    | 'default-avatar_3'
-    | 'default-avatar_4'
-    | 'default-avatar_5'
-    | 'default-avatar_6'
-    | 'default-avatar_7'
-    | 'default-avatar_8'
-    | 'default-avatar_9'
-    | 'default-avatar_10'
-    | 'default-avatar_11'
-    | 'default-avatar_12'
-    | 'default-avatar_13'
-    | 'default-avatar_14'
-    | 'default-avatar_15'
-    | 'default-avatar_16'
-    | 'default-avatar_17'
-    | 'default-avatar_18'
-    | 'default-avatar_19'
-    | 'default-avatar_20'
-    | 'default-avatar_21'
-    | 'default-avatar_22'
-    | 'default-avatar_23'
-    | 'default-avatar_24';
-
-type SeasonF1AvatarIDs =
-    | 'car-blue100'
-    | 'car-green100'
-    | 'car-ice100'
-    | 'car-pink100'
-    | 'car-tangerine100'
-    | 'car-yellow100'
-    | 'champagne-green400'
-    | 'cone-tangerine700'
-    | 'flag-blue600'
-    | 'gasoline-tangerine400'
-    | 'helmet-blue400'
-    | 'helmet-green400'
-    | 'helmet-ice400'
-    | 'helmet-pink400'
-    | 'helmet-tangerine400'
-    | 'helmet-yellow400'
-    | 'medal-yellow400'
-    | 'podium-blue400'
-    | 'speedometer-ice400'
-    | 'steeringwheel-pink400'
-    | 'stopwatch-ice600'
-    | 'tire-green400'
-    | 'trophy-yellow600'
-    | 'wrenches-pink600';
-
-type WorkspaceDefaultAvatarIDs =
-    | 'workspace-default-avatar_0'
-    | 'workspace-default-avatar_1'
-    | 'workspace-default-avatar_2'
-    | 'workspace-default-avatar_3'
-    | 'workspace-default-avatar_4'
-    | 'workspace-default-avatar_5'
-    | 'workspace-default-avatar_6'
-    | 'workspace-default-avatar_7'
-    | 'workspace-default-avatar_8'
-    | 'workspace-default-avatar_9'
-    | 'workspace-default-avatar_a'
-    | 'workspace-default-avatar_b'
-    | 'workspace-default-avatar_c'
-    | 'workspace-default-avatar_d'
-    | 'workspace-default-avatar_e'
-    | 'workspace-default-avatar_f'
-    | 'workspace-default-avatar_g'
-    | 'workspace-default-avatar_h'
-    | 'workspace-default-avatar_i'
-    | 'workspace-default-avatar_j'
-    | 'workspace-default-avatar_k'
-    | 'workspace-default-avatar_l'
-    | 'workspace-default-avatar_m'
-    | 'workspace-default-avatar_n'
-    | 'workspace-default-avatar_o'
-    | 'workspace-default-avatar_p'
-    | 'workspace-default-avatar_q'
-    | 'workspace-default-avatar_r'
-    | 'workspace-default-avatar_s'
-    | 'workspace-default-avatar_t'
-    | 'workspace-default-avatar_u'
-    | 'workspace-default-avatar_v'
-    | 'workspace-default-avatar_w'
-    | 'workspace-default-avatar_x'
-    | 'workspace-default-avatar_y'
-    | 'workspace-default-avatar_z';
+import {AvatarEntry, CustomAvatarID, DefaultAvatarIDs, LetterAvatarColorStyle, LetterAvatarIDs, LetterAvatarVariant, SeasonF1AvatarIDs} from './CustomAvatarCatalog.types';
 
 const CDN_DEFAULT_AVATARS = `${CONST.CLOUDFRONT_URL}/images/avatars`;
 const CDN_SEASON_F1 = `${CONST.CLOUDFRONT_URL}/images/avatars/custom-avatars/season-f1`;
 
-type SVGAvatarColorStyle = {backgroundColor: string; fillColor: string};
-
-const LETTER_AVATAR_COLORS: SVGAvatarColorStyle[] = [
+const LETTER_AVATAR_COLOR_OPTIONS: LetterAvatarColorStyle[] = [
     {backgroundColor: colors.blue100, fillColor: colors.blue600},
     {backgroundColor: colors.blue400, fillColor: colors.blue700},
     {backgroundColor: colors.blue700, fillColor: colors.blue200},
@@ -121,8 +30,6 @@ const LETTER_AVATAR_COLORS: SVGAvatarColorStyle[] = [
     {backgroundColor: colors.ice400, fillColor: colors.ice700},
     {backgroundColor: colors.ice700, fillColor: colors.ice200},
 ];
-type AvatarEntry = {local: React.FC<SvgProps>; url?: string};
-type CustomAvatarID = DefaultAvatarIDs | SeasonF1AvatarIDs;
 
 const DEFAULTS: Record<DefaultAvatarIDs, AvatarEntry> = {
     'default-avatar_1': {local: DefaultAvatars.Avatar1, url: `${CDN_DEFAULT_AVATARS}/default-avatar_1.png`},
@@ -178,71 +85,44 @@ const SEASON_F1: Record<SeasonF1AvatarIDs, AvatarEntry> = {
     'wrenches-pink600': {local: SeasonF1.WrenchesPink600, url: `${CDN_SEASON_F1}/wrenches-pink600.png`},
 };
 
-const WORKSPACE_DEFAULTS: Record<WorkspaceDefaultAvatarIDs, AvatarEntry> = {
-    'workspace-default-avatar_0': {local: WorkspaceDefaultAvatars.Workspace0},
-    'workspace-default-avatar_1': {local: WorkspaceDefaultAvatars.Workspace1},
-    'workspace-default-avatar_2': {local: WorkspaceDefaultAvatars.Workspace2},
-    'workspace-default-avatar_3': {local: WorkspaceDefaultAvatars.Workspace3},
-    'workspace-default-avatar_4': {local: WorkspaceDefaultAvatars.Workspace4},
-    'workspace-default-avatar_5': {local: WorkspaceDefaultAvatars.Workspace5},
-    'workspace-default-avatar_6': {local: WorkspaceDefaultAvatars.Workspace6},
-    'workspace-default-avatar_7': {local: WorkspaceDefaultAvatars.Workspace7},
-    'workspace-default-avatar_8': {local: WorkspaceDefaultAvatars.Workspace8},
-    'workspace-default-avatar_9': {local: WorkspaceDefaultAvatars.Workspace9},
-    'workspace-default-avatar_a': {local: WorkspaceDefaultAvatars.WorkspaceA},
-    'workspace-default-avatar_b': {local: WorkspaceDefaultAvatars.WorkspaceB},
-    'workspace-default-avatar_c': {local: WorkspaceDefaultAvatars.WorkspaceC},
-    'workspace-default-avatar_d': {local: WorkspaceDefaultAvatars.WorkspaceD},
-    'workspace-default-avatar_e': {local: WorkspaceDefaultAvatars.WorkspaceE},
-    'workspace-default-avatar_f': {local: WorkspaceDefaultAvatars.WorkspaceF},
-    'workspace-default-avatar_g': {local: WorkspaceDefaultAvatars.WorkspaceG},
-    'workspace-default-avatar_h': {local: WorkspaceDefaultAvatars.WorkspaceH},
-    'workspace-default-avatar_i': {local: WorkspaceDefaultAvatars.WorkspaceI},
-    'workspace-default-avatar_j': {local: WorkspaceDefaultAvatars.WorkspaceJ},
-    'workspace-default-avatar_k': {local: WorkspaceDefaultAvatars.WorkspaceK},
-    'workspace-default-avatar_l': {local: WorkspaceDefaultAvatars.WorkspaceL},
-    'workspace-default-avatar_m': {local: WorkspaceDefaultAvatars.WorkspaceM},
-    'workspace-default-avatar_n': {local: WorkspaceDefaultAvatars.WorkspaceN},
-    'workspace-default-avatar_o': {local: WorkspaceDefaultAvatars.WorkspaceO},
-    'workspace-default-avatar_p': {local: WorkspaceDefaultAvatars.WorkspaceP},
-    'workspace-default-avatar_q': {local: WorkspaceDefaultAvatars.WorkspaceQ},
-    'workspace-default-avatar_r': {local: WorkspaceDefaultAvatars.WorkspaceR},
-    'workspace-default-avatar_s': {local: WorkspaceDefaultAvatars.WorkspaceS},
-    'workspace-default-avatar_t': {local: WorkspaceDefaultAvatars.WorkspaceT},
-    'workspace-default-avatar_u': {local: WorkspaceDefaultAvatars.WorkspaceU},
-    'workspace-default-avatar_v': {local: WorkspaceDefaultAvatars.WorkspaceV},
-    'workspace-default-avatar_w': {local: WorkspaceDefaultAvatars.WorkspaceW},
-    'workspace-default-avatar_x': {local: WorkspaceDefaultAvatars.WorkspaceX},
-    'workspace-default-avatar_y': {local: WorkspaceDefaultAvatars.WorkspaceY},
-    'workspace-default-avatar_z': {local: WorkspaceDefaultAvatars.WorkspaceZ},
+const LETTER_DEFAULTS: Record<LetterAvatarIDs, AvatarEntry> = {
+    'letter-default-avatar_0': {local: LetterDefaultAvatars.Workspace0},
+    'letter-default-avatar_1': {local: LetterDefaultAvatars.Workspace1},
+    'letter-default-avatar_2': {local: LetterDefaultAvatars.Workspace2},
+    'letter-default-avatar_3': {local: LetterDefaultAvatars.Workspace3},
+    'letter-default-avatar_4': {local: LetterDefaultAvatars.Workspace4},
+    'letter-default-avatar_5': {local: LetterDefaultAvatars.Workspace5},
+    'letter-default-avatar_6': {local: LetterDefaultAvatars.Workspace6},
+    'letter-default-avatar_7': {local: LetterDefaultAvatars.Workspace7},
+    'letter-default-avatar_8': {local: LetterDefaultAvatars.Workspace8},
+    'letter-default-avatar_9': {local: LetterDefaultAvatars.Workspace9},
+    'letter-default-avatar_a': {local: LetterDefaultAvatars.WorkspaceA},
+    'letter-default-avatar_b': {local: LetterDefaultAvatars.WorkspaceB},
+    'letter-default-avatar_c': {local: LetterDefaultAvatars.WorkspaceC},
+    'letter-default-avatar_d': {local: LetterDefaultAvatars.WorkspaceD},
+    'letter-default-avatar_e': {local: LetterDefaultAvatars.WorkspaceE},
+    'letter-default-avatar_f': {local: LetterDefaultAvatars.WorkspaceF},
+    'letter-default-avatar_g': {local: LetterDefaultAvatars.WorkspaceG},
+    'letter-default-avatar_h': {local: LetterDefaultAvatars.WorkspaceH},
+    'letter-default-avatar_i': {local: LetterDefaultAvatars.WorkspaceI},
+    'letter-default-avatar_j': {local: LetterDefaultAvatars.WorkspaceJ},
+    'letter-default-avatar_k': {local: LetterDefaultAvatars.WorkspaceK},
+    'letter-default-avatar_l': {local: LetterDefaultAvatars.WorkspaceL},
+    'letter-default-avatar_m': {local: LetterDefaultAvatars.WorkspaceM},
+    'letter-default-avatar_n': {local: LetterDefaultAvatars.WorkspaceN},
+    'letter-default-avatar_o': {local: LetterDefaultAvatars.WorkspaceO},
+    'letter-default-avatar_p': {local: LetterDefaultAvatars.WorkspaceP},
+    'letter-default-avatar_q': {local: LetterDefaultAvatars.WorkspaceQ},
+    'letter-default-avatar_r': {local: LetterDefaultAvatars.WorkspaceR},
+    'letter-default-avatar_s': {local: LetterDefaultAvatars.WorkspaceS},
+    'letter-default-avatar_t': {local: LetterDefaultAvatars.WorkspaceT},
+    'letter-default-avatar_u': {local: LetterDefaultAvatars.WorkspaceU},
+    'letter-default-avatar_v': {local: LetterDefaultAvatars.WorkspaceV},
+    'letter-default-avatar_w': {local: LetterDefaultAvatars.WorkspaceW},
+    'letter-default-avatar_x': {local: LetterDefaultAvatars.WorkspaceX},
+    'letter-default-avatar_y': {local: LetterDefaultAvatars.WorkspaceY},
+    'letter-default-avatar_z': {local: LetterDefaultAvatars.WorkspaceZ},
 };
-
-type ColorShade = 'light' | 'medium' | 'dark';
-type LetterAvatarVariant = {
-    backgroundColor: string;
-    fillColor: string;
-    component: React.FC<SvgProps>;
-};
-
-/**
- * Generates a list of workspace letter avatar components with different background colors and shades
- * @param initial - The letter/character to use (0-9, A-Z)
- * @returns An array of avatar variants with different colors and shades for given initial
- */
-function generateLetterAvatars(initial: string): LetterAvatarVariant[] {
-    const normalizedInitial = initial.toLowerCase();
-    const workspaceKey = `workspace-default-avatar_${normalizedInitial}` as WorkspaceDefaultAvatarIDs;
-
-    if (!(workspaceKey in WORKSPACE_DEFAULTS)) {
-        return [];
-    }
-
-    return LETTER_AVATAR_COLORS.map(({fillColor, backgroundColor}) => ({
-        backgroundColor,
-        fillColor,
-        component: WORKSPACE_DEFAULTS[workspaceKey].local,
-    }));
-}
 
 const DISPLAY_ORDER = [
     'car-blue100',
@@ -312,10 +192,56 @@ const buildOrderedAvatars = (): Array<{id: CustomAvatarID} & AvatarEntry> => {
     }));
 };
 
+/**
+ * Generates a list of workspace letter avatar components with different background colors and shades
+ * @param name - The name to extract first letter/character from. (Expected 0-9, A-Z)
+ * @returns An array of avatar variants with different colors and shades for given initial
+ */
+function generateLetterAvatars(name: string): LetterAvatarVariant[] {
+    if (!name || name.length === 0) {
+        return [];
+    }
+
+    const workspaceKey = `letter-default-avatar_${getFirstAlphaNumericCharacter(name).toLowerCase()}` as LetterAvatarIDs;
+
+    if (!(workspaceKey in LETTER_DEFAULTS)) {
+        return [];
+    }
+
+    return LETTER_AVATAR_COLOR_OPTIONS.map(({fillColor, backgroundColor}) => ({
+        backgroundColor,
+        fillColor,
+        component: LETTER_DEFAULTS[workspaceKey].local,
+    }));
+}
+
+/**
+ * Returns a letter avatar component based on the first letter of the provided name.
+ * @param name - The name to extract first letter/character from. (Expected 0-9, A-Z)
+ * @returns Letter avatar component or null if no valid initial is found.
+ */
+function getLetterAvatar(name?: string): React.FC<SvgProps> | null {
+    if (!name || name.length === 0) {
+        return null;
+    }
+
+    const firstChar = name
+        .normalize('NFD')
+        .replace(/[^0-9a-z]/gi, '')
+        .toLowerCase();
+    const workspaceKey = `letter-default-avatar_${firstChar}` as LetterAvatarIDs;
+
+    if (!(workspaceKey in LETTER_DEFAULTS)) {
+        return null;
+    }
+
+    return LETTER_DEFAULTS[workspaceKey].local;
+}
+
 const CUSTOM_AVATAR_CATALOG = buildOrderedAvatars();
 
 const getAvatarLocal = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].local;
 const getAvatarURL = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].url;
 
-export {ALL_CUSTOM_AVATARS, CUSTOM_AVATAR_CATALOG, getAvatarLocal, getAvatarURL, WORKSPACE_DEFAULTS, generateLetterAvatars};
-export type {DefaultAvatarIDs, SeasonF1AvatarIDs, WorkspaceDefaultAvatarIDs, CustomAvatarID, ColorShade};
+export {ALL_CUSTOM_AVATARS, CUSTOM_AVATAR_CATALOG, LETTER_AVATAR_COLOR_OPTIONS, LETTER_DEFAULTS, getAvatarLocal, getAvatarURL, generateLetterAvatars, getLetterAvatar};
+export type {DefaultAvatarIDs, SeasonF1AvatarIDs, LetterAvatarIDs, CustomAvatarID};

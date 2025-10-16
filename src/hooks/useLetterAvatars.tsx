@@ -1,72 +1,73 @@
 import React, {useMemo} from 'react';
 import type {SvgProps} from 'react-native-svg';
 import ColoredAvatar from '@components/ColoredAvatar';
-import {generateLetterAvatars} from '@libs/Avatars/CustomAvatarCatalog';
+import {getLetterAvatar, LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/CustomAvatarCatalog';
+import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import type {AvatarSizeName} from '@styles/utils';
 
-type ColoredAvatarComponent = React.FC<SvgProps>;
-
+/**
+ * Represents a single letter avatar item with its unique identifier and styled component.
+ */
 type LetterAvatarItem = {
+    /** Unique identifier combining background color, fill color, and initial letter */
     id: string;
-    component: ColoredAvatarComponent;
-};
-
-type LetterAvatarsResult = {
-    /** Array of avatar items for AvatarSelector */
-    avatarList: LetterAvatarItem[];
-    /** Object mapping avatar IDs to components for AvatarPage */
-    avatarMap: Record<string, ColoredAvatarComponent>;
-};
-
-type ColoredAvatarProps = {
-    Component: React.FC<SvgProps>;
-    backgroundColor: string;
-    fillColor: string;
-    size?: AvatarSizeName;
+    /** Styled letter avatar component with applied colors */
+    StyledLetterAvatar: React.FC<SvgProps>;
 };
 
 /**
- * Hook to generate letter avatars based on a user's first name initial.
- * Returns both an array (for AvatarSelector) and an object (for AvatarPage).
- *
- * @param firstName - The user's first name
- * @param size - Optional size for the avatars
- * @returns An object containing avatarList and avatarMap
+ * Return type for useLetterAvatars hook containing avatar data in multiple formats.
  */
-function useLetterAvatars(firstName: string | undefined, size?: AvatarSizeName): LetterAvatarsResult {
+type LetterAvatarsResult = {
+    /** Array of avatar items for use in AvatarSelector component, containing all color variations */
+    avatarList: LetterAvatarItem[];
+    /** Object mapping avatar IDs to components for quick lookup in AvatarPage component */
+    avatarMap: Record<string, React.FC<SvgProps>>;
+};
+
+/**
+ * Generates letter avatars based on a user's name initial in all available color combinations.
+ *
+ * @param name - The user's name from which the first alphanumeric character is extracted
+ * @param size - Optional size for the avatars
+ * @returns Object with avatarList (array for AvatarSelector) and avatarMap (lookup for AvatarPage)
+ */
+function useLetterAvatars(name: string | undefined, size?: AvatarSizeName): LetterAvatarsResult {
     return useMemo(() => {
-        const initial = firstName?.charAt(0) ?? '';
-        const avatarVariants = generateLetterAvatars(initial);
+        const avatarComponent = getLetterAvatar(name);
+
+        if (!avatarComponent) {
+            return {avatarList: [], avatarMap: {}};
+        }
 
         const avatarList: LetterAvatarItem[] = [];
-        const avatarMap: Record<string, ColoredAvatarComponent> = {};
+        const avatarMap: Record<string, React.FC<SvgProps>> = {};
 
-        avatarVariants.forEach((variant) => {
-            // eslint-disable-next-line react/function-component-definition, react/no-unstable-nested-components
-            const StyledComponent: React.FC<SvgProps> = () => (
+        LETTER_AVATAR_COLOR_OPTIONS.forEach(({fillColor, backgroundColor}) => {
+            const StyledLetterAvatar: React.FC<SvgProps> = () => (
                 <ColoredAvatar
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...variant}
+                    fillColor={fillColor}
+                    backgroundColor={backgroundColor}
+                    component={avatarComponent}
                     size={size}
                 />
             );
-
-            const id = `workspace-${variant.backgroundColor}-${variant.fillColor}-${initial}`;
+            const id = `letter-avatar-${backgroundColor}-${fillColor}-${getFirstAlphaNumericCharacter(name)}`;
 
             avatarList.push({
                 id,
-                component: StyledComponent,
+                StyledLetterAvatar,
             });
 
-            avatarMap[id] = StyledComponent;
+            avatarMap[id] = StyledLetterAvatar;
         });
 
         return {
             avatarList,
             avatarMap,
         };
-    }, [firstName, size]);
+    }, [name, size]);
 }
 
 export default useLetterAvatars;
-export type {LetterAvatarItem, LetterAvatarsResult, ColoredAvatarProps};
+export type {LetterAvatarItem, LetterAvatarsResult};
