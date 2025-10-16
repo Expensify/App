@@ -4,7 +4,7 @@ import createNormalizedConfigs from '@libs/Navigation/helpers/createNormalizedCo
 import type {RootNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 
@@ -156,6 +156,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             screens: {
                 [SCREENS.RIGHT_MODAL.SETTINGS]: {
                     screens: {
+                        [SCREENS.SETTINGS.VERIFY_ACCOUNT]: {
+                            path: DYNAMIC_ROUTES.VERIFY_ACCOUNT,
+                        },
                         [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: {
                             path: ROUTES.SETTINGS_PRIORITY_MODE,
                             exact: true,

@@ -47,10 +47,11 @@ const PUBLIC_SCREENS_ROUTES = {
 const VERIFY_ACCOUNT = 'verify-account';
 
 const DYNAMIC_ROUTES = {
-    VERIFY_ACCOUNT,
-};
+    VERIFY_ACCOUNT: 'verify-account',
+} as const;
 
 const ROUTES = {
+    ...DYNAMIC_ROUTES,
     ...PUBLIC_SCREENS_ROUTES,
     // This route renders the list of reports.
     HOME: 'home',

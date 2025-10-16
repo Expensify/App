@@ -6,14 +6,6 @@ import SCREENS from '@src/SCREENS';
 
 type State = NavigationState | Omit<PartialState<NavigationState>, 'stale'>;
 
-type MutableRoute = {
-    key: string;
-    name: string;
-    params?: object;
-    path?: string;
-    state?: State;
-};
-
 /**
  * Checks if a screen name is a dynamic route screen
  */
@@ -112,23 +104,28 @@ function appendDynamicRoutesToPath(basePath: string, dynamicRoutes: string[]): s
 }
 
 const getPathFromState = (state: State): string => {
-    // Remove dynamic routes from state and collect them
-    const {cleanedState, dynamicRoutes} = removeDynamicRoutesFromState(state);
-    console.log(cleanedState);
+    const focusedRoute = findFocusedRoute(state);
+    const screenName = focusedRoute?.name ?? '';
 
-    // Get path from cleaned state using original function
+    if (isDynamicRouteScreen(screenName)) {
+        if (focusedRoute?.path) {
+            return focusedRoute.path;
+        }
+
+        // Remove dynamic routes from state and collect them
+        const {cleanedState, dynamicRoutes} = removeDynamicRoutesFromState(state);
+
+        // Get path from cleaned state using original function
+        const path = RNGetPathFromState(cleanedState, linkingConfig.config);
+
+        // Append dynamic routes to the path
+        const finalPath = appendDynamicRoutesToPath(path ?? '', dynamicRoutes);
+        return finalPath;
+    }
+
     const path = RNGetPathFromState(state, linkingConfig.config);
 
-    const basePath = RNGetPathFromState(cleanedState, linkingConfig.config);
-    console.log('basePath:', basePath);
-
-    // Append dynamic routes to the path
-    const finalPath = appendDynamicRoutesToPath(basePath, dynamicRoutes);
-    console.log('finalPath:', finalPath);
-
-    return finalPath;
-
-    // return finalPath;
+    return path;
 };
 
 export default getPathFromState;
