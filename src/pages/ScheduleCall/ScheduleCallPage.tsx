@@ -10,6 +10,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useSession} from '@components/OnyxListItemProvider';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -198,11 +199,12 @@ function ScheduleCallPage() {
                         )}
                         {!!scheduleCallDraft?.date && (
                             <View style={[styles.ph5, styles.mb5]}>
-                                <Text style={[styles.mb5, styles.colorMuted]}>
-                                    {translate('scheduledCall.book.slots')}
-                                    <Text style={[styles.textStrong, styles.colorMuted]}>
-                                        {DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT)}
-                                    </Text>
+                                <Text style={[styles.mb5]}>
+                                    <RenderHTML
+                                        html={translate('scheduledCall.book.slots', {
+                                            date: DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT),
+                                        })}
+                                    />
                                 </Text>
                                 <View style={[styles.flexRow, styles.flexWrap, styles.justifyContentStart, styles.gap2]}>
                                     {timeSlotsForSelectedData.map((timeSlot: TimeSlot) => (
