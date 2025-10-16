@@ -41,7 +41,6 @@ import TextLink from '@components/TextLink';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -464,7 +463,6 @@ function PureReportActionItem({
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
-    const {isBetaEnabled} = usePermissions();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
     const [isHidden, setIsHidden] = useState(false);
@@ -954,7 +952,6 @@ function PureReportActionItem({
         policy,
         currentUserAccountID,
         personalDetail.timezone,
-        isBetaEnabled,
         createDraftTransactionAndNavigateToParticipantSelector,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
@@ -1448,10 +1445,10 @@ function PureReportActionItem({
                                         </Button>
                                     )}
                                     {/**
-                                These are the actionable buttons that appear at the bottom of a Concierge message
-                                for example: Invite a user mentioned but not a member of the room
-                                https://github.com/Expensify/App/issues/32741
-                            */}
+                                     These are the actionable buttons that appear at the bottom of a Concierge message
+                                     for example: Invite a user mentioned but not a member of the room
+                                     https://github.com/Expensify/App/issues/32741
+                                     */}
                                     {actionableItemButtons.length > 0 && (
                                         <ActionableItemButtons
                                             items={actionableItemButtons}
@@ -1508,7 +1505,7 @@ function PureReportActionItem({
                                 if (isAnonymousUser()) {
                                     hideContextMenu(false);
 
-                                    // eslint-disable-next-line deprecation/deprecation
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                                     InteractionManager.runAfterInteractions(() => {
                                         signOutAndRedirectToSignIn();
                                     });
@@ -1791,6 +1788,7 @@ function PureReportActionItem({
         </PressableWithSecondaryInteraction>
     );
 }
+
 export type {PureReportActionItemProps};
 export default memo(PureReportActionItem, (prevProps, nextProps) => {
     const prevParentReportAction = prevProps.parentReportAction;
