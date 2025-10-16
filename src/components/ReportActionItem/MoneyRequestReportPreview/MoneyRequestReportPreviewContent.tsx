@@ -11,7 +11,6 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import ImageSVG from '@components/ImageSVG';
 import MoneyReportHeaderStatusBarSkeleton from '@components/MoneyReportHeaderStatusBarSkeleton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -27,6 +26,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
+import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -49,6 +49,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
     getPolicyName,
+    getReportStatusColorStyle,
     getReportStatusTranslation,
     getTransactionsWithReceipts,
     hasHeldExpenses as hasHeldExpensesReportUtils,
@@ -68,7 +69,8 @@ import {
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
-import {hasPendingUI, isCardTransaction, isPending} from '@libs/TransactionUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
@@ -116,6 +118,7 @@ function MoneyRequestReportPreviewContent({
 }: MoneyRequestReportPreviewContentProps) {
     const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {canBeMissing: true, allowStaleData: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const activePolicy = usePolicy(activePolicyID);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const shouldShowLoading = !chatReportMetadata?.hasOnceLoadedReportActions && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
     // `hasOnceLoadedReportActions` becomes true before transactions populate fully,
@@ -187,7 +190,7 @@ function MoneyRequestReportPreviewContent({
     const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
     const numberOfRequests = transactions?.length ?? 0;
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
-    const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction) && isCardTransaction(transaction)).length;
+    const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction) && isManagedCardTransaction(transaction)).length;
 
     const shouldShowRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
     const shouldShowOnlyPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
@@ -231,13 +234,13 @@ function MoneyRequestReportPreviewContent({
             } else if (chatReport && iouReport) {
                 startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
-                    payInvoice(type, chatReport, iouReport, introSelected, payAsBusiness, existingB2BInvoiceReport);
+                    payInvoice(type, chatReport, iouReport, introSelected, payAsBusiness, existingB2BInvoiceReport, undefined, undefined, activePolicy);
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport, introSelected);
+                    payMoneyRequest(type, chatReport, iouReport, introSelected, undefined, true, activePolicy);
                 }
             }
         },
-        [isDelegateAccessRestricted, iouReport, chatReport, showDelegateNoAccessModal, startAnimation, introSelected, existingB2BInvoiceReport],
+        [isDelegateAccessRestricted, iouReport, chatReport, showDelegateNoAccessModal, startAnimation, introSelected, existingB2BInvoiceReport, activePolicy],
     );
 
     const confirmApproval = () => {
@@ -323,6 +326,11 @@ function MoneyRequestReportPreviewContent({
     const reportStatus = useMemo(
         () => getReportStatusTranslation(iouReport?.stateNum ?? action?.childStateNum, iouReport?.statusNum ?? action?.childStatusNum),
         [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum],
+    );
+
+    const reportStatusColorStyle = useMemo(
+        () => getReportStatusColorStyle(theme, iouReport?.stateNum ?? action?.childStateNum, iouReport?.statusNum ?? action?.childStatusNum),
+        [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, theme],
     );
 
     const totalAmountStyle = shouldUseNarrowLayout ? [styles.flexColumnReverse, styles.alignItemsStretch] : [styles.flexRow, styles.alignItemsCenter];
@@ -431,21 +439,6 @@ function MoneyRequestReportPreviewContent({
             ? {maxWidth: reportPreviewStyles.transactionPreviewCarouselStyle.width}
             : {};
 
-    // We also show icons in case of Approved or Paid report for easier identification at glance
-    const isIconNeeded = useMemo(() => {
-        return iouSettled || isApproved;
-    }, [iouSettled, isApproved]);
-
-    const approvedOrSettledIcon = isIconNeeded && (
-        <ImageSVG
-            src={isApproved ? Expensicons.ThumbsUp : Expensicons.Checkmark}
-            fill={isApproved ? theme.icon : theme.iconSuccessFill}
-            width={variables.iconSizeExtraSmall}
-            height={variables.iconSizeExtraSmall}
-            contentFit="cover"
-        />
-    );
-
     useEffect(() => {
         if (
             optimisticIndex === undefined ||
@@ -478,9 +471,21 @@ function MoneyRequestReportPreviewContent({
             transactions,
             invoiceReceiverPolicy,
             isPaidAnimationRunning,
+            isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
         );
-    }, [isPaidAnimationRunning, isSubmittingAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, invoiceReceiverPolicy, isChatReportArchived]);
+    }, [
+        isPaidAnimationRunning,
+        isApprovedAnimationRunning,
+        isSubmittingAnimationRunning,
+        violations,
+        iouReport,
+        policy,
+        transactions,
+        isIouReportArchived,
+        invoiceReceiverPolicy,
+        isChatReportArchived,
+    ]);
 
     const addExpenseDropdownOptions = useMemo(
         () => getAddExpenseDropdownOptions(iouReport?.reportID, policy, chatReportID, iouReport?.parentReportID, lastDistanceExpenseType),
@@ -664,8 +669,20 @@ function MoneyRequestReportPreviewContent({
                                                 ) : (
                                                     !shouldShowEmptyPlaceholder && (
                                                         <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
-                                                            {isIconNeeded && <View style={[styles.alignItemsCenter, styles.lh16, styles.mr1]}>{approvedOrSettledIcon}</View>}
-                                                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{`${reportStatus} ${CONST.DOT_SEPARATOR} ${expenseCount}`}</Text>
+                                                            {!!reportStatus && (
+                                                                <View
+                                                                    style={[
+                                                                        styles.reportStatusContainer,
+                                                                        styles.mr1,
+                                                                        {
+                                                                            backgroundColor: reportStatusColorStyle?.backgroundColor,
+                                                                        },
+                                                                    ]}
+                                                                >
+                                                                    <Text style={[styles.reportStatusText, {color: reportStatusColorStyle?.textColor}]}>{reportStatus}</Text>
+                                                                </View>
+                                                            )}
+                                                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>
                                                         </View>
                                                     )
                                                 )}
