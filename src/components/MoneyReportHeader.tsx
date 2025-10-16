@@ -1264,7 +1264,7 @@ function MoneyReportHeader({
             </HeaderWithBackButton>
             {!shouldDisplayNarrowMoreButton &&
                 (shouldShowSelectedTransactionsButton ? (
-                    <View style={[styles.dFlex, styles.w100, styles.ph5]}>
+                    <View style={[styles.dFlex, styles.w100, styles.ph5, styles.pb3]}>
                         <ButtonWithDropdownMenu
                             onPress={() => null}
                             options={selectedTransactionsOptions}
