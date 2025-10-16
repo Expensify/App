@@ -3,13 +3,13 @@ import React, {useState} from 'react';
 import type {ReactElement} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import ClickableContext from '@components/ClickableContext';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import HTMLClickableActions from '@libs/HTMLClickableActionsUtils';
 import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
@@ -66,18 +66,15 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
-            // Map each clickable ID to its corresponding action
-            // eslint-disable-next-line react/jsx-no-constructed-context-values
-            const actionHandlers = {
-                retry: () => handleRetryPress(message, dismissError, setShouldShowErrorModal),
-                download: () => fileDownload(message.source, message.filename).finally(() => dismissError()),
+            HTMLClickableActions.retry = function () {
+                handleRetryPress(message, dismissError, setShouldShowErrorModal);
+            };
+            HTMLClickableActions.download = function () {
+                fileDownload(message.source, message.filename).finally(() => dismissError());
             };
 
             return (
-                <ClickableContext.Provider
-                    key={index}
-                    value={actionHandlers}
-                >
+                <>
                     <RenderHTML html={translate('iou.error.receiptFailureMessage')} />
 
                     <ConfirmModal
@@ -89,7 +86,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                         confirmText={translate('common.ok')}
                         shouldShowCancelButton={false}
                     />
-                </ClickableContext.Provider>
+                </>
             );
         }
 
