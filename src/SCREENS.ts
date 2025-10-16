@@ -106,7 +106,6 @@ const SCREENS = {
         TROUBLESHOOT: 'Settings_Troubleshoot',
         CONSOLE: 'Settings_Console',
         SHARE_LOG: 'Share_Log',
-        ENABLE_BIOMETRICS_FALLBACK: 'EnableBiometricsFallback',
 
         PROFILE: {
             ROOT: 'Settings_Profile',
@@ -253,8 +252,10 @@ const SCREENS = {
         SCHEDULE_CALL: 'ScheduleCall',
         REPORT_CHANGE_APPROVER: 'Report_Change_Approver',
         MERGE_TRANSACTION: 'MergeTransaction',
-        APPROVE_TRANSACTION: 'Approve_Transaction',
-        BIOMETRICS_NOTIFICATIONS_PAGE: 'BiometricsNotifications',
+        MULTIFACTORAUTHENTICATION: 'MultiFactorAuthentication',
+        // MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION: 'MultiFactorAuthentication_ApproveTransaction',
+        // MULTIFACTORAUTHENTICATION_NOTIFICATION_PAGE: 'MultiFactorAuthentication_Notification',
+        // MULTIFACTORAUTHENTICATION_FALLBACK: 'MultiFactorAuthentication_Fallback',
     },
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
@@ -809,12 +810,11 @@ const SCREENS = {
     TEST_TOOLS_MODAL: {
         ROOT: 'TestToolsModal_Root',
     },
-    APPROVE_TRANSACTION: {
-        ROOT: 'ApproveTransaction_Root',
-    },
-    BIOMETRICS_NOTIFICATIONS_PAGE: {
-        ROOT: 'BiometricsNotificationsPage_Root',
-    },
+    MULTIFACTORAUTHENTICATION: {
+        APPROVE_TRANSACTION: 'MultifactorAuthentication_Approve_Transaction',
+        NOTIFICATION: 'MultifactorAuthentication_Notification',
+        FALLBACK: 'MultifactorAuthentication_Fallback',
+    }
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

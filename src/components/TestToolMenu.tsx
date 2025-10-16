@@ -50,7 +50,7 @@ function TestToolMenu() {
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const navigateToApproveTransactionPage = singleExecution(waitForNavigate(() => {
-        Navigation.navigate(ROUTES.APPROVE_TRANSACTION.getRoute(transactionID, reportID));
+        Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION.getRoute(transactionID, reportID));
     }));
 
     // Check if the user is authenticated to show options that require authentication
@@ -120,7 +120,7 @@ function TestToolMenu() {
                         <View style={[styles.flexRow, styles.gap2]}>
                             <Button
                                 small
-                                text={translate('multiFactorAuthentication.biometrics.test')}
+                                text={translate('common.test')}
                                 onPress={() => navigateToApproveTransactionPage()}
                             />
                         </View>

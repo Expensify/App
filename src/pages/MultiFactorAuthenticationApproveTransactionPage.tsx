@@ -43,7 +43,7 @@ function ApproveTransactionPage() {
     // TODO: replace with the correct logic
     const approveTransaction = useCallback(() => {
         if (!isBiometryAvailable) {
-            Navigation.navigate(ROUTES.ENABLE_BIOMETRICS_FALLBACK);
+            Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_FALLBACK);
         }
         fakeBiometryCall();
     }, [isBiometryAvailable]);
@@ -128,7 +128,7 @@ function ApproveTransactionPage() {
                         large
                         style={[styles.mvAuto, styles.mtAuto, styles.mhAuto, {width: '50%'}]}
                         onPress={onGoBackPress}
-                        text={translate('multiFactorAuthentication.approveTransaction.deny')}
+                        text={translate('common.deny')}
                         // isLoading={isValidateCodeFormSubmitting}
                         // isDisabled={isOffline}
                     />
@@ -137,7 +137,7 @@ function ApproveTransactionPage() {
                         large
                         style={[styles.mvAuto, styles.mtAuto, styles.mhAuto, {width: '50%'}]}
                         onPress={approveTransaction}
-                        text={translate('multiFactorAuthentication.approveTransaction.approve')}
+                        text={translate('common.approve')}
                         // isLoading={isValidateCodeFormSubmitting}
                         // isDisabled={isOffline}
                     />

@@ -34,7 +34,7 @@ type FormError = {
 
 type VerificationStep = 'magicCode' | 'twoFactorAuth' | 'smsOtp';
 
-function EnableBiometricsFallbackPage() {
+function MultiFactorAuthenticationFallbackPage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -73,7 +73,7 @@ function EnableBiometricsFallbackPage() {
         if (!hasSuccessfullyEnabledBiometrics) {
             return;
         }
-        Navigation.navigate(ROUTES.BIOMETRICS_NOTIFICATIONS_PAGE.getRoute('authentication-successful'));
+        Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.getRoute('authentication-successful'));
     }, [hasSuccessfullyEnabledBiometrics]);
 
     // Derived state
@@ -372,7 +372,7 @@ function EnableBiometricsFallbackPage() {
     };
 
     return (
-        <ScreenWrapper testID={EnableBiometricsFallbackPage.displayName}>
+        <ScreenWrapper testID={MultiFactorAuthenticationFallbackPage.displayName}>
             <HeaderWithBackButton
                 title={translate('multiFactorAuthentication.biometrics.fallbackPageTitle')}
                 onBackButtonPress={onGoBackPress}
@@ -412,6 +412,6 @@ function EnableBiometricsFallbackPage() {
     );
 }
 
-EnableBiometricsFallbackPage.displayName = 'EnableBiometricsFallbackPage';
+MultiFactorAuthenticationFallbackPage.displayName = 'MultiFactorAuthenticationFallbackPage';
 
-export default EnableBiometricsFallbackPage;
+export default MultiFactorAuthenticationFallbackPage;

@@ -48,7 +48,9 @@ import type {
     WalletStatementNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
     WorkspaceDuplicateNavigatorParamList,
-    ApproveTransactionParamList,
+    // MultiFactorAuthenticationApproveTransactionParamList,
+    // MultiFactorAuthenticationNotificaitonParamList,
+    MultiFactorAuthenticationParamList,
 } from '@navigation/types';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
@@ -384,7 +386,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.SUBSCRIPTION.REQUEST_EARLY_CANCELLATION]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/RequestEarlyCancellationPage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.SUBSCRIPTION_DOWNGRADE_BLOCKED]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanDowngradeBlockedPage').default,
-    [SCREENS.SETTINGS.ENABLE_BIOMETRICS_FALLBACK]: () => require<ReactComponentModule>('../../../../pages/settings/EnableBiometricsFallbackPage').default,
     [SCREENS.WORKSPACE.INVITE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceInvitePage').default,
     [SCREENS.WORKSPACE.MEMBERS_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/members/ImportMembersPage').default,
     [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/workspace/members/ImportedMembersPage').default,
@@ -906,12 +907,22 @@ const ScheduleCallModalStackNavigator = createModalStackNavigator<ScheduleCallPa
     [SCREENS.SCHEDULE_CALL.CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/ScheduleCall/ScheduleCallConfirmationPage').default,
 });
 
-const ApproveTransactionStackNavigator = createModalStackNavigator<ApproveTransactionParamList>({
-    [SCREENS.APPROVE_TRANSACTION.ROOT]: () => require<ReactComponentModule>('../../../../pages/ApproveTransactionPage').default,
-});
+// const MultiFactorAuthenticationFallbackStackNavigator = createModalStackNavigator<MultiFactorAuthenticationTransactionParamList>({
+//     [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION_FALLBACK]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthenticationFallbackPage').default,
+// });
 
-const BiometricsStackNavigator = createModalStackNavigator<ApproveTransactionParamList>({
-    [SCREENS.BIOMETRICS_NOTIFICATIONS_PAGE.ROOT]: () => require<ReactComponentModule>('../../../../pages/BiometricsNotificationsPage').default,
+// const MultiFactorAuthenticationApproveTransactionStackNavigator = createModalStackNavigator<MultiFactorAuthenticationApproveTransactionParamList>({
+//     [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION]: () => require<ReactComponentModule>('../../../../pages/ApproveTransactionPage').default,
+// });
+
+// const MultiFactorAuthenticationNotificationStackNavigator = createModalStackNavigator<MultiFactorAuthenticationNotificaitonParamList>({
+//     [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION_NOTIFICATION_PAGE]: () => require<ReactComponentModule>('../../../../pages/BiometricsNotificationsPage').default,
+// });
+
+const MultiFactorAuthenticationStackNavigator = createModalStackNavigator<MultiFactorAuthenticationParamList>({
+    [SCREENS.MULTIFACTORAUTHENTICATION.FALLBACK]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthenticationFallbackPage').default,
+    [SCREENS.MULTIFACTORAUTHENTICATION.APPROVE_TRANSACTION]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthenticationApproveTransactionPage').default,
+    [SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthenticationNotificationPage').default,
 });
 
 export {
@@ -959,6 +970,8 @@ export {
     AddUnreportedExpenseModalStackNavigator,
     ScheduleCallModalStackNavigator,
     MergeTransactionStackNavigator,
-    ApproveTransactionStackNavigator,
-    BiometricsStackNavigator,
+    // MultiFactorAuthenticationFallbackStackNavigator,
+    // MultiFactorAuthenticationApproveTransactionStackNavigator,
+    // MultiFactorAuthenticationNotificationStackNavigator,
+    MultiFactorAuthenticationStackNavigator,
 };

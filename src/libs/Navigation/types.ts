@@ -27,7 +27,7 @@ import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyRe
 import type {CompanyCardFeed} from '@src/types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
-import type { notificationType } from '@pages/BiometricsNotificationsPage';
+import type { notificationType } from '@pages/MultiFactorAuthenticationNotificationPage';
 import type {SIDEBAR_TO_SPLIT} from './linkingConfig/RELATIONS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootNavigatorParamList>;
@@ -186,7 +186,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
     [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: undefined;
-    [SCREENS.SETTINGS.ENABLE_BIOMETRICS_FALLBACK]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
     [SCREENS.WORKSPACE.ADDRESS]: {
         policyID: string;
@@ -1860,8 +1859,10 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: NavigatorScreenParams<ReportChangeApproverParamList>;
     [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.APPROVE_TRANSACTION]: NavigatorScreenParams<ApproveTransactionParamList>;
-    [SCREENS.RIGHT_MODAL.BIOMETRICS_NOTIFICATIONS_PAGE]: NavigatorScreenParams<BiometricsNotificaitonsParamList>;
+    [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION]: NavigatorScreenParams<MultiFactorAuthenticationParamList>;
+    // [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION]: NavigatorScreenParams<MultiFactorAuthenticationApproveTransactionParamList>;
+    // [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION_NOTIFICATION_PAGE]: NavigatorScreenParams<MultiFactorAuthenticationNotificaitonParamList>;
+    // [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION_FALLBACK]: undefined;
 };
 
 type TravelNavigatorParamList = {
@@ -2406,17 +2407,28 @@ type TestToolsModalModalNavigatorParamList = {
     };
 };
 
-type ApproveTransactionParamList = {
-    [SCREENS.APPROVE_TRANSACTION.ROOT]: {
+// type MultiFactorAuthenticationApproveTransactionParamList = {
+//     [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION]: {
+//         transactionID: string;
+//         reportID: string;
+//     };
+// };
+
+// type MultiFactorAuthenticationNotificaitonParamList = {
+//     [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION_NOTIFICATION_PAGE]: {
+//         notificationType: notificationType;
+//     };
+// };
+
+type MultiFactorAuthenticationParamList = {
+    [SCREENS.MULTIFACTORAUTHENTICATION.APPROVE_TRANSACTION]: {
         transactionID: string;
         reportID: string;
     };
-};
-
-type BiometricsNotificaitonsParamList = {
-    [SCREENS.BIOMETRICS_NOTIFICATIONS_PAGE.ROOT]: {
+    [SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION]: {
         notificationType: notificationType;
     };
+    [SCREENS.MULTIFACTORAUTHENTICATION.FALLBACK]: undefined;
 };
 
 type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & SearchFullscreenNavigatorParamList;
@@ -2521,6 +2533,7 @@ export type {
     TestToolsModalModalNavigatorParamList,
     MergeTransactionNavigatorParamList,
     AttachmentModalScreensParamList,
-    ApproveTransactionParamList,
-    BiometricsNotificaitonsParamList,
+    // MultiFactorAuthenticationApproveTransactionParamList,
+    // MultiFactorAuthenticationNotificaitonParamList,
+    MultiFactorAuthenticationParamList,
 };

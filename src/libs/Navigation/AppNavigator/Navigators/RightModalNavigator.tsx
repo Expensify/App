@@ -253,12 +253,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.ScheduleCallModalStackNavigator}
                         />
                         <Stack.Screen
-                            name={SCREENS.RIGHT_MODAL.APPROVE_TRANSACTION}
-                            component={ModalStackNavigators.ApproveTransactionStackNavigator}
-                        />
-                        <Stack.Screen
-                            name={SCREENS.RIGHT_MODAL.BIOMETRICS_NOTIFICATIONS_PAGE}
-                            component={ModalStackNavigators.BiometricsStackNavigator}
+                            name={SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION}
+                            component={ModalStackNavigators.MultiFactorAuthenticationStackNavigator}
                         />
                     </Stack.Navigator>
                 </Animated.View>

@@ -667,6 +667,9 @@ const translations = {
         pinned: 'Pinned',
         read: 'Read',
         copyToClipboard: 'Copy to clipboard',
+        test: 'Test',
+        deny: 'Deny',
+        approve: 'Approve',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -7276,13 +7279,10 @@ const translations = {
             pageTitle: 'Please approve this transaction',
             pageContent: 'An Expensify Card transaction requires your approval, please review it below.',
             transactionDetails: 'Transaction Details',
-            deny: 'Deny',
-            approve: 'Approve',
         },
         biometrics: {
             biometricsNotRegistered: 'Biometrics (Not registered)',
             biometricsRegistered: 'Biometrics (Registered)',
-            test: 'Test',
             notificationTitle: 'Authentication successful',
             notificationFallbackContent: 'You’ve successfully authenticated using magic code + 2FA.',
             fallbackPageTitle: "Let's verify it's you",
@@ -7290,6 +7290,23 @@ const translations = {
             fallbackPage2FAContent: 'Please enter your authenticator code.',
             fallbackPageSMSotpContent: ({contactMethod}: EnterMagicCodeParams) => `Please enter the code sent to ${contactMethod}.`,
         },
+        notifications: {
+            successfulAuthenticationTitle: 'Authentication successful',
+            successfulAuthenticationContent: 'You’ve successfully authenticated using Face ID.',
+            successfulFallbackAuthenticationContent: 'You’ve successfully authenticated using magic code + 2FA.',
+            failedAuthenticationTitle: 'Oops, something went wrong',
+            failedAuthenticationContent: 'Your authentication attempt was unsuccessful.',
+            approvedTransactionTitle: 'Transaction approved!',
+            approvedTransactionContent: 'Go back to the merchant site to continue the transaction.',
+            deniedTransactionTitle: 'Transaction denied',
+            deniedTransactionContent: 'You can try again at the merchant. If you didn’t attempt this transaction, reach out to Concierge to report potential fraud.',
+            youRunOutOfTimeTitle: 'You ran out of time',
+            youRunOutOfTimeContent: 'The transaction was denied, try again at the merchant.',
+            couldntSendMagicCodeTitle: 'Couldn’t send magic code',
+            couldntSendMagicCodeContent: 'The transaction was denied. Chat with Concierge to resolve the issue before retrying.',
+            couldntSendSMSCodeTitle: 'Couldn’t send SMS code',
+            couldntSendSMSCodeContent: 'The transaction was denied. Chat with Concierge to resolve the issue before retrying.',
+        }
     },
 };
 
