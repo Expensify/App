@@ -186,7 +186,6 @@ import {
     getReportActionMessageText,
     getReportActionText,
     getRetractedMessage,
-    getSortedReportActions,
     getTravelUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
