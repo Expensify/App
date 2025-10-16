@@ -966,6 +966,7 @@ const translations = {
         buttonMySettings: '我的设置',
         fabNewChat: '开始聊天',
         fabNewChatExplained: '开始聊天（浮动操作）',
+        fabScanReceiptExplained: '扫描收据（浮动操作）',
         chatPinned: '聊天已置顶',
         draftedMessage: '草稿消息',
         listOfChatMessages: '聊天消息列表',
@@ -1457,6 +1458,7 @@ const translations = {
                 subtitle: '在我们将此报告路由到其余审批工作流之前，为此报告选择一个额外的审批人。',
             },
         },
+        chooseWorkspace: '选择一个工作区',
     },
     transactionMerge: {
         listPage: {
@@ -1474,6 +1476,7 @@ const translations = {
             pageTitle: '选择您想保留的详情：',
             noDifferences: '发现交易无差异',
             pleaseSelectError: ({field}: {field: string}) => `请选择一个${field}`,
+            pleaseSelectAttendees: '请选择参与者',
             selectAllDetailsError: '继续前请选取所有详情。',
         },
         confirmationPage: {
@@ -1821,6 +1824,7 @@ const translations = {
         twoFactorAuthIsRequiredForAdminsDescription: '您的Xero会计连接需要使用双重身份验证。要继续使用Expensify，请启用它。',
         twoFactorAuthCannotDisable: '无法禁用双重身份验证',
         twoFactorAuthRequired: '您的Xero连接需要双因素认证（2FA），且无法禁用。',
+        explainProcessToRemoveWithRecovery: '为了禁用双因素认证 (2FA)，请输入有效的恢复代码。',
     },
     recoveryCodeForm: {
         error: {
@@ -1986,6 +1990,25 @@ const translations = {
         cardDetailsLoadingFailure: '加载卡片详情时发生错误。请检查您的互联网连接并重试。',
         validateCardTitle: '让我们确认一下身份',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `请输入发送到${contactMethod}的验证码以查看您的卡详细信息。验证码应在一两分钟内到达。`,
+        cardFraudAlert: {
+            confirmButtonText: '是的，我愿意。',
+            reportFraudButtonText: '不，不是我',
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) => `已清除可疑活动并重新激活卡片 x${cardLastFour}。一切准备就绪，可以继续报销了！`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `已停用以${cardLastFour}结尾的卡片`,
+            alertMessage: ({
+                cardLastFour,
+                amount,
+                merchant,
+                date,
+            }: {
+                cardLastFour: string;
+                amount: string;
+                merchant: string;
+                date: string;
+            }) => `在卡号以${cardLastFour}结尾的卡上发现可疑活动。您是否认可此笔费用？
+
+${merchant}的${amount} - ${date}`,
+        },
     },
     workflowsPage: {
         workflowTitle: '花费',
@@ -1996,6 +2019,7 @@ const translations = {
         submissionFrequencyDescription: '选择提交费用的频率。',
         submissionFrequencyDateOfMonth: '月份日期',
         addApprovalsTitle: '添加审批',
+        disableApprovalPromptDescription: '禁用审批将删除所有现有的审批工作流程。',
         addApprovalButton: '添加审批工作流程',
         addApprovalTip: '此默认工作流程适用于所有成员，除非存在更具体的工作流程。',
         approver: '审批人',
@@ -2293,8 +2317,8 @@ const translations = {
         },
         interestedFeatures: {
             title: '您对哪些功能感兴趣？',
-            featuresAlreadyEnabled: '您的工作区已启用以下功能：',
-            featureYouMayBeInterestedIn: '启用您可能感兴趣的其他功能：',
+            featuresAlreadyEnabled: '以下是我们最受欢迎的功能：',
+            featureYouMayBeInterestedIn: '启用其他功能：',
         },
         error: {
             requiredFirstName: '请输入您的名字以继续',
@@ -6126,7 +6150,9 @@ const translations = {
         },
         has: '有',
         groupBy: '组别',
-        moneyRequestReport: {emptyStateTitle: '此报告没有费用。', emptyStateSubtitle: '您可以通过下面的按钮或上方“更多”菜单中的“添加费用”选项将费用添加到此报告中。'},
+        moneyRequestReport: {
+            emptyStateTitle: '此报告没有费用。',
+        },
         noCategory: '无类别',
         noTag: '无标签',
         expenseType: '费用类型',
@@ -6248,8 +6274,8 @@ const translations = {
         noActivityYet: '暂无活动',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `将${fieldName}从${oldValue}更改为${newValue}`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `将${fieldName}更改为${newValue}`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `已将${fieldName}更改为"${newValue}"（之前为"${oldValue}"`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `已将${fieldName}设置为"${newValue}"`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `已更改工作区${fromPolicyName ? `（之前为 ${fromPolicyName}）` : ''}`;
@@ -7026,6 +7052,7 @@ const translations = {
             isWaitingForAssigneeToCompleteAction: '正在等待受让人完成操作',
             hasChildReportAwaitingAction: '有子报告等待处理',
             hasMissingInvoiceBankAccount: '缺少发票银行账户',
+            hasUnresolvedCardFraudAlert: '有未解决的卡片欺诈警告',
         },
         reasonRBR: {
             hasErrors: '报告或报告操作数据中有错误',
@@ -7088,7 +7115,7 @@ const translations = {
         book: {
             title: '安排通话',
             description: '找到一个适合你的时间。',
-            slots: '可用时间为',
+            slots: ({date}: {date: string}) => `<muted-text>可用时间为 <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: '确认通话',

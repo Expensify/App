@@ -34,7 +34,6 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
-import {getDraftComment} from '@libs/DraftCommentUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Performance from '@libs/Performance';
 import {getLinkedTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -147,6 +146,7 @@ function ReportActionCompose({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
+    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
     /**
      * Updates the Highlight state of the composer
      */
@@ -158,7 +158,6 @@ function ReportActionCompose({
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
-        const draftComment = getDraftComment(reportID);
         return !draftComment || !!draftComment.match(CONST.REGEX.EMPTY_COMMENT);
     });
 

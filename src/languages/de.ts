@@ -975,6 +975,7 @@ const translations = {
         buttonMySettings: 'Meine Einstellungen',
         fabNewChat: 'Chat starten',
         fabNewChatExplained: 'Chat starten (Floating action)',
+        fabScanReceiptExplained: 'Kassenbon scannen (Floating Action)',
         chatPinned: 'Chat angeheftet',
         draftedMessage: 'Entwurfene Nachricht',
         listOfChatMessages: 'Liste der Chatnachrichten',
@@ -1481,6 +1482,7 @@ const translations = {
                 subtitle: 'Wählen Sie einen zusätzlichen Genehmiger für diesen Bericht, bevor wir ihn durch den Rest des Genehmigungs-Workflows leiten.',
             },
         },
+        chooseWorkspace: 'Wählen Sie einen Arbeitsbereich aus',
     },
     transactionMerge: {
         listPage: {
@@ -1499,6 +1501,7 @@ const translations = {
             pageTitle: 'Wähle die Details, die du behalten möchtest:',
             noDifferences: 'Keine Unterschiede zwischen den Transaktionen gefunden',
             pleaseSelectError: ({field}: {field: string}) => `Bitte wähle ein(e) ${field}`,
+            pleaseSelectAttendees: 'Bitte wähle teilnehmer',
             selectAllDetailsError: 'Wähle alle Details, bevor du fortfährst.',
         },
         confirmationPage: {
@@ -1855,6 +1858,7 @@ const translations = {
             'Ihre Xero-Buchhaltungsverbindung erfordert die Verwendung der Zwei-Faktor-Authentifizierung. Um Expensify weiterhin zu nutzen, aktivieren Sie diese bitte.',
         twoFactorAuthCannotDisable: '2FA kann nicht deaktiviert werden.',
         twoFactorAuthRequired: 'Die Zwei-Faktor-Authentifizierung (2FA) ist für Ihre Xero-Verbindung erforderlich und kann nicht deaktiviert werden.',
+        explainProcessToRemoveWithRecovery: 'Um die Zwei-Faktor-Authentifizierung (2FA) zu deaktivieren, geben Sie bitte einen gültigen Wiederherstellungscode ein.',
     },
     recoveryCodeForm: {
         error: {
@@ -2023,6 +2027,26 @@ const translations = {
         validateCardTitle: 'Lassen Sie uns sicherstellen, dass Sie es sind',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Bitte geben Sie den magischen Code ein, der an ${contactMethod} gesendet wurde, um Ihre Kartendetails anzuzeigen. Er sollte in ein bis zwei Minuten ankommen.`,
+        cardFraudAlert: {
+            confirmButtonText: 'Ja, das tue ich.',
+            reportFraudButtonText: 'Nein, das war ich nicht.',
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) =>
+                `die verdächtige Aktivität geklärt und die Karte x${cardLastFour} reaktiviert. Alles bereit, um weiter Ausgaben zu erfassen!`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `hat die Karte mit den Endziffern ${cardLastFour} deaktiviert`,
+            alertMessage: ({
+                cardLastFour,
+                amount,
+                merchant,
+                date,
+            }: {
+                cardLastFour: string;
+                amount: string;
+                merchant: string;
+                date: string;
+            }) => `verdächtige Aktivitäten auf der Karte mit der Endung ${cardLastFour} festgestellt. Erkennen Sie diese Abbuchung?
+
+${amount} für ${merchant} - ${date}`,
+        },
     },
     workflowsPage: {
         workflowTitle: 'Ausgaben',
@@ -2035,6 +2059,7 @@ const translations = {
         addApprovalsTitle: 'Genehmigungen hinzufügen',
         addApprovalButton: 'Genehmigungsworkflow hinzufügen',
         addApprovalTip: 'Dieser Standard-Workflow gilt für alle Mitglieder, es sei denn, es existiert ein spezifischerer Workflow.',
+        disableApprovalPromptDescription: 'Durch das Deaktivieren von Genehmigungen werden alle vorhandenen Genehmigungsworkflows gelöscht.',
         approver: 'Genehmiger',
         addApprovalsDescription: 'Zusätzliche Genehmigung erforderlich, bevor eine Zahlung autorisiert wird.',
         makeOrTrackPaymentsTitle: 'Zahlungen vornehmen oder verfolgen',
@@ -2336,8 +2361,8 @@ const translations = {
         },
         interestedFeatures: {
             title: 'Für welche Funktionen interessieren Sie sich?',
-            featuresAlreadyEnabled: 'Ihr Arbeitsbereich hat bereits Folgendes aktiviert:',
-            featureYouMayBeInterestedIn: 'Aktivieren Sie zusätzliche Funktionen, die Sie interessieren könnten:',
+            featuresAlreadyEnabled: 'Hier sind unsere beliebtesten Funktionen:',
+            featureYouMayBeInterestedIn: 'Aktivieren Sie zusätzliche Funktionen:',
         },
         error: {
             requiredFirstName: 'Bitte geben Sie Ihren Vornamen ein, um fortzufahren.',
@@ -6258,7 +6283,6 @@ const translations = {
         groupBy: 'Gruppe nach',
         moneyRequestReport: {
             emptyStateTitle: 'Dieser Bericht enthält keine Ausgaben.',
-            emptyStateSubtitle: 'Sie können Ausgaben zu diesem Bericht hinzufügen, indem Sie die Schaltfläche unten oder die Option "Ausgabe hinzufügen" im Menü "Mehr" oben verwenden.',
         },
         noCategory: 'Keine Kategorie',
         noTag: 'Kein Tag',
@@ -6383,8 +6407,8 @@ const translations = {
         noActivityYet: 'Noch keine Aktivität',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `geändert ${fieldName} von ${oldValue} zu ${newValue}`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `${fieldName} in ${newValue} geändert`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `hat ${fieldName} in "${newValue}" geändert (zuvor "${oldValue}")`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `hat ${fieldName} auf "${newValue}" gesetzt`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `Arbeitsbereich geändert${fromPolicyName ? ` (zuvor ${fromPolicyName})` : ''}`;
@@ -7188,6 +7212,7 @@ const translations = {
             isWaitingForAssigneeToCompleteAction: 'Wartet darauf, dass der Zuständige die Aktion abschließt.',
             hasChildReportAwaitingAction: 'Hat einen untergeordneten Bericht, der auf eine Aktion wartet',
             hasMissingInvoiceBankAccount: 'Fehlendes Rechnungsbankkonto',
+            hasUnresolvedCardFraudAlert: 'Hat eine ungelöste Karten-Fraud-Warnung',
         },
         reasonRBR: {
             hasErrors: 'Hat Fehler in den Berichtsdaten oder Berichtsaktionen',
@@ -7250,7 +7275,7 @@ const translations = {
         book: {
             title: 'Anruf planen',
             description: 'Finden Sie eine Zeit, die für Sie passt.',
-            slots: 'Verfügbare Zeiten für',
+            slots: ({date}: {date: string}) => `<muted-text>Verfügbare Zeiten für <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: 'Anruf bestätigen',
