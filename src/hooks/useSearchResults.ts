@@ -8,18 +8,9 @@ import usePrevious from './usePrevious';
  * It utilizes `useTransition` to allow the searchQuery to change rapidly, while more expensive renders that occur using
  * the result of the filtering and sorting are de-prioritized, allowing them to happen in the background.
  */
-function useSearchResults<TValue extends ListItem>(
-    data: TValue[],
-    filterData: (datum: TValue, searchInput: string) => boolean,
-    sortData: (data: TValue[]) => TValue[] = (d) => d,
-    /**
-     * Whether to sort data immediately on mount to prevent briefly displaying unsorted data,
-     * since sorting is handled inside startTransition.
-     */
-    shouldSortInitialData = true,
-) {
+function useSearchResults<TValue extends ListItem>(data: TValue[], filterData: (datum: TValue, searchInput: string) => boolean, sortData: (data: TValue[]) => TValue[] = (d) => d) {
     const [inputValue, setInputValue] = useState('');
-    const [result, setResult] = useState(() => (shouldSortInitialData ? sortData(data) : data));
+    const [result, setResult] = useState(() => sortData(data));
     const prevData = usePrevious(data);
     const [, startTransition] = useTransition();
     useEffect(() => {
