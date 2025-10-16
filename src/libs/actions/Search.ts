@@ -58,6 +58,20 @@ type OnyxSearchResponse = {
     };
 };
 
+let transactions: NonNullable<OnyxCollection<Transaction>> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            transactions = {};
+            return;
+        }
+
+        transactions = value;
+    },
+});
+
 let allSnapshotKeys: OnyxKey[] = [];
 
 Onyx.connect({
@@ -589,8 +603,8 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     const failureData: OnyxUpdate[] = [];
 
     if (allSnapshotKeys?.length && allSnapshotKeys.length > 0) {
-        allSnapshotKeys.forEach((key) => {
-            transactionIDList.forEach((transactionID) => {
+        transactionIDList.forEach((transactionID) => {
+            allSnapshotKeys.forEach((key) => {
                 optimisticData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key,
@@ -615,6 +629,36 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
                     },
                 });
             });
+
+            const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+
+            if (transaction) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {...transaction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                });
+
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {...transaction, pendingAction: null},
+                });
+
+                const shouldDeleteIOUReport = getReportTransactions(transaction?.reportID).length === 1;
+
+                if (shouldDeleteIOUReport) {
+                    optimisticData.push({
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`,
+                        value: {
+                            pendingFields: {
+                                preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                            },
+                        },
+                    });
+                }
+            }
         });
     }
 
