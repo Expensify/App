@@ -53,6 +53,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     const [searchTerm, setSearchTerm] = useState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -64,12 +65,13 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
+            draftComments,
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
             },
         );
-    }, [areOptionsInitialized, options.personalDetails, options.reports]);
+    }, [areOptionsInitialized, draftComments, options.personalDetails, options.reports]);
 
     const unselectedOptions = useMemo(() => {
         return filterSelectedOptions(defaultOptions, new Set(selectedOptions.map((option) => option.accountID)));

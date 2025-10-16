@@ -54,11 +54,13 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const [selectedReportIDs, setSelectedReportIDs] = useState<string[]>(initialReportIDs);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     const selectedOptions = useMemo<OptionData[]>(() => {
         return selectedReportIDs.map((id) => {
-            const report = getSelectedOptionData(createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, reportAttributesDerived));
-            const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`];
+            const reportData = {...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id};
+            const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${reportData?.policyID}`];
+            const report = getSelectedOptionData(createOptionFromReport(reportData, personalDetails, reportAttributesDerived, reportPolicyTags));
             const alternateText = getAlternateText(report, {}, {}, reportPolicyTags);
             return {...report, alternateText};
         });
@@ -68,8 +70,8 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, undefined, false);
-    }, [areOptionsInitialized, isScreenTransitionEnd, options]);
+        return getSearchOptions({options, draftComments, betas: undefined, isUsedInChatFinder: false});
+    }, [areOptionsInitialized, draftComments, isScreenTransitionEnd, options]);
 
     const chatOptions = useMemo(() => {
         return filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, {

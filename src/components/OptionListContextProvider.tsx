@@ -213,7 +213,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                     if (!report) {
                         return;
                     }
-                    const newReportOption = createOptionFromReport(report, personalDetails, reportAttributes?.reports);
+                    const newReportOption = createOptionFromReport(report, personalDetails, reportAttributes?.reports, policyTags?.[report.policyID ?? '']);
                     const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
                     newReportOptions.push({
                         newReportOption,
