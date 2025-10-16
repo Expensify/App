@@ -19,7 +19,7 @@ do
         --compile "$SCRIPT_DIR/../Mobile-Expensify/iOS/icons" \
         --output-format human-readable-text --notices --warnings --errors \
         --output-partial-info-plist "$SCRIPT_DIR/../Mobile-Expensify/iOS/Info.plist" \
-        --app-icon AppIcon${suffix} \
+        --app-icon "AppIcon${suffix}" \
         --include-all-app-icons \
         --minimum-deployment-target 26.0 \
         --enable-on-demand-resources NO \
