@@ -5227,6 +5227,8 @@ const staticStyles = (theme: ThemeColors) =>
             marginRight: 'auto',
         },
 
+        avatarSelected: {borderColor: theme.success, borderWidth: 2},
+
         expenseWidgetRadius: {
             borderRadius: variables.componentBorderRadiusNormal,
         },

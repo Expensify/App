@@ -244,7 +244,7 @@ function ProfileAvatar() {
             >
                 <View style={[styles.ph5, styles.flexColumn, styles.flex1, styles.gap2, styles.alignItemsCenter]}>
                     <AvatarSelector
-                        firstName={currentUserPersonalDetails?.firstName ?? currentUserPersonalDetails?.displayName ?? ''}
+                        name={currentUserPersonalDetails?.firstName ?? currentUserPersonalDetails?.displayName ?? ''}
                         selectedID={selected}
                         onSelect={(id) => {
                             setImageData({...EMPTY_FILE});
