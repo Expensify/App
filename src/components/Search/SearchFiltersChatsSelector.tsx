@@ -11,7 +11,8 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {createOptionFromReport, filterAndOrderOptions, formatSectionsFromSearchTerm, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
 import type {Option, Section} from '@libs/OptionsListUtils';
-import {isArchivedReport, type OptionData} from '@libs/ReportUtils';
+import {isArchivedReport} from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import Navigation from '@navigation/Navigation';
 import {searchInServer} from '@userActions/Report';
