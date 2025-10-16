@@ -1913,7 +1913,7 @@ type ReportsSplitNavigatorParamList = {
         referrer?: string;
         backTo?: Routes;
     };
-    [SCREENS.ATTACHMENTS]: AttachmentModalScreensParamList[typeof SCREENS.ATTACHMENTS];
+    [SCREENS.REPORT_ATTACHMENTS]: AttachmentModalScreensParamList[typeof SCREENS.REPORT_ATTACHMENTS];
 };
 
 type SettingsSplitNavigatorParamList = {
@@ -2172,7 +2172,7 @@ type PublicScreensParamList = SharedScreensParamList & {
 };
 
 type AttachmentModalScreensParamList = {
-    [SCREENS.ATTACHMENTS]: AttachmentModalContainerModalProps & {
+    [SCREENS.REPORT_ATTACHMENTS]: AttachmentModalContainerModalProps & {
         source?: AvatarSource;
         reportID?: string;
         accountID?: number;
@@ -2429,7 +2429,7 @@ type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace ReactNavigation {
-        // eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-empty-interface
+        // eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-empty-object-type
         interface RootParamList extends RootNavigatorParamList {}
     }
 }
