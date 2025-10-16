@@ -1,6 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {changeTransactionsReport} from '@libs/actions/Transaction';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import {changeTransactionsReport, saveWaypoint} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {rand64} from '@libs/NumberUtils';
@@ -10,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
+import type {RecentWaypoint, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
@@ -382,6 +383,91 @@ describe('Transaction', () => {
             };
             const result = getAllNonDeletedTransactions({[transaction.transactionID]: transaction}, [IOUAction], true);
             expect(result.at(0)).toEqual(transaction);
+        });
+    });
+
+    describe('saveWaypoint', () => {
+        it('should save a waypoint with lat/lng and not YOUR_LOCATION_TEXT', async () => {
+            const transactionID = 'txn1';
+            const index = '0';
+            const waypoint: RecentWaypoint = {
+                address: '123 Main St',
+                lat: 10,
+                lng: 20,
+            };
+            const recentWaypointsList: RecentWaypoint[] = [];
+            saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList});
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const updatedRecentWaypoints = await OnyxUtils.get(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+
+            expect(transaction?.comment?.waypoints?.[`waypoint${index}`]).toEqual(waypoint);
+            expect(updatedRecentWaypoints?.[0]?.address).toBe('123 Main St');
+        });
+
+        it('should not save waypoint if missing lat/lng', async () => {
+            const transactionID = 'txn2';
+            const index = '1';
+            const waypoint: RecentWaypoint = {
+                address: 'No LatLng',
+            };
+            const recentWaypointsList: RecentWaypoint[] = [];
+            saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList});
+            await waitForBatchedUpdates();
+
+            const updatedRecentWaypoints = await OnyxUtils.get(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+            expect(updatedRecentWaypoints?.length ?? 0).toBe(0);
+        });
+
+        it('should not save waypoint if address is YOUR_LOCATION_TEXT', async () => {
+            const transactionID = 'txn3';
+            const index = '2';
+            const waypoint: RecentWaypoint = {
+                address: CONST.YOUR_LOCATION_TEXT,
+                lat: 1,
+                lng: 2,
+            };
+            const recentWaypointsList: RecentWaypoint[] = [];
+            saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList});
+            await waitForBatchedUpdates();
+
+            const updatedRecentWaypoints = await OnyxUtils.get(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+            expect(updatedRecentWaypoints?.length ?? 0).toBe(0);
+        });
+
+        it('should reset amount for draft transactions', async () => {
+            const transactionID = 'txn4';
+            const index = '0';
+            const waypoint: RecentWaypoint = {
+                address: 'Draft Waypoint',
+                lat: 5,
+                lng: 6,
+            };
+            const recentWaypointsList: RecentWaypoint[] = [];
+            saveWaypoint({transactionID, index, waypoint, isDraft: true, recentWaypointsList});
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.amount).toBe(CONST.IOU.DEFAULT_AMOUNT);
+        });
+
+        it('should clear errorFields and routes', async () => {
+            const transactionID = 'txn5';
+            const index = '0';
+            const waypoint: RecentWaypoint = {
+                address: 'Clear Error',
+                lat: 7,
+                lng: 8,
+            };
+            const recentWaypointsList: RecentWaypoint[] = [];
+            saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList});
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.errorFields?.route ?? null).toBeNull();
+            expect(transaction?.routes?.route0?.distance ?? null).toBeNull();
+            expect(transaction?.routes?.route0?.geometry?.coordinates ?? null).toBeNull();
         });
     });
 });
