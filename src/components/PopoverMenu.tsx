@@ -219,7 +219,7 @@ function BasePopoverMenu({
     headerStyles,
     innerContainerStyle,
     scrollContainerStyle,
-    shouldUseScrollView = false,
+    shouldUseScrollView = true,
     shouldEnableMaxHeight = true,
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
@@ -410,7 +410,6 @@ function BasePopoverMenu({
 
     const menuContainerStyle = useMemo(() => {
         const DEFAULT_MAX_HEIGHT_OFFSET = 250;
-        const SAFE_BOTTOM_SPACE = variables.h40;
 
         if (isSmallScreenWidth) {
             return shouldEnableMaxHeight ? [{maxHeight: windowHeight - DEFAULT_MAX_HEIGHT_OFFSET}] : [];
@@ -420,9 +419,7 @@ function BasePopoverMenu({
         const top = anchorPosition?.vertical;
 
         if (isTopAnchored && typeof top === 'number' && shouldUseScrollView) {
-            const computed = windowHeight - Math.round(top) - SAFE_BOTTOM_SPACE;
-            const maxHeight = Math.min(CONST.POPOVER_MENU_MAX_HEIGHT, computed);
-            return [styles.createMenuContainer, shouldEnableMaxHeight ? {maxHeight} : {}];
+            return [styles.createMenuContainer, shouldEnableMaxHeight ? {maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT} : {}];
         }
 
         return styles.createMenuContainer;
