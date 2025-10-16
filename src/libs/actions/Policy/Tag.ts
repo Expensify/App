@@ -555,7 +555,6 @@ function clearPolicyTagListErrors(policyID: string, tagListIndex: number) {
 
 function renamePolicyTag(policyData: PolicyData, policyTag: {oldName: string; newName: string}, tagListIndex: number) {
     const policyID = policyData.policy.id;
-    const policy = policyData.policy;
     const tagList = PolicyUtils.getTagLists(policyData.tags)?.at(tagListIndex);
     if (!tagList) {
         return;
