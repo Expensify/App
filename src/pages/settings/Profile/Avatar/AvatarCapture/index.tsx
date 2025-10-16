@@ -5,7 +5,7 @@ import type {AvatarCaptureHandle, AvatarCaptureProps} from './types';
 /**
  * Web implementation of AvatarCapture using HTML Canvas
  */
-function AvatarCapture({children, name}: AvatarCaptureProps, ref: React.ForwardedRef<AvatarCaptureHandle>) {
+function AvatarCapture({children, fileName: name}: AvatarCaptureProps, ref: React.ForwardedRef<AvatarCaptureHandle>) {
     const containerRef = useRef<RNView>(null);
 
     useImperativeHandle(
@@ -37,7 +37,7 @@ function AvatarCapture({children, name}: AvatarCaptureProps, ref: React.Forwarde
                     const bbox = coloredAvatarElement.getBoundingClientRect();
                     const width = bbox.width;
                     const height = bbox.height;
-                    const backgroundColor = window.getComputedStyle(coloredAvatarElement).backgroundColor;
+                    const backgroundColor = globalThis.getComputedStyle(coloredAvatarElement).backgroundColor;
 
                     // Create canvas with 2x resolution for better quality
                     const canvas = document.createElement('canvas');
@@ -101,5 +101,7 @@ function AvatarCapture({children, name}: AvatarCaptureProps, ref: React.Forwarde
 }
 
 const AvatarCaptureWithRef = forwardRef(AvatarCapture);
+
+AvatarCapture.displayName = 'AvatarCapture';
 
 export default AvatarCaptureWithRef;
