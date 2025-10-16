@@ -996,10 +996,11 @@ function clearAvatarErrors(reportID: string) {
  * @param isFromDeepLink Whether or not this report is being opened from a deep link
  * @param participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  * @param avatar The avatar file to upload for a new group chat
- * @param transaction The transaction object for legacy transactions that don't have a transaction thread or money request preview yet
  * @param isNewThread Whether this is a new thread being created
+ * @param transaction The transaction object for legacy transactions that don't have a transaction thread or money request preview yet
  * @param transactionViolations The violations for the transaction, if any
  */
+// eslint-disable-next-line @typescript-eslint/max-params
 function openReport(
     reportID: string | undefined,
     reportActionID?: string,
@@ -1009,8 +1010,8 @@ function openReport(
     isFromDeepLink = false,
     participantAccountIDList: number[] = [],
     avatar?: File | CustomRNImageManipulatorResult,
-    transaction?: Transaction,
     isNewThread = false,
+    transaction?: Transaction,
     transactionViolations?: TransactionViolations,
 ) {
     if (!reportID) {
@@ -1415,8 +1416,8 @@ function createTransactionThreadReport(
         false,
         [],
         undefined,
-        transaction,
         false,
+        transaction,
         transactionViolations,
     );
     return optimisticTransactionThread;
@@ -1533,7 +1534,7 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
 
         if (!childReportID) {
             const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
-            openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, undefined, true);
+            openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
         } else {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
         }
