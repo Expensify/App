@@ -6754,7 +6754,8 @@ ${amount} dla ${merchant} - ${date}`,
             return '';
         },
         brokenConnection530Error: 'Paragon oczekuje z powodu zerwanego połączenia z bankiem',
-        adminBrokenConnectionError: 'Paragon oczekuje z powodu przerwanego połączenia z bankiem. Proszę rozwiązać w',
+        adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Paragon oczekuje z powodu zerwanego połączenia bankowego. Rozwiąż problem w <a href="${workspaceCompanyCardRoute}">Kartach firmowych</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Paragon oczekuje z powodu zerwanego połączenia z bankiem. Proszę poprosić administratora przestrzeni roboczej o rozwiązanie problemu.',
         markAsCashToIgnore: 'Oznacz jako gotówkę, aby zignorować i zażądać płatności.',
         smartscanFailed: ({canEdit = true}) => `Skanowanie paragonu nie powiodło się.${canEdit ? 'Wprowadź dane ręcznie.' : ''}`,
