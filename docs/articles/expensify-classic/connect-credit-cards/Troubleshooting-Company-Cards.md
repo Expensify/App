@@ -207,5 +207,5 @@ You should remove the old card, but only after all unsubmitted expenses have bee
 
 ## Who should manage company cards?
 Only Domain Admins should connect and manage company cards in Expensify.  
-Cardholders should not import their own cards under their personal settings — this can lead to duplicate expenses, broken connections, or mismatched reporting.
+Cardholders should not import their own cards under their personal settings -- this can lead to duplicate expenses, broken connections, or mismatched reporting.
 
