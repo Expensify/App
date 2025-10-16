@@ -392,7 +392,8 @@ function getFilterDisplayTitle(
                 const dateString = isSearchDatePreset(fieldValue as string)
                     ? translate(`search.filters.date.presets.${fieldValue as SearchDatePreset}`)
                     : translate('search.filters.date.on', {date: fieldValue as string});
-                values.push(`${fieldName} ${dateString}`);
+
+                values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
             }
 
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX)) {
@@ -406,7 +407,8 @@ function getFilterDisplayTitle(
             }
 
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {
-                values.push(`${fieldName} is ${fieldValue as string}`);
+                const valueString = translate('search.filters.reportField', {name: fieldName, value: fieldValue as string});
+                values.push(valueString);
             }
         });
 
