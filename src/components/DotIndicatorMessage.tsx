@@ -1,5 +1,5 @@
 /* eslint-disable react/no-array-index-key */
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {ReactElement} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -64,15 +64,18 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     const isErrorMessage = type === 'error';
 
+    useEffect(() => {
+        const receiptError = uniqueMessages.find(isReceiptError);
+        if (!receiptError) {
+            return;
+        }
+
+        HTMLClickableActions.retry = () => handleRetryPress(receiptError, dismissError, setShouldShowErrorModal);
+        HTMLClickableActions.download = () => fileDownload(receiptError.source, receiptError.filename).finally(() => dismissError());
+    }, [uniqueMessages, dismissError]);
+
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
-            HTMLClickableActions.retry = function () {
-                handleRetryPress(message, dismissError, setShouldShowErrorModal);
-            };
-            HTMLClickableActions.download = function () {
-                fileDownload(message.source, message.filename).finally(() => dismissError());
-            };
-
             return (
                 <>
                     <RenderHTML html={translate('iou.error.receiptFailureMessage')} />
