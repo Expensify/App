@@ -43,7 +43,7 @@ import variables from '@styles/variables';
 import {confirmReadyToOpenApp} from '@userActions/App';
 import {openExternalLink} from '@userActions/Link';
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
-import {isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
+import {hasStashedSession, isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {openInitialSettingsPage} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -239,7 +239,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      * @returns object with translationKey, style and items for the general section
      */
     const generalMenuItemsData: Menu = useMemo(() => {
-        const signOutTranslationKey = isSupportAuthToken() ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
+        const signOutTranslationKey = isSupportAuthToken() && hasStashedSession() ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
         return {
             sectionStyle: {
                 ...styles.pt4,
