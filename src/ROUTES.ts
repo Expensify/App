@@ -1439,12 +1439,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/advanced/autosync',
-        getRoute: (policyID?: string) => {
+        getRoute: (policyID?: string, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC route');
             }
 
-            return `workspaces/${policyID}/accounting/quickbooks-desktop/advanced/autosync` as const;
+            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-desktop/advanced/autosync` as const, backTo);
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD: {
@@ -3175,11 +3175,11 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC: {
         route: 'workspaces/:policyID/accounting/sage-intacct/advanced/autosync',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC route');
             }
-            return `workspaces/${policyID}/accounting/sage-intacct/advanced/autosync` as const;
+            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/advanced/autosync` as const, backTo);
         },
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD: {

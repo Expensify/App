@@ -16,8 +16,13 @@ import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 
-function QuickbooksDesktopAutoSyncPage({policy}: WithPolicyConnectionsProps) {
+type QuickbooksDesktopAutoSyncPageRouteParams = {
+    backTo?: Route;
+};
+
+function QuickbooksDesktopAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = policy?.id;
@@ -26,10 +31,11 @@ function QuickbooksDesktopAutoSyncPage({policy}: WithPolicyConnectionsProps) {
     const accountingMethod = config?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
     const pendingAction =
         settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC], pendingFields) ?? settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.ACCOUNTING_METHOD], pendingFields);
+    const {backTo} = route.params as QuickbooksDesktopAutoSyncPageRouteParams;
 
     const goBack = useCallback(() => {
-        Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.getRoute(policyID));
-    }, [policyID]);
+        Navigation.goBack(backTo ?? ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.getRoute(policyID));
+    }, [policyID, backTo]);
 
     return (
         <ConnectionLayout
