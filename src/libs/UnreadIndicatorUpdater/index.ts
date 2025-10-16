@@ -76,6 +76,11 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
 
 const memoizedGetUnreadReportsForUnreadIndicator = memoize(getUnreadReportsForUnreadIndicator, {maxArgs: 3});
 
+/**
+ * Debouncing is used here to limit the frequency of updates to the unread indicator.
+ * This ensures that rapid changes in the underlying data (e.g., multiple Onyx updates in quick succession)
+ * do not trigger excessive computations or updates, improving performance and avoiding unnecessary overhead.
+ */
 const triggerUnreadUpdate = debounce(() => {
     const currentReportID = navigationRef?.isReady?.() ? Navigation.getTopmostReportId() : undefined;
     const draftComment = allDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${currentReportID}`];
