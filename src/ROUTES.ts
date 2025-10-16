@@ -477,7 +477,7 @@ const ROUTES = {
             return getUrlWithBackToParam(`${baseRoute}${queryString}` as const, backTo);
         },
     },
-    ATTACHMENTS: {
+    REPORT_ATTACHMENTS: {
         route: 'attachment',
         getRoute: (params?: ReportAttachmentsRouteParams) => getAttachmentModalScreenRoute('attachment', params),
     },
@@ -3312,11 +3312,11 @@ const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
 export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT};
 export default ROUTES;
 
-type ReportAttachmentsRoute = typeof ROUTES.ATTACHMENTS.route;
+type ReportAttachmentsRoute = typeof ROUTES.REPORT_ATTACHMENTS.route;
 type ReportAddAttachmentRoute = `r/${string}/attachment/add`;
 type AttachmentRoutes = ReportAttachmentsRoute | ReportAddAttachmentRoute;
 
-type ReportAttachmentsRouteParams = RootNavigatorParamList[typeof SCREENS.ATTACHMENTS];
+type ReportAttachmentsRouteParams = RootNavigatorParamList[typeof SCREENS.REPORT_ATTACHMENTS];
 type ReportAddAttachmentRouteParams = RootNavigatorParamList[typeof SCREENS.REPORT_ADD_ATTACHMENT];
 
 function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: ReportAttachmentsRouteParams | ReportAddAttachmentRouteParams) {
