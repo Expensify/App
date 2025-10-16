@@ -12,11 +12,11 @@ const NAV_ITEM_HEIGHT = 52;
 
 /** ---- Relative layout tokens ---- */
 const LHN = {
-    icon: {x: 18, y: 18, w: 16, h: 16, r: 4},
+    icon: {xVal: 18, yVal: 8, w: 16, h: 16, r: 4},
     // label is positioned relative to icon
     label: {dx: 30, dy: 4, w: 104, h: 8},
     // header bar in the small loader above each group
-    header: {x: 8, y: 10, w: 36, h: 4},
+    header: {xVal: 8, yVal: 0, w: 36, h: 4},
 };
 
 function SuggestedSearchSkeleton() {
@@ -26,14 +26,14 @@ function SuggestedSearchSkeleton() {
 
     const renderNavigationItem = () => {
         const {icon, label} = LHN;
-        const labelX = icon.x + label.dx;
-        const labelY = icon.y + label.dy;
+        const labelX = icon.xVal + label.dx;
+        const labelY = icon.yVal + label.dy;
 
         return (
             <>
                 <Rect
-                    x={icon.x}
-                    y={icon.y}
+                    x={icon.xVal}
+                    y={icon.yVal}
                     rx={icon.r}
                     ry={icon.r}
                     width={icon.w}
@@ -61,8 +61,8 @@ function SuggestedSearchSkeleton() {
                 style={[styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             >
                 <Rect
-                    x={LHN.header.x}
-                    y={LHN.header.y}
+                    x={LHN.header.xVal}
+                    y={LHN.header.yVal}
                     width={LHN.header.w}
                     height={LHN.header.h}
                 />
