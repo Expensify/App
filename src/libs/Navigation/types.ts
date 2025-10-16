@@ -1860,9 +1860,6 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: NavigatorScreenParams<ReportChangeApproverParamList>;
     [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION]: NavigatorScreenParams<MultiFactorAuthenticationParamList>;
-    // [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION]: NavigatorScreenParams<MultiFactorAuthenticationApproveTransactionParamList>;
-    // [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION_NOTIFICATION_PAGE]: NavigatorScreenParams<MultiFactorAuthenticationNotificaitonParamList>;
-    // [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION_FALLBACK]: undefined;
 };
 
 type TravelNavigatorParamList = {
@@ -2406,19 +2403,6 @@ type TestToolsModalModalNavigatorParamList = {
         backTo?: Routes;
     };
 };
-
-// type MultiFactorAuthenticationApproveTransactionParamList = {
-//     [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION]: {
-//         transactionID: string;
-//         reportID: string;
-//     };
-// };
-
-// type MultiFactorAuthenticationNotificaitonParamList = {
-//     [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION_NOTIFICATION_PAGE]: {
-//         notificationType: notificationType;
-//     };
-// };
 
 type MultiFactorAuthenticationParamList = {
     [SCREENS.MULTIFACTORAUTHENTICATION.APPROVE_TRANSACTION]: {

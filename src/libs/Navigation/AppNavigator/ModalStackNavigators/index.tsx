@@ -907,18 +907,6 @@ const ScheduleCallModalStackNavigator = createModalStackNavigator<ScheduleCallPa
     [SCREENS.SCHEDULE_CALL.CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/ScheduleCall/ScheduleCallConfirmationPage').default,
 });
 
-// const MultiFactorAuthenticationFallbackStackNavigator = createModalStackNavigator<MultiFactorAuthenticationTransactionParamList>({
-//     [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION_FALLBACK]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthenticationFallbackPage').default,
-// });
-
-// const MultiFactorAuthenticationApproveTransactionStackNavigator = createModalStackNavigator<MultiFactorAuthenticationApproveTransactionParamList>({
-//     [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION]: () => require<ReactComponentModule>('../../../../pages/ApproveTransactionPage').default,
-// });
-
-// const MultiFactorAuthenticationNotificationStackNavigator = createModalStackNavigator<MultiFactorAuthenticationNotificaitonParamList>({
-//     [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION_NOTIFICATION_PAGE]: () => require<ReactComponentModule>('../../../../pages/BiometricsNotificationsPage').default,
-// });
-
 const MultiFactorAuthenticationStackNavigator = createModalStackNavigator<MultiFactorAuthenticationParamList>({
     [SCREENS.MULTIFACTORAUTHENTICATION.FALLBACK]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthenticationFallbackPage').default,
     [SCREENS.MULTIFACTORAUTHENTICATION.APPROVE_TRANSACTION]: () => require<ReactComponentModule>('../../../../pages/MultiFactorAuthenticationApproveTransactionPage').default,
@@ -970,8 +958,5 @@ export {
     AddUnreportedExpenseModalStackNavigator,
     ScheduleCallModalStackNavigator,
     MergeTransactionStackNavigator,
-    // MultiFactorAuthenticationFallbackStackNavigator,
-    // MultiFactorAuthenticationApproveTransactionStackNavigator,
-    // MultiFactorAuthenticationNotificationStackNavigator,
     MultiFactorAuthenticationStackNavigator,
 };
