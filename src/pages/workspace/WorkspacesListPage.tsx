@@ -676,7 +676,7 @@ function WorkspacesListPage() {
                     ref={listRef}
                     sections={sections}
                     shouldShowListEmptyContent
-                    sectionTitleStyles={[styles.ph5, styles.pb3, styles.mb0]}
+                    sectionTitleStyles={[styles.ph5, styles.pb5, styles.mt0, styles.mb0, styles.pt3]}
                     onSelectRow={() => {}}
                     ListItem={RadioListItem}
                 />
