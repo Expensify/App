@@ -50,31 +50,31 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                         <>
                             <Circle
                                 cx={24}
-                                cy={26}
+                                cy={22}
                                 r={6}
                             />
 
                             <Rect
                                 x={40}
-                                y={24}
+                                y={20}
                                 width={40}
                                 height={4}
                             />
                             <Circle
                                 cx={96}
-                                cy={26}
+                                cy={22}
                                 r={6}
                             />
 
                             <Rect
                                 x={112}
-                                y={24}
+                                y={20}
                                 width={40}
                                 height={4}
                             />
                             <Rect
                                 x={windowWidth - 122}
-                                y={12}
+                                y={8}
                                 width={72}
                                 height={20}
                                 rx={10}
@@ -83,7 +83,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
 
                             <Rect
                                 x={16}
-                                y={48}
+                                y={44}
                                 width={36}
                                 height={40}
                                 rx={4}
@@ -91,25 +91,25 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                             />
                             <Rect
                                 x={64}
-                                y={57}
+                                y={53}
                                 width={124}
                                 height={8}
                             />
                             <Rect
                                 x={64}
-                                y={71}
+                                y={67}
                                 width={60}
                                 height={8}
                             />
                             <Rect
                                 x={windowWidth - 130}
-                                y={57}
+                                y={53}
                                 width={80}
                                 height={8}
                             />
                             <Rect
                                 x={windowWidth - 110}
-                                y={71}
+                                y={67}
                                 width={60}
                                 height={8}
                             />
