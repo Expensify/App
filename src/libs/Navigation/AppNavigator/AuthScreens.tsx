@@ -1,5 +1,4 @@
 import type {RouteProp} from '@react-navigation/native';
-import {useNavigation} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {memo, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
@@ -85,9 +84,6 @@ const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../..
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
-const loadProfileAvatar = () => require<ReactComponentModule>('../../../pages/settings/Profile/Avatar/ProfileAvatar').default;
-const loadWorkspaceAvatar = () => require<ReactComponentModule>('../../../pages/workspace/WorkspaceAvatar').default;
-const loadReportAvatar = () => require<ReactComponentModule>('../../../pages/ReportAvatar').default;
 const loadReceiptView = () => require<ReactComponentModule>('../../../pages/TransactionReceiptPage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
@@ -158,11 +154,8 @@ function AuthScreens() {
     });
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const [userReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, {canBeMissing: true});
-    const {isOnboardingCompleted} = useOnboardingFlowRouter();
-    const [isOnboardingLoading] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: isOnboardingLoadingSelector});
+    const {isOnboardingCompleted, shouldShowRequire2FAPage, isOnboardingLoading} = useOnboardingFlowRouter();
     const prevIsOnboardingLoading = usePrevious(isOnboardingLoading);
-    const [shouldShowRequire2FAPage, setShouldShowRequire2FAPage] = useState(!!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth);
-    const navigation = useNavigation();
     const {initialURL, isAuthenticatedAtStartup, setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
 
@@ -226,20 +219,6 @@ function AuthScreens() {
     }, [theme]);
 
     useEffect(() => {
-        if (!account?.needsTwoFactorAuthSetup || !!account.requiresTwoFactorAuth || shouldShowRequire2FAPage) {
-            return;
-        }
-        setShouldShowRequire2FAPage(true);
-    }, [account?.needsTwoFactorAuthSetup, account?.requiresTwoFactorAuth, shouldShowRequire2FAPage]);
-
-    useEffect(() => {
-        if (!shouldShowRequire2FAPage) {
-            return;
-        }
-        Navigation.navigate(ROUTES.REQUIRE_TWO_FACTOR_AUTH);
-    }, [shouldShowRequire2FAPage]);
-
-    useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
@@ -267,7 +246,7 @@ function AuthScreens() {
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
         if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
             if (delegatorEmail) {
-                connect({email: delegatorEmail, delegatedAccess: account?.delegatedAccess, credentials, isFromOldDot: true})
+                connect({email: delegatorEmail, delegatedAccess: account?.delegatedAccess, credentials, session, isFromOldDot: true})
                     ?.then((success) => {
                         App.setAppLoading(!!success);
                     })
@@ -571,7 +550,7 @@ function AuthScreens() {
                     getComponent={loadSubmitExpensePage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.ATTACHMENTS}
+                    name={SCREENS.REPORT_ATTACHMENTS}
                     options={attachmentModalScreenOptions}
                     getComponent={loadAttachmentModalScreen}
                     listeners={modalScreenListeners}
@@ -583,31 +562,21 @@ function AuthScreens() {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
+                    name={SCREENS.REPORT_AVATAR}
+                    options={attachmentModalScreenOptions}
+                    getComponent={loadAttachmentModalScreen}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
                     name={SCREENS.PROFILE_AVATAR}
-                    options={{
-                        headerShown: false,
-                        presentation: Presentation.TRANSPARENT_MODAL,
-                        animation: Animations.NONE,
-                    }}
-                    getComponent={loadProfileAvatar}
+                    options={attachmentModalScreenOptions}
+                    getComponent={loadAttachmentModalScreen}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name={SCREENS.WORKSPACE_AVATAR}
-                    options={{
-                        headerShown: false,
-                        presentation: Presentation.TRANSPARENT_MODAL,
-                    }}
-                    getComponent={loadWorkspaceAvatar}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name={SCREENS.REPORT_AVATAR}
-                    options={{
-                        headerShown: false,
-                        presentation: Presentation.TRANSPARENT_MODAL,
-                    }}
-                    getComponent={loadReportAvatar}
+                    options={attachmentModalScreenOptions}
+                    getComponent={loadAttachmentModalScreen}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
@@ -619,20 +588,7 @@ function AuthScreens() {
                     name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                     options={rootNavigatorScreenOptions.rightModalNavigator}
                     component={RightModalNavigator}
-                    listeners={{
-                        ...modalScreenListenersWithCancelSearch,
-                        beforeRemove: () => {
-                            modalScreenListenersWithCancelSearch.beforeRemove();
-
-                            // When a 2FA RHP page is closed, if the 2FA require page is visible and the user has now enabled the 2FA, then remove the 2FA require page from the navigator.
-                            const routeParams = navigation.getState()?.routes?.at(-1)?.params;
-                            const screen = routeParams && 'screen' in routeParams ? routeParams.screen : '';
-                            if (!shouldShowRequire2FAPage || !account?.requiresTwoFactorAuth || screen !== SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH) {
-                                return;
-                            }
-                            setShouldShowRequire2FAPage(false);
-                        },
-                    }}
+                    listeners={modalScreenListenersWithCancelSearch}
                 />
                 <RootStack.Screen
                     name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
