@@ -8,7 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
-import {createNewReport} from '@libs/actions/Report';
+import {createNewReportForExpense} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
@@ -28,6 +28,9 @@ import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotF
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
     value: string;
+
+    /** parent reportID of the report */
+    parentReportID?: string;
 };
 
 type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_REPORT> & WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_REPORT>;
@@ -53,7 +56,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     const session = useSession();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
@@ -76,8 +79,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 selected: true,
                 accountID: 0,
                 isPolicyExpenseChat: true,
-                reportID: reportOrDraftReportFromValue?.chatReportID,
-                policyID: reportOrDraftReportFromValue?.policyID,
+                reportID: reportOrDraftReportFromValue?.chatReportID ?? item.parentReportID,
+                policyID: reportOrDraftReportFromValue?.policyID ?? policyForMovingExpensesID,
             },
         ];
 
@@ -187,8 +190,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
             return;
         }
-        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
-        handleRegularReportSelection({value: createdReportID});
+        const {optimisticReportID, parentReportID} = createNewReportForExpense(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses);
+        selectReport({value: optimisticReportID, parentReportID});
     };
 
     return (
