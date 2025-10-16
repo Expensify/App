@@ -1206,8 +1206,9 @@ describe('DebugUtils', () => {
                         accountID: 12345,
                     },
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                        amount: 0,
-                        modifiedAmount: 0,
+                        amount: 100,
+                        created: '',
+                        modifiedCreated: '',
                     },
                 });
                 const {reportAction} =
@@ -1269,8 +1270,9 @@ describe('DebugUtils', () => {
                         };
                         await Onyx.multiSet({
                             [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                                amount: 0,
-                                modifiedAmount: 0,
+                                amount: 100,
+                                created: '',
+                                modifiedCreated: '',
                             },
                             [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_IOU_REPORT,
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_REPORT_ACTIONS,
@@ -1329,8 +1331,9 @@ describe('DebugUtils', () => {
                         };
                         await Onyx.multiSet({
                             [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                                amount: 0,
-                                modifiedAmount: 0,
+                                amount: 100,
+                                created: '',
+                                modifiedCreated: '',
                             },
                             [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_IOU_REPORT,
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_REPORT_ACTIONS,
@@ -1388,8 +1391,9 @@ describe('DebugUtils', () => {
                     };
                     await Onyx.multiSet({
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                            amount: 0,
-                            modifiedAmount: 0,
+                            amount: 100,
+                            created: '',
+                            modifiedCreated: '',
                         },
                         [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_CHAT_REPORT,
                         [`${ONYXKEYS.COLLECTION.REPORT}2` as const]: MOCK_IOU_REPORT,
@@ -1453,8 +1457,9 @@ describe('DebugUtils', () => {
                     };
                     await Onyx.multiSet({
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                            amount: 0,
-                            modifiedAmount: 0,
+                            amount: 100,
+                            created: '',
+                            modifiedCreated: '',
                         },
                         [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_CHAT_REPORT,
                         [`${ONYXKEYS.COLLECTION.REPORT}2` as const]: MOCK_IOU_REPORT,
@@ -1512,8 +1517,9 @@ describe('DebugUtils', () => {
                     };
                     await Onyx.multiSet({
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                            amount: 0,
-                            modifiedAmount: 0,
+                            amount: 100,
+                            created: '',
+                            modifiedCreated: '',
                         },
                         [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_IOU_REPORT,
                         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_REPORT_ACTIONS,
