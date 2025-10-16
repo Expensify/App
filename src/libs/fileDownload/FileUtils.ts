@@ -549,6 +549,11 @@ const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
 
 const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean, isValidatingReceipt?: boolean) => {
     const maxFileSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
+
+    if (isValidatingReceipt && !isValidReceiptExtension(file)) {
+        return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
+    }
+
     if (!Str.isImage(file.name ?? '') && !hasHeicOrHeifExtension(file) && (file?.size ?? 0) > maxFileSize) {
         return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }
@@ -557,9 +562,6 @@ const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean,
         return CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL;
     }
 
-    if (isValidatingReceipt && !isValidReceiptExtension(file)) {
-        return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
-    }
     return '';
 };
 
@@ -699,6 +701,47 @@ const canvasFallback = (blob: Blob, fileName: string): Promise<File> => {
     });
 };
 
+function getFileWithUri(file: File) {
+    const newFile = file;
+    newFile.uri = URL.createObjectURL(newFile);
+    return newFile as FileObject;
+}
+
+function getFilesFromClipboardEvent(event: DragEvent) {
+    const files = event.dataTransfer?.files;
+    if (!files || files?.length === 0) {
+        return [];
+    }
+
+    return Array.from(files).map((file) => getFileWithUri(file));
+}
+
+function cleanFileObject(fileObject: FileObject): FileObject {
+    if ('getAsFile' in fileObject && typeof fileObject.getAsFile === 'function') {
+        return fileObject.getAsFile() as FileObject;
+    }
+
+    return fileObject;
+}
+
+function cleanFileObjectName(fileObject: FileObject): FileObject {
+    if (fileObject instanceof File) {
+        const cleanName = cleanFileName(fileObject.name);
+        if (fileObject.name !== cleanName) {
+            const updatedFile = new File([fileObject], cleanName, {type: fileObject.type});
+            const inputSource = URL.createObjectURL(updatedFile);
+            updatedFile.uri = inputSource;
+            return updatedFile;
+        }
+        if (!fileObject.uri) {
+            const inputSource = URL.createObjectURL(fileObject);
+            // eslint-disable-next-line no-param-reassign
+            fileObject.uri = inputSource;
+        }
+    }
+    return fileObject;
+}
+
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -728,4 +771,7 @@ export {
     hasHeicOrHeifExtension,
     getConfirmModalPrompt,
     canvasFallback,
+    getFilesFromClipboardEvent,
+    cleanFileObject,
+    cleanFileObjectName,
 };

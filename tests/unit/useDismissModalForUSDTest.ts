@@ -1,4 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import useDismissModalForUSD from '@hooks/useDismissModalForUSD';
 import CONST from '@src/CONST';
 
@@ -7,8 +7,11 @@ describe('useDismissModalForUSD', () => {
         const {rerender, result} = renderHook(({workspaceCurrency = CONST.CURRENCY.EUR}: {workspaceCurrency?: string | undefined}) => useDismissModalForUSD(workspaceCurrency), {
             initialProps: {},
         });
-        // Open the currency modal
-        result.current[1](true);
+
+        act(() => {
+            // Open the currency modal
+            result.current[1](true);
+        });
 
         // When currency is updated to USD
         rerender({workspaceCurrency: CONST.CURRENCY.USD});
