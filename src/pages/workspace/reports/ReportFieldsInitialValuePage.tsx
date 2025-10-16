@@ -87,7 +87,6 @@ function ReportFieldsInitialValuePage({
     }
 
     const isTextFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.TEXT;
-    const isFormulaFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA;
     const isListFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.LIST;
 
     return (
@@ -112,7 +111,7 @@ function ReportFieldsInitialValuePage({
                     </View>
                 )}
 
-                {(isTextFieldType || isFormulaFieldType) && (
+                {isTextFieldType && (
                     <FormProvider
                         addBottomSafeAreaPadding
                         formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
