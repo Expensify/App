@@ -41,7 +41,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
         return (
             <View style={[styles.flex1, containerStyle]}>
                 <ItemListSkeletonView
-                    itemViewHeight={CONST.SEARCH_SKELETON_VIEW_ITEM_HEIGHT}
+                    itemViewHeight={CONST.SEARCH_SKELETON_VIEW_ITEM_HEIGHT_SMALL}
                     itemViewStyle={[styles.highlightBG, styles.mb2, styles.br3, styles.ml5]}
                     gradientOpacityEnabled={gradientOpacityEnabled}
                     shouldAnimate={shouldAnimate}
@@ -51,7 +51,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                             <Circle
                                 cx={24}
                                 cy={26}
-                                r={8}
+                                r={6}
                             />
 
                             <Rect
@@ -63,7 +63,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                             <Circle
                                 cx={96}
                                 cy={26}
-                                r={8}
+                                r={6}
                             />
 
                             <Rect
@@ -73,17 +73,17 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                                 height={4}
                             />
                             <Rect
-                                x={windowWidth - 130}
+                                x={windowWidth - 122}
                                 y={12}
-                                width={80}
-                                height={28}
-                                rx={14}
+                                width={72}
+                                height={20}
+                                rx={10}
                                 ry={14}
                             />
 
                             <Rect
                                 x={16}
-                                y={56}
+                                y={48}
                                 width={36}
                                 height={40}
                                 rx={4}
@@ -91,25 +91,25 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                             />
                             <Rect
                                 x={64}
-                                y={65}
+                                y={57}
                                 width={124}
                                 height={8}
                             />
                             <Rect
                                 x={64}
-                                y={79}
+                                y={71}
                                 width={60}
                                 height={8}
                             />
                             <Rect
                                 x={windowWidth - 130}
-                                y={65}
+                                y={57}
                                 width={80}
                                 height={8}
                             />
                             <Rect
                                 x={windowWidth - 110}
-                                y={79}
+                                y={71}
                                 width={60}
                                 height={8}
                             />
