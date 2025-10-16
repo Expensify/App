@@ -159,7 +159,7 @@ function getOnyxTargetTransactionData(
     const targetTransactionDetails = getTransactionDetails(targetTransaction);
     const filteredTransactionChanges = Object.fromEntries(
         Object.entries(mergeTransaction).filter(([key, mergeValue]) => {
-            if (!(MERGE_FIELDS as readonly string[]).includes(key)) {
+            if (key !== 'taxCode' && key !== 'taxAmount' && !(MERGE_FIELDS as readonly string[]).includes(key)) {
                 return false;
             }
 
