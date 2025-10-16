@@ -3,10 +3,10 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
-import type {PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
+import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
-import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
+import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import * as API from '@libs/API';
 import {waitForWrites} from '@libs/API';
 import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
@@ -19,11 +19,18 @@ import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
-import type {KYCFlowEvent} from '@libs/PaymentUtils';
 import {getPersonalPolicy, getSubmitToAccountID, getValidConnectedIntegration} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
-import {buildOptimisticExportIntegrationAction, getReportTransactions, hasHeldExpenses, isExpenseReport, isInvoiceReport, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
+import {
+    buildOptimisticExportIntegrationAction,
+    buildOptimisticIOUReportAction,
+    getReportTransactions,
+    hasHeldExpenses,
+    isExpenseReport,
+    isInvoiceReport,
+    isIOUReport as isIOUReportUtil,
+} from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -33,12 +40,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, ReportActions, Transaction} from '@src/types/onyx';
+import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
+import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
 type OnyxSearchResponse = {
@@ -47,6 +55,13 @@ type OnyxSearchResponse = {
         offset: number;
         hasMoreResults: boolean;
     };
+};
+
+type TransactionPreviewData = {
+    hasParentReport: boolean;
+    hasParentReportAction: boolean;
+    hasTransaction: boolean;
+    hasTransactionThreadReport: boolean;
 };
 
 function handleActionButtonPress(
@@ -180,7 +195,12 @@ function getPayActionCallback(
     goToItem();
 }
 
-function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON, offset?: number): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]; failureData: OnyxUpdate[]} {
+function getOnyxLoadingData(
+    hash: number,
+    queryJSON?: SearchQueryJSON,
+    offset?: number,
+    isOffline?: boolean,
+): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]; failureData: OnyxUpdate[]} {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -218,7 +238,7 @@ function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON, offset?: 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
-                data: [],
+                ...(isOffline ? {} : {data: []}),
                 search: {
                     status: queryJSON?.status,
                     type: queryJSON?.type,
@@ -320,14 +340,16 @@ function search({
     offset,
     shouldCalculateTotals = false,
     prevReportsLength,
+    isOffline = false,
 }: {
     queryJSON: SearchQueryJSON;
     searchKey: SearchKey | undefined;
     offset?: number;
     shouldCalculateTotals?: boolean;
     prevReportsLength?: number;
+    isOffline?: boolean;
 }) {
-    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset);
+    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
     const query = {
         ...queryJSONWithoutFlatFilters,
@@ -748,8 +770,9 @@ function shouldShowBulkOptionForRemainingTransactions(selectedTransactions: Sele
 /**
  * Checks if the current selected reports/transactions are eligible for bulk pay.
  */
-function getPayOption(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, lastPaymentMethods: OnyxEntry<LastPaymentMethod>, selectedReportIDs?: string[]) {
+function getPayOption(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, lastPaymentMethods: OnyxEntry<LastPaymentMethod>, selectedReportIDs: string[]) {
     const transactionKeys = Object.keys(selectedTransactions ?? {});
+    const hasInvoiceReport = selectedReports.some((report) => isInvoiceReport(report?.reportID));
     const firstTransaction = selectedTransactions?.[transactionKeys.at(0) ?? ''];
     const firstReport = selectedReports.at(0);
     const hasLastPaymentMethod =
@@ -776,7 +799,8 @@ function getPayOption(selectedReports: SelectedReports[], selectedTransactions: 
               );
 
     return {
-        shouldEnableBulkPayOption: shouldShowBulkPayOption,
+        // We will handle invoice in a separate flow, so we won't show bulk pay option if invoice is selected
+        shouldEnableBulkPayOption: shouldShowBulkPayOption && !hasInvoiceReport,
         isFirstTimePayment: !hasLastPaymentMethod,
     };
 }
@@ -796,7 +820,7 @@ function isValidBulkPayOption(item: PopoverMenuItem) {
  */
 function handleBulkPayItemSelected(
     item: PopoverMenuItem,
-    triggerKYCFlow: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, paymentMethod?: PaymentMethod, policy?: Policy) => void,
+    triggerKYCFlow: (params: ContinueActionParams) => void,
     isAccountLocked: boolean,
     showLockedAccountModal: () => void,
     policy: OnyxEntry<Policy>,
@@ -805,7 +829,9 @@ function handleBulkPayItemSelected(
     isUserValidated: boolean | undefined,
     confirmPayment?: (paymentType: PaymentMethodType | undefined) => void,
 ) {
-    if (!isValidBulkPayOption(item)) {
+    const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);
+    // Policy id is also a last payment method so we shouldn't early return here for that case.
+    if (!isValidBulkPayOption(item) && !selectedPolicy) {
         return;
     }
     if (isAccountLocked) {
@@ -818,14 +844,17 @@ function handleBulkPayItemSelected(
         return;
     }
 
-    const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);
-
     if (!!selectedPolicy || shouldSelectPaymentMethod) {
         if (!isUserValidated) {
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
             return;
         }
-        triggerKYCFlow(undefined, paymentType, item.key as PaymentMethod, selectedPolicy);
+        triggerKYCFlow({
+            event: undefined,
+            iouPaymentType: paymentType,
+            paymentMethod: item.key as PaymentMethod,
+            policy: selectedPolicy,
+        });
 
         if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
@@ -833,6 +862,77 @@ function handleBulkPayItemSelected(
         return;
     }
     confirmPayment?.(paymentType as PaymentMethodType);
+}
+
+/**
+ * Return true if selected reports/transactions have the same USD currency.
+ */
+function isCurrencySupportWalletBulkPay(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions) {
+    return selectedReports?.length > 0
+        ? Object.values(selectedReports).every((report) => report?.currency === CONST.CURRENCY.USD)
+        : Object.values(selectedTransactions).every((transaction) => transaction.currency === CONST.CURRENCY.USD);
+}
+
+/**
+ * Optimistically sets the data necessary to show the transaction thread report right away if user opens it from the Search tab.
+ *
+ * When we open a transaction thread from the Search tab we already have all necessary information to show its preview without waiting for OpenReport API call to be finished.
+ * So we generate necessary data optimistically: parent report, parent report action, transaction, and transaction thread report.
+ * This way we provide users instant responsiveness when clicking search results.
+ *
+ * Note: we don't create anything new, we just optimistically generate the data that we know will be returned by API.
+ */
+function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemType, transactionPreviewData: TransactionPreviewData) {
+    const {moneyRequestReportActionID, reportID, report, amount, currency, transactionID, created, transactionThreadReportID, policyID} = item;
+    const {hasParentReport, hasParentReportAction, hasTransaction, hasTransactionThreadReport} = transactionPreviewData;
+    const onyxUpdates: OnyxUpdate[] = [];
+
+    // Set optimistic parent report
+    if (!hasParentReport) {
+        onyxUpdates.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: report,
+        });
+    }
+
+    // Set optimistic parent report action
+    if (!hasParentReportAction && moneyRequestReportActionID) {
+        const optimisticIOUAction = buildOptimisticIOUReportAction({
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            amount,
+            currency,
+            comment: '',
+            participants: [],
+            transactionID,
+            iouReportID: reportID,
+            created,
+            reportActionID: moneyRequestReportActionID,
+            linkedExpenseReportAction: {childReportID: transactionThreadReportID} as ReportAction,
+        });
+        optimisticIOUAction.pendingAction = undefined;
+        onyxUpdates.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[optimisticIOUAction.reportActionID]: optimisticIOUAction},
+        });
+    }
+
+    // Set optimistic transaction
+    if (!hasTransaction) {
+        onyxUpdates.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: item,
+        });
+    }
+
+    // Set optimistic transaction thread report
+    if (!hasTransactionThreadReport) {
+        setOptimisticTransactionThread(transactionThreadReportID, reportID, moneyRequestReportActionID, policyID);
+    }
+
+    Onyx.update(onyxUpdates);
 }
 
 export {
@@ -860,5 +960,9 @@ export {
     getPayOption,
     isValidBulkPayOption,
     handleBulkPayItemSelected,
+    isCurrencySupportWalletBulkPay,
     getExportTemplates,
+    getReportType,
+    setOptimisticDataForTransactionThreadPreview,
 };
+export type {TransactionPreviewData};

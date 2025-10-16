@@ -222,7 +222,6 @@ function AttachmentPicker({
     /**
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
      */
-    // eslint-disable-next-line @lwc/lwc/no-async-await
     const showDocumentPicker = useCallback(async (): Promise<LocalCopy[]> => {
         const pickedFiles = await pick({
             type: [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles],

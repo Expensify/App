@@ -32,7 +32,8 @@ type SearchSelectedNarrowProps = {
 function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, currentSelectedReportID, confirmPayment, latestBankItems}: SearchSelectedNarrowProps) {
     const styles = useThemeStyles();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const {translate} = useLocalize();
+    const [selectedIouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`, {canBeMissing: true});
+    const {translate, localeCompare} = useLocalize();
     const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
@@ -40,7 +41,7 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
     // Stores an option to execute after modal closes when using deferred execution
     const selectedOptionRef = useRef<DropdownOption<SearchHeaderOptionValue> | null>(null);
     const {accountID} = useCurrentUserPersonalDetails();
-    const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, accountID.toString()).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
 
     const handleOnMenuItemPress = (option: DropdownOption<SearchHeaderOptionValue>) => {
         if (option?.shouldCloseModalOnSelect) {
@@ -53,6 +54,7 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
     return (
         <KYCWall
             chatReportID={currentSelectedReportID}
+            iouReport={selectedIouReport}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
             addBankAccountRoute={isCurrentSelectedExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(currentSelectedPolicyID, undefined, Navigation.getActiveRoute()) : undefined}
             onSuccessfulKYC={(paymentType) => confirmPayment?.(paymentType)}

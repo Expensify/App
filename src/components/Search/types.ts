@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type {PaymentMethod} from '@components/KYCWall/types';
-import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -43,6 +43,12 @@ type SelectedTransactionInfo = {
 
     /** The currency that the converted amount is in */
     convertedCurrency: string;
+
+    /** The transaction currency */
+    currency: string;
+
+    /** Whether it is the only expense of the parent expense report */
+    isFromOneTransactionReport?: boolean;
 };
 
 /** Model of selected transactions */
@@ -55,6 +61,7 @@ type SelectedReports = {
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
     allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
     total: number;
+    currency?: string;
 };
 
 /** Model of payment data used by Search bulk actions */
@@ -62,6 +69,18 @@ type PaymentData = {
     reportID: string;
     amount: number;
     paymentType: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    payAsBusiness?: boolean;
+    bankAccountID?: number;
+    fundID?: number;
+    policyID?: string;
+    adminsChatReportID?: number;
+    adminsCreatedReportActionID?: number;
+    expenseChatReportID?: number;
+    expenseCreatedReportActionID?: number;
+    customUnitRateID?: string;
+    customUnitID?: string;
+    ownerEmail?: string;
+    policyName?: string;
 };
 
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
