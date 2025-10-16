@@ -18,7 +18,7 @@ type DateFilterBaseProps = {
     title: string;
     dateKey: SearchDateFilterKeys;
     back: () => void;
-    onSubmit: (values: Record<string, string | undefined>) => void;
+    onSubmit: (values: Record<string, string | null>) => void;
 };
 
 function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
@@ -87,10 +87,12 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
 
         const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
 
+        console.log('dateValues', dateValues);
+
         onSubmit({
-            [dateOnKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON],
-            [dateBeforeKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
-            [dateAfterKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
+            [dateOnKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
+            [dateBeforeKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,
+            [dateAfterKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? null,
         });
     }, [selectedDateModifier, dateOnKey, dateBeforeKey, dateAfterKey, onSubmit]);
 

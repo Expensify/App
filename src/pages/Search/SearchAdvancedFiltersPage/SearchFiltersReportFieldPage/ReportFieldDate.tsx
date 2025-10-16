@@ -12,7 +12,7 @@ type ReportFieldDateProps = {
 function ReportFieldDate({field, close}: ReportFieldDateProps) {
     const formKey = `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${field.name.toLowerCase().replaceAll(' ', '-')}` as const;
 
-    const updateFilter = (values: Record<string, string | undefined>) => {
+    const updateFilter = (values: Record<string, string | null>) => {
         updateAdvancedFilters(values);
         close();
     };
