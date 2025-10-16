@@ -43,11 +43,6 @@ type ErrorData = {
     phraseParam: Record<string, unknown>;
 };
 
-type OpenPickerParams = {
-    onPicked: (image: FileObject[]) => void;
-};
-type OpenPicker = (args: OpenPickerParams) => void;
-
 function ProfileAvatar() {
     const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseParam: {}});
     const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
