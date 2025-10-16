@@ -361,6 +361,8 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
         Log.info('No stashed session found, clearing the session');
     }
 
+    const isPerformingSupportalLogout = isSupportal && shouldRestoreStashedSession && !shouldStashSession;
+
     // Wait for signOut (if called), then redirect and update Onyx.
     return signOutPromise
         .then((response) => {
@@ -378,7 +380,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                     true,
                     true,
                 );
-            } else if (shouldRestoreStashedSession && !shouldStashSession && hasStashedSession()) {
+            } else if (isPerformingSupportalLogout && hasStashedSession()) {
                 // We have confirmed here that the supportal agent was logged in, so we can restore the stashed session
                 // and then redirect to the oldDot supportal page to restore the stashed session
                 // Clear the Onyx DB of stale data that might be present from a previous session
@@ -391,7 +393,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                         });
                     });
                 });
-            } else if (shouldRestoreStashedSession && !shouldStashSession && !hasStashedSession()) {
+            } else if (isPerformingSupportalLogout && !hasStashedSession()) {
                 // If the supportal agent was not logged in, we call `redirectToSignIn` to clear the Onyx DB
                 // and then redirect to supportal and restore the stashed session
                 redirectToSignIn().then(() => {
