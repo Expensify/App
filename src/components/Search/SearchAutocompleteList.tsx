@@ -181,6 +181,7 @@ function SearchAutocompleteList({
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const taxRates = getAllTaxRates();
 
     const {options, areOptionsInitialized} = useOptionsList();
@@ -199,9 +200,10 @@ function SearchAutocompleteList({
             includeUserToInvite: true,
             includeRecentReports: true,
             includeCurrentUser: true,
+            countryCode,
             shouldShowGBR: false,
         });
-    }, [areOptionsInitialized, options, draftComments, betas, autocompleteQueryValue]);
+    }, [areOptionsInitialized, options, draftComments, betas, autocompleteQueryValue, countryCode]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
@@ -405,6 +407,7 @@ function SearchAutocompleteList({
                     includeUserToInvite: false,
                     includeRecentReports: false,
                     includeCurrentUser: true,
+                    countryCode,
                     shouldShowGBR: true,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.includes(participant.text.toLowerCase()));
 
@@ -427,6 +430,7 @@ function SearchAutocompleteList({
                     includeUserToInvite: false,
                     includeRecentReports: true,
                     includeCurrentUser: false,
+                    countryCode,
                     shouldShowGBR: true,
                 }).recentReports;
 
@@ -587,6 +591,7 @@ function SearchAutocompleteList({
         options,
         draftComments,
         betas,
+        countryCode,
         currentUserLogin,
         typeAutocompleteList,
         groupByAutocompleteList,

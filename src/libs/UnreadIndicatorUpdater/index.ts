@@ -11,13 +11,6 @@ import type {Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx'
 import updateUnread from './updateUnread';
 
 let allReports: OnyxCollection<Report> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReports = value;
-    },
-});
 
 let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {};
 Onyx.connect({
@@ -29,7 +22,8 @@ Onyx.connect({
 });
 
 let allReportActions: OnyxCollection<ReportActions> = {};
-Onyx.connect({
+// This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -83,6 +77,11 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
 
 const memoizedGetUnreadReportsForUnreadIndicator = memoize(getUnreadReportsForUnreadIndicator, {maxArgs: 3});
 
+/**
+ * Debouncing is used here to limit the frequency of updates to the unread indicator.
+ * This ensures that rapid changes in the underlying data (e.g., multiple Onyx updates in quick succession)
+ * do not trigger excessive computations or updates, improving performance and avoiding unnecessary overhead.
+ */
 const triggerUnreadUpdate = debounce(() => {
     const currentReportID = navigationRef?.isReady?.() ? Navigation.getTopmostReportId() : undefined;
     const draftComment = allDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${currentReportID}`];
@@ -92,8 +91,18 @@ const triggerUnreadUpdate = debounce(() => {
     updateUnread(unreadReports.length);
 }, CONST.TIMING.UNREAD_UPDATE_DEBOUNCE_TIME);
 
+// This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value;
+        triggerUnreadUpdate();
+    },
+});
+
 navigationRef?.addListener?.('state', () => {
     triggerUnreadUpdate();
 });
 
-export {triggerUnreadUpdate, getUnreadReportsForUnreadIndicator};
+export default {getUnreadReportsForUnreadIndicator};

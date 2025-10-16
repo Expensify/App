@@ -84,6 +84,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 action,
             },
+            countryCode,
         );
 
         const orderedOptions = orderOptions(optionList);
@@ -92,7 +93,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             ...optionList,
             ...orderedOptions,
         };
-    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, draftComments, options.personalDetails, options.reports]);
+    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, draftComments, options.personalDetails, options.reports, countryCode]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
