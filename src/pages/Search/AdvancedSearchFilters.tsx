@@ -409,7 +409,9 @@ function getFilterDisplayTitle(
                 values.push(`${fieldName} ${dateString}`);
             }
 
-            values.push(`${fieldName} is ${fieldValue as string}`);
+            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {
+                values.push(`${fieldName} is ${fieldValue as string}`);
+            }
         });
 
         return values.length ? values.join(', ') : undefined;
