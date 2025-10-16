@@ -1074,42 +1074,18 @@ function deleteWorkspaceCategories(
 
 function enablePolicyCategories(policyData: PolicyData, enabled: boolean, shouldGoBack = true) {
     const policyID = policyData.policy.id;
-
-    const onyxUpdatesToDisableCategories: OnyxUpdate[] = [];
-    if (!enabled) {
-        onyxUpdatesToDisableCategories.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: Object.fromEntries(
-                    Object.entries(policyData.categories).map(([categoryName]) => [
-                        categoryName,
-                        {
-                            enabled: false,
-                        },
-                    ]),
-                ),
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    requiresCategory: false,
-                },
-            },
-        );
-    }
+    const policyUpdate: Partial<Policy> = {
+        areCategoriesEnabled: enabled,
+        pendingFields: {
+            areCategoriesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        },
+    };
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    areCategoriesEnabled: enabled,
-                    pendingFields: {
-                        areCategoriesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    },
-                },
+                value: policyUpdate,
             },
         ],
         successData: [
@@ -1137,23 +1113,25 @@ function enablePolicyCategories(policyData: PolicyData, enabled: boolean, should
         ],
     };
 
-    const policyUpdate: Partial<Policy> = {
-        areCategoriesEnabled: enabled,
-        requiresCategory: enabled,
-        pendingFields: {
-            areCategoriesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-        },
-    };
+    let policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = {};
 
-    const policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = Object.fromEntries(
-        Object.entries(policyData.categories).map(([categoryName]) => [categoryName, {name: categoryName, enabled}]),
-    );
+    if (!enabled) {
+        policyCategoriesUpdate = Object.fromEntries(
+            Object.entries(policyData.categories).map(([categoryName]) => [
+                categoryName,
+                {
+                    enabled: false,
+                },
+            ]),
+        );
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+            value: policyCategoriesUpdate,
+        });
+    }
 
     pushTransactionViolationsOnyxData(onyxData, policyData, policyUpdate, policyCategoriesUpdate);
-
-    if (onyxUpdatesToDisableCategories.length > 0) {
-        onyxData.optimisticData?.push(...onyxUpdatesToDisableCategories);
-    }
 
     const parameters: EnablePolicyCategoriesParams = {policyID, enabled};
 
