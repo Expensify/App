@@ -16,10 +16,11 @@ import variables from '@styles/variables';
 import Image from '@src/components/Image';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+import {ReceiptSource} from '@src/types/onyx/Transaction';
 
 type ReceiptPreviewProps = {
     /** Path to the image to be opened in the preview */
-    source: string;
+    source: ReceiptSource;
 
     /** Whether the preview should be shown (e.g. if we are hovered over certain ReceiptCell) */
     hovered: boolean;
@@ -113,7 +114,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                     )}
 
                     <Image
-                        source={{uri: source}}
+                        source={typeof source === 'string' ? {uri: source} : source}
                         style={[
                             styles.w100,
                             {aspectRatio: imageAspectRatio ?? 1},

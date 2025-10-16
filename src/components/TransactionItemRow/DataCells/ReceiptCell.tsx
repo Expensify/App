@@ -15,6 +15,7 @@ import {hasReceiptSource} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import type {Transaction} from '@src/types/onyx';
+import {ReceiptSource} from '@src/types/onyx/Transaction';
 
 function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Transaction; isSelected: boolean; style?: ViewStyle}) {
     const theme = useTheme();
@@ -29,9 +30,9 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
     if (source && typeof source === 'string') {
         const filename = getFileName(source);
         const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
-        source = tryResolveUrlFromApiRoot(receiptURIs.thumbnail ?? receiptURIs.image ?? '');
+        source = tryResolveUrlFromApiRoot(receiptURIs.thumbnail ?? receiptURIs.image ?? '') as ReceiptSource;
         const previewImageURI = Str.isImage(filename) ? receiptURIs.image : receiptURIs.thumbnail;
-        previewSource = tryResolveUrlFromApiRoot(previewImageURI ?? '');
+        previewSource = tryResolveUrlFromApiRoot(previewImageURI ?? '') as ReceiptSource;
     }
 
     return (
@@ -47,7 +48,7 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
             onMouseLeave={bind.onMouseLeave}
         >
             <ReceiptImage
-                source={source.toString()}
+                source={source}
                 isEReceipt={isEReceipt}
                 transactionID={transactionItem.transactionID}
                 shouldUseThumbnailImage
@@ -63,7 +64,7 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
                 shouldUseInitialObjectPosition
             />
             <ReceiptPreview
-                source={previewSource.toString()}
+                source={previewSource}
                 hovered={hovered}
                 isEReceipt={!!isEReceipt}
                 transactionItem={transactionItem}
