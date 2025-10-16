@@ -13,6 +13,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionListWithSections';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
 import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
+import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -22,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {
     addSplitExpenseField,
     clearSplitTransactionDraftErrors,
+    getIOUActionForTransactions,
     getIOURequestPolicyID,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
@@ -87,6 +89,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const isPerDiem = isPerDiemRequest(transaction);
     const isCard = isCardTransaction(transaction);
+
+    const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+    const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
+    const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(iouActions.at(0));
 
     const childTransactions = useMemo(() => getChildTransactions(transactionID), [transactionID]);
     const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
@@ -154,7 +160,18 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        saveSplitTransactions(draftTransaction, currentSearchHash, policyCategories, expenseReportPolicy, policyRecentlyUsedCategories);
+        saveSplitTransactions(
+            originalTransactionID,
+            draftTransaction,
+            currentSearchHash,
+            policyCategories,
+            expenseReportPolicy,
+            policyRecentlyUsedCategories,
+            iouReport,
+            chatReport,
+            iouActions.at(0),
+            isChatIOUReportArchived,
+        );
     }, [
         splitExpenses,
         childTransactions.length,
@@ -173,6 +190,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         translate,
         transactionID,
         transactionDetails?.currency,
+        isChatIOUReportArchived,
+        iouReport,
+        iouActions,
+        chatReport,
+        originalTransactionID,
     ]);
 
     const onSplitExpenseAmountChange = useCallback(
@@ -306,9 +328,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             keyboardAvoidingViewBehavior="height"
             shouldDismissKeyboardBeforeClose={false}
         >
-            <FullPageNotFoundView
-                shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable || (!!childTransactions.length && !isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS))}
-            >
+            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
                 <View
                     ref={viewRef}
                     style={styles.flex1}
@@ -339,7 +359,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                                 return;
                             }
                             Keyboard.dismiss();
-                            // eslint-disable-next-line deprecation/deprecation
+                            // eslint-disable-next-line @typescript-eslint/no-deprecated
                             InteractionManager.runAfterInteractions(() => {
                                 initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
                             });
