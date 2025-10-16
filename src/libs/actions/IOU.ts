@@ -831,7 +831,7 @@ Onyx.connect({
     },
 });
 
-// TODO: remove `allPolicyTags` from this file (https://github.com/Expensify/App/issues/71491)
+// TODO: remove `allPolicyTags` from this file (https://github.com/Expensify/App/issues/72721)
 // `allPolicyTags` was moved here temporarily from `src/libs/actions/Policy/Tag.ts` during the `Deprecate Onyx.connect` refactor.
 // All uses of this variable should be replaced with `useOnyx`.
 let allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists> = {};
@@ -3292,7 +3292,7 @@ function getSendInvoiceInformation(
 
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
-        // TODO: Replace getPolicyTagsData and getPolicyRecentlyUsedTagsData with useOnyx hook (https://github.com/Expensify/App/issues/71491)
+        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData with useOnyx hook (https://github.com/Expensify/App/issues/71491)
         // eslint-disable-next-line deprecation/deprecation
         policyTags: getPolicyTagsData(optimisticInvoiceReport.policyID),
         // eslint-disable-next-line deprecation/deprecation
@@ -3531,7 +3531,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
-        // TODO: Replace getPolicyTagsData and getPolicyRecentlyUsedTagsData with useOnyx hook (https://github.com/Expensify/App/issues/71491)
+        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData with useOnyx hook (https://github.com/Expensify/App/issues/71491)
         // eslint-disable-next-line deprecation/deprecation
         policyTags: getPolicyTagsData(iouReport.policyID),
         // eslint-disable-next-line deprecation/deprecation
@@ -3796,7 +3796,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     optimisticTransaction.hasEReceipt = true;
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
-        // TODO: Replace getPolicyTagsData and getPolicyRecentlyUsedTagsData with useOnyx hook (https://github.com/Expensify/App/issues/71491)
+        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData with useOnyx hook (https://github.com/Expensify/App/issues/71491)
         // eslint-disable-next-line deprecation/deprecation
         policyTags: getPolicyTagsData(iouReport.policyID),
         // eslint-disable-next-line deprecation/deprecation
@@ -4519,7 +4519,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     const hasModifiedTag = 'tag' in transactionChanges;
     if (hasModifiedTag) {
         const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
-            // TODO: Replace getPolicyTagsData and getPolicyRecentlyUsedTagsData with useOnyx hook (https://github.com/Expensify/App/issues/71491)
+            // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData with useOnyx hook (https://github.com/Expensify/App/issues/71491)
             // eslint-disable-next-line deprecation/deprecation
             policyTags: getPolicyTagsData(iouReport?.policyID),
             // eslint-disable-next-line deprecation/deprecation
@@ -6991,7 +6991,7 @@ function createSplitsAndOnyxData({
         // Add tag to optimistic policy recently used tags when a participant is a workspace
         const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat
             ? buildOptimisticPolicyRecentlyUsedTags({
-                  // TODO: Replace getPolicyTagsData and getPolicyRecentlyUsedTagsData with useOnyx hook (https://github.com/Expensify/App/issues/71491)
+                  // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData with useOnyx hook (https://github.com/Expensify/App/issues/71491)
                   // eslint-disable-next-line deprecation/deprecation
                   policyTags: getPolicyTagsData(participant.policyID),
                   // eslint-disable-next-line deprecation/deprecation
@@ -7536,7 +7536,7 @@ function startSplitBill({
         // eslint-disable-next-line deprecation/deprecation
         const optimisticPolicyRecentlyUsedCategories = buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category);
         const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
-            // TODO: Replace getPolicyTagsData and getPolicyRecentlyUsedTagsData with useOnyx hook (https://github.com/Expensify/App/issues/71491)
+            // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData with useOnyx hook (https://github.com/Expensify/App/issues/71491)
             // eslint-disable-next-line deprecation/deprecation
             policyTags: getPolicyTagsData(participant.policyID),
             // eslint-disable-next-line deprecation/deprecation
@@ -11233,7 +11233,7 @@ function detachReceipt(transactionID: string | undefined) {
 
     if (policy && isPaidGroupPolicy(policy) && newTransaction) {
         const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`];
-        // TODO: Replace getPolicyTagsData with useOnyx hook (https://github.com/Expensify/App/issues/71491)
+        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook (https://github.com/Expensify/App/issues/71491)
         // eslint-disable-next-line deprecation/deprecation
         const policyTagList = getPolicyTagsData(policy.id);
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
@@ -11364,7 +11364,7 @@ function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
 
     if (policy && isPaidGroupPolicy(policy) && newTransaction) {
         const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`];
-        // TODO: Replace getPolicyTagsData with useOnyx hook (https://github.com/Expensify/App/issues/71491)
+        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook (https://github.com/Expensify/App/issues/71491)
         // eslint-disable-next-line deprecation/deprecation
         const policyTagList = getPolicyTagsData(policy.id);
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
@@ -13352,7 +13352,7 @@ function saveSplitTransactions(
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
 
-    // TODO: Replace getPolicyTagsData with useOnyx hook (https://github.com/Expensify/App/issues/71491)
+    // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook (https://github.com/Expensify/App/issues/71491)
     // eslint-disable-next-line deprecation/deprecation
     const policyTags = getPolicyTagsData(expenseReport?.policyID);
     const participants = getMoneyRequestParticipantsFromReport(expenseReport);

@@ -152,7 +152,7 @@ Onyx.connect({
     },
 });
 
-// TODO: remove `allPolicyTags` from this file (https://github.com/Expensify/App/issues/66462)
+// TODO: remove `allPolicyTags` from this file (https://github.com/Expensify/App/issues/72719)
 // `allPolicyTags` was moved here temporarily from `src/libs/actions/Policy/Tag.ts` during the `Deprecate Onyx.connect` refactor.
 // All uses of this variable should be replaced with `useOnyx`.
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
@@ -1821,7 +1821,7 @@ function compareDuplicateTransactionFields(
                     keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                 }
             } else if (fieldName === 'tag') {
-                // TODO: Replace getPolicyTagsData with useOnyx hook (https://github.com/Expensify/App/issues/66462)
+                // TODO: Replace getPolicyTagsData with useOnyx hook (https://github.com/Expensify/App/issues/72719)
                 // eslint-disable-next-line deprecation/deprecation
                 const policyTags = report?.policyID ? getPolicyTagsData(report?.policyID) : {};
                 const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
