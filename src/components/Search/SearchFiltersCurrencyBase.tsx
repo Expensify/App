@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -8,9 +9,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {SearchAdvancedFiltersForm} from '@src/types/form';
 import SearchMultipleSelectionPicker from './SearchMultipleSelectionPicker';
 import type {SearchSingleSelectionPickerItem} from './SearchSingleSelectionPicker';
 import SearchSingleSelectionPicker from './SearchSingleSelectionPicker';
@@ -55,7 +58,7 @@ function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: Sear
     }, [currencyList, selectedCurrencyData]);
 
     const handleOnSubmit = (values: string[] | string | undefined) => {
-        updateAdvancedFilters({[filterKey]: values ?? null});
+        updateAdvancedFilters({[filterKey]: values ?? null} as Partial<SearchAdvancedFiltersForm>);
     };
 
     return (
