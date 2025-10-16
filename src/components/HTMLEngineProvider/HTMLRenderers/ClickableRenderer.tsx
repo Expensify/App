@@ -15,7 +15,7 @@ function ClickableRenderer({tnode}: ClickableRendererProps) {
     const id = tnode.attributes.id;
 
     const onPress = () => {
-        const action = ClickableActionsUtils[id as keyof typeof ClickableActionsUtils];
+        const action = ClickableActionsUtils[id];
 
         if (action) {
             action();
