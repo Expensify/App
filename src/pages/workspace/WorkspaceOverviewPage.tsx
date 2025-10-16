@@ -499,6 +499,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
                                         onPress={onPressAddress}
                                         copyValue={readOnly ? formattedAddress : undefined}
+                                        copyable={readOnly && !!formattedAddress}
                                     />
                                 </View>
                             </OfflineWithFeedback>
