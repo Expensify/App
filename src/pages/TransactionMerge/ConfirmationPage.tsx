@@ -52,8 +52,6 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
     // Build the merged transaction data for display
     const mergedTransactionData = useMemo(() => buildMergedTransactionData(targetTransaction, mergeTransaction), [targetTransaction, mergeTransaction]);
-    const mergedTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${mergedTransactionData?.reportID}`];
-    const [mergedTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${mergedTransactionThreadReport?.policyID ?? targetTransactionThreadReport?.policyID}`, {canBeMissing: true});
 
     useEffect(() => {
         setMergeTransactionKey(transactionID, mergedTransactionData);
@@ -114,7 +112,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                     <ShowContextMenuContext.Provider value={contextValue}>
                         <MoneyRequestView
                             allReports={allReports}
-                            expensePolicy={mergedTransactionPolicy}
+                            expensePolicy={policy}
                             report={targetTransactionThreadReport}
                             shouldShowAnimatedBackground={false}
                             readonly
