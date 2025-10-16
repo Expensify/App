@@ -32,18 +32,16 @@ function SuggestedSearchSkeleton() {
         return (
             <>
                 <Rect
-                    x={icon.xVal}
-                    y={icon.yVal}
                     rx={icon.r}
                     ry={icon.r}
                     width={icon.w}
                     height={icon.h}
+                    transform={[{translateX: icon.xVal}, {translateY: icon.yVal}]}
                 />
                 <Rect
-                    x={labelX}
-                    y={labelY}
                     width={label.w}
                     height={label.h}
+                    transform={[{translateX: labelX}, {translateY: labelY}]}
                 />
             </>
         );
@@ -61,10 +59,9 @@ function SuggestedSearchSkeleton() {
                 style={[styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             >
                 <Rect
-                    x={LHN.header.xVal}
-                    y={LHN.header.yVal}
                     width={LHN.header.w}
                     height={LHN.header.h}
+                    transform={[{translateX: LHN.header.xVal}, {translateY: LHN.header.yVal}]}
                 />
             </SkeletonViewContentLoader>
 
