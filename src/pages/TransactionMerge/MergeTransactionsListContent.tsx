@@ -72,11 +72,11 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
                         isSelected: eligibleTransaction.transactionID === mergeTransaction?.sourceTransactionID,
                         errors: eligibleTransaction.errors as Errors | undefined,
                     }))
-                    .sort((a, b) => b.created.localeCompare(a.created)),
+                    .sort((a, b) => localeCompare(b.created, a.created)),
                 shouldShow: true,
             },
         ];
-    }, [eligibleTransactions, mergeTransaction]);
+    }, [eligibleTransactions, mergeTransaction, localeCompare]);
 
     const handleSelectRow = useCallback(
         (item: MergeTransactionListItemType) => {
