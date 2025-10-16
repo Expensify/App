@@ -309,6 +309,7 @@ function PolicyDistanceRatesPage({
         deletePolicyDistanceRates(policyID, customUnit, selectedDistanceRates, transactionIDsAffected, transactionViolations);
         setIsDeleteModalVisible(false);
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedDistanceRates([]);
         });
@@ -344,6 +345,7 @@ function PolicyDistanceRatesPage({
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('workspace.distanceRates.rate')}
                 rightHeaderText={translate('common.enabled')}
+                shouldShowRightCaret
             />
         );
     };
@@ -508,6 +510,7 @@ function PolicyDistanceRatesPage({
                         shouldShowListEmptyContent={false}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         showScrollIndicator={false}
+                        shouldShowRightCaret
                     />
                 )}
                 <ConfirmModal

@@ -83,6 +83,7 @@ import type {
     DemotedFromWorkspaceParams,
     DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
+    DisconnectYourBankAccountParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
@@ -95,6 +96,7 @@ import type {
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -282,6 +284,7 @@ import type {
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
+    WalletAgreementParams,
     WalletProgramParams,
     WelcomeEnterMagicCodeParams,
     WelcomeToRoomParams,
@@ -400,6 +403,7 @@ const translations = {
         download: 'Download',
         downloading: 'Downloading',
         uploading: 'Uploading',
+        // @context as a verb, not a noun
         pin: 'Pin',
         unPin: 'Unpin',
         back: 'Back',
@@ -574,6 +578,7 @@ const translations = {
         tax: 'Tax',
         shared: 'Shared',
         drafts: 'Drafts',
+        // @context as a noun, not a verb
         draft: 'Draft',
         finished: 'Finished',
         upgrade: 'Upgrade',
@@ -602,6 +607,7 @@ const translations = {
         disabled: 'Disabled',
         import: 'Import',
         offlinePrompt: "You can't take this action right now.",
+        // @context meaning "remaining to be paid, done, or dealt with", not "exceptionally good"
         outstanding: 'Outstanding',
         chats: 'Chats',
         tasks: 'Tasks',
@@ -626,6 +632,7 @@ const translations = {
         downloadAsCSV: 'Download as CSV',
         help: 'Help',
         expenseReports: 'Expense Reports',
+        // @context Rate as a noun, not a verb
         rateOutOfPolicy: 'Rate out of policy',
         reimbursable: 'Reimbursable',
         editYourProfile: 'Edit your profile',
@@ -647,8 +654,6 @@ const translations = {
         reschedule: 'Reschedule',
         general: 'General',
         workspacesTabTitle: 'Workspaces',
-        getTheApp: 'Get the app',
-        scanReceiptsOnTheGo: 'Scan receipts from your phone',
         headsUp: 'Heads up!',
         submitTo: 'Submit to',
         forwardTo: 'Forward to',
@@ -657,13 +662,16 @@ const translations = {
         unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
         enableGlobalReimbursements: 'Enable Global Reimbursements',
         purchaseAmount: 'Purchase amount',
+        frequency: 'Frequency',
         link: 'Link',
         pinned: 'Pinned',
         read: 'Read',
+        copyToClipboard: 'Copy to clipboard',
     },
     supportalNoAccess: {
         title: 'Not so fast',
-        description: 'You are not authorized to take this action when support logged in.',
+        descriptionWithCommand: ({command}: {command?: string} = {}) =>
+            `You are not authorized to take this action when support logged in (command: ${command ?? ''}). If you think that Success should be able to take this action, please start a conversation in Slack.`,
     },
     lockedAccount: {
         title: 'Locked Account',
@@ -838,7 +846,7 @@ const translations = {
         expand: 'Expand',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'Copy to clipboard',
+        copyMessage: 'Copy message',
         copied: 'Copied!',
         copyLink: 'Copy link',
         copyURLToClipboard: 'Copy URL to clipboard',
@@ -952,6 +960,7 @@ const translations = {
         buttonMySettings: 'My settings',
         fabNewChat: 'Start chat',
         fabNewChatExplained: 'Start chat (Floating action)',
+        fabScanReceiptExplained: 'Scan receipt (Floating action)',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
         listOfChatMessages: 'List of chat messages',
@@ -1026,12 +1035,16 @@ const translations = {
     receipt: {
         upload: 'Upload receipt',
         uploadMultiple: 'Upload receipts',
-        dragReceiptBeforeEmail: 'Drag a receipt onto this page, forward a receipt to ',
-        dragReceiptsBeforeEmail: 'Drag receipts onto this page, forward receipts to ',
-        dragReceiptAfterEmail: ' or choose a file to upload below.',
-        dragReceiptsAfterEmail: ' or choose files to upload below.',
+        desktopSubtitleSingle: `or drag and drop it here`,
+        desktopSubtitleMultiple: `or drag and drop them here`,
         chooseReceipt: 'Choose a receipt to upload or forward a receipt to ',
         chooseReceipts: 'Choose receipts to upload or forward receipts to ',
+        alternativeMethodsTitle: 'Other ways to add receipts:',
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">Download the app</a> to scan from your phone</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Forward receipts to <a href="mailto:${email}">${email}</a></label-text>`,
+        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: {phoneNumber: string; contactMethodsUrl: string}) =>
+            `<label-text><a href="${contactMethodsUrl}">Add your number</a> to text receipts to ${phoneNumber}</label-text>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Text receipts to ${phoneNumber} (US numbers only)</label-text>`,
         takePhoto: 'Take a photo',
         cameraAccess: 'Camera access is required to take pictures of receipts.',
         deniedCameraAccess: "Camera access still hasn't been granted, please follow ",
@@ -1082,11 +1095,15 @@ const translations = {
         splitExpense: 'Split expense',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} from ${merchant}`,
         addSplit: 'Add split',
+        editSplits: 'Edit splits',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Total amount is ${amount} greater than the original expense.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Total amount is ${amount} less than the original expense.`,
         splitExpenseZeroAmount: 'Please enter a valid amount before continuing.',
+        splitExpenseOneMoreSplit: 'No splits added. Add at least one to save.',
         splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `Edit ${amount} for ${merchant}`,
         removeSplit: 'Remove split',
+        splitExpenseCannotBeEditedModalTitle: "This expense can't be edited",
+        splitExpenseCannotBeEditedModalDescription: 'Approved or paid expenses cannot be edited',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Pay ${name ?? 'someone'}`,
         expense: 'Expense',
         categorize: 'Categorize',
@@ -1110,6 +1127,7 @@ const translations = {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
+        findExpense: 'Find expense',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `deleted an expense (${amount} for ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `moved an expense${reportName ? ` from ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
@@ -1204,15 +1222,15 @@ const translations = {
         settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Paid ${amount} with business account ${last4Digits}` : `Paid with business account`),
         payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
             formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`,
-        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Paid ${amount} with bank account ${last4Digits}` : `Paid with bank account ${last4Digits}`),
+        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `paid ${amount} with bank account ${last4Digits}` : `paid with bank account ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
             `paid ${amount ? `${amount} ` : ''}with bank account ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
         invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Personal account • ${lastFour}`,
         invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Business Account • ${lastFour}`,
         nextStep: 'Next steps',
         finished: 'Finished',
+        flip: 'Flip',
         sendInvoice: ({amount}: RequestAmountParams) => `Send ${amount} invoice`,
-        submitAmount: ({amount}: RequestAmountParams) => `Submit ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `submitted${memo ? `, saying ${memo}` : ''}`,
         automaticallySubmitted: `submitted via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a>`,
@@ -1435,6 +1453,7 @@ const translations = {
                 subtitle: 'Choose an additional approver for this report before we route through the rest of the approval workflow.',
             },
         },
+        chooseWorkspace: 'Choose a workspace',
     },
     transactionMerge: {
         listPage: {
@@ -1456,6 +1475,7 @@ const translations = {
                 const article = StringUtils.startsWithVowel(field) ? 'an' : 'a';
                 return `Please select ${article} ${field}`;
             },
+            pleaseSelectAttendees: 'Please select attendees',
             selectAllDetailsError: 'Select all details before continuing.',
         },
         confirmationPage: {
@@ -1493,6 +1513,10 @@ const translations = {
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
             `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels and smaller than ${maxHeightInPx}x${maxWidthInPx} pixels.`,
         notAllowedExtension: ({allowedExtensions}: NotAllowedExtensionParams) => `Profile picture must be one of the following types: ${allowedExtensions.join(', ')}.`,
+    },
+    avatarPage: {
+        title: 'Edit profile picture',
+        uploadPhoto: 'Upload photo',
     },
     modal: {
         backdropLabel: 'Modal Backdrop',
@@ -1539,8 +1563,8 @@ const translations = {
         contactMethods: 'Contact methods',
         featureRequiresValidate: 'This feature requires you to validate your account.',
         validateAccount: 'Validate your account',
-        helpTextBeforeEmail: 'Add more ways for people to find you, and forward receipts to ',
-        helpTextAfterEmail: ' from multiple email addresses.',
+        helpTextBeforeEmail: 'Add more ways to send receipts. Forward them to ',
+        helpTextAfterEmail: ' or text them to 47777 (US numbers only).',
         pleaseVerify: 'Please verify this contact method',
         getInTouch: "Whenever we need to get in touch with you, we'll use this contact method.",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod}. It should arrive within a minute or two.`,
@@ -1685,6 +1709,7 @@ const translations = {
         general: 'General',
     },
     closeAccountPage: {
+        // @context close as a verb, not an adjective
         closeAccount: 'Close account',
         reasonForLeavingPrompt: 'We’d hate to see you go! Would you kindly tell us why, so we can improve?',
         enterMessageHere: 'Enter message here',
@@ -1785,6 +1810,7 @@ const translations = {
         whatIsTwoFactorAuth: 'Two-factor authentication (2FA) helps keep your account safe. When logging in, you’ll need to enter a code generated by your preferred authenticator app.',
         disableTwoFactorAuth: 'Disable two-factor authentication',
         explainProcessToRemove: 'In order to disable two-factor authentication (2FA), please enter a valid code from your authentication app.',
+        explainProcessToRemoveWithRecovery: 'In order to disable two-factor authentication (2FA), please enter a valid recovery code.',
         disabled: 'Two-factor authentication is now disabled',
         noAuthenticatorApp: 'You’ll no longer require an authenticator app to log into Expensify.',
         stepCodes: 'Recovery codes',
@@ -1976,14 +2002,22 @@ const translations = {
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
         validateCardTitle: "Let's make sure it's you",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to view your card details. It should arrive within a minute or two.`,
+        cardFraudAlert: {
+            confirmButtonText: 'Yes, I do',
+            reportFraudButtonText: "No, it wasn't me",
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) => `cleared the suspicious activity and reactivated card x${cardLastFour}. All set to keep expensing!`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `deactivated the card ending in ${cardLastFour}`,
+            alertMessage: ({cardLastFour, amount, merchant, date}: {cardLastFour: string; amount: string; merchant: string; date: string}) =>
+                `identified suspicious activity on card ending in ${cardLastFour}. Do you recognize this charge?\n\n${amount} for ${merchant} - ${date}`,
+        },
     },
     workflowsPage: {
         workflowTitle: 'Spend',
         workflowDescription: 'Configure a workflow from the moment spend occurs, including approval and payment.',
-        delaySubmissionTitle: 'Delay submissions',
-        delaySubmissionDescription: 'Choose a custom schedule for submitting expenses, or leave this off for realtime updates on spending.',
         submissionFrequency: 'Submission frequency',
+        submissionFrequencyDescription: 'Choose a custom schedule for submitting expenses.',
         submissionFrequencyDateOfMonth: 'Date of month',
+        disableApprovalPromptDescription: 'Disabling approvals will erase all existing approval workflows.',
         addApprovalsTitle: 'Add approvals',
         addApprovalButton: 'Add approval workflow',
         addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists.',
@@ -1996,7 +2030,7 @@ const translations = {
         },
         frequencyDescription: 'Choose how often you’d like expenses to submit automatically, or make it manual',
         frequencies: {
-            instant: 'Instant',
+            instant: 'Instantly',
             weekly: 'Weekly',
             monthly: 'Monthly',
             twiceAMonth: 'Twice a month',
@@ -2034,7 +2068,6 @@ const translations = {
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: "Delayed submission couldn't be changed. Please try again or contact support.",
         autoReportingFrequencyErrorMessage: "Submission frequency couldn't be changed. Please try again or contact support.",
         monthlyOffsetErrorMessage: "Monthly frequency couldn't be changed. Please try again or contact support.",
     },
@@ -2283,8 +2316,8 @@ const translations = {
         },
         interestedFeatures: {
             title: 'What features are you interested in?',
-            featuresAlreadyEnabled: 'Your workspace already has the following enabled:',
-            featureYouMayBeInterestedIn: 'Enable additional features you may be interested in:',
+            featuresAlreadyEnabled: 'Here are our most popular features:',
+            featureYouMayBeInterestedIn: 'Enable additional features:',
         },
         error: {
             requiredFirstName: 'Please input your first name to continue',
@@ -2319,6 +2352,23 @@ const translations = {
             testDriveEmployeeTask: {
                 title: ({testDriveURL}) => `Take a [test drive](${testDriveURL})`,
                 description: ({testDriveURL}) => `Take us for a [test drive](${testDriveURL}) and get your team *3 free months of Expensify!*`,
+            },
+            addExpenseApprovalsTask: {
+                title: 'Add expense approvals',
+                description: ({workspaceMoreFeaturesLink}) =>
+                    `*Add expense approvals* to review your team's spend and keep it under control.\n` +
+                    '\n' +
+                    `Here's how:\n` +
+                    '\n' +
+                    '1. Go to *Workspaces*.\n' +
+                    '2. Select your workspace.\n' +
+                    '3. Click *More features*.\n' +
+                    '4. Enable *Workflows*.\n' +
+                    '5. Navigate to *Workflows* in the workspace editor.\n' +
+                    '6. Enable *Add approvals*.\n' +
+                    `7. You'll be set as the expense approver. You can change this to any admin once you invite your team.\n` +
+                    '\n' +
+                    `[Take me to more features](${workspaceMoreFeaturesLink}).`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Create](${workspaceConfirmationLink}) a workspace`,
@@ -2871,10 +2921,11 @@ const translations = {
     termsStep: {
         headerTitle: 'Terms and fees',
         headerTitleRefactor: 'Fees and terms',
-        haveReadAndAgree: 'I have read and agree to receive ',
-        electronicDisclosures: 'electronic disclosures',
-        agreeToThe: 'I agree to the',
-        walletAgreement: 'Wallet agreement',
+        haveReadAndAgreePlain: 'I have read and agree to receive electronic disclosures.',
+        haveReadAndAgree: `I have read and agree to receive <a href="${CONST.ELECTRONIC_DISCLOSURES_URL}">electronic disclosures</a>.`,
+        agreeToThePlain: 'I agree to the Privacy and Wallet agreement.',
+        agreeToThe: ({walletAgreementUrl}: WalletAgreementParams) =>
+            `I agree to the <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a> and <a href="${walletAgreementUrl}">Wallet agreement</a>.`,
         enablePayments: 'Enable payments',
         monthlyFee: 'Monthly fee',
         inactivity: 'Inactivity',
@@ -2891,17 +2942,14 @@ const translations = {
             cashReload: 'Cash reload',
             inNetwork: 'in-network',
             outOfNetwork: 'out-of-network',
-            atmBalanceInquiry: 'ATM balance inquiry',
-            inOrOutOfNetwork: '(in-network or out-of-network)',
-            customerService: 'Customer service',
-            automatedOrLive: '(automated or live agent)',
-            afterTwelveMonths: '(after 12 months with no transactions)',
+            atmBalanceInquiry: 'ATM balance inquiry (in-network or out-of-network)',
+            customerService: 'Customer service (automated or live agent)',
+            inactivityAfterTwelveMonths: 'Inactivity (after 12 months with no transactions)',
             weChargeOneFee: 'We charge 1 other type of fee. It is:',
             fdicInsurance: 'Your funds are eligible for FDIC insurance.',
-            generalInfo: 'For general information about prepaid accounts, visit',
-            conditionsDetails: 'For details and conditions for all fees and services, visit',
-            conditionsPhone: 'or calling +1 833-400-0904.',
-            instant: '(instant)',
+            generalInfo: `For general information about prepaid accounts, visit <a href="${CONST.CFPB_PREPAID_URL}">${CONST.TERMS.CFPB_PREPAID}</a>.`,
+            conditionsDetails: `For details and conditions for all fees and services, visit <a href="${CONST.FEES_URL}">${CONST.FEES_URL}</a> or calling +1 833-400-0904.`,
+            electronicFundsWithdrawalInstant: 'Electronic funds withdrawal (instant)',
             electronicFundsInstantFeeMin: ({amount}: TermsParams) => `(min ${amount})`,
         },
         longTermsForm: {
@@ -2918,23 +2966,15 @@ const translations = {
             sendingFundsTitle: 'Sending funds to another account holder',
             sendingFundsDetails: "There's no fee to send funds to another account holder using your balance, bank account, or debit card.",
             electronicFundsStandardDetails:
-                "There's no fee to transfer funds from your Expensify Wallet " +
-                'to your bank account using the standard option. This transfer usually completes within 1-3 business' +
-                ' days.',
+                "There's no fee to transfer funds from your Expensify Wallet to your bank account using the standard option. This transfer usually completes within 1-3 business days.",
             electronicFundsInstantDetails: ({percentage, amount}: ElectronicFundsParams) =>
-                "There's a fee to transfer funds from your Expensify Wallet to " +
-                'your linked debit card using the instant transfer option. This transfer usually completes within ' +
-                `several minutes. The fee is ${percentage}% of the transfer amount (with a minimum fee of ${amount}).`,
+                "There's a fee to transfer funds from your Expensify Wallet to your linked debit card using the instant transfer option. This transfer usually completes within several minutes." +
+                ` The fee is ${percentage}% of the transfer amount (with a minimum fee of ${amount}).`,
             fdicInsuranceBancorp: ({amount}: TermsParams) =>
-                'Your funds are eligible for FDIC insurance. Your funds will be held at or ' +
-                `transferred to ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, an FDIC-insured institution. Once there, your funds are insured up ` +
-                `to ${amount} by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails, if specific deposit insurance requirements ` +
-                `are met and your card is registered. See`,
-            fdicInsuranceBancorp2: 'for details.',
-            contactExpensifyPayments: `Contact ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} by calling +1 833-400-0904, by email at`,
-            contactExpensifyPayments2: 'or sign in at',
-            generalInformation: 'For general information about prepaid accounts, visit',
-            generalInformation2: 'If you have a complaint about a prepaid account, call the Consumer Financial Protection Bureau at 1-855-411-2372 or visit',
+                `Your funds are eligible for FDIC insurance. Your funds will be held at or transferred to ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, an FDIC-insured institution.` +
+                ` Once there, your funds are insured up to ${amount} by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails, if specific deposit insurance requirements are met and your card is registered. See ${CONST.TERMS.FDIC_PREPAID} for details.`,
+            contactExpensifyPayments: `Contact ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} by calling +1 833-400-0904, by email at ${CONST.EMAIL.CONCIERGE} or sign in at ${CONST.NEW_EXPENSIFY_URL}.`,
+            generalInformation: `For general information about prepaid accounts, visit ${CONST.TERMS.CFPB_PREPAID}. If you have a complaint about a prepaid account, call the Consumer Financial Protection Bureau at 1-855-411-2372 or visit ${CONST.TERMS.CFPB_COMPLAINT}.`,
             printerFriendlyView: 'View printer-friendly version',
             automated: 'Automated',
             liveAgent: 'Live agent',
@@ -3731,6 +3771,18 @@ const translations = {
                 createEntitiesDescription: "Expensify will automatically create vendors in QuickBooks Desktop if they don't exist already.",
             },
             itemsDescription: 'Choose how to handle QuickBooks Desktop items in Expensify.',
+            accountingMethods: {
+                label: 'When to Export',
+                description: 'Choose when to export the expenses:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
+                },
+            },
         },
         qbo: {
             connectedTo: 'Connected to',
@@ -4638,6 +4690,10 @@ const translations = {
                         automaticImport: 'Automatic transaction import',
                     },
                 },
+                bankConnectionError: 'Bank connection issue',
+                connectWithPlaid: 'connect via Plaid',
+                connectWithExpensifyCard: 'try the Expensify Card.',
+                bankConnectionDescription: `Please try adding your cards again. Otherwise, you can`,
                 disableCardTitle: 'Disable company cards',
                 disableCardPrompt: 'You can’t disable company cards because this feature is in use. Reach out to the Concierge for next steps.',
                 disableCardButton: 'Chat with Concierge',
@@ -5074,8 +5130,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: "There's an error with a connection that's been set up in Expensify Classic. ",
-            goToODToFix: 'Go to Expensify Classic to fix this issue.',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `There's an error with a connection that's been set up in Expensify Classic. [Go to Expensify Classic to fix this issue.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Go to Expensify Classic to manage your settings.',
             setup: 'Connect',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Last synced ${relativeDate}`,
@@ -5406,8 +5462,8 @@ const translations = {
             updateDetails: 'Update details',
             yesDisconnectMyBankAccount: 'Yes, disconnect my bank account',
             yesStartOver: 'Yes, start over',
-            disconnectYour: 'Disconnect your ',
-            bankAccountAnyTransactions: ' bank account. Any outstanding transactions for this account will still complete.',
+            disconnectYourBankAccount: ({bankName}: DisconnectYourBankAccountParams) =>
+                `Disconnect your <strong>${bankName}</strong> bank account. Any outstanding transactions for this account will still complete.`,
             clearProgress: "Starting over will clear the progress you've made so far.",
             areYouSure: 'Are you sure?',
             workspaceCurrency: 'Workspace currency',
@@ -5530,7 +5586,7 @@ const translations = {
             },
             reports: {
                 title: 'Reports',
-                description: 'Create organized expense reports to track your business spending, submit for approvals, and streamline your reimbursement process.',
+                description: 'Reports allow you to group expenses for easier tracking and organization.',
                 onlyAvailableOnPlan: 'Reports are available on the Collect plan, starting at ',
             },
             multiLevelTags: {
@@ -6181,7 +6237,6 @@ const translations = {
         groupBy: 'Group by',
         moneyRequestReport: {
             emptyStateTitle: 'This report has no expenses.',
-            emptyStateSubtitle: 'You can add expenses to this report \n using the button below or the "Add expense" option in the More menu above.',
         },
         noCategory: 'No category',
         noTag: 'No tag',
@@ -6305,8 +6360,8 @@ const translations = {
         noActivityYet: 'No activity yet',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `changed ${fieldName} from ${oldValue} to ${newValue}`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `changed ${fieldName} to ${newValue}`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `changed ${fieldName} to "${newValue}" (previously "${oldValue}")`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `set ${fieldName} to "${newValue}"`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `changed the workspace${fromPolicyName ? ` (previously ${fromPolicyName})` : ''}`;
@@ -7096,6 +7151,7 @@ const translations = {
             isWaitingForAssigneeToCompleteAction: 'Is waiting for assignee to complete action',
             hasChildReportAwaitingAction: 'Has child report awaiting action',
             hasMissingInvoiceBankAccount: 'Has missing invoice bank account',
+            hasUnresolvedCardFraudAlert: 'Has unresolved card fraud alert',
         },
         reasonRBR: {
             hasErrors: 'Has errors in report or report actions data',
@@ -7158,7 +7214,7 @@ const translations = {
         book: {
             title: 'Schedule call',
             description: 'Find a time that works for you.',
-            slots: 'Available times for ',
+            slots: ({date}: {date: string}) => `<muted-text>Available times for <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: 'Confirm call',

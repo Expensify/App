@@ -3,6 +3,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem, SectionListDataType} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
@@ -16,14 +17,21 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createNewReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
+import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
 import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isRHPOnSearchMoneyRequestReportPage from '@navigation/helpers/isRHPOnSearchMoneyRequestReportPage';
+import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
+import {changeTransactionsReport} from '@userActions/Transaction';
+import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceListItem = {
@@ -32,16 +40,27 @@ type WorkspaceListItem = {
     isPolicyAdmin?: boolean;
 } & ListItem;
 
-function NewReportWorkspaceSelectionPage() {
+type NewReportWorkspaceSelectionPageProps = PlatformStackScreenProps<NewReportWorkspaceSelectionNavigatorParamList, typeof SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT>;
+
+function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPageProps) {
+    const {isMovingExpenses, backTo} = route.params ?? {};
     const {isOffline} = useNetwork();
+    const {selectedTransactions, selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const navigateToNewReport = useCallback(
@@ -68,10 +87,50 @@ function NewReportWorkspaceSelectionPage() {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
                 return;
             }
-            const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
+            const optimisticReportID = createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policyID);
+            const selectedTransactionsKeys = Object.keys(selectedTransactions);
+
+            if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
+                const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReportID}`];
+                changeTransactionsReport(
+                    selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs,
+                    optimisticReportID,
+                    isASAPSubmitBetaEnabled,
+                    currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserPersonalDetails?.email ?? '',
+                    policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
+                    reportNextStep,
+                );
+
+                // eslint-disable-next-line rulesdir/no-default-id-values
+                setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, policyID, activePolicyID ?? '');
+
+                if (selectedTransactionIDs.length) {
+                    clearSelectedTransactions(true);
+                }
+                if (selectedTransactionsKeys.length) {
+                    clearSelectedTransactions();
+                }
+                Navigation.dismissModal();
+                Navigation.goBack(backTo ?? ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+                return;
+            }
             navigateToNewReport(optimisticReportID);
         },
-        [currentUserPersonalDetails, navigateToNewReport],
+        [
+            activePolicyID,
+            currentUserPersonalDetails,
+            isASAPSubmitBetaEnabled,
+            hasViolations,
+            selectedTransactions,
+            isMovingExpenses,
+            selectedTransactionIDs,
+            navigateToNewReport,
+            allReportNextSteps,
+            policies,
+            clearSelectedTransactions,
+            backTo,
+        ],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {

@@ -364,6 +364,16 @@ function editPerDiemRateCurrency(policyID: string, rateID: string, customUnit: C
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
 }
 
+function fetchPerDiemRates(policyID: string | undefined) {
+    if (!policyID) {
+        return;
+    }
+    const parameters = {
+        policyID,
+    };
+    API.read(READ_COMMANDS.OPEN_DRAFT_PER_DIEM_EXPENSE, parameters);
+}
+
 export {
     generateCustomUnitID,
     enablePerDiem,
@@ -376,4 +386,5 @@ export {
     editPerDiemRateSubrate,
     editPerDiemRateAmount,
     editPerDiemRateCurrency,
+    fetchPerDiemRates,
 };
