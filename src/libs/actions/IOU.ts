@@ -584,6 +584,7 @@ type CreateSplitsAndOnyxDataParams = {
     currentUserAccountID: number;
     existingSplitChatReportID?: string;
     transactionParams: CreateSplitsTransactionParams;
+    policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
 };
 
 type TrackExpenseTransactionParams = {
@@ -712,6 +713,7 @@ type StartSplitBilActionParams = {
     taxCode: string;
     taxAmount: number;
     shouldPlaySound?: boolean;
+    policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
 };
 
 type ReplaceReceipt = {
@@ -6590,6 +6592,7 @@ function createSplitsAndOnyxData({
         taxAmount = 0,
         attendees,
     },
+    policyRecentlyUsedCategories,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -6952,10 +6955,7 @@ function createSplitsAndOnyxData({
             oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
         }
 
-        // Add category to optimistic policy recently used categories when a participant is a workspace
-        // TODO: Replace buildOptimisticPolicyRecentlyUsedCategories with useOnyx hook (https://github.com/Expensify/App/issues/66557)
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category) : [];
+        const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories) : [];
 
         const optimisticRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
 
@@ -7070,6 +7070,7 @@ type SplitBillActionsParams = {
     taxCode?: string;
     taxAmount?: number;
     isRetry?: boolean;
+    policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
 };
 
 /**
@@ -7094,6 +7095,7 @@ function splitBill({
     splitShares = {},
     taxCode = '',
     taxAmount = 0,
+    policyRecentlyUsedCategories,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -7116,6 +7118,7 @@ function splitBill({
             taxCode,
             taxAmount,
         },
+        policyRecentlyUsedCategories,
     });
 
     const parameters: SplitBillParams = {
@@ -7171,6 +7174,7 @@ function splitBillAndOpenReport({
     taxCode = '',
     taxAmount = 0,
     existingSplitChatReportID,
+    policyRecentlyUsedCategories,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -7193,6 +7197,7 @@ function splitBillAndOpenReport({
             taxCode,
             taxAmount,
         },
+        policyRecentlyUsedCategories,
     });
 
     const parameters: SplitBillParams = {
@@ -7246,6 +7251,7 @@ function startSplitBill({
     taxCode = '',
     taxAmount = 0,
     shouldPlaySound = true,
+    policyRecentlyUsedCategories,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -7501,9 +7507,7 @@ function startSplitBill({
         if (!isPolicyExpenseChat) {
             return;
         }
-        // TODO: Replace buildOptimisticPolicyRecentlyUsedCategories with useOnyx hook (https://github.com/Expensify/App/issues/66557)
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const optimisticPolicyRecentlyUsedCategories = buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category);
+        const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
         const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
             policyTags: getPolicyTagsData(participant.policyID),
             // TODO: Replace getPolicyRecentlyUsedTagsData with useOnyx hook (https://github.com/Expensify/App/issues/71491)
@@ -7512,6 +7516,14 @@ function startSplitBill({
             transactionTags: tag,
         });
         const optimisticRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
+
+        if (optimisticPolicyRecentlyUsedCategories.length > 0) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${participant.policyID}`,
+                value: optimisticPolicyRecentlyUsedCategories,
+            });
+        }
 
         if (optimisticRecentlyUsedCurrencies.length > 0) {
             optimisticData.push({
@@ -7938,6 +7950,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 taxAmount,
                 attendees,
             },
+            policyRecentlyUsedCategories,
         });
         onyxData = splitOnyxData;
 
