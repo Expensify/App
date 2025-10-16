@@ -4,6 +4,7 @@ import type {TextInput} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
+import type {PredefinedPlace} from '@components/AddressSearch/types';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
@@ -39,7 +40,7 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 // Only grab the most recent 20 waypoints because that's all that is shown in the UI. This also puts them into the format of data
 // that the google autocomplete component expects for it's "predefined places" feature.
-function recentWaypointsSelector(waypoints: RecentWaypoint[] = []) {
+function recentWaypointsSelector(waypoints: RecentWaypoint[] = []): PredefinedPlace[] {
     return waypoints
         .slice(0, CONST.RECENT_WAYPOINTS_NUMBER)
         .filter((waypoint) => waypoint.keyForList?.includes(CONST.YOUR_LOCATION_TEXT) !== true)
@@ -124,7 +125,8 @@ function IOURequestStepWaypoint({
         return errors;
     };
 
-    const save = (waypoint: FormOnyxValues<'waypointForm'>) => saveWaypoint(transactionID, pageIndex, waypoint, shouldUseTransactionDraft(action));
+    const save = (waypoint: FormOnyxValues<'waypointForm'>) =>
+        saveWaypoint({transactionID, index: pageIndex, waypoint, isDraft: shouldUseTransactionDraft(action), recentWaypointsList: recentWaypoints as RecentWaypoint[]});
 
     const submit = (values: FormOnyxValues<'waypointForm'>) => {
         const waypointValue = values[`waypoint${pageIndex}`] ?? '';
@@ -166,7 +168,7 @@ function IOURequestStepWaypoint({
             keyForList: `${values.name ?? 'waypoint'}_${Date.now()}`,
         };
 
-        saveWaypoint(transactionID, pageIndex, waypoint, shouldUseTransactionDraft(action));
+        saveWaypoint({transactionID, index: pageIndex, waypoint, isDraft: shouldUseTransactionDraft(action), recentWaypointsList: recentWaypoints as RecentWaypoint[]});
         goBack();
     };
 
