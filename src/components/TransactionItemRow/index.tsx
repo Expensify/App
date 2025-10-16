@@ -40,9 +40,7 @@ import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
 import TransactionItemRowRBR from './TransactionItemRowRBR';
 
-type ColumnComponents = {
-    [key in ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>]: React.ReactElement;
-};
+type ColumnComponents = Record<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>, React.ReactElement>;
 
 type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** The action that can be performed for the transaction */
