@@ -1,3 +1,4 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
 import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
@@ -17,7 +18,7 @@ import type * as ReportUserActions from '@userActions/Report';
 import {createTransactionThreadReport, openReport} from '@userActions/Report';
 // eslint-disable-next-line no-restricted-syntax
 import type * as SearchUtils from '@userActions/Search';
-import {updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
+import {setOptimisticDataForTransactionThreadPreview, updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -26,7 +27,9 @@ import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Connections} from '@src/types/onyx/Policy';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import getOnyxValue from '../../utils/getOnyxValue';
 import {formatPhoneNumber, localeCompare} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -338,7 +341,7 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: undefined,
+            moneyRequestReportActionID: '789',
             errors: undefined,
             filename: undefined,
             isActionLoading: false,
@@ -383,7 +386,7 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: undefined,
+            moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
@@ -429,7 +432,7 @@ const searchResults: OnyxTypes.SearchResults = {
             description: '',
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: undefined,
+            moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
@@ -475,7 +478,7 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: undefined,
+            moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
@@ -715,7 +718,7 @@ const transactionsListItems = [
         description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: undefined,
+        moneyRequestReportActionID: '789',
         errors: undefined,
         filename: undefined,
         isActionLoading: false,
@@ -782,7 +785,7 @@ const transactionsListItems = [
         description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: undefined,
+        moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
@@ -855,7 +858,7 @@ const transactionsListItems = [
         description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: undefined,
+        moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
@@ -923,7 +926,7 @@ const transactionsListItems = [
         description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: undefined,
+        moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
@@ -1030,7 +1033,7 @@ const transactionReportGroupListItems = [
                 taxAmount: undefined,
                 mccGroup: undefined,
                 modifiedMCCGroup: undefined,
-                moneyRequestReportActionID: undefined,
+                moneyRequestReportActionID: '789',
                 errors: undefined,
                 filename: undefined,
                 isActionLoading: false,
@@ -1141,7 +1144,7 @@ const transactionReportGroupListItems = [
                 taxAmount: undefined,
                 mccGroup: undefined,
                 modifiedMCCGroup: undefined,
-                moneyRequestReportActionID: undefined,
+                moneyRequestReportActionID: '789',
                 pendingAction: undefined,
                 errors: undefined,
                 filename: undefined,
@@ -1767,6 +1770,44 @@ describe('SearchUIUtils', () => {
             );
         });
 
+        it('should handle data where transaction keys appear before report keys in getReportSections', () => {
+            const testDataTransactionFirst = {
+                // Transaction keys first
+                [`transactions_${transactionID}`]: searchResults.data[`transactions_${transactionID}`],
+                [`transactions_${transactionID2}`]: searchResults.data[`transactions_${transactionID2}`],
+                // Report keys after transactions
+                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
+                [`report_${reportID2}`]: searchResults.data[`report_${reportID2}`],
+                // Other required data
+                personalDetailsList: searchResults.data.personalDetailsList,
+                [`policy_${policyID}`]: searchResults.data[`policy_${policyID}`],
+            };
+
+            const testDataReportFirst = {
+                // Report keys first
+                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
+                [`report_${reportID2}`]: searchResults.data[`report_${reportID2}`],
+                // Transaction keys after reports
+                [`transactions_${transactionID}`]: searchResults.data[`transactions_${transactionID}`],
+                [`transactions_${transactionID2}`]: searchResults.data[`transactions_${transactionID2}`],
+                // Other required data
+                personalDetailsList: searchResults.data.personalDetailsList,
+                [`policy_${policyID}`]: searchResults.data[`policy_${policyID}`],
+            };
+
+            const resultTransactionFirst = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, testDataTransactionFirst, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS);
+            const resultReportFirst = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, testDataReportFirst, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS);
+
+            expect(resultTransactionFirst).toBeDefined();
+            expect(Array.isArray(resultTransactionFirst)).toBe(true);
+            expect(resultReportFirst).toBeDefined();
+            expect(Array.isArray(resultReportFirst)).toBe(true);
+
+            expect(resultTransactionFirst).toEqual(resultReportFirst);
+
+            expect(resultTransactionFirst.length).toBeGreaterThan(0);
+        });
+
         it('should return getMemberSections result when type is EXPENSE and groupBy is from', () => {
             expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResultsGroupByFrom.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.FROM)).toStrictEqual(
                 transactionMemberGroupListItems,
@@ -1873,7 +1914,7 @@ describe('SearchUIUtils', () => {
 
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false)
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false, undefined)
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -1951,7 +1992,19 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, mockSavedSearches, false);
+            const sections = SearchUIUtils.createTypeMenuSections(
+                adminEmail,
+                adminAccountID,
+                mockCardFeedsByPolicy,
+                undefined,
+                mockPolicies,
+                undefined,
+                mockSavedSearches,
+                false,
+                undefined,
+                true,
+                false,
+            );
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeDefined();
@@ -2001,7 +2054,19 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, mockSavedSearches, false);
+            const sections = SearchUIUtils.createTypeMenuSections(
+                adminEmail,
+                adminAccountID,
+                mockCardFeedsByPolicy,
+                undefined,
+                mockPolicies,
+                undefined,
+                mockSavedSearches,
+                false,
+                undefined,
+                true,
+                false,
+            );
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
             expect(accountingSection).toBeDefined();
@@ -2030,7 +2095,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false, undefined, true, false);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeDefined();
@@ -2039,7 +2104,7 @@ describe('SearchUIUtils', () => {
         it('should not show saved section when there are no saved searches', () => {
             const mockSavedSearches = {};
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false, undefined, true, false);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeUndefined();
@@ -2064,6 +2129,9 @@ describe('SearchUIUtils', () => {
                 undefined,
                 mockSavedSearches,
                 false, // not offline
+                undefined,
+                true,
+                false,
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -2089,6 +2157,9 @@ describe('SearchUIUtils', () => {
                 undefined,
                 mockSavedSearches,
                 true, // offline
+                undefined,
+                true,
+                false,
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -2109,7 +2180,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeUndefined();
@@ -2137,6 +2208,9 @@ describe('SearchUIUtils', () => {
                 mockPolicies,
                 undefined,
                 {},
+                false,
+                undefined,
+                true,
                 false,
             );
 
@@ -2168,7 +2242,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
             expect(accountingSection).toBeDefined();
@@ -2193,7 +2267,7 @@ describe('SearchUIUtils', () => {
             };
 
             const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, {}, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
 
             expect(accountingSection).toBeDefined();
@@ -2202,7 +2276,7 @@ describe('SearchUIUtils', () => {
         });
 
         it('should generate correct routes', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false)
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false)
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -2445,6 +2519,53 @@ describe('SearchUIUtils', () => {
         expect(isTaxAmountLengthLong2).toBe(true);
     });
 
+    describe('Test getSuggestedSearchesVisibility', () => {
+        test('Should not show export if there are no valid connections', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    exporter: adminEmail,
+                    approver: adminEmail,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    // Failed connection
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                            verified: false,
+                            lastSync: {
+                                errorDate: new Date().toISOString(),
+                                errorMessage: 'Error',
+                                isAuthenticationError: true,
+                                isConnected: false,
+                                isSuccessful: false,
+                                source: 'NEWEXPENSIFY',
+                                successfulDate: '',
+                            },
+                        },
+                    } as Connections,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, {}, adminAccountID);
+            expect(response.export).toBe(false);
+
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            policies[policyKey]!.connections![CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastSync = {
+                errorDate: '',
+                errorMessage: '',
+                isAuthenticationError: false,
+                isConnected: true,
+                isSuccessful: true,
+                source: 'NEWEXPENSIFY',
+                successfulDate: new Date().toISOString(),
+            };
+
+            const response2 = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, {}, adminAccountID);
+            expect(response2.export).toBe(true);
+        });
+    });
+
     describe('Test getColumnsToShow', () => {
         test('Should only show columns when at least one transaction has a value for them', () => {
             // Use the existing transaction as a base and modify only the fields we need to test
@@ -2655,6 +2776,58 @@ describe('SearchUIUtils', () => {
         test('Should load iou report if iouReportAction was not provided', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, hash, backTo);
             expect(openReport).toHaveBeenCalled();
+        });
+    });
+
+    describe('setOptimisticDataForTransactionThreadPreview', () => {
+        it('Should create an optimistic parent report if the hasParentReport is false', async () => {
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasParentReport: false} as SearchUtils.TransactionPreviewData);
+
+            await waitForBatchedUpdates();
+
+            const parentReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${transactionListItem.reportID}`);
+
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            expect(parentReport).toMatchObject(transactionListItem.report as OnyxTypes.Report);
+        });
+
+        it('Should create an optimistic parent report action if the hasParentReportAction is false', async () => {
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasParentReportAction: false} as SearchUtils.TransactionPreviewData);
+
+            await waitForBatchedUpdates();
+
+            const parentReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionListItem.reportID}`);
+            const parentReportAction = transactionListItem.moneyRequestReportActionID && parentReport?.[transactionListItem.moneyRequestReportActionID];
+
+            expect(parentReportAction).toBeTruthy();
+        });
+
+        it('Should create an optimistic transaction if the hasTransaction is false', async () => {
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasTransaction: false} as SearchUtils.TransactionPreviewData);
+
+            await waitForBatchedUpdates();
+
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionListItem.transactionID}`);
+
+            expect(transaction).toBeTruthy();
+        });
+
+        it('Should create an optimistic transaction thread if the hasTransactionThreadReport is false', async () => {
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasTransactionThreadReport: false} as SearchUtils.TransactionPreviewData);
+
+            await waitForBatchedUpdates();
+
+            const transactionThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${transactionListItem.transactionThreadReportID}`);
+
+            expect(transactionThread).toBeTruthy();
         });
     });
 });

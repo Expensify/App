@@ -3,8 +3,8 @@ import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -77,14 +77,14 @@ function RulesBillableDefaultPage({
                     <RenderHTML html={translate('workspace.rules.individualExpenseRules.billableDefaultDescription', {tagsPageLink})} />
                 </View>
                 <SelectionList
-                    sections={[{data: billableModes}]}
+                    data={billableModes}
                     ListItem={RadioListItem}
                     onSelectRow={(item) => {
                         setPolicyBillableMode(policyID, item.value);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                    initiallyFocusedItemKey={initiallyFocusedOptionKey}
                     addBottomSafeAreaPadding
                 />
             </ScreenWrapper>

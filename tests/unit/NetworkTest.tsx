@@ -24,6 +24,7 @@ import type {Session as OnyxSession} from '@src/types/onyx';
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 type OnResolved = (params: {jsonCode?: string | number}) => void;
 
@@ -409,7 +410,7 @@ describe('NetworkTests', () => {
 
         // When the connection simulation is turned on
         NetworkActions.setShouldSimulatePoorConnection(true, undefined);
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // Then the connection status change log should be displayed as well Simulate poor internet connection toggle should be checked
         expect(logSpy).toHaveBeenCalledWith(expect.stringMatching(/\[NetworkConnection\] Set connection status "(online|offline)" for (\d+(?:\.\d+)?) sec/));
@@ -417,11 +418,11 @@ describe('NetworkTests', () => {
 
         // And the setShouldForceOffline and setShouldFailAllRequests should not be called as the Force offline and Simulate failing network requests toggles are disabled
         fireEvent.press(screen.getByAccessibilityHint('Force offline'));
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
         expect(setShouldForceOfflineSpy).not.toHaveBeenCalled();
 
         fireEvent.press(screen.getByAccessibilityHint('Simulate failing network requests'));
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
         expect(setShouldFailAllRequestsSpy).not.toHaveBeenCalled();
     });
 
@@ -430,10 +431,11 @@ describe('NetworkTests', () => {
 
         // Given tracked connection changes started at least an hour ago
         Onyx.merge(ONYXKEYS.NETWORK, {connectionChanges: {amount: 5, startTime: dateSubtract(new Date(), {hours: 1}).getTime()}});
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // When the connection is changed one more time
         NetworkConnection.setOfflineStatus(true);
+        await waitForBatchedUpdatesWithAct();
 
         // Then the log with information about connection changes since the start time should be shown
         expect(logSpy).toHaveBeenCalledWith('[NetworkConnection] Connection has changed 6 time(s) for the last 1 hour(s). Poor connection simulation is turned off');
