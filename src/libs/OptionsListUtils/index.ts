@@ -598,7 +598,7 @@ function getLastMessageTextForReport({
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
         const properSchemaForMoneyRequestMessage = getReportPreviewMessage(report, lastReportAction, true, false, null, true);
-        lastMessageTextFromReport = formatReportLastMessageText(properSchemaForMoneyRequestMessage);
+        lastMessageTextFromReport = Parser.htmlToText(formatReportLastMessageText(properSchemaForMoneyRequestMessage));
     } else if (isReportPreviewAction(lastReportAction)) {
         const iouReport = getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastReportAction));
         const lastIOUMoneyReportAction = iouReport?.reportID
@@ -622,7 +622,7 @@ function getLastMessageTextForReport({
                 true,
                 lastReportAction,
             );
-            lastMessageTextFromReport = formatReportLastMessageText(reportPreviewMessage);
+            lastMessageTextFromReport = Parser.htmlToText(formatReportLastMessageText(reportPreviewMessage));
         }
     } else if (isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, reportOrID: report});
@@ -1155,7 +1155,15 @@ function createOptionFromReport(report: Report, personalDetails: OnyxEntry<Perso
 
     return {
         item: report,
-        ...createOption(accountIDs, personalDetails, report, undefined, reportAttributesDerived),
+        ...createOption(
+            accountIDs,
+            personalDetails,
+            report,
+            {
+                showPersonalDetails: true,
+            },
+            reportAttributesDerived,
+        ),
     };
 }
 
@@ -1930,6 +1938,9 @@ function getValidOptions(
             {currentUserOption: currentUserRef.current, recentReports: recentReportOptions, personalDetails: personalDetailsOptions},
             searchString ?? '',
             countryCode,
+            {
+                excludeLogins: loginsToExclude,
+            },
         );
     }
 
