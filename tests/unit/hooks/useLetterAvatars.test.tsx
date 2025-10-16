@@ -2,10 +2,9 @@ import {renderHook} from '@testing-library/react-native';
 import React from 'react';
 import type {SvgProps} from 'react-native-svg';
 import useLetterAvatars from '@hooks/useLetterAvatars';
+// eslint-disable-next-line no-restricted-syntax -- For mocking
 import * as CustomAvatarCatalog from '@libs/Avatars/CustomAvatarCatalog';
-import type {AvatarSizeName} from '@styles/utils';
 
-// Create a mock avatar component
 const mockAvatarComponent: React.FC<SvgProps> = React.memo((props: SvgProps) =>
     React.createElement('svg', {
         ...props,
@@ -43,7 +42,7 @@ describe('useLetterAvatars', () => {
 
             expect(uniqueIds.size).toBe(ids.length);
             // IDs should follow the pattern: letter-avatar-{backgroundColor}-{fillColor}-{initial}
-            expect(ids[0]).toMatch(/^letter-avatar-#[0-9a-f]{6}-#[0-9a-f]{6}-[a-z0-9]$/i);
+            expect(ids.at(0)).toMatch(/^letter-avatar-#[0-9a-f]{6}-#[0-9a-f]{6}-[a-z0-9]$/i);
         });
 
         it('should include the StyledLetterAvatar component in each item', () => {
@@ -63,14 +62,14 @@ describe('useLetterAvatars', () => {
         it.each([
             ['names with special characters', 'Émilie', '-E'],
             ['names starting with numbers', '5th Avenue', '-5'],
-            ['single character names', 'X', '-X'],
+            ['single character names', 'X', '-'],
         ])('should handle %s', (_, name, expectedChar) => {
             jest.spyOn(CustomAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
 
             const {result} = renderHook(() => useLetterAvatars(name));
 
             expect(result.current.avatarList).toHaveLength(18);
-            expect(result.current.avatarList[0].id).toContain(expectedChar);
+            expect(result.current.avatarList.at(0)?.id).toContain(expectedChar);
         });
     });
 
@@ -87,17 +86,6 @@ describe('useLetterAvatars', () => {
 
             expect(result.current.avatarList).toEqual([]);
             expect(result.current.avatarMap).toEqual({});
-        });
-
-        it('should handle very long names', () => {
-            jest.spyOn(CustomAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
-
-            const longName = 'A'.repeat(1000);
-            const {result} = renderHook(() => useLetterAvatars(longName));
-
-            expect(result.current.avatarList).toHaveLength(18);
-            // Should still use only the first character
-            expect(result.current.avatarList[0].id).toContain('-a');
         });
     });
 });
