@@ -1,4 +1,4 @@
-import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type HttpsError from '@libs/Errors/HttpsError';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
@@ -95,6 +95,9 @@ const Logging: Middleware = (response, request) => {
             if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
                 // Cancelled requests are normal and can happen when a user logs out.
                 Log.info('[Network] API request error: Request canceled', false, logParams);
+            } else if (request.command === WRITE_COMMANDS.OPEN_APP && error.status === '404') {
+                // OpenApp 404 failure should be logged as BUG_BOT alert
+                Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} OpenApp request failed with '404' response status code`, logParams, false);
             } else if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
                 // If the command that failed is Log it's possible that the next call to Log may also fail.
                 // This will lead to infinitely complex log params that can eventually crash the app.
