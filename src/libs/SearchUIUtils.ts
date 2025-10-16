@@ -1286,6 +1286,7 @@ function getTaskSections(
  */
 function getTransactionFromTransactionListItem(item: TransactionListItemType): OnyxTypes.Transaction {
     // Extract only the core Transaction fields, excluding UI-specific fields
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-shadow
     const {
         // Remove UI-specific fields
         keyForList,
