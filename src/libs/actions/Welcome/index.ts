@@ -10,16 +10,15 @@ import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnboardingPurpose} from '@src/types/onyx';
+import type {Account, OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {GetOnboardingInitialPathParamsType, OnboardingCompanySize} from './OnboardingFlow';
 import {startOnboardingFlow} from './OnboardingFlow';
 
-type OnboardingData = Onboarding | undefined;
-
 let isLoadingReportData = true;
-let onboarding: OnboardingData;
+let onboarding: Onboarding | undefined;
+let account: Account | undefined;
 
 type HasCompletedOnboardingFlowProps = {
     onCompleted?: () => void;
@@ -44,6 +43,12 @@ function onServerDataReady(): Promise<void> {
 let isOnboardingInProgress = false;
 function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: HasCompletedOnboardingFlowProps) {
     isOnboardingFlowStatusKnownPromise.then(() => {
+        // Don't trigger onboarding if we are showing the require 2FA page
+        const shouldShowRequire2FAPage = account && !!account.needsTwoFactorAuthSetup && (!account.requiresTwoFactorAuth || !!account.twoFactorAuthSetupInProgress);
+        if (shouldShowRequire2FAPage) {
+            return;
+        }
+
         if (isEmptyObject(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
             onCanceled?.();
             return;
@@ -81,7 +86,7 @@ function checkServerDataReady() {
  * Check if the onboarding data is loaded
  */
 function checkOnboardingDataReady() {
-    if (onboarding === undefined) {
+    if (onboarding === undefined || account === undefined) {
         return;
     }
 
@@ -162,6 +167,16 @@ function completeHybridAppOnboarding() {
         HybridAppModule.completeOnboarding({status: true});
     });
 }
+
+// We use `connectWithoutView` here since this connection only updates a module-level variable
+// and doesn't need to trigger component re-renders.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        account = value;
+        checkOnboardingDataReady();
+    },
+});
 
 // We use `connectWithoutView` here since this connection only updates a module-level variable
 // and doesn't need to trigger component re-renders.
