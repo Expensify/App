@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import type {SvgProps} from 'react-native-svg';
-import ColoredAvatar from '@components/ColoredAvatar';
+import ColoredLetterAvatar from '@components/ColoredLetterAvatar';
 import {getLetterAvatar, LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/CustomAvatarCatalog';
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import type {AvatarSizeName} from '@styles/utils';
@@ -45,7 +45,7 @@ function useLetterAvatars(name: string | undefined, size?: AvatarSizeName): Lett
 
         LETTER_AVATAR_COLOR_OPTIONS.forEach(({fillColor, backgroundColor}) => {
             const StyledLetterAvatar: React.FC<SvgProps> = () => (
-                <ColoredAvatar
+                <ColoredLetterAvatar
                     fillColor={fillColor}
                     backgroundColor={backgroundColor}
                     component={avatarComponent}

@@ -6,7 +6,7 @@ import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import ImageSVG from './ImageSVG';
 
-type ColoredAvatarProps = {
+type ColoredLetterAvatarProps = {
     /** The SVG component to render */
     component: React.FC<SvgProps>;
     /** Background color for the circular background */
@@ -18,10 +18,10 @@ type ColoredAvatarProps = {
 };
 
 /**
- * ColoredAvatar renders an SVG component with a colored circular background.
+ * ColoredLetterAvatar renders an SVG component with a colored circular background.
  * Used for letter avatars and other colored icon avatars.
  */
-function ColoredAvatar({component, backgroundColor, fillColor, size = CONST.AVATAR_SIZE.MEDIUM}: ColoredAvatarProps) {
+function ColoredLetterAvatar({component, backgroundColor, fillColor, size = CONST.AVATAR_SIZE.MEDIUM}: ColoredLetterAvatarProps) {
     const StyleUtils = useStyleUtils();
     const avatarSize = StyleUtils.getAvatarSize(size);
     return (
@@ -39,7 +39,6 @@ function ColoredAvatar({component, backgroundColor, fillColor, size = CONST.AVAT
     );
 }
 
-ColoredAvatar.displayName = 'ColoredAvatar';
+ColoredLetterAvatar.displayName = 'ColoredLetterAvatar';
 
-export default ColoredAvatar;
-export type {ColoredAvatarProps};
+export default ColoredLetterAvatar;
