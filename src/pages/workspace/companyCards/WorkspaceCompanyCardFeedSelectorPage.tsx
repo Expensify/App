@@ -9,6 +9,7 @@ import SelectionList from '@components/SelectionListWithSections';
 import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useIsBlockToAddFeed from '@hooks/useIsBlockToAddFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -26,7 +27,6 @@ import {
 } from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isCollectPolicy} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
@@ -58,7 +58,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const isCollect = isCollectPolicy(policy);
+    const {isBlockToAddNewFeeds} = useIsBlockToAddFeed(policyID);
 
     const feeds: CardFeedListItem[] = Object.entries(companyFeeds).map(([key, feedSettings]) => {
         const feed = key as CompanyCardFeed;
@@ -95,7 +95,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
     const onAddCardsPress = () => {
         clearAddNewCardFlow();
-        if (isCollect && feeds.length === 1) {
+        if (isBlockToAddNewFeeds) {
             Navigation.navigate(
                 ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)),
             );
