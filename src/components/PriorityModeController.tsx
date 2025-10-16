@@ -93,9 +93,9 @@ export default function PriorityModeController() {
             return;
         }
         const isNarrowLayout = getIsNarrowLayout();
-        const shouldHideModelOnNavigation = (isNarrowLayout && currentRouteName !== SCREENS.HOME) || (!isNarrowLayout && currentRouteName !== SCREENS.REPORT);
+        const shouldHideModalOnNavigation = (isNarrowLayout && currentRouteName !== SCREENS.HOME) || (!isNarrowLayout && currentRouteName !== SCREENS.REPORT);
 
-        if (shouldHideModelOnNavigation) {
+        if (shouldHideModalOnNavigation) {
             setShouldShowModal(false);
         }
     }, [currentRouteName, shouldShowModal]);
