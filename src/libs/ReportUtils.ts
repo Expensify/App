@@ -267,7 +267,7 @@ import {
     hasReceipt as hasReceiptTransactionUtils,
     hasViolation,
     hasWarningTypeViolation,
-    isCardTransaction as isCardTransactionTransactionUtils,
+    isManagedCardTransaction as isCardTransactionTransactionUtils,
     isDemoTransaction,
     isDistanceRequest,
     isExpensifyCardTransaction,
@@ -1886,7 +1886,7 @@ function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Poli
     const isSelfDMReport = isSelfDMOrSelfDMThread(report);
 
     return (
-        (isExpenseReport(report) || isGroupPolicy(policy?.type ?? '') || isSelfDMReport || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SUBMIT) &&
+        (isExpenseReport(report) || isGroupPolicy(policy?.type ?? '') || isSelfDMReport || iouType === CONST.IOU.TYPE.CREATE) &&
         iouType !== CONST.IOU.TYPE.SPLIT &&
         iouType !== CONST.IOU.TYPE.INVOICE
     );
