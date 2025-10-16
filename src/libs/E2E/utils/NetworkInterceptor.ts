@@ -1,4 +1,3 @@
-/* eslint-disable @lwc/lwc/no-async-await */
 import {DeviceEventEmitter} from 'react-native';
 import type {NetworkCacheEntry, NetworkCacheMap} from '@libs/E2E/types';
 
