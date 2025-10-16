@@ -401,7 +401,8 @@
     },
     "eslint-plugin-react-native-a11y": {
       "eslint": "^9.36.0"
-    }
+    },
+    "node-abi": "^3.78.0"
   },
   "expo": {
     "autolinking": {

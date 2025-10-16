@@ -25,6 +25,19 @@ const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownload
 const port = process.env.PORT ?? 8082;
 const {DESKTOP_SHORTCUT_ACCELERATOR} = CONST;
 
+const MAC_PERMISSION_STATUSES = {
+    AUTHORIZED: 'authorized',
+    DENIED: 'denied',
+    RESTRICTED: 'restricted',
+    NOT_DETERMINED: 'not determined',
+} as const;
+
+const LOCATION_PERMISSION_STATES = {
+    GRANTED: 'granted',
+    DENIED: 'denied',
+    PROMPT: 'prompt',
+} as const;
+
 // Setup google api key in process environment, we are setting it this way intentionally. It is required by the
 // geolocation api (window.navigator.geolocation.getCurrentPosition) to work on desktop.
 // Source: https://github.com/electron/electron/blob/98cd16d336f512406eee3565be1cead86514db7b/docs/api/environment-variables.md#google_api_key
@@ -387,25 +400,25 @@ const mainWindow = (): Promise<void> => {
 
                         if (!getAuthStatus || typeof getAuthStatus !== 'function') {
                             log.warn('node-mac-permissions not available or invalid, defaulting to denied');
-                            return 'denied';
+                            return LOCATION_PERMISSION_STATES.DENIED;
                         }
 
                         const status = getAuthStatus('location');
 
                         switch (status) {
-                            case 'authorized':
-                                return 'granted';
-                            case 'denied':
-                            case 'restricted':
-                                return 'denied';
-                            case 'not determined':
-                                return 'prompt';
+                            case MAC_PERMISSION_STATUSES.AUTHORIZED:
+                                return LOCATION_PERMISSION_STATES.GRANTED;
+                            case MAC_PERMISSION_STATUSES.DENIED:
+                            case MAC_PERMISSION_STATUSES.RESTRICTED:
+                                return LOCATION_PERMISSION_STATES.DENIED;
+                            case MAC_PERMISSION_STATUSES.NOT_DETERMINED:
+                                return LOCATION_PERMISSION_STATES.PROMPT;
                             default:
-                                return 'denied';
+                                return LOCATION_PERMISSION_STATES.DENIED;
                         }
                     } catch (error) {
                         log.warn('node-mac-permissions not available, defaulting to denied:', (error as Error)?.message);
-                        return 'denied';
+                        return LOCATION_PERMISSION_STATES.DENIED;
                     }
                 });
                 /*
