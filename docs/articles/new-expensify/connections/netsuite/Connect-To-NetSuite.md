@@ -129,7 +129,7 @@ Connect your Expensify Workspace to NetSuite to streamline expense syncing, repo
 
 **Things to note about tax:**
 
-- Expensify supports **Tax Groups**, not individual Tax Codes
+- Unless you're using SuiteTax, Expensify supports **Tax Groups**, not individual Tax Codes
 - Set **Tax Code Lists Include** to “Tax Groups And Tax Codes” or “Tax Groups Only” under **Setup > Accounting > Set Up Taxes**
 - UK and Ireland: ensure each Tax Group contains only one Tax Code
 
@@ -149,7 +149,7 @@ To create a Tax Group:
 2. Click **Connect** next to **NetSuite**
 3. Click **Next** through setup steps 1–4
 4. On **Step 5**, enter:
-   - **NetSuite Account ID**
+   - **NetSuite Account ID** (if connecting to a Sandbox environment, ensure the "s" and "b" are always capitalized and the hyphen "-" is replaced by an underscore "_". So "123456-sb1" would be "123456_SB1".)
    - **Token ID**
    - **Token Secret**
 5. Click **Confirm**
