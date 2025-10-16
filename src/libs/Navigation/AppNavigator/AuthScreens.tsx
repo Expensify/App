@@ -36,7 +36,6 @@ import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformS
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
-import {isOnboardingLoadingSelector} from '@libs/onboardingSelectors';
 import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';

@@ -1,4 +1,5 @@
 import {isActingAsDelegateSelector} from '@selectors/Account';
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -13,7 +14,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanel from '@hooks/useSidePanel';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
 import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';

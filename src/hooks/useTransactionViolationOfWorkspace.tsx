@@ -1,3 +1,4 @@
+import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {extractCollectionItemID} from '@libs/CollectionUtils';
 import {getReportTransactions, isChatRoom, isPolicyExpenseChat, isPolicyRelatedReport, isTaskReport} from '@libs/ReportUtils';
@@ -22,26 +23,29 @@ function useTransactionViolationOfWorkspace(policyID?: string) {
         }
     });
 
-    const transactionViolationSelector = (violations: OnyxCollection<TransactionViolations>) => {
-        if (!violations) {
-            return {};
-        }
+    const transactionViolationSelector = useCallback(
+        (violations: OnyxCollection<TransactionViolations>) => {
+            if (!violations) {
+                return {};
+            }
 
-        const filteredViolationKeys = Object.keys(violations).filter((violationKey) => {
-            const transactionID = extractCollectionItemID(violationKey as `${OnyxCollectionKey}${string}`);
-            return transactionIDSet.has(transactionID);
-        });
+            const filteredViolationKeys = Object.keys(violations).filter((violationKey) => {
+                const transactionID = extractCollectionItemID(violationKey as `${OnyxCollectionKey}${string}`);
+                return transactionIDSet.has(transactionID);
+            });
 
-        const filteredViolations = filteredViolationKeys.reduce(
-            (acc, key) => {
-                acc[key] = violations[key];
-                return acc;
-            },
-            {} as typeof violations,
-        );
+            const filteredViolations = filteredViolationKeys.reduce(
+                (acc, key) => {
+                    acc[key] = violations[key];
+                    return acc;
+                },
+                {} as typeof violations,
+            );
 
-        return filteredViolations;
-    };
+            return filteredViolations;
+        },
+        [transactionIDSet],
+    );
 
     const [transactionViolations] = useOnyx(
         ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
