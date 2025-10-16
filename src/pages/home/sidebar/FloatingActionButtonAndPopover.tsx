@@ -54,6 +54,7 @@ import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMone
 import variables from '@styles/variables';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import {clearLastSearchParams} from '@userActions/ReportNavigation';
+import Tab from '@userActions/Tab';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -263,6 +264,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             }
 
             const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
+            Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
             startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, allTransactionDrafts);
         });
     }, [policyChatForActivePolicy?.policyID, policyChatForActivePolicy?.reportID, reportID, allTransactionDrafts]);

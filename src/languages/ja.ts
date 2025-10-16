@@ -2617,7 +2617,7 @@ ${date} - ${merchant}に${amount}`,
                 descriptionTwo: '経費を分類してタグ付けする',
                 descriptionThree: 'レポートを作成して共有する',
             },
-            price: '30日間無料でお試しいただけます。その後、<strong>$5/月</strong>でアップグレードしてください。',
+            price: '30日間無料でお試しいただけます。その後、<strong>$5/ユーザー/月</strong>でアップグレードしてください。',
             createWorkspace: 'ワークスペースを作成',
         },
         confirmWorkspace: {

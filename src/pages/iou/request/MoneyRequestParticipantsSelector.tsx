@@ -202,6 +202,7 @@ function MoneyRequestParticipantsSelector({
                 isPerDiemRequest,
                 showRBR: false,
             },
+            countryCode,
         );
 
         const orderedOptions = orderOptions(optionList);
@@ -224,6 +225,7 @@ function MoneyRequestParticipantsSelector({
         isCategorizeOrShareAction,
         isPerDiemRequest,
         canShowManagerMcTest,
+        countryCode,
         isCorporateCardTransaction,
     ]);
 

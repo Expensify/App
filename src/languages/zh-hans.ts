@@ -2594,7 +2594,7 @@ ${merchant}的${amount} - ${date}`,
                 descriptionTwo: '分类和标记费用',
                 descriptionThree: '创建和分享报告',
             },
-            price: '免费试用30天，然后只需<strong>$5/月</strong>升级。',
+            price: '免费试用30天，然后只需<strong>$5/用户/月</strong>升级。',
             createWorkspace: '创建工作区',
         },
         confirmWorkspace: {
