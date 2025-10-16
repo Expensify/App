@@ -746,5 +746,37 @@ describe('TransactionUtils', () => {
 
             expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT)).toBe(false);
         });
+
+        describe('missing category violation', () => {
+            it('should return true when policy is a paid group policy', () => {
+                const iouReport: Report = {
+                    ...createRandomReport(0),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    ownerAccountID: CURRENT_USER_ID,
+                };
+
+                const policy: Policy = {
+                    ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                    type: CONST.POLICY.TYPE.TEAM,
+                };
+
+                expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.MISSING_CATEGORY)).toBe(true);
+            });
+
+            it('should return false when policy is not a paid group policy', () => {
+                const iouReport: Report = {
+                    ...createRandomReport(0),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    ownerAccountID: CURRENT_USER_ID,
+                };
+
+                const policy: Policy = {
+                    ...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL),
+                    type: CONST.POLICY.TYPE.PERSONAL,
+                };
+
+                expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.MISSING_CATEGORY)).toBe(false);
+            });
+        });
     });
 });
