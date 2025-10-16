@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-// eslint-disable-next-line deprecation/deprecation
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStep} from '@libs/NextStepUtils';
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -107,7 +107,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
                 // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const result = buildNextStep(emptyReport, CONST.REPORT.STATUS_NUM.OPEN);
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -134,7 +134,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
                 // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN, true);
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -163,7 +163,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
                 // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -206,7 +206,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     }).then(() => {
                         // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                        // eslint-disable-next-line deprecation/deprecation
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
@@ -243,7 +243,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     }).then(() => {
                         // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                        // eslint-disable-next-line deprecation/deprecation
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
@@ -280,7 +280,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     }).then(() => {
                         // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                        // eslint-disable-next-line deprecation/deprecation
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
@@ -318,7 +318,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     }).then(() => {
                         // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                        // eslint-disable-next-line deprecation/deprecation
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
@@ -356,7 +356,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     }).then(() => {
                         // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                        // eslint-disable-next-line deprecation/deprecation
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
                         expect(result).toMatchObject(optimisticNextStep);
                     });
@@ -393,7 +393,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     }).then(() => {
                         // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                        // eslint-disable-next-line deprecation/deprecation
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
@@ -430,7 +430,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     }).then(() => {
                         // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                        // eslint-disable-next-line deprecation/deprecation
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
@@ -465,7 +465,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     }).then(() => {
                         // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                        // eslint-disable-next-line deprecation/deprecation
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
@@ -497,7 +497,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
                 // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -531,7 +531,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 }).then(() => {
                     // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -575,7 +575,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 }).then(() => {
                     // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -614,7 +614,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 }).then(() => {
                     // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -633,7 +633,7 @@ describe('libs/NextStepUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 }).then(() => {
                     // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.CLOSED);
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -667,7 +667,7 @@ describe('libs/NextStepUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 }).then(() => {
                     // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -701,7 +701,7 @@ describe('libs/NextStepUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 }).then(() => {
                     // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -722,7 +722,7 @@ describe('libs/NextStepUtils', () => {
                     role: 'user',
                 }).then(() => {
                     // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -755,7 +755,7 @@ describe('libs/NextStepUtils', () => {
                 report.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
                 report.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
                 // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -793,7 +793,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 }).then(() => {
                     // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -809,7 +809,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
                     // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED);
 
                     expect(result).toMatchObject(optimisticNextStep);
