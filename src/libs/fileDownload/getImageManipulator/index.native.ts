@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {manipulateAsync} from 'expo-image-manipulator';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type ImageManipulatorConfig from './type';
