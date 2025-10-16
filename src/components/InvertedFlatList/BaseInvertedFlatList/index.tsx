@@ -5,10 +5,10 @@ import FlatList from '@components/FlatList';
 import useFlatListHandle from '@hooks/useFlatListHandle';
 import type {FlatListInnerRefType} from '@hooks/useFlatListHandle';
 import usePrevious from '@hooks/usePrevious';
-import CONST from '@src/CONST';
 import type {RenderInfo} from './RenderTaskQueue';
 import RenderTaskQueue from './RenderTaskQueue';
 
+const PAGINATION_SIZE = 15;
 const INITIAL_SCROLL_DELAY = 200;
 
 // Adapted from https://github.com/facebook/react-native/blob/29a0d7c3b201318a873db0d1b62923f4ce720049/packages/virtualized-lists/Lists/VirtualizeUtils.js#L237
@@ -68,7 +68,7 @@ function BaseInvertedFlatList<T>({
             return {displayedData: data, negativeScrollIndex: data.length};
         }
 
-        const itemIndex = Math.max(0, currentDataIndex - (isInitialData ? 0 : CONST.PAGINATION_SIZE));
+        const itemIndex = Math.max(0, currentDataIndex - (isInitialData ? 0 : PAGINATION_SIZE));
         const minInitialIndex = Math.max(0, data.length - initialNumToRender);
         return {
             displayedData: data.slice(Math.min(itemIndex, minInitialIndex)),

@@ -5671,8 +5671,6 @@ const CONST = {
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
-    PAGINATION_SIZE: 15,
-
     /** Dimensions for illustration shown in Confirmation Modal */
     CONFIRM_CONTENT_SVG_SIZE: {
         HEIGHT: 220,
