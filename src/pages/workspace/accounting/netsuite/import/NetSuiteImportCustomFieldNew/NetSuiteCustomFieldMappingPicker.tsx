@@ -43,7 +43,6 @@ function NetSuiteCustomFieldMappingPicker({value, errorText, onInputChange}: Net
                 ListItem={RadioListItem}
                 initiallyFocusedItemKey={value ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG}
                 shouldSingleExecuteRowSelect
-                shouldUpdateFocusedIndex
             />
             {!!errorText && (
                 <View style={styles.ph5}>
