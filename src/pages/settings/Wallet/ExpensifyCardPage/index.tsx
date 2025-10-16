@@ -253,6 +253,10 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                 showLockedAccountModal();
                                                 return;
                                             }
+                                            if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
+                                                Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_REPORT_FRAUD.getRoute(String(card.cardID)));
+                                                return;
+                                            }
                                             Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)));
                                         }}
                                     />

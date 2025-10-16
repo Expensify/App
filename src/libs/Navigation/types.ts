@@ -1169,7 +1169,6 @@ type DomainCardNavigatorParamList = {
     };
     [SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD]: {
         cardID: string;
-        backTo?: Routes;
     };
     [SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
         cardID: string;
