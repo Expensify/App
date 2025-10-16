@@ -87,7 +87,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             listeners={{
                                 beforeRemove: () => {
                                     // eslint-disable-next-line @typescript-eslint/no-deprecated
-                                    InteractionManager.runAfterInteractions(clearTwoFactorAuthData);
+                                    InteractionManager.runAfterInteractions(() => clearTwoFactorAuthData(true));
                                 },
                             }}
                         />

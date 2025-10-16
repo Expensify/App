@@ -748,7 +748,8 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
 
     const parameters: EnablePolicyTagsParams = {policyID, enabled};
 
-    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
+    // We can't use writeWithNoDuplicatesEnableFeatureConflicts because the tags data is also changed when disabling/enabling this feature
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature(policyID);

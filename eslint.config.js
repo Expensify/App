@@ -329,7 +329,7 @@ const config = defineConfig([
                 {
                     object: 'Image',
                     property: 'getSize',
-                    message: 'Usage of Image.getImage is restricted. Please use the `react-native-image-size`.',
+                    message: 'Usage of Image.getSize is restricted. Please use the `react-native-image-size`.',
                 },
                 // Disallow direct HybridAppModule.isHybridApp() usage, because it requires a native call
                 // Use CONFIG.IS_HYBRID_APP, which keeps cached value instead
@@ -392,8 +392,7 @@ const config = defineConfig([
         },
     },
 
-    // Some rules became stricter or stopped working after upgrading, so these configs adjust the rules to match the old behavior.
-    // TODO: Consider clearing them gradually.
+    // Some rules became stricter or stopped working after upgrading to ESLint 9, so these configs adjust the rules to match the old behavior.
     {
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
         rules: {
@@ -402,7 +401,6 @@ const config = defineConfig([
             '@typescript-eslint/no-base-to-string': 'warn',
 
             // @typescript-eslint/lines-between-class-members was moved to @stylistic/eslint-plugin, so replaced with lines-between-class-members.
-            // TODO: Remove these after uninstalling eslint-config-airbnb-typescript or switching to @stylistic/lines-between-class-members.
             'lines-between-class-members': 'error',
             '@typescript-eslint/lines-between-class-members': 'off',
 
@@ -412,7 +410,6 @@ const config = defineConfig([
             '@typescript-eslint/no-require-imports': 'off',
 
             // @typescript-eslint/no-throw-literal was removed, so replaced with no-throw-literal.
-            // TODO: Remove these after uninstalling eslint-config-airbnb-typescript.
             'no-throw-literal': 'error',
             '@typescript-eslint/no-throw-literal': 'off',
 
@@ -459,7 +456,6 @@ const config = defineConfig([
         },
     },
 
-    // Remove once no JS files are left
     {
         files: ['**/*.js', '**/*.jsx'],
         ...typescriptEslint.configs.disableTypeChecked,
@@ -500,15 +496,24 @@ const config = defineConfig([
     },
 
     {
-        files: ['.github/**/*'],
+        files: ['.github/**/*', 'scripts/**/*'],
         rules: {
             // For all these Node.js scripts, we do not want to disable `console` statements
             'no-console': 'off',
+        },
+    },
 
+    {
+        files: ['.github/**/*', 'scripts/**/*', 'tests/**/*'],
+        rules: {
             'no-await-in-loop': 'off',
             'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
-            'no-continue': 'off',
+        },
+    },
 
+    {
+        files: ['.github/**/*'],
+        rules: {
             'no-restricted-imports': [
                 'error',
                 {
@@ -524,23 +529,9 @@ const config = defineConfig([
     },
 
     {
-        files: ['scripts/**/*'],
-        rules: {
-            // For all these Node.js scripts, we do not want to disable `console` statements
-            'no-console': 'off',
-
-            'no-continue': 'off',
-            'no-await-in-loop': 'off',
-            'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
-        },
-    },
-
-    {
         files: ['tests/**/*'],
         rules: {
             'no-import-assign': 'off',
-            'no-await-in-loop': 'off',
-            'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
 
             // This helps disable the `prefer-alias` rule for tests
             '@dword-design/import-alias/prefer-alias': ['off'],

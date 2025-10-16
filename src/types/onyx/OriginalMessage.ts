@@ -147,6 +147,27 @@ type OriginalMessageActionableMentionWhisper = {
     whisperedTo?: number[];
 };
 
+/** Model of `actionable card fraud alert` report action */
+type OriginalMessageCardFraudAlert = {
+    /** Card ID */
+    cardID: number;
+
+    /** Masked card number */
+    maskedCardNumber: string;
+
+    /** Transaction amount in cents */
+    triggerAmount: number;
+
+    /** Merchant name */
+    triggerMerchant: string;
+
+    /** Currency of the transaction */
+    currency?: string;
+
+    /** Resolution: 'recognized' or 'fraud' */
+    resolution?: ValueOf<typeof CONST.CARD_FRAUD_ALERT_RESOLUTION>;
+};
+
 /** Model of `actionable mention whisper` report action */
 type OriginalMessageActionableMentionInviteToSubmitExpenseConfirmWhisper = {
     /** Account IDs of users that aren't members of the room  */
@@ -756,6 +777,18 @@ type OriginalMessageDismissedViolation = {
     violationName: string;
 };
 
+/** Model of `marked reimbursed` report action */
+type OriginalMessageMarkedReimbursed = {
+    /** Whether this action was created from NewDot */
+    isNewDot?: boolean;
+
+    /** When was the action last modified */
+    lastModified?: string;
+
+    /** Type of payment method */
+    type?: string;
+};
+
 /** Model of `trip room preview` report action */
 type OriginalMessageTripRoomPreview = {
     /** ID of the report to be previewed */
@@ -959,6 +992,7 @@ type OriginalMessageReimbursementDirectorInformationRequired = {
 /* eslint-disable jsdoc/require-jsdoc */
 type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD]: OriginalMessageAddPaymentCard;
+    [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT]: OriginalMessageCardFraudAlert;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST]: OriginalMessageJoinPolicy;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER]: OriginalMessageActionableMentionWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER]: OriginalMessageActionableMentionInviteToSubmitExpenseConfirmWhisper;
@@ -989,7 +1023,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT]: never;
     [CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT]: never;
     [CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION]: never;
-    [CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED]: OriginalMessageMarkedReimbursed;
     [CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION]: never;
     [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: OriginalMessageModifiedExpense;
     [CONST.REPORT.ACTIONS.TYPE.MOVED]: OriginalMessageMoved;
@@ -1054,6 +1088,7 @@ type OriginalMessage<T extends ReportActionName> = OriginalMessageMap[T];
 export default OriginalMessage;
 export type {
     DecisionName,
+    OriginalMessageCardFraudAlert,
     OriginalMessageIOU,
     ChronosOOOEvent,
     PaymentMethodType,
