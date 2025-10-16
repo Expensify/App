@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
@@ -10,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
 import * as IOU from '../../../src/libs/actions/IOU';
 import {signInWithTestUser} from '../../utils/TestHelper';
-import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@rnmapbox/maps', () => {
     return {
@@ -73,7 +73,6 @@ const DEFAULT_SPLIT_TRANSACTION: Transaction = {
     participantsAutoAssigned: true,
     reimbursable: true,
     reportID: REPORT_ID,
-    splitPayerAccountIDs: [ACCOUNT_ID],
     transactionID: TRANSACTION_ID,
 };
 
@@ -88,16 +87,18 @@ describe('IOURequestStepConfirmationPageTest', () => {
         const routeReportID = '1';
         const participantReportID = '2';
 
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
-            transactionID: TRANSACTION_ID,
-            isFromGlobalCreate: true,
-            participants: [
-                {
-                    accountID: 1,
-                    reportID: participantReportID,
-                    iouType: 'invoice',
-                },
-            ],
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                transactionID: TRANSACTION_ID,
+                isFromGlobalCreate: true,
+                participants: [
+                    {
+                        accountID: 1,
+                        reportID: participantReportID,
+                        iouType: 'invoice',
+                    },
+                ],
+            });
         });
 
         render(
@@ -123,7 +124,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             </OnyxListItemProvider>,
         );
 
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // Then startMoneyRequest should not be called from IOURequestConfirmationPage.
         expect(IOU.startMoneyRequest).not.toHaveBeenCalled();
@@ -132,11 +133,13 @@ describe('IOURequestStepConfirmationPageTest', () => {
     it('should create a split expense for a scanned receipt', async () => {
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
 
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`, {
-            ...DEFAULT_SPLIT_TRANSACTION,
-            filename: 'receipt1.jpg',
-            iouRequestType: 'scan',
-            receipt: {source: 'path/to/receipt1.jpg', type: ''},
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`, {
+                ...DEFAULT_SPLIT_TRANSACTION,
+                filename: 'receipt1.jpg',
+                iouRequestType: 'scan',
+                receipt: {source: 'path/to/receipt1.jpg', type: ''},
+            });
         });
 
         render(
@@ -169,20 +172,24 @@ describe('IOURequestStepConfirmationPageTest', () => {
     it('should create a split expense for each scanned receipt', async () => {
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
 
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`, {
-            ...DEFAULT_SPLIT_TRANSACTION,
-            filename: 'receipt1.jpg',
-            iouRequestType: 'scan',
-            receipt: {source: 'path/to/receipt1.jpg', type: ''},
-            transactionID: '1',
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`, {
+                ...DEFAULT_SPLIT_TRANSACTION,
+                filename: 'receipt1.jpg',
+                iouRequestType: 'scan',
+                receipt: {source: 'path/to/receipt1.jpg', type: ''},
+                transactionID: '1',
+            });
         });
 
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}2`, {
-            ...DEFAULT_SPLIT_TRANSACTION,
-            filename: 'receipt2.jpg',
-            iouRequestType: 'scan',
-            receipt: {source: 'path/to/receipt2.jpg', type: ''},
-            transactionID: '2',
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}2`, {
+                ...DEFAULT_SPLIT_TRANSACTION,
+                filename: 'receipt2.jpg',
+                iouRequestType: 'scan',
+                receipt: {source: 'path/to/receipt2.jpg', type: ''},
+                transactionID: '2',
+            });
         });
 
         render(

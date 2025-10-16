@@ -1,3 +1,4 @@
+import {isActingAsDelegateSelector} from '@selectors/Account';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -19,6 +20,7 @@ import CardInstructionsStep from './CardInstructionsStep';
 import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
 import DetailsStep from './DetailsStep';
+import DirectStatementCloseDateStep from './DirectStatementCloseDatePage';
 import PlaidConnectionStep from './PlaidConnectionStep';
 import SelectBankStep from './SelectBankStep';
 import SelectCountryStep from './SelectCountryStep';
@@ -33,7 +35,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const {currentStep} = addNewCardFeed ?? {};
     const {isBetaEnabled} = usePermissions();
 
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: false});
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: false});
 
     const isAddCardFeedLoading = isLoadingOnyxValue(addNewCardFeedMetadata);
 
@@ -100,6 +102,9 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             break;
         case CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE:
             CurrentStep = <StatementCloseDateStep policyID={policyID} />;
+            break;
+        case CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE:
+            CurrentStep = <DirectStatementCloseDateStep policyID={policyID} />;
             break;
         default:
             CurrentStep = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? <SelectCountryStep policyID={policyID} /> : <SelectBankStep />;

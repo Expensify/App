@@ -109,6 +109,7 @@ function ActivatePhysicalCardPage({
             scrollViewContainerStyles={[styles.mnh100]}
             childrenContainerStyles={[styles.flex1]}
             testID={ActivatePhysicalCardPage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
         >
             <Text style={[styles.mh5, styles.textHeadline]}>{translate('activateCardPage.pleaseEnterLastFour')}</Text>
             <View style={[styles.mh5, styles.mt5]}>
