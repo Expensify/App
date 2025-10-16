@@ -1,5 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {isPolicyAdmin as isPolicyAdminPolicyUtils} from '@libs/PolicyUtils';
@@ -8,7 +9,6 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import RenderHTML from './RenderHTML';
-import useEnvironment from '@hooks/useEnvironment';
 
 type BrokenConnectionDescriptionProps = {
     /** Transaction id of the corresponding report */
@@ -24,7 +24,7 @@ type BrokenConnectionDescriptionProps = {
 function BrokenConnectionDescription({transactionID, policy, report}: BrokenConnectionDescriptionProps) {
     const {translate} = useLocalize();
     const transactionViolations = useTransactionViolations(transactionID);
-    const {environmentURL} = useEnvironment()
+    const {environmentURL} = useEnvironment();
 
     const brokenConnection530Error = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530);
     const brokenConnectionError = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);
