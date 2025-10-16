@@ -449,9 +449,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             chatIOUReport,
                             duplicateTransactions,
                             duplicateTransactionViolations,
-                            true,
                             isParentReportArchived,
                             isChatIOUReportArchived,
+                            true,
                         );
                     } else {
                         deleteMoneyRequest(
@@ -461,10 +461,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             duplicateTransactionViolations,
                             iouReport,
                             chatIOUReport,
-                            true,
-                            undefined,
-                            undefined,
                             isChatIOUReportArchived,
+                            true,
                         );
                         removeTransaction(transaction.transactionID);
                     }

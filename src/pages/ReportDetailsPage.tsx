@@ -800,9 +800,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 chatIOUReport,
                 duplicateTransactions,
                 duplicateTransactionViolations,
-                isSingleTransactionView,
                 isMoneyRequestReportArchived,
                 isChatIOUReportArchived,
+                isSingleTransactionView,
             );
         } else {
             deleteMoneyRequest(
@@ -812,10 +812,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 duplicateTransactionViolations,
                 iouReport,
                 chatIOUReport,
-                isSingleTransactionView,
-                undefined,
-                undefined,
                 isChatIOUReportArchived,
+                isSingleTransactionView,
             );
             removeTransaction(iouTransactionID);
         }
@@ -870,8 +868,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     requestParentReportAction,
                     iouReport,
                     chatIOUReport,
-                    isSingleTransactionView,
                     isChatIOUReportArchived,
+                    isSingleTransactionView,
                 );
             } else {
                 urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(

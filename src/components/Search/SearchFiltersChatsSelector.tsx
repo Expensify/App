@@ -12,13 +12,13 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {createOptionFromReport, filterAndOrderOptions, formatSectionsFromSearchTerm, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import {isArchivedReport, type OptionData} from '@libs/ReportUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import Navigation from '@navigation/Navigation';
 import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
-import { ArchivedReportsIDSet } from '@libs/SearchUIUtils';
 
 const defaultListOptions = {
     recentReports: [],
@@ -76,7 +76,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         return selectedReportIDs.map((id) => {
             const report = getSelectedOptionData(createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, reportAttributesDerived));
             const isReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
-            const alternateText = getAlternateText(report, {}, {}, isReportArchived);
+            const alternateText = getAlternateText(report, {}, isReportArchived, {});
             return {...report, alternateText};
         });
     }, [personalDetails, reportAttributesDerived, reports, selectedReportIDs]);

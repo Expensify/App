@@ -614,7 +614,7 @@ function getOptionData({
     card,
     lastAction,
     localeCompare,
-    isReportArchived = false,
+    isReportArchived,
     lastActionReport,
     movedFromReport,
     movedToReport,
@@ -631,7 +631,7 @@ function getOptionData({
     card: Card | undefined;
     lastAction: ReportAction | undefined;
     localeCompare: LocaleContextProps['localeCompare'];
-    isReportArchived?: boolean;
+    isReportArchived: boolean | undefined;
     lastActionReport: OnyxEntry<Report> | undefined;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;

@@ -141,10 +141,10 @@ function useSelectedTransactionsActions({
                 duplicateTransactionViolations,
                 iouReport,
                 chatReport,
+                isChatIOUReportArchived,
                 false,
                 deletedTransactionIDs,
                 selectedTransactionIDs,
-                isChatIOUReportArchived,
             );
             deletedTransactionIDs.push(transactionID);
             if (action.childReportID) {
