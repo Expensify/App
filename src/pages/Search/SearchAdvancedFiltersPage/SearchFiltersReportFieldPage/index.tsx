@@ -35,7 +35,7 @@ function SearchFiltersReportFieldPage() {
             }, {});
 
             const nonFormulaReportFields = Object.entries(allPolicyReportFields)
-                // JACK_TODO: 'formula' was reverted so the const doesnt exist. This should not be a magic string
+                // JACK_TODO: 'formula' was reverted so the const doesn't exist. This should not be a magic string
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 .filter(([_, value]) => value.type !== 'formula')
                 .sort(([aKey], [bKey]) => localeCompare(aKey, bKey));

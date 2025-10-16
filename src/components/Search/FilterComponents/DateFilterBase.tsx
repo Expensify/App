@@ -87,8 +87,6 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
 
         const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
 
-        console.log('dateValues', dateValues);
-
         onSubmit({
             [dateOnKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
             [dateBeforeKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,
