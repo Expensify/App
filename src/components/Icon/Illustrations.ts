@@ -111,6 +111,11 @@ import VirtualCard from '@assets/images/simple-illustrations/simple-illustration
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 import OpenPadlock from '@assets/images/open-padlock.svg';
+import ApprovedTransactionHand from '@assets/images/approved-transaction-hand.svg';
+import DeniedTransactionHand from '@assets/images/denied-transaction-hand.svg';
+import RunningOutOfTime from '@assets/images/running-out-of-time.svg';
+import HumptyDumpty from '@assets/images/humpty-dumpty.svg';
+import SimpleSmartscan from '@assets/images/simple-smartscan.svg';
 
 export {
     Abracadabra,
@@ -226,4 +231,9 @@ export {
     CardReplacementSuccess,
     EmptyShelves,
     OpenPadlock,
+    ApprovedTransactionHand,
+    DeniedTransactionHand,
+    RunningOutOfTime,
+    HumptyDumpty,
+    SimpleSmartscan
 };
