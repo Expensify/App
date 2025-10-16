@@ -895,7 +895,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
         if (areItemsGrouped) {
             const allSelections: Array<[string, SelectedTransactionInfo]> = (data as TransactionGroupListItemType[]).flatMap((item) => {
-                // Handle empty reports - select the report itself
                 if (item.transactions.length === 0 && isTransactionReportGroupListItemType(item) && item.keyForList) {
                     if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                         return [];
@@ -903,10 +902,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     return [mapEmptyReportToSelectedEntry(item)];
                 }
 
-                // Handle regular reports with transactions
                 return item.transactions
                     .filter((t) => !isTransactionPendingDelete(t))
-                    .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID));
+                    .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID, isUserWorkspaceMember));
             });
             setSelectedTransactions(Object.fromEntries(allSelections), data);
             return;
