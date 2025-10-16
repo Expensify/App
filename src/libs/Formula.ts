@@ -402,7 +402,7 @@ function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): stri
 /**
  * Format an amount value
  */
-function formatAmount(amount: number | undefined, currency: string | undefined, format?: string): string {
+function formatAmount(amount: number | undefined, currency: string | undefined, displayCurrency?: string): string {
     if (amount === undefined) {
         return '';
     }
@@ -410,19 +410,19 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
     const absoluteAmount = Math.abs(amount);
 
     try {
-        if (format === 'nosymbol') {
+        if (displayCurrency === 'nosymbol') {
             return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
         }
 
         // Check if format is a valid currency code (e.g., USD, EUR, eur)
-        // For invalid codes, falls back to '0.00' to match backend behavior
-        const normalizedFormat = format?.trim().toUpperCase();
-        if (normalizedFormat) {
-            if (isValidCurrencyCode(normalizedFormat)) {
-                return convertToDisplayString(absoluteAmount, normalizedFormat);
+        const currencyCode = displayCurrency?.trim().toUpperCase();
+        if (currencyCode) {
+            if (isValidCurrencyCode(currencyCode)) {
+                return convertToDisplayString(absoluteAmount, currencyCode);
             }
 
-            return '0.00';
+            // For invalid codes, falls back to '0.00' to match backend behavior
+            return convertToDisplayStringWithoutCurrency(0);
         }
 
         if (currency && isValidCurrencyCode(currency)) {
