@@ -626,7 +626,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     canSelectMultiple?: boolean;
 
     /** Callback to fire when a row is pressed */
-    onSelectRow: (item: TItem) => void;
+    onSelectRow?: (item: TItem) => void;
 
     /** Whether to single execution `onRowSelect` - workaround for unintentional multiple navigation calls https://github.com/Expensify/App/issues/44443 */
     shouldSingleExecuteRowSelect?: boolean;

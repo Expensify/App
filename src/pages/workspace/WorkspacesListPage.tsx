@@ -417,7 +417,7 @@ function WorkspacesListPage() {
                 <PressableWithoutFeedback
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel="row"
-                    style={[styles.mh5]}
+                    style={styles.mh5}
                     onPress={item.action}
                     disabled={item.disabled}
                 >
@@ -540,47 +540,50 @@ function WorkspacesListPage() {
         }
     }, [duplicateWorkspace, isFocused, filteredWorkspaces]);
 
-    const getListHeaderComponent = () => (
-        <>
-            {isLessThanMediumScreen && <View style={styles.mt3} />}
-            {workspaces.length > CONST.SEARCH_ITEM_LIMIT && (
-                <SearchBar
-                    label={translate('workspace.common.findWorkspace')}
-                    inputValue={inputValue}
-                    onChangeText={setInputValue}
-                    shouldShowEmptyState={filteredWorkspaces.length === 0 && inputValue.length > 0}
-                />
-            )}
-            {!isLessThanMediumScreen && filteredWorkspaces.length > 0 && (
-                <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.pr5, styles.pl10, styles.appBG]}>
-                    <View style={[styles.flexRow, styles.flex2]}>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.flexGrow1, styles.textLabelSupporting]}
-                        >
-                            {translate('workspace.common.workspaceName')}
-                        </Text>
+    const getListHeaderComponent = useCallback(
+        () => (
+            <>
+                {isLessThanMediumScreen && <View style={styles.mt3} />}
+                {workspaces.length > CONST.SEARCH_ITEM_LIMIT && (
+                    <SearchBar
+                        label={translate('workspace.common.findWorkspace')}
+                        inputValue={inputValue}
+                        onChangeText={setInputValue}
+                        shouldShowEmptyState={filteredWorkspaces.length === 0 && inputValue.length > 0}
+                    />
+                )}
+                {!isLessThanMediumScreen && filteredWorkspaces.length > 0 && (
+                    <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.pr5, styles.pl10, styles.appBG]}>
+                        <View style={[styles.flexRow, styles.flex2]}>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.flexGrow1, styles.textLabelSupporting]}
+                            >
+                                {translate('workspace.common.workspaceName')}
+                            </Text>
+                        </View>
+                        <View style={[styles.flexRow, styles.flex1, styles.workspaceOwnerSectionTitle, styles.workspaceOwnerSectionMinWidth]}>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.flexGrow1, styles.textLabelSupporting]}
+                            >
+                                {translate('workspace.common.workspaceOwner')}
+                            </Text>
+                        </View>
+                        <View style={[styles.flexRow, styles.flex1, styles.workspaceTypeSectionTitle]}>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.flexGrow1, styles.textLabelSupporting]}
+                            >
+                                {translate('workspace.common.workspaceType')}
+                            </Text>
+                        </View>
+                        <View style={[styles.workspaceRightColumn, styles.mr7]} />
                     </View>
-                    <View style={[styles.flexRow, styles.flex1, styles.workspaceOwnerSectionTitle, styles.workspaceOwnerSectionMinWidth]}>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.flexGrow1, styles.textLabelSupporting]}
-                        >
-                            {translate('workspace.common.workspaceOwner')}
-                        </Text>
-                    </View>
-                    <View style={[styles.flexRow, styles.flex1, styles.workspaceTypeSectionTitle]}>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.flexGrow1, styles.textLabelSupporting]}
-                        >
-                            {translate('workspace.common.workspaceType')}
-                        </Text>
-                    </View>
-                    <View style={[styles.workspaceRightColumn, styles.mr7]} />
-                </View>
-            )}
-        </>
+                )}
+            </>
+        ),
+        [filteredWorkspaces.length, inputValue, isLessThanMediumScreen, setInputValue, styles, translate, workspaces.length],
     );
 
     const getHeaderButton = () =>
@@ -590,29 +593,32 @@ function WorkspacesListPage() {
                 text={translate('workspace.new.newWorkspace')}
                 onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
                 icon={Expensicons.Plus}
-                style={[shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]]}
+                style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
             />
         ) : null;
 
-    const getWorkspacesEmptyStateComponent = () => (
-        <EmptyStateComponent
-            SkeletonComponent={WorkspaceRowSkeleton}
-            headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-            headerMedia={LottieAnimations.WorkspacePlanet}
-            title={translate('workspace.emptyWorkspace.title')}
-            subtitle={translate('workspace.emptyWorkspace.subtitle')}
-            titleStyles={styles.pt2}
-            headerStyles={[styles.overflowHidden, StyleUtils.getBackgroundColorStyle(colors.pink800), StyleUtils.getHeight(variables.sectionIllustrationHeight)]}
-            lottieWebViewStyles={styles.emptyWorkspaceListIllustrationStyle}
-            headerContentStyles={styles.emptyWorkspaceListIllustrationStyle}
-            buttons={[
-                {
-                    success: true,
-                    buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route))),
-                    buttonText: translate('workspace.new.newWorkspace'),
-                },
-            ]}
-        />
+    const getWorkspacesEmptyStateComponent = useCallback(
+        () => (
+            <EmptyStateComponent
+                SkeletonComponent={WorkspaceRowSkeleton}
+                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                headerMedia={LottieAnimations.WorkspacePlanet}
+                title={translate('workspace.emptyWorkspace.title')}
+                subtitle={translate('workspace.emptyWorkspace.subtitle')}
+                titleStyles={styles.pt2}
+                headerStyles={[styles.overflowHidden, StyleUtils.getBackgroundColorStyle(colors.pink800), StyleUtils.getHeight(variables.sectionIllustrationHeight)]}
+                lottieWebViewStyles={styles.emptyWorkspaceListIllustrationStyle}
+                headerContentStyles={styles.emptyWorkspaceListIllustrationStyle}
+                buttons={[
+                    {
+                        success: true,
+                        buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route))),
+                        buttonText: translate('workspace.new.newWorkspace'),
+                    },
+                ]}
+            />
+        ),
+        [StyleUtils, styles, translate],
     );
 
     const onBackButtonPress = () => {
@@ -639,7 +645,7 @@ function WorkspacesListPage() {
                     renderItem: getDomainMenuItem,
                 },
             ] as Array<SectionListDataType<WorkspaceItem | DomainItem>>,
-        [domains, filteredWorkspaces, getDomainMenuItem, getListHeaderComponent, getWorkspaceMenuItem, translate],
+        [domains, filteredWorkspaces, getDomainMenuItem, getListHeaderComponent, getWorkspaceMenuItem, getWorkspacesEmptyStateComponent, translate, workspaces.length],
     );
 
     if (workspaces.length === 0 && domains.length === 0) {
@@ -682,7 +688,6 @@ function WorkspacesListPage() {
                     ref={listRef}
                     sections={sections}
                     sectionTitleStyles={[styles.ph5, styles.pb5, styles.mt0, styles.mb0, styles.pt3]}
-                    onSelectRow={() => {}}
                     ListItem={RadioListItem}
                 />
             </View>

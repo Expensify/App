@@ -50,7 +50,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     ListItem,
     shouldUseUserSkeletonView,
     canSelectMultiple = false,
-    onSelectRow,
+    onSelectRow = () => {},
     shouldSingleExecuteRowSelect = false,
     onCheckboxPress,
     onSelectAll,
