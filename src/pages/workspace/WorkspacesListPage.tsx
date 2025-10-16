@@ -541,59 +541,78 @@ function WorkspacesListPage() {
         }
     }, [duplicateWorkspace, isFocused, filteredWorkspaces]);
 
-    const getListHeaderComponent = useCallback(
-        () => (
-            <>
-                {isLessThanMediumScreen && <View style={styles.mt3} />}
-                {workspaces.length > CONST.SEARCH_ITEM_LIMIT && (
-                    <SearchBar
-                        label={translate('workspace.common.findWorkspace')}
-                        inputValue={inputValue}
-                        onChangeText={setInputValue}
-                        shouldShowEmptyState={filteredWorkspaces.length === 0 && inputValue.length > 0}
-                    />
-                )}
-                {!isLessThanMediumScreen && filteredWorkspaces.length > 0 && (
-                    <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.pr5, styles.pl10, styles.appBG]}>
-                        <View style={[styles.flexRow, styles.flex2]}>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.flexGrow1, styles.textLabelSupporting]}
-                            >
-                                {translate('workspace.common.workspaceName')}
-                            </Text>
-                        </View>
-                        <View style={[styles.flexRow, styles.flex1, styles.workspaceOwnerSectionTitle, styles.workspaceOwnerSectionMinWidth]}>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.flexGrow1, styles.textLabelSupporting]}
-                            >
-                                {translate('workspace.common.workspaceOwner')}
-                            </Text>
-                        </View>
-                        <View style={[styles.flexRow, styles.flex1, styles.workspaceTypeSectionTitle]}>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.flexGrow1, styles.textLabelSupporting]}
-                            >
-                                {translate('workspace.common.workspaceType')}
-                            </Text>
-                        </View>
-                        <View style={[styles.workspaceRightColumn, styles.mr7]} />
+    const getListHeaderComponent = () => (
+        <>
+            {isLessThanMediumScreen && <View style={styles.mt3} />}
+            {workspaces.length > CONST.SEARCH_ITEM_LIMIT && (
+                <SearchBar
+                    label={translate('workspace.common.findWorkspace')}
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={filteredWorkspaces.length === 0 && inputValue.length > 0}
+                />
+            )}
+            {!isLessThanMediumScreen && filteredWorkspaces.length > 0 && (
+                <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.pr5, styles.pl10, styles.appBG]}>
+                    <View style={[styles.flexRow, styles.flex2]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.flexGrow1, styles.textLabelSupporting]}
+                        >
+                            {translate('workspace.common.workspaceName')}
+                        </Text>
                     </View>
-                )}
-            </>
-        ),
-        [filteredWorkspaces, inputValue, isLessThanMediumScreen, setInputValue, styles, translate, workspaces],
+                    <View style={[styles.flexRow, styles.flex1, styles.workspaceOwnerSectionTitle, styles.workspaceOwnerSectionMinWidth]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.flexGrow1, styles.textLabelSupporting]}
+                        >
+                            {translate('workspace.common.workspaceOwner')}
+                        </Text>
+                    </View>
+                    <View style={[styles.flexRow, styles.flex1, styles.workspaceTypeSectionTitle]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.flexGrow1, styles.textLabelSupporting]}
+                        >
+                            {translate('workspace.common.workspaceType')}
+                        </Text>
+                    </View>
+                    <View style={[styles.workspaceRightColumn, styles.mr7]} />
+                </View>
+            )}
+        </>
     );
 
-    const getHeaderButton = () => (
-        <Button
-            accessibilityLabel={translate('workspace.new.newWorkspace')}
-            text={translate('workspace.new.newWorkspace')}
-            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
-            icon={Expensicons.Plus}
-            style={[shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]]}
+    const getHeaderButton = () =>
+        workspaces.length > 0 ? (
+            <Button
+                accessibilityLabel={translate('workspace.new.newWorkspace')}
+                text={translate('workspace.new.newWorkspace')}
+                onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
+                icon={Expensicons.Plus}
+                style={[shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]]}
+            />
+        ) : null;
+
+    const getWorkspacesEmptyStateComponent = () => (
+        <EmptyStateComponent
+            SkeletonComponent={WorkspaceRowSkeleton}
+            headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+            headerMedia={LottieAnimations.WorkspacePlanet}
+            title={translate('workspace.emptyWorkspace.title')}
+            subtitle={translate('workspace.emptyWorkspace.subtitle')}
+            titleStyles={styles.pt2}
+            headerStyles={[styles.overflowHidden, StyleUtils.getBackgroundColorStyle(colors.pink800), StyleUtils.getHeight(variables.sectionIllustrationHeight)]}
+            lottieWebViewStyles={styles.emptyWorkspaceListIllustrationStyle}
+            headerContentStyles={styles.emptyWorkspaceListIllustrationStyle}
+            buttons={[
+                {
+                    success: true,
+                    buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route))),
+                    buttonText: translate('workspace.new.newWorkspace'),
+                },
+            ]}
         />
     );
 
@@ -607,7 +626,14 @@ function WorkspacesListPage() {
     const sections = useMemo(
         () =>
             [
+                // workspaces empty state
+                {
+                    data: workspaces.length === 0 ? [{}] : [],
+                    renderItem: getWorkspacesEmptyStateComponent,
+                },
+                // workspaces
                 {data: filteredWorkspaces, renderItem: getWorkspaceMenuItem, CustomSectionHeader: getListHeaderComponent},
+                // domains
                 {
                     data: domains,
                     title: translate('common.domains'),
@@ -617,7 +643,7 @@ function WorkspacesListPage() {
         [domains, filteredWorkspaces, getDomainMenuItem, getListHeaderComponent, getWorkspaceMenuItem, translate],
     );
 
-    if (isEmptyObject(workspaces) && isEmptyObject(domains)) {
+    if (workspaces.length === 0 && domains.length === 0) {
         return (
             <ScreenWrapper
                 shouldEnablePickerAvoiding={false}
@@ -635,26 +661,7 @@ function WorkspacesListPage() {
                         <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                     </View>
                 ) : (
-                    <ScrollView contentContainerStyle={[styles.pt2, styles.flexGrow1, styles.flexShrink0]}>
-                        <EmptyStateComponent
-                            SkeletonComponent={WorkspaceRowSkeleton}
-                            headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                            headerMedia={LottieAnimations.WorkspacePlanet}
-                            title={translate('workspace.emptyWorkspace.title')}
-                            subtitle={translate('workspace.emptyWorkspace.subtitle')}
-                            titleStyles={styles.pt2}
-                            headerStyles={[styles.overflowHidden, StyleUtils.getBackgroundColorStyle(colors.pink800), StyleUtils.getHeight(variables.sectionIllustrationHeight)]}
-                            lottieWebViewStyles={styles.emptyWorkspaceListIllustrationStyle}
-                            headerContentStyles={styles.emptyWorkspaceListIllustrationStyle}
-                            buttons={[
-                                {
-                                    success: true,
-                                    buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route))),
-                                    buttonText: translate('workspace.new.newWorkspace'),
-                                },
-                            ]}
-                        />
-                    </ScrollView>
+                    <ScrollView contentContainerStyle={[styles.pt2, styles.flexGrow1, styles.flexShrink0]}>{getWorkspacesEmptyStateComponent()}</ScrollView>
                 )}
                 {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
             </ScreenWrapper>
@@ -671,11 +678,10 @@ function WorkspacesListPage() {
         >
             <View style={styles.flex1}>
                 <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
-                {shouldUseNarrowLayout && <View style={[styles.ph5]}>{getHeaderButton()}</View>}
+                {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>}
                 <SelectionList
                     ref={listRef}
                     sections={sections}
-                    shouldShowListEmptyContent
                     sectionTitleStyles={[styles.ph5, styles.pb5, styles.mt0, styles.mb0, styles.pt3]}
                     onSelectRow={() => {}}
                     ListItem={RadioListItem}
