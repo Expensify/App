@@ -398,12 +398,12 @@ function getFilterDisplayTitle(
 
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX)) {
                 const dateString = translate('search.filters.date.after', {date: fieldValue as string}).toLowerCase();
-                values.push(`${fieldName} ${dateString}`);
+                values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
             }
 
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX)) {
                 const dateString = translate('search.filters.date.before', {date: fieldValue as string}).toLowerCase();
-                values.push(`${fieldName} ${dateString}`);
+                values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
             }
 
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {
