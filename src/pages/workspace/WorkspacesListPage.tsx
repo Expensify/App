@@ -529,7 +529,7 @@ function WorkspacesListPage() {
     const getHeaderButton = () => {
         if (isRestrictedToPreferredPolicy) {
             return null;
-        };
+        }
         return (
             <Button
                 accessibilityLabel={translate('workspace.new.newWorkspace')}
