@@ -108,6 +108,13 @@ function AddressForm({
                 errors[fieldKey] = translate('common.error.fieldRequired');
             });
 
+            if (values.addressLine1.length > CONST.FORM_CHARACTER_LIMIT) {
+                errors.addressLine1 = translate('common.error.characterLimitExceedCounter', {
+                    length: values.addressLine1.length,
+                    limit: CONST.FORM_CHARACTER_LIMIT,
+                });
+            }
+
             if (values.addressLine2.length > CONST.FORM_CHARACTER_LIMIT) {
                 errors.addressLine2 = translate('common.error.characterLimitExceedCounter', {
                     length: values.addressLine2.length,
@@ -180,7 +187,6 @@ function AddressForm({
                         zipCode: INPUT_IDS.ZIP_POST_CODE,
                         country: INPUT_IDS.COUNTRY as Country,
                     }}
-                    maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                     shouldSaveDraft={shouldSaveDraft}
                 />
             </View>
