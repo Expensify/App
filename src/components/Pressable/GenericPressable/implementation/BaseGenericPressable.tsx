@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 
 function GenericPressable({
     children,
-    onPress = () => {},
+    onPress,
     onLongPress,
     onKeyDown,
     disabled,
@@ -75,11 +75,16 @@ function GenericPressable({
         if (shouldUseDisabledCursor) {
             return styles.cursorDisabled;
         }
+
+        if (onPress) {
+            return styles.cursorPointer;
+        }
+
         if ([rest.accessibilityRole, rest.role].includes(CONST.ROLE.PRESENTATION) && !isNested) {
             return styles.cursorText;
         }
         return styles.cursorPointer;
-    }, [interactive, shouldUseDisabledCursor, rest.accessibilityRole, rest.role, isNested, styles.cursorPointer, styles.cursorDefault, styles.cursorDisabled, styles.cursorText]);
+    }, [onPress, interactive, shouldUseDisabledCursor, rest.accessibilityRole, rest.role, isNested, styles.cursorPointer, styles.cursorDefault, styles.cursorDisabled, styles.cursorText]);
 
     const onLongPressHandler = useCallback(
         (event: GestureResponderEvent) => {

@@ -6,13 +6,13 @@ import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndB
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -44,6 +44,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
+    const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Accounting', 'CompanyCard', 'Workflows', 'InvoiceBlue', 'Rules', 'Car', 'Tag', 'PerDiem', 'HandCard'] as const);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -71,71 +72,71 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             {
                 id: FEATURE_IDS.CATEGORIES,
                 title: translate('workspace.moreFeatures.categories.title'),
-                icon: Illustrations.FolderOpen,
+                icon: illustrations.FolderOpen,
                 enabledByDefault: true,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES,
             },
             {
                 id: FEATURE_IDS.ACCOUNTING,
                 title: translate('workspace.moreFeatures.connections.title'),
-                icon: Illustrations.Accounting,
+                icon: illustrations.Accounting,
                 enabledByDefault: !!userReportedIntegration,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
             },
             {
                 id: FEATURE_IDS.COMPANY_CARDS,
                 title: translate('workspace.moreFeatures.companyCards.title'),
-                icon: Illustrations.CompanyCard,
+                icon: illustrations.CompanyCard,
                 enabledByDefault: true,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
             },
             {
                 id: FEATURE_IDS.WORKFLOWS,
                 title: translate('workspace.moreFeatures.workflows.title'),
-                icon: Illustrations.Workflows,
+                icon: illustrations.Workflows,
                 enabledByDefault: true,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS,
             },
             {
                 id: FEATURE_IDS.INVOICES,
                 title: translate('workspace.moreFeatures.invoices.title'),
-                icon: Illustrations.InvoiceBlue,
+                icon: illustrations.InvoiceBlue,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
             },
             {
                 id: FEATURE_IDS.RULES,
                 title: translate('workspace.moreFeatures.rules.title'),
-                icon: Illustrations.Rules,
+                icon: illustrations.Rules,
                 apiEndpoint: WRITE_COMMANDS.SET_POLICY_RULES_ENABLED,
                 requiresUpdate: true,
             },
             {
                 id: FEATURE_IDS.DISTANCE_RATES,
                 title: translate('workspace.moreFeatures.distanceRates.title'),
-                icon: Illustrations.Car,
+                icon: illustrations.Car,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES,
             },
             {
                 id: FEATURE_IDS.EXPENSIFY_CARD,
                 title: translate('workspace.moreFeatures.expensifyCard.title'),
-                icon: Illustrations.HandCard,
+                icon: illustrations.HandCard,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS,
             },
             {
                 id: FEATURE_IDS.TAGS,
                 title: translate('workspace.moreFeatures.tags.title'),
-                icon: Illustrations.Tag,
+                icon: illustrations.Tag,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_TAGS,
             },
             {
                 id: FEATURE_IDS.PER_DIEM,
                 title: translate('workspace.moreFeatures.perDiem.title'),
-                icon: Illustrations.PerDiem,
+                icon: illustrations.PerDiem,
                 apiEndpoint: WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM,
                 requiresUpdate: true,
             },
         ];
-    }, [translate, userReportedIntegration]);
+    }, [illustrations, translate, userReportedIntegration]);
 
     const [selectedFeatures, setSelectedFeatures] = useState<string[]>(() => features.filter((feature) => feature.enabledByDefault).map((feature) => feature.id));
 
@@ -222,6 +223,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         }
 
         // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID();
@@ -257,14 +259,14 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
 
     // Create items for enabled features
     const enabledFeatures: Feature[] = features
-        .filter((feature) => feature.enabledByDefault)
+        .filter((feature) => !!feature.enabledByDefault || feature.id === FEATURE_IDS.ACCOUNTING)
         .map((feature) => ({
             ...feature,
         }));
 
     // Create items for features they may be interested in
     const mayBeInterestedFeatures: Feature[] = features
-        .filter((feature) => !feature.enabledByDefault)
+        .filter((feature) => !feature.enabledByDefault && feature.id !== FEATURE_IDS.ACCOUNTING)
         .map((feature) => ({
             ...feature,
         }));

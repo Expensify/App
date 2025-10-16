@@ -69,7 +69,7 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
 
     const skippedSteps = getSkippedSteps(skipAccountTypeStep, skipAccountHolderInformationStep);
 
-    const topmostFullScreenRoute = useRootNavigationState((state) => state.routes.findLast((route) => isFullScreenName(route.name)));
+    const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((route) => isFullScreenName(route.name)));
 
     const goBack = useCallback(() => {
         switch (topmostFullScreenRoute?.name) {
@@ -142,6 +142,7 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
             shouldEnableMaxHeight
             testID={InternationalDepositAccountContent.displayName}
             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+            shouldShowOfflineIndicatorInWideScreen={screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION}
         >
             <HeaderWithBackButton
                 title={translate('bankAccount.addBankAccount')}

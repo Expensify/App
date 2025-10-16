@@ -32,16 +32,13 @@ import {
 } from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import throttle from 'lodash/throttle';
-import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
 import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {setCurrentDate} from './actions/CurrentDate';
-import {setNetworkLastOffline} from './actions/Network';
 import {translate, translateLocal} from './Localize';
 import Log from './Log';
 import memoize from './memoize';
@@ -50,24 +47,6 @@ type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
 type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 const TIMEZONE_UPDATE_THROTTLE_MINUTES = 5;
-let networkTimeSkew = 0;
-let isOffline: boolean | undefined;
-
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    callback: (val) => {
-        networkTimeSkew = val?.timeSkew ?? 0;
-        if (!val?.lastOfflineAt) {
-            setNetworkLastOffline(new Date().toISOString());
-        }
-
-        const newIsOffline = val?.isOffline ?? val?.shouldForceOffline;
-        if (newIsOffline && isOffline === false) {
-            setNetworkLastOffline(new Date().toISOString());
-        }
-        isOffline = newIsOffline;
-    },
-});
 
 function isDate(arg: unknown): arg is Date {
     return Object.prototype.toString.call(arg) === '[object Date]';
@@ -366,17 +345,6 @@ function getDBTimeFromDate(date: Date): string {
 function getDBTime(timestamp: string | number = ''): string {
     const datetime = timestamp ? new Date(timestamp) : new Date();
     return getDBTimeFromDate(datetime);
-}
-
-/**
- * Returns the current time plus skew in milliseconds in the format expected by the database
- */
-function getDBTimeWithSkew(timestamp: string | number = ''): string {
-    if (networkTimeSkew > 0) {
-        const datetime = timestamp ? new Date(timestamp) : new Date();
-        return getDBTime(datetime.valueOf() + networkTimeSkew);
-    }
-    return getDBTime(timestamp);
 }
 
 function subtractMillisecondsFromDateTime(dateTime: string, milliseconds: number): string {
@@ -943,7 +911,6 @@ const DateUtils = {
     setTimezoneUpdated,
     getMicroseconds,
     getDBTime,
-    getDBTimeWithSkew,
     subtractMillisecondsFromDateTime,
     addMillisecondsFromDateTime,
     getEndOfToday,

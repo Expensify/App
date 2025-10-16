@@ -1,33 +1,38 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionList/SearchTableHeader';
-import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
+import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
+import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {openSearch} from '@libs/actions/Search';
+import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
+import type {TransactionPreviewData} from '@libs/actions/Search';
 import Timing from '@libs/actions/Timing';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
-import {canEditFieldOfMoneyRequest, isArchivedReport} from '@libs/ReportUtils';
+import {getPolicyRole, isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils} from '@libs/PolicyUtils';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {canEditFieldOfMoneyRequest, selectArchivedReportsIdSet, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -49,8 +54,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import type {ArchivedReportsIDSet, SearchKey} from '@libs/SearchUIUtils';
-import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {isOnHold, isTransactionPendingDelete, shouldShowViolation} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -59,8 +63,12 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {OutstandingReportsByPolicyIDDerivedValue, ReportAction, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, ReportAction} from '@src/types/onyx';
+import type Policy from '@src/types/onyx/Policy';
+import type Report from '@src/types/onyx/Report';
 import type SearchResults from '@src/types/onyx/SearchResults';
+import type {SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import {useSearchContext} from './SearchContext';
@@ -74,6 +82,7 @@ type SearchProps = {
     contentContainerStyle?: StyleProp<ViewStyle>;
     searchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
+    onSortPressedCallback?: () => void;
     isMobileSelectionModeEnabled: boolean;
 };
 
@@ -83,6 +92,7 @@ function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
     reportActions: ReportAction[],
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+    canMoveExpense = true,
 ): [string, SelectedTransactionInfo] {
     return [
         item.keyForList,
@@ -98,13 +108,16 @@ function mapTransactionItemToSelectedEntry(
                 undefined,
                 undefined,
                 outstandingReportsByPolicyID,
+                canMoveExpense,
             ),
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
             amount: item.modifiedAmount ?? item.amount,
             convertedAmount: item.convertedAmount,
+            isFromOneTransactionReport: item.isFromOneTransactionReport,
             convertedCurrency: item.convertedCurrency,
+            currency: item.currency,
         },
     ];
 }
@@ -156,6 +169,7 @@ function prepareTransactionsList(
     selectedTransactions: SelectedTransactions,
     reportActions: ReportAction[],
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+    canMoveExpense = true,
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
@@ -177,6 +191,7 @@ function prepareTransactionsList(
                 undefined,
                 undefined,
                 outstandingReportsByPolicyID,
+                canMoveExpense,
             ),
             action: item.action,
             reportID: item.reportID,
@@ -184,38 +199,18 @@ function prepareTransactionsList(
             amount: Math.abs(item.modifiedAmount || item.amount),
             convertedAmount: item.convertedAmount,
             convertedCurrency: item.convertedCurrency,
+            currency: item.currency,
+            isFromOneTransactionReport: item.isFromOneTransactionReport,
         },
     };
 }
 
-const archivedReportsSelector = (all: OnyxCollection<ReportNameValuePairs>): ArchivedReportsIDSet => {
-    const ids = new Set<string>();
-    if (!all) {
-        return ids;
-    }
-
-    const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
-    for (const [key, value] of Object.entries(all)) {
-        if (isArchivedReport(value)) {
-            const reportID = key.slice(prefixLength);
-            ids.add(reportID);
-        }
-    }
-    return ids;
+const activePaidPoliciesSelector = (allPolicies: OnyxCollection<Policy>): OnyxCollection<Policy> => {
+    return Object.fromEntries(Object.entries(allPolicies ?? {}).filter(([, userPolicy]) => isPaidGroupPolicyPolicyUtils(userPolicy)));
 };
 
-const exportReportActionsSelector = (allReportActions: OnyxCollection<ReportActions>) => {
-    return Object.fromEntries(
-        Object.entries(allReportActions ?? {}).map(([reportID, reportActionsGroup]) => {
-            const filteredReportActions = Object.values(reportActionsGroup ?? {}).filter(
-                (action) => isExportIntegrationAction(action as ReportAction) || isIntegrationMessageAction(action as ReportAction),
-            );
-            return [reportID, filteredReportActions];
-        }),
-    );
-};
-
-function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch, isMobileSelectionModeEnabled}: SearchProps) {
+function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch, isMobileSelectionModeEnabled, onSortPressedCallback}: SearchProps) {
+    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -224,6 +219,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
+    const {markReportIDAsExpense} = useContext(WideRHPContext);
     const {
         setCurrentSearchHashAndKey,
         setCurrentSearchQueryJSON,
@@ -244,63 +240,71 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
+    const [activePaidPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: activePaidPoliciesSelector,
+        canBeMissing: true,
+    });
+
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const isUserWorkspaceMember = !!Object.values(activePaidPolicies ?? {}).filter((userPolicy) => getPolicyRole(userPolicy, currentUserLogin)).length;
+
+    // Filter violations based on user visibility
+    const filteredViolations = useMemo(() => {
+        if (!violations || !searchResults?.data) {
+            return violations;
+        }
+
+        const filtered: Record<string, TransactionViolation[]> = {};
+
+        const transactionKeys = Object.keys(searchResults.data).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
+
+        for (const key of transactionKeys) {
+            const transaction = searchResults.data[key as keyof typeof searchResults.data] as SearchTransaction;
+            if (!transaction || typeof transaction !== 'object' || !('transactionID' in transaction) || !('reportID' in transaction)) {
+                continue;
+            }
+
+            const report = searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+            const policy = searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+
+            if (report && policy) {
+                const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+                if (transactionViolations) {
+                    const filteredTransactionViolations = transactionViolations.filter((violation) =>
+                        shouldShowViolation(report as OnyxEntry<Report>, policy as OnyxEntry<Policy>, violation.name),
+                    );
+
+                    if (filteredTransactionViolations.length > 0) {
+                        filtered[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = filteredTransactionViolations;
+                    }
+                }
+            }
+        }
+
+        return filtered;
+    }, [violations, searchResults]);
+
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
-        selector: archivedReportsSelector,
+        selector: selectArchivedReportsIdSet,
     });
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
         canBeMissing: true,
-        selector: exportReportActionsSelector,
+        selector: selectFilteredReportActions,
     });
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
 
-    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
-
     const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
-    const shouldCalculateTotals = useMemo(() => {
-        if (offset !== 0) {
-            return false;
-        }
 
-        const savedSearchValues = Object.values(savedSearches ?? {});
-
-        if (!savedSearchValues.length && !searchKey) {
-            return false;
-        }
-
-        const eligibleSearchKeys: Partial<SearchKey[]> = [
-            CONST.SEARCH.SEARCH_KEYS.SUBMIT,
-            CONST.SEARCH.SEARCH_KEYS.APPROVE,
-            CONST.SEARCH.SEARCH_KEYS.PAY,
-            CONST.SEARCH.SEARCH_KEYS.EXPORT,
-            CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
-            CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
-            CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
-            CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
-        ];
-
-        if (eligibleSearchKeys.includes(searchKey)) {
-            return true;
-        }
-
-        for (const savedSearch of savedSearchValues) {
-            const searchData = buildSearchQueryJSON(savedSearch.query);
-            if (searchData && searchData.similarSearchHash === similarSearchHash) {
-                return true;
-            }
-        }
-
-        return false;
-    }, [offset, savedSearches, searchKey, similarSearchHash]);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, similarSearchHash, offset === 0);
 
     const previousReportActions = usePrevious(reportActions);
     const reportActionsArray = useMemo(
@@ -328,7 +332,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
+    const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, groupBy);
 
     useEffect(() => {
         if (!isFocused) {
@@ -365,20 +369,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [isSmallScreenWidth, selectedTransactions, isMobileSelectionModeEnabled]);
 
     useEffect(() => {
-        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
-        const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
-
-        if ((!isFocused && !isMigratedModalDisplayed) || isOffline) {
-            return;
-        }
-
-        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals});
-        // We don't need to run the effect on change of isFocused.
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals]);
-
-    useEffect(() => {
         openSearch();
     }, []);
 
@@ -402,25 +392,41 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
-    const data = useMemo(() => {
+    const [data, dataLength] = useMemo(() => {
         if (searchResults === undefined || !isDataLoaded) {
-            return [];
+            return [[], 0];
         }
 
         // Group-by option cannot be used for chats or tasks
         const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
         const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
         if (groupBy && (isChat || isTask)) {
-            return [];
+            return [[], 0];
         }
 
-        return getSections(type, searchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
+        const data1 = getSections(type, searchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
+        return [data1, data1.length];
     }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
         setShouldShowFiltersBarLoading(shouldShowLoadingState && lastSearchType !== type);
     }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
+
+    useEffect(() => {
+        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
+        const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
+
+        if ((!isFocused && !isMigratedModalDisplayed) || isOffline) {
+            return;
+        }
+
+        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: dataLength});
+
+        // We don't need to run the effect on change of isFocused.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals]);
 
     // When new data load, selectedTransactions is updated in next effect. We use this flag to whether selection is updated
     const isRefreshingSelection = useRef(false);
@@ -454,6 +460,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                             undefined,
                             undefined,
                             outstandingReportsByPolicyID,
+                            isUserWorkspaceMember,
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
@@ -463,6 +470,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         amount: transaction.modifiedAmount ?? transaction.amount,
                         convertedAmount: transaction.convertedAmount,
                         convertedCurrency: transaction.convertedCurrency,
+                        currency: transaction.currency,
                     };
                 });
             });
@@ -485,6 +493,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         undefined,
                         undefined,
                         outstandingReportsByPolicyID,
+                        isUserWorkspaceMember,
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
@@ -494,6 +503,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     amount: transaction.modifiedAmount ?? transaction.amount,
                     convertedAmount: transaction.convertedAmount,
                     convertedCurrency: transaction.convertedCurrency,
+                    currency: transaction.currency,
                 };
             });
         }
@@ -505,7 +515,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
         isRefreshingSelection.current = true;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [data, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID]);
+    }, [data, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isUserWorkspaceMember]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
@@ -565,7 +575,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 if (isTransactionPendingDelete(item)) {
                     return;
                 }
-                setSelectedTransactions(prepareTransactionsList(item, selectedTransactions, reportActionsArray, outstandingReportsByPolicyID), data);
+                setSelectedTransactions(prepareTransactionsList(item, selectedTransactions, reportActionsArray, outstandingReportsByPolicyID, isUserWorkspaceMember), data);
                 return;
             }
 
@@ -587,17 +597,17 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     ...Object.fromEntries(
                         currentTransactions
                             .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
+                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID, isUserWorkspaceMember)),
                     ),
                 },
                 data,
             );
         },
-        [data, reportActionsArray, selectedTransactions, outstandingReportsByPolicyID, setSelectedTransactions],
+        [setSelectedTransactions, selectedTransactions, data, reportActionsArray, outstandingReportsByPolicyID, isUserWorkspaceMember],
     );
 
     const onSelectRow = useCallback(
-        (item: SearchListItem) => {
+        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData) => {
             if (isMobileSelectionModeEnabled) {
                 toggleTransaction(item);
                 return;
@@ -653,6 +663,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             }
 
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+            const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
 
             const reportID =
                 isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
@@ -667,7 +678,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             Timing.start(CONST.TIMING.OPEN_REPORT_SEARCH);
 
             if (isTransactionGroupListItemType(item)) {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
+                const firstTransaction = item.transactions.at(0);
+                if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
+                    setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData);
+                }
+                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
                 return;
             }
 
@@ -677,9 +692,19 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 return;
             }
 
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+            const isInvoice = item?.report?.type === CONST.REPORT.TYPE.INVOICE;
+
+            if (!isTask && !isInvoice) {
+                markReportIDAsExpense(reportID);
+            }
+
+            if (isTransactionItem && transactionPreviewData) {
+                setOptimisticDataForTransactionThreadPreview(item, transactionPreviewData);
+            }
+
+            requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [isMobileSelectionModeEnabled, toggleTransaction, queryJSON, handleSearch, searchKey, reportActionsArray, hash],
+        [isMobileSelectionModeEnabled, type, toggleTransaction, reportActionsArray, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
     );
 
     const currentColumns = useMemo(() => {
@@ -785,7 +810,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     (data as TransactionGroupListItemType[]).flatMap((item) =>
                         item.transactions
                             .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
+                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID, isUserWorkspaceMember)),
                     ),
                 ),
                 data,
@@ -798,11 +823,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             Object.fromEntries(
                 (data as TransactionListItemType[])
                     .filter((t) => !isTransactionPendingDelete(t))
-                    .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
+                    .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID, isUserWorkspaceMember)),
             ),
             data,
         );
-    }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID]);
+    }, [groupBy, selectedTransactions, setSelectedTransactions, data, clearSelectedTransactions, reportActionsArray, outstandingReportsByPolicyID, isUserWorkspaceMember]);
 
     const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
 
@@ -860,6 +885,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
+        onSortPressedCallback?.();
         navigation.setParams({q: newQuery});
     };
 
@@ -917,7 +943,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     queryJSON={queryJSON}
                     columns={columnsToShow}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                    violations={violations}
+                    violations={filteredViolations}
                     onLayout={onLayout}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}

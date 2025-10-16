@@ -40,6 +40,19 @@ function assertSidebarOptionsAlphabetical() {
     expect(thirdElement).toHaveTextContent('Email Three');
     expect(fourthElement).toHaveTextContent('Email Two');
 }
+// Mock components to prevent act() warnings from state updates during render
+jest.mock('@src/components/ReportActionAvatars', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const React = require('react');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        return React.createElement(View, {
+            testID: 'MockedReportActionAvatars',
+        });
+    };
+});
 
 describe('Sidebar', () => {
     beforeAll(() => {
@@ -130,9 +143,9 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4], 1);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
-            addComment(report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
-            addComment(report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -178,9 +191,9 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4], 1);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
-            addComment(report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
-            addComment(report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
 
             const currentReportId = report1.reportID;
             const reportCollectionDataSet: ReportCollectionDataSet = {
@@ -227,9 +240,9 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4], 1);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
-            addComment(report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
-            addComment(report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -289,9 +302,9 @@ describe('Sidebar', () => {
             };
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
-            addComment(report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
-            addComment(report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -363,9 +376,9 @@ describe('Sidebar', () => {
             report3.iouReportID = iouReport.reportID;
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
-            addComment(report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
-            addComment(report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -442,9 +455,9 @@ describe('Sidebar', () => {
             report3.iouReportID = expenseReport.reportID;
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
-            addComment(report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
-            addComment(report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -492,9 +505,9 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4], 1);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
-            addComment(report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
-            addComment(report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
 
             const currentReportId = report2.reportID;
 
@@ -641,7 +654,7 @@ describe('Sidebar', () => {
                 iouReportID: undefined,
             };
             const report4 = LHNTestUtils.getFakeReport([1, 5], 1);
-            addComment(report4.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report4.reportID, report4.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
 
             const iouReport: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([1, 4]),
@@ -849,9 +862,9 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4]);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
-            addComment(report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
-            addComment(report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
 
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
@@ -903,9 +916,9 @@ describe('Sidebar', () => {
             const report3: OnyxTypes.Report = LHNTestUtils.getFakeReport([1, 4]);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
-            addComment(report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
-            addComment(report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,

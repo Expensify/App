@@ -1,12 +1,16 @@
-import React, {useCallback, useMemo} from 'react';
+import {accountIDSelector} from '@selectors/Session';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import type {ListItem, SectionListDataType} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
+import {useSearchContext} from '@components/Search/SearchContext';
+import SelectionList from '@components/SelectionListWithSections';
+import type {ListItem, SectionListDataType} from '@components/SelectionListWithSections/types';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
+import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -16,13 +20,22 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createNewReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
+import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
 import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar, getPolicyIDsWithEmptyReportsForAccount, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import isRHPOnSearchMoneyRequestReportPage from '@navigation/helpers/isRHPOnSearchMoneyRequestReportPage';
+import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
+import {changeTransactionsReport} from '@userActions/Transaction';
+import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceListItem = {
@@ -31,50 +44,175 @@ type WorkspaceListItem = {
     isPolicyAdmin?: boolean;
 } & ListItem;
 
-function NewReportWorkspaceSelectionPage() {
+type NewReportWorkspaceSelectionPageProps = PlatformStackScreenProps<NewReportWorkspaceSelectionNavigatorParamList, typeof SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT>;
+
+function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPageProps) {
+    const {isMovingExpenses, backTo} = route.params ?? {};
     const {isOffline} = useNetwork();
+    const {selectedTransactions, selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
+    const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
+    const [pendingPolicySelection, setPendingPolicySelection] = useState<{policy: WorkspaceListItem; shouldShowEmptyReportConfirmation: boolean} | null>(null);
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
+
+    const policiesWithEmptyReportsSelector = useMemo(() => {
+        if (!accountID) {
+            const emptyLookup: Record<string, boolean> = {};
+            return () => emptyLookup;
+        }
+
+        return (reports: OnyxCollection<OnyxTypes.Report>) => getPolicyIDsWithEmptyReportsForAccount(reports, accountID);
+    }, [accountID]);
+
+    const [policiesWithEmptyReports] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT,
+        {
+            canBeMissing: true,
+            selector: policiesWithEmptyReportsSelector,
+        },
+        [policiesWithEmptyReportsSelector],
+    );
 
     const navigateToNewReport = useCallback(
         (optimisticReportID: string) => {
-            if (shouldUseNarrowLayout) {
+            if (isRHPOnReportInSearch) {
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID}), {forceReplace: true});
+                    Navigation.dismissModal();
                 });
-                return;
             }
-            // On wide screens we use dismissModal instead of forceReplace to avoid performance issues
+
             Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.dismissModal();
-            });
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID}));
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID}), {forceReplace: isRHPOnReportInSearch || shouldUseNarrowLayout});
             });
         },
-        [shouldUseNarrowLayout],
+        [isRHPOnReportInSearch, shouldUseNarrowLayout],
     );
 
-    const selectPolicy = useCallback(
-        (policyID?: string) => {
-            if (!policyID) {
+    const createReport = useCallback(
+        (policyID: string) => {
+            const optimisticReportID = createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policyID);
+            const selectedTransactionsKeys = Object.keys(selectedTransactions);
+
+            if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
+                const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReportID}`];
+                changeTransactionsReport(
+                    selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs,
+                    optimisticReportID,
+                    isASAPSubmitBetaEnabled,
+                    currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserPersonalDetails?.email ?? '',
+                    policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
+                    reportNextStep,
+                );
+
+                // eslint-disable-next-line rulesdir/no-default-id-values
+                setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, policyID, activePolicyID ?? '');
+
+                if (selectedTransactionIDs.length) {
+                    clearSelectedTransactions(true);
+                }
+                if (selectedTransactionsKeys.length) {
+                    clearSelectedTransactions();
+                }
+                Navigation.dismissModal();
+                Navigation.goBack(backTo ?? ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
                 return;
             }
-            if (shouldRestrictUserBillableActions(policyID)) {
-                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
-                return;
-            }
-            const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
             navigateToNewReport(optimisticReportID);
         },
-        [currentUserPersonalDetails, navigateToNewReport],
+        [
+            activePolicyID,
+            currentUserPersonalDetails,
+            isASAPSubmitBetaEnabled,
+            hasViolations,
+            selectedTransactions,
+            isMovingExpenses,
+            selectedTransactionIDs,
+            navigateToNewReport,
+            allReportNextSteps,
+            policies,
+            clearSelectedTransactions,
+            backTo,
+        ],
+    );
+
+    const handleConfirmCreateReport = useCallback(() => {
+        if (!pendingPolicySelection?.policy.policyID) {
+            return;
+        }
+
+        createReport(pendingPolicySelection.policy.policyID);
+        setPendingPolicySelection(null);
+    }, [createReport, pendingPolicySelection?.policy.policyID]);
+
+    const handleCancelCreateReport = useCallback(() => {
+        setPendingPolicySelection(null);
+    }, []);
+
+    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+        policyID: pendingPolicySelection?.policy.policyID,
+        policyName: pendingPolicySelection?.policy.text ?? '',
+        onConfirm: handleConfirmCreateReport,
+        onCancel: handleCancelCreateReport,
+    });
+
+    useEffect(() => {
+        if (!pendingPolicySelection) {
+            return;
+        }
+
+        const {policy, shouldShowEmptyReportConfirmation} = pendingPolicySelection;
+        const policyID = policy.policyID;
+
+        if (!policyID) {
+            return;
+        }
+
+        if (!shouldShowEmptyReportConfirmation) {
+            // No empty report confirmation needed - create report directly and clear pending selection
+            // policyID is guaranteed to be defined by the check above
+            createReport(policyID);
+            setPendingPolicySelection(null);
+            return;
+        }
+
+        // Empty report confirmation needed - open confirmation modal (modal handles clearing pending selection via onConfirm/onCancel)
+        openCreateReportConfirmation();
+    }, [createReport, openCreateReportConfirmation, pendingPolicySelection]);
+
+    const selectPolicy = useCallback(
+        (policy?: WorkspaceListItem) => {
+            if (!policy?.policyID) {
+                return;
+            }
+
+            if (shouldRestrictUserBillableActions(policy.policyID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.policyID));
+                return;
+            }
+
+            // Capture the decision about whether to show empty report confirmation
+            setPendingPolicySelection({
+                policy,
+                shouldShowEmptyReportConfirmation: !!policiesWithEmptyReports?.[policy.policyID],
+            });
+        },
+        [policiesWithEmptyReports],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {
@@ -133,6 +271,7 @@ function NewReportWorkspaceSelectionPage() {
                         title={translate('report.newReport.createReport')}
                         onBackButtonPress={Navigation.goBack}
                     />
+                    {CreateReportConfirmationModal}
                     {shouldShowLoadingIndicator ? (
                         <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                     ) : (
@@ -141,7 +280,7 @@ function NewReportWorkspaceSelectionPage() {
                             <SelectionList<WorkspaceListItem>
                                 ListItem={UserListItem}
                                 sections={sections}
-                                onSelectRow={(option) => selectPolicy(option.policyID)}
+                                onSelectRow={selectPolicy}
                                 textInputLabel={usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
                                 textInputValue={searchTerm}
                                 onChangeText={setSearchTerm}

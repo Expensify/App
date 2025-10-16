@@ -12,13 +12,12 @@ import type {
 } from '@react-navigation/native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
-import type {FileObject} from '@components/AttachmentComposerModal';
 import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
 import type {AvatarSource} from '@libs/UserUtils';
-import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
+import type {AttachmentModalContainerModalProps, FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -106,7 +105,10 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: {
         backTo?: Routes;
-        forwardTo?: Routes;
+    };
+    [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE]: {
+        newContactMethod: string;
+        backTo?: Routes;
     };
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: {
         backTo?: Routes;
@@ -146,6 +148,10 @@ type SettingsNavigatorParamList = {
         /** cardID of selected card */
         cardID: string;
     };
+    [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
+        /** cardID of selected card */
+        cardID: string;
+    };
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
         /** cardID of selected card */
         cardID: string;
@@ -173,6 +179,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
@@ -934,13 +941,19 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE]: {
         login: string;
         currentRole: string;
-        showValidateActionModal?: string;
-        newRole?: ValueOf<typeof CONST.DELEGATE_ROLE>;
+    };
+    [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE]: {
+        login: string;
+        currentRole: string;
+        newRole: string;
     };
     [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM]: {
         login: string;
         role: string;
-        showValidateActionModal?: string;
+    };
+    [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM_MAGIC_CODE]: {
+        login: string;
+        role: string;
     };
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
         /** cardID of selected card */
@@ -1155,6 +1168,10 @@ type TwoFactorAuthNavigatorParamList = {
         backTo?: Routes;
         forwardTo?: string;
     };
+    [SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT]: {
+        backTo?: Routes;
+        forwardTo?: Routes;
+    };
     [SCREENS.TWO_FACTOR_AUTH.VERIFY]: {
         backTo?: Routes;
         forwardTo?: string;
@@ -1190,7 +1207,16 @@ type ProfileNavigatorParamList = {
 };
 
 type NewReportWorkspaceSelectionNavigatorParamList = {
-    [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: undefined;
+    [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: {
+        isMovingExpenses?: boolean;
+        backTo?: Routes;
+    };
+};
+
+type SetDefaultWorkspaceNavigatorParamList = {
+    [SCREENS.SET_DEFAULT_WORKSPACE.ROOT]: {
+        backTo?: Routes;
+    };
 };
 
 type ReportDetailsNavigatorParamList = {
@@ -1384,13 +1410,6 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
         reportActionID?: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_SPLIT_PAYER]: {
-        action: ValueOf<typeof CONST.IOU.ACTION>;
-        iouType: ValueOf<typeof CONST.IOU.TYPE>;
-        transactionID: string;
-        reportID: string;
-        backTo: Routes;
-    };
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: undefined;
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: undefined;
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: undefined;
@@ -1535,7 +1554,8 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: Routes;
-        featureName?: string;
+        upgradePath?: ValueOf<typeof CONST.UPGRADE_PATHS>;
+        shouldSubmitExpense?: boolean;
     };
     [SCREENS.MONEY_REQUEST.STEP_DESTINATION]: {
         action: IOUAction;
@@ -1599,6 +1619,9 @@ type MoneyRequestNavigatorParamList = {
 
 type WorkspaceConfirmationNavigatorParamList = {
     [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: {
+        backTo?: Routes;
+    };
+    [SCREENS.CURRENCY.SELECTION]: {
         backTo?: Routes;
     };
 };
@@ -1802,6 +1825,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
     [SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION]: NavigatorScreenParams<NewReportWorkspaceSelectionNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.SET_DEFAULT_WORKSPACE]: NavigatorScreenParams<SetDefaultWorkspaceNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: NavigatorScreenParams<ReportDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_CHANGE_WORKSPACE]: NavigatorScreenParams<ReportChangeWorkspaceNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: NavigatorScreenParams<ReportSettingsNavigatorParamList>;
@@ -1894,7 +1918,7 @@ type ReportsSplitNavigatorParamList = {
         referrer?: string;
         backTo?: Routes;
     };
-    [SCREENS.ATTACHMENTS]: AttachmentModalScreensParamList[typeof SCREENS.ATTACHMENTS];
+    [SCREENS.REPORT_ATTACHMENTS]: AttachmentModalScreensParamList[typeof SCREENS.REPORT_ATTACHMENTS];
 };
 
 type SettingsSplitNavigatorParamList = {
@@ -2153,7 +2177,7 @@ type PublicScreensParamList = SharedScreensParamList & {
 };
 
 type AttachmentModalScreensParamList = {
-    [SCREENS.ATTACHMENTS]: AttachmentModalContainerModalProps & {
+    [SCREENS.REPORT_ATTACHMENTS]: AttachmentModalContainerModalProps & {
         source?: AvatarSource;
         reportID?: string;
         accountID?: number;
@@ -2168,7 +2192,22 @@ type AttachmentModalScreensParamList = {
         maybeIcon?: boolean;
         file?: FileObject;
         shouldDisableSendButton?: boolean;
-        onConfirm?: (file: FileObject) => void;
+    };
+    [SCREENS.REPORT_ADD_ATTACHMENT]: AttachmentModalContainerModalProps & {
+        reportID?: string;
+        accountID?: number;
+        attachmentID?: string;
+        source?: AvatarSource;
+        file?: FileObject | FileObject[];
+        dataTransferItems?: DataTransferItem[];
+        type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+        isAuthTokenRequired?: boolean;
+        originalFileName?: string;
+        attachmentLink?: string;
+        hashKey?: number;
+        headerTitle?: string;
+        shouldDisableSendButton?: boolean;
+        onConfirm?: (file: FileObject | FileObject[]) => void;
     };
     [SCREENS.PROFILE_AVATAR]: AttachmentModalContainerModalProps & {
         accountID: number;
@@ -2388,7 +2427,7 @@ type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace ReactNavigation {
-        // eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-empty-interface
+        // eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-empty-object-type
         interface RootParamList extends RootNavigatorParamList {}
     }
 }
@@ -2425,6 +2464,7 @@ export type {
     ReimbursementAccountNavigatorParamList,
     ReimbursementAccountEnterSignerInfoNavigatorParamList,
     NewReportWorkspaceSelectionNavigatorParamList,
+    SetDefaultWorkspaceNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
     ReportChangeWorkspaceNavigatorParamList,
