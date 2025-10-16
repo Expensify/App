@@ -9,7 +9,7 @@ import {FlatList} from 'react-native';
 import type {AnimatedProps, ILayoutAnimationBuilder} from 'react-native-reanimated';
 import Animated, {LayoutAnimationConfig} from 'react-native-reanimated';
 
-// eslint-disable-next-line deprecation/deprecation
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
 type CellRendererComponentProps<T> = React.ComponentType<RNCellRendererProps<T>> | null | undefined;
