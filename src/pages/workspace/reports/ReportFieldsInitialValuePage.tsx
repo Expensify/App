@@ -85,7 +85,7 @@ function ReportFieldsInitialValuePage({
 
             return errors;
         },
-        [availableListValuesLength, reportField?.name, reportField?.type, translate],
+        [availableListValuesLength, reportField?.name, reportField?.type, policy?.fieldList, translate],
     );
 
     if (!reportField || hasAccountingConnections) {

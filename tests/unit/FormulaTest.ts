@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need CurrencyUtils to mock
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {FormulaContext} from '@libs/Formula';
-import {compute, extract, parse} from '@libs/Formula';
+import {compute, extract, hasCircularReferences, parse} from '@libs/Formula';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportActionsUtils to mock
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
@@ -449,6 +449,48 @@ describe('CustomFormula', () => {
 
             const result = compute('{report:startdate}', context);
             expect(result).toBe('2025-01-12');
+        });
+    });
+
+    describe('hasCircularReferences()', () => {
+        // Given the example data of consisting of report field lists
+        const fieldList = { 
+            test0: {name: 'testo', defaultValue: 'test value'},
+            test1: {name: 'testa', defaultValue: '{field:test-example}'},
+            test2: {name: 'testb', defaultValue: '{field:testa}'},
+            test3: {name: 'testc', defaultValue: '{field:testb}'},
+            test4: {name: 'testd', defaultValue: ''},
+            test6: {name: 'testf', defaultValue: '{field:testd}'},
+            test5: {name: 'teste', defaultValue: '{field:testf}'},
+        };
+
+        // Then make sure the circular references work as expected
+        test('should detect 2-level circular reference', () => {
+            expect(hasCircularReferences('{field:testb}', 'test-example', fieldList)).toBe(true);
+        });
+
+        test('should detect circular reference with mixed text', () => {
+            expect(hasCircularReferences('text {field:testa}', 'test-example', fieldList)).toBe(true);
+        });
+
+        test('should detect direct self-reference', () => {
+            expect(hasCircularReferences('{field:test-example}', 'test-example', fieldList)).toBe(true);
+        });
+
+        test('should detect more than > 2 level circular reference', () => {
+            expect(hasCircularReferences('{field:testc}', 'test-example', fieldList)).toBe(true);
+        });
+
+        test('should allow non-circular reference', () => {
+            expect(hasCircularReferences('{field:testo}', 'test-example', fieldList)).toBe(false);
+        });
+
+        test('should return false when no references', () => {
+            expect(hasCircularReferences('{field:teste}', 'test-example', fieldList)).toBe(false);
+        });
+
+        test('should return false when there is no formula field', () => {
+            expect(hasCircularReferences('hi test', 'test-example', fieldList)).toBe(false);
         });
     });
 });
