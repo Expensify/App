@@ -134,13 +134,24 @@ function WorkspacesListPage() {
     usePreloadFullScreenNavigators();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
+    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     // The workspace was deleted in this page
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
+    const continueDeleteWorkspace = useCallback(() => {
+        if (isOffline) {
+            setPolicyIDToDelete(undefined);
+            setPolicyNameToDelete(undefined);
+            setShouldShowOfflineModal(true);
+            return;
+        }
+
+        setIsDeleteModalOpen(true);
+    }, [isOffline]);
     const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyIDToDelete);
-    const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
-    const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
-    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
+    const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} =
+        usePayAndDowngrade(continueDeleteWorkspace);
 
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
 
@@ -301,14 +312,7 @@ function WorkspacesListPage() {
                             return;
                         }
 
-                        if (isOffline) {
-                            setPolicyIDToDelete(undefined);
-                            setPolicyNameToDelete(undefined);
-                            setShouldShowOfflineModal(true);
-                            return;
-                        }
-
-                        setIsDeleteModalOpen(true);
+                        continueDeleteWorkspace();
                     },
                     shouldKeepModalOpen: shouldCalculateBillNewDot,
                     shouldCallAfterModalHide: !shouldCalculateBillNewDot,
@@ -386,8 +390,8 @@ function WorkspacesListPage() {
             isLessThanMediumScreen,
             isLoadingBill,
             resetLoadingSpinnerIconIndex,
+            continueDeleteWorkspace,
             isRestrictedToPreferredPolicy,
-            isOffline,
         ],
     );
 
