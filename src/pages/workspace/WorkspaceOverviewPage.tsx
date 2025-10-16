@@ -204,8 +204,16 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     );
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const continueDeleteWorkspace = useCallback(() => {
+        if (isOffline) {
+            setShouldShowOfflineModal(true);
+            return;
+        }
+        setIsDeleteModalOpen(true);
+    }, [isOffline]);
 
-    const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
+    const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} =
+        usePayAndDowngrade(continueDeleteWorkspace);
 
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
 
@@ -248,13 +256,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
 
-        if (isOffline) {
-            setShouldShowOfflineModal(true);
-            return;
-        }
-
-        setIsDeleteModalOpen(true);
-    }, [isOffline, setIsDeletingPaidWorkspace]);
+        continueDeleteWorkspace();
+    }, [continueDeleteWorkspace, setIsDeletingPaidWorkspace]);
 
     const handleBackButtonPress = () => {
         if (isComingFromGlobalReimbursementsFlow) {
