@@ -69,7 +69,7 @@ import Log from '@libs/Log';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {buildNextStep, buildNextStepNew} from '@libs/NextStepUtils';
+import {buildNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -171,7 +171,6 @@ import {
     hasOutstandingChildRequest,
     hasReportBeenReopened,
     hasReportBeenRetracted,
-    hasViolations as hasViolationsReportUtils,
     isArchivedReport,
     isClosedReport as isClosedReportUtil,
     isDraftReport,
@@ -4626,6 +4625,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             policyCategories ?? {},
             hasDependentTags(policy, policyTagList ?? {}),
             isInvoice,
+            isSelfDM(iouReport),
         );
         optimisticData.push(violationsOnyxData);
         failureData.push({
@@ -10130,6 +10130,13 @@ function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report
     });
 }
 
+function isLastApprover(approvalChain: string[]): boolean {
+    if (approvalChain.length === 0) {
+        return true;
+    }
+    return approvalChain.at(-1) === currentUserEmail;
+}
+
 function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: boolean) {
     if (!expenseReport) {
         return;
@@ -10151,23 +10158,13 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(expenseReport.policyID);
-    const nextApproverAccountID = getNextApproverAccountID(expenseReport);
-    const predictedNextStatus = !nextApproverAccountID ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
-    const predictedNextState = !nextApproverAccountID ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
-    const managerID = !nextApproverAccountID ? expenseReport.managerID : nextApproverAccountID;
+    const approvalChain = getApprovalChain(getPolicy(expenseReport.policyID), expenseReport);
 
-    const hasViolations = hasViolationsReportUtils(expenseReport.reportID, allTransactionViolations);
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
-    const optimisticNextStep = buildNextStepNew({
-        report: expenseReport,
-        policy,
-        currentUserAccountIDParam: userAccountID,
-        currentUserEmailParam: currentUserEmail,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        predictedNextStatus,
-    });
+    const predictedNextStatus = isLastApprover(approvalChain) ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
+    const predictedNextState = isLastApprover(approvalChain) ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
+    const managerID = isLastApprover(approvalChain) ? expenseReport.managerID : getNextApproverAccountID(expenseReport);
+
+    const optimisticNextStep = buildNextStep(expenseReport, predictedNextStatus);
     const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
 
     const optimisticReportActionsData: OnyxUpdate = {
