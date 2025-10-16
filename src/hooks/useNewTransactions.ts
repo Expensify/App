@@ -7,7 +7,7 @@ import usePrevious from './usePrevious';
  * This hook returns new transactions that have been added since the last transactions update.
  * This hook should be used only in the context of highlighting the new transactions on the Report table view.
  */
-function useNewTransactions(hasOnceLoadedReportActions: boolean | undefined, transactions: Transaction[] | undefined, shouldResetSkipFirstTransactionsChange = false) {
+function useNewTransactions(hasOnceLoadedReportActions: boolean | undefined, transactions: Transaction[] | undefined) {
     // If we haven't loaded report yet we set previous transactions to undefined.
     const prevTransactions = usePrevious(hasOnceLoadedReportActions ? transactions : undefined);
 
@@ -18,10 +18,8 @@ function useNewTransactions(hasOnceLoadedReportActions: boolean | undefined, tra
         if (transactions === undefined || prevTransactions === undefined || transactions.length <= prevTransactions.length) {
             return CONST.EMPTY_ARRAY as unknown as Transaction[];
         }
-        if (skipFirstTransactionsChange.current || shouldResetSkipFirstTransactionsChange) {
-            if (!shouldResetSkipFirstTransactionsChange) {
-                skipFirstTransactionsChange.current = false;
-            }
+        if (skipFirstTransactionsChange.current) {
+            skipFirstTransactionsChange.current = false;
             return CONST.EMPTY_ARRAY as unknown as Transaction[];
         }
         return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
@@ -32,7 +30,7 @@ function useNewTransactions(hasOnceLoadedReportActions: boolean | undefined, tra
 
     // In case when we have loaded the report, but there were no transactions in it, then we need to explicitly set skipFirstTransactionsChange to false, as it will be not set in the useMemo above.
     useEffect(() => {
-        if (!hasOnceLoadedReportActions || shouldResetSkipFirstTransactionsChange) {
+        if (!hasOnceLoadedReportActions) {
             return;
         }
         // This is needed to ensure that set we skipFirstTransactionsChange to false only after the Onyx merge is done.
@@ -43,15 +41,7 @@ function useNewTransactions(hasOnceLoadedReportActions: boolean | undefined, tra
                 skipFirstTransactionsChange.current = false;
             });
         });
-    }, [hasOnceLoadedReportActions, shouldResetSkipFirstTransactionsChange]);
-
-    useEffect(() => {
-        if (!shouldResetSkipFirstTransactionsChange) {
-            return;
-        }
-
-        skipFirstTransactionsChange.current = true;
-    }, [shouldResetSkipFirstTransactionsChange]);
+    }, [hasOnceLoadedReportActions]);
 
     return newTransactions;
 }

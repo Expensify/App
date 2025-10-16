@@ -15,6 +15,7 @@ import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useNewTransactions from '@hooks/useNewTransactions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -59,8 +60,8 @@ type MoneyRequestReportTransactionListProps = {
     /** Whether there is a pending delete transaction */
     hasPendingDeletionTransaction?: boolean;
 
-    /** List of transactions that arrived when the report was open */
-    newTransactions: OnyxTypes.Transaction[];
+    /** Whether the user has successfully opened a report at least once, or if it was created by this user */
+    hasOnceLoadedReportActions: boolean | undefined;
 
     /** Array of report actions for the report that these transactions belong to */
     reportActions: OnyxTypes.ReportAction[];
@@ -125,7 +126,7 @@ const getTransactionValue = (transaction: OnyxTypes.Transaction, key: SortableCo
 function MoneyRequestReportTransactionList({
     report,
     transactions,
-    newTransactions,
+    hasOnceLoadedReportActions,
     reportActions,
     violations,
     hasComments,
@@ -211,6 +212,8 @@ function MoneyRequestReportTransactionList({
         sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
         sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
     });
+
+    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions);
 
     const {sortBy, sortOrder} = sortConfig;
 
