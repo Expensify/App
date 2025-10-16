@@ -2758,12 +2758,36 @@ describe('SearchUIUtils', () => {
         const hash = 12345;
         const backTo = '/search/all';
 
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
         test('Should create transaction thread report and navigate to it', () => {
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
 
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, iouReportAction, hash, backTo);
 
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, iouReportAction, transactionID);
+            // When iouReportAction exists, transaction and violations should be undefined
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, iouReportAction, undefined, undefined);
+            expect(updateSearchResultsWithTransactionThreadReportID).toHaveBeenCalledWith(hash, transactionID, threadReportID);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
+        });
+
+        test('Should create IOU report action and transaction thread then navigate to it', () => {
+            (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
+
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, hash, backTo);
+
+            // When iouReportAction is undefined, should pass transaction and violations
+            // Extract the transaction by removing UI-specific fields
+            const {keyForList, action, allActions, report, from, to, formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, shouldShowMerchant, shouldShowYear, isAmountColumnWide, isTaxAmountColumnWide, violations, hash: itemHash, moneyRequestReportActionID, ...expectedTransaction} = transactionListItem;
+            
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(
+                report1, 
+                {reportActionID: moneyRequestReportActionID}, 
+                expect.objectContaining(expectedTransaction),
+                violations
+            );
             expect(updateSearchResultsWithTransactionThreadReportID).toHaveBeenCalledWith(hash, transactionID, threadReportID);
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
         });
