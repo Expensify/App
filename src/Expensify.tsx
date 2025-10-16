@@ -110,7 +110,7 @@ function Expensify() {
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
 
-    // This is a random comment, to trigger Reassure to run 
+    // This is a random comment, to trigger Reassure to run a test
 
     useDebugShortcut();
     usePriorityMode();
