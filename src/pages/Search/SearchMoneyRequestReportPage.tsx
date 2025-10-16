@@ -16,7 +16,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import includeSafeAreaBottom from '@libs/includeSafeAreaBottom';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
@@ -24,6 +23,7 @@ import {getFilteredReportActionsForReportView, getIOUActionForTransactionID, get
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/home/ReactionListWrapper';
+import includeSafeAreaPaddingBottomInReportScreen from '@pages/home/report/includeSafeAreaPaddingBottomInReportScreen';
 import {createTransactionThreadReport, openReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -122,7 +122,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                         offlineIndicatorStyle={styles.mtAuto}
                         headerGapStyles={styles.searchHeaderGap}
                         shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
-                        includeSafeAreaPaddingBottom={includeSafeAreaBottom}
+                        includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottomInReportScreen}
                     >
                         <FullPageNotFoundView
                             shouldShow={shouldShowNotFoundPage}
