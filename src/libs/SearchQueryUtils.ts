@@ -631,17 +631,11 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 filterValue.length > 0
             ) {
                 const filterValueArray = [...new Set<string>(filterValue)];
+                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
 
-                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => {
-                    return CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey;
-                });
-
-                if (!keyInCorrectForm) {
-                    return undefined;
+                if (keyInCorrectForm) {
+                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
                 }
-
-                const value = filterValueArray.map(sanitizeSearchValue).join(',');
-                return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${value}`;
             }
 
             return undefined;
