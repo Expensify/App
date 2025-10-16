@@ -970,6 +970,7 @@ const translations = {
         buttonMySettings: 'Moje ustawienia',
         fabNewChat: 'Rozpocznij czat',
         fabNewChatExplained: 'Rozpocznij czat (Pływająca akcja)',
+        fabScanReceiptExplained: 'Skanuj paragon (Pływająca akcja)',
         chatPinned: 'Czat przypięty',
         draftedMessage: 'Wiadomość robocza',
         listOfChatMessages: 'Lista wiadomości czatu',
@@ -1472,6 +1473,7 @@ const translations = {
                 subtitle: 'Wybierz dodatkowego zatwierdzającego dla tego raportu, zanim poprowadzimy go przez resztę przepływu pracy zatwierdzania.',
             },
         },
+        chooseWorkspace: 'Wybierz przestrzeń roboczą',
     },
     transactionMerge: {
         listPage: {
@@ -2040,6 +2042,7 @@ ${amount} dla ${merchant} - ${date}`,
         submissionFrequency: 'Częstotliwość składania wniosków',
         submissionFrequencyDescription: 'Wybierz częstotliwość przesyłania wydatków.',
         submissionFrequencyDateOfMonth: 'Data miesiąca',
+        disableApprovalPromptDescription: 'Wyłączenie zatwierdzeń usunie wszystkie istniejące przepływy pracy zatwierdzania.',
         addApprovalsTitle: 'Dodaj zatwierdzenia',
         addApprovalButton: 'Dodaj przepływ pracy zatwierdzania',
         addApprovalTip: 'Ten domyślny przepływ pracy dotyczy wszystkich członków, chyba że istnieje bardziej szczegółowy przepływ pracy.',
@@ -2620,7 +2623,7 @@ ${amount} dla ${merchant} - ${date}`,
                 descriptionTwo: 'Kategoryzuj i taguj wydatki',
                 descriptionThree: 'Twórz i udostępniaj raporty',
             },
-            price: 'Wypróbuj za darmo przez 30 dni, a następnie przejdź na wyższy plan za jedyne <strong>5 USD/miesiąc</strong>.',
+            price: 'Wypróbuj za darmo przez 30 dni, a następnie przejdź na wyższy plan za jedyne <strong>5 USD/użytkownik/miesiąc</strong>.',
             createWorkspace: 'Utwórz przestrzeń roboczą',
         },
         confirmWorkspace: {
@@ -6386,8 +6389,8 @@ ${amount} dla ${merchant} - ${date}`,
         noActivityYet: 'Brak aktywności',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `zmieniono ${fieldName} z ${oldValue} na ${newValue}`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `zmieniono ${fieldName} na ${newValue}`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `zmienił ${fieldName} na "${newValue}" (wcześniej "${oldValue}")`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `ustawił ${fieldName} na "${newValue}"`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `Zmieniono przestrzeń roboczą${fromPolicyName ? ` (wcześniej ${fromPolicyName})` : ''}`;

@@ -971,6 +971,7 @@ const translations = {
         buttonMySettings: '私の設定',
         fabNewChat: 'チャットを開始',
         fabNewChatExplained: 'チャットを開始 (フローティングアクション)',
+        fabScanReceiptExplained: 'レシートをスキャン（フローティングアクション）',
         chatPinned: 'チャットがピン留めされました',
         draftedMessage: '下書きメッセージ',
         listOfChatMessages: 'チャットメッセージのリスト',
@@ -1474,6 +1475,7 @@ const translations = {
                 subtitle: '承認ワークフローの残りの部分を経由する前に、このレポートの追加の承認者を選択してください。',
             },
         },
+        chooseWorkspace: 'ワークスペースを選択',
     },
     transactionMerge: {
         listPage: {
@@ -2033,6 +2035,7 @@ ${date} - ${merchant}に${amount}`,
         workflowDescription: '支出が発生した瞬間から、承認および支払いを含むワークフローを設定します。',
         submissionFrequency: '提出頻度',
         submissionFrequencyDescription: '経費を提出する頻度を選択します。',
+        disableApprovalPromptDescription: '承認を無効にすると、既存の承認ワークフローがすべて削除されます。',
         submissionFrequencyDateOfMonth: '月の日付',
         addApprovalsTitle: '承認を追加',
         addApprovalButton: '承認ワークフローを追加',
@@ -2614,7 +2617,7 @@ ${date} - ${merchant}に${amount}`,
                 descriptionTwo: '経費を分類してタグ付けする',
                 descriptionThree: 'レポートを作成して共有する',
             },
-            price: '30日間無料でお試しいただけます。その後、<strong>$5/月</strong>でアップグレードしてください。',
+            price: '30日間無料でお試しいただけます。その後、<strong>$5/ユーザー/月</strong>でアップグレードしてください。',
             createWorkspace: 'ワークスペースを作成',
         },
         confirmWorkspace: {
@@ -6351,8 +6354,8 @@ ${date} - ${merchant}に${amount}`,
         noActivityYet: 'まだ活動がありません',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `${fieldName}を${oldValue}から${newValue}に変更しました`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `${fieldName}を${newValue}に変更しました`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `${fieldName}を"${newValue}"に変更しました（以前は"${oldValue}"でした）`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `${fieldName}を"${newValue}"に設定しました`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `ワークスペースを変更しました${fromPolicyName ? `（以前は ${fromPolicyName}）` : ''}`;

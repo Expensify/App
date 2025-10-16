@@ -128,6 +128,7 @@ function useSelectedTransactionsActions({
             if (!action) {
                 return;
             }
+
             const iouReportID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUReportID : undefined;
             const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
@@ -153,7 +154,7 @@ function useSelectedTransactionsActions({
         clearSelectedTransactions(true);
         setIsDeleteModalVisible(false);
         Navigation.removeReportScreen(deletedTransactionThreadReportIDs);
-    }, [duplicateTransactions, duplicateTransactionViolations, allReports, reportActions, selectedTransactionIDs, clearSelectedTransactions, archivedReportsIdSet]);
+    }, [duplicateTransactions, duplicateTransactionViolations, reportActions, selectedTransactionIDs, clearSelectedTransactions, allReports, archivedReportsIdSet]);
 
     const showDeleteModal = useCallback(() => {
         setIsDeleteModalVisible(true);

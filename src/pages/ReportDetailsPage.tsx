@@ -793,7 +793,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
         if (isTrackExpense) {
             deleteTrackExpense(
-                moneyRequestReport?.reportID,
+                moneyRequestReport,
                 iouTransactionID,
                 requestParentReportAction,
                 iouReport,
@@ -825,15 +825,15 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         caseID,
         iouTransactionID,
         isSingleTransactionView,
-        moneyRequestReport?.reportID,
+        moneyRequestReport,
         removeTransaction,
         report,
         requestParentReportAction,
         isReportArchived,
-        isChatIOUReportArchived,
         isMoneyRequestReportArchived,
         iouReport,
         chatIOUReport,
+        isChatIOUReportArchived,
     ]);
 
     // A flag to indicate whether the user chose to delete the transaction or not
@@ -865,7 +865,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
             if (isTrackExpense) {
                 urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(
-                    moneyRequestReport?.reportID,
+                    moneyRequestReport,
                     iouTransactionID,
                     requestParentReportAction,
                     iouReport,
@@ -891,7 +891,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
             navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
         }
-    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport?.reportID, isChatIOUReportArchived, iouReport, chatIOUReport]);
+    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport, isChatIOUReportArchived, iouReport, chatIOUReport]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 
