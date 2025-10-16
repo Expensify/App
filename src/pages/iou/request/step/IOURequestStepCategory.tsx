@@ -184,7 +184,7 @@ function IOURequestStepCategory({
                                     if (!policy.areCategoriesEnabled) {
                                         enablePolicyCategories(policy.id, true, policyTagLists, policyCategories, allTransactionViolations, false);
                                     }
-                                    // eslint-disable-next-line deprecation/deprecation
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                                     InteractionManager.runAfterInteractions(() => {
                                         Navigation.navigate(
                                             ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
