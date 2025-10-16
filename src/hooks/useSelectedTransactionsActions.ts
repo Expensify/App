@@ -95,7 +95,7 @@ function useSelectedTransactionsActions({
     }
 
     const handleDeleteTransactions = useCallback(() => {
-        const deletedThreadReportIDs = deleteTransactions(selectedTransactionIDs, duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
+        const deletedThreadReportIDs = deleteTransactions(selectedTransactionIDs, duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
         clearSelectedTransactions(true);
         setIsDeleteModalVisible(false);
         Navigation.removeReportScreen(new Set(deletedThreadReportIDs));

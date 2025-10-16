@@ -812,7 +812,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 isChatIOUReportArchived,
             );
         } else if (iouTransactionID) {
-            deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
+            deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, isSingleTransactionView);
             removeTransaction(iouTransactionID);
         }
     }, [

@@ -84,7 +84,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
     const [shouldSwitchPositionIfOverflow, setShouldSwitchPositionIfOverflow] = useState(false);
     const [isWithoutOverlay, setIsWithoutOverlay] = useState<boolean>(true);
-    const [currentReportID, setCurrentReportID] = useState<string | undefined>(undefined);
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -231,7 +230,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             setDisabledActions(disabledOptions);
             typeRef.current = type;
             reportIDRef.current = reportID;
-            setCurrentReportID(reportID);
             reportActionIDRef.current = reportActionID;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             originalReportIDRef.current = originalReportID || undefined;
@@ -270,7 +268,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     /** After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it */
     const runAndResetOnPopoverHide = () => {
         reportIDRef.current = undefined;
-        setCurrentReportID(undefined);
         reportActionIDRef.current = undefined;
         originalReportIDRef.current = undefined;
         instanceIDRef.current = '';

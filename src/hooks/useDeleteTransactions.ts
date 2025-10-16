@@ -55,6 +55,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
      * @param duplicateTransactionViolations - Collection of duplicate transaction violations
      * @param currentSearchHash - Current search hash for updating split transactions
      * @param onClearSelection - Optional callback to clear selection after deletion
+     * @param isSingleTransactionView - Optional flag indicating if the deletion is from a single transaction view
      * @returns Array of deleted transaction thread report IDs for navigation handling
      */
     const deleteTransactions = useCallback(
@@ -63,6 +64,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             duplicateTransactions: OnyxCollection<Transaction>,
             duplicateTransactionViolations: OnyxCollection<TransactionViolations>,
             currentSearchHash?: number,
+            isSingleTransactionView?: boolean,
         ): string[] => {
             if (!transactionIDs.length) {
                 return [];
@@ -158,7 +160,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     duplicateTransactionViolations,
                     iouReport,
                     chatReport,
-                    transactionIDs.length === 1,
+                    isSingleTransactionView,
                     deletedTransactionIDs,
                     transactionIDs,
                     isChatIOUReportArchived,

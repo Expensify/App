@@ -2743,7 +2743,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCategories: [],
                 iouReport: expenseReport,
                 chatReport: expenseReport,
-                firstIOU: undefined,
+                firstIOU: iouAction,
             });
 
             await waitForBatchedUpdates();

@@ -458,7 +458,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             isChatIOUReportArchived,
                         );
                     } else {
-                        deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
+                        deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
                         removeTransaction(transaction.transactionID);
                     }
                     onBackButtonPress();
