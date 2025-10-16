@@ -774,7 +774,7 @@ function MoneyRequestConfirmationListFooter({
                     shouldRenderAsHTML
                 />
             ),
-            shouldShow: isPolicyExpenseChat || isTrackExpense,
+            shouldShow: isPolicyExpenseChat,
         },
     ];
 
