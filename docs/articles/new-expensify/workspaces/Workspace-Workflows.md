@@ -78,7 +78,7 @@ This happens if the submitter has set a submission frequency on their Individual
 
 ## What time of day are reports submitted when an automated submission frequency is set?
 
-All automatic report submissions occur in the evening Pacific Standard Time (PST).
+All automatic report submissions occur in the evening Pacific Time (PT).
 
 ## Can I automatically create separate reports for each of my credit cards?
 
