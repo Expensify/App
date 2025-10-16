@@ -50,10 +50,6 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     const [shouldShowErrorModal, setShouldShowErrorModal] = useState(false);
 
-    if (Object.keys(messages).length === 0) {
-        return null;
-    }
-
     // Fetch the keys, sort them, and map through each key to get the corresponding message
     const sortedMessages: Array<string | ReceiptError> = Object.keys(messages)
         .sort()
@@ -74,11 +70,17 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
         HTMLClickableActions.download = () => fileDownload(receiptError.source, receiptError.filename).finally(() => dismissError());
     }, [uniqueMessages, dismissError]);
 
+    if (Object.keys(messages).length === 0) {
+        return null;
+    }
+
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
             return (
                 <>
-                    <RenderHTML html={translate('iou.error.receiptFailureMessage')} />
+                    <View style={[styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML html={translate('iou.error.receiptFailureMessage')} />
+                    </View>
 
                     <ConfirmModal
                         isVisible={shouldShowErrorModal}

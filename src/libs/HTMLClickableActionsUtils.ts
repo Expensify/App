@@ -5,7 +5,7 @@
  * When the user taps that tag, the corresponding function is executed.
  */
 
-const HTMLClickableActions = {
+const HTMLClickableActions: Record<string, () => void | Promise<void>> = {
     retry: () => {},
     download: () => {},
 };
