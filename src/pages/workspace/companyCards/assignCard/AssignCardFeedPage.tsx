@@ -4,6 +4,8 @@ import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useInitial from '@hooks/useInitial';
 import useOnyx from '@hooks/useOnyx';
+import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import PlaidConnectionStep from '@pages/workspace/companyCards/addNew/PlaidConnectionStep';
@@ -13,6 +15,7 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import {clearAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import AssigneeStep from './AssigneeStep';
@@ -54,12 +57,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
 
     switch (currentStep) {
         case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
-            return (
-                <BankConnection
-                    policyID={policyID}
-                    feed={feed}
-                />
-            );
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute(policyID, feed, Navigation.getActiveRoute()));
         case CONST.COMPANY_CARD.STEP.PLAID_CONNECTION:
             return (
                 <PlaidConnectionStep
@@ -68,45 +66,20 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
                 />
             );
         case CONST.COMPANY_CARD.STEP.ASSIGNEE:
-            return (
-                <AssigneeStep
-                    policy={policy}
-                    feed={feed}
-                />
-            );
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(policyID, feed, backTo));
         case CONST.COMPANY_CARD.STEP.CARD:
-            return (
-                <CardSelectionStep
-                    feed={feed}
-                    policyID={policyID}
-                />
-            );
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT.getRoute(policyID, feed, backTo));
         case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
-            return (
-                <TransactionStartDateStep
-                    policyID={policyID}
-                    feed={feed}
-                    backTo={backTo}
-                />
-            );
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP.getRoute(policyID, feed, backTo));
         case CONST.COMPANY_CARD.STEP.CARD_NAME:
-            return <CardNameStep policyID={policyID} />;
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_NAME.getRoute(policyID, feed, backTo));
         case CONST.COMPANY_CARD.STEP.CONFIRMATION:
-            return (
-                <ConfirmationStep
-                    policyID={policyID}
-                    feed={feed}
-                    backTo={shouldUseBackToParam ? backTo : undefined}
-                />
-            );
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(policyID, feed, shouldUseBackToParam ? backTo : undefined));
         default:
-            return (
-                <AssigneeStep
-                    policy={policy}
-                    feed={feed}
-                />
-            );
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(policyID, feed, backTo));
     }
+
+    return null;
 }
 
 AssignCardFeedPage.displayName = 'AssignCardFeedPage';

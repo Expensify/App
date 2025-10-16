@@ -9,12 +9,15 @@ import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, CurrencyList, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {FilteredCardList} from '@src/types/onyx/Card';
 import type {CardFeedData, CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {translateLocal} from './Localize';
+import Log from './Log';
+import Navigation from './Navigation/Navigation';
 import {filterObject} from './ObjectUtils';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
@@ -291,6 +294,19 @@ function filterCardsByPersonalDetails(card: Card, searchQuery: string, personalD
         accountLogin.includes(normalizedSearchQuery) ||
         accountName.includes(normalizedSearchQuery)
     );
+}
+
+function NavigateToAssignCardStep(step: ValueOf<typeof CONST.COMPANY_CARD.STEP>, policyID: string, feed: string, backTo?: string) {
+    const assignCardStepRoutes = {
+        [CONST.COMPANY_CARD.STEP.ASSIGNEE]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE,
+        [CONST.COMPANY_CARD.STEP.CARD]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT,
+        [CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP,
+        [CONST.COMPANY_CARD.STEP.CARD_NAME]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_NAME,
+        [CONST.COMPANY_CARD.STEP.CONFIRMATION]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION,
+    };
+
+    const route = assignCardStepRoutes[step as keyof typeof assignCardStepRoutes] ?? ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE;
+    Navigation.navigate(route.getRoute(policyID, feed, backTo));
 }
 
 function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK, illustrations: IllustrationsType): IconAsset {
@@ -770,4 +786,5 @@ export {
     getFeedConnectionBrokenCard,
     getCorrectStepForPlaidSelectedBank,
     getEligibleBankAccountsForUkEuCard,
+    NavigateToAssignCardStep,
 };
