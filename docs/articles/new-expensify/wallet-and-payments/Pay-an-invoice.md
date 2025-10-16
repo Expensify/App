@@ -49,7 +49,7 @@ Anyone can pay an invoice they’ve received, but only Expensify customers can s
 
 Expensify invoicing is designed to cater to both business-to-customer (B2C) and business-to-business (B2B) needs, making it a versatile tool for businesses of all sizes.
 
-**Can I pay an invoice outside of Expensify**
+**Can I pay an invoice outside of Expensify?**
 
 You will need to work with the vendor to discuss alternative payment options. You can chat with your vendor directly at expensify.com in the designated invoice room.
 
