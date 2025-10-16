@@ -54,14 +54,14 @@ describe('FloatingActionButton hover', () => {
         const animatedContainer = screen.getByTestId('fab-animated-container');
 
         // Before hover, should not have successHover background
-        expect(animatedContainer).not.toHaveStyle({backgroundColor: colors.productDark500});
+        expect(animatedContainer).not.toHaveStyle({backgroundColor: colors.greenHover});
 
         // Test hover in
         fireEvent(fab, 'hoverIn');
-        expect(animatedContainer).toHaveStyle({backgroundColor: colors.productDark500});
+        expect(animatedContainer).toHaveStyle({backgroundColor: colors.greenHover});
 
         // Test hover out
         fireEvent(fab, 'hoverOut');
-        expect(animatedContainer).not.toHaveStyle({backgroundColor: colors.productDark500});
+        expect(animatedContainer).not.toHaveStyle({backgroundColor: colors.greenHover});
     });
 });

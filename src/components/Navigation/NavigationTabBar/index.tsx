@@ -324,7 +324,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                             onPress={navigateToSettings}
                         />
                     </View>
-                    <View style={styles.leftNavigationTabBarFAB}>
+                    <View style={styles.leftNavigationTabBarItem}>
                         <NavigationTabBarFloatingActionButton />
                     </View>
                 </View>
