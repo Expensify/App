@@ -1,4 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
@@ -22,6 +22,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePermissions from '@hooks/usePermissions';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,6 +31,7 @@ import {clearInviteDraft, clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerCh
 import {
     calculateBillNewDot,
     clearAvatarErrors,
+    clearDeleteWorkspaceError,
     clearPolicyErrorField,
     deleteWorkspace,
     deleteWorkspaceAvatar,
@@ -38,11 +40,11 @@ import {
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
 import {filterInactiveCards} from '@libs/CardUtils';
-import {getLatestErrorField} from '@libs/ErrorUtils';
+import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getUserFriendlyWorkspaceType, goBackFromInvalidPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
+import {getUserFriendlyWorkspaceType, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
@@ -52,6 +54,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {reimbursementAccountErrorSelector} from '@src/selectors/ReimbursementAccount';
 import type {CurrencyList} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspaceReceiptPartnersPromotionBanner from './receiptPartners/WorkspaceReceiptPartnersPromotionBanner';
@@ -79,6 +82,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW, {canBeMissing: true});
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
+    const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
@@ -158,6 +162,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
 
+    const isFocused = useIsFocused();
+    const isPendingDelete = isPendingDeletePolicy(policy);
+    const prevIsPendingDelete = usePrevious(isPendingDelete);
+    const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
+    const policyLastErrorMessage = getLatestErrorMessage(policy);
+    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
+
     const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {
             return;
@@ -165,7 +176,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         openPolicyProfilePage(route.params.policyID);
     }, [policyDraft?.id, route.params.policyID]);
 
-    useNetwork({onReconnect: fetchPolicyData});
+    const {isOffline} = useNetwork({onReconnect: fetchPolicyData});
 
     // We have the same focus effect in the WorkspaceInitialPage, this way we can get the policy data in narrow
     // as well as in the wide layout when looking at policy settings.
@@ -198,15 +209,18 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
 
-    const confirmDeleteAndHideModal = useCallback(() => {
+    const confirmDelete = useCallback(() => {
         if (!policy?.id || !policyName) {
             return;
         }
 
-        deleteWorkspace(policy.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, lastPaymentMethod);
-        setIsDeleteModalOpen(false);
-        goBackFromInvalidPolicy();
-    }, [policy?.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, lastPaymentMethod, reportsToArchive, transactionViolations]);
+        deleteWorkspace(policy.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastPaymentMethod);
+    }, [policy?.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastPaymentMethod]);
+
+    const hideDeleteWorkspaceErrorModal = () => {
+        setIsDeleteWorkspaceErrorModalOpen(false);
+        clearDeleteWorkspaceError(policy?.id);
+    };
 
     useEffect(() => {
         if (isLoadingBill) {
@@ -215,6 +229,18 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         dropdownMenuRef.current?.setIsMenuVisible(false);
     }, [isLoadingBill]);
 
+    useEffect(() => {
+        if (!isFocused || !prevIsPendingDelete || isPendingDelete) {
+            return;
+        }
+        setIsDeleteModalOpen(false);
+        if (!policyLastErrorMessage) {
+            goBackFromInvalidPolicy();
+            return;
+        }
+        setIsDeleteWorkspaceErrorModalOpen(true);
+    }, [isFocused, isPendingDelete, prevIsPendingDelete, policyLastErrorMessage]);
+
     const onDeleteWorkspace = useCallback(() => {
         if (shouldCalculateBillNewDot()) {
             setIsDeletingPaidWorkspace(true);
@@ -222,8 +248,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
 
+        if (isOffline) {
+            setShouldShowOfflineModal(true);
+            return;
+        }
+
         setIsDeleteModalOpen(true);
-    }, [setIsDeletingPaidWorkspace]);
+    }, [isOffline, setIsDeletingPaidWorkspace]);
 
     const handleBackButtonPress = () => {
         if (isComingFromGlobalReimbursementsFlow) {
@@ -513,12 +544,32 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     <ConfirmModal
                         title={translate('workspace.common.delete')}
                         isVisible={isDeleteModalOpen}
-                        onConfirm={confirmDeleteAndHideModal}
+                        onConfirm={confirmDelete}
                         onCancel={() => setIsDeleteModalOpen(false)}
                         prompt={hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation')}
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}
+                        isConfirmLoading={isPendingDeletePolicy(policy)}
                         danger
+                    />
+                    <ConfirmModal
+                        title={translate('workspace.common.delete')}
+                        isVisible={isDeleteWorkspaceErrorModalOpen}
+                        onConfirm={hideDeleteWorkspaceErrorModal}
+                        onCancel={hideDeleteWorkspaceErrorModal}
+                        prompt={policyLastErrorMessage}
+                        confirmText={translate('common.buttonConfirm')}
+                        shouldShowCancelButton={false}
+                        success={false}
+                    />
+                    <ConfirmModal
+                        title={translate('common.youAppearToBeOffline')}
+                        isVisible={shouldShowOfflineModal}
+                        onConfirm={() => setShouldShowOfflineModal(false)}
+                        onCancel={() => setShouldShowOfflineModal(false)}
+                        confirmText={translate('common.buttonConfirm')}
+                        prompt={translate('common.offlinePrompt')}
+                        shouldShowCancelButton={false}
                     />
                 </View>
             )}

@@ -50,7 +50,7 @@ type VideoPlayerPreviewProps = {
     isDeleted?: boolean;
 };
 
-const isOnAttachmentRoute = () => Navigation.getActiveRouteWithoutParams() === `/${ROUTES.ATTACHMENTS.route}`;
+const isOnAttachmentRoute = () => Navigation.getActiveRouteWithoutParams() === `/${ROUTES.REPORT_ATTACHMENTS.route}`;
 
 function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDimensions, videoDuration, onShowModalPress, isDeleted}: VideoPlayerPreviewProps) {
     const styles = useThemeStyles();
