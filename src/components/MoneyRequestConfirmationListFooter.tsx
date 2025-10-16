@@ -337,8 +337,7 @@ function MoneyRequestConfirmationListFooter({
 
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
-    const shouldReportBeEditable =
-        ((isFromGlobalCreate ? allOutstandingReports.length > 1 : availableOutstandingReports.length > 1) && !isMoneyRequestReport(reportID, allReports)) || isTrackExpense;
+    const shouldReportBeEditable = (isFromGlobalCreate ? allOutstandingReports.length > 1 : availableOutstandingReports.length > 1) && !isMoneyRequestReport(reportID, allReports);
 
     const taxRates = policy?.taxRates ?? null;
     // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
@@ -370,6 +369,8 @@ function MoneyRequestConfirmationListFooter({
     } = receiptPath && receiptFilename ? getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ThumbnailAndImageURI);
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
+
+    const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
 
     const contextMenuContextValue = useMemo(
         () => ({
@@ -562,6 +563,20 @@ function MoneyRequestConfirmationListFooter({
                             return;
                         }
 
+                        if (shouldNavigateToUpgradePath) {
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                    action: CONST.IOU.ACTION.EDIT,
+                                    iouType,
+                                    transactionID,
+                                    reportID,
+                                    backTo: ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
+                                    upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                                }),
+                            );
+                            return;
+                        }
+
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                     }}
                     style={[styles.moneyRequestMenuItem]}
@@ -746,18 +761,6 @@ function MoneyRequestConfirmationListFooter({
                     titleStyle={styles.flex1}
                     onPress={() => {
                         if (!transactionID || !selectedReportID) {
-                            return;
-                        }
-                        if (!policyForMovingExpensesID && !shouldSelectPolicy) {
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                    iouType,
-                                    action: CONST.IOU.ACTION.EDIT,
-                                    transactionID,
-                                    reportID,
-                                    upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                                }),
-                            );
                             return;
                         }
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, selectedReportID, Navigation.getActiveRoute(), reportActionID));
