@@ -526,15 +526,20 @@ function WorkspacesListPage() {
         </>
     );
 
-    const getHeaderButton = () => (
-        <Button
-            accessibilityLabel={translate('workspace.new.newWorkspace')}
-            text={translate('workspace.new.newWorkspace')}
-            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
-            icon={Expensicons.Plus}
-            style={[shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]]}
-        />
-    );
+    const getHeaderButton = () => {
+        if (isRestrictedToPreferredPolicy) {
+            return null;
+        };
+        return (
+            <Button
+                accessibilityLabel={translate('workspace.new.newWorkspace')}
+                text={translate('workspace.new.newWorkspace')}
+                onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
+                icon={Expensicons.Plus}
+                style={[shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]]}
+            />
+        );
+    };
 
     const onBackButtonPress = () => {
         Navigation.goBack(route.params?.backTo);
