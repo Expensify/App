@@ -2019,6 +2019,7 @@ ${merchant}的${amount} - ${date}`,
         submissionFrequencyDescription: '选择提交费用的频率。',
         submissionFrequencyDateOfMonth: '月份日期',
         addApprovalsTitle: '添加审批',
+        disableApprovalPromptDescription: '禁用审批将删除所有现有的审批工作流程。',
         addApprovalButton: '添加审批工作流程',
         addApprovalTip: '此默认工作流程适用于所有成员，除非存在更具体的工作流程。',
         approver: '审批人',
@@ -2593,7 +2594,7 @@ ${merchant}的${amount} - ${date}`,
                 descriptionTwo: '分类和标记费用',
                 descriptionThree: '创建和分享报告',
             },
-            price: '免费试用30天，然后只需<strong>$5/月</strong>升级。',
+            price: '免费试用30天，然后只需<strong>$5/用户/月</strong>升级。',
             createWorkspace: '创建工作区',
         },
         confirmWorkspace: {
@@ -6273,8 +6274,8 @@ ${merchant}的${amount} - ${date}`,
         noActivityYet: '暂无活动',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `将${fieldName}从${oldValue}更改为${newValue}`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `将${fieldName}更改为${newValue}`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `已将${fieldName}更改为"${newValue}"（之前为"${oldValue}"`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `已将${fieldName}设置为"${newValue}"`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `已更改工作区${fromPolicyName ? `（之前为 ${fromPolicyName}）` : ''}`;

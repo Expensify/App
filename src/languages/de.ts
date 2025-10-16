@@ -2059,6 +2059,7 @@ ${amount} für ${merchant} - ${date}`,
         addApprovalsTitle: 'Genehmigungen hinzufügen',
         addApprovalButton: 'Genehmigungsworkflow hinzufügen',
         addApprovalTip: 'Dieser Standard-Workflow gilt für alle Mitglieder, es sei denn, es existiert ein spezifischerer Workflow.',
+        disableApprovalPromptDescription: 'Durch das Deaktivieren von Genehmigungen werden alle vorhandenen Genehmigungsworkflows gelöscht.',
         approver: 'Genehmiger',
         addApprovalsDescription: 'Zusätzliche Genehmigung erforderlich, bevor eine Zahlung autorisiert wird.',
         makeOrTrackPaymentsTitle: 'Zahlungen vornehmen oder verfolgen',
@@ -2616,7 +2617,7 @@ ${amount} für ${merchant} - ${date}`,
                 descriptionTwo: 'Kategorisieren und taggen Sie Ausgaben',
                 descriptionThree: 'Berichte erstellen und teilen',
             },
-            price: 'Testen Sie es 30 Tage lang kostenlos, dann upgraden Sie für nur <strong>$5/Monat</strong>.',
+            price: 'Testen Sie es 30 Tage lang kostenlos, dann upgraden Sie für nur <strong>$5/Benutzer/Monat</strong>.',
             createWorkspace: 'Arbeitsbereich erstellen',
         },
         confirmWorkspace: {
@@ -6406,8 +6407,8 @@ ${amount} für ${merchant} - ${date}`,
         noActivityYet: 'Noch keine Aktivität',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `geändert ${fieldName} von ${oldValue} zu ${newValue}`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `${fieldName} in ${newValue} geändert`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `hat ${fieldName} in "${newValue}" geändert (zuvor "${oldValue}")`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `hat ${fieldName} auf "${newValue}" gesetzt`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `Arbeitsbereich geändert${fromPolicyName ? ` (zuvor ${fromPolicyName})` : ''}`;

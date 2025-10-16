@@ -71,7 +71,7 @@ import {
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {hasPendingUI, isCardTransaction, isPending} from '@libs/TransactionUtils';
+import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, startDistanceRequest, startMoneyRequest, submitReport} from '@userActions/IOU';
@@ -191,7 +191,7 @@ function MoneyRequestReportPreviewContent({
     const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
     const numberOfRequests = transactions?.length ?? 0;
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
-    const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction) && isCardTransaction(transaction)).length;
+    const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction) && isManagedCardTransaction(transaction)).length;
 
     const shouldShowRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
     const shouldShowOnlyPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
@@ -472,9 +472,21 @@ function MoneyRequestReportPreviewContent({
             transactions,
             invoiceReceiverPolicy,
             isPaidAnimationRunning,
+            isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
         );
-    }, [isPaidAnimationRunning, isSubmittingAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, invoiceReceiverPolicy, isChatReportArchived]);
+    }, [
+        isPaidAnimationRunning,
+        isApprovedAnimationRunning,
+        isSubmittingAnimationRunning,
+        violations,
+        iouReport,
+        policy,
+        transactions,
+        isIouReportArchived,
+        invoiceReceiverPolicy,
+        isChatReportArchived,
+    ]);
 
     const addExpenseDropdownOptions = useMemo(
         () => [

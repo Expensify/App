@@ -598,7 +598,7 @@ function getLastMessageTextForReport({
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
         const properSchemaForMoneyRequestMessage = getReportPreviewMessage(report, lastReportAction, true, false, null, true);
-        lastMessageTextFromReport = formatReportLastMessageText(properSchemaForMoneyRequestMessage);
+        lastMessageTextFromReport = Parser.htmlToText(formatReportLastMessageText(properSchemaForMoneyRequestMessage));
     } else if (isReportPreviewAction(lastReportAction)) {
         const iouReport = getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastReportAction));
         const lastIOUMoneyReportAction = iouReport?.reportID
@@ -622,7 +622,7 @@ function getLastMessageTextForReport({
                 true,
                 lastReportAction,
             );
-            lastMessageTextFromReport = formatReportLastMessageText(reportPreviewMessage);
+            lastMessageTextFromReport = Parser.htmlToText(formatReportLastMessageText(reportPreviewMessage));
         }
     } else if (isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, reportOrID: report});
@@ -1155,7 +1155,15 @@ function createOptionFromReport(report: Report, personalDetails: OnyxEntry<Perso
 
     return {
         item: report,
-        ...createOption(accountIDs, personalDetails, report, undefined, reportAttributesDerived),
+        ...createOption(
+            accountIDs,
+            personalDetails,
+            report,
+            {
+                showPersonalDetails: true,
+            },
+            reportAttributesDerived,
+        ),
     };
 }
 
@@ -1362,12 +1370,13 @@ function getUserToInviteOption({
     selectedOptions = [],
     showChatPreviewLine = false,
     shouldAcceptName = false,
+    countryCode = CONST.DEFAULT_COUNTRY_CODE,
 }: GetUserToInviteConfig): SearchOptionData | null {
     if (!searchValue) {
         return null;
     }
 
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(searchValue)));
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(searchValue), countryCode));
     const isCurrentUserLogin = isCurrentUser({login: searchValue} as PersonalDetails);
     const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === searchValue);
     const isValidEmail = Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN);
@@ -1775,6 +1784,7 @@ function getValidOptions(
         maxRecentReportElements = undefined,
         ...config
     }: GetOptionsConfig = {},
+    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
 ): Options {
     const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest);
 
@@ -1924,9 +1934,14 @@ function getValidOptions(
 
     let userToInvite: SearchOptionData | null = null;
     if (includeUserToInvite) {
-        userToInvite = filterUserToInvite({currentUserOption: currentUserRef.current, recentReports: recentReportOptions, personalDetails: personalDetailsOptions}, searchString ?? '', {
-            excludeLogins: loginsToExclude,
-        });
+        userToInvite = filterUserToInvite(
+            {currentUserOption: currentUserRef.current, recentReports: recentReportOptions, personalDetails: personalDetailsOptions},
+            searchString ?? '',
+            countryCode,
+            {
+                excludeLogins: loginsToExclude,
+            },
+        );
     }
 
     return {
@@ -1950,6 +1965,7 @@ type SearchOptionsConfig = {
     includeUserToInvite?: boolean;
     includeRecentReports?: boolean;
     includeCurrentUser?: boolean;
+    countryCode?: number;
     shouldShowGBR?: boolean;
 };
 
@@ -1967,31 +1983,37 @@ function getSearchOptions({
     includeUserToInvite,
     includeRecentReports = true,
     includeCurrentUser = false,
+    countryCode = CONST.DEFAULT_COUNTRY_CODE,
     shouldShowGBR = false,
 }: SearchOptionsConfig): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
 
-    const optionList = getValidOptions(options, draftComments, {
-        betas,
-        includeRecentReports,
-        includeMultipleParticipantReports: true,
-        showChatPreviewLine: isUsedInChatFinder,
-        includeP2P: true,
-        includeOwnedWorkspaceChats: true,
-        includeThreads: true,
-        includeMoneyRequests: true,
-        includeTasks: true,
-        includeReadOnly,
-        includeSelfDM: true,
-        shouldBoldTitleByDefault: !isUsedInChatFinder,
-        excludeHiddenThreads: true,
-        maxElements: maxResults,
-        includeCurrentUser,
-        searchString: searchQuery,
-        includeUserToInvite,
-        shouldShowGBR,
-    });
+    const optionList = getValidOptions(
+        options,
+        draftComments,
+        {
+            betas,
+            includeRecentReports,
+            includeMultipleParticipantReports: true,
+            showChatPreviewLine: isUsedInChatFinder,
+            includeP2P: true,
+            includeOwnedWorkspaceChats: true,
+            includeThreads: true,
+            includeMoneyRequests: true,
+            includeTasks: true,
+            includeReadOnly,
+            includeSelfDM: true,
+            shouldBoldTitleByDefault: !isUsedInChatFinder,
+            excludeHiddenThreads: true,
+            maxElements: maxResults,
+            includeCurrentUser,
+            searchString: searchQuery,
+            includeUserToInvite,
+            shouldShowGBR,
+        },
+        countryCode,
+    );
 
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -1999,20 +2021,33 @@ function getSearchOptions({
     return optionList;
 }
 
-function getShareLogOptions(options: OptionList, draftComments: OnyxCollection<string>, betas: Beta[] = [], searchString = '', maxElements?: number, includeUserToInvite = false): Options {
-    return getValidOptions(options, draftComments, {
-        betas,
-        includeMultipleParticipantReports: true,
-        includeP2P: true,
-        forcePolicyNamePreview: true,
-        includeOwnedWorkspaceChats: true,
-        includeSelfDM: true,
-        includeThreads: true,
-        includeReadOnly: false,
-        searchString,
-        maxElements,
-        includeUserToInvite,
-    });
+function getShareLogOptions(
+    options: OptionList,
+    draftComments: OnyxCollection<string>,
+    betas: Beta[] = [],
+    searchString = '',
+    maxElements?: number,
+    includeUserToInvite = false,
+    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
+): Options {
+    return getValidOptions(
+        options,
+        draftComments,
+        {
+            betas,
+            includeMultipleParticipantReports: true,
+            includeP2P: true,
+            forcePolicyNamePreview: true,
+            includeOwnedWorkspaceChats: true,
+            includeSelfDM: true,
+            includeThreads: true,
+            includeReadOnly: false,
+            searchString,
+            maxElements,
+            includeUserToInvite,
+        },
+        countryCode,
+    );
 }
 
 /**
@@ -2039,18 +2074,33 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
     };
 }
 
-function getAttendeeOptions(
-    reports: Array<SearchOption<Report>>,
-    personalDetails: Array<SearchOption<PersonalDetails>>,
-    betas: OnyxEntry<Beta[]>,
-    attendees: Attendee[],
-    recentAttendees: Attendee[],
-    draftComments: OnyxCollection<string>,
+type GetAttendeeOptionsParams = {
+    reports: Array<SearchOption<Report>>;
+    personalDetails: Array<SearchOption<PersonalDetails>>;
+    betas: OnyxEntry<Beta[]>;
+    attendees: Attendee[];
+    recentAttendees: Attendee[];
+    draftComments: OnyxCollection<string>;
+    includeOwnedWorkspaceChats: boolean;
+    includeP2P: boolean;
+    includeInvoiceRooms: boolean;
+    action: IOUAction | undefined;
+    countryCode: number;
+};
+
+function getAttendeeOptions({
+    reports,
+    personalDetails,
+    betas,
+    attendees,
+    recentAttendees,
+    draftComments,
     includeOwnedWorkspaceChats = false,
     includeP2P = true,
     includeInvoiceRooms = false,
-    action: IOUAction | undefined = undefined,
-) {
+    action = undefined,
+    countryCode = CONST.DEFAULT_COUNTRY_CODE,
+}: GetAttendeeOptionsParams) {
     const personalDetailList = keyBy(
         personalDetails.map(({item}) => item),
         'accountID',
@@ -2079,19 +2129,24 @@ function getAttendeeOptions(
         }))
         .map((attendee) => getParticipantsOption(attendee, personalDetailList as never));
 
-    return getValidOptions({reports, personalDetails}, draftComments, {
-        betas,
-        selectedOptions: attendees.map((attendee) => ({...attendee, login: attendee.email})),
-        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        includeOwnedWorkspaceChats,
-        includeRecentReports: false,
-        includeP2P,
-        includeSelectedOptions: false,
-        includeSelfDM: false,
-        includeInvoiceRooms,
-        action,
-        recentAttendees: filteredRecentAttendees,
-    });
+    return getValidOptions(
+        {reports, personalDetails},
+        draftComments,
+        {
+            betas,
+            selectedOptions: attendees.map((attendee) => ({...attendee, login: attendee.email})),
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            includeOwnedWorkspaceChats,
+            includeRecentReports: false,
+            includeP2P,
+            includeSelectedOptions: false,
+            includeSelfDM: false,
+            includeInvoiceRooms,
+            action,
+            recentAttendees: filteredRecentAttendees,
+        },
+        countryCode,
+    );
 }
 
 /**
@@ -2129,16 +2184,22 @@ function getMemberInviteOptions(
     betas: Beta[] = [],
     excludeLogins: Record<string, boolean> = {},
     includeSelectedOptions = false,
+    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
 ): Options {
-    return getValidOptions({personalDetails, reports: []}, undefined, {
-        betas,
-        includeP2P: true,
-        excludeLogins,
-        includeSelectedOptions,
-        includeRecentReports: false,
-        searchString: '',
-        maxElements: undefined,
-    });
+    return getValidOptions(
+        {personalDetails, reports: []},
+        undefined,
+        {
+            betas,
+            includeP2P: true,
+            excludeLogins,
+            includeSelectedOptions,
+            includeRecentReports: false,
+            searchString: '',
+            maxElements: undefined,
+        },
+        countryCode,
+    );
 }
 
 /**
@@ -2357,7 +2418,12 @@ function filterCurrentUserOption(currentUserOption: SearchOptionData | null | un
     }, currentUserOption);
 }
 
-function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue: string, config?: FilterUserToInviteConfig): SearchOptionData | null {
+function filterUserToInvite(
+    options: Omit<Options, 'userToInvite'>,
+    searchValue: string,
+    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
+    config?: FilterUserToInviteConfig,
+): SearchOptionData | null {
     const {canInviteUser = true, excludeLogins = {}} = config ?? {};
     if (!canInviteUser) {
         return null;
@@ -2381,6 +2447,7 @@ function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue:
     return getUserToInviteOption({
         searchValue,
         loginsToExclude,
+        countryCode,
         ...config,
     });
 }
@@ -2429,6 +2496,7 @@ function filterOptions(options: Options, searchInputValue: string, countryCode: 
             currentUserOption,
         },
         searchValue,
+        countryCode,
         config,
     );
     const workspaceChats = filterWorkspaceChats(options.workspaceChats ?? [], searchTerms);

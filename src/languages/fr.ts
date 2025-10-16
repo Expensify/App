@@ -2053,6 +2053,7 @@ ${amount} pour ${merchant} - ${date}`,
         delaySubmissionDescription: 'Choisissez un calendrier personnalisé pour soumettre les dépenses, ou laissez cette option désactivée pour des mises à jour en temps réel des dépenses.',
         submissionFrequency: 'Fréquence de soumission',
         submissionFrequencyDescription: 'Choisissez une fréquence pour soumettre les dépenses.',
+        disableApprovalPromptDescription: "Désactiver les approbations effacera tous les flux de travail d'approbation existants.",
         submissionFrequencyDateOfMonth: 'Date du mois',
         addApprovalsTitle: 'Ajouter des approbations',
         addApprovalButton: "Ajouter un flux de travail d'approbation",
@@ -2612,7 +2613,7 @@ ${amount} pour ${merchant} - ${date}`,
                 descriptionTwo: 'Catégoriser et étiqueter les dépenses',
                 descriptionThree: 'Créer et partager des rapports',
             },
-            price: "Essayez-le gratuitement pendant 30 jours, puis passez à l'abonnement pour seulement <strong>5 $/mois</strong>.",
+            price: "Essayez-le gratuitement pendant 30 jours, puis passez à l'abonnement pour seulement <strong>5 $/utilisateur/mois</strong>.",
             createWorkspace: 'Créer un espace de travail',
         },
         confirmWorkspace: {
@@ -6413,8 +6414,8 @@ ${amount} pour ${merchant} - ${date}`,
         noActivityYet: 'Aucune activité pour le moment',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `modifié ${fieldName} de ${oldValue} à ${newValue}`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `changé ${fieldName} en ${newValue}`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `a modifié ${fieldName} en "${newValue}" (auparavant "${oldValue}")`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `a défini ${fieldName} sur "${newValue}"`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `Espace de travail modifié${fromPolicyName ? ` (auparavant ${fromPolicyName})` : ''}`;

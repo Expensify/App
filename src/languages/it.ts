@@ -2044,6 +2044,7 @@ ${amount} per ${merchant} - ${date}`,
         delaySubmissionDescription: "Scegli un programma personalizzato per l'invio delle spese, oppure lascialo disattivato per aggiornamenti in tempo reale sulle spese.",
         submissionFrequency: 'Frequenza di invio',
         submissionFrequencyDescription: 'Scegli una frequenza per inviare le spese.',
+        disableApprovalPromptDescription: 'Disabilitare le approvazioni eliminerà tutti i flussi di lavoro di approvazione esistenti.',
         submissionFrequencyDateOfMonth: 'Data del mese',
         addApprovalsTitle: 'Aggiungi approvazioni',
         addApprovalButton: 'Aggiungi flusso di lavoro di approvazione',
@@ -2627,7 +2628,7 @@ ${amount} per ${merchant} - ${date}`,
                 descriptionTwo: 'Categorizza e tagga le spese',
                 descriptionThree: 'Crea e condividi rapporti',
             },
-            price: 'Provalo gratis per 30 giorni, poi passa al piano superiore per soli <strong>$5/mese</strong>.',
+            price: 'Provalo gratis per 30 giorni, poi passa al piano superiore per soli <strong>$5/utente/mese</strong>.',
             createWorkspace: 'Crea workspace',
         },
         confirmWorkspace: {
@@ -6417,8 +6418,8 @@ ${amount} per ${merchant} - ${date}`,
         noActivityYet: 'Nessuna attività ancora',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `modificato ${fieldName} da ${oldValue} a ${newValue}`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `modificato ${fieldName} in ${newValue}`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `ha modificato ${fieldName} in "${newValue}" (precedentemente "${oldValue}")`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `ha impostato ${fieldName} su "${newValue}"`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `Spazio di lavoro modificato${fromPolicyName ? ` (precedentemente ${fromPolicyName})` : ''}`;

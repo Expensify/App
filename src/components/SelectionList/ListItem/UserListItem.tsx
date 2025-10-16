@@ -155,7 +155,7 @@ function UserListItem<TItem extends ListItem>({
                         )}
                     </View>
                     {!!item.rightElement && item.rightElement}
-                    {!!item.shouldShowRightIcon && (
+                    {!!item.shouldShowRightCaret && (
                         <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, isDisabled && styles.cursorDisabled]}>
                             <Icon
                                 src={Expensicons.ArrowRight}
