@@ -158,7 +158,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     duplicateTransactionViolations,
                     iouReport,
                     chatReport,
-                    false,
+                    transactionIDs.length === 1,
                     deletedTransactionIDs,
                     transactionIDs,
                     isChatIOUReportArchived,

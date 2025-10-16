@@ -57,6 +57,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
     const isReportArchived = useReportIsArchived(reportIDRef.current);
     const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current));
+    const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
 
     const cursorRelativePosition = useRef({
         horizontal: 0,
@@ -104,15 +105,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
 
     const onPopoverHideActionCallback = useRef(() => {});
     const callbackWhenDeleteModalHide = useRef(() => {});
-
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-    const {currentSearchHash} = useSearchContext();
-    const {deleteTransactions} = useDeleteTransactions({
-        report,
-        reportActions: reportActionRef.current ? [reportActionRef.current] : [],
-        policy,
-    });
 
     /** Get the Context menu anchor position. We calculate the anchor coordinates from measureInWindow async method */
     const getContextMenuMeasuredLocation = useCallback(
@@ -314,8 +306,16 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     }
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionIDs);
-
-    const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDRef.current}`, {
+        canBeMissing: true,
+    });
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const {currentSearchHash} = useSearchContext();
+    const {deleteTransactions} = useDeleteTransactions({
+        report,
+        reportActions: reportActionRef.current ? [reportActionRef.current] : [],
+        policy,
+    });
 
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
@@ -324,7 +324,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             const originalMessage = getOriginalMessage(reportAction);
             if (isTrackExpenseAction(reportAction)) {
                 deleteTrackExpense(
-                    reportIDRef.current,
+                    report,
                     originalMessage?.IOUTransactionID,
                     reportAction,
                     iouReport,
@@ -340,7 +340,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         } else if (isReportPreviewAction(reportAction)) {
             deleteAppReport(reportAction.childReportID);
         } else if (reportAction) {
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 deleteReportComment(reportIDRef.current, reportAction, isReportArchived, isOriginalReportArchived);
             });
@@ -348,17 +348,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
-    }, [
-        duplicateTransactions,
-        duplicateTransactionViolations,
-        isReportArchived,
-        isOriginalReportArchived,
-        isChatIOUReportArchived,
-        iouReport,
-        chatReport,
-        deleteTransactions,
-        currentSearchHash,
-    ]);
+    }, [duplicateTransactions, duplicateTransactionViolations, isReportArchived, isOriginalReportArchived, isChatIOUReportArchived, iouReport, chatReport, report]);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));
