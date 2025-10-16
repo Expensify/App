@@ -85,7 +85,6 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
                     ListItem={RadioListItem}
                     onSelectRow={selectFeed}
                     data={feeds}
-                    shouldUpdateFocusedIndex
                     alternateNumberOfSupportedLines={2}
                     initiallyFocusedItemKey={lastSelectedExpensifyCardFeed?.toString()}
                 />
