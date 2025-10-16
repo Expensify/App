@@ -31,6 +31,7 @@ import navigateToWorkspacesPage, {getWorkspaceNavigationRouteState} from '@libs/
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
+import {getDefaultTodoSuggestedSearch} from '@libs/SearchUIUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import navigationRef from '@navigation/navigationRef';
@@ -49,25 +50,6 @@ type NavigationTabBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isTopLevelBar?: boolean;
 };
-
-function getDefaultTodoSuggestedSearch(typeMenuSections: SearchTypeMenuSection[]) {
-    const todoSection = typeMenuSections.find((section) => section.translationPath === 'common.todo');
-    if (!todoSection) {
-        return undefined;
-    }
-
-    const approveItem = todoSection.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.APPROVE);
-    if (approveItem) {
-        return approveItem;
-    }
-
-    const submitItem = todoSection.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
-    if (submitItem) {
-        return submitItem;
-    }
-
-    return todoSection.menuItems.at(0);
-}
 
 function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBarProps) {
     const theme = useTheme();
@@ -470,4 +452,3 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
 NavigationTabBar.displayName = 'NavigationTabBar';
 
 export default memo(NavigationTabBar);
-export {getDefaultTodoSuggestedSearch};

@@ -2326,6 +2326,25 @@ function getFlattenedMenuItemsWithDefaultTodoIndex(typeMenuSections: SearchTypeM
     };
 }
 
+function getDefaultTodoSuggestedSearch(typeMenuSections: SearchTypeMenuSection[]) {
+    const todoSection = typeMenuSections.find((section) => section.translationPath === 'common.todo');
+    if (!todoSection) {
+        return undefined;
+    }
+
+    const approveItem = todoSection.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.APPROVE);
+    if (approveItem) {
+        return approveItem;
+    }
+
+    const submitItem = todoSection.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+    if (submitItem) {
+        return submitItem;
+    }
+
+    return todoSection.menuItems.at(0);
+}
+
 export {
     getSuggestedSearches,
     getListItem,
@@ -2368,5 +2387,6 @@ export {
     getColumnsToShow,
     getFlattenedMenuItemsWithDefaultTodoIndex,
     getHasOptions,
+    getDefaultTodoSuggestedSearch,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};

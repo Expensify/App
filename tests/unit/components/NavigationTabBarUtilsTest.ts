@@ -1,6 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import {getDefaultTodoSuggestedSearch} from '@components/Navigation/NavigationTabBar';
-import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
+import type {getDefaultTodoSuggestedSearch, SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
