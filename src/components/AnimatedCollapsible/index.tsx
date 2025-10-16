@@ -112,7 +112,7 @@ function AnimatedCollapsible({
                         disabled={disabled}
                         style={[styles.p3, styles.justifyContentCenter, styles.alignItemsCenter, expandButtonStyle]}
                         accessibilityRole={CONST.ROLE.BUTTON}
-                        accessibilityLabel={isExpanded ? 'Collapse' : 'Expand'}
+                        accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
                     >
                         {({hovered}) => (
                             <Icon

@@ -5173,6 +5173,11 @@ const CONST = {
         EXPENSIFY_LOGO_MARGIN_RATIO: 0.03,
     },
 
+    ACCESSIBILITY_LABELS: {
+        COLLAPSE: 'Collapse',
+        EXPAND: 'Expand',
+    },
+
     /**
      * Acceptable values for the `role` attribute on react native components.
      *
