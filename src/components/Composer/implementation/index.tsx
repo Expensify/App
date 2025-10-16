@@ -163,7 +163,7 @@ function Composer(
             // If paste contains files, then trigger file management
             if (event.clipboardData?.files.length && event.clipboardData.files.length > 0) {
                 // Prevent the default so we do not post the file name into the text box
-                onPasteFile(event.clipboardData.files[0]);
+                onPasteFile(Array.from(event.clipboardData.files));
                 return true;
             }
 

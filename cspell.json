@@ -603,6 +603,7 @@
         "Speedscope",
         "Spotnana",
         "spreadsheetml",
+        "srgb",
         "SSAE",
         "startdate",
         "stdev",
@@ -758,7 +759,11 @@
         "مثال",
         "moveElemsAttrsToGroup",
         "removeHiddenElems",
-        "moveGroupAttrsToElems"
+        "moveGroupAttrsToElems",
+        "Dtype",
+        "Areport",
+        "mple",
+        "Selec"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
@@ -792,6 +797,7 @@
         "ios/GoogleService-Info.plist",
         "ios/GoogleService-Info-DEV.plist",
         "ios/AirshipConfig.plist",
+        "src/libs/Avatars/*",
         "Mobile-Expensify",
         "modules/ExpensifyNitroUtils/nitrogen/**",
         "modules/ExpensifyNitroUtils/android/build.gradle",
@@ -799,7 +805,7 @@
         "src/TIMEZONES.ts",
         "tests/unit/EmojiTest.ts",
         "tests/unit/FastSearchTest.ts",
-        "tests/unit/LocaleCompareTest.ts",
+        "tests/unit/useLocalizeTest.tsx",
         "tests/unit/removeInvisibleCharacters.ts",
         "tests/unit/searchCountryOptionsTest.ts",
         "tests/unit/currencyList.json",
