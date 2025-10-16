@@ -11,7 +11,6 @@ import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransact
 import type {PerDiemExpenseTransactionParams, RequestMoneyParticipantParams} from '@libs/actions/IOU';
 import {
     addSplitExpenseField,
-    approveMoneyRequest,
     calculateDiffAmount,
     canApproveIOU,
     canCancelPayment,
