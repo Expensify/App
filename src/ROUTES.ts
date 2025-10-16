@@ -1444,6 +1444,7 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC route');
             }
 
+            // eslint-disable-next-line no-restricted-syntax
             return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-desktop/advanced/autosync` as const, backTo);
         },
     },
@@ -3179,6 +3180,7 @@ const ROUTES = {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC route');
             }
+            // eslint-disable-next-line no-restricted-syntax
             return getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/advanced/autosync` as const, backTo);
         },
     },
