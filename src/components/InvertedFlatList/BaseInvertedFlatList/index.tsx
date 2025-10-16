@@ -77,8 +77,12 @@ function BaseInvertedFlatList<T>({
     }, [currentDataIndex, data, initialNumToRender, isInitialData]);
     const initialNegativeScrollIndex = useRef(negativeScrollIndex);
 
+    const isLoadingData = data.length > displayedData.length;
+    const wasLoadingData = usePrevious(isLoadingData);
+    const remainingItemsToDisplay = data.length - displayedData.length;
+
     const listRef = useRef<FlatListInnerRefType<T>>(null);
-    useFlatListHandle({forwardedRef: ref, listRef, setCurrentDataId, remainingItemsToDisplay: initialNumToRender, onScrollToIndexFailed});
+    useFlatListHandle({forwardedRef: ref, listRef, setCurrentDataId, remainingItemsToDisplay, onScrollToIndexFailed});
 
     // Queue up updates to the displayed data to avoid adding too many at once and cause jumps in the list.
     const renderQueue = useMemo(() => new RenderTaskQueue(), []);
@@ -120,10 +124,6 @@ function BaseInvertedFlatList<T>({
         }, INITIAL_SCROLL_DELAY);
     }, [currentDataIndex, data.length, displayedData.length, didInitialContentRender, initialNumToRender, isInitialData, isMessageOnFirstPage, onInitiallyLoaded, renderQueue, listRef]);
 
-    const isLoadingData = data.length > displayedData.length;
-    const wasLoadingData = usePrevious(isLoadingData);
-    const dataIndexDifference = data.length - displayedData.length;
-
     renderQueue.setHandler((info: RenderInfo) => {
         if (!isLoadingData) {
             onStartReached?.(info);
@@ -150,9 +150,9 @@ function BaseInvertedFlatList<T>({
     const handleRenderItem = useCallback(
         ({item, index, separators}: ListRenderItemInfo<T>) => {
             // Adjust the index passed here so it matches the original data.
-            return renderItem({item, index: index + dataIndexDifference, separators});
+            return renderItem({item, index: index + remainingItemsToDisplay, separators});
         },
-        [renderItem, dataIndexDifference],
+        [renderItem, remainingItemsToDisplay],
     );
 
     const maintainVisibleContentPosition = useMemo<ScrollViewProps['maintainVisibleContentPosition']>(() => {
