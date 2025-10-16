@@ -57,8 +57,8 @@ jobs:
           
           git checkout --force --detach "${PR_SHA:-${GITHUB_SHA}}" --no-recurse-submodules
           
-          if git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours 2>&1 | grep -q "submodules currently only supports trivial cases"; then
-            true
+          if ! git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours; then
+            git checkout --ours .
           fi
           
           npm install --force || (rm -rf node_modules && npm install --force)
