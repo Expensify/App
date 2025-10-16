@@ -97,7 +97,7 @@ function MoneyRequestReceiptView({
 }: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const parentReportID = report?.parentReportID;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
@@ -225,6 +225,9 @@ function MoneyRequestReceiptView({
             return;
         }
         if (hasOnlyReportCreationError) {
+            if (isInNarrowPaneModal) {
+                Navigation.goBack();
+            }
             navigateToConciergeChatAndDeleteReport(report.reportID, true, true);
             return;
         }
