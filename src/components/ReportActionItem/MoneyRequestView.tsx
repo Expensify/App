@@ -68,7 +68,7 @@ import {
     hasMissingSmartscanFields,
     hasReservationList,
     hasRoute as hasRouteTransactionUtils,
-    isCardTransaction as isCardTransactionTransactionUtils,
+    isManagedCardTransaction as isCardTransactionTransactionUtils,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isExpenseUnreported as isExpenseUnreportedTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
@@ -268,7 +268,7 @@ function MoneyRequestView({
     // Flags for showing categories and tags
     // transactionCategory can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowCategory = isPolicyExpenseChat && (categoryForDisplay || hasEnabledOptions(policyCategories ?? {}));
+    const shouldShowCategory = (isPolicyExpenseChat && (categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) || isExpenseUnreported;
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || hasEnabledTags(policyTagLists));
@@ -306,6 +306,8 @@ function MoneyRequestView({
         merchantTitle = translate('iou.receiptStatusTitle');
         amountTitle = translate('iou.receiptStatusTitle');
     }
+
+    const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
 
     const updatedTransactionDescription = useMemo(() => {
         if (!updatedTransaction) {
@@ -711,16 +713,27 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (!policy) {
+                                if (shouldNavigateToUpgradePath) {
                                     Navigation.navigate(
                                         ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                                             action: CONST.IOU.ACTION.EDIT,
                                             iouType,
                                             transactionID: transaction.transactionID,
                                             reportID: report.reportID,
-                                            backTo: getReportRHPActiveRoute(),
                                             upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
                                         }),
+                                    );
+                                } else if (shouldSelectPolicy) {
+                                    Navigation.navigate(
+                                        ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
+                                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
+                                                CONST.IOU.ACTION.EDIT,
+                                                iouType,
+                                                transaction.transactionID,
+                                                report.reportID,
+                                                getReportRHPActiveRoute(),
+                                            ),
+                                        ),
                                     );
                                 } else {
                                     Navigation.navigate(
@@ -852,7 +865,7 @@ function MoneyRequestView({
                                 if (!canEditReport) {
                                     return;
                                 }
-                                if (!policyForMovingExpenses && !shouldSelectPolicy) {
+                                if (shouldNavigateToUpgradePath) {
                                     Navigation.navigate(
                                         ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                                             iouType,
