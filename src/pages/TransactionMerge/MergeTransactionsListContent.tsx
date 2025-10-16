@@ -65,12 +65,14 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const sections = useMemo(() => {
         return [
             {
-                data: (eligibleTransactions ?? []).map((eligibleTransaction) => ({
-                    ...fillMissingReceiptSource(eligibleTransaction),
-                    keyForList: eligibleTransaction.transactionID,
-                    isSelected: eligibleTransaction.transactionID === mergeTransaction?.sourceTransactionID,
-                    errors: eligibleTransaction.errors as Errors | undefined,
-                })),
+                data: (eligibleTransactions ?? [])
+                    .map((eligibleTransaction) => ({
+                        ...fillMissingReceiptSource(eligibleTransaction),
+                        keyForList: eligibleTransaction.transactionID,
+                        isSelected: eligibleTransaction.transactionID === mergeTransaction?.sourceTransactionID,
+                        errors: eligibleTransaction.errors as Errors | undefined,
+                    }))
+                    .sort((a, b) => b.created.localeCompare(a.created)),
                 shouldShow: true,
             },
         ];
