@@ -908,24 +908,17 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     .filter((t) => !isTransactionPendingDelete(t))
                     .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID));
             });
-            setSelectedTransactions(
-                Object.fromEntries(
-                    (data as TransactionGroupListItemType[]).flatMap((item) =>
-                        item.transactions
-                            .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID, isUserWorkspaceMember)),
-                    ),
-                ),
-                data,
-            );
+            setSelectedTransactions(Object.fromEntries(allSelections), data);
             return;
         }
 
         setSelectedTransactions(
             Object.fromEntries(
-                (data as TransactionListItemType[])
-                    .filter((t) => !isTransactionPendingDelete(t))
-                    .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID, isUserWorkspaceMember)),
+                (data as TransactionGroupListItemType[]).flatMap((item) =>
+                    item.transactions
+                        .filter((t) => !isTransactionPendingDelete(t))
+                        .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID, isUserWorkspaceMember)),
+                ),
             ),
             data,
         );
