@@ -12650,11 +12650,20 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
             }
         } else {
             // For reports with single expense: Delete the report
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: null,
-            });
+            optimisticData.push(
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {
+                        reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    },
+                },
+            );
 
             // And delete the corresponding REPORTPREVIEW action
             const parentReportID = report?.parentReportID;
@@ -12693,11 +12702,20 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
             });
 
             // Add failure data to restore the report
-            failureData.push({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: report,
-            });
+            failureData.push(
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: report,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {
+                        reportID,
+                    },
+                },
+            );
 
             if (isUserOnSearchPage) {
                 // Navigate to the existing Reports > Expense view.
