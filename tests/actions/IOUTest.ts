@@ -8908,9 +8908,11 @@ describe('actions/IOU', () => {
         const adminAccountID = 1;
         const managerAccountID = 2;
         const employeeAccountID = 3;
+        const seniorManagerAccountID = 4;
         const adminEmail = 'admin@test.com';
         const managerEmail = 'manager@test.com';
         const employeeEmail = 'employee@test.com';
+        const seniorManagerEmail = 'seniormanager@test.com';
 
         let expenseReport: Report;
         let policy: Policy;
@@ -8924,6 +8926,11 @@ describe('actions/IOU', () => {
                     accountID: adminAccountID,
                     login: adminEmail,
                     displayName: 'Admin User',
+                },
+                [seniorManagerAccountID]: {
+                    accountID: seniorManagerAccountID,
+                    login: seniorManagerEmail,
+                    displayName: 'Senior Manager User',
                 },
                 [managerAccountID]: {
                     accountID: managerAccountID,
@@ -8964,14 +8971,17 @@ describe('actions/IOU', () => {
                     [managerEmail]: {
                         email: managerEmail,
                         role: CONST.POLICY.ROLE.USER,
-                        submitsTo: adminEmail,
-                        forwardsTo: '',
+                        forwardsTo: seniorManagerEmail,
+                    },
+                    [seniorManagerEmail]: {
+                        email: seniorManagerEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        forwardsTo: adminEmail,
                     },
                     [adminEmail]: {
                         email: adminEmail,
                         role: CONST.POLICY.ROLE.ADMIN,
-                        submitsTo: adminEmail,
-                        forwardsTo: adminEmail,
+                        forwardsTo: '',
                     },
                 },
             };
@@ -9052,13 +9062,24 @@ describe('actions/IOU', () => {
             approveMoneyRequest(expenseReport);
             await waitForBatchedUpdates();
 
-            // Should be submitted to admin (normal flow) since take control was invalidated
+            // Should be submitted to senior manager (normal flow) since take control was invalidated
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
             expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+
+            // Get the optimistic next step
+            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
+
+            // The next step message should be defined
+            expect(nextStep?.message).toBeDefined();
+
+            // Since take control was invalidated by resubmission, the normal approval chain applies
+            // The next step should indicate waiting for the senior manager to approve
+            const fullMessage = nextStep?.message?.map((part) => part.text).join('');
+            expect(fullMessage).toBe('Waiting for Senior Manager User to approve %expenses.');
         });
 
-        it('should show admin name in optimistic next step message when admin takes control and approves', async () => {
+        it('should mention an admin to pay expenses in optimistic next step message when admin takes control and approves', async () => {
             // Admin takes control
             const takeControlAction = {
                 reportActionID: 'takeControl2',
@@ -9085,7 +9106,7 @@ describe('actions/IOU', () => {
             // the next step should be about payment, which should mention the admin
             // The message should equal "Waiting for Admin User to pay"
             const fullMessage = nextStep?.message?.map((part) => part.text).join('');
-            expect(fullMessage).toBe('Waiting for Admin User to pay');
+            expect(fullMessage).toBe('Waiting for an admin to pay %expenses.');
         });
 
         
