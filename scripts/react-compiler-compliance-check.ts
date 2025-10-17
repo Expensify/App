@@ -56,14 +56,14 @@ type PrintResultsOptions = {
     shouldPrintSuccesses: boolean;
 };
 
-type CommonCheckOptions = PrintResultsOptions & {
+type BaseCheckOptions = PrintResultsOptions & {
     remote?: string;
     reportFileName?: string;
     shouldGenerateReport?: boolean;
     shouldFilterByDiff?: boolean;
 };
 
-type CheckOptions = CommonCheckOptions & {
+type CheckOptions = BaseCheckOptions & {
     filesToCheck?: string[];
 };
 
@@ -101,9 +101,7 @@ async function check({
     return isPassed;
 }
 
-type CheckChangedFilesOptions = CommonCheckOptions;
-
-async function checkChangedFiles({remote, ...restOptions}: CheckChangedFilesOptions): Promise<boolean> {
+async function checkChangedFiles({remote, ...restOptions}: BaseCheckOptions): Promise<boolean> {
     logInfo('Checking changed files for React Compiler compliance...');
 
     const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
@@ -540,7 +538,7 @@ async function main() {
     const {remote, reportFileName} = cli.namedArgs;
     const {report: shouldGenerateReport, filterByDiff: shouldFilterByDiff, printSuccesses: shouldPrintSuccesses} = cli.flags;
 
-    const commonOptions: CommonCheckOptions = {shouldGenerateReport, reportFileName, shouldFilterByDiff, shouldPrintSuccesses};
+    const commonOptions: BaseCheckOptions = {shouldGenerateReport, reportFileName, shouldFilterByDiff, shouldPrintSuccesses};
 
     async function runCommand() {
         switch (command) {
