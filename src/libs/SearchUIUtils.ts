@@ -2323,10 +2323,10 @@ function getFlattenedMenuItemsWithDefaultTodoIndex(typeMenuSections: SearchTypeM
     if (defaultTodoItem && defaultTodoIndex === -1) {
         const todoSectionIndex = typeMenuSections.findIndex((section) => section.translationPath === 'common.todo');
         if (todoSectionIndex !== -1) {
-            const todoSection = typeMenuSections[todoSectionIndex];
-            const todoSectionItemIndex = todoSection.menuItems.indexOf(defaultTodoItem);
-            if (todoSectionItemIndex !== -1) {
-                const precedingItemsCount = typeMenuSections.slice(0, todoSectionIndex).reduce((acc, section) => acc + section.menuItems.length, 0);
+            const todoSection = typeMenuSections.at(todoSectionIndex);
+            const todoSectionItemIndex = todoSection?.menuItems?.indexOf(defaultTodoItem);
+            if (typeof todoSectionItemIndex === 'number' && todoSectionItemIndex !== -1) {
+                const precedingItemsCount = typeMenuSections.slice(0, todoSectionIndex).reduce((acc, section) => acc + (section.menuItems?.length ?? 0), 0);
                 defaultTodoIndex = precedingItemsCount + todoSectionItemIndex;
             }
         }
