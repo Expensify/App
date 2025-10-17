@@ -1,6 +1,5 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
-import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
