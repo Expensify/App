@@ -53,6 +53,7 @@ function useOptions() {
                 betas,
                 excludeLogins,
             },
+            countryCode,
         );
 
         const headerMessage = getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0, !!userToInvite, '');
@@ -64,7 +65,7 @@ function useOptions() {
             currentUserOption,
             headerMessage,
         };
-    }, [optionsList.reports, optionsList.personalDetails, draftComments, betas, excludeLogins]);
+    }, [optionsList.reports, optionsList.personalDetails, draftComments, betas, excludeLogins, countryCode]);
 
     const options = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), countryCode, {
