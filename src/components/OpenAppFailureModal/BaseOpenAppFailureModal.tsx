@@ -6,19 +6,20 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useOpenAppReset from '@hooks/useOpenAppReset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setIsOpenAppFailureModalOpen} from '@libs/actions/isOpenAppFailureModalOpen';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Header from './Header';
+import Header from '../Header';
 
-function OpenAppFailureModal() {
+type BaseOpenAppFailureModalProps = {
+    onRefreshAndTryAgainButtonPress: () => void;
+};
+
+function BaseOpenAppFailureModal({onRefreshAndTryAgainButtonPress}: BaseOpenAppFailureModalProps) {
     const [isOpenAppFailureModalOpen = false] = useOnyx(ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN, {canBeMissing: true});
     const styles = useThemeStyles();
-    const resetOpenApp = useOpenAppReset();
     const {translate} = useLocalize();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to be consistent with BaseModal component
@@ -51,10 +52,7 @@ function OpenAppFailureModal() {
                     success
                     style={[styles.mb3]}
                     text={translate('openAppFailureModal.refreshAndTryAgain')}
-                    onPress={() => {
-                        setIsOpenAppFailureModalOpen(false);
-                        resetOpenApp();
-                    }}
+                    onPress={onRefreshAndTryAgainButtonPress}
                 />
                 <Button
                     large
@@ -66,6 +64,6 @@ function OpenAppFailureModal() {
     );
 }
 
-OpenAppFailureModal.displayName = 'OpenAppFailureModal';
+BaseOpenAppFailureModal.displayName = 'BaseOpenAppFailureModal';
 
-export default OpenAppFailureModal;
+export default BaseOpenAppFailureModal;
