@@ -29,7 +29,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
-import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -40,6 +39,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
+import Permissions from '@libs/Permissions';
 import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {
@@ -147,7 +147,6 @@ type CaseID = ValueOf<typeof CASES>;
 function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetailsPageProps) {
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
@@ -425,7 +424,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     );
                 },
             });
-            if (isBetaEnabled(CONST.BETAS.TRACK_FLOWS)) {
+            if (Permissions.canUseTrackFlows()) {
                 items.push({
                     key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.CATEGORIZE,
                     translationKey: 'actionableMentionTrackExpense.categorize',
@@ -555,7 +554,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         parentReportAction,
         iouTransactionID,
         moneyRequestReport?.reportID,
-        isBetaEnabled,
         session,
         isTaskActionable,
         isRootGroupChat,
@@ -792,7 +790,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
         if (isTrackExpense) {
             deleteTrackExpense(
-                moneyRequestReport?.reportID,
+                moneyRequestReport,
                 iouTransactionID,
                 requestParentReportAction,
                 iouReport,
@@ -824,15 +822,15 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         caseID,
         iouTransactionID,
         isSingleTransactionView,
-        moneyRequestReport?.reportID,
+        moneyRequestReport,
         removeTransaction,
         report,
         requestParentReportAction,
         isReportArchived,
-        isChatIOUReportArchived,
         isMoneyRequestReportArchived,
         iouReport,
         chatIOUReport,
+        isChatIOUReportArchived,
     ]);
 
     // A flag to indicate whether the user chose to delete the transaction or not
@@ -864,7 +862,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
             if (isTrackExpense) {
                 urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(
-                    moneyRequestReport?.reportID,
+                    moneyRequestReport,
                     iouTransactionID,
                     requestParentReportAction,
                     iouReport,
@@ -890,7 +888,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
             navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
         }
-    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport?.reportID, isChatIOUReportArchived, iouReport, chatIOUReport]);
+    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport, isChatIOUReportArchived, iouReport, chatIOUReport]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 
