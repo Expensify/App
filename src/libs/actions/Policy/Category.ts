@@ -1,5 +1,5 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 import type PolicyData from '@hooks/usePolicyData/types';
@@ -33,7 +33,7 @@ import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory, PolicyTagLists, Report, TransactionViolations} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, Report} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
