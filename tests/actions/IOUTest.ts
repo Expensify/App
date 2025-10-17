@@ -213,11 +213,10 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
             };
             const currentSearchQueryJSON = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 status: '' as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 filters: {
                     operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
                     left: {
@@ -231,7 +230,7 @@ describe('actions/IOU', () => {
                         right: '20671314',
                     },
                 },
-                inputQuery: 'sortBy:date sortOrder:desc type:expense groupBy:reports action:submit from:20671314',
+                inputQuery: 'sortBy:date sortOrder:desc type:expense-report action:submit from:20671314',
                 flatFilters: [
                     {
                         key: CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION,
@@ -254,7 +253,7 @@ describe('actions/IOU', () => {
                 ],
                 hash: 1920151829,
                 recentSearchHash: 2100977843,
-                similarSearchHash: 1476388677,
+                similarSearchHash: 1855682507,
             } as SearchQueryJSON;
             const iouReport: Report = {...createRandomReport(2), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
@@ -272,11 +271,10 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
             };
             const currentSearchQueryJSON = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 status: '' as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 filters: {
                     operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
                     left: {
@@ -312,9 +310,9 @@ describe('actions/IOU', () => {
                 ],
 
                 hash: 1510971479,
-                inputQuery: 'sortBy:date sortOrder:desc type:expense groupBy:reports action:approve to:20671314',
+                inputQuery: 'sortBy:date sortOrder:desc type:expense-report action:approve to:20671314',
                 recentSearchHash: 967911777,
-                similarSearchHash: 601088623,
+                similarSearchHash: 1539858783,
             } as SearchQueryJSON;
             const iouReport: Report = {...createRandomReport(2), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
@@ -333,11 +331,10 @@ describe('actions/IOU', () => {
                 reimbursable: true,
             };
             const currentSearchQueryJSON = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 status: '' as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 filters: {
                     operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
                     left: 'reimbursable',
@@ -3673,7 +3670,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     if (chatReport && expenseReport) {
                         // And when the payment is cancelled
-                        cancelPayment(expenseReport, chatReport);
+                        cancelPayment(expenseReport, chatReport, {} as Policy, true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -4819,7 +4816,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (expenseReport) {
-                        submitReport(expenseReport);
+                        submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -4961,7 +4958,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (expenseReport) {
-                        submitReport(expenseReport);
+                        submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -5138,7 +5135,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     mockFetch?.fail?.();
                     if (expenseReport) {
-                        submitReport(expenseReport);
+                        submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -6740,7 +6737,7 @@ describe('actions/IOU', () => {
             if (chatReport && expenseReport) {
                 mockFetch?.pause?.();
                 // And when the payment is cancelled
-                cancelPayment(expenseReport, chatReport);
+                cancelPayment(expenseReport, chatReport, {} as Policy, true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true);
             }
             await waitForBatchedUpdates();
 
