@@ -50,6 +50,13 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
+      - name: Setup tmate
+        if: runner.debug == '1'
+        uses: mxschmitt/action-tmate@e5c7151931ca95bad1c6f4190c730ecf8c7dde48
+        timeout-minutes: 60
+        with:
+          limit-access-to-actor: true
+
       - name: Check if English translations were modified
         id: check-en-changes
         uses: ./.github/actions/javascript/getPullRequestIncrementalChanges

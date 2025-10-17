@@ -7,7 +7,8 @@ import type DeepValueOf from './types/utils/DeepValueOf';
 const PROTECTED_SCREENS = {
     HOME: 'Home',
     CONCIERGE: 'Concierge',
-    ATTACHMENTS: 'Attachments',
+    REPORT_ATTACHMENTS: 'ReportAttachments',
+    REPORT_ADD_ATTACHMENT: 'ReportAddAttachment',
     TRACK_EXPENSE: 'TrackExpense',
     SUBMIT_EXPENSE: 'SubmitExpense',
 } as const;
@@ -99,6 +100,7 @@ const SCREENS = {
         ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: 'Settings_Add_Bank_Account_Verify_Account',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         ADD_US_BANK_ACCOUNT: 'Settings_Add_US_Bank_Account',
+        ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: 'Settings_Add_Bank_Account_Select_Country_Verify_Account',
         CLOSE: 'Settings_Close',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         TROUBLESHOOT: 'Settings_Troubleshoot',
@@ -111,6 +113,7 @@ const SCREENS = {
             CONTACT_METHODS: 'Settings_ContactMethods',
             CONTACT_METHOD_DETAILS: 'Settings_ContactMethodDetails',
             NEW_CONTACT_METHOD: 'Settings_NewContactMethod',
+            NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: 'Settings_NewContactMethod_ConfirmMagicCode',
             CONTACT_METHOD_VERIFY_ACCOUNT: 'Settings_ContactMethod_Verify_Account',
             STATUS_CLEAR_AFTER: 'Settings_Status_Clear_After',
             STATUS_CLEAR_AFTER_DATE: 'Settings_Status_Clear_After_Date',
@@ -124,6 +127,7 @@ const SCREENS = {
             DATE_OF_BIRTH: 'Settings_DateOfBirth',
             PHONE_NUMBER: 'Settings_PhoneNumber',
             ADDRESS: 'Settings_Address',
+            AVATAR: 'Settings_Avatar',
             ADDRESS_COUNTRY: 'Settings_Address_Country',
             ADDRESS_STATE: 'Settings_Address_State',
         },
@@ -140,11 +144,13 @@ const SCREENS = {
             ROOT: 'Settings_Wallet',
             VERIFY_ACCOUNT: 'Settings_Wallet_VerifyAccount',
             DOMAIN_CARD: 'Settings_Wallet_DomainCard',
+            DOMAIN_CARD_CONFIRM_MAGIC_CODE: 'Settings_Wallet_DomainCard_ConfirmMagicCode',
             TRANSFER_BALANCE: 'Settings_Wallet_Transfer_Balance',
             CHOOSE_TRANSFER_ACCOUNT: 'Settings_Wallet_Choose_Transfer_Account',
             ENABLE_PAYMENTS: 'Settings_Wallet_EnablePayments',
             CARD_ACTIVATE: 'Settings_Wallet_Card_Activate',
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
+            REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_MAGIC_CODE: 'Settings_Wallet_ReportVirtualCardFraud_ConfirmMagicCode',
             REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION: 'Settings_Wallet_ReportVirtualCardFraudConfirmation',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
             ENABLE_GLOBAL_REIMBURSEMENTS: 'Settings_Wallet_Enable_Global_Reimbursements',
@@ -205,6 +211,7 @@ const SCREENS = {
         DETAILS: 'Details',
         PROFILE: 'Profile',
         NEW_REPORT_WORKSPACE_SELECTION: 'New_Report_Workspace_Selection',
+        SET_DEFAULT_WORKSPACE: 'Set_Default_Workspace',
         REPORT_DETAILS: 'Report_Details',
         REPORT_CHANGE_WORKSPACE: 'ReportChangeWorkspace',
         WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
@@ -277,7 +284,6 @@ const SCREENS = {
         STEP_TAX_AMOUNT: 'Money_Request_Step_Tax_Amount',
         STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
         RECEIPT_VIEW: 'Money_Request_Receipt_View',
-        STEP_SPLIT_PAYER: 'Money_Request_Step_Split_Payer',
         STEP_SEND_FROM: 'Money_Request_Step_Send_From',
         STEP_COMPANY_INFO: 'Money_Request_Step_Company_Info',
         CURRENCY: 'Money_Request_Currency',
@@ -395,6 +401,10 @@ const SCREENS = {
         ROOT: 'NewReportWorkspaceSelection_Root',
     },
 
+    SET_DEFAULT_WORKSPACE: {
+        ROOT: 'SetDefaultWorkspace_Root',
+    },
+
     REPORT_DETAILS: {
         ROOT: 'Report_Details_Root',
         SHARE_CODE: 'Report_Details_Share_Code',
@@ -443,6 +453,8 @@ const SCREENS = {
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense',
             QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Non_Reimbursable_Default_Vendor_Select',
             QUICKBOOKS_DESKTOP_ADVANCED: 'Policy_Accounting_Quickbooks_Desktop_Advanced',
+            QUICKBOOKS_DESKTOP_AUTO_SYNC: 'Policy_Accounting_Quickbooks_Desktop_Auto_Sync',
+            QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD: 'Policy_Accounting_Quickbooks_Desktop_Accounting_Method',
             QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Date_Select',
             QUICKBOOKS_DESKTOP_EXPORT_PREFERRED_EXPORTER: 'Workspace_Accounting_Quickbooks_Desktop_Export_Preferred_Exporter',
             QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES: 'Workspace_Accounting_Quickbooks_Desktop_Export_Out_Of_Pocket_Expenses',
@@ -623,6 +635,7 @@ const SCREENS = {
         WORKFLOWS_APPROVALS_APPROVER: 'Workspace_Workflows_Approvals_Approver',
         WORKFLOWS_AUTO_REPORTING_FREQUENCY: 'Workspace_Workflows_Auto_Reporting_Frequency',
         WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Monthly_Offset',
+        WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT: 'Workspace_Workflows_Connect_Existing_Bank_Account',
         DESCRIPTION: 'Workspace_Overview_Description',
         SHARE: 'Workspace_Overview_Share',
         NAME: 'Workspace_Overview_Name',
@@ -718,6 +731,10 @@ const SCREENS = {
         WORKSPACE_INVITE: 'Onboarding_Workspace_Invite',
     },
 
+    CURRENCY: {
+        SELECTION: 'Currency_Selection',
+    },
+
     EXPLANATION_MODAL: {
         ROOT: 'Explanation_Modal_Root',
     },
@@ -739,7 +756,6 @@ const SCREENS = {
     ENABLE_PAYMENTS_ROOT: 'EnablePayments_Root',
     ADD_PERSONAL_BANK_ACCOUNT_ROOT: 'AddPersonalBankAccount_Root',
     REIMBURSEMENT_ACCOUNT_ROOT: 'Reimbursement_Account_Root',
-    CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT: 'Connect_Existing_Business_Bank_Account_Root',
     WALLET_STATEMENT_ROOT: 'WalletStatement_Root',
     SIGN_IN_ROOT: 'SignIn_Root',
     DETAILS_ROOT: 'Details_Root',

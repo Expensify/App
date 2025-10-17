@@ -1,10 +1,12 @@
+import isEmpty from 'lodash/isEmpty';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Merge, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
-import type {PaymentMethod as KYCPaymentMethod} from '@components/KYCWall/types';
+import type {ContinueActionParams, PaymentMethod as KYCPaymentMethod} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {BankAccountMenuItem} from '@components/Search/types';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -22,7 +24,7 @@ import Navigation from './Navigation/Navigation';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
-type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => void;
+type TriggerKYCFlow = (params: ContinueActionParams) => void;
 type AccountType = ValueOf<typeof CONST.PAYMENT_METHODS> | undefined;
 
 /**
@@ -137,7 +139,7 @@ const selectPaymentType = (
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
             return;
         }
-        triggerKYCFlow(event, iouPaymentType);
+        triggerKYCFlow({event, iouPaymentType});
         setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
         return;
     }
@@ -168,5 +170,42 @@ const isSecondaryActionAPaymentOption = (item: PopoverMenuItem): item is Payment
     return isPaymentInArray.length > 0;
 };
 
-export {hasExpensifyPaymentMethod, getPaymentMethodDescription, formatPaymentMethods, calculateWalletTransferBalanceFee, selectPaymentType, isSecondaryActionAPaymentOption};
+/**
+ * Get the appropriate payment type, selected policy, and whether a payment method should be selected
+ * based on the provided payment method, active admin policies, and latest bank items.
+ */
+function getActivePaymentType(paymentMethod: string | undefined, activeAdminPolicies: Policy[], latestBankItems: BankAccountMenuItem[] | undefined) {
+    const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(paymentMethod as ValueOf<typeof CONST.PAYMENT_METHODS>);
+    const shouldSelectPaymentMethod = isPaymentMethod || !isEmpty(latestBankItems);
+    const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === paymentMethod);
+
+    let paymentType;
+    switch (paymentMethod) {
+        case CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT:
+            paymentType = CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
+            break;
+        case CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT:
+            paymentType = CONST.IOU.PAYMENT_TYPE.VBBA;
+            break;
+        default:
+            paymentType = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+            break;
+    }
+
+    return {
+        paymentType,
+        selectedPolicy,
+        shouldSelectPaymentMethod,
+    };
+}
+
+export {
+    hasExpensifyPaymentMethod,
+    getPaymentMethodDescription,
+    formatPaymentMethods,
+    calculateWalletTransferBalanceFee,
+    selectPaymentType,
+    isSecondaryActionAPaymentOption,
+    getActivePaymentType,
+};
 export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, PaymentOption};
