@@ -1,8 +1,8 @@
 import {findFocusedRoute, getPathFromState as RNGetPathFromState} from '@react-navigation/native';
-import type {NavigationRoute, NavigationState, ParamListBase, PartialRoute, PartialState} from '@react-navigation/routers';
+import type {NavigationState, PartialState} from '@react-navigation/routers';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
+import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 
 type State = NavigationState | Omit<PartialState<NavigationState>, 'stale'>;
 
@@ -10,9 +10,12 @@ type State = NavigationState | Omit<PartialState<NavigationState>, 'stale'>;
  * Checks if a screen name is a dynamic route screen
  */
 function isDynamicRouteScreen(screenName: string): boolean {
-    const dynamicScreens = [SCREENS.SETTINGS.VERIFY_ACCOUNT];
-
-    return dynamicScreens.includes(screenName);
+    for (const path of Object.values(DYNAMIC_ROUTES)) {
+        if (path === normalizedConfigs[screenName].path) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function removeDynamicRoutesFromState(state: State): {cleanedState: State; dynamicRoutes: string[]} {
