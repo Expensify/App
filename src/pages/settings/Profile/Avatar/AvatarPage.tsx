@@ -56,7 +56,7 @@ function ProfileAvatar() {
     const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart, styles.alignSelfCenter];
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {avatarMap: avatars} = useLetterAvatars(currentUserPersonalDetails?.firstName, CONST.AVATAR_SIZE.X_LARGE);
+    const {avatarMap: avatars} = useLetterAvatars(currentUserPersonalDetails?.displayName, CONST.AVATAR_SIZE.X_LARGE);
 
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     // eslint-disable-next-line no-nested-ternary
@@ -231,7 +231,7 @@ function ProfileAvatar() {
             >
                 <View style={[styles.ph5, styles.flexColumn, styles.flex1, styles.gap2, styles.alignItemsCenter]}>
                     <AvatarSelector
-                        name={currentUserPersonalDetails?.firstName}
+                        name={currentUserPersonalDetails?.displayName}
                         selectedID={selected}
                         onSelect={(id) => {
                             setImageData({...EMPTY_FILE});

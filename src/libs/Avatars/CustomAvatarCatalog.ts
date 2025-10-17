@@ -225,11 +225,7 @@ function getLetterAvatar(name?: string): React.FC<SvgProps> | null {
     if (!name || name.length === 0) {
         return null;
     }
-
-    const firstChar = name
-        .normalize('NFD')
-        .replace(/[^0-9a-z]/gi, '')
-        .toLowerCase();
+    const firstChar = getFirstAlphaNumericCharacter(name).toLowerCase();
     const workspaceKey = `letter-default-avatar_${firstChar}` as LetterAvatarIDs;
 
     if (!(workspaceKey in LETTER_DEFAULTS)) {
