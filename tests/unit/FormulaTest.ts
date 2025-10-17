@@ -118,7 +118,7 @@ describe('CustomFormula', () => {
         beforeEach(() => {
             jest.clearAllMocks();
 
-            mockCurrencyUtils.isValidCurrencyCode.mockImplementation((code: string) => ['USD', 'EUR', 'JPY'].includes(code));
+            mockCurrencyUtils.isValidCurrencyCode.mockImplementation((code: string) => ['USD', 'EUR', 'JPY', 'NPR'].includes(code));
 
             const mockReportActions = {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -282,6 +282,13 @@ describe('CustomFormula', () => {
                 const result = compute('{report:total:UNKNOWN}', currencyContext);
                 // Should return 0.00 when invalid currency format is used (matches backend behavior)
                 expect(result).toBe('0.00');
+            });
+
+            test('should use report currency when not explicitly defined in formula', () => {
+                currencyContext.report.currency = 'NPR';
+                const result = compute('{report:total}', currencyContext);
+                // Should format with report currency (NPR formats with a non-breaking space \u00A0)
+                expect(result).toBe('NPR\u00A0100.00');
             });
         });
     });
