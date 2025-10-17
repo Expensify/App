@@ -972,6 +972,7 @@ const translations = {
         buttonMySettings: 'Mes paramètres',
         fabNewChat: 'Démarrer le chat',
         fabNewChatExplained: 'Démarrer la discussion (Action flottante)',
+        fabScanReceiptExplained: 'Scanner le reçu (Action flottante)',
         chatPinned: 'Discussion épinglée',
         draftedMessage: 'Message rédigé',
         listOfChatMessages: 'Liste des messages de chat',
@@ -1479,6 +1480,7 @@ const translations = {
                 subtitle: "Choisissez un approbateur supplémentaire pour ce rapport avant de le faire passer par le reste du flux de travail d'approbation.",
             },
         },
+        chooseWorkspace: 'Choisissez un espace de travail',
     },
     transactionMerge: {
         listPage: {
@@ -1854,6 +1856,7 @@ const translations = {
             "Votre connexion comptable Xero nécessite l'utilisation de l'authentification à deux facteurs. Pour continuer à utiliser Expensify, veuillez l'activer.",
         twoFactorAuthCannotDisable: 'Impossible de désactiver la 2FA',
         twoFactorAuthRequired: "L'authentification à deux facteurs (2FA) est requise pour votre connexion Xero et ne peut pas être désactivée.",
+        explainProcessToRemoveWithRecovery: "Pour désactiver l'authentification à deux facteurs (2FA), veuillez entrer un code de récupération valide.",
     },
     recoveryCodeForm: {
         error: {
@@ -2022,6 +2025,26 @@ const translations = {
         validateCardTitle: "Assurons-nous que c'est bien vous",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Veuillez entrer le code magique envoyé à ${contactMethod} pour voir les détails de votre carte. Il devrait arriver dans une minute ou deux.`,
+        cardFraudAlert: {
+            confirmButtonText: 'Oui, je le fais',
+            reportFraudButtonText: "Non, ce n'était pas moi.",
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) =>
+                `a effacé l'activité suspecte et réactivé la carte x${cardLastFour}. Tout est prêt pour continuer à faire des dépenses !`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `désactivé la carte se terminant par ${cardLastFour}`,
+            alertMessage: ({
+                cardLastFour,
+                amount,
+                merchant,
+                date,
+            }: {
+                cardLastFour: string;
+                amount: string;
+                merchant: string;
+                date: string;
+            }) => `activité suspecte identifiée sur la carte se terminant par ${cardLastFour}. Reconnaissez-vous cette transaction ?
+
+${amount} pour ${merchant} - ${date}`,
+        },
     },
     workflowsPage: {
         workflowTitle: 'Dépenser',
@@ -2030,6 +2053,7 @@ const translations = {
         delaySubmissionDescription: 'Choisissez un calendrier personnalisé pour soumettre les dépenses, ou laissez cette option désactivée pour des mises à jour en temps réel des dépenses.',
         submissionFrequency: 'Fréquence de soumission',
         submissionFrequencyDescription: 'Choisissez une fréquence pour soumettre les dépenses.',
+        disableApprovalPromptDescription: "Désactiver les approbations effacera tous les flux de travail d'approbation existants.",
         submissionFrequencyDateOfMonth: 'Date du mois',
         addApprovalsTitle: 'Ajouter des approbations',
         addApprovalButton: "Ajouter un flux de travail d'approbation",
@@ -2334,8 +2358,8 @@ const translations = {
         },
         interestedFeatures: {
             title: 'Quelles fonctionnalités vous intéressent ?',
-            featuresAlreadyEnabled: 'Votre espace de travail a déjà activé les éléments suivants :',
-            featureYouMayBeInterestedIn: 'Activez des fonctionnalités supplémentaires qui pourraient vous intéresser :',
+            featuresAlreadyEnabled: 'Voici nos fonctionnalités les plus populaires :',
+            featureYouMayBeInterestedIn: 'Activer des fonctionnalités supplémentaires :',
         },
         error: {
             requiredFirstName: 'Veuillez entrer votre prénom pour continuer',
@@ -2589,7 +2613,7 @@ const translations = {
                 descriptionTwo: 'Catégoriser et étiqueter les dépenses',
                 descriptionThree: 'Créer et partager des rapports',
             },
-            price: "Essayez-le gratuitement pendant 30 jours, puis passez à l'abonnement pour seulement <strong>5 $/mois</strong>.",
+            price: "Essayez-le gratuitement pendant 30 jours, puis passez à l'abonnement pour seulement <strong>5 $/utilisateur/mois</strong>.",
             createWorkspace: 'Créer un espace de travail',
         },
         confirmWorkspace: {
@@ -6266,7 +6290,6 @@ const translations = {
         groupBy: 'Groupe par',
         moneyRequestReport: {
             emptyStateTitle: "Ce rapport n'a pas de dépenses.",
-            emptyStateSubtitle: 'Vous pouvez ajouter des dépenses à ce rapport en utilisant le bouton ci-dessous ou l\'option "Ajouter une dépense" dans le menu Plus ci-dessus.',
         },
         noCategory: 'Aucune catégorie',
         noTag: 'Aucun tag',
@@ -6383,6 +6406,11 @@ const translations = {
         newReport: {
             createReport: 'Créer un rapport',
             chooseWorkspace: 'Choisissez un espace de travail pour ce rapport.',
+            emptyReportConfirmationTitle: 'Vous avez déjà un rapport vide',
+            emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
+                `Êtes-vous sûr de vouloir créer un autre rapport dans ${workspaceName} ? Vous pouvez accéder à vos rapports vides dans`,
+            emptyReportConfirmationPromptLink: 'Rapports',
+            genericWorkspaceName: 'cet espace de travail',
         },
         genericCreateReportFailureMessage: 'Erreur inattendue lors de la création de ce chat. Veuillez réessayer plus tard.',
         genericAddCommentFailureMessage: 'Erreur inattendue lors de la publication du commentaire. Veuillez réessayer plus tard.',
@@ -6391,8 +6419,8 @@ const translations = {
         noActivityYet: 'Aucune activité pour le moment',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `modifié ${fieldName} de ${oldValue} à ${newValue}`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `changé ${fieldName} en ${newValue}`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `a modifié ${fieldName} en "${newValue}" (auparavant "${oldValue}")`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `a défini ${fieldName} sur "${newValue}"`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `Espace de travail modifié${fromPolicyName ? ` (auparavant ${fromPolicyName})` : ''}`;
@@ -7193,6 +7221,7 @@ const translations = {
             isWaitingForAssigneeToCompleteAction: "Attend que le responsable termine l'action",
             hasChildReportAwaitingAction: 'Le rapport enfant attend une action',
             hasMissingInvoiceBankAccount: 'Il manque le compte bancaire de la facture',
+            hasUnresolvedCardFraudAlert: 'A une alerte de fraude de carte non résolue',
         },
         reasonRBR: {
             hasErrors: 'Contient des erreurs dans les données du rapport ou des actions du rapport',
@@ -7255,7 +7284,7 @@ const translations = {
         book: {
             title: 'Planifier un appel',
             description: 'Trouvez un moment qui vous convient.',
-            slots: 'Heures disponibles pour',
+            slots: ({date}: {date: string}) => `<muted-text>Heures disponibles pour <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: "Confirmer l'appel",

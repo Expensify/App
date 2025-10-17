@@ -14,6 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -104,7 +105,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
 
         handleGoBack();
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setTransactionReport(
                 transaction.transactionID,
@@ -157,7 +158,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             return;
         }
         Navigation.dismissModal();
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             changeTransactionsReport(
                 [transaction.transactionID],
@@ -201,6 +202,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             isEditing={isEditing}
             isUnreported={isUnreported}
             shouldShowNotFoundPage={shouldShowNotFoundPage}
+            isPerDiemRequest={transaction ? isPerDiemRequest(transaction) : false}
             createReport={action === CONST.IOU.ACTION.EDIT ? createReport : undefined}
         />
     );
