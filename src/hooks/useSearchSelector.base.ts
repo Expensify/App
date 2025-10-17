@@ -2,7 +2,7 @@ import {useCallback, useMemo, useState} from 'react';
 import type {PermissionStatus} from 'react-native-permissions';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {GetOptionsConfig, Options, SearchOption} from '@libs/OptionsListUtils';
-import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
+import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getShareLogOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,7 +12,7 @@ import useOnyx from './useOnyx';
 
 type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<
     typeof CONST.SEARCH_SELECTOR,
-    'SEARCH_CONTEXT_GENERAL' | 'SEARCH_CONTEXT_SEARCH' | 'SEARCH_CONTEXT_MEMBER_INVITE' | 'SEARCH_CONTEXT_SHARE_DESTINATION'
+    'SEARCH_CONTEXT_GENERAL' | 'SEARCH_CONTEXT_SEARCH' | 'SEARCH_CONTEXT_MEMBER_INVITE' | 'SEARCH_CONTEXT_SHARE_LOG' | 'SEARCH_CONTEXT_SHARE_DESTINATION'
 >];
 type SearchSelectorSelectionMode = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<typeof CONST.SEARCH_SELECTOR, 'SELECTION_MODE_SINGLE' | 'SELECTION_MODE_MULTI'>];
 
@@ -203,6 +203,8 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                     loginsToExclude: excludeLogins,
                 });
+            case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_LOG:
+                return getShareLogOptions(optionsWithContacts, draftComments, betas ?? [], computedSearchTerm, maxResults, includeUserToInvite);
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
                 return getValidOptions(optionsWithContacts, draftComments, {
                     betas,
