@@ -679,7 +679,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             if (isTransactionGroupListItemType(item)) {
                 const firstTransaction = item.transactions.at(0);
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
-                    setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData);
+                    if (firstTransaction.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                        createAndOpenSearchTransactionThread(firstTransaction, hash, backTo, transactionPreviewData, false);
+                    } else {
+                        setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData);
+                    }
                 }
                 requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
                 return;
