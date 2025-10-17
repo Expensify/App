@@ -4610,7 +4610,7 @@ ${amount} für ${merchant} - ${date}`,
             addShippingDetails: 'Versanddetails hinzufügen',
             issuedCard: ({assignee}: AssigneeParams) => `hat ${assignee} eine Expensify-Karte ausgestellt! Die Karte wird in 2-3 Werktagen ankommen.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
-                `hat ${assignee} eine Expensify-Karte ausgestellt! Die Karte wird versendet, sobald die Versanddetails hinzugefügt wurden.`,
+                `Für ${assignee} wurde eine Expensify Card ausgestellt! Die Karte wird versendet, sobald die Versanddetails bestätigt wurden.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `hat ${assignee} eine virtuelle ${link} ausgestellt! Die Karte kann sofort verwendet werden.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} hat Versanddetails hinzugefügt. Die Expensify Card wird in 2-3 Werktagen ankommen.`,
             verifyingHeader: 'Überprüfen',
