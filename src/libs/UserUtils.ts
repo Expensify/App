@@ -1,4 +1,4 @@
-import {Str, md5} from 'expensify-common';
+import {md5, Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
@@ -125,7 +125,7 @@ function getAccountIDHashBucket(accountID = -1, accountEmail?: string, avatarURL
         const lastDigit = match && parseInt(match[2], 10);
         accountIDHashBucket = lastDigit as AvatarRange;
     } else if (accountEmail) {
-        const intVal = parseInt(md5(accountEmail, {asString: true}).substring(0, 4), 10);
+        const intVal = Number.parseInt(md5(accountEmail).substring(0, 4), 16);
         accountIDHashBucket = ((intVal % CONST.DEFAULT_AVATAR_COUNT) + 1) as AvatarRange;
     } else if (accountID > 0) {
         accountIDHashBucket = ((accountID % CONST.DEFAULT_AVATAR_COUNT) + 1) as AvatarRange;
