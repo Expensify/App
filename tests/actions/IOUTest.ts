@@ -11,6 +11,7 @@ import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import type {PerDiemExpenseTransactionParams, RequestMoneyParticipantParams} from '@libs/actions/IOU';
 import {
+    addReportApprover,
     addSplitExpenseField,
     approveMoneyRequest,
     calculateDiffAmount,
@@ -9289,6 +9290,144 @@ describe('actions/IOU', () => {
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${singleApproverReport.reportID}`);
             expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
             expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+        });
+    });
+
+    describe('addReportApprovers', () => {
+        const adminAccountID = 1;
+        const managerAccountID = 2;
+        const employeeAccountID = 3;
+        const newApproverAccountID = 4;
+        const adminEmail = 'admin@test.com';
+        const managerEmail = 'manager@test.com';
+        const employeeEmail = 'employee@test.com';
+        const newApproverEmail = 'newapprover@test.com';
+
+        let expenseReport: Report;
+        let policy: Policy;
+
+        beforeEach(async () => {
+            await Onyx.clear();
+
+            // Set up personal details
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [adminAccountID]: {
+                    accountID: adminAccountID,
+                    login: adminEmail,
+                    displayName: 'Admin User',
+                },
+                [managerAccountID]: {
+                    accountID: managerAccountID,
+                    login: managerEmail,
+                    displayName: 'Manager User',
+                },
+                [employeeAccountID]: {
+                    accountID: employeeAccountID,
+                    login: employeeEmail,
+                    displayName: 'Employee User',
+                },
+                [newApproverAccountID]: {
+                    accountID: newApproverAccountID,
+                    login: newApproverEmail,
+                    displayName: 'New Approver',
+                },
+            });
+
+            // Set up session as admin
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: adminEmail,
+                accountID: adminAccountID,
+            });
+
+            // Create policy with ADVANCED approval mode
+            policy = {
+                id: '1',
+                name: 'Test Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: adminEmail,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [employeeEmail]: {
+                        email: employeeEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: managerEmail,
+                    },
+                    [managerEmail]: {
+                        email: managerEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: adminEmail,
+                        forwardsTo: adminEmail,
+                    },
+                    [adminEmail]: {
+                        email: adminEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: '',
+                        forwardsTo: '',
+                    },
+                    [newApproverEmail]: {
+                        email: newApproverEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: adminEmail,
+                        forwardsTo: adminEmail,
+                    },
+                },
+            };
+
+            // Create expense report
+            expenseReport = {
+                reportID: '123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: employeeAccountID,
+                managerID: managerAccountID,
+                policyID: policy.id,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                total: 1000,
+                currency: 'USD',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+        });
+
+        it('should update next step to show waiting for new approver to approve expenses', async () => {
+            // Admin adds a new approver to the report
+            addReportApprover(expenseReport, newApproverEmail, newApproverAccountID, adminAccountID);
+            await waitForBatchedUpdates();
+
+            // Check that managerID was updated to the new approver
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(updatedReport?.managerID).toBe(newApproverAccountID);
+
+            // Check that next step message is updated correctly
+            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
+            expect(nextStep).toBeTruthy();
+            expect(nextStep?.message).toEqual([
+                {
+                    text: 'Waiting for ',
+                },
+                {
+                    text: 'New Approver',
+                    type: 'strong',
+                    clickToCopyText: newApproverEmail,
+                },
+                {
+                    text: ' to ',
+                },
+                {
+                    text: 'approve',
+                },
+                {
+                    text: ' %expenses.',
+                },
+            ]);
         });
     });
 });
