@@ -10,12 +10,12 @@ import {machineId} from 'node-machine-id';
 import checkForUpdates from '@libs/checkForUpdates';
 import {translate} from '@libs/Localize';
 import Log from '@libs/Log';
-import type {LocationPermissionState} from '@src/libs/getCurrentPosition/locationPermission';
-import {LOCATION_PERMISSION_STATES} from '@src/libs/getCurrentPosition/locationPermission';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
+import type {LocationPermissionState} from '@src/libs/getCurrentPosition/locationPermission';
+import {LOCATION_PERMISSION_STATES} from '@src/libs/getCurrentPosition/locationPermission';
 import type PlatformSpecificUpdater from '@src/setup/platformSetup/types';
 import type {Locale} from '@src/types/onyx';
 import type {CreateDownloadQueueModule, DownloadItem} from './createDownloadQueue';
@@ -84,9 +84,7 @@ const loadMacGetAuthStatus = async (): Promise<MacGetAuthStatus | undefined> => 
     return macGetAuthStatusPromise;
 };
 
-const resolveLocationPermissionStatus = (
-    status: PermissionType | typeof MAC_PERMISSION_STATUSES.NOT_DETERMINED,
-): LocationPermissionState => {
+const resolveLocationPermissionStatus = (status: PermissionType | typeof MAC_PERMISSION_STATUSES.NOT_DETERMINED): LocationPermissionState => {
     switch (status) {
         case MAC_PERMISSION_STATUSES.AUTHORIZED:
             return LOCATION_PERMISSION_STATES.GRANTED;
@@ -460,10 +458,7 @@ const mainWindow = (): Promise<void> => {
                     try {
                         return resolveLocationPermissionStatus(getAuthStatus('location'));
                     } catch (error) {
-                        log.warn(
-                            'node-mac-permissions threw while checking location permission, defaulting to denied:',
-                            (error as Error)?.message,
-                        );
+                        log.warn('node-mac-permissions threw while checking location permission, defaulting to denied:', (error as Error)?.message);
                         return LOCATION_PERMISSION_STATES.DENIED;
                     }
                 });
