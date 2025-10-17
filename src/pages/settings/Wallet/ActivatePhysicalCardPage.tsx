@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
@@ -13,7 +12,6 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -30,7 +28,6 @@ import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 type ActivatePhysicalCardPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_ACTIVATE>;
 
 const LAST_FOUR_DIGITS_LENGTH = 4;
-const MAGIC_INPUT_MIN_HEIGHT = 86;
 
 function ActivatePhysicalCardPage({
     route: {
@@ -46,7 +43,6 @@ function ActivatePhysicalCardPage({
 
     const [formError, setFormError] = useState('');
     const [lastFourDigits, setLastFourDigits] = useState('');
-    const [lastPressedDigit, setLastPressedDigit] = useState('');
     const [canShowError, setCanShowError] = useState<boolean>(false);
 
     const inactiveCard = cardList?.[cardID];
@@ -70,22 +66,7 @@ function ActivatePhysicalCardPage({
             return;
         }
         clearCardListErrors(inactiveCard?.cardID);
-
-        return () => {
-            if (!inactiveCard?.cardID) {
-                return;
-            }
-            clearCardListErrors(inactiveCard?.cardID);
-        };
     }, [inactiveCard?.cardID]);
-
-    /**
-     * Update lastPressedDigit with value that was pressed on BigNumberPad.
-     *
-     * NOTE: If the same digit is pressed twice in a row, append it to the end of the string
-     * so that useEffect inside MagicCodeInput will be triggered by artificial change of the value.
-     */
-    const updateLastPressedDigit = useCallback((key: string) => setLastPressedDigit(lastPressedDigit === key ? lastPressedDigit + key : key), [lastPressedDigit]);
 
     /**
      * Handle card activation code input
@@ -131,21 +112,18 @@ function ActivatePhysicalCardPage({
             shouldShowOfflineIndicatorInWideScreen
         >
             <Text style={[styles.mh5, styles.textHeadline]}>{translate('activateCardPage.pleaseEnterLastFour')}</Text>
-            <View style={[styles.mh5, {minHeight: MAGIC_INPUT_MIN_HEIGHT}]}>
+            <View style={[styles.mh5, styles.mt5]}>
                 <MagicCodeInput
-                    isDisableKeyboard
                     autoComplete="off"
                     maxLength={LAST_FOUR_DIGITS_LENGTH}
                     name="activateCardCode"
                     value={lastFourDigits}
-                    lastPressedDigit={lastPressedDigit}
                     onChangeText={onCodeInput}
                     onFulfill={submitAndNavigateToNextPage}
                     errorText={canShowError ? formError || cardError : ''}
                     ref={activateCardCodeInputRef}
                 />
             </View>
-            <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pv0]}>{canUseTouchScreen() && <BigNumberPad numberPressed={updateLastPressedDigit} />}</View>
             <Button
                 success
                 isDisabled={isOffline}

@@ -2027,6 +2027,8 @@ const translations = {
         validateCardTitle: 'Lassen Sie uns sicherstellen, dass Sie es sind',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Bitte geben Sie den magischen Code ein, der an ${contactMethod} gesendet wurde, um Ihre Kartendetails anzuzeigen. Er sollte in ein bis zwei Minuten ankommen.`,
+        missingPrivateDetails: ({profileSettingsLink}: {profileSettingsLink: string}) => `Bitte fügen Sie Ihre persönlichen Daten unter <a href="${profileSettingsLink}">Konto > Profil > Privat</a> hinzu und versuchen Sie es erneut.`,
+        unexpectedError: 'Beim Abrufen Ihrer Expensify-Kartendaten ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
         cardFraudAlert: {
             confirmButtonText: 'Ja, das tue ich.',
             reportFraudButtonText: 'Nein, das war ich nicht.',
