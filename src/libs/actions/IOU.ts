@@ -12409,11 +12409,6 @@ const expenseReportStatusFilterMapping = {
     [CONST.SEARCH.STATUS.EXPENSE.ALL]: () => true,
 };
 
-// Helper function to check if a query has a specific action filter
-function hasActionFilter(queryJSON: SearchQueryJSON, action: string): boolean {
-    return queryJSON.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION && filter.filters.some((f) => f.value === action));
-}
-
 //  Determines whether the current search results should be optimistically updated
 function shouldOptimisticallyUpdateSearch(
     currentSearchQueryJSON: SearchQueryJSON,
@@ -12444,30 +12439,25 @@ function shouldOptimisticallyUpdateSearch(
         return false;
     }
 
+    const suggestedSearches = getSuggestedSearches(userAccountID);
+    const submitQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT].searchQueryJSON;
+    const approveQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE].searchQueryJSON;
+
+    const unapprovedCashSimilarSearchHash = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH].similarSearchHash;
+
     const validSearchTypes =
-        (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) ||
-        (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE) ||
-        currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-
-    // Check for specific action filters instead of relying on similarSearchHash matching
-    const isSubmitQuery = hasActionFilter(currentSearchQueryJSON, CONST.SEARCH.ACTION_FILTERS.SUBMIT);
-    const isApproveQuery = hasActionFilter(currentSearchQueryJSON, CONST.SEARCH.ACTION_FILTERS.APPROVE);
-
-    // Check if this is an unapproved cash query (no action filter but reimbursable transaction)
-    const isUnapprovedCashQuery =
-        !hasActionFilter(currentSearchQueryJSON, CONST.SEARCH.ACTION_FILTERS.SUBMIT) &&
-        !hasActionFilter(currentSearchQueryJSON, CONST.SEARCH.ACTION_FILTERS.APPROVE) &&
-        transaction?.reimbursable;
+        (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) || (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE);
 
     return (
         shouldOptimisticallyUpdateByStatus &&
         validSearchTypes &&
         (currentSearchQueryJSON.flatFilters.length === 0 ||
-            (isSubmitQuery && expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS](iouReport)) ||
-            (isApproveQuery && expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING](iouReport)) ||
-            (isUnapprovedCashQuery &&
+            (submitQueryJSON?.similarSearchHash === currentSearchQueryJSON.similarSearchHash && expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS](iouReport)) ||
+            (approveQueryJSON?.similarSearchHash === currentSearchQueryJSON.similarSearchHash && expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING](iouReport)) ||
+            (unapprovedCashSimilarSearchHash === currentSearchQueryJSON.similarSearchHash &&
                 isExpenseReport(iouReport) &&
-                (expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS](iouReport) || expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING](iouReport))))
+                (expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS](iouReport) || expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING](iouReport)) &&
+                transaction?.reimbursable))
     );
 }
 
