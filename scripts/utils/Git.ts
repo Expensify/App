@@ -1,8 +1,8 @@
 import {context} from '@actions/github';
 import {execSync, exec as execWithCallback} from 'child_process';
 import {promisify} from 'util';
+import CONST from '@github/libs/CONST';
 import GitHubUtils from '@github/libs/GithubUtils';
-import GITHUB_CONSTANTS from '@scripts/GITHUB_CONSTANTS';
 import {log, error as logError, warn as logWarn} from './Logger';
 
 const exec = promisify(execWithCallback);
@@ -315,7 +315,7 @@ class Git {
     }
 
     static async getMainBranchCommitHash(remote?: string): Promise<string> {
-        const baseRefName = IS_CI ? (GITHUB_BASE_REF ?? GITHUB_CONSTANTS.DEFAULT_BASE_REF) : GITHUB_CONSTANTS.DEFAULT_BASE_REF;
+        const baseRefName = IS_CI ? (GITHUB_BASE_REF ?? CONST.DEFAULT_BASE_REF) : CONST.DEFAULT_BASE_REF;
 
         // Fetch the main branch from the specified remote (or locally) to ensure it's available
         if (IS_CI || remote) {
@@ -401,8 +401,8 @@ class Git {
     static async getChangedFileNames(fromRef: string, toRef = 'HEAD'): Promise<string[]> {
         if (IS_CI) {
             const {data: changedFiles} = await GitHubUtils.octokit.pulls.listFiles({
-                owner: GITHUB_CONSTANTS.GITHUB_OWNER,
-                repo: GITHUB_CONSTANTS.GITHUB_REPO,
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 pull_number: context.payload.pull_request?.number ?? 0,
             });
