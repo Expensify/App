@@ -9,12 +9,14 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+import {useSearchContext} from '@components/Search/SearchContext';
+import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {deleteMoneyRequest, deleteTrackExpense} from '@libs/actions/IOU';
+import {deleteTrackExpense} from '@libs/actions/IOU';
 import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import {getOriginalMessage, isMoneyRequestAction, isReportPreviewAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
@@ -178,7 +180,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             event,
             selection,
             contextMenuAnchor,
-            report = {},
+            report: currentReport = {},
             reportAction = {},
             callbacks = {},
             disabledOptions = [],
@@ -186,7 +188,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             isOverflowMenu = false,
             withoutOverlay = true,
         } = showContextMenuParams;
-        const {reportID, originalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = report;
+        const {reportID, originalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = currentReport;
         const {reportActionID, draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
         const {onShow = () => {}, onHide = () => {}, setIsEmojiPickerActive = () => {}} = callbacks;
         setIsContextMenuOpening(true);
@@ -304,6 +306,13 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDRef.current}`, {
         canBeMissing: true,
     });
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const {currentSearchHash} = useSearchContext();
+    const {deleteTransactions} = useDeleteTransactions({
+        report,
+        reportActions: reportActionRef.current ? [reportActionRef.current] : [],
+        policy,
+    });
 
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
@@ -322,19 +331,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     undefined,
                     isChatIOUReportArchived,
                 );
-            } else {
-                deleteMoneyRequest(
-                    originalMessage?.IOUTransactionID,
-                    reportAction,
-                    duplicateTransactions,
-                    duplicateTransactionViolations,
-                    iouReport,
-                    chatReport,
-                    undefined,
-                    undefined,
-                    undefined,
-                    isChatIOUReportArchived,
-                );
+            } else if (originalMessage?.IOUTransactionID) {
+                deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
             }
         } else if (isReportPreviewAction(reportAction)) {
             deleteAppReport(reportAction.childReportID);
