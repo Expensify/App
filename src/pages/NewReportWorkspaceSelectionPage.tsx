@@ -70,7 +70,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [pendingPolicySelection, setPendingPolicySelection] = useState<{policy: WorkspaceListItem; shouldShowEmptyReportConfirmation: boolean} | null>(null);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
 
-    const policiesWithEmptyReportsSelector = useMemo(() => {
+    const policiesWithEmptyReportsSelector = useCallback(() => {
         if (!accountID) {
             const emptyLookup: Record<string, boolean> = {};
             return () => emptyLookup;
