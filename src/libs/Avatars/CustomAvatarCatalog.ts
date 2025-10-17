@@ -193,28 +193,6 @@ const buildOrderedAvatars = (): Array<{id: CustomAvatarID} & AvatarEntry> => {
     }));
 };
 
-/**
- * Generates a list of workspace letter avatar components with different background colors and shades
- * @param name - The name to extract first letter/character from. (Expected 0-9, A-Z)
- * @returns An array of avatar variants with different colors and shades for given initial
- */
-function generateLetterAvatars(name: string): LetterAvatarVariant[] {
-    if (!name || name.length === 0) {
-        return [];
-    }
-
-    const workspaceKey = `letter-default-avatar_${getFirstAlphaNumericCharacter(name).toLowerCase()}` as LetterAvatarIDs;
-
-    if (!(workspaceKey in LETTER_DEFAULTS)) {
-        return [];
-    }
-
-    return LETTER_AVATAR_COLOR_OPTIONS.map(({fillColor, backgroundColor}) => ({
-        backgroundColor,
-        fillColor,
-        component: LETTER_DEFAULTS[workspaceKey].local,
-    }));
-}
 
 /**
  * Returns a letter avatar component based on the first letter of the provided name.
@@ -240,4 +218,4 @@ const CUSTOM_AVATAR_CATALOG = buildOrderedAvatars();
 const getAvatarLocal = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].local;
 const getAvatarURL = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].url;
 
-export {ALL_CUSTOM_AVATARS, CUSTOM_AVATAR_CATALOG, LETTER_AVATAR_COLOR_OPTIONS, LETTER_DEFAULTS, getAvatarLocal, getAvatarURL, generateLetterAvatars, getLetterAvatar};
+export {ALL_CUSTOM_AVATARS, CUSTOM_AVATAR_CATALOG, LETTER_AVATAR_COLOR_OPTIONS, LETTER_DEFAULTS, getAvatarLocal, getAvatarURL, getLetterAvatar};
