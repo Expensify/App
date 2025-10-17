@@ -380,6 +380,26 @@ function SearchPage({route}: SearchPageProps) {
                 },
             });
         }
+
+        const shouldShowRejectOption = shouldShowApproveOption;
+
+        if (shouldShowRejectOption) {
+            options.push({
+                icon: Expensicons.ThumbsDown,
+                text: translate('search.bulkActions.reject'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
+                },
+            });
+        }
+
         const shouldEnableExpenseBulk = selectedReports.length
             ? selectedReports.every(
                   (report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
