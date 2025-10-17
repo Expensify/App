@@ -5640,7 +5640,7 @@ ${amount} per ${merchant} - ${date}`,
                 description:
                     'Il "per diem" è un ottimo modo per mantenere i costi giornalieri conformi e prevedibili ogni volta che i tuoi dipendenti viaggiano. Goditi funzionalità come tariffe personalizzate, categorie predefinite e dettagli più granulari come destinazioni e sottotariffe.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    'I diari sono disponibili solo nel piano Control, a partire da',
+                    `<muted-text>I diari sono disponibili solo nel piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             travel: {
                 title: 'Viaggio',
