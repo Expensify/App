@@ -2,14 +2,26 @@ import type * as OnyxCommon from './OnyxCommon';
 
 /** Model of domain data */
 type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** The accountID of the account representing the domain, used as a unique identifier for a domain */
+    /** Whether the domain is validated */
+    validated: boolean;
+
+    /** Account ID associated with the domain */
     accountID: number;
 
-    /** The name of the domain prefixed with +@ */
+    /** Email address for the domain */
     email: string;
 
-    /** Whether the domain has been validated by adding a DNS record */
-    validated: boolean;
+    /** Validation code for the domain */
+    validateCode: string;
+
+    /** Whether domain creation is pending */
+    isCreationPending?: boolean;
+
+    /** Whether domain validation is pending */
+    isValidationPending?: boolean;
+
+    /** Whether validation code is currently loading */
+    isValidateCodeLoading?: boolean;
 }>;
 
 export default Domain;

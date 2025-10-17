@@ -2618,7 +2618,7 @@ ${amount} für ${merchant} - ${date}`,
                 descriptionTwo: 'Kategorisieren und taggen Sie Ausgaben',
                 descriptionThree: 'Berichte erstellen und teilen',
             },
-            price: 'Testen Sie es 30 Tage lang kostenlos, dann upgraden Sie für nur <strong>$5/Monat</strong>.',
+            price: 'Testen Sie es 30 Tage lang kostenlos, dann upgraden Sie für nur <strong>$5/Benutzer/Monat</strong>.',
             createWorkspace: 'Arbeitsbereich erstellen',
         },
         confirmWorkspace: {
