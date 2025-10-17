@@ -22,11 +22,19 @@ type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enable
     onPaymentSelect: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => void;
 };
 
-function MoneyReportHeaderKYCDropdown({onSuccessfulKYC, primaryAction, chatReportID, applicableSecondaryActions, iouReport, onPaymentSelect, ...props}: MoneyReportHeaderKYCDropdownProps) {
+function MoneyReportHeaderKYCDropdown({
+    onSuccessfulKYC,
+    primaryAction,
+    chatReportID,
+    applicableSecondaryActions,
+    iouReport,
+    onPaymentSelect,
+    ref,
+    ...props
+}: MoneyReportHeaderKYCDropdownProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-
     const {isOffline} = useNetwork();
 
     const shouldDisplayNarrowVersion = shouldUseNarrowLayout || isMediumScreenWidth;
@@ -45,6 +53,7 @@ function MoneyReportHeaderKYCDropdown({onSuccessfulKYC, primaryAction, chatRepor
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, // button is at left, so horizontal anchor is at LEFT
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
             }}
+            ref={ref}
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu
