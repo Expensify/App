@@ -1,3 +1,4 @@
+import SafeString from '@src/utils/SafeString';
 import type {GetCurrentPosition} from './getCurrentPosition.types';
 import {GeolocationErrorCode} from './getCurrentPosition.types';
 
@@ -15,7 +16,7 @@ const getCurrentPosition: GetCurrentPosition = (success, error, options) => {
         try {
             navigator.geolocation.getCurrentPosition(success, error, options);
         } catch (e) {
-            error(makeError(GeolocationErrorCode.POSITION_UNAVAILABLE, String(e ?? 'Geolocation call failed')));
+            error(makeError(GeolocationErrorCode.POSITION_UNAVAILABLE, SafeString(e ?? 'Geolocation call failed')));
         }
     };
 
