@@ -3643,6 +3643,57 @@ describe('ReportUtils', () => {
             ).toBeTruthy();
         });
 
+        it('should return true for empty submitted report if it is the current focused report', async () => {
+            const report: Report = {...LHNTestUtils.getFakeReport(), total: 0, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED};
+            const currentReportId = report.reportID;
+
+            const isInFocusMode = true;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            const createdReportAction: ReportAction = {...LHNTestUtils.getFakeReportAction(), actionName: CONST.REPORT.ACTIONS.TYPE.CREATED};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[createdReportAction.reportActionID]: createdReportAction});
+
+            expect(
+                shouldReportBeInOptionList({
+                    report,
+                    chatReport: mockedChatReport,
+                    currentReportId,
+                    isInFocusMode,
+                    betas,
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: false,
+                    draftComment: '',
+                }),
+            ).toBeTruthy();
+        });
+
+        it('should return false for empty submitted report if it is not the current focused report', async () => {
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                total: 0,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            };
+            const currentReportId = `${report.reportID}1`;
+
+            const isInFocusMode = true;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            const createdReportAction: ReportAction = {...LHNTestUtils.getFakeReportAction(), actionName: CONST.REPORT.ACTIONS.TYPE.CREATED};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[createdReportAction.reportActionID]: createdReportAction});
+
+            expect(
+                shouldReportBeInOptionList({
+                    report,
+                    chatReport: mockedChatReport,
+                    currentReportId,
+                    isInFocusMode,
+                    betas,
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: false,
+                    draftComment: '',
+                }),
+            ).toBeFalsy();
+        });
+
         it('should return true when the report has outstanding violations', async () => {
             const expenseReport = buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
             const expenseTransaction = buildOptimisticTransaction({
@@ -5827,7 +5878,8 @@ describe('ReportUtils', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspace.id}`, workspace);
 
-            const result = canUserPerformWriteAction(policyAnnounceRoom);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(policyAnnounceRoom.reportID));
+            const result = canUserPerformWriteAction(policyAnnounceRoom, isReportArchived.current);
 
             // Then it should return false
             expect(result).toBe(false);
