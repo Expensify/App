@@ -2544,7 +2544,7 @@ const translations = {
                     '\n' +
                     `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
                     '2. Choose *Start chat*.\n' +
-                    '3. Enter emails or phone numbers..\n' +
+                    '3. Enter emails or phone numbers.\n' +
                     '4. Click the grey *+* button in the chat > *Split expense*.\n' +
                     '5. Create the expense by selecting *Manual*, *Scan*, or *Distance*.\n' +
                     '\n' +

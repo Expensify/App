@@ -68,7 +68,7 @@ import Log from '@libs/Log';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {buildNextStep, buildNextStepNew} from '@libs/NextStepUtils';
+import {buildNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -170,7 +170,6 @@ import {
     hasOutstandingChildRequest,
     hasReportBeenReopened,
     hasReportBeenRetracted,
-    hasViolations as hasViolationsReportUtils,
     isArchivedReport,
     isClosedReport as isClosedReportUtil,
     isDraftReport,
@@ -253,7 +252,6 @@ import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/ony
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey as clearPdfByOnyxKey} from './CachedPDFPaths';
-import {buildOptimisticPolicyRecentlyUsedCategories} from './Policy/Category';
 import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from './Policy/Member';
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from './Policy/Tag';
@@ -585,6 +583,7 @@ type CreateSplitsAndOnyxDataParams = {
     currentUserAccountID: number;
     existingSplitChatReportID?: string;
     transactionParams: CreateSplitsTransactionParams;
+    policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
 };
 
 type TrackExpenseTransactionParams = {
@@ -713,6 +712,7 @@ type StartSplitBilActionParams = {
     taxCode: string;
     taxAmount: number;
     shouldPlaySound?: boolean;
+    policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
 };
 
 type ReplaceReceipt = {
@@ -4606,6 +4606,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             policyCategories ?? {},
             hasDependentTags(policy, policyTagList ?? {}),
             isInvoice,
+            isSelfDM(iouReport),
         );
         optimisticData.push(violationsOnyxData);
         failureData.push({
@@ -6591,6 +6592,7 @@ function createSplitsAndOnyxData({
         taxAmount = 0,
         attendees,
     },
+    policyRecentlyUsedCategories,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -6953,10 +6955,7 @@ function createSplitsAndOnyxData({
             oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
         }
 
-        // Add category to optimistic policy recently used categories when a participant is a workspace
-        // TODO: Replace buildOptimisticPolicyRecentlyUsedCategories with useOnyx hook (https://github.com/Expensify/App/issues/66557)
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category) : [];
+        const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories) : [];
 
         const optimisticRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
 
@@ -7072,6 +7071,7 @@ type SplitBillActionsParams = {
     taxCode?: string;
     taxAmount?: number;
     isRetry?: boolean;
+    policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
 };
 
 /**
@@ -7096,6 +7096,7 @@ function splitBill({
     splitShares = {},
     taxCode = '',
     taxAmount = 0,
+    policyRecentlyUsedCategories,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -7118,6 +7119,7 @@ function splitBill({
             taxCode,
             taxAmount,
         },
+        policyRecentlyUsedCategories,
     });
 
     const parameters: SplitBillParams = {
@@ -7173,6 +7175,7 @@ function splitBillAndOpenReport({
     taxCode = '',
     taxAmount = 0,
     existingSplitChatReportID,
+    policyRecentlyUsedCategories,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -7195,6 +7198,7 @@ function splitBillAndOpenReport({
             taxCode,
             taxAmount,
         },
+        policyRecentlyUsedCategories,
     });
 
     const parameters: SplitBillParams = {
@@ -7248,6 +7252,7 @@ function startSplitBill({
     taxCode = '',
     taxAmount = 0,
     shouldPlaySound = true,
+    policyRecentlyUsedCategories,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -7503,9 +7508,7 @@ function startSplitBill({
         if (!isPolicyExpenseChat) {
             return;
         }
-        // TODO: Replace buildOptimisticPolicyRecentlyUsedCategories with useOnyx hook (https://github.com/Expensify/App/issues/66557)
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const optimisticPolicyRecentlyUsedCategories = buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category);
+        const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
         const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
             policyTags: getPolicyTagsData(participant.policyID),
             // TODO: Replace getPolicyRecentlyUsedTagsData with useOnyx hook (https://github.com/Expensify/App/issues/71491)
@@ -7948,6 +7951,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 taxAmount,
                 attendees,
             },
+            policyRecentlyUsedCategories,
         });
         onyxData = splitOnyxData;
 
@@ -10110,6 +10114,13 @@ function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report
     });
 }
 
+function isLastApprover(approvalChain: string[]): boolean {
+    if (approvalChain.length === 0) {
+        return true;
+    }
+    return approvalChain.at(-1) === currentUserEmail;
+}
+
 function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: boolean) {
     if (!expenseReport) {
         return;
@@ -10131,23 +10142,13 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(expenseReport.policyID);
-    const nextApproverAccountID = getNextApproverAccountID(expenseReport);
-    const predictedNextStatus = !nextApproverAccountID ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
-    const predictedNextState = !nextApproverAccountID ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
-    const managerID = !nextApproverAccountID ? expenseReport.managerID : nextApproverAccountID;
+    const approvalChain = getApprovalChain(getPolicy(expenseReport.policyID), expenseReport);
 
-    const hasViolations = hasViolationsReportUtils(expenseReport.reportID, allTransactionViolations);
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
-    const optimisticNextStep = buildNextStepNew({
-        report: expenseReport,
-        policy,
-        currentUserAccountIDParam: userAccountID,
-        currentUserEmailParam: currentUserEmail,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        predictedNextStatus,
-    });
+    const predictedNextStatus = isLastApprover(approvalChain) ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
+    const predictedNextState = isLastApprover(approvalChain) ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
+    const managerID = isLastApprover(approvalChain) ? expenseReport.managerID : getNextApproverAccountID(expenseReport);
+
+    const optimisticNextStep = buildNextStep(expenseReport, predictedNextStatus);
     const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
 
     const optimisticReportActionsData: OnyxUpdate = {
@@ -12447,8 +12448,12 @@ function shouldOptimisticallyUpdateSearch(
         shouldOptimisticallyUpdateByStatus &&
         validSearchTypes &&
         (currentSearchQueryJSON.flatFilters.length === 0 ||
-            [submitQueryJSON?.similarSearchHash, approveQueryJSON?.similarSearchHash].includes(currentSearchQueryJSON.similarSearchHash) ||
-            (unapprovedCashSimilarSearchHash === currentSearchQueryJSON.similarSearchHash && isExpenseReport(iouReport) && transaction?.reimbursable))
+            (submitQueryJSON?.similarSearchHash === currentSearchQueryJSON.similarSearchHash && expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS](iouReport)) ||
+            (approveQueryJSON?.similarSearchHash === currentSearchQueryJSON.similarSearchHash && expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING](iouReport)) ||
+            (unapprovedCashSimilarSearchHash === currentSearchQueryJSON.similarSearchHash &&
+                isExpenseReport(iouReport) &&
+                (expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS](iouReport) || expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING](iouReport)) &&
+                transaction?.reimbursable))
     );
 }
 
@@ -13879,6 +13884,7 @@ export {
     updateMoneyRequestTaxRate,
     mergeDuplicates,
     updateLastLocationPermissionPrompt,
+    shouldOptimisticallyUpdateSearch,
     resolveDuplicates,
     getIOUReportActionToApproveOrPay,
     getNavigationUrlOnMoneyRequestDelete,
