@@ -92,12 +92,12 @@ function validateNumber(values: string): string {
  * Check number is valid and attach country code
  * @returns a valid phone number with country code
  */
-function getPhoneLogin(partnerUserID: string): string {
+function getPhoneLogin(partnerUserID: string, countryCode: number): string {
     if (partnerUserID.length === 0) {
         return '';
     }
 
-    return appendCountryCode(getPhoneNumberWithoutSpecialChars(partnerUserID));
+    return appendCountryCodeWithCountryCode(getPhoneNumberWithoutSpecialChars(partnerUserID), countryCode);
 }
 
 /**
