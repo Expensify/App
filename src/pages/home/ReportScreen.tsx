@@ -29,7 +29,6 @@ import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
@@ -343,8 +342,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata);
-
-    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
@@ -934,7 +931,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             policy={policy}
                                             reportActions={reportActions}
                                             transactions={visibleTransactions}
-                                            newTransactions={newTransactions}
+                                            hasOnceLoadedReportActions={reportMetadata.hasOnceLoadedReportActions}
                                             violations={allReportViolations}
                                             hasOlderActions={hasOlderActions}
                                             hasNewerActions={hasNewerActions}
