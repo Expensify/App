@@ -61,7 +61,7 @@ function useOptions() {
             countryCode,
         );
 
-        const headerMessage = getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || !!currentUserOption, !!userToInvite, '');
+        const headerMessage = getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || !!currentUserOption, !!userToInvite, '', false, countryCode);
 
         if (isLoading) {
             // eslint-disable-next-line react-compiler/react-compiler
@@ -98,6 +98,8 @@ function useOptions() {
             (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0 || !!filteredOptions.currentUserOption,
             !!filteredOptions.userToInvite,
             debouncedSearchValue,
+            false,
+            countryCode,
         );
 
         return {

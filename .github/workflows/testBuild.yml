@@ -185,11 +185,13 @@ jobs:
         with:
           IS_DESKTOP_BUILD: true
 
+      # v6.0.0
       - name: Setup python for node-gyp
         id: setup-python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@18566f86b301499665bd3eb1a2247e0849c64fa5
         with:
           python-version: '3.12'
+          cache: 'pip'
 
       - name: Ensure setuptools for node-gyp
         run: python -m pip install --upgrade pip setuptools
