@@ -2,17 +2,19 @@ import {format, subDays} from 'date-fns';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import DatePicker from '@components/DatePicker';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SelectionList from '@components/SelectionListWithSections';
 import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {setAssignCardStepAndData, setTransactionStartDate} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -34,7 +36,7 @@ function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDate
     const data = assignCard?.data;
     const assigneeDisplayName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
 
-    const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING);
+    const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
     const startDate = assignCard?.startDate ?? data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
 
     const handleBackButtonPress = () => {
@@ -97,13 +99,14 @@ function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDate
             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
             <View style={styles.flex1}>
                 <SelectionList
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={({value}) => handleSelectDateOption(value)}
                     sections={[{data: dateOptions}]}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={dateOptionSelected}
                     shouldUpdateFocusedIndex
                     addBottomSafeAreaPadding
+                    shouldHighlightSelectedItem={false}
                     footerContent={
                         <Button
                             success
@@ -115,17 +118,18 @@ function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDate
                     }
                     listFooterContent={
                         dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM ? (
-                            <MenuItemWithTopDescription
-                                description={translate('common.date')}
-                                title={startDate}
-                                shouldShowRightIcon
-                                onPress={() => {
-                                    if (!policyID) {
-                                        return;
-                                    }
-                                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_TRANSACTION_START_DATE.getRoute(policyID, feed, backTo));
-                                }}
-                            />
+                            <View style={[styles.ph5]}>
+                                <DatePicker
+                                    inputID=""
+                                    value={startDate}
+                                    label={translate('iou.startDate')}
+                                    onInputChange={(value) => {
+                                        setTransactionStartDate(value);
+                                    }}
+                                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+                                    maxDate={new Date()}
+                                />
+                            </View>
                         ) : null
                     }
                 />

@@ -150,6 +150,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     canShowProductTrainingTooltip,
     renderScrollComponent,
     shouldShowRightCaret,
+    shouldHighlightSelectedItem = true,
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -656,6 +657,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         isSelected: selected,
                         ...item,
                     }}
+                    shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     index={index}
                     isFocused={isItemFocused}

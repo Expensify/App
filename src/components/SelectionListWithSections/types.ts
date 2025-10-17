@@ -112,6 +112,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to show the right caret */
     shouldShowRightCaret?: boolean;
+
+    /** Whether to show Tooltip for product training */
+    shouldHighlightSelectedItem?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -935,6 +938,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the right caret icon */
     shouldShowRightCaret?: boolean;
+
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

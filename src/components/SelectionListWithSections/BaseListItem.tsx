@@ -43,6 +43,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldUseDefaultRightHandSideCheckmark = true,
     forwardedFSClass,
     shouldShowRightCaret = false,
+    shouldHighlightSelectedItem = true,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -110,7 +111,9 @@ function BaseListItem<TItem extends ListItem>({
                 id={keyForList ?? ''}
                 style={[
                     pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isFocused &&
+                        shouldHighlightSelectedItem &&
+                        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
                 onMouseLeave={handleMouseLeave}
@@ -123,7 +126,9 @@ function BaseListItem<TItem extends ListItem>({
                     accessibilityState={{selected: !!isFocused}}
                     style={[
                         wrapperStyle,
-                        isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                        isFocused &&
+                            shouldHighlightSelectedItem &&
+                            StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                     ]}
                     fsClass={forwardedFSClass}
                 >
