@@ -10,6 +10,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
+import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -90,6 +91,7 @@ function SearchFiltersBar({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const kycWallRef = useContext(KYCWallContext);
 
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -643,6 +645,7 @@ function SearchFiltersBar({
         <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchFiltersBarContainer]}>
             {shouldShowSelectedDropdown ? (
                 <KYCWall
+                    ref={kycWallRef}
                     chatReportID={currentSelectedReportID}
                     enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                     iouReport={selectedIOUReport}
