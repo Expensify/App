@@ -7,6 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
+import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
@@ -130,6 +131,7 @@ import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import KYCWall from './KYCWall';
+import {KYCWallContext} from './KYCWall/KYCWallContext';
 import type {PaymentMethod} from './KYCWall/types';
 import LoadingBar from './LoadingBar';
 import Modal from './Modal';
@@ -211,6 +213,7 @@ function MoneyReportHeader({
         }
         return reportActions.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport.parentReportActionID);
     }, [reportActions, transactionThreadReport?.parentReportActionID]);
+    const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
 
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 
@@ -394,6 +397,7 @@ function MoneyReportHeader({
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const shouldShowLoadingBar = useLoadingBarVisibility();
+    const kycWallRef = useContext(KYCWallContext);
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
@@ -411,7 +415,7 @@ function MoneyReportHeader({
                 showDelegateNoAccessModal();
             } else if (isAnyTransactionOnHold) {
                 if (getPlatform() === CONST.PLATFORM.IOS) {
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
                 } else {
                     setIsHoldMenuVisible(true);
@@ -577,10 +581,12 @@ function MoneyReportHeader({
             isChatReportArchived,
             invoiceReceiverPolicy,
             isPaidAnimationRunning,
+            isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
         });
     }, [
         isPaidAnimationRunning,
+        isApprovedAnimationRunning,
         isSubmittingAnimationRunning,
         moneyRequestReport,
         chatReport,
@@ -1189,6 +1195,7 @@ function MoneyReportHeader({
 
     const KYCMoreDropdown = (
         <KYCWall
+            ref={kycWallRef}
             onSuccessfulKYC={(payment) => confirmPayment(payment)}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
             isDisabled={isOffline}
@@ -1260,7 +1267,7 @@ function MoneyReportHeader({
             </HeaderWithBackButton>
             {!shouldDisplayNarrowMoreButton &&
                 (shouldShowSelectedTransactionsButton ? (
-                    <View style={[styles.dFlex, styles.w100, styles.ph5]}>
+                    <View style={[styles.dFlex, styles.w100, styles.ph5, styles.pb3]}>
                         <ButtonWithDropdownMenu
                             onPress={() => null}
                             options={selectedTransactionsOptions}
@@ -1357,12 +1364,23 @@ function MoneyReportHeader({
                         }
                         // it's deleting transaction but not the report which leads to bug (that is actually also on staging)
                         // Money request should be deleted when interactions are done, to not show the not found page before navigating to goBackRoute
-                        // eslint-disable-next-line deprecation/deprecation
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
-                            deleteMoneyRequest(transaction?.transactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations);
+                            deleteMoneyRequest(
+                                transaction?.transactionID,
+                                requestParentReportAction,
+                                duplicateTransactions,
+                                duplicateTransactionViolations,
+                                iouReport,
+                                chatIOUReport,
+                                false,
+                                undefined,
+                                undefined,
+                                isChatIOUReportArchived,
+                            );
                             removeTransaction(transaction.transactionID);
                         });
-                        goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, false);
+                        goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, iouReport, chatIOUReport, false, isChatIOUReportArchived);
                     }
 
                     if (goBackRoute) {
@@ -1399,7 +1417,7 @@ function MoneyReportHeader({
                     setIsDeleteReportModalVisible(false);
 
                     Navigation.goBack();
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         deleteAppReport(moneyRequestReport?.reportID);
                     });

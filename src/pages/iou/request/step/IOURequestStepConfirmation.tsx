@@ -427,6 +427,7 @@ function IOURequestStepConfirmation({
         let isScanFilesCanBeRead = true;
 
         Promise.all(
+            // eslint-disable-next-line @typescript-eslint/await-thenable
             transactions.map((item) => {
                 const itemReceiptFilename = getReceiptFilenameFromTransaction(item);
                 const itemReceiptPath = item.receipt?.source;
@@ -810,6 +811,7 @@ function IOURequestStepConfirmation({
                             taxCode: transactionTaxCode,
                             taxAmount: transactionTaxAmount,
                             shouldPlaySound: index === transactions.length - 1,
+                            policyRecentlyUsedCategories,
                         });
                     });
                 }
@@ -838,6 +840,7 @@ function IOURequestStepConfirmation({
                         splitShares: transaction.splitShares,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        policyRecentlyUsedCategories,
                     });
                 }
                 return;
@@ -863,6 +866,7 @@ function IOURequestStepConfirmation({
                         splitShares: transaction.splitShares,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        policyRecentlyUsedCategories,
                     });
                 }
                 return;
