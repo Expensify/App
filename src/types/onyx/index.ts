@@ -285,5 +285,4 @@ export type {
     BillingReceiptDetails,
     ExportTemplate,
     HybridApp,
-    Domain,
 };
