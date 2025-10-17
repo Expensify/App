@@ -319,22 +319,12 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     chatReport,
                     duplicateTransactions,
                     duplicateTransactionViolations,
-                    undefined,
+                    isReportArchived,
                     isChatIOUReportArchived,
+                    undefined,
                 );
             } else {
-                deleteMoneyRequest(
-                    originalMessage?.IOUTransactionID,
-                    reportAction,
-                    duplicateTransactions,
-                    duplicateTransactionViolations,
-                    iouReport,
-                    chatReport,
-                    undefined,
-                    undefined,
-                    undefined,
-                    isChatIOUReportArchived,
-                );
+                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations, iouReport, chatReport, isChatIOUReportArchived);
             }
         } else if (isReportPreviewAction(reportAction)) {
             deleteAppReport(reportAction.childReportID);
