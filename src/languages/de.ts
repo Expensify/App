@@ -1699,7 +1699,6 @@ const translations = {
             testCrash: 'Testabsturz',
             resetToOriginalState: 'Auf den ursprünglichen Zustand zurücksetzen',
             usingImportedState: 'Sie verwenden importierten Status. Drücken Sie hier, um ihn zu löschen.',
-            shouldBlockTransactionThreadReportCreation: 'Erstellung von Transaktions-Thread-Berichten blockieren',
             debugMode: 'Debug-Modus',
             invalidFile: 'Ungültige Datei',
             invalidFileDescription: 'Die Datei, die Sie importieren möchten, ist ungültig. Bitte versuchen Sie es erneut.',
