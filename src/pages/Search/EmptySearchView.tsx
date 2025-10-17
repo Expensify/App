@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
+import type {ReactNode} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
@@ -64,6 +65,7 @@ type EmptySearchViewContentProps = EmptySearchViewProps & {
     groupPoliciesWithChatEnabled: readonly never[] | Array<OnyxEntry<Policy>>;
     introSelected: OnyxEntry<IntroSelected>;
     hasSeenTour: boolean;
+    searchMenuCreateReportConfirmationModal: ReactNode;
 };
 
 type EmptySearchViewItem = {
@@ -92,7 +94,7 @@ const tripsFeatures: FeatureListItem[] = [
 
 function EmptySearchView({similarSearchHash, type, groupBy, hasResults}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {typeMenuSections} = useSearchTypeMenuSections();
+    const {typeMenuSections, CreateReportConfirmationModal: SearchMenuCreateReportConfirmationModal} = useSearchTypeMenuSections();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
 
@@ -139,6 +141,7 @@ function EmptySearchView({similarSearchHash, type, groupBy, hasResults}: EmptySe
                 groupPoliciesWithChatEnabled={groupPoliciesWithChatEnabled}
                 introSelected={introSelected}
                 hasSeenTour={hasSeenTour}
+                searchMenuCreateReportConfirmationModal={SearchMenuCreateReportConfirmationModal}
             />
         </SearchScopeProvider>
     );
@@ -161,6 +164,7 @@ function EmptySearchViewContent({
     groupPoliciesWithChatEnabled,
     introSelected,
     hasSeenTour,
+    searchMenuCreateReportConfirmationModal,
 }: EmptySearchViewContentProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -479,6 +483,7 @@ function EmptySearchViewContent({
 
     return (
         <>
+            {searchMenuCreateReportConfirmationModal}
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
