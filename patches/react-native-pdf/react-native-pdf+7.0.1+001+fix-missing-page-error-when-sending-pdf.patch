@@ -102,7 +102,7 @@ index ae6836a..c7d8d32 100644
      public void setPage(int page) {
 -        this.page = page;
 -        this.bookmarks = page;
-+        this.page = Math.max(page, 1);
++        this.page = Math.max(1, page);
      }
  
 -    public void setEnableRTL(boolean enableRTL){
