@@ -884,7 +884,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             );
         },
         onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction}) => {
-            const iouReportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID ?? reportIDParam : reportIDParam;
+            const iouReportID = isMoneyRequestAction(moneyRequestAction) ? (getOriginalMessage(moneyRequestAction)?.IOUReportID ?? reportIDParam) : reportIDParam;
             const reportID = iouReportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? iouReportID : reportIDParam;
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
