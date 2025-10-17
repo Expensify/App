@@ -129,8 +129,7 @@ function runCompilerHealthcheck(src?: string): CompilerResults {
         cwd: process.cwd(),
     });
 
-    const results = parseHealthcheckOutput(output);
-    return results;
+    return parseHealthcheckOutput(output);
 }
 
 function parseHealthcheckOutput(output: string): CompilerResults {
