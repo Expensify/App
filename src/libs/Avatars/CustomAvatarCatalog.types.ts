@@ -1,5 +1,4 @@
-import {SvgProps} from 'react-native-svg';
-import colors from '@styles/theme/colors';
+import type {SvgProps} from 'react-native-svg';
 
 type DefaultAvatarIDs =
     | 'default-avatar_1'

@@ -1,16 +1,16 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
-import {View} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
 import AvatarSelector from '@components/AvatarSelector';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {ALL_CUSTOM_AVATARS, LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/CustomAvatarCatalog';
+import {ALL_CUSTOM_AVATARS} from '@libs/Avatars/CustomAvatarCatalog';
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLetterAvatars', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: (name?: string) => {
         if (!name) {
@@ -18,9 +18,16 @@ jest.mock('@hooks/useLetterAvatars', () => ({
         }
 
         const firstChar = name.at(0)?.toLowerCase();
-        const avatarList = LETTER_AVATAR_COLOR_OPTIONS.map(({fillColor, backgroundColor}) => {
+        const avatarList = [
+            {backgroundColor: '#B0D9FF', fillColor: '#0164BF'},
+            {backgroundColor: '#0185FF', fillColor: '#003C73'},
+            {backgroundColor: '#003C73', fillColor: '#8DC8FF'},
+        ].map(({fillColor, backgroundColor}) => {
             const id = `letter-avatar-${backgroundColor}-${fillColor}-${firstChar}`;
-            const StyledLetterAvatar = () => <View id={id}></View>;
+            function StyledLetterAvatar() {
+                // eslint-disable-next-line react/jsx-no-useless-fragment
+                return <>{id}</>;
+            }
             return {id, StyledLetterAvatar};
         });
 
@@ -107,19 +114,17 @@ describe('AvatarSelector', () => {
     });
 
     describe('avatarList (letter avatars)', () => {
-        const testFirstName = 'Alice';
-        const firstChar = getFirstAlphaNumericCharacter(testFirstName).toLowerCase();
+        const mockName = 'Alice';
+        const firstChar = getFirstAlphaNumericCharacter(mockName).toLowerCase();
 
         it('letter avatars have correct ID format when they are rendered', async () => {
-            renderAvatarSelector({firstName: testFirstName});
+            renderAvatarSelector({name: mockName});
             await waitForBatchedUpdates();
 
             const allAvatars = screen.queryAllByTestId(/^AvatarSelector_/);
-            screen.debug();
-            console.log(allAvatars);
-            const letterAvatars = allAvatars.filter((node) => node.props.testID?.includes('letter-avatar'));
+            const letterAvatars = allAvatars.filter((node) => (node.props.testID as string)?.includes('letter-avatar'));
 
-            expect(letterAvatars).toHaveLength(LETTER_AVATAR_COLOR_OPTIONS.length);
+            expect(letterAvatars).toHaveLength(3);
 
             for (const avatar of letterAvatars) {
                 expect(avatar.props.testID).toMatch(/^AvatarSelector_letter-avatar-#[0-9A-F]{6}-#[0-9A-F]{6}-[a-z0-9]$/i);
@@ -132,17 +137,17 @@ describe('AvatarSelector', () => {
             await waitForBatchedUpdates();
 
             const allAvatars = screen.queryAllByTestId(/^AvatarSelector_/);
-            const letterAvatars = allAvatars.filter((node) => node.props.testID?.includes('letter-avatar'));
+            const letterAvatars = allAvatars.filter((node) => (node.props.testID as string)?.includes('letter-avatar'));
 
             expect(letterAvatars).toHaveLength(0);
         });
 
         it('calls onSelect when letter avatar is pressed (if rendered)', async () => {
-            renderAvatarSelector({firstName: testFirstName});
+            renderAvatarSelector({name: mockName});
             await waitForBatchedUpdates();
 
             const allAvatars = screen.queryAllByTestId(/^AvatarSelector_/);
-            const letterAvatars = allAvatars.filter((node) => node.props.testID?.includes('letter-avatar'));
+            const letterAvatars = allAvatars.filter((node) => (node.props.testID as string)?.includes('letter-avatar'));
 
             const firstLetterAvatar = letterAvatars.at(0);
 
@@ -150,24 +155,24 @@ describe('AvatarSelector', () => {
             fireEvent.press(firstLetterAvatar?.parent?.parent!);
             await waitForBatchedUpdates();
 
-            const expectedId = firstLetterAvatar?.props.testID.replace('AvatarSelector_', '');
+            const expectedId = (firstLetterAvatar?.props.testID as string)?.replace('AvatarSelector_', '');
             expect(onSelectMock).toHaveBeenCalledWith(expectedId);
             expect(onSelectMock).toHaveBeenCalledTimes(1);
         });
 
         it('shows selected letter avatar with border styling (if rendered)', async () => {
-            renderAvatarSelector({firstName: testFirstName});
+            renderAvatarSelector({name: mockName});
             await waitForBatchedUpdates();
 
             const allAvatars = screen.queryAllByTestId(/^AvatarSelector_/);
-            const letterAvatars = allAvatars.filter((node) => node.props.testID?.includes('letter-avatar'));
+            const letterAvatars = allAvatars.filter((node) => (node.props.testID as string)?.includes('letter-avatar'));
 
-            const letterAvatarId = letterAvatars.at(2)?.props.testID.replace('AvatarSelector_', '');
+            const letterAvatarId = (letterAvatars.at(2)?.props.testID as string).replace('AvatarSelector_', '');
 
             screen.unmount();
 
             renderAvatarSelector({
-                firstName: testFirstName,
+                name: mockName,
                 selectedID: letterAvatarId,
             });
             await waitForBatchedUpdates();
@@ -178,14 +183,14 @@ describe('AvatarSelector', () => {
 
         // TODO uncomment when we add ALL_CUSTOM_AVATARS https://github.com/Expensify/App/pull/72542
         xit('renders both custom and letter avatars when firstName is provided', async () => {
-            renderAvatarSelector({firstName: testFirstName});
+            renderAvatarSelector({name: mockName});
             await waitForBatchedUpdates();
 
             const customAvatars = Object.keys(ALL_CUSTOM_AVATARS);
-            expect(screen.getByTestId(`AvatarSelector_${customAvatars[0]}`)).toBeOnTheScreen();
+            expect(screen.getByTestId(`AvatarSelector_${customAvatars.at(0)}`)).toBeOnTheScreen();
 
             const allAvatars = screen.queryAllByTestId(/^AvatarSelector_/);
-            const letterAvatars = allAvatars.filter((node) => node.props.testID?.includes('letter-avatar'));
+            const letterAvatars = allAvatars.filter((node) => (node.props.testID as string)?.includes('letter-avatar'));
 
             expect(letterAvatars.at(0)?.props.testID).toMatch(/^AvatarSelector_letter-avatar-/);
         });

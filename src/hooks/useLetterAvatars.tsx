@@ -44,14 +44,17 @@ function useLetterAvatars(name: string | undefined, size?: AvatarSizeName): Lett
         const avatarMap: Record<string, React.FC<SvgProps>> = {};
 
         LETTER_AVATAR_COLOR_OPTIONS.forEach(({fillColor, backgroundColor}) => {
-            const StyledLetterAvatar: React.FC<SvgProps> = () => (
-                <ColoredLetterAvatar
-                    fillColor={fillColor}
-                    backgroundColor={backgroundColor}
-                    component={avatarComponent}
-                    size={size}
-                />
-            );
+            function StyledLetterAvatar() {
+                return (
+                    <ColoredLetterAvatar
+                        fillColor={fillColor}
+                        backgroundColor={backgroundColor}
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                        component={avatarComponent!}
+                        size={size}
+                    />
+                );
+            }
             const id = `letter-avatar-${backgroundColor}-${fillColor}-${getFirstAlphaNumericCharacter(name)}`;
 
             avatarList.push({

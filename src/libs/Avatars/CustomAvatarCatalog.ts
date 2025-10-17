@@ -1,11 +1,12 @@
-import {SvgProps} from 'react-native-svg';
+/* eslint-disable @typescript-eslint/naming-convention */
+import type {SvgProps} from 'react-native-svg';
 import * as SeasonF1 from '@components/Icon/CustomAvatars/SeasonF1';
 import * as DefaultAvatars from '@components/Icon/DefaultAvatars';
 import * as LetterDefaultAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
-import {AvatarEntry, CustomAvatarID, DefaultAvatarIDs, LetterAvatarColorStyle, LetterAvatarIDs, LetterAvatarVariant, SeasonF1AvatarIDs} from './CustomAvatarCatalog.types';
+import type {AvatarEntry, CustomAvatarID, DefaultAvatarIDs, LetterAvatarColorStyle, LetterAvatarIDs, LetterAvatarVariant, SeasonF1AvatarIDs} from './CustomAvatarCatalog.types';
 
 const CDN_DEFAULT_AVATARS = `${CONST.CLOUDFRONT_URL}/images/avatars`;
 const CDN_SEASON_F1 = `${CONST.CLOUDFRONT_URL}/images/avatars/custom-avatars/season-f1`;
@@ -244,4 +245,3 @@ const getAvatarLocal = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].local;
 const getAvatarURL = (id: CustomAvatarID) => ALL_CUSTOM_AVATARS[id].url;
 
 export {ALL_CUSTOM_AVATARS, CUSTOM_AVATAR_CATALOG, LETTER_AVATAR_COLOR_OPTIONS, LETTER_DEFAULTS, getAvatarLocal, getAvatarURL, generateLetterAvatars, getLetterAvatar};
-export type {DefaultAvatarIDs, SeasonF1AvatarIDs, LetterAvatarIDs, CustomAvatarID};
