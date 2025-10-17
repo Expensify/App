@@ -1,5 +1,14 @@
 import type {ValueOf} from 'type-fest';
-import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchGroupBy, SearchWithdrawalType} from '@components/Search/types';
+import type {
+    ReportFieldDateKey,
+    ReportFieldKey,
+    ReportFieldNegatedKey,
+    ReportFieldTextKey,
+    SearchAmountFilterKeys,
+    SearchDateFilterKeys,
+    SearchGroupBy,
+    SearchWithdrawalType,
+} from '@components/Search/types';
 import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type Form from './Form';
@@ -154,6 +163,7 @@ const FILTER_KEYS = {
 
     ATTENDEE_NOT: 'attendeeNot',
     ATTENDEE: 'attendee',
+    REPORT_FIELD: 'reportField',
 } as const;
 
 const ALLOWED_TYPE_FILTERS = {
@@ -249,6 +259,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.TITLE,
         FILTER_KEYS.TITLE_NOT,
         FILTER_KEYS.ATTENDEE,
+        FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.ATTENDEE_NOT,
     ],
 
@@ -332,6 +343,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.WITHDRAWAL_ID,
         FILTER_KEYS.WITHDRAWAL_ID_NOT,
         FILTER_KEYS.TITLE,
+        FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.TITLE_NOT,
     ],
 
@@ -409,6 +421,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.PURCHASE_CURRENCY_NOT,
         FILTER_KEYS.TITLE,
         FILTER_KEYS.TITLE_NOT,
+        FILTER_KEYS.REPORT_FIELD,
     ],
 
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
@@ -451,7 +464,7 @@ const ALLOWED_TYPE_FILTERS = {
     ],
 };
 
-type SearchAdvancedFiltersKey = ValueOf<typeof FILTER_KEYS>;
+type SearchAdvancedFiltersKey = ValueOf<typeof FILTER_KEYS> | ReportFieldKey;
 
 type SearchAdvancedFiltersForm = Form<
     SearchAdvancedFiltersKey,
@@ -597,7 +610,12 @@ type SearchAdvancedFiltersForm = Form<
 
         [FILTER_KEYS.ATTENDEE]: string[];
         [FILTER_KEYS.ATTENDEE_NOT]: string[];
-    }
+        [FILTER_KEYS.IS]: string[];
+        [FILTER_KEYS.HAS]: string[];
+        [FILTER_KEYS.REPORT_FIELD]: string;
+    } & Record<ReportFieldTextKey, string> &
+        Record<ReportFieldDateKey, string> &
+        Record<ReportFieldNegatedKey, string>
 >;
 
 export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey};

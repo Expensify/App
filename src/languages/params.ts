@@ -183,6 +183,8 @@ type WorkspaceRouteParams = {
 
 type RequestAmountParams = {amount: string};
 
+type ReportFieldParams = {name: string; value: string};
+
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
 
 type SplitAmountParams = {amount: string};
@@ -1253,4 +1255,5 @@ export type {
     ErrorODIntegrationParams,
     DisconnectYourBankAccountParams,
     MergeAccountIntoParams,
+    ReportFieldParams,
 };
