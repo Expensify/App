@@ -8872,9 +8872,6 @@ function deleteTrackExpense(
     isChatReportArchived = false,
     isChatIOUReportArchived = false,
 ) {
-    console.log("sparsisparsi");
-    console.log(chatReport);
-    console.log(transactionID);
     const chatReportID = chatReport?.reportID;
     if (!chatReportID || !transactionID) {
         return;
