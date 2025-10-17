@@ -110,7 +110,7 @@ function ActionCell({
 
         return isLargeScreenWidth ? (
             <Button
-                testID={`action-cell-button-${action}`}
+                testID={ActionCell.displayName}
                 text={text}
                 onPress={goToItem}
                 small

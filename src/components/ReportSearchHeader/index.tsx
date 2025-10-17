@@ -25,7 +25,7 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
         <View
             dataSet={{dragArea: false}}
             style={[style, styles.reportSearchHeaderBar]}
-            testID="report-search-header"
+            testID={ReportSearchHeader.displayName}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>{middleContent}</View>
         </View>

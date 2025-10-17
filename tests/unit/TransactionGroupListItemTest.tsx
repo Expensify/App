@@ -203,11 +203,11 @@ describe('TransactionGroupListItem', () => {
 
         expect(screen.getByRole(CONST.ROLE.CHECKBOX)).toBeTruthy();
         expect(screen.getByRole(CONST.ROLE.CHECKBOX)).not.toBeChecked();
-        expect(screen.getByTestId('report-search-header')).toBeTruthy();
-        expect(screen.getByTestId('total-cell')).toBeTruthy();
-        expect(screen.getByTestId('action-cell-button-view')).toBeTruthy();
+        expect(screen.getByTestId('ReportSearchHeader')).toBeTruthy();
+        expect(screen.getByTestId('TotalCell')).toBeTruthy();
+        expect(screen.getByTestId('ActionCell')).toBeTruthy();
         expect(screen.getByLabelText('Expand')).toBeTruthy();
-        expect(screen.queryByTestId('animated-collapsible-content')).toBeNull();
+        expect(screen.queryByTestId(CONST.ANIMATED_COLLAPSIBLE_CONTENT_TEST_ID)).toBeNull();
     });
 
     it(`should toggle expansion state with ${CONST.TRANSACTION.RESULTS_PAGE_SIZE} items when Expand is triggered`, async () => {
@@ -216,7 +216,7 @@ describe('TransactionGroupListItem', () => {
         await expand();
 
         expect(screen.getByLabelText('Collapse')).toBeTruthy();
-        expect(screen.getByTestId('animated-collapsible-content')).toBeTruthy();
+        expect(screen.getByTestId(CONST.ANIMATED_COLLAPSIBLE_CONTENT_TEST_ID)).toBeTruthy();
 
         expect(getVisibleTransactionRowsCount()).toBe(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
     });
