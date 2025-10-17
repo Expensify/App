@@ -5,6 +5,7 @@ import AddToWalletButton from '@components/AddToWalletButton/index';
 import Button from '@components/Button';
 import CardPreview from '@components/CardPreview';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
@@ -13,6 +14,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -73,6 +75,7 @@ function ExpensifyCardPage({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
     const isTravelCard = cardList?.[cardID]?.nameValuePairs?.isTravelCard;
     const shouldDisplayCardDomain = !isTravelCard && (!cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual);
     const domain = cardList?.[cardID]?.domainName ?? '';
@@ -226,11 +229,21 @@ function ExpensifyCardPage({
                                                 ) : undefined
                                             }
                                         />
-                                        <DotIndicatorMessage
-                                            messages={cardsDetailsErrors[card.cardID] ? {error: translate(cardsDetailsErrors[card.cardID] as TranslationPaths)} : {}}
-                                            type="error"
-                                            style={[styles.ph5, styles.mv2]}
-                                        />
+                                        {cardsDetailsErrors[card.cardID] === 'cardPage.missingPrivateDetails' ? (
+                                            <FormHelpMessage
+                                                isError
+                                                shouldShowRedDotIndicator
+                                                message={translate('cardPage.missingPrivateDetails', {profileSettingsLink: `${environmentURL}/settings/profile`})}
+                                                style={[styles.ph5, styles.mv2]}
+                                                shouldRenderMessageAsHTML
+                                            />
+                                        ) : (
+                                            <DotIndicatorMessage
+                                                messages={cardsDetailsErrors[card.cardID] ? {error: translate(cardsDetailsErrors[card.cardID] as TranslationPaths)} : {}}
+                                                type="error"
+                                                style={[styles.ph5, styles.mv2]}
+                                            />
+                                        )}
                                     </>
                                 )}
                                 {!isSignedInAsDelegate && (

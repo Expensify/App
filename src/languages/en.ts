@@ -2002,7 +2002,7 @@ const translations = {
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
         validateCardTitle: "Let's make sure it's you",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to view your card details. It should arrive within a minute or two.`,
-        missingPrivateDetails: 'Please add your personal details under Account > Profile > Private, then try again.',
+        missingPrivateDetails: ({profileSettingsLink}: {profileSettingsLink: string}) => `Please add your personal details under <a href="${profileSettingsLink}">Account > Profile > Private</a>, then try again.`,
         unexpectedError: 'There was an error trying to get your Expensify card details. Please try again.',
         cardFraudAlert: {
             confirmButtonText: 'Yes, I do',

@@ -2016,7 +2016,7 @@ const translations = {
         validateCardTitle: 'Laten we ervoor zorgen dat jij het bent',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Voer de magische code in die naar ${contactMethod} is gestuurd om uw kaartgegevens te bekijken. Het zou binnen een minuut of twee moeten aankomen.`,
-        missingPrivateDetails: 'Voeg uw persoonlijke gegevens toe onder Account > Profiel > Privé en probeer het opnieuw.',
+        missingPrivateDetails: ({profileSettingsLink}: {profileSettingsLink: string}) => `Voeg uw persoonlijke gegevens toe onder <a href="${profileSettingsLink}">Account > Profiel > Privé</a> en probeer het opnieuw.`,
         unexpectedError: 'Er is een fout opgetreden bij het ophalen van uw Expensify-kaartgegevens. Probeer het opnieuw.',
         cardFraudAlert: {
             confirmButtonText: 'Ja, dat doe ik.',

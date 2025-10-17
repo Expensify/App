@@ -2013,7 +2013,7 @@ const translations = {
         validateCardTitle: 'Upewnijmy się, że to Ty',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Proszę wprowadzić magiczny kod wysłany na ${contactMethod}, aby zobaczyć szczegóły swojej karty. Powinien dotrzeć w ciągu minuty lub dwóch.`,
-        missingPrivateDetails: 'Dodaj swoje dane osobowe w Konto > Profil > Prywatne, a następnie spróbuj ponownie.',
+        missingPrivateDetails: ({profileSettingsLink}: {profileSettingsLink: string}) => `Dodaj swoje dane osobowe w <a href="${profileSettingsLink}">Konto > Profil > Prywatne</a>, a następnie spróbuj ponownie.`,
         unexpectedError: 'Wystąpił błąd podczas pobierania szczegółów twojej karty Expensify. Spróbuj ponownie.',
         cardFraudAlert: {
             confirmButtonText: 'Tak, robię',
