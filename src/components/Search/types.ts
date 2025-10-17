@@ -44,6 +44,9 @@ type SelectedTransactionInfo = {
     /** The currency that the converted amount is in */
     convertedCurrency: string;
 
+    /** The transaction currency */
+    currency: string;
+
     /** Whether it is the only expense of the parent expense report */
     isFromOneTransactionReport?: boolean;
 };
@@ -58,6 +61,7 @@ type SelectedReports = {
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
     allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
     total: number;
+    currency?: string;
 };
 
 /** Model of payment data used by Search bulk actions */
@@ -82,10 +86,11 @@ type PaymentData = {
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
 type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
+type ExpenseReportSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE_REPORT>;
 type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
 type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
 type TaskSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TASK>;
-type SingularSearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | TaskSearchStatus;
+type SingularSearchStatus = ExpenseSearchStatus | ExpenseReportSearchStatus | InvoiceSearchStatus | TripSearchStatus | TaskSearchStatus;
 type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;

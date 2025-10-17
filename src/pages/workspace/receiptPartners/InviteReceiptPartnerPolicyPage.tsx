@@ -174,8 +174,8 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
 
-        return getHeaderMessage(sections?.at(0)?.data.length !== 0, false, searchValue);
-    }, [debouncedSearchTerm, sections]);
+        return getHeaderMessage(sections?.at(0)?.data.length !== 0, false, searchValue, false, countryCode);
+    }, [debouncedSearchTerm, sections, countryCode]);
 
     const handleConfirm = useCallback(() => {
         if (selectedOptions.length === 0) {

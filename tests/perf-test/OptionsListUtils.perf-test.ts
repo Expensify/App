@@ -107,26 +107,26 @@ describe('OptionsListUtils', () => {
     /* Testing getSearchOptions */
     test('[OptionsListUtils] getSearchOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getSearchOptions(options, mockedBetas));
+        await measureFunction(() => getSearchOptions({options, betas: mockedBetas, draftComments: {}}));
     });
 
     /* Testing getShareLogOptions */
     test('[OptionsListUtils] getShareLogOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getShareLogOptions(options, mockedBetas));
+        await measureFunction(() => getShareLogOptions(options, {}, mockedBetas));
     });
 
     /* Testing getFilteredOptions */
     test('[OptionsListUtils] getFilteredOptions with search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, ValidOptionsConfig);
+        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, ValidOptionsConfig);
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE);
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, ValidOptionsConfig);
+        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, ValidOptionsConfig);
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE);
         });
@@ -138,6 +138,7 @@ describe('OptionsListUtils', () => {
         await measureFunction(() =>
             getValidOptions(
                 {reports: options.reports, personalDetails: options.personalDetails},
+                {},
                 {
                     betas: mockedBetas,
                     includeMultipleParticipantReports: true,

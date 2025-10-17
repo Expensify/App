@@ -6,10 +6,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
+import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -119,8 +119,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isFromReviewDuplicates = !!route.params.backTo?.replace(/\?.*/g, '').endsWith('/duplicates/review');
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
-
-    const {isBetaEnabled} = usePermissions();
+    const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
 
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
 
@@ -263,8 +262,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (!transaction || !parentReportAction || !parentReport) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(currentUserLogin ?? '', parentReport, transaction, parentReportAction, policy, report, isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS));
-    }, [parentReport, transaction, parentReportAction, currentUserLogin, policy, report, isBetaEnabled]);
+        return getSecondaryTransactionThreadActions(currentUserLogin ?? '', parentReport, transaction, parentReportAction, policy, report);
+    }, [parentReport, transaction, parentReportAction, currentUserLogin, policy, report]);
 
     const dismissModalAndUpdateUseReject = () => {
         setIsRejectEducationalModalVisible(false);
@@ -397,7 +396,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         )}
                     </View>
                 )}
-                {shouldDisplayTransactionNavigation && <MoneyRequestReportTransactionsNavigation currentReportID={reportID} />}
+                {shouldDisplayTransactionNavigation && !!transaction && <MoneyRequestReportTransactionsNavigation currentTransactionID={transaction.transactionID} />}
             </HeaderWithBackButton>
             {!shouldDisplayNarrowMoreButton && (
                 <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
@@ -443,16 +442,30 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     }
                     if (isTrackExpenseAction(parentReportAction)) {
                         deleteTrackExpense(
-                            report?.parentReportID,
+                            parentReport,
                             transaction.transactionID,
                             parentReportAction,
+                            iouReport,
+                            chatIOUReport,
                             duplicateTransactions,
                             duplicateTransactionViolations,
                             true,
                             isParentReportArchived,
+                            isChatIOUReportArchived,
                         );
                     } else {
-                        deleteMoneyRequest(transaction.transactionID, parentReportAction, duplicateTransactions, duplicateTransactionViolations, true);
+                        deleteMoneyRequest(
+                            transaction.transactionID,
+                            parentReportAction,
+                            duplicateTransactions,
+                            duplicateTransactionViolations,
+                            iouReport,
+                            chatIOUReport,
+                            true,
+                            undefined,
+                            undefined,
+                            isChatIOUReportArchived,
+                        );
                         removeTransaction(transaction.transactionID);
                     }
                     onBackButtonPress();

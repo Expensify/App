@@ -33229,7 +33229,7 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
     }
   }
   fillOptionalPropertiesForTSESLint(node) {
-    var _node$directive, _node$decorators, _node$optional, _node$typeAnnotation, _node$accessibility, _node$decorators2, _node$override, _node$readonly, _node$static, _node$declare, _node$returnType, _node$typeParameters, _node$optional2, _node$optional3, _node$accessibility2, _node$readonly2, _node$static2, _node$declare2, _node$definite, _node$readonly3, _node$typeAnnotation2, _node$accessibility3, _node$decorators3, _node$override2, _node$optional4, _node$id, _node$abstract, _node$declare3, _node$decorators4, _node$implements, _node$superTypeArgume, _node$typeParameters2, _node$declare4, _node$definite2, _node$const, _node$declare5, _node$computed, _node$qualifier, _node$options, _node$declare6, _node$extends, _node$declare7, _node$global, _node$const2, _node$in, _node$out;
+    var _node$directive, _node$decorators, _node$optional, _node$typeAnnotation, _node$accessibility, _node$decorators2, _node$override, _node$readonly, _node$static, _node$declare, _node$returnType, _node$typeParameters, _node$optional2, _node$optional3, _node$accessibility2, _node$readonly2, _node$static2, _node$declare2, _node$definite, _node$readonly3, _node$typeAnnotation2, _node$accessibility3, _node$decorators3, _node$override2, _node$optional4, _node$id, _node$abstract, _node$declare3, _node$decorators4, _node$implements, _node$superTypeArgume, _node$typeParameters2, _node$declare4, _node$definite2, _node$const, _node$declare5, _node$computed, _node$qualifier, _node$options, _node$declare6, _node$extends, _node$optional5, _node$readonly4, _node$declare7, _node$global, _node$const2, _node$in, _node$out;
     switch (node.type) {
       case "ExpressionStatement":
         (_node$directive = node.directive) != null ? _node$directive : node.directive = undefined;
@@ -33319,6 +33319,10 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
       case "TSInterfaceDeclaration":
         (_node$declare6 = node.declare) != null ? _node$declare6 : node.declare = false;
         (_node$extends = node.extends) != null ? _node$extends : node.extends = [];
+        return;
+      case "TSMappedType":
+        (_node$optional5 = node.optional) != null ? _node$optional5 : node.optional = false;
+        (_node$readonly4 = node.readonly) != null ? _node$readonly4 : node.readonly = undefined;
         return;
       case "TSModuleDeclaration":
         (_node$declare7 = node.declare) != null ? _node$declare7 : node.declare = false;
@@ -49753,7 +49757,7 @@ defineType("RegExpLiteral", {
     },
     flags: {
       validate: process.env.BABEL_TYPES_8_BREAKING ? (0, _utils.chain)((0, _utils.assertValueType)("string"), Object.assign(function (node, key, val) {
-        const invalid = /[^gimsuy]/.exec(val);
+        const invalid = /[^dgimsuvy]/.exec(val);
         if (invalid) {
           throw new TypeError(`"${invalid[0]}" is not a valid RegExp flag`);
         }

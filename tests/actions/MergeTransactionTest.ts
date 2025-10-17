@@ -86,7 +86,15 @@ describe('mergeTransactionRequest', () => {
 
         // When: The merge transaction request is initiated
         // This should immediately update the UI with optimistic values
-        mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
+        mergeTransactionRequest({
+            mergeTransactionID,
+            mergeTransaction,
+            targetTransaction,
+            sourceTransaction,
+            policy: undefined,
+            policyTags: undefined,
+            policyCategories: undefined,
+        });
 
         await mockFetch?.resume?.();
         await waitForBatchedUpdates();
@@ -197,7 +205,15 @@ describe('mergeTransactionRequest', () => {
         // When: The merge request is executed but the API will return an error
         mockFetch?.fail?.();
 
-        mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
+        mergeTransactionRequest({
+            mergeTransactionID,
+            mergeTransaction,
+            targetTransaction,
+            sourceTransaction,
+            policy: undefined,
+            policyTags: undefined,
+            policyCategories: undefined,
+        });
 
         await waitForBatchedUpdates();
 
@@ -283,7 +299,15 @@ describe('mergeTransactionRequest', () => {
         // When: The merge request is executed, which should handle violation updates
         // - Optimistically remove DUPLICATED_TRANSACTION violations since transactions are being merged
         // - Keep other violations like MISSING_CATEGORY intact
-        mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
+        mergeTransactionRequest({
+            mergeTransactionID,
+            mergeTransaction,
+            targetTransaction,
+            sourceTransaction,
+            policy: undefined,
+            policyTags: undefined,
+            policyCategories: undefined,
+        });
 
         await mockFetch?.resume?.();
         await waitForBatchedUpdates();
@@ -351,7 +375,15 @@ describe('mergeTransactionRequest', () => {
             mockFetch?.pause?.();
 
             // When: The merge request is executed
-            mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
+            mergeTransactionRequest({
+                mergeTransactionID,
+                mergeTransaction,
+                targetTransaction,
+                sourceTransaction,
+                policy: undefined,
+                policyTags: undefined,
+                policyCategories: undefined,
+            });
 
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();

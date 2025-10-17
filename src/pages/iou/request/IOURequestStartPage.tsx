@@ -9,6 +9,7 @@ import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -193,6 +194,13 @@ function IOURequestStartPage({
             },
         },
     );
+
+    const onBackButtonPress = () => {
+        navigateBack();
+        return true;
+    };
+
+    useHandleBackButton(onBackButtonPress);
 
     return (
         <AccessOrNotFoundWrapper

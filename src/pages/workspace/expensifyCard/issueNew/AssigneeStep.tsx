@@ -140,8 +140,8 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
 
-        return getHeaderMessage(sections[0].data.length !== 0, false, searchValue);
-    }, [debouncedSearchTerm, sections]);
+        return getHeaderMessage(sections[0].data.length !== 0, false, searchValue, false, countryCode);
+    }, [debouncedSearchTerm, sections, countryCode]);
 
     return (
         <InteractiveStepWrapper
