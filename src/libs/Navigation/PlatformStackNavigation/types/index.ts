@@ -77,7 +77,7 @@ type PlatformStackNavigatorProps<ParamList extends ParamListBase, RouterOptions 
     NavigationListBase<ParamList>
 > &
     RouterOptions &
-    StackNavigationConfig & {
+    StackNavigationOptions & {
         persistentScreens?: Array<Extract<keyof ParamList, string>>;
         defaultCentralScreen?: Extract<keyof ParamList, string>;
         sidebarScreen?: Extract<keyof ParamList, string>;

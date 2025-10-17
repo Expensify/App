@@ -4,7 +4,7 @@ import type NavBarManager from './types';
 
 const navBarManager: NavBarManager = {
     setButtonStyle: () => {},
-    getType: () => (getPlatform() === CONST.PLATFORM.IOS ? CONST.NAVIGATION_BAR_TYPE.GESTURE_BAR : CONST.NAVIGATION_BAR_TYPE.NONE),
+    getType: () => Promise.resolve(getPlatform() === CONST.PLATFORM.IOS ? CONST.NAVIGATION_BAR_TYPE.GESTURE_BAR : CONST.NAVIGATION_BAR_TYPE.NONE),
 };
 
 export default navBarManager;
