@@ -553,6 +553,7 @@ const translations = {
         card: 'Card',
         whyDoWeAskForThis: 'Why do we ask for this?',
         required: 'Required',
+        automatic: 'Automatic',
         showing: 'Showing',
         of: 'of',
         default: 'Default',
@@ -1143,6 +1144,7 @@ const translations = {
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
         markAsCash: 'Mark as cash',
         routePending: 'Route pending...',
+        automaticallyEnterExpenseDetails: 'Concierge will automatically enter the expense details for you, or you can add them manually.',
         receiptScanning: () => ({
             one: 'Receipt scanning...',
             other: 'Receipts scanning...',
