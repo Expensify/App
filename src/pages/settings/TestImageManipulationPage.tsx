@@ -111,7 +111,7 @@ function TestImageManipulationPage() {
             } else {
                 // Use expo-image-manipulator for native
                 // Get first image dimensions
-                const {height: height1} = await new Promise<{width: number; height: number}>((resolve, reject) => {
+                const {width: width1, height: height1} = await new Promise<{width: number; height: number}>((resolve, reject) => {
                     RNImage.getSize(
                         uri1,
                         (width, height) => resolve({width, height}),
@@ -119,12 +119,17 @@ function TestImageManipulationPage() {
                     );
                 });
 
+                // Calculate resized height for first image
+                const targetWidth = 800;
+                const scale1 = targetWidth / width1;
+                const resizedHeight1 = height1 * scale1;
+
                 // Merge images vertically
                 const result = await manipulateAsync(
                     uri1,
                     [
-                        {resize: {width: 800}}, // Normalize width
-                        {compose: {uri: uri2, x: 0, y: height1}},
+                        {resize: {width: targetWidth}}, // Normalize width
+                        {compose: {uri: uri2, x: 0, y: resizedHeight1}},
                     ],
                     {format: SaveFormat.JPEG, compress: 0.9},
                 );
