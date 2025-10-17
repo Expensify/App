@@ -1840,7 +1840,7 @@ describe('actions/Report', () => {
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollections);
 
             // When mark all reports as read
-            Report.markAllMessagesAsRead();
+            Report.markAllMessagesAsRead(new Set<string>());
 
             await waitForBatchedUpdates();
 
