@@ -1991,7 +1991,7 @@ const translations = {
         validateCardTitle: '让我们确认一下身份',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `请输入发送到${contactMethod}的验证码以查看您的卡详细信息。验证码应在一两分钟内到达。`,
         missingPrivateDetails: ({profileSettingsLink}: {profileSettingsLink: string}) => `请在 <a href="${profileSettingsLink}">账户 > 个人资料 > 私密</a> 中添加您的个人信息，然后重试。`,
-        unexpectedError: '获取您的 Expensify 卡信息时出错。请重试。',
+        unexpectedError: '尝试获取您的 Expensify 卡片详情时出错。请重试。',
         cardFraudAlert: {
             confirmButtonText: '是的，我愿意。',
             reportFraudButtonText: '不，不是我',
@@ -2534,15 +2534,15 @@ ${merchant}的${amount} - ${date}`,
             splitExpenseTask: {
                 title: '拆分支出',
                 description:
-                    '*与一个或多个人拆分支出*。\n' +
+                    '与一人或多人一起*分摊费用*。' +
                     '\n' +
-                    '1. 点击绿色的 *+* 按钮。\n' +
-                    '2. 选择 *开始聊天*。\n' +
-                    '3. 输入电子邮件或电话号码。\n' +
-                    '4. 点击聊天中的灰色 *+* 按钮 > *拆分支出*。\n' +
-                    '5. 通过选择 *手动*、*扫描*或 *距离*创建支出。\n' +
+                    `点击${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}按钮。` +
+                    '2. 选择*开始聊天*。' +
+                    '3. 输入电子邮件地址或电话号码..' +
+                    '4. 在聊天中点击灰色的*+*按钮 > *拆分费用*。' +
+                    '5. 通过选择*手动*、*扫描*或*距离*来创建费用。' +
                     '\n' +
-                    '如有需要，随意添加更多详情，或直接发送。让我们让您获得报销！',
+                    '如果你愿意，可以补充更多细节，或者直接提交。让我们帮你尽快拿到报销款！',
             },
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `查看您的[工作区设置](${workspaceSettingsLink})`,
@@ -2596,7 +2596,7 @@ ${merchant}的${amount} - ${date}`,
                 descriptionTwo: '分类和标记费用',
                 descriptionThree: '创建和分享报告',
             },
-            price: '免费试用30天，然后只需<strong>$5/月</strong>升级。',
+            price: '免费试用30天，之后仅需<strong>$5/月</strong>即可升级。',
             createWorkspace: '创建工作区',
         },
         confirmWorkspace: {
@@ -4527,9 +4527,9 @@ ${merchant}的${amount} - ${date}`,
             changeCardMonthlyLimitTypeWarning: ({limit}: CharacterLimitParams) => `如果您将此卡的限额类型更改为每月，由于已达到${limit}的每月限额，新交易将被拒绝。`,
             addShippingDetails: '添加运输详情',
             issuedCard: ({assignee}: AssigneeParams) => `已为${assignee}发放了一张Expensify卡！该卡将在2-3个工作日内送达。`,
-            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `已为${assignee}发放了一张Expensify卡！一旦添加了运送详情，卡片将被寄出。`,
+            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `已向${assignee}发放一张Expensify卡！添加邮寄信息后将寄出该卡。`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `已向${assignee}发放了一张虚拟${link}！该卡可以立即使用。`,
-            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} 添加了送货详情。Expensify Card 将在2-3个工作日内送达。`,
+            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} 已添加发货详情。Expensify Card 将在 2-3 个工作日内送达。`,
             verifyingHeader: '验证中',
             bankAccountVerifiedHeader: '银行账户已验证',
             verifyingBankAccount: '正在验证银行账户...',

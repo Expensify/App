@@ -2027,7 +2027,8 @@ const translations = {
         validateCardTitle: 'Lassen Sie uns sicherstellen, dass Sie es sind',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Bitte geben Sie den magischen Code ein, der an ${contactMethod} gesendet wurde, um Ihre Kartendetails anzuzeigen. Er sollte in ein bis zwei Minuten ankommen.`,
-        missingPrivateDetails: ({profileSettingsLink}: {profileSettingsLink: string}) => `Bitte fügen Sie Ihre persönlichen Daten unter <a href="${profileSettingsLink}">Konto > Profil > Privat</a> hinzu und versuchen Sie es erneut.`,
+        missingPrivateDetails: ({profileSettingsLink}: {profileSettingsLink: string}) =>
+            `Bitte fügen Sie Ihre persönlichen Daten unter <a href="${profileSettingsLink}">Konto > Profil > Privat</a> hinzu und versuchen Sie es dann erneut.`,
         unexpectedError: 'Beim Abrufen Ihrer Expensify-Kartendaten ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
         cardFraudAlert: {
             confirmButtonText: 'Ja, das tue ich.',
@@ -2561,13 +2562,15 @@ ${amount} für ${merchant} - ${date}`,
             splitExpenseTask: {
                 title: 'Teile eine Ausgabe',
                 description:
-                    '*Teile Ausgaben* mit einer oder mehreren Personen.\n\n' +
-                    `1. Klicke auf den ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-Button.\n` +
-                    '2. Wähle *Chat starten*.\n' +
-                    '3. Gib E-Mail-Adressen oder Telefonnummern ein.\n' +
-                    '4. Klicke im Chat auf den grauen *+*-Button > *Ausgabe teilen*.\n' +
-                    '5. Wähle *Manuell*, *Scan* oder *Entfernung*.\n\n' +
-                    'Du kannst Details hinzufügen oder es direkt abschicken. Zeit, dein Geld zurückzubekommen!',
+                    '*Ausgaben aufteilen* mit einer oder mehreren Personen.' +
+                    '\n' +
+                    `1. Klicken Sie auf die ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}-Schaltfläche.` +
+                    '2. Wähle *Chat starten*.' +
+                    '3. Geben Sie E-Mail-Adressen oder Telefonnummern ein..' +
+                    '4. Klicken Sie im Chat auf die graue *+*-Schaltfläche > *Ausgabe aufteilen*.' +
+                    '5. Erstellen Sie die Ausgabe, indem Sie *Manuell*, *Scan* oder *Entfernung* auswählen.' +
+                    '\n' +
+                    'Du kannst gern noch weitere Details hinzufügen oder es einfach abschicken. Lass uns dafür sorgen, dass du dein Geld zurückbekommst!',
             },
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Überprüfe deine [Workspace-Einstellungen](${workspaceSettingsLink})`,
@@ -2619,7 +2622,7 @@ ${amount} für ${merchant} - ${date}`,
                 descriptionTwo: 'Kategorisieren und taggen Sie Ausgaben',
                 descriptionThree: 'Berichte erstellen und teilen',
             },
-            price: 'Testen Sie es 30 Tage lang kostenlos, dann upgraden Sie für nur <strong>$5/Monat</strong>.',
+            price: 'Teste es 30 Tage lang kostenlos, und steige anschließend für nur <strong>$5/Monat</strong> auf die Vollversion um.',
             createWorkspace: 'Arbeitsbereich erstellen',
         },
         confirmWorkspace: {
@@ -4612,9 +4615,9 @@ ${amount} für ${merchant} - ${date}`,
             addShippingDetails: 'Versanddetails hinzufügen',
             issuedCard: ({assignee}: AssigneeParams) => `hat ${assignee} eine Expensify-Karte ausgestellt! Die Karte wird in 2-3 Werktagen ankommen.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
-                `hat ${assignee} eine Expensify-Karte ausgestellt! Die Karte wird versendet, sobald die Versanddetails hinzugefügt wurden.`,
+                `Für ${assignee} wurde eine Expensify Card ausgestellt! Die Karte wird versendet, sobald Versanddetails hinzugefügt wurden.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `hat ${assignee} eine virtuelle ${link} ausgestellt! Die Karte kann sofort verwendet werden.`,
-            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} hat Versanddetails hinzugefügt. Die Expensify Card wird in 2-3 Werktagen ankommen.`,
+            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} hat Versanddetails hinzugefügt. Die Expensify Card trifft in 2–3 Werktagen ein.`,
             verifyingHeader: 'Überprüfen',
             bankAccountVerifiedHeader: 'Bankkonto verifiziert',
             verifyingBankAccount: 'Bankkonto wird überprüft...',
