@@ -1707,6 +1707,13 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.MULTIFACTORAUTHENTICATION]: {
+                    screens: {
+                        [SCREENS.MULTIFACTORAUTHENTICATION.APPROVE_TRANSACTION]: ROUTES.MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION.route,
+                        [SCREENS.MULTIFACTORAUTHENTICATION.NOTIFICATION]: ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.route,
+                        [SCREENS.MULTIFACTORAUTHENTICATION.FALLBACK]: ROUTES.MULTIFACTORAUTHENTICATION_FALLBACK,
+                    }
+                }
             },
         },
 

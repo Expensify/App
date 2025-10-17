@@ -12,6 +12,12 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account as AccountOnyx} from '@src/types/onyx';
+import { View } from 'react-native';
+import type { TranslationPaths } from '@src/languages/types';
+import ROUTES from '@src/ROUTES';
+import Navigation from '@libs/Navigation/Navigation';
+import useSingleExecution from '@hooks/useSingleExecution';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
@@ -38,8 +44,19 @@ function TestToolMenu() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    // ONLY FOR TESTING: this whole section needs to be removed later
+    const transactionID = '9084365218195969699';
+    const reportID = '3711684730350502';
+    const {singleExecution} = useSingleExecution();
+    const waitForNavigate = useWaitForNavigation();
+    const navigateToApproveTransactionPage = singleExecution(waitForNavigate(() => {
+        Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION.getRoute(transactionID, reportID));
+    }));
+
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
+
+    const biometricsTitle = 'multiFactorAuthentication.biometrics.biometricsNotRegistered';
 
     return (
         <>
@@ -96,6 +113,17 @@ function TestToolMenu() {
                             text={translate('initialSettingsPage.troubleshoot.invalidateWithDelay')}
                             onPress={() => expireSessionWithDelay()}
                         />
+                    </TestToolRow>
+
+                    {/* Allows to test the Biometrics flow */}
+                    <TestToolRow title={translate(biometricsTitle as TranslationPaths)}>
+                        <View style={[styles.flexRow, styles.gap2]}>
+                            <Button
+                                small
+                                text={translate('common.test')}
+                                onPress={() => navigateToApproveTransactionPage()}
+                            />
+                        </View>
                     </TestToolRow>
                 </>
             )}
