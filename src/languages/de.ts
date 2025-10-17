@@ -2629,6 +2629,11 @@ ${amount} für ${merchant} - ${date}`,
             title: 'Mitglieder einladen',
             subtitle: 'Verwalten und teilen Sie Ihre Ausgaben mit einem Buchhalter oder gründen Sie eine Reisegruppe mit Freunden.',
         },
+        domainWorkspaceRestriction: {
+            subtitle:
+                'Das Erstellen von Arbeitsbereichen ist nur Administratoren erlaubt. Tritt einem der unten aufgeführten Arbeitsbereiche bei oder kontaktiere deinen Administrator für weitere Informationen.',
+            skipForNow: 'Für jetzt überspringen',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Nicht mehr anzeigen',
