@@ -29,14 +29,14 @@ All translations are stored in language files in [src/languages](https://github.
 ### - Common phrases SHOULD be shared when used in multiple places
 A common rule of thumb is to move a common word/phrase to be shared when it's used in 3 or more places.
 
-### - Complex translation strings MUST use arrow function format
-Always prefer longer and more complex strings in the translation files. For example, if you need to generate the text `User has sent $20.00 to you on Oct 25th at 10:05am`, add just one key to the translation file and use the arrow function version:
+### - Complex translation strings MUST NOT be split up for formatting or value injection
+Always prefer to use arrow functions and/or HTML to produce rich text in translation files. For example, if you need to generate the text `User has sent $20.00 to you on Oct 25th at 10:05am`, add just one key to the translation file and use the arrow function version:
 
 ```javascript
-nameOfTheKey: ({amount, dateTime}) => `User has sent ${amount} to you on ${datetime}`,
+nameOfTheKey: ({amount, dateTime}) => `User has sent <strong>${amount}</strong> to you on <a>${datetime}</a>`,
 ```
 
-This is because the order of phrases might vary from one language to another.
+This is because the order of phrases might vary from one language to another, and LLMs will be able to produce better translations will the full context of the phrase. If rich formatting is needed, use HTML in the string and render it with react-native-render-html.
 
 ### - Plural forms MUST be handled correctly using plural translation objects
 When working with translations that involve plural forms, it's important to handle different cases correctly:

@@ -1459,6 +1459,14 @@ function lockAccount() {
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT, params, {optimisticData, successData, failureData});
 }
 
+function requestUnlockAccount() {
+    const params: LockAccountParams = {
+        accountID: currentUserAccountID,
+    };
+
+    API.write(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, params);
+}
+
 export {
     closeAccount,
     dismissReferralBanner,
@@ -1498,4 +1506,5 @@ export {
     setShouldBlockTransactionThreadReportCreation,
     resetValidateActionCodeSent,
     lockAccount,
+    requestUnlockAccount,
 };
