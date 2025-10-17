@@ -56,7 +56,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
             Str.removeSMSDomain(getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, currentUserPersonalDetails) ?? ''),
         );
 
-        accountID = getAccountIDsByLogins([mentionDisplayText])?.at(0) ?? -1;
+        accountID = getAccountIDsByLogins([mentionDisplayText], false)?.at(0) ?? -1;
         if (accountID !== -1) {
             const user = personalDetails?.[accountID];
             mentionDisplayText = getDisplayNameOrDefault(user) || formatPhoneNumber(user?.login ?? '');
