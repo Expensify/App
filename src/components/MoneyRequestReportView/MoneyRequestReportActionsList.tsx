@@ -96,8 +96,8 @@ type MoneyRequestReportListProps = {
     /** Whether there is a pending delete transaction */
     hasPendingDeletionTransaction?: boolean;
 
-    /** Whether the user has successfully opened a report at least once, or if it was created by this user */
-    hasOnceLoadedReportActions: boolean | undefined;
+    /** List of transactions that arrived when the report was open */
+    newTransactions: OnyxTypes.Transaction[];
 
     /** Violations indexed by transaction ID */
     violations?: Record<string, OnyxTypes.TransactionViolation[]>;
@@ -117,7 +117,7 @@ function MoneyRequestReportActionsList({
     policy,
     reportActions = [],
     transactions = [],
-    hasOnceLoadedReportActions,
+    newTransactions,
     violations,
     hasNewerActions,
     hasOlderActions,
@@ -747,6 +747,7 @@ function MoneyRequestReportActionsList({
                                 <MoneyRequestReportTransactionList
                                     report={report}
                                     transactions={transactions}
+                                    newTransactions={newTransactions}
                                     hasPendingDeletionTransaction={hasPendingDeletionTransaction}
                                     reportActions={reportActions}
                                     violations={violations}
@@ -754,8 +755,6 @@ function MoneyRequestReportActionsList({
                                     isLoadingInitialReportActions={showReportActionsLoadingState}
                                     scrollToNewTransaction={scrollToNewTransaction}
                                     policy={policy}
-                                    key={report.reportID}
-                                    hasOnceLoadedReportActions={hasOnceLoadedReportActions}
                                 />
                             </>
                         }

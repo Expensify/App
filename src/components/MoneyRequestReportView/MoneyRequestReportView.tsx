@@ -9,6 +9,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import useNetwork from '@hooks/useNetwork';
+import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
@@ -52,6 +53,9 @@ type MoneyRequestReportViewProps = {
 
     /** The `backTo` route that should be used when clicking back button */
     backToRoute: Route | undefined;
+
+    /** We need to reset the skip first transactions change flag to avoid highlighting transactions when navigating to a different report */
+    shouldResetSkipFirstTransactionsChange?: boolean;
 };
 
 function goBackFromSearchMoneyRequest() {
@@ -82,7 +86,15 @@ function InitialLoadingSkeleton({styles}: {styles: ThemeStyles}) {
     );
 }
 
-function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute, shouldWaitForReportSync}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({
+    report,
+    policy,
+    reportMetadata,
+    shouldDisplayReportFooter,
+    backToRoute,
+    shouldWaitForReportSync,
+    shouldResetSkipFirstTransactionsChange = false,
+}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -106,6 +118,8 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const isSentMoneyReport = useMemo(() => reportActions.some((action) => isSentMoneyReportAction(action)), [reportActions]);
+
+    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, transactions, shouldResetSkipFirstTransactionsChange);
 
     const parentReportAction = useParentReportAction(report);
 
@@ -218,12 +232,12 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             policy={policy}
                             transactions={visibleTransactions}
                             hasPendingDeletionTransaction={hasPendingDeletionTransaction}
+                            newTransactions={newTransactions}
                             reportActions={reportActions}
                             violations={allReportViolations}
                             hasOlderActions={hasOlderActions}
                             hasNewerActions={hasNewerActions}
                             showReportActionsLoadingState={isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
-                            hasOnceLoadedReportActions={reportMetadata?.hasOnceLoadedReportActions}
                         />
                     ) : (
                         <ReportActionsView
