@@ -1051,8 +1051,6 @@ const translations = {
         dragReceiptsAfterEmail: 'ou choisissez des fichiers à télécharger ci-dessous.',
         desktopSubtitleSingle: `ou faites-le glisser ici`,
         desktopSubtitleMultiple: `ou faites-les glisser ici`,
-        chooseReceipt: 'Choisissez un reçu à télécharger ou transférez un reçu à',
-        chooseReceipts: 'Choisissez des reçus à télécharger ou transférez des reçus à',
         alternativeMethodsTitle: 'Autres façons d’ajouter des reçus :',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
             `<label-text><a href="${downloadUrl}">Télécharger l’application</a> pour scanner depuis votre téléphone</label-text>`,
@@ -1062,8 +1060,7 @@ const translations = {
         alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Envoyez des reçus par SMS au ${phoneNumber} (numéros US uniquement)</label-text>`,
         takePhoto: 'Prendre une photo',
         cameraAccess: "L'accès à la caméra est requis pour prendre des photos des reçus.",
-        deniedCameraAccess: "L'accès à la caméra n'a toujours pas été accordé, veuillez suivre",
-        deniedCameraAccessInstructions: 'ces instructions',
+        deniedCameraAccess: `L'accès à la caméra n'a toujours pas été accordé, veuillez suivre <a href="${CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}">ces instructions</a>.`,
         cameraErrorTitle: 'Erreur de caméra',
         cameraErrorMessage: "Une erreur s'est produite lors de la prise de la photo. Veuillez réessayer.",
         locationAccessTitle: "Autoriser l'accès à la localisation",
