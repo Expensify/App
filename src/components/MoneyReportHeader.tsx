@@ -1146,7 +1146,7 @@ function MoneyReportHeader({
     }, [transactionThreadReportID]);
 
     useEffect(() => {
-        if(!isPDFModalVisible || !reportPDFFilename || reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR || isDownloadingPDF) {
+        if (!isPDFModalVisible || !reportPDFFilename || reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR || isDownloadingPDF) {
             return;
         }
         downloadReportPDF(reportPDFFilename, moneyRequestReport?.reportName ?? '');
@@ -1515,13 +1515,11 @@ function MoneyReportHeader({
                             <Text style={[styles.mt3]}>{messagePDF}</Text>
                         </View>
                         <View style={[styles.dFlex, styles.justifyContentCenter]}>
-                            {true && (
-                                <ActivityIndicator
-                                    size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
-                                    color={theme.textSupporting}
-                                    style={styles.ml3}
-                                />
-                            )}
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
+                                color={theme.textSupporting}
+                                style={styles.ml3}
+                            />
                         </View>
                     </View>
                     {(!reportPDFFilename || reportPDFFilename === 'error') && (
