@@ -24,6 +24,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
+import { PaymentData } from '@components/Search/types';
 
 const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
     view: 'common.view',
@@ -83,7 +84,7 @@ function ActionCell({
             if (!type || !reportID || !hash || !amount) {
                 return;
             }
-            const invoiceParams: Record<string, unknown> = {
+            const invoiceParams: Partial<PaymentData> = {
                 policyID,
                 payAsBusiness,
             };
