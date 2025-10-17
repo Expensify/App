@@ -99,7 +99,7 @@ function CategoryRequireReceiptsOverPage({
                         }
                         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
                     }}
-                    listStyle={styles.pt3}
+                    style={{containerStyle: styles.pt3}}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={initiallyFocusedOptionKey}
                     addBottomSafeAreaPadding
