@@ -138,6 +138,11 @@ function getActiveRoute(): string {
  * Returns the route of a report opened in RHP.
  */
 function getReportRHPActiveRoute(): string {
+    // Safe handling when navigation is not yet initialized
+    if (!navigationRef.isReady()) {
+        Log.warn('[src/libs/Navigation/Navigation.ts] NavigationRef is not ready. Returning empty string.');
+        return '';
+    }
     if (isReportOpenInRHP(navigationRef.getRootState())) {
         return getActiveRoute();
     }
@@ -546,6 +551,7 @@ const dismissModal = (ref = navigationRef) => {
     isNavigationReady().then(() => {
         ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
         // Let React Navigation finish modal transition
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             fireModalDismissed();
         });
@@ -572,6 +578,7 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
             return;
         }
         dismissModal();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             navigate(reportRoute);
         });
@@ -622,6 +629,24 @@ function removeScreenByKey(key: string) {
     isNavigationReady().then(() => {
         navigationRef.current?.dispatch((state) => {
             const routes = state.routes?.filter((item) => item.key !== key);
+            return CommonActions.reset({
+                ...state,
+                routes,
+                index: routes.length < state.routes.length ? state.index - 1 : state.index,
+            });
+        });
+    });
+}
+
+function removeReportScreen(reportIDSet: Set<string>) {
+    isNavigationReady().then(() => {
+        navigationRef.current?.dispatch((state) => {
+            const routes = state?.routes.filter((route) => {
+                if (route.name === SCREENS.REPORT && route.params && 'reportID' in route.params) {
+                    return !reportIDSet.has(route.params?.reportID as string);
+                }
+                return true;
+            });
             return CommonActions.reset({
                 ...state,
                 routes,
@@ -684,6 +709,7 @@ export default {
     pop,
     removeScreenFromNavigationState,
     removeScreenByKey,
+    removeReportScreen,
     getReportRouteByID,
     replaceWithSplitNavigator,
     isTopmostRouteModalScreen,

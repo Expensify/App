@@ -20,30 +20,6 @@ import {getCurrentUserAccountID} from './Report';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
 
-let credentials: Credentials = {};
-Onyx.connect({
-    key: ONYXKEYS.CREDENTIALS,
-    callback: (value) => (credentials = value ?? {}),
-});
-
-let stashedCredentials: Credentials = {};
-Onyx.connect({
-    key: ONYXKEYS.STASHED_CREDENTIALS,
-    callback: (value) => (stashedCredentials = value ?? {}),
-});
-
-let session: Session = {};
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => (session = value ?? {}),
-});
-
-let stashedSession: Session = {};
-Onyx.connect({
-    key: ONYXKEYS.STASHED_SESSION,
-    callback: (value) => (stashedSession = value ?? {}),
-});
-
 let activePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
@@ -76,6 +52,10 @@ type WithDelegatedAccess = {
     delegatedAccess: DelegatedAccess | undefined;
 };
 
+type WithCredentials = {
+    credentials: Credentials | undefined;
+};
+
 type WithEmail = {
     email: string;
 };
@@ -97,6 +77,20 @@ type WithOldDotFlag = {
     isFromOldDot?: boolean;
 };
 
+type WithStashedCredentials = {
+    stashedCredentials: Credentials | undefined;
+};
+
+type WithSession = {
+    session: Session | undefined;
+};
+
+type WithStashedSession = {
+    stashedSession: Session | undefined;
+};
+
+type DisconnectParams = WithStashedCredentials & WithStashedSession;
+
 // Clear delegator-level errors
 type ClearDelegatorErrorsParams = WithDelegatedAccess;
 
@@ -116,7 +110,7 @@ type UpdateDelegateRoleParams = WithEmail & WithRole & WithValidateCode & WithDe
 type IsConnectedAsDelegateParams = WithDelegatedAccess;
 
 // Connect as delegate
-type ConnectParams = WithEmail & WithDelegatedAccess & WithOldDotFlag;
+type ConnectParams = WithEmail & WithDelegatedAccess & WithOldDotFlag & WithCredentials & WithSession;
 
 // Clear pending action for role update
 type ClearDelegateRolePendingActionParams = WithEmail & WithDelegatedAccess;
@@ -125,13 +119,13 @@ type ClearDelegateRolePendingActionParams = WithEmail & WithDelegatedAccess;
  * Connects the user as a delegate to another account.
  * Returns a Promise that resolves to true on success, false on failure, or undefined if not applicable.
  */
-function connect({email, delegatedAccess, isFromOldDot = false}: ConnectParams) {
+function connect({email, delegatedAccess, credentials, session, isFromOldDot = false}: ConnectParams) {
     if (!delegatedAccess?.delegators && !isFromOldDot) {
         return;
     }
 
-    Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, credentials);
-    Onyx.set(ONYXKEYS.STASHED_SESSION, session);
+    Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, credentials ?? {});
+    Onyx.set(ONYXKEYS.STASHED_SESSION, session ?? {});
 
     const previousAccountID = getCurrentUserAccountID();
 
@@ -229,7 +223,7 @@ function connect({email, delegatedAccess, isFromOldDot = false}: ConnectParams) 
         });
 }
 
-function disconnect() {
+function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -272,13 +266,13 @@ function disconnect() {
         .then((response) => {
             if (!response?.authToken || !response?.encryptedAuthToken) {
                 Log.alert('[Delegate] No auth token returned while disconnecting as a delegate');
-                restoreDelegateSession(stashedSession);
+                restoreDelegateSession(stashedSession ?? {});
                 return;
             }
 
             if (!response?.requesterID || !response?.requesterEmail) {
                 Log.alert('[Delegate] No requester data returned while disconnecting as a delegate');
-                restoreDelegateSession(stashedSession);
+                restoreDelegateSession(stashedSession ?? {});
                 return;
             }
 

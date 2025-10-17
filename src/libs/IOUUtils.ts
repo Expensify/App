@@ -93,6 +93,7 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
     isDeleting = false,
     isUpdating = false,
     isOnHold = false,
+    unHeldAmount = amount,
 ): TReport {
     // For the update case, we have calculated the diff amount in the calculateDiffAmount function so there is no need to compare currencies here
     if ((currency !== iouReport?.currency && !isUpdating) || !iouReport) {
@@ -109,12 +110,12 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
     if (actorAccountID === iouReport.ownerAccountID) {
         iouReportUpdate.total += isDeleting ? -amount : amount;
         if (!isOnHold) {
-            iouReportUpdate.unheldTotal += isDeleting ? -amount : amount;
+            iouReportUpdate.unheldTotal += isDeleting ? -unHeldAmount : unHeldAmount;
         }
     } else {
         iouReportUpdate.total += isDeleting ? amount : -amount;
         if (!isOnHold) {
-            iouReportUpdate.unheldTotal += isDeleting ? amount : -amount;
+            iouReportUpdate.unheldTotal += isDeleting ? unHeldAmount : -unHeldAmount;
         }
     }
 
@@ -192,12 +193,12 @@ function isMovingTransactionFromTrackExpense(action?: IOUAction) {
 
 function shouldShowReceiptEmptyState(iouType: IOUType, action: IOUAction, policy: OnyxInputOrEntry<Policy> | SearchPolicy, isPerDiemRequest: boolean, isManualDistanceRequest: boolean) {
     // Determine when to show the receipt empty state:
-    // - Show for submit or track expense types
+    // - Show for pay, submit or track expense types
     // - Hide for per diem requests
     // - Hide when submitting a track expense to a non-paid group policy (personal users)
     // - Hide for manual distance requests because attaching a receipt before creating the expense will trigger Smartscan but distance request amount depends on the distance traveled and mileage rate
     return (
-        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) &&
+        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.PAY) &&
         !isPerDiemRequest &&
         (!isMovingTransactionFromTrackExpense(action) || isPaidGroupPolicy(policy)) &&
         !isManualDistanceRequest

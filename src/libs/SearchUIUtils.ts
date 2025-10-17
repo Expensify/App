@@ -41,6 +41,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {
@@ -58,6 +59,7 @@ import type {
     SearchWithdrawalIDGroup,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {hasSynchronizationErrorMessage} from './actions/connections';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport, createTransactionThreadReport, openReport} from './actions/Report';
 import {updateSearchResultsWithTransactionThreadReportID} from './actions/Search';
@@ -79,10 +81,12 @@ import {
     isMoneyRequestAction,
     isResolvedActionableWhisper,
     isWhisperActionTargetedToOthers,
+    shouldReportActionBeVisible,
 } from './ReportActionsUtils';
 import {canReview} from './ReportPreviewActionUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
+    canUserPerformWriteAction,
     getIcons,
     getPersonalDetailsForAccountID,
     getReportName,
@@ -117,6 +121,7 @@ import {
     isViolationDismissed,
 } from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
+import ViolationsUtils from './Violations/ViolationsUtils';
 
 const transactionColumnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -533,6 +538,7 @@ function getSuggestedSearchesVisibility(
     currentUserEmail: string | undefined,
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
     policies: OnyxCollection<OnyxTypes.Policy>,
+    defaultExpensifyCard: CardFeedForDisplay | undefined,
     reports?: OnyxCollection<OnyxTypes.Report>,
     currentUserAccountID?: number,
 ): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean> {
@@ -556,6 +562,10 @@ function getSuggestedSearchesVisibility(
         const isExporter = policy.exporter === currentUserEmail;
         const isApprover = policy.approver === currentUserEmail;
         const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
+
+        const hasExportError = (Object.keys(policy.connections ?? {}) as ConnectionName[]).some((connection) => {
+            return hasSynchronizationErrorMessage(policy, connection, false);
+        });
         const isPaymentEnabled = arePaymentsEnabled(policy);
         const hasVBBA = !!policy.achAccount?.bankAccountID && policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN;
         const hasReimburser = !!policy.achAccount?.reimburser;
@@ -571,10 +581,10 @@ function getSuggestedSearchesVisibility(
         const hasPendingApprovals = hasPendingApprovalTasks(reports, currentUserAccountID);
         const isEligibleForApproveSuggestion = isPaidPolicy && isApprovalEnabled && (isApprover || isSubmittedTo || hasPendingApprovals);
 
-        const isEligibleForExportSuggestion = isExporter;
+        const isEligibleForExportSuggestion = isExporter && !hasExportError;
         const isEligibleForStatementsSuggestion = isPaidPolicy && !!policy.areCompanyCardsEnabled && hasCardFeed;
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && isPaymentEnabled;
-        const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && (hasCardFeed || isECardEnabled);
+        const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForReconciliationSuggestion = isPaidPolicy && isAdmin && ((isPaymentEnabled && hasVBBA && hasReimburser) || isECardEnabled);
 
         shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
@@ -1140,8 +1150,11 @@ function getActions(
     const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
     const isChatReportArchived = isArchivedReport(chatReportRNVP);
 
+    const hasAnyViolationsForReport = hasAnyViolations(report.reportID, allViolations, allReportTransactions);
+    const hasVisibleViolationsForReport = hasAnyViolationsForReport && ViolationsUtils.hasVisibleViolationsForUser(report, allViolations, policy, allReportTransactions);
+
     // Only check for violations if we need to (when user has permission to review)
-    if ((isSubmitter || isApprover || isAdmin) && hasAnyViolations(report.reportID, allViolations, allReportTransactions)) {
+    if ((isSubmitter || isApprover || isAdmin) && hasVisibleViolationsForReport) {
         if (isSubmitter && !isApprover && !isAdmin && !canReview(report, allViolations, isIOUReportArchived || isChatReportArchived, policy, allReportTransactions)) {
             allActions.push(CONST.SEARCH.ACTION_TYPES.VIEW);
         } else {
@@ -1245,7 +1258,7 @@ function getTaskSections(
 
                 if (parentReport && personalDetails) {
                     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const policy = getPolicy(parentReport.policyID);
                     const isParentReportArchived = archivedReportsIDList?.has(parentReport?.reportID);
                     const parentReportName = getReportName(parentReport, policy, undefined, undefined, undefined, undefined, undefined, isParentReportArchived);
@@ -1319,6 +1332,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                 const invoiceReceiverPolicy: SearchPolicy | undefined =
                     report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
                 if (
+                    !shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction(report, isReportArchived)) ||
                     isDeletedAction(reportAction) ||
                     isResolvedActionableWhisper(reportAction) ||
                     reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
@@ -1367,7 +1381,21 @@ function getReportSections(
     const queryJSON = getCurrentSearchQueryJSON();
     const reportIDToTransactions: Record<string, TransactionReportGroupListItemType> = {};
 
-    for (const key in data) {
+    const {reportKeys, transactionKeys} = Object.keys(data).reduce(
+        (acc, key) => {
+            if (isReportEntry(key)) {
+                acc.reportKeys.push(key);
+            } else if (isTransactionEntry(key)) {
+                acc.transactionKeys.push(key);
+            }
+            return acc;
+        },
+        {reportKeys: [] as string[], transactionKeys: [] as string[]},
+    );
+
+    const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
+
+    for (const key of orderedKeys) {
         if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
             const reportItem = {...data[key]};
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`;
@@ -1399,7 +1427,7 @@ function getReportSections(
                     action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                     allActions,
                     groupedBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                    keyForList: reportItem.reportID,
+                    keyForList: String(reportItem.reportID),
                     from: transactions.length > 0 ? data.personalDetailsList[data?.[reportKey as ReportKey]?.accountID ?? CONST.DEFAULT_NUMBER_ID] : emptyPersonalDetails,
                     to: !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                     transactions,
@@ -1781,7 +1809,10 @@ function getSortedReportActionData(data: ReportActionListItemType[], localeCompa
 /**
  * Checks if the search results contain any data, useful for determining if the search results are empty.
  */
-function isSearchResultsEmpty(searchResults: SearchResults) {
+function isSearchResultsEmpty(searchResults: SearchResults, groupBy?: SearchGroupBy) {
+    if (groupBy && groupBy !== CONST.SEARCH.GROUP_BY.REPORTS) {
+        return !Object.keys(searchResults?.data).some((key) => isGroupEntry(key));
+    }
     return !Object.keys(searchResults?.data).some(
         (key) =>
             key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) &&
@@ -1848,6 +1879,7 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
+// eslint-disable-next-line @typescript-eslint/max-params
 function createTypeMenuSections(
     currentUserEmail: string | undefined,
     currentUserAccountID: number | undefined,
@@ -1857,12 +1889,15 @@ function createTypeMenuSections(
     activePolicyID: string | undefined,
     savedSearches: OnyxEntry<OnyxTypes.SaveSearch>,
     isOffline: boolean,
+    defaultExpensifyCard: CardFeedForDisplay | undefined,
+    isASAPSubmitBetaEnabled: boolean,
+    hasViolations: boolean,
     reports?: OnyxCollection<OnyxTypes.Report>,
 ): SearchTypeMenuSection[] {
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
     const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id);
-    const suggestedSearchesVisibility = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, reports, currentUserAccountID);
+    const suggestedSearchesVisibility = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, reports, currentUserAccountID);
 
     // Todo section
     {
@@ -1900,7 +1935,7 @@ function createTypeMenuSections(
                                               }
 
                                               if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
-                                                  const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
+                                                  const createdReportID = createNewReport(personalDetails, isASAPSubmitBetaEnabled, hasViolations, workspaceIDForReportCreation);
                                                   Navigation.setNavigationActionToMicrotaskQueue(() => {
                                                       Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
                                                   });
@@ -1908,7 +1943,7 @@ function createTypeMenuSections(
                                               }
 
                                               // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
-                                              Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
+                                              Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
                                           });
                                       },
                                   },
@@ -2288,6 +2323,7 @@ export {
     getSuggestedSearches,
     getListItem,
     getSections,
+    getSuggestedSearchesVisibility,
     getShouldShowMerchant,
     getSortedSections,
     isTransactionGroupListItemType,

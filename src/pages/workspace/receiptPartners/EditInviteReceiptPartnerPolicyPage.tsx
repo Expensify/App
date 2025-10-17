@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import type {TupleToUnion} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,10 +14,11 @@ import TabSelector from '@components/TabSelector/TabSelector';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {inviteWorkspaceEmployeesToUber} from '@libs/actions/Policy/Policy';
+import {clearUberEmployeeError, inviteWorkspaceEmployeesToUber} from '@libs/actions/Policy/Policy';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
@@ -31,31 +32,21 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type EditInviteReceiptPartnerPolicyPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT>;
 
 const TAB_NAMES = [CONST.TAB.RECEIPT_PARTNERS.ALL, CONST.TAB.RECEIPT_PARTNERS.LINKED, CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING] as const;
-const UBER_EMPLOYEE_STATUS_VALUES = [
-    CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.CREATED,
-    CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED,
-    CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL,
-    CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED,
-    CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED,
-    CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.DELETED,
-    CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.NONE,
-] as const;
-
 type ReceiptPartnersTab = TupleToUnion<typeof TAB_NAMES>;
-type UberEmployeeStatus = TupleToUnion<typeof UBER_EMPLOYEE_STATUS_VALUES>;
-
+type UberEmployeeStatus = ValueOf<typeof CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS>;
 function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPolicyPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
-
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
 
@@ -65,6 +56,16 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                 return;
             }
             inviteWorkspaceEmployeesToUber(policyID, [email]);
+        },
+        [policyID],
+    );
+
+    const dismissError = useCallback(
+        (item: MemberForList) => {
+            if (!policyID || !item.login) {
+                return;
+            }
+            clearUberEmployeeError(policyID, item.login);
         },
         [policyID],
     );
@@ -97,11 +98,11 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
         ],
     );
 
-    const uberEmployeesByEmail = useMemo<Record<string, {status?: string; pendingAction?: PendingAction}>>(() => {
+    const uberEmployeesByEmail = useMemo<Record<string, {status?: string; pendingAction?: PendingAction; errors?: Record<string, string | null>}>>(() => {
         const policyWithEmployees = policy as typeof policy & {
             receiptPartners?: {
                 uber?: {
-                    employees?: Record<string, {status?: string; pendingAction?: PendingAction}>;
+                    employees?: Record<string, {status?: string; pendingAction?: PendingAction; errors?: Record<string, string | null>}>;
                 };
             };
         };
@@ -188,7 +189,13 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                 pendingAction: uberEmployeesByEmail[email]?.pendingAction,
             });
 
-            list.push({...option, rightElement} as MemberForList & ListItem);
+            const optionWithErrorsAndRightElement = {
+                ...option,
+                rightElement,
+                errors: uberEmployeesByEmail[email]?.errors,
+            };
+
+            list.push(optionWithErrorsAndRightElement as MemberForList & ListItem);
         });
         return sortAlphabetically(list, 'text', localeCompare);
     }, [policy?.employeeList, styles, StyleUtils, localeCompare, isOffline, deriveStatus, uberEmployeesByEmail, translate, inviteOrResend]);
@@ -252,17 +259,18 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.ToddBehindCloud}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
+                icon={Illustrations.SewerDino}
+                iconWidth={variables.uberEmptyListIconWidth}
+                iconHeight={variables.uberEmptyListIconHeight}
                 title={translate('workspace.receiptPartners.uber.emptyContent.title')}
                 subtitle={translate('workspace.receiptPartners.uber.emptyContent.subtitle')}
                 subtitleStyle={styles.textSupporting}
-                containerStyle={styles.pb10}
+                titleStyles={styles.mb2}
+                containerStyle={[styles.pb5, styles.ph5]}
                 contentFitImage="contain"
             />
         ),
-        [translate, styles.textSupporting, styles.pb10],
+        [translate, styles.textSupporting, styles.mb2, styles.pb5, styles.ph5],
     );
 
     return (
@@ -298,7 +306,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
 
                                 // Determine header message for search results
                                 const searchValue = debouncedSearchTerm.trim().toLowerCase();
-                                let currentHeaderMessage = getHeaderMessage(members.length !== 0, false, searchValue);
+                                let currentHeaderMessage = getHeaderMessage(members.length !== 0, false, searchValue, false, countryCode);
 
                                 if (filteredMembers.length === 0 && searchValue) {
                                     currentHeaderMessage = translate('common.noResultsFound');
@@ -309,6 +317,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                                         <SelectionList
                                             ListItem={UserListItem}
                                             onSelectRow={() => {}}
+                                            onDismissError={dismissError}
                                             listItemWrapperStyle={styles.cursorDefault}
                                             addBottomSafeAreaPadding
                                             shouldShowTextInput={shouldShowTextInput}
