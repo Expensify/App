@@ -2579,7 +2579,7 @@ ${amount} para ${merchant} - ${date}`,
                 descriptionTwo: 'Clasifica y etiqueta gastos',
                 descriptionThree: 'Crea y comparte informes',
             },
-            price: 'Pruébalo gratis durante 30 días y luego mejora por solo <strong>$5/mes</strong>.',
+            price: 'Pruébalo gratis durante 30 días y luego mejora por solo <strong>$5/usuario/mes</strong>.',
             createWorkspace: 'Crear espacio de trabajo',
         },
         confirmWorkspace: {

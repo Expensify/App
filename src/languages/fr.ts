@@ -2613,7 +2613,7 @@ ${amount} pour ${merchant} - ${date}`,
                 descriptionTwo: 'Catégoriser et étiqueter les dépenses',
                 descriptionThree: 'Créer et partager des rapports',
             },
-            price: "Essayez-le gratuitement pendant 30 jours, puis passez à l'abonnement pour seulement <strong>5 $/mois</strong>.",
+            price: "Essayez-le gratuitement pendant 30 jours, puis passez à l'abonnement pour seulement <strong>5 $/utilisateur/mois</strong>.",
             createWorkspace: 'Créer un espace de travail',
         },
         confirmWorkspace: {
