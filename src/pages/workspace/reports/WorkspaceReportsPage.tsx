@@ -7,6 +7,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Plus} from '@components/Icon/Expensicons';
+import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -125,16 +126,14 @@ function WorkspaceReportFieldsPage({
     );
 
     const getHeaderText = () =>
-        !hasSyncError && isConnectionVerified ? (
+        !hasSyncError && isConnectionVerified && currentConnectionName ? (
             <Text style={[styles.mr5, styles.mt1]}>
-                <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.reportFields.importedFromAccountingSoftware')} `}</Text>
-                <TextLink
-                    style={[styles.textNormal, styles.link]}
-                    href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                >
-                    {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
-                </TextLink>
-                <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+                <ImportedFromAccountingSoftware
+                    policyID={policyID}
+                    currentConnectionName={currentConnectionName}
+                    connectedIntegration={connectedIntegration}
+                    translatedText={translate('workspace.reportFields.importedFromAccountingSoftware')}
+                />
             </Text>
         ) : (
             <Text style={[styles.textNormal, styles.colorMuted, styles.mr5, styles.mt1]}>{translate('workspace.reportFields.subtitle')}</Text>
