@@ -17,9 +17,12 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
                 shouldEnableDetailPageNavigation={false}
                 shouldEnableAvatarNavigation={false}
                 avatarBorderColor={avatarBorderColor}
+                customDisplayNameStyle={styles.fontWeightNormal}
+                parentNavigationSubtitleTextStyles={[styles.textLineHeightNormal, styles.minHeight4, styles.mt1]}
+                parentNavigationStatusContainerStyles={styles.mt1}
             />
         );
-    }, [report, transactions, avatarBorderColor]);
+    }, [report, transactions, avatarBorderColor, styles.fontWeightNormal, styles.textLineHeightNormal, styles.minHeight4, styles.mt1]);
 
     return (
         <View
@@ -27,7 +30,7 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
             style={[style, styles.reportSearchHeaderBar]}
             testID={ReportSearchHeader.displayName}
         >
-            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>{middleContent}</View>
+            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween]}>{middleContent}</View>
         </View>
     );
 }
