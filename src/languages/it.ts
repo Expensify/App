@@ -908,7 +908,7 @@ const translations = {
             `Questa chat è per le fatture tra <strong>${invoicePayer}</strong> e <strong>${invoiceReceiver}</strong>. Utilizzare il pulsante <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> per inviare una fattura.`,
         beginningOfChatHistory: 'Questa chat è con',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `È qui che <strong>${submitterDisplayName}</strong> presenterà le spese a <strong>${workspaceName}</strong>. Basta usare il pulsante <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
+            `È qui che <strong>${submitterDisplayName}</strong> presenterà le spese a <strong>${workspaceName}</strong>. Basta usare il pulsante <strong>+</strong>.`,
         beginningOfChatHistorySelfDM: 'Questo è il tuo spazio personale. Usalo per appunti, compiti, bozze e promemoria.',
         beginningOfChatHistorySystemDM: 'Benvenuto! Iniziamo con la configurazione.',
         chatWithAccountManager: 'Chatta con il tuo account manager qui',
