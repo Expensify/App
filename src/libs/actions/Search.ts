@@ -46,6 +46,7 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
+import {rejectMoneyRequest} from './IOU';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
@@ -568,6 +569,27 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
+function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: SelectedTransactions, comment: string) {
+    const transactionIDs = Object.keys(selectedTransactions);
+
+    const transactionsByReport: Record<string, string[]> = {};
+    transactionIDs.forEach((transactionID) => {
+        const reportID = selectedTransactions[transactionID].reportID;
+        if (!transactionsByReport[reportID]) {
+            transactionsByReport[reportID] = [];
+        }
+        transactionsByReport[reportID].push(transactionID);
+    });
+
+    Object.entries(transactionsByReport).forEach(([reportID, reportTransactionIDs]) => {
+        reportTransactionIDs.forEach((transactionID) => {
+            rejectMoneyRequest(transactionID, reportID, comment);
+        });
+    });
+
+    playSound(SOUNDS.SUCCESS);
+}
+
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
     const optimisticData: OnyxUpdate[] = [
@@ -942,6 +964,7 @@ export {
     deleteMoneyRequestOnSearch,
     holdMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,
+    rejectMoneyRequestsOnSearch,
     exportSearchItemsToCSV,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
