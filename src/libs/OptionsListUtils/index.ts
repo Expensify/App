@@ -2205,8 +2205,14 @@ function getMemberInviteOptions(
 /**
  * Helper method that returns the text to be used for the header's message and title (if any)
  */
-function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, hasMatchedParticipant = false): string {
-    const isValidPhone = parsePhoneNumber(appendCountryCode(searchValue)).possible;
+function getHeaderMessage(
+    hasSelectableOptions: boolean,
+    hasUserToInvite: boolean,
+    searchValue: string,
+    hasMatchedParticipant = false,
+    countryCode: OnyxEntry<number> = CONST.DEFAULT_COUNTRY_CODE,
+): string {
+    const isValidPhone = parsePhoneNumber(appendCountryCodeWithCountryCode(searchValue, countryCode)).possible;
 
     const isValidEmail = Str.isValidEmail(searchValue);
 
