@@ -27,9 +27,9 @@ import {
     getTaxAmount,
     getTaxName,
     isAmountMissing,
-    isCardTransaction,
     isCreatedMissing,
     isFetchingWaypointsFromServer,
+    isManagedCardTransaction,
     isScanRequest,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
     willFieldBeAutomaticallyFilled,
@@ -362,7 +362,7 @@ function MoneyRequestConfirmationListFooter({
     const canModifyTaxFields = !isReadOnly && !isDistanceRequest && !isPerDiemRequest;
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
-    const shouldShowReimbursable = isPolicyExpenseChat && policy?.disabledFields?.reimbursable !== true && !isCardTransaction(transaction) && !isTypeInvoice;
+    const shouldShowReimbursable = isPolicyExpenseChat && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
     // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
     const taxAmount = getTaxAmount(transaction, false);
     const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
