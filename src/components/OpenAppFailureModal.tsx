@@ -13,6 +13,7 @@ import {setIsOpenAppFailureModalOpen} from '@libs/actions/isOpenAppFailureModalO
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import Header from './Header';
 
 function OpenAppFailureModal() {
     const [isOpenAppFailureModalOpen = false] = useOnyx(ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN, {canBeMissing: true});
@@ -32,12 +33,10 @@ function OpenAppFailureModal() {
             onClose={() => setIsOpenAppFailureModalOpen(false)}
         >
             <View style={[styles.p6]}>
-                <Text
-                    style={[styles.headerText, styles.textStrong, styles.mb2]}
-                    fontSize={variables.fontSizeXLarge}
-                >
-                    {translate('openAppFailureModal.title')}
-                </Text>
+                <Header
+                    title={translate('openAppFailureModal.title')}
+                    textStyles={[styles.mb2]}
+                />
                 <Text style={[styles.mb6]}>
                     {`${translate('openAppFailureModal.subtitle')} `}
                     <TextLink
@@ -48,6 +47,7 @@ function OpenAppFailureModal() {
                     </TextLink>
                 </Text>
                 <Button
+                    large
                     success
                     style={[styles.mb3]}
                     text={translate('openAppFailureModal.refreshAndTryAgain')}
@@ -57,6 +57,7 @@ function OpenAppFailureModal() {
                     }}
                 />
                 <Button
+                    large
                     text={translate('common.close')}
                     onPress={() => setIsOpenAppFailureModalOpen(false)}
                 />

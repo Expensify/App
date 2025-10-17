@@ -30,7 +30,7 @@ const WRITE_COMMANDS = {
     SET_WORKSPACE_DEFAULT_SPEND_CATEGORY: 'SetPolicyDefaultSpendCategory',
     DISMISS_REFERRAL_BANNER: 'DismissReferralBanner',
     UPDATE_PREFERRED_LOCALE: 'UpdatePreferredLocale',
-    OPEN_APP: 'OpenAppi',
+    OPEN_APP: 'OpenApp',
     RECONNECT_APP: 'ReconnectApp',
     HANDLE_RESTRICTED_EVENT: 'HandleRestrictedEvent',
     OPEN_REPORT: 'OpenReport',
