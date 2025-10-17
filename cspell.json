@@ -254,6 +254,7 @@
         "GDSO",
         "genkey",
         "GEOLOCATION",
+        "getenv",
         "getprop",
         "gibsdk",
         "glcode",
