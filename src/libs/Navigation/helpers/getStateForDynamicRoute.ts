@@ -1,8 +1,23 @@
 import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
+import type {DynamicRoute} from '@src/ROUTES';
 
-function parseNavigationHierarchy(dynamicRouteName: Route): string[] | null {
+type LeafRoute = {
+    name: string;
+    path: string;
+};
+
+type NestedRoute = {
+    name: string;
+    state: {
+        routes: [RouteNode];
+        index: 0;
+    };
+};
+
+type RouteNode = LeafRoute | NestedRoute;
+
+function parseNavigationHierarchy(dynamicRouteName: DynamicRoute): string[] | null {
     // Search through normalized configs to find matching path
     for (const [, config] of Object.entries(normalizedConfigs)) {
         if (config.path === dynamicRouteName) {
@@ -13,7 +28,7 @@ function parseNavigationHierarchy(dynamicRouteName: Route): string[] | null {
     return null;
 }
 
-function getStateForDynamicRoute(path: string, dynamicRouteName: string) {
+function getStateForDynamicRoute(path: string, dynamicRouteName: keyof typeof DYNAMIC_ROUTES) {
     const routeConfig = parseNavigationHierarchy(DYNAMIC_ROUTES[dynamicRouteName]);
 
     if (!routeConfig) {
@@ -21,20 +36,20 @@ function getStateForDynamicRoute(path: string, dynamicRouteName: string) {
     }
 
     // Build navigation state by creating nested structure
-    const buildNestedState = (routes: string[], currentIndex: number): any => {
+    const buildNestedState = (routes: string[], currentIndex: number): RouteNode => {
         const currentRoute = routes.at(currentIndex);
 
         // If this is the last route, create leaf node with path
         if (currentIndex === routes.length - 1) {
             return {
-                name: currentRoute,
+                name: currentRoute ?? '',
                 path,
             };
         }
 
         // Create intermediate node with nested state
         return {
-            name: currentRoute,
+            name: currentRoute ?? '',
             state: {
                 routes: [buildNestedState(routes, currentIndex + 1)],
                 index: 0,

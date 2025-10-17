@@ -1,9 +1,6 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
-import type {Route} from '@src/ROUTES';
+import type {DynamicRoute, Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {DynamicRoute} from '@src/ROUTES';
-import type {Screen} from '@src/SCREENS';
 import getStateFromPath from './getStateFromPath';
 
 function getForwardToFromPath(path: string): Route {

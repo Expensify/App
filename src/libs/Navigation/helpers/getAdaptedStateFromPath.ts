@@ -9,9 +9,8 @@ import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigat
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route as RoutePath} from '@src/ROUTES';
+import type {DynamicRoute, Route as RoutePath} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {DynamicRoute} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import getMatchingNewRoute from './getMatchingNewRoute';

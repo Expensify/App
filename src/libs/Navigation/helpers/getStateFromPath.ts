@@ -1,11 +1,9 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import {findFocusedRoute, getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
-import type {TupleToUnion} from 'type-fest';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import SCREEN_ACCESS_MAP from '@libs/Navigation/SCREEN_ACCESS_MAP';
-import type {Route} from '@src/ROUTES';
+import type {DynamicRoute, Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {DynamicRoute} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getStateForDynamicRoute from './getStateForDynamicRoute';

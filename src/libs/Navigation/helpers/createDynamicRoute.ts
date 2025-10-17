@@ -1,5 +1,4 @@
-import {findFocusedRoute, getPathFromState} from '@react-navigation/native';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import type {DynamicRoute, Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 

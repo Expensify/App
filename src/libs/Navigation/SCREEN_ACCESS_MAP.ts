@@ -1,4 +1,4 @@
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 
