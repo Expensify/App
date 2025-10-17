@@ -55,4 +55,30 @@ describe('getDefaultTodoSuggestedSearch', () => {
 
         expect(result?.key).toBe(CONST.SEARCH.SEARCH_KEYS.PAY);
     });
+
+    it('returns undefined when the todo section is missing', () => {
+        const sections: SearchTypeMenuSection[] = [
+            {
+                translationPath: 'search.savedSearchesMenuItemTitle',
+                menuItems: [buildMenuItem(CONST.SEARCH.SEARCH_KEYS.EXPENSES)],
+            },
+        ];
+
+        const result = getDefaultTodoSuggestedSearch(sections);
+
+        expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when the todo section has no items', () => {
+        const sections: SearchTypeMenuSection[] = [
+            {
+                translationPath: 'common.todo',
+                menuItems: [],
+            },
+        ];
+
+        const result = getDefaultTodoSuggestedSearch(sections);
+
+        expect(result).toBeUndefined();
+    });
 });

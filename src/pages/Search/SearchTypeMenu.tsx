@@ -228,6 +228,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             return similarSearchIndex;
         }
 
+        if (similarSearchIndex === defaultTodoIndex) {
+            return similarSearchIndex;
+        }
+
         const similarSearchItem = similarSearchIndex !== -1 ? flattenedMenuItems.at(similarSearchIndex) : undefined;
         if (similarSearchItem && (similarSearchItem.key === CONST.SEARCH.SEARCH_KEYS.APPROVE || similarSearchItem.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT)) {
             return similarSearchIndex;

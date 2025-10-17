@@ -2317,12 +2317,24 @@ function getColumnsToShow(
 
 function getFlattenedMenuItemsWithDefaultTodoIndex(typeMenuSections: SearchTypeMenuSection[]): {flattenedMenuItems: SearchTypeMenuItem[]; defaultTodoIndex: number} {
     const flattenedMenuItems = typeMenuSections.flatMap((section) => section.menuItems);
-    const approveIndex = flattenedMenuItems.findIndex((item) => item.key === CONST.SEARCH.SEARCH_KEYS.APPROVE);
-    const submitIndex = flattenedMenuItems.findIndex((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+    const defaultTodoItem = getDefaultTodoSuggestedSearch(typeMenuSections);
+    let defaultTodoIndex = defaultTodoItem ? flattenedMenuItems.indexOf(defaultTodoItem) : -1;
+
+    if (defaultTodoItem && defaultTodoIndex === -1) {
+        const todoSectionIndex = typeMenuSections.findIndex((section) => section.translationPath === 'common.todo');
+        if (todoSectionIndex !== -1) {
+            const todoSection = typeMenuSections[todoSectionIndex];
+            const todoSectionItemIndex = todoSection.menuItems.indexOf(defaultTodoItem);
+            if (todoSectionItemIndex !== -1) {
+                const precedingItemsCount = typeMenuSections.slice(0, todoSectionIndex).reduce((acc, section) => acc + section.menuItems.length, 0);
+                defaultTodoIndex = precedingItemsCount + todoSectionItemIndex;
+            }
+        }
+    }
 
     return {
         flattenedMenuItems,
-        defaultTodoIndex: approveIndex !== -1 ? approveIndex : submitIndex,
+        defaultTodoIndex,
     };
 }
 
