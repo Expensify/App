@@ -5,6 +5,7 @@ import Badge from '@components/Badge';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethod} from '@components/KYCWall/types';
+import {PaymentData} from '@components/Search/types';
 import SettlementButton from '@components/SettlementButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -24,7 +25,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
-import { PaymentData } from '@components/Search/types';
 
 const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
     view: 'common.view',
