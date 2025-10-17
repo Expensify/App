@@ -10,7 +10,6 @@ import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/Bu
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import {Download, FallbackAvatar, MakeAdmin, Plus, RemoveMembers, Table, User, UserEye} from '@components/Icon/Expensicons';
-import {ReceiptWrangler} from '@components/Icon/Illustrations';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import SearchBar from '@components/SearchBar';
@@ -21,6 +20,7 @@ import type {ListItem, SelectionListHandle} from '@components/SelectionListWithS
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilteredSelection from '@hooks/useFilteredSelection';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -128,6 +128,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const selectionListRef = useRef<SelectionListHandle>(null);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
+    const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler'] as const);
 
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
     const {approvalWorkflows} = useMemo(
@@ -229,7 +230,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
 
         setRemoveMembersConfirmModalVisible(false);
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedEmployees([]);
             removeMembers(policyID, selectedEmployees, policyMemberEmailsToAccountIDs);
@@ -309,7 +310,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 return;
             }
             clearWorkspaceOwnerChangeFlow(policyID);
-            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID));
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID));
+            });
         },
         [isPolicyAdmin, policy, policyID, route.params.policyID],
     );
@@ -441,7 +444,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const getHeaderContent = () => (
         <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
-            <Text style={[styles.pl5, styles.mb5, styles.mt3, styles.textSupporting, isPendingAddOrDelete && styles.offlineFeedback.pending]}>
+            <Text style={[styles.pl5, styles.mb5, styles.mt3, styles.textSupporting, isPendingAddOrDelete && styles.offlineFeedbackPending]}>
                 {translate('workspace.people.workspaceMembersCount', {count: memberCount})}
             </Text>
             {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
@@ -478,6 +481,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.member')}
                 rightHeaderText={translate('common.role')}
+                shouldShowRightCaret
             />
         );
     };
@@ -663,7 +667,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         <WorkspacePageWithSections
             headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
             route={route}
-            icon={!selectionModeHeader ? ReceiptWrangler : undefined}
+            icon={!selectionModeHeader ? illustrations.ReceiptWrangler : undefined}
             headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
             testID={WorkspaceMembersPage.displayName}
             shouldShowLoading={false}
@@ -703,7 +707,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         confirmText={translate('common.remove')}
                         cancelText={translate('common.cancel')}
                         onModalHide={() => {
-                            // eslint-disable-next-line deprecation/deprecation
+                            // eslint-disable-next-line @typescript-eslint/no-deprecated
                             InteractionManager.runAfterInteractions(() => {
                                 if (!textInputRef.current) {
                                     return;
@@ -747,6 +751,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         showScrollIndicator={false}
                         addBottomSafeAreaPadding
+                        shouldShowRightCaret
                     />
                 </>
             )}
