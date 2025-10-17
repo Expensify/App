@@ -1,5 +1,4 @@
-import {Str} from 'expensify-common';
-import md5 from 'md5';
+import {Str, md5} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
