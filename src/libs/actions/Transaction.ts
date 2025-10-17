@@ -19,7 +19,6 @@ import {
     buildOptimisticDismissedViolationReportAction,
     buildOptimisticMovedTransactionAction,
     buildOptimisticSelfDMReport,
-    buildOptimisticUnHoldReportAction,
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
     findSelfDMReportID,
@@ -777,9 +776,6 @@ function changeTransactionsReport(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID,
-                comment: {
-                    hold: null,
-                },
             },
         });
 
@@ -796,9 +792,6 @@ function changeTransactionsReport(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID: transaction.reportID,
-                comment: {
-                    hold: transaction.comment?.hold,
-                },
             },
         });
 
@@ -1117,33 +1110,6 @@ function changeTransactionsReport(
             };
         } else {
             transactionIDToReportActionAndThreadData[transaction.transactionID] = baseTransactionData;
-        }
-
-        // Build unhold report action
-        if (isOnHold(transaction)) {
-            const unHoldAction = buildOptimisticUnHoldReportAction();
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-                value: {[unHoldAction.reportActionID]: unHoldAction},
-            });
-
-            successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-                value: {[unHoldAction.reportActionID]: {pendingAction: null}},
-            });
-
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-                value: {[unHoldAction.reportActionID]: null},
-            });
-
-            transactionIDToReportActionAndThreadData[transaction.transactionID] = {
-                ...transactionIDToReportActionAndThreadData[transaction.transactionID],
-                unholdReportActionID: unHoldAction.reportActionID,
-            };
         }
     });
 
