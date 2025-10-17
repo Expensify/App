@@ -88,18 +88,19 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             getEmptyOptions();
         }
-        const optionList = getAttendeeOptions(
-            options.reports,
-            options.personalDetails,
+        const optionList = getAttendeeOptions({
+            reports: options.reports,
+            personalDetails: options.personalDetails,
             betas,
             attendees,
-            recentAttendees ?? [],
-            draftComments,
-            iouType === CONST.IOU.TYPE.SUBMIT,
-            true,
-            false,
+            recentAttendees: recentAttendees ?? [],
+            draftComments: draftComments ?? {},
+            includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT,
+            includeP2P: true,
+            includeInvoiceRooms: false,
             action,
-        );
+            countryCode: countryCode ?? CONST.DEFAULT_COUNTRY_CODE,
+        });
         if (isPaidGroupPolicy) {
             const orderedOptions = orderOptions(optionList, searchTerm, {
                 preferChatRoomsOverThreads: true,
