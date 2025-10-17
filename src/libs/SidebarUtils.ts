@@ -72,7 +72,7 @@ import {
     isTaskAction,
     isTransactionThread,
 } from './ReportActionsUtils';
-import {getMovedTransactionMessage, OptionData} from './ReportUtils';
+import type {OptionData} from './ReportUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
     excludeParticipantsForDisplay,
@@ -82,6 +82,7 @@ import {
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getIcons,
+    getMovedTransactionMessage,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
     getReportActionActorAccountID,
