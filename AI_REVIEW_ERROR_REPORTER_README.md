@@ -27,6 +27,8 @@ Main entry point that runs the entire pipeline.
 ```bash
 ./ai_review_error_reporter.sh 50 my_report.md
 ```
+<details>
+<summary> Internal scripts details </summary>
 
 ### 2. `claude_review_collector.sh` (Data Collection)
 Fetches workflow run data from GitHub and caches it locally.
@@ -50,6 +52,9 @@ Aggregates and ranks error messages from cached data.
 **Parameters:**
 - `directory`: Directory containing error title files (default: `job_errors_titles`)
 - `output_file`: Output markdown report (default: `job_error_report.md`)
+
+</details>
+
 
 ## Setup
 
@@ -301,10 +306,6 @@ Processing run: 12345678
   No job summary found, skipping...  # Actually rate limited!
 ```
 
-**Workaround:** Wait 1 hour and re-run (rate limits reset hourly)
-
-**Better Solution Available:** `claude_review_collector_ci.sh` includes rate limit monitoring and automatic waiting. See `CI_IMPROVEMENTS.md`.
-
 ---
 
 ### ⚠️ Medium Priority Issues
@@ -338,7 +339,7 @@ Processing run: 12345678
 - 100 runs: ~10 minutes
 - 500 runs: ~50 minutes
 
-**Potential Solution:** Implement parallel processing with `xargs -P` or GNU `parallel`. See `CI_IMPROVEMENTS.md` for implementation examples.
+**Potential Solution:** Implement parallel processing with `xargs -P` or GNU `parallel`.
 
 ---
 
@@ -440,71 +441,3 @@ find job_* -type f -mtime +30 -delete
 ```
 
 ---
-
-### 🎯 Recommended Actions
-
-**Immediate (Do Now):**
-1. ✅ Review `CI_IMPROVEMENTS.md` for solutions to Critical issues #1, #2, #3
-2. ✅ Consider switching to `claude_review_collector_ci.sh` (solves 6 out of 10 issues)
-3. ⚠️ Add cache directories to `.gitignore`
-
-**Short-term (This Week):**
-1. Test `claude_review_collector_ci.sh` locally
-2. Deploy GitHub Actions workflow for automated analysis
-3. Add cache cleanup cronjob/script
-
-**Long-term (This Month):**
-1. Build enhanced analyzer for contextual error analysis
-2. Implement parallel processing for faster execution
-3. Create dashboard/visualization for error trends
-
----
-
-### 📚 Related Documentation
-
-For solutions to these issues:
-- **CI-Ready Version:** See `claude_review_collector_ci.sh` and `CI_IMPROVEMENTS.md`
-- **GitHub Actions Setup:** See `.github/workflows/ai-review-error-analysis.yml.example`
-- **Migration Guide:** See `QUICK_START_CI.md` (deleted but can be recreated)
-- **Before/After Comparison:** See `BEFORE_AFTER_COMPARISON.md`
-- **Complete Analysis:** See `CI_READY_SUMMARY.md`
-
----
-
-## Troubleshooting
-
-### Error: "GITHUB_USER_SESSION environment variable is not set"
-You need to set the `GITHUB_USER_SESSION` environment variable. See the Setup section above.
-
-### Error: "gh: command not found"
-Install GitHub CLI: `brew install gh` (macOS) or follow [official instructions](https://cli.github.com/manual/installation)
-
-### Error: "jq: command not found"
-Install jq: `brew install jq` (macOS) or `apt-get install jq` (Linux)
-
-### Error: "gh run list" fails
-Make sure GitHub CLI is authenticated: `gh auth login`
-
-### "No job summary found" for many runs
-This could be:
-1. Rate limiting (wait 1 hour)
-2. Cookie expired (get new cookie)
-3. Workflow runs don't have job summaries (normal for some runs)
-
-### Script is very slow
-- First run is always slow (fetching data)
-- Subsequent runs use cache (much faster)
-- Consider using CI-ready version for better performance
-
----
-
-## Security Best Practices
-
-1. ✅ **DO** store credentials in environment variables
-2. ✅ **DO** use a `.env` file (and gitignore it)
-3. ✅ **DO** rotate your session token periodically
-4. ❌ **DON'T** commit credentials to version control
-5. ❌ **DON'T** share your session token
-6. ❌ **DON'T** hardcode credentials in scripts
-
-**Note:** The CI-ready version (`claude_review_collector_ci.sh`) uses GitHub tokens instead of cookies, which is more secure and doesn't expire. See `CI_IMPROVEMENTS.md` for details.
