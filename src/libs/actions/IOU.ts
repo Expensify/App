@@ -12411,10 +12411,7 @@ const expenseReportStatusFilterMapping = {
 
 // Helper function to check if a query has a specific action filter
 function hasActionFilter(queryJSON: SearchQueryJSON, action: string): boolean {
-    return queryJSON.flatFilters.some(filter => 
-        filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION &&
-        filter.filters.some(f => f.value === action)
-    );
+    return queryJSON.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION && filter.filters.some((f) => f.value === action));
 }
 
 //  Determines whether the current search results should be optimistically updated
@@ -12424,7 +12421,11 @@ function shouldOptimisticallyUpdateSearch(
     isInvoice: boolean | undefined,
     transaction?: OnyxEntry<OnyxTypes.Transaction>,
 ) {
-    if (currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.INVOICE && currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.EXPENSE && currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+    if (
+        currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.INVOICE &&
+        currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.EXPENSE &&
+        currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT
+    ) {
         return false;
     }
     let shouldOptimisticallyUpdateByStatus;
@@ -12446,16 +12447,17 @@ function shouldOptimisticallyUpdateSearch(
     const validSearchTypes =
         (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) ||
         (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE) ||
-        (currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
+        currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     // Check for specific action filters instead of relying on similarSearchHash matching
     const isSubmitQuery = hasActionFilter(currentSearchQueryJSON, CONST.SEARCH.ACTION_FILTERS.SUBMIT);
     const isApproveQuery = hasActionFilter(currentSearchQueryJSON, CONST.SEARCH.ACTION_FILTERS.APPROVE);
-    
+
     // Check if this is an unapproved cash query (no action filter but reimbursable transaction)
-    const isUnapprovedCashQuery = !hasActionFilter(currentSearchQueryJSON, CONST.SEARCH.ACTION_FILTERS.SUBMIT) &&
-                                  !hasActionFilter(currentSearchQueryJSON, CONST.SEARCH.ACTION_FILTERS.APPROVE) &&
-                                  transaction?.reimbursable;
+    const isUnapprovedCashQuery =
+        !hasActionFilter(currentSearchQueryJSON, CONST.SEARCH.ACTION_FILTERS.SUBMIT) &&
+        !hasActionFilter(currentSearchQueryJSON, CONST.SEARCH.ACTION_FILTERS.APPROVE) &&
+        transaction?.reimbursable;
 
     return (
         shouldOptimisticallyUpdateByStatus &&
