@@ -201,6 +201,7 @@ function MoneyRequestParticipantsSelector({
                 isPerDiemRequest,
                 showRBR: false,
             },
+            countryCode,
         );
 
         const orderedOptions = orderOptions(optionList);
@@ -223,6 +224,7 @@ function MoneyRequestParticipantsSelector({
         isCategorizeOrShareAction,
         isPerDiemRequest,
         canShowManagerMcTest,
+        countryCode,
         isCorporateCardTransaction,
     ]);
 
@@ -488,7 +490,7 @@ function MoneyRequestParticipantsSelector({
 
     const initiateContactImportAndSetState = useCallback(() => {
         setContactPermissionState(RESULTS.GRANTED);
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(importAndSaveContacts);
     }, [importAndSaveContacts, setContactPermissionState]);
 

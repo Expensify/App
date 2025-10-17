@@ -969,6 +969,7 @@ const translations = {
         buttonMySettings: 'Le mie impostazioni',
         fabNewChat: 'Inizia chat',
         fabNewChatExplained: 'Avvia chat (Azione flottante)',
+        fabScanReceiptExplained: 'Scansiona ricevuta (Azione flottante)',
         chatPinned: 'Chat fissata',
         draftedMessage: 'Messaggio redatto',
         listOfChatMessages: 'Elenco dei messaggi di chat',
@@ -1472,6 +1473,7 @@ const translations = {
                 subtitle: 'Scegli un approvatore aggiuntivo per questo report prima di instradarlo attraverso il resto del flusso di lavoro di approvazione.',
             },
         },
+        chooseWorkspace: "Scegli un'area di lavoro",
     },
     transactionMerge: {
         listPage: {
@@ -2014,6 +2016,26 @@ const translations = {
         validateCardTitle: 'Verifichiamo che sei tu',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Inserisci il codice magico inviato a ${contactMethod} per visualizzare i dettagli della tua carta. Dovrebbe arrivare entro un minuto o due.`,
+        cardFraudAlert: {
+            confirmButtonText: 'Sì, lo faccio',
+            reportFraudButtonText: 'No, non ero io',
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) =>
+                `abbiamo eliminato l'attività sospetta e riattivato la carta x${cardLastFour}. Tutto pronto per continuare a registrare le spese!`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `disattivato la carta che termina con ${cardLastFour}`,
+            alertMessage: ({
+                cardLastFour,
+                amount,
+                merchant,
+                date,
+            }: {
+                cardLastFour: string;
+                amount: string;
+                merchant: string;
+                date: string;
+            }) => `attività sospetta identificata sulla carta che termina con ${cardLastFour}. Riconosci questo addebito?
+
+${amount} per ${merchant} - ${date}`,
+        },
     },
     workflowsPage: {
         workflowTitle: 'Spendere',
@@ -2022,6 +2044,7 @@ const translations = {
         delaySubmissionDescription: "Scegli un programma personalizzato per l'invio delle spese, oppure lascialo disattivato per aggiornamenti in tempo reale sulle spese.",
         submissionFrequency: 'Frequenza di invio',
         submissionFrequencyDescription: 'Scegli una frequenza per inviare le spese.',
+        disableApprovalPromptDescription: 'Disabilitare le approvazioni eliminerà tutti i flussi di lavoro di approvazione esistenti.',
         submissionFrequencyDateOfMonth: 'Data del mese',
         addApprovalsTitle: 'Aggiungi approvazioni',
         addApprovalButton: 'Aggiungi flusso di lavoro di approvazione',
@@ -2605,7 +2628,7 @@ const translations = {
                 descriptionTwo: 'Categorizza e tagga le spese',
                 descriptionThree: 'Crea e condividi rapporti',
             },
-            price: 'Provalo gratis per 30 giorni, poi passa al piano superiore per soli <strong>$5/mese</strong>.',
+            price: 'Provalo gratis per 30 giorni, poi passa al piano superiore per soli <strong>$5/utente/mese</strong>.',
             createWorkspace: 'Crea workspace',
         },
         confirmWorkspace: {
@@ -6387,6 +6410,11 @@ const translations = {
         newReport: {
             createReport: 'Crea rapporto',
             chooseWorkspace: "Scegli un'area di lavoro per questo report.",
+            emptyReportConfirmationTitle: 'Hai già un rapporto vuoto',
+            emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
+                `Sei sicuro di voler creare un altro rapporto in ${workspaceName}? Puoi accedere ai tuoi rapporti vuoti in`,
+            emptyReportConfirmationPromptLink: 'Rapporti',
+            genericWorkspaceName: 'questo spazio di lavoro',
         },
         genericCreateReportFailureMessage: 'Errore imprevisto durante la creazione di questa chat. Si prega di riprovare più tardi.',
         genericAddCommentFailureMessage: 'Errore imprevisto durante la pubblicazione del commento. Per favore riprova più tardi.',
@@ -6395,8 +6423,8 @@ const translations = {
         noActivityYet: 'Nessuna attività ancora',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `modificato ${fieldName} da ${oldValue} a ${newValue}`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `modificato ${fieldName} in ${newValue}`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `ha modificato ${fieldName} in "${newValue}" (precedentemente "${oldValue}")`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `ha impostato ${fieldName} su "${newValue}"`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `Spazio di lavoro modificato${fromPolicyName ? ` (precedentemente ${fromPolicyName})` : ''}`;
@@ -7196,6 +7224,7 @@ const translations = {
             isWaitingForAssigneeToCompleteAction: "In attesa che l'assegnatario completi l'azione",
             hasChildReportAwaitingAction: 'Ha un rapporto figlio in attesa di azione',
             hasMissingInvoiceBankAccount: 'Manca il conto bancario della fattura',
+            hasUnresolvedCardFraudAlert: 'Ha una alerta di fraude di carta non risolta',
         },
         reasonRBR: {
             hasErrors: 'Ha errori nei dati del report o delle azioni del report',
