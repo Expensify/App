@@ -667,6 +667,7 @@ const translations = {
         pinned: 'Pinned',
         read: 'Read',
         copyToClipboard: 'Copy to clipboard',
+        domains: 'Domains',
     },
     supportalNoAccess: {
         title: 'Not so fast',

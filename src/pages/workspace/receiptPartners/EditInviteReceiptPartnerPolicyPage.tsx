@@ -316,7 +316,6 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                                     <TabScreenWithFocusTrapWrapper>
                                         <SelectionList
                                             ListItem={UserListItem}
-                                            onSelectRow={() => {}}
                                             onDismissError={dismissError}
                                             listItemWrapperStyle={styles.cursorDefault}
                                             addBottomSafeAreaPadding

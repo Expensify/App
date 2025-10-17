@@ -672,6 +672,7 @@ const translations = {
         pinned: '固定済み',
         read: '既読',
         copyToClipboard: 'クリップボードにコピー',
+        domains: 'ドメイン',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
