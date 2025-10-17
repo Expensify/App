@@ -9,6 +9,7 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NavigationRoute} from '@libs/Navigation/types';
+import {isInvoiceReport, isTaskReport} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -206,6 +207,11 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
      * It helps us open expense as wide, before it fully loads.
      */
     const markReportIDAsExpense = useCallback((reportID: string) => {
+        const isInvoice = isInvoiceReport(reportID);
+        const isTask = isTaskReport(reportID);
+        if (isInvoice || isTask) {
+            return;
+        }
         setExpenseReportIDs((prev) => {
             const newSet = new Set(prev);
             newSet.add(reportID);
