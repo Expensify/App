@@ -46,6 +46,11 @@ const PUBLIC_SCREENS_ROUTES = {
 // Exported for identifying a url as a verify-account route, associated with a page extending the VerifyAccountPageBase component
 const VERIFY_ACCOUNT = 'verify-account';
 
+const DYNAMIC_ROUTES = {
+    VERIFY_ACCOUNT: 'verify-account',
+    CONFIRM_WORKSPACE: 'confirm-workspace',
+} as const;
+
 const ROUTES = {
     ...PUBLIC_SCREENS_ROUTES,
     // This route renders the list of reports.
@@ -3309,7 +3314,7 @@ const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
     [SCREENS.WORKSPACE.INITIAL]: ['backTo'],
 } as const;
 
-export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT};
+export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT, DYNAMIC_ROUTES};
 export default ROUTES;
 
 type ReportAttachmentsRoute = typeof ROUTES.REPORT_ATTACHMENTS.route;
@@ -3348,6 +3353,10 @@ type Route = {
     [K in keyof typeof ROUTES]: ExtractRouteName<(typeof ROUTES)[K]>;
 }[keyof typeof ROUTES];
 
+type DynamicRoute = {
+    [K in keyof typeof DYNAMIC_ROUTES]: ExtractRouteName<(typeof DYNAMIC_ROUTES)[K]>;
+}[keyof typeof DYNAMIC_ROUTES];
+
 type RoutesValidationError = 'Error: One or more routes defined within `ROUTES` have not correctly used `as const` in their `getRoute` function return value.';
 
 /**
@@ -3359,4 +3368,4 @@ type RoutesValidationError = 'Error: One or more routes defined within `ROUTES` 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type RouteIsPlainString = AssertTypesNotEqual<string, Route, RoutesValidationError>;
 
-export type {Route};
+export type {Route, DynamicRoute};
