@@ -370,6 +370,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                             accessibilityRole="button"
                             accessible
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS)}
+                            onLongPress={() => Navigation.navigate(ROUTES.SETTINGS_TEST_IMAGE_MANIPULATION)}
+                            delayLongPress={2000}
                         >
                             <View style={styles.primaryMediumIcon}>
                                 {emojiCode ? (

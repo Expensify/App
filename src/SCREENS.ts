@@ -106,6 +106,7 @@ const SCREENS = {
         TROUBLESHOOT: 'Settings_Troubleshoot',
         CONSOLE: 'Settings_Console',
         SHARE_LOG: 'Share_Log',
+        TEST_IMAGE_MANIPULATION: 'Settings_Test_Image_Manipulation',
 
         PROFILE: {
             ROOT: 'Settings_Profile',

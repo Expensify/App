@@ -1926,6 +1926,7 @@ type SettingsSplitNavigatorParamList = {
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]?: {backTo?: Routes};
+    [SCREENS.SETTINGS.TEST_IMAGE_MANIPULATION]: undefined;
 };
 
 type WorkspaceSplitNavigatorParamList = {
