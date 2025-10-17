@@ -127,7 +127,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         setOnboardingPolicyID(paidGroupPolicy.id);
     }, [paidGroupPolicy, onboardingPolicyID]);
 
-
     const handleContinue = useCallback(() => {
         if (!onboardingPurposeSelected || !onboardingCompanySize) {
             return;
