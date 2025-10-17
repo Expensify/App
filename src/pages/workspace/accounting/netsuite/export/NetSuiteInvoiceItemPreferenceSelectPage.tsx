@@ -5,9 +5,9 @@ import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,7 +40,7 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
 
     const selectedValue = Object.values(CONST.NETSUITE_INVOICE_ITEM_PREFERENCE).find((value) => value === config?.invoiceItemPreference) ?? CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE;
 
-    const data: MenuListItem[] = Object.values(CONST.NETSUITE_INVOICE_ITEM_PREFERENCE).map((postingPreference) => ({
+    const options: MenuListItem[] = Object.values(CONST.NETSUITE_INVOICE_ITEM_PREFERENCE).map((postingPreference) => ({
         value: postingPreference,
         text: translate(`workspace.netsuite.invoiceItem.values.${postingPreference}.label`),
         keyForList: postingPreference,
@@ -85,13 +85,13 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
                 contentContainerStyle={[styles.flexGrow1, styles.flexShrink1]}
             >
                 <SelectionList
+                    data={options}
                     onSelectRow={(selection: SelectorType) => selectInvoicePreference(selection as MenuListItem)}
-                    sections={[{data}]}
                     ListItem={RadioListItem}
                     showScrollIndicator
                     shouldUpdateFocusedIndex
-                    initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-                    containerStyle={[styles.flexReset, styles.flexGrow1, styles.flexShrink1, styles.pb0]}
+                    initiallyFocusedItemKey={options.find((mode) => mode.isSelected)?.keyForList}
+                    style={{containerStyle: [styles.flexReset, styles.flexGrow1, styles.flexShrink1, styles.pb0]}}
                 />
             </OfflineWithFeedback>
             {config?.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT && (
