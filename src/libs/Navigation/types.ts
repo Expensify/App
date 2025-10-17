@@ -1958,6 +1958,10 @@ type WorkspaceSplitNavigatorParamList = {
         integration: string;
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT]: {
+        policyID: string;
+        integration: string;
+    };
 
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT]: {
         policyID: string;
