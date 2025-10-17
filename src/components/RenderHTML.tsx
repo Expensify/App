@@ -40,14 +40,14 @@ function RenderHTML({html: htmlParam, onLinkPress}: RenderHTMLProps) {
         };
     }, [onLinkPress]);
 
-    return (
-        <RenderHTMLConfigProvider renderersProps={renderersProps}>
-            <RenderHTMLSource
-                contentWidth={windowWidth * 0.8}
-                source={{html}}
-            />
-        </RenderHTMLConfigProvider>
+    const htmlSource = (
+        <RenderHTMLSource
+            contentWidth={windowWidth * 0.8}
+            source={{html}}
+        />
     );
+
+    return onLinkPress ? <RenderHTMLConfigProvider renderersProps={renderersProps}>{htmlSource}</RenderHTMLConfigProvider> : htmlSource;
 }
 
 RenderHTML.displayName = 'RenderHTML';
