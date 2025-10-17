@@ -10982,7 +10982,7 @@ function prepareOnboardingOnyxData(
         hasOutstandingChildTask: false,
     };
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`];
-    const canUserPerformWriteActionVariable = canUserPerformWriteAction(report, false);
+    const canUserPerformWriteActionVariable = canUserPerformWriteAction(report, undefined);
     const {lastMessageText = ''} = getLastVisibleMessageActionUtils(targetChatReportID, canUserPerformWriteActionVariable);
     if (lastMessageText) {
         const lastVisibleAction = getLastVisibleAction(targetChatReportID, canUserPerformWriteActionVariable);

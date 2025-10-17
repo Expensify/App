@@ -39,7 +39,8 @@ import NetworkConnection from '@libs/NetworkConnection';
 import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
-import {getReportIDFromLink} from '@libs/ReportUtils';
+import {getReportIDFromLink, isArchivedReport} from '@libs/ReportUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import {getSearchParamFromUrl} from '@libs/Url';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
@@ -173,6 +174,22 @@ function AuthScreens() {
     lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
     // eslint-disable-next-line react-compiler/react-compiler
     isLoadingAppRef.current = isLoadingApp;
+    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        canBeMissing: true,
+        selector: (all): ArchivedReportsIDSet => {
+            const ids = new Set<string>();
+            if (!all) {
+                return ids;
+            }
+
+            for (const [key, value] of Object.entries(all)) {
+                if (isArchivedReport(value)) {
+                    ids.add(key);
+                }
+            }
+            return ids;
+        },
+    });
 
     const handleNetworkReconnect = () => {
         if (isLoadingAppRef.current) {
@@ -325,7 +342,7 @@ function AuthScreens() {
 
         const unsubscribeMarkAllMessagesAsReadShortcut = KeyboardShortcut.subscribe(
             markAllMessagesAsReadShortcutConfig.shortcutKey,
-            Report.markAllMessagesAsRead,
+            () => Report.markAllMessagesAsRead(archivedReportsIdSet),
             markAllMessagesAsReadShortcutConfig.descriptionKey,
             markAllMessagesAsReadShortcutConfig.modifiers,
             true,

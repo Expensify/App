@@ -1680,7 +1680,7 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
     }
 }
 
-function markAllMessagesAsRead() {
+function markAllMessagesAsRead(archivedReportsIdSet: ReadonlySet<string>) {
     if (isAnonymousUser()) {
         return;
     }
@@ -1701,7 +1701,8 @@ function markAllMessagesAsRead() {
         const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
         const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report, chatReport, allReportActions?.[report.reportID]);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-        if (!isUnread(report, oneTransactionThreadReport, undefined)) {
+        const isArchivedReport = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
+        if (!isUnread(report, oneTransactionThreadReport, isArchivedReport)) {
             return;
         }
 
