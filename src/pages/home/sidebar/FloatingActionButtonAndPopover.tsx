@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import {createPoliciesSelector} from '@selectors/Policy';
 import {Str} from 'expensify-common';
 import type {ImageContentFit} from 'expo-image';
@@ -36,7 +37,6 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import {openTravelDotLink, shouldOpenTravelDotLinkWeb} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
 import {
@@ -155,9 +155,17 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         canBeMissing: true,
     });
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
+
+    const isUserPaidPolicyMemberSelector = useCallback(
+        (policies: OnyxCollection<OnyxTypes.Policy>) => {
+            return Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login));
+        },
+        [currentUserPersonalDetails.login],
+    );
+
     const [isUserPaidPolicyMember = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
-        selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
+        selector: isUserPaidPolicyMemberSelector,
     });
     const reportID = useMemo(() => generateReportID(), []);
 

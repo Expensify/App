@@ -1,4 +1,5 @@
 import {useCallback, useMemo, useState} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -25,7 +26,7 @@ import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportNameValuePairs, Session, Transaction} from '@src/types/onyx';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
@@ -37,6 +38,19 @@ const HOLD = 'HOLD';
 const UNHOLD = 'UNHOLD';
 const MOVE = 'MOVE';
 const MERGE = 'MERGE';
+
+function archivedReportsIdSetSelector(all: OnyxCollection<ReportNameValuePairs>): ArchivedReportsIDSet {
+    const ids = new Set<string>();
+    if (!all) {
+        return ids;
+    }
+    for (const [key, value] of Object.entries(all)) {
+        if (isArchivedReport(value)) {
+            ids.add(key);
+        }
+    }
+    return ids;
+}
 
 function useSelectedTransactionsActions({
     report,
@@ -88,19 +102,7 @@ function useSelectedTransactionsActions({
 
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
-        selector: (all): ArchivedReportsIDSet => {
-            const ids = new Set<string>();
-            if (!all) {
-                return ids;
-            }
-
-            for (const [key, value] of Object.entries(all)) {
-                if (isArchivedReport(value)) {
-                    ids.add(key);
-                }
-            }
-            return ids;
-        },
+        selector: archivedReportsIdSetSelector,
     });
 
     let iouType: IOUType = CONST.IOU.TYPE.SUBMIT;
