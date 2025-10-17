@@ -131,7 +131,7 @@ function PlaidConnectionStep({feed, policyID}: {feed?: CompanyCardFeed; policyID
                                     addNewCard.data.statementPeriodEnd,
                                     addNewCard.data.statementPeriodEndDay,
                                 );
-                                // eslint-disable-next-line deprecation/deprecation
+                                // eslint-disable-next-line @typescript-eslint/no-deprecated
                                 InteractionManager.runAfterInteractions(() => {
                                     setAssignCardStepAndData({
                                         data: {
