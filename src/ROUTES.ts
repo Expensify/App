@@ -48,6 +48,7 @@ const VERIFY_ACCOUNT = 'verify-account';
 
 const DYNAMIC_ROUTES = {
     VERIFY_ACCOUNT: 'verify-account',
+    CONFIRM_WORKSPACE: 'confirm-workspace',
 } as const;
 
 const ROUTES = {
@@ -2513,6 +2514,7 @@ const ROUTES = {
     TEST_DRIVE_DEMO_ROOT: 'onboarding/test-drive/demo',
     AUTO_SUBMIT_MODAL_ROOT: '/auto-submit',
     WORKSPACE_CONFIRMATION: {
+        // fv
         route: 'workspace/confirmation',
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation

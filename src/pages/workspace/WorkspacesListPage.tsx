@@ -42,6 +42,7 @@ import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/S
 import {filterInactiveCards} from '@libs/CardUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -55,7 +56,7 @@ import variables from '@styles/variables';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy as PolicyType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -497,7 +498,11 @@ function WorkspacesListPage() {
         <Button
             accessibilityLabel={translate('workspace.new.newWorkspace')}
             text={translate('workspace.new.newWorkspace')}
-            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
+            onPress={() =>
+                interceptAnonymousUser(() => {
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONFIRM_WORKSPACE));
+                })
+            }
             icon={Expensicons.Plus}
             style={[shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]]}
         />

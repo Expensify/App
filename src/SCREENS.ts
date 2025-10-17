@@ -208,6 +208,7 @@ const SCREENS = {
         NEW_REPORT_WORKSPACE_SELECTION: 'New_Report_Workspace_Selection',
         REPORT_DETAILS: 'Report_Details',
         REPORT_CHANGE_WORKSPACE: 'ReportChangeWorkspace',
+        CONFIRM_WORKSPACE: 'Confirm_Workspace',
         WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
         WORKSPACE_DUPLICATE: 'Workspace_Duplicate',
         REPORT_SETTINGS: 'Report_Settings',
@@ -364,6 +365,10 @@ const SCREENS = {
         SETTINGS_TAGS_IMPORT: 'Settings_Tags_Import',
         SETTINGS_TAGS_IMPORTED: 'Settings_Tags_Imported',
     },
+
+    // CONFIRM_MODAL: {
+    //     ROOT: 'Confirm_Modal_Root',
+    // },
 
     REPORT_SETTINGS: {
         ROOT: 'Report_Settings_Root',
