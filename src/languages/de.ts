@@ -6399,6 +6399,11 @@ ${amount} für ${merchant} - ${date}`,
         newReport: {
             createReport: 'Bericht erstellen',
             chooseWorkspace: 'Wählen Sie einen Arbeitsbereich für diesen Bericht aus.',
+            emptyReportConfirmationTitle: 'Du hast bereits einen leeren Bericht',
+            emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
+                `Möchtest du wirklich einen weiteren Bericht in ${workspaceName} erstellen? Du kannst auf deine leeren Berichte zugreifen unter`,
+            emptyReportConfirmationPromptLink: 'Berichte',
+            genericWorkspaceName: 'diesem Arbeitsbereich',
         },
         genericCreateReportFailureMessage: 'Unerwarteter Fehler beim Erstellen dieses Chats. Bitte versuchen Sie es später erneut.',
         genericAddCommentFailureMessage: 'Unerwarteter Fehler beim Posten des Kommentars. Bitte versuchen Sie es später noch einmal.',
