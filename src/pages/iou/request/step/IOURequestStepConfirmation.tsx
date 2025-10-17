@@ -813,6 +813,7 @@ function IOURequestStepConfirmation({
                             taxCode: transactionTaxCode,
                             taxAmount: transactionTaxAmount,
                             shouldPlaySound: index === transactions.length - 1,
+                            policyRecentlyUsedCategories,
                         });
                     });
                 }
@@ -841,6 +842,7 @@ function IOURequestStepConfirmation({
                         splitShares: transaction.splitShares,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        policyRecentlyUsedCategories,
                     });
                 }
                 return;
@@ -866,6 +868,7 @@ function IOURequestStepConfirmation({
                         splitShares: transaction.splitShares,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        policyRecentlyUsedCategories,
                     });
                 }
                 return;
