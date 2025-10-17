@@ -16,7 +16,7 @@ import {getIOUActionForReportID} from './ReportActionsUtils';
 import {findSelfDMReportID, getReportName, getReportOrDraftReport, getTransactionDetails} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {getAttendeesListDisplayString, getCurrency, getReimbursable, isCardTransaction, isMerchantMissing} from './TransactionUtils';
+import {getAttendeesListDisplayString, getCurrency, getReimbursable, isManagedCardTransaction, isMerchantMissing} from './TransactionUtils';
 
 const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
 
@@ -197,7 +197,7 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
         if (field === 'amount') {
             // If target transaction is a card transaction, always preserve the target transaction's amount and currency
             // See https://github.com/Expensify/App/issues/68189#issuecomment-3167156907
-            if (isCardTransaction(targetTransaction)) {
+            if (isManagedCardTransaction(targetTransaction)) {
                 mergeableData[field] = targetValue;
                 mergeableData.currency = getCurrency(targetTransaction);
                 return;
@@ -236,7 +236,7 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
 
         // Use the reimbursable flag coming from card transactions automatically
         // See https://github.com/Expensify/App/issues/69598
-        if (field === 'reimbursable' && isCardTransaction(targetTransaction)) {
+        if (field === 'reimbursable' && isManagedCardTransaction(targetTransaction)) {
             mergeableData[field] = targetValue;
             return;
         }
@@ -339,7 +339,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
  * @returns An object containing the determined targetTransactionID and sourceTransactionID
  */
 function selectTargetAndSourceTransactionsForMerge(originalTargetTransaction: OnyxEntry<Transaction>, originalSourceTransaction: OnyxEntry<Transaction>) {
-    if (isCardTransaction(originalSourceTransaction)) {
+    if (isManagedCardTransaction(originalSourceTransaction)) {
         return {targetTransaction: originalSourceTransaction, sourceTransaction: originalTargetTransaction};
     }
 
