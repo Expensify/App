@@ -14,8 +14,6 @@ import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {setAssignCardStepAndData, setTransactionStartDate} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
-import type {CompanyCardFeed} from '@src/types/onyx';
 
 function TransactionStartDateStep() {
     const {translate} = useLocalize();
