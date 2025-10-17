@@ -88,7 +88,7 @@ function CategoryDefaultTaxRatePage({
                     shouldSingleExecuteRowSelect
                     addBottomSafeAreaPadding
                     initiallyFocusedItemKey={selectedTaxRate}
-                    listStyle={styles.pt3}
+                    style={{containerStyle: styles.pt3}}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
