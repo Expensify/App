@@ -198,4 +198,5 @@ function getDevicePreferredLocale(): Locale {
     return RNLocalize.findBestAvailableLanguage(Object.values(CONST.LOCALES))?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 export {translate, translateLocal, formatList, formatMessageElementList, getDevicePreferredLocale};
