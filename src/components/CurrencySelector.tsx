@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useEffect, useRef} from 'react';
+import React, {forwardRef, useEffect, useRef} from 'react';
 import type {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,21 +35,20 @@ type CurrencySelectorProps = {
 
     /** Whether to show currency symbol in the title */
     shouldShowCurrencySymbol?: boolean;
-
-    /** Reference to the outer element */
-    ref?: ForwardedRef<View>;
 };
 
-function CurrencySelector({
-    errorText = '',
-    value: currency,
-    onInputChange = () => {},
-    onBlur,
-    currencySelectorRoute = ROUTES.SETTINGS_CHANGE_CURRENCY,
-    label,
-    shouldShowCurrencySymbol = false,
-    ref,
-}: CurrencySelectorProps) {
+function CurrencySelector(
+    {
+        errorText = '',
+        value: currency,
+        onInputChange = () => {},
+        onBlur,
+        currencySelectorRoute = ROUTES.SETTINGS_CHANGE_CURRENCY,
+        label,
+        shouldShowCurrencySymbol = false,
+    }: CurrencySelectorProps,
+    ref: ForwardedRef<View>,
+) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -95,4 +94,4 @@ function CurrencySelector({
 
 CurrencySelector.displayName = 'CurrencySelector';
 
-export default CurrencySelector;
+export default forwardRef(CurrencySelector);

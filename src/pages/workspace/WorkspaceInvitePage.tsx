@@ -287,8 +287,8 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
-        return getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
-    }, [excludedUsers, translate, debouncedSearchTerm, policyName, usersToInvite, personalDetails.length]);
+        return getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue, false, countryCode);
+    }, [excludedUsers, translate, debouncedSearchTerm, policyName, usersToInvite, personalDetails.length, countryCode]);
 
     const footerContent = useMemo(
         () => (
@@ -327,7 +327,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     subtitle={policyName}
                     onBackButtonPress={() => {
                         clearErrors(route.params.policyID);
-                        Navigation.goBack();
+                        Navigation.goBack(route.params.backTo);
                     }}
                 />
                 <SelectionList
