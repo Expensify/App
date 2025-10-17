@@ -884,14 +884,8 @@ const ContextMenuActions: ContextMenuAction[] = [
             );
         },
         onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction}) => {
-            let reportID = reportIDParam;
-            if (isMoneyRequestAction(moneyRequestAction)) {
-                const iouReportID = getOriginalMessage(moneyRequestAction)?.IOUReportID;
-                // If the expense was removed from a report, IOUReportID will be '0' (unreported), so use the actual reportID
-                if (iouReportID && iouReportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
-                    reportID = iouReportID;
-                }
-            }
+            const iouReportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID ?? reportIDParam : reportIDParam;
+            const reportID = iouReportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? iouReportID : reportIDParam;
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
                 hideContextMenu(false, () => showDeleteModal(reportID, moneyRequestAction ?? reportAction));
