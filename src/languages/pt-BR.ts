@@ -6389,11 +6389,6 @@ ${amount} para ${merchant} - ${date}`,
         newReport: {
             createReport: 'Criar relatório',
             chooseWorkspace: 'Escolha um espaço de trabalho para este relatório.',
-            emptyReportConfirmationTitle: 'Você já tem um relatório vazio',
-            emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
-                `Tem certeza de que deseja criar outro relatório em ${workspaceName}? Você pode acessar seus relatórios vazios em`,
-            emptyReportConfirmationPromptLink: 'Relatórios',
-            genericWorkspaceName: 'este espaço de trabalho',
         },
         genericCreateReportFailureMessage: 'Erro inesperado ao criar este chat. Por favor, tente novamente mais tarde.',
         genericAddCommentFailureMessage: 'Erro inesperado ao postar o comentário. Por favor, tente novamente mais tarde.',
