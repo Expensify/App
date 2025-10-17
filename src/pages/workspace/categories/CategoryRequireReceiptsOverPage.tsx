@@ -2,8 +2,8 @@ import React from 'react';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -89,7 +89,7 @@ function CategoryRequireReceiptsOverPage({
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName))}
                 />
                 <SelectionList
-                    sections={[{data: requireReceiptsOverListData}]}
+                    data={requireReceiptsOverListData}
                     ListItem={RadioListItem}
                     onSelectRow={(item) => {
                         if (typeof item.value === 'number') {
@@ -99,9 +99,9 @@ function CategoryRequireReceiptsOverPage({
                         }
                         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
                     }}
+                    listStyle={styles.pt3}
                     shouldSingleExecuteRowSelect
-                    containerStyle={[styles.pt3]}
-                    initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                    initiallyFocusedItemKey={initiallyFocusedOptionKey}
                     addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
