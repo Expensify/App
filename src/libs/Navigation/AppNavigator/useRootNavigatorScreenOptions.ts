@@ -16,6 +16,7 @@ import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 
 type RootNavigatorScreenOptions = {
     rightModalNavigator: PlatformStackNavigationOptions;
+    superWideRightModalNavigator: PlatformStackNavigationOptions;
     basicModalNavigator: PlatformStackNavigationOptions;
     splitNavigator: PlatformStackNavigationOptions;
     fullScreen: PlatformStackNavigationOptions;
@@ -56,6 +57,17 @@ const useRootNavigatorScreenOptions = () => {
                             ? undefined
                             : Animated.add(Animated.multiply(expandedRHPProgress, variables.receiptPaneRHPMaxWidth / variables.sideBarWidth), 1),
                     }),
+            },
+        },
+        superWideRightModalNavigator: {
+            ...commonScreenOptions,
+            ...hideKeyboardOnSwipe,
+            animation: Animations.SLIDE_FROM_RIGHT,
+            // We want pop in RHP since there are some flows that would work weird otherwise
+            animationTypeForReplace: 'pop',
+            web: {
+                presentation: Presentation.TRANSPARENT_MODAL,
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isSuperWideRHP: true}),
             },
         },
         basicModalNavigator: {

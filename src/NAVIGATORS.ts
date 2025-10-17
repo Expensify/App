@@ -18,4 +18,5 @@ export default {
     SHARE_MODAL_NAVIGATOR: 'ShareModalNavigator',
     PUBLIC_RIGHT_MODAL_NAVIGATOR: 'PublicRightModalNavigator',
     TEST_TOOLS_MODAL_NAVIGATOR: 'TestToolsModalNavigator',
+    SUPER_WIDE_RIGHT_MODAL_NAVIGATOR: 'SuperWideRightModalNavigator',
 } as const;

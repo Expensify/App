@@ -71,6 +71,7 @@ import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavi
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
+import SuperWideRightModalNavigator from './Navigators/SuperWideRightModalNavigator';
 import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
@@ -488,6 +489,7 @@ function AuthScreens() {
                     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
                     NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
                     NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
+                    NAVIGATORS.SUPER_WIDE_RIGHT_MODAL_NAVIGATOR,
                     SCREENS.WORKSPACES_LIST,
                     SCREENS.SEARCH.ROOT,
                 ]}
@@ -587,6 +589,12 @@ function AuthScreens() {
                     name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                     options={rootNavigatorScreenOptions.rightModalNavigator}
                     component={RightModalNavigator}
+                    listeners={modalScreenListenersWithCancelSearch}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.SUPER_WIDE_RIGHT_MODAL_NAVIGATOR}
+                    options={rootNavigatorScreenOptions.superWideRightModalNavigator}
+                    component={SuperWideRightModalNavigator}
                     listeners={modalScreenListenersWithCancelSearch}
                 />
                 <RootStack.Screen
