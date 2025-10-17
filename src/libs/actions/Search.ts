@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import * as API from '@libs/API';
 import {waitForWrites} from '@libs/API';
@@ -46,7 +46,7 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
-import {setOptimisticTransactionThread} from './Report';
+import {deleteAppReport, setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
 type OnyxSearchResponse = {
@@ -596,6 +596,30 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, failureData, finallyData});
 }
 
+function deleteSelectedItemsOnSearch(hash: number, selectedTransactions: Record<string, SelectedTransactionInfo>) {
+    const transactionIDList: string[] = [];
+    const reportIDList: string[] = [];
+
+    Object.keys(selectedTransactions).forEach((key) => {
+        const selectedItem = selectedTransactions[key];
+        if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
+            reportIDList.push(selectedItem.reportID);
+        } else {
+            transactionIDList.push(key);
+        }
+    });
+
+    if (transactionIDList.length > 0) {
+        deleteMoneyRequestOnSearch(hash, transactionIDList);
+    }
+
+    if (reportIDList.length > 0) {
+        reportIDList.forEach((reportID) => {
+            deleteAppReport(reportID);
+        });
+    }
+}
+
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
 function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
@@ -940,6 +964,7 @@ export {
     search,
     updateSearchResultsWithTransactionThreadReportID,
     deleteMoneyRequestOnSearch,
+    deleteSelectedItemsOnSearch,
     holdMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,
     exportSearchItemsToCSV,
