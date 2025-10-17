@@ -10,6 +10,8 @@ import {machineId} from 'node-machine-id';
 import checkForUpdates from '@libs/checkForUpdates';
 import {translate} from '@libs/Localize';
 import Log from '@libs/Log';
+import type {LocationPermissionState} from '@src/libs/getCurrentPosition/locationPermission';
+import {LOCATION_PERMISSION_STATES} from '@src/libs/getCurrentPosition/locationPermission';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -32,11 +34,70 @@ const MAC_PERMISSION_STATUSES = {
     NOT_DETERMINED: 'not determined',
 } as const;
 
-const LOCATION_PERMISSION_STATES = {
-    GRANTED: 'granted',
-    DENIED: 'denied',
-    PROMPT: 'prompt',
-} as const;
+type MacPermissionsModule = {
+    getAuthStatus?: (authType: AuthType) => PermissionType | typeof MAC_PERMISSION_STATUSES.NOT_DETERMINED;
+};
+
+type MacGetAuthStatus = MacPermissionsModule['getAuthStatus'];
+
+let macGetAuthStatusPromise: Promise<MacGetAuthStatus | undefined> | undefined;
+let hasLoggedMacPermissionsWarning = false;
+
+const logMacPermissionsWarningOnce = (message: string, error?: unknown) => {
+    if (hasLoggedMacPermissionsWarning) {
+        return;
+    }
+
+    if (error instanceof Error) {
+        log.warn(message, error.message);
+    } else if (typeof error === 'string') {
+        log.warn(message, error);
+    } else {
+        log.warn(message);
+    }
+
+    hasLoggedMacPermissionsWarning = true;
+};
+
+const loadMacGetAuthStatus = async (): Promise<MacGetAuthStatus | undefined> => {
+    if (!macGetAuthStatusPromise) {
+        if (process.platform !== 'darwin') {
+            macGetAuthStatusPromise = Promise.resolve<MacGetAuthStatus | undefined>(undefined);
+        } else {
+            macGetAuthStatusPromise = import('node-mac-permissions')
+                .then((module) => {
+                    const resolvedModule: MacPermissionsModule = ('default' in module ? module.default : module) ?? {};
+                    if (typeof resolvedModule.getAuthStatus !== 'function') {
+                        logMacPermissionsWarningOnce('node-mac-permissions does not expose getAuthStatus, defaulting to denied');
+                        return undefined;
+                    }
+
+                    return resolvedModule.getAuthStatus;
+                })
+                .catch((error: unknown) => {
+                    logMacPermissionsWarningOnce('node-mac-permissions not available, defaulting to denied:', error);
+                    return undefined;
+                });
+        }
+    }
+
+    return macGetAuthStatusPromise;
+};
+
+const resolveLocationPermissionStatus = (
+    status: PermissionType | typeof MAC_PERMISSION_STATUSES.NOT_DETERMINED,
+): LocationPermissionState => {
+    switch (status) {
+        case MAC_PERMISSION_STATUSES.AUTHORIZED:
+            return LOCATION_PERMISSION_STATES.GRANTED;
+        case MAC_PERMISSION_STATUSES.NOT_DETERMINED:
+            return LOCATION_PERMISSION_STATES.PROMPT;
+        case MAC_PERMISSION_STATUSES.DENIED:
+        case MAC_PERMISSION_STATUSES.RESTRICTED:
+        default:
+            return LOCATION_PERMISSION_STATES.DENIED;
+    }
+};
 
 // Setup google api key in process environment, we are setting it this way intentionally. It is required by the
 // geolocation api (window.navigator.geolocation.getCurrentPosition) to work on desktop.
@@ -390,34 +451,19 @@ const mainWindow = (): Promise<void> => {
                 });
 
                 ipcMain.handle(ELECTRON_EVENTS.CHECK_LOCATION_PERMISSION, async () => {
+                    const getAuthStatus = await loadMacGetAuthStatus();
+
+                    if (!getAuthStatus) {
+                        return LOCATION_PERMISSION_STATES.DENIED;
+                    }
+
                     try {
-                        type MacPermissionsModule = {
-                            getAuthStatus?: (authType: AuthType) => PermissionType | 'not determined';
-                        };
-                        const macPermissionsModule = (await import('node-mac-permissions')) as MacPermissionsModule | {default: MacPermissionsModule};
-                        const macPermissions: MacPermissionsModule = ('default' in macPermissionsModule ? macPermissionsModule.default : macPermissionsModule) ?? {};
-                        const {getAuthStatus} = macPermissions;
-
-                        if (!getAuthStatus || typeof getAuthStatus !== 'function') {
-                            log.warn('node-mac-permissions not available or invalid, defaulting to denied');
-                            return LOCATION_PERMISSION_STATES.DENIED;
-                        }
-
-                        const status = getAuthStatus('location');
-
-                        switch (status) {
-                            case MAC_PERMISSION_STATUSES.AUTHORIZED:
-                                return LOCATION_PERMISSION_STATES.GRANTED;
-                            case MAC_PERMISSION_STATUSES.DENIED:
-                            case MAC_PERMISSION_STATUSES.RESTRICTED:
-                                return LOCATION_PERMISSION_STATES.DENIED;
-                            case MAC_PERMISSION_STATUSES.NOT_DETERMINED:
-                                return LOCATION_PERMISSION_STATES.PROMPT;
-                            default:
-                                return LOCATION_PERMISSION_STATES.DENIED;
-                        }
+                        return resolveLocationPermissionStatus(getAuthStatus('location'));
                     } catch (error) {
-                        log.warn('node-mac-permissions not available, defaulting to denied:', (error as Error)?.message);
+                        log.warn(
+                            'node-mac-permissions threw while checking location permission, defaulting to denied:',
+                            (error as Error)?.message,
+                        );
                         return LOCATION_PERMISSION_STATES.DENIED;
                     }
                 });
