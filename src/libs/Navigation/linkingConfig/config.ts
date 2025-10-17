@@ -1757,6 +1757,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     exact: true,
                 },
                 [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
+                [SCREENS.SETTINGS.TEST_IMAGE_MANIPULATION]: {
+                    path: ROUTES.SETTINGS_TEST_IMAGE_MANIPULATION,
+                    exact: true,
+                },
                 [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
                     path: ROUTES.SETTINGS_PREFERENCES,
                     // exact: true,
