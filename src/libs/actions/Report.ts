@@ -2869,6 +2869,17 @@ function buildNewReportOptimisticData(
 
     optimisticData.push(...updateTitleFieldToMatchPolicy(reportID, policy));
 
+    const currentSearchQueryJSON = getCurrentSearchQueryJSON();
+    if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && currentSearchQueryJSON?.groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+            value: {
+                data: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: optimisticReportData},
+            },
+        });
+    }
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
