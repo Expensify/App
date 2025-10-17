@@ -141,7 +141,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                     currentOnboardingPurposeSelected,
                     currentOnboardingCompanySize,
                     onboardingInitialPath,
-                }) as Route,
+                }),
             );
         }
 

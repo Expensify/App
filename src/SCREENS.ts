@@ -372,10 +372,6 @@ const SCREENS = {
         SETTINGS_TAGS_IMPORTED: 'Settings_Tags_Imported',
     },
 
-    // CONFIRM_MODAL: {
-    //     ROOT: 'Confirm_Modal_Root',
-    // },
-
     REPORT_SETTINGS: {
         ROOT: 'Report_Settings_Root',
         NAME: 'Report_Settings_Name',

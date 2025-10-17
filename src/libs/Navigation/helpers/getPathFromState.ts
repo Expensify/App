@@ -3,13 +3,14 @@ import type {NavigationState, PartialState} from '@react-navigation/routers';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Screen} from '@src/SCREENS';
 
 type State = NavigationState | Omit<PartialState<NavigationState>, 'stale'>;
 
 /**
  * Checks if a screen name is a dynamic route screen
  */
-function isDynamicRouteScreen(screenName: string): boolean {
+function isDynamicRouteScreen(screenName: Screen): boolean {
     for (const path of Object.values(DYNAMIC_ROUTES)) {
         if (!normalizedConfigs[screenName]?.path) {
             continue;
@@ -42,7 +43,7 @@ function removeDynamicRoutesFromState(state: State): {cleanedState: State; dynam
 
         const focusedRouteIndex = current.index ?? 0;
         const focusedRoute = current.routes[focusedRouteIndex];
-        if (!focusedRoute || !isDynamicRouteScreen(focusedRoute.name)) {
+        if (!focusedRoute || !isDynamicRouteScreen(focusedRoute.name as Screen)) {
             return {cleanedState: currentState, dynamicRoutes};
         }
 
@@ -113,7 +114,7 @@ const getPathFromState = (state: State): string => {
     const focusedRoute = findFocusedRoute(state);
     const screenName = focusedRoute?.name ?? '';
 
-    if (isDynamicRouteScreen(screenName)) {
+    if (isDynamicRouteScreen(screenName as Screen)) {
         if (focusedRoute?.path) {
             return focusedRoute.path;
         }

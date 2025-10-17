@@ -1,3 +1,5 @@
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 
 /**
@@ -7,7 +9,7 @@ import SCREENS from '@src/SCREENS';
  *   - VERIFY_ACCOUNT: [SCREENS.REPORT, SCREENS.SEARCH.REPORT_RHP]
  *   this means that you can access VERIFY_ACCOUNT screen only from SCREENS.REPORT and SCREENS.SEARCH.REPORT_RHP
  */
-const SCREEN_ACCESS_MAP = {
+const SCREEN_ACCESS_MAP: Record<keyof typeof DYNAMIC_ROUTES, Screen[]> = {
     VERIFY_ACCOUNT: [SCREENS.REPORT, SCREENS.SEARCH.REPORT_RHP, SCREENS.SEARCH.MONEY_REQUEST_REPORT],
     CONFIRM_WORKSPACE: [SCREENS.WORKSPACES_LIST],
 };

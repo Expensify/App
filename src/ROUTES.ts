@@ -52,7 +52,6 @@ const DYNAMIC_ROUTES = {
 } as const;
 
 const ROUTES = {
-    ...DYNAMIC_ROUTES,
     ...PUBLIC_SCREENS_ROUTES,
     // This route renders the list of reports.
     HOME: 'home',
@@ -2571,7 +2570,6 @@ const ROUTES = {
     TEST_DRIVE_DEMO_ROOT: 'onboarding/test-drive/demo',
     AUTO_SUBMIT_MODAL_ROOT: '/auto-submit',
     WORKSPACE_CONFIRMATION: {
-        // fv
         route: 'workspace/confirmation',
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
@@ -3360,6 +3358,10 @@ type Route = {
     [K in keyof typeof ROUTES]: ExtractRouteName<(typeof ROUTES)[K]>;
 }[keyof typeof ROUTES];
 
+type DynamicRoute = {
+    [K in keyof typeof DYNAMIC_ROUTES]: ExtractRouteName<(typeof DYNAMIC_ROUTES)[K]>;
+}[keyof typeof DYNAMIC_ROUTES];
+
 type RoutesValidationError = 'Error: One or more routes defined within `ROUTES` have not correctly used `as const` in their `getRoute` function return value.';
 
 /**
@@ -3371,4 +3373,4 @@ type RoutesValidationError = 'Error: One or more routes defined within `ROUTES` 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type RouteIsPlainString = AssertTypesNotEqual<string, Route, RoutesValidationError>;
 
-export type {Route};
+export type {Route, DynamicRoute};
