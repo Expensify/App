@@ -36,7 +36,6 @@ import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformS
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
-import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import {getReportIDFromLink} from '@libs/ReportUtils';
@@ -187,16 +186,6 @@ function AuthScreens() {
     const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {
         return CONFIG.IS_HYBRID_APP && Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route) && isOnboardingCompleted === true;
     }, [isOnboardingCompleted]);
-
-    const shouldRenderOnboardingExclusively = useMemo(() => {
-        return (
-            !CONFIG.IS_HYBRID_APP &&
-            Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route) &&
-            shouldOnboardingRedirectToOldDot(onboardingCompanySize, userReportedIntegration) &&
-            isOnboardingCompleted === true &&
-            (!!isOnboardingLoading || !!prevIsOnboardingLoading)
-        );
-    }, [onboardingCompanySize, isOnboardingCompleted, isOnboardingLoading, prevIsOnboardingLoading, userReportedIntegration]);
 
     useEffect(() => {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
@@ -626,7 +615,7 @@ function AuthScreens() {
                     component={FeatureTrainingModalNavigator}
                     listeners={modalScreenListeners}
                 />
-                {(isOnboardingCompleted === false || shouldRenderOnboardingExclusivelyOnHybridApp || shouldRenderOnboardingExclusively) && (
+                {(isOnboardingCompleted === false || shouldRenderOnboardingExclusivelyOnHybridApp) && (
                     <RootStack.Screen
                         name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                         options={{...rootNavigatorScreenOptions.basicModalNavigator, gestureEnabled: false}}
