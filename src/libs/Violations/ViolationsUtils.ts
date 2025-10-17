@@ -226,6 +226,7 @@ const ViolationsUtils = {
         policyCategories: PolicyCategories,
         hasDependentTags: boolean,
         isInvoiceTransaction: boolean,
+        isSelfDM?: boolean,
     ): OnyxUpdate {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
@@ -272,12 +273,12 @@ const ViolationsUtils = {
             }
 
             // Remove 'missingCategory' violation if category is valid according to policy
-            if (hasMissingCategoryViolation && isCategoryInPolicy) {
+            if (hasMissingCategoryViolation && (isCategoryInPolicy || isSelfDM)) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'missingCategory'});
             }
 
             // Add 'missingCategory' violation if category is required and not set
-            if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey) {
+            if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey && !isSelfDM) {
                 newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
             }
         }
