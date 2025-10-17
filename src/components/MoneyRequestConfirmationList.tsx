@@ -11,6 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {
@@ -281,6 +282,7 @@ function MoneyRequestConfirmationList({
     const defaultMileageRate = defaultMileageRateDraft ?? defaultMileageRateReal;
 
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
@@ -1197,8 +1199,8 @@ function MoneyRequestConfirmationList({
                 containerStyle={[styles.flexBasisAuto]}
                 removeClippedSubviews={false}
                 disableKeyboardShortcuts
-                contentContainerStyle={shouldRestrictHeight && styles.flex1}
-                ListFooterComponentStyle={shouldRestrictHeight && styles.flex1}
+                contentContainerStyle={shouldRestrictHeight ? [StyleUtils.getReceiptContainerStyles()] : undefined}
+                ListFooterComponentStyle={shouldRestrictHeight ? [styles.flex1] : undefined}
             />
         </MouseProvider>
     );
