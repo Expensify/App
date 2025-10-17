@@ -6382,6 +6382,11 @@ ${amount} para ${merchant} - ${date}`,
         newReport: {
             createReport: 'Crear informe',
             chooseWorkspace: 'Elige un espacio de trabajo para este informe.',
+            emptyReportConfirmationTitle: 'Ya tienes un informe vacío',
+            emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
+                `¿Estás seguro de que quieres crear otro informe en ${workspaceName}? Puedes acceder a tus informes vacíos en`,
+            emptyReportConfirmationPromptLink: 'Informes',
+            genericWorkspaceName: 'este espacio de trabajo',
         },
         genericCreateReportFailureMessage: 'Error inesperado al crear el chat. Por favor, inténtalo más tarde.',
         genericAddCommentFailureMessage: 'Error inesperado al añadir el comentario. Por favor, inténtalo más tarde.',

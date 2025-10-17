@@ -3,6 +3,7 @@ import {InteractionManager} from 'react-native';
 import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
+import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -56,6 +57,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
 
     const handleGoBack = () => {
@@ -174,6 +176,21 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, reportOrDraftReport, transaction);
 
+    const createReportForPolicy = () => {
+        if (!policyForMovingExpensesID) {
+            return;
+        }
+
+        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
+        handleRegularReportSelection({value: createdReportID});
+    };
+
+    const {handleCreateReport, CreateReportConfirmationModal} = useConditionalCreateEmptyReportConfirmation({
+        policyID: policyForMovingExpensesID,
+        policyName: policyForMovingExpenses?.name ?? '',
+        onCreateReport: createReportForPolicy,
+    });
+
     const createReport = () => {
         if (!policyForMovingExpensesID && !shouldSelectPolicy) {
             return;
@@ -187,24 +204,26 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
             return;
         }
-        const createdReportID = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
-        handleRegularReportSelection({value: createdReportID});
+        handleCreateReport();
     };
 
     return (
-        <IOURequestEditReportCommon
-            backTo={backTo}
-            selectReport={selectReport}
-            transactionIDs={transaction ? [transaction.transactionID] : []}
-            selectedReportID={selectedReportID}
-            selectedPolicyID={!isEditing && !isFromGlobalCreate ? reportOrDraftReport?.policyID : undefined}
-            removeFromReport={removeFromReport}
-            isEditing={isEditing}
-            isUnreported={isUnreported}
-            shouldShowNotFoundPage={shouldShowNotFoundPage}
-            isPerDiemRequest={transaction ? isPerDiemRequest(transaction) : false}
-            createReport={action === CONST.IOU.ACTION.EDIT ? createReport : undefined}
-        />
+        <>
+            {CreateReportConfirmationModal}
+            <IOURequestEditReportCommon
+                backTo={backTo}
+                selectReport={selectReport}
+                transactionIDs={transaction ? [transaction.transactionID] : []}
+                selectedReportID={selectedReportID}
+                selectedPolicyID={!isEditing && !isFromGlobalCreate ? reportOrDraftReport?.policyID : undefined}
+                removeFromReport={removeFromReport}
+                isEditing={isEditing}
+                isUnreported={isUnreported}
+                shouldShowNotFoundPage={shouldShowNotFoundPage}
+                isPerDiemRequest={transaction ? isPerDiemRequest(transaction) : false}
+                createReport={action === CONST.IOU.ACTION.EDIT ? createReport : undefined}
+            />
+        </>
     );
 }
 
