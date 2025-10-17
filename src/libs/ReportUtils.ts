@@ -20,7 +20,9 @@ import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
+import type PolicyData from '@hooks/usePolicyData/types';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {ThemeColors} from '@styles/theme/types';
 import type {IOUAction, IOUType, OnboardingAccounting} from '@src/CONST';
 import CONST, {TASK_TO_FEATURE} from '@src/CONST';
@@ -56,13 +58,12 @@ import type {
     Task,
     Transaction,
     TransactionViolation,
-    TransactionViolations,
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
-import type {ErrorFields, Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, Icon, OnyxValueWithOfflineFeedback, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {AllConnectionName, ConnectionName} from '@src/types/onyx/Policy';
@@ -1926,61 +1927,104 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Pushes optimistic transaction violations to OnyxData for the given policy and categories onyx update.
+ * Updates optimistic transaction violations to OnyxData for the given policy and categories onyx update.
  *
- * @param policyUpdate Changed policy properties, if none pass empty object
- * @param policyCategoriesUpdate Changed categories properties, if none pass empty object
+ * @param onyxData - The OnyxData object to push updates to
+ * @param policyData - The current policy Data
+ * @param policyUpdate - Changed policy properties, if none pass empty object
+ * @param policyCategoriesUpdate - Changed categories properties, if none pass empty object
+ * @param policyTagsUpdate - Changed tag properties, if none pass empty object
  */
 function pushTransactionViolationsOnyxData(
     onyxData: OnyxData,
-    policyID: string,
-    policyTagLists: PolicyTagLists,
-    policyCategories: PolicyCategories,
-    allTransactionViolations: OnyxCollection<TransactionViolations>,
-    policyUpdate: Partial<Policy> = {},
+    policyData: PolicyData,
+    policyUpdate: Partial<OnyxValueWithOfflineFeedback<Policy>>,
     policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
-): OnyxData {
-    if (isEmptyObject(policyUpdate) && isEmptyObject(policyCategoriesUpdate)) {
-        return onyxData;
+    policyTagsUpdate: Record<string, Partial<PolicyTagList>> = {},
+) {
+    if (!policyData.policy || policyData.reports.length === 0 || isEmptyObject(policyData.transactionsAndViolations)) {
+        return;
     }
-    const optimisticPolicyCategories = Object.keys(policyCategories).reduce<Record<string, PolicyCategory>>((acc, categoryName) => {
-        acc[categoryName] = {...policyCategories[categoryName], ...(policyCategoriesUpdate?.[categoryName] ?? {})};
-        return acc;
-    }, {}) as PolicyCategories;
 
-    const optimisticPolicy = {...allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], ...policyUpdate} as Policy;
-    const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, policyTagLists);
+    const isPolicyUpdateEmpty = isEmptyObject(policyUpdate);
+    const isPolicyTagsUpdateEmpty = isEmptyObject(policyTagsUpdate);
+    const isPolicyCategoriesUpdateEmpty = isEmptyObject(policyCategoriesUpdate);
 
-    getAllPolicyReports(policyID).forEach((report) => {
-        const isReportAnInvoice = isInvoiceReport(report);
-        if (!report?.reportID || isReportAnInvoice) {
-            return;
+    // If there are no updates to policy, categories or tags, return early
+    if (isPolicyUpdateEmpty && isPolicyTagsUpdateEmpty && isPolicyCategoriesUpdateEmpty) {
+        return;
+    }
+
+    // Merge the existing policy with the optimistic updates
+    const optimisticPolicy = {...policyData.policy, ...policyUpdate};
+
+    // Merge the existing tagLists with the optimistic updates
+    const optimisticPolicyTagLists = isPolicyTagsUpdateEmpty
+        ? policyData.tags
+        : {
+              ...policyData.tags,
+              ...Object.entries(policyTagsUpdate).reduce<PolicyTagLists>((acc, [tagName, tagUpdate]) => {
+                  acc[tagName] = {
+                      ...(policyData.tags?.[tagName] ?? {}),
+                      ...tagUpdate,
+                      tags: {
+                          ...(policyData.tags?.[tagName]?.tags ?? {}),
+                          ...(tagUpdate?.tags ?? {}),
+                      },
+                  };
+                  return acc;
+              }, {}),
+          };
+
+    // Merge the existing categories with the optimistic updates
+    const optimisticPolicyCategories = isPolicyCategoriesUpdateEmpty
+        ? policyData.categories
+        : {
+              ...policyData.categories,
+              ...Object.entries(policyCategoriesUpdate).reduce<PolicyCategories>((acc, [categoryName, categoryUpdate]) => {
+                  acc[categoryName] = {
+                      ...(policyData.categories?.[categoryName] ?? {}),
+                      ...categoryUpdate,
+                  };
+                  return acc;
+              }, {}),
+          };
+
+    const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, optimisticPolicyTagLists);
+
+    // Iterate through all policy reports to find transactions that need optimistic violations
+    for (const report of policyData.reports) {
+        // Skipping invoice reports since they should not have any category or tag violations
+        if (isInvoiceReport(report)) {
+            continue;
         }
-
-        getReportTransactions(report.reportID).forEach((transaction: Transaction) => {
-            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
-
-            const optimisticTransactionViolations = ViolationsUtils.getViolationsOnyxData(
+        const reportTransactionsAndViolations = policyData.transactionsAndViolations[report.reportID];
+        if (isEmptyObject(reportTransactionsAndViolations)) {
+            continue;
+        }
+        const {transactions, violations} = reportTransactionsAndViolations;
+        for (const transaction of Object.values(transactions)) {
+            const existingViolations = violations[transaction.transactionID];
+            const optimisticViolations = ViolationsUtils.getViolationsOnyxData(
                 transaction,
-                transactionViolations,
+                existingViolations ?? [],
                 optimisticPolicy,
-                policyTagLists,
+                optimisticPolicyTagLists,
                 optimisticPolicyCategories,
                 hasDependentTags,
-                isReportAnInvoice,
+                false,
             );
 
-            if (optimisticTransactionViolations) {
-                onyxData?.optimisticData?.push(optimisticTransactionViolations);
-                onyxData?.failureData?.push({
+            if (!isEmptyObject(optimisticViolations)) {
+                onyxData.optimisticData?.push(optimisticViolations);
+                onyxData.failureData?.push({
                     onyxMethod: Onyx.METHOD.SET,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-                    value: transactionViolations,
+                    value: existingViolations ?? null,
                 });
             }
-        });
-    });
-    return onyxData;
+        }
+    }
 }
 
 /**
