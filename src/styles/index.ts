@@ -5208,7 +5208,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         avatarSelectorWrapper: {
-            margin: 5,
+            margin: 1,
             borderRadius: 50,
             padding: 3,
             borderWidth: 2,

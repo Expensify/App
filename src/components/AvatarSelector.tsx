@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -35,6 +35,13 @@ function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.M
     const StyleUtils = useStyleUtils();
     const [selected, setSelected] = useState(selectedID);
 
+    useEffect(() => {
+        if (selectedID === selected) {
+            return;
+        }
+        setSelected(selectedID);
+    }, [selected, selectedID]);
+
     const handleSelect = (id: keyof typeof ALL_CUSTOM_AVATARS) => {
         setSelected(id);
         onSelect(id);
@@ -43,7 +50,7 @@ function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.M
     return (
         <>
             {!!label && (
-                <View style={[styles.pt5, styles.ph2]}>
+                <View style={[styles.pt3, styles.ph2]}>
                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
                 </View>
             )}
