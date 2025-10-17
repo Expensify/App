@@ -61,7 +61,7 @@ function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2
     }
 
     // Do not allow merging a per diem and a card transaction
-    if ((isPerDiemRequest(transaction1) && isCardTransaction(transaction2)) || (isPerDiemRequest(transaction2) && isCardTransaction(transaction1))) {
+    if ((isPerDiemRequest(transaction1) && isManagedCardTransaction(transaction2)) || (isPerDiemRequest(transaction2) && isManagedCardTransaction(transaction1))) {
         return false;
     }
 
