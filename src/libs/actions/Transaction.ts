@@ -625,10 +625,6 @@ function openDraftDistanceExpense() {
     API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, null, onyxData);
 }
 
-function getRecentWaypoints() {
-    return recentWaypoints;
-}
-
 /**
  * Returns a client generated 16 character hexadecimal value for the transactionID
  */
@@ -1243,7 +1239,6 @@ export {
     setReviewDuplicatesKey,
     abandonReviewDuplicateTransactions,
     openDraftDistanceExpense,
-    getRecentWaypoints,
     sanitizeRecentWaypoints,
     getLastModifiedExpense,
     revert,

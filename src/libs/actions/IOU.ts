@@ -260,7 +260,7 @@ import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from './Policy
 import type {GuidedSetupData} from './Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction, optimisticReportLastData} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
-import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
+import {sanitizeRecentWaypoints} from './Transaction';
 import {removeDraftSplitTransaction, removeDraftTransaction, removeDraftTransactions} from './TransactionEdit';
 import {getOnboardingMessages} from './Welcome/OnboardingFlow';
 
@@ -909,6 +909,15 @@ let recentAttendees: OnyxEntry<Attendee[]>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_RECENT_ATTENDEES,
     callback: (value) => (recentAttendees = value),
+});
+
+// TODO: remove `recentWaypoints` from this file (https://github.com/Expensify/App/issues/71491)
+// `recentWaypoints` was moved here temporarily from `src/libs/actions/Policy/Tag.ts` during the `Deprecate Onyx.connect` refactor.
+// All uses of this variable should be replaced with `useOnyx`.
+let recentWaypoints: OnyxTypes.RecentWaypoint[] = [];
+Onyx.connect({
+    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+    callback: (val) => (recentWaypoints = val ?? []),
 });
 
 /**
@@ -5111,7 +5120,7 @@ function updateMoneyRequestDistance({
     const {params, onyxData} = data;
 
     if (!distance) {
-        const recentServerValidatedWaypoints = getRecentWaypoints().filter((item) => !item.pendingAction);
+        const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
         onyxData?.failureData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
@@ -6347,7 +6356,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
 
-    const recentServerValidatedWaypoints = getRecentWaypoints().filter((item) => !item.pendingAction);
+    const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
     onyxData?.failureData?.push({
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
@@ -8057,7 +8066,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         };
     }
 
-    const recentServerValidatedWaypoints = getRecentWaypoints().filter((item) => !item.pendingAction);
+    const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
     onyxData?.failureData?.push({
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
