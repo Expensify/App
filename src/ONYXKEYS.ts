@@ -598,6 +598,7 @@ const ONYXKEYS = {
 
     /** Collection Keys */
     COLLECTION: {
+        DOMAIN: 'domain_',
         DOWNLOAD: 'download_',
         POLICY: 'policy_',
         POLICY_DRAFTS: 'policyDrafts_',
