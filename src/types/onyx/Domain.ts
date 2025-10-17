@@ -23,4 +23,3 @@ type Domain = {
 };
 
 export default Domain;
-
