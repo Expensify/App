@@ -620,7 +620,7 @@ function getRootTitleSegment(key: string, queryJSON: SearchQueryJSON, policies: 
 function getFilterTitleSegment(
     key: string,
     filters: QueryFilter[],
-    PersonalDetails: OnyxTypes.PersonalDetailsList | undefined,
+    personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     reports: OnyxCollection<OnyxTypes.Report>,
     cardList: OnyxTypes.CardList,
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
@@ -633,7 +633,7 @@ function getFilterTitleSegment(
     }
 
     const uniqueFilters = dedupeQueryFilters(filters);
-    const displayFilters = getDisplayQueryFilters(key, uniqueFilters, PersonalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID, taxRates);
+    const displayFilters = getDisplayQueryFilters(key, uniqueFilters, personalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID, taxRates);
     if (!displayFilters.length) {
         return undefined;
     }
