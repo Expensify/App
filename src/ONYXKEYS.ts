@@ -48,7 +48,7 @@ const ONYXKEYS = {
     /** Keeps track if there is modal currently visible or not */
     MODAL: 'modal',
 
-    /** Keeps track if OpenApp failure modal opened */
+    /** Keeps track if OpenApp failure modal is opened */
     IS_OPEN_APP_FAILURE_MODAL_OPEN: 'isOpenAppFailureModalOpen',
 
     /** Stores the PIN for an activated UK/EU Expensify card to be shown once after activation */
