@@ -1831,6 +1831,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.SEARCH.ROOT]: {
                     path: ROUTES.SEARCH_ROOT.route,
                 },
+            },
+        },
+        [NAVIGATORS.SUPER_WIDE_RIGHT_MODAL_NAVIGATOR]: {
+            screens: {
                 [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: {
                     path: ROUTES.SEARCH_MONEY_REQUEST_REPORT.route,
                 },

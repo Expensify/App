@@ -18,7 +18,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import type {SuperWideRightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getFilteredReportActionsForReportView, getIOUActionForTransactionID, getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -32,7 +32,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-type SearchMoneyRequestPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>;
+type SearchMoneyRequestPageProps = PlatformStackScreenProps<SuperWideRightModalNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>;
 
 const defaultReportMetadata = {
     isLoadingInitialReportActions: true,
@@ -155,7 +155,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                     offlineIndicatorStyle={styles.mtAuto}
                     headerGapStyles={[styles.searchHeaderGap, styles.h0]}
                 >
-                    <View style={[styles.searchSplitContainer, styles.flexColumn, styles.flex1]}>
+                    <View style={[styles.flexColumn, styles.flex1]}>
                         <FullPageNotFoundView
                             shouldShow={shouldShowNotFoundPage}
                             subtitleKey="notFound.noAccess"
