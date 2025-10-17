@@ -813,16 +813,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             ),
             data,
         );
-    }, [
-        clearSelectedTransactions,
-        data,
-        validGroupBy,
-        reportActionsArray,
-        selectedTransactions,
-        setSelectedTransactions,
-        outstandingReportsByPolicyID,
-        isExpenseReportType,
-    ]);
+    }, [clearSelectedTransactions, data, validGroupBy, reportActionsArray, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID, isExpenseReportType]);
 
     const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
 
