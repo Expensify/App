@@ -12986,6 +12986,48 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
         });
     });
 
+    // Add snapshot updates if called from the Reports page
+    const currentSearchQueryJSON = getCurrentSearchQueryJSON();
+    if (currentSearchQueryJSON?.hash) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        isActionLoading: true,
+                        errors: null,
+                    },
+                },
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        isActionLoading: false,
+                    },
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        isActionLoading: false,
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+        });
+    }
+
     // Build API parameters
     const parameters: RejectMoneyRequestParams = {
         transactionID,
