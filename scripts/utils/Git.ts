@@ -1,11 +1,36 @@
 import {context} from '@actions/github';
-import {execSync, exec as execWithCallback} from 'child_process';
+import {exec as execWithCallback, execSync as originalExecSync} from 'child_process';
+import type {ExecSyncOptionsWithStringEncoding, ExecOptions as ExecWithCallbackOptions} from 'child_process';
 import {promisify} from 'util';
 import CONST from '@github/libs/CONST';
 import GitHubUtils from '@github/libs/GithubUtils';
 import {log, error as logError, warn as logWarn} from './Logger';
 
-const exec = promisify(execWithCallback);
+type ExecOptions = Omit<ExecWithCallbackOptions, 'encoding'> & {cwd?: ExecWithCallbackOptions['cwd']};
+function exec(command: string, options?: ExecOptions) {
+    const optionsWithEncoding = {
+        ...options,
+        encoding: 'utf8',
+        cwd: process.cwd(),
+    };
+
+    return promisify(execWithCallback)(command, optionsWithEncoding);
+}
+
+type ExecSyncOptions = Omit<ExecSyncOptionsWithStringEncoding, 'encoding' | 'cwd'> & {
+    encoding?: ExecSyncOptionsWithStringEncoding['encoding'];
+    cwd?: ExecSyncOptionsWithStringEncoding['cwd'];
+};
+
+function execSync(command: string, options?: ExecSyncOptions) {
+    const optionsWithEncoding: ExecSyncOptionsWithStringEncoding = {
+        ...options,
+        encoding: 'utf8',
+        cwd: process.cwd(),
+    };
+
+    return originalExecSync(command, optionsWithEncoding);
+}
 
 const IS_CI = process.env.CI === 'true';
 const GITHUB_BASE_REF = process.env.GITHUB_BASE_REF as string | undefined;
@@ -63,8 +88,6 @@ class Git {
     static isValidRef(ref: string): boolean {
         try {
             execSync(`git rev-parse --verify "${ref}^{object}"`, {
-                encoding: 'utf8',
-                cwd: process.cwd(),
                 stdio: 'pipe', // Suppress output
             });
             return true;
@@ -95,10 +118,7 @@ class Git {
         }
 
         // Execute git diff with unified format - let errors bubble up
-        const diffOutput = execSync(command, {
-            encoding: 'utf8',
-            cwd: process.cwd(),
-        });
+        const diffOutput = execSync(command);
 
         return Git.parseDiff(diffOutput);
     }
@@ -280,7 +300,7 @@ class Git {
      */
     static show(ref: string, filePath: string): string {
         try {
-            return execSync(`git show ${ref}:${filePath}`, {encoding: 'utf8'});
+            return execSync(`git show ${ref}:${filePath}`);
         } catch (error) {
             throw new Error(`Failed to get file content from git: ${error instanceof Error ? error.message : String(error)}`);
         }
@@ -300,10 +320,7 @@ class Git {
 
         try {
             log(`🔄 Fetching missing ref: ${ref}`);
-            await exec(`git fetch ${remote} ${ref} --no-tags --depth=1 --quiet`, {
-                encoding: 'utf8',
-                cwd: process.cwd(),
-            });
+            await exec(`git fetch ${remote} ${ref} --no-tags --depth=1 --quiet`);
 
             // Verify the ref is now available
             if (!this.isValidRef(ref)) {
@@ -315,11 +332,11 @@ class Git {
     }
 
     static async getMainBranchCommitHash(remote?: string): Promise<string> {
-        const baseRefName = IS_CI ? (GITHUB_BASE_REF ?? CONST.DEFAULT_BASE_REF) : CONST.DEFAULT_BASE_REF;
+        const baseRefName = GITHUB_BASE_REF ?? CONST.DEFAULT_BASE_REF;
 
         // Fetch the main branch from the specified remote (or locally) to ensure it's available
         if (IS_CI || remote) {
-            await exec(`git fetch ${remote ?? 'origin'} ${baseRefName} --no-tags --depth=1 -q`, {encoding: 'utf8'});
+            await exec(`git fetch ${remote ?? 'origin'} ${baseRefName} --no-tags --depth=1`);
         }
 
         // In CI, use a simpler approach - just use the remote main branch directly
@@ -328,10 +345,7 @@ class Git {
             const mainBaseRef = remote ? `${remote}/${baseRefName}` : `origin/${baseRefName}`;
 
             try {
-                const {stdout: revParseOutput} = await exec(`git rev-parse ${mainBaseRef}`, {
-                    encoding: 'utf8',
-                    cwd: process.cwd(),
-                });
+                const {stdout: revParseOutput} = await exec(`git rev-parse ${mainBaseRef}`);
                 const mergeBaseHash = revParseOutput.trim();
 
                 // Validate the output is a proper SHA hash
@@ -351,20 +365,14 @@ class Git {
         // For local development, try to find the actual merge base
         let mergeBaseHash: string;
         try {
-            const {stdout: mergeBaseOutput} = await exec(`git merge-base ${mainBaseRef} HEAD`, {
-                encoding: 'utf8',
-                cwd: process.cwd(),
-            });
+            const {stdout: mergeBaseOutput} = await exec(`git merge-base ${mainBaseRef} HEAD`);
             mergeBaseHash = mergeBaseOutput.trim();
         } catch {
             logWarn(`Warning: Could not find merge base between ${mainBaseRef} and HEAD.`);
 
             // If merge-base fails locally, fall back to using the remote main branch
             try {
-                const {stdout: revParseOutput} = await exec(`git rev-parse ${mainBaseRef}`, {
-                    encoding: 'utf8',
-                    cwd: process.cwd(),
-                });
+                const {stdout: revParseOutput} = await exec(`git rev-parse ${mainBaseRef}`);
                 mergeBaseHash = revParseOutput.trim();
             } catch (fallbackError) {
                 logError(`Failed to find merge base with ${mainBaseRef}:`, fallbackError);
@@ -387,10 +395,7 @@ class Git {
      */
     static async hasUncommittedChanges(): Promise<boolean> {
         try {
-            const {stdout} = await exec('git status --porcelain', {
-                encoding: 'utf8',
-                cwd: process.cwd(),
-            });
+            const {stdout} = await exec('git status --porcelain');
             const status = stdout.trim();
             return status.length > 0;
         } catch (error) {
