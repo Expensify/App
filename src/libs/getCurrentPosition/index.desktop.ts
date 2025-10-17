@@ -1,8 +1,8 @@
 import type {ValueOf} from 'type-fest';
-import {LOCATION_PERMISSION_STATES} from './locationPermission';
-import type {LocationPermissionState} from './locationPermission';
 import type {GetCurrentPosition} from './getCurrentPosition.types';
 import {GeolocationErrorCode} from './getCurrentPosition.types';
+import type {LocationPermissionState} from './locationPermission';
+import {LOCATION_PERMISSION_STATES} from './locationPermission';
 
 const makeError = (code: ValueOf<typeof GeolocationErrorCode>, message: string) => ({
     code,
@@ -38,12 +38,7 @@ const getCurrentPosition: GetCurrentPosition = (success, error, options) => {
             .invoke('check-location-permission')
             .then((permissionStatus: unknown) => {
                 if (!isLocationPermissionState(permissionStatus)) {
-                    error(
-                        makeError(
-                            GeolocationErrorCode.PERMISSION_DENIED,
-                            'Unable to verify location permissions. Enable location access and try again.',
-                        ),
-                    );
+                    error(makeError(GeolocationErrorCode.PERMISSION_DENIED, 'Unable to verify location permissions. Enable location access and try again.'));
                     return;
                 }
 
