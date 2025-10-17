@@ -356,8 +356,9 @@ function IOURequestStepParticipants({
             Navigation.goBack(backTo);
             return;
         }
-        navigateToStartMoneyRequestStep(iouRequestType, iouType, initialTransactionID, reportID, action);
-    }, [backTo, iouRequestType, iouType, initialTransactionID, reportID, action]);
+        // Reset iouType to CREATE when navigating back to the start of the flow
+        navigateToStartMoneyRequestStep(iouRequestType, CONST.IOU.TYPE.CREATE, initialTransactionID, reportID, action);
+    }, [backTo, iouRequestType, initialTransactionID, reportID, action]);
 
     useEffect(() => {
         const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
