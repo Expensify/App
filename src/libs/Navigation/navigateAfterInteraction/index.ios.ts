@@ -6,7 +6,7 @@ import Navigation from '@libs/Navigation/Navigation';
  * In this case we need to wait for the animation to be complete before executing the navigation
  */
 function navigateAfterInteraction(callback: () => void) {
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         Navigation.setNavigationActionToMicrotaskQueue(callback);
     });
