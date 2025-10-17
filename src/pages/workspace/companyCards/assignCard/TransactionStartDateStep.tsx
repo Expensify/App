@@ -10,26 +10,18 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {setAssignCardStepAndData, setTransactionStartDate} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
 
-type TransactionStartDateStepProps = {
-    policyID: string | undefined;
-    feed: CompanyCardFeed;
-    backTo?: Route;
-};
-
-function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDateStepProps) {
+function TransactionStartDateStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const isEditing = assignCard?.isEditing;
     const data = assignCard?.data;
     const assigneeDisplayName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
