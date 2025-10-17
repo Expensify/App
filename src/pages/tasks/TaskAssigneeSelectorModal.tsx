@@ -1,12 +1,11 @@
 /* eslint-disable es/no-optional-chaining */
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useBetas, useSession} from '@components/OnyxListItemProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
+import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionListWithSections/types';
@@ -14,19 +13,18 @@ import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
 import {canModifyTask, editTaskAssignee, setAssigneeValue} from '@libs/actions/Task';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
-import memoize from '@libs/memoize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {filterAndOrderOptions, getHeaderMessage, getValidOptions, isCurrentUser} from '@libs/OptionsListUtils';
+import {getHeaderMessage, isCurrentUser} from '@libs/OptionsListUtils';
 import {isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
 import type {TaskDetailsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -34,80 +32,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
-
-const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'TaskAssigneeSelectorModal.getValidOptions'});
-
-function useOptions() {
-    const betas = useBetas();
-    const [isLoading, setIsLoading] = useState(true);
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const {options: optionsList, areOptionsInitialized} = useOptionsList();
-    const session = useSession();
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
-
-    const defaultOptions = useMemo(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = memoizedGetValidOptions(
-            {
-                reports: optionsList.reports,
-                personalDetails: optionsList.personalDetails,
-            },
-            draftComments,
-            {
-                betas,
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                includeCurrentUser: true,
-            },
-            countryCode,
-        );
-
-        const headerMessage = getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || !!currentUserOption, !!userToInvite, '');
-
-        if (isLoading) {
-            // eslint-disable-next-line react-compiler/react-compiler
-            setIsLoading(false);
-        }
-
-        return {
-            userToInvite,
-            recentReports,
-            personalDetails,
-            currentUserOption,
-            headerMessage,
-        };
-    }, [optionsList.reports, optionsList.personalDetails, draftComments, betas, isLoading, countryCode]);
-
-    const optionsWithoutCurrentUser = useMemo(() => {
-        if (!session?.accountID) {
-            return defaultOptions;
-        }
-
-        return {
-            ...defaultOptions,
-            personalDetails: defaultOptions.personalDetails.filter((detail) => detail.accountID !== session.accountID),
-            recentReports: defaultOptions.recentReports.filter((report) => report.accountID !== session.accountID),
-        };
-    }, [defaultOptions, session?.accountID]);
-
-    const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(optionsWithoutCurrentUser, debouncedSearchValue.trim(), countryCode, {
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        });
-        const headerMessage = getHeaderMessage(
-            (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0 || !!filteredOptions.currentUserOption,
-            !!filteredOptions.userToInvite,
-            debouncedSearchValue,
-        );
-
-        return {
-            ...filteredOptions,
-            headerMessage,
-        };
-    }, [debouncedSearchValue, optionsWithoutCurrentUser, countryCode]);
-
-    return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
-}
 
 function TaskAssigneeSelectorModal() {
     const styles = useThemeStyles();
@@ -119,7 +43,25 @@ function TaskAssigneeSelectorModal() {
     const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: false});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {userToInvite, recentReports, personalDetails, currentUserOption, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
+
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({
+        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
+        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+        includeUserToInvite: true,
+        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+        includeRecentReports: true,
+        getValidOptionsConfig: {
+            includeCurrentUser: true,
+        },
+    });
+
+    const headerMessage = useMemo(() => {
+        return getHeaderMessage(
+            (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0 || !!availableOptions.currentUserOption,
+            !!availableOptions.userToInvite,
+            searchTerm,
+        );
+    }, [availableOptions, searchTerm]);
 
     const report: OnyxEntry<Report> = useMemo(() => {
         if (!route.params?.reportID) {
@@ -137,30 +79,30 @@ function TaskAssigneeSelectorModal() {
     const sections = useMemo(() => {
         const sectionsList = [];
 
-        if (currentUserOption) {
+        if (availableOptions.currentUserOption) {
             sectionsList.push({
                 title: translate('newTaskPage.assignMe'),
-                data: [currentUserOption],
+                data: [availableOptions.currentUserOption],
                 shouldShow: true,
             });
         }
 
         sectionsList.push({
             title: translate('common.recents'),
-            data: recentReports,
-            shouldShow: recentReports?.length > 0,
+            data: availableOptions.recentReports,
+            shouldShow: availableOptions.recentReports?.length > 0,
         });
 
         sectionsList.push({
             title: translate('common.contacts'),
-            data: personalDetails,
-            shouldShow: personalDetails?.length > 0,
+            data: availableOptions.personalDetails,
+            shouldShow: availableOptions.personalDetails?.length > 0,
         });
 
-        if (userToInvite) {
+        if (availableOptions.userToInvite) {
             sectionsList.push({
                 title: '',
-                data: [userToInvite],
+                data: [availableOptions.userToInvite],
                 shouldShow: true,
             });
         }
@@ -177,7 +119,7 @@ function TaskAssigneeSelectorModal() {
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
             })),
         }));
-    }, [currentUserOption, personalDetails, recentReports, translate, userToInvite]);
+    }, [availableOptions, translate]);
 
     const selectReport = useCallback(
         (option: ListItem) => {
@@ -229,8 +171,8 @@ function TaskAssigneeSelectorModal() {
     const isTaskNonEditable = isTaskReport(report) && (!isTaskModifiable || !isOpen);
 
     useEffect(() => {
-        searchInServer(debouncedSearchValue);
-    }, [debouncedSearchValue]);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     return (
         <ScreenWrapper
@@ -248,8 +190,8 @@ function TaskAssigneeSelectorModal() {
                         ListItem={UserListItem}
                         onSelectRow={selectReport}
                         shouldSingleExecuteRowSelect
-                        onChangeText={setSearchValue}
-                        textInputValue={searchValue}
+                        onChangeText={setSearchTerm}
+                        textInputValue={searchTerm}
                         headerMessage={headerMessage}
                         textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                         showLoadingPlaceholder={!areOptionsInitialized}
