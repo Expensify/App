@@ -172,6 +172,106 @@ const report5 = {
     unheldTotal: 0,
 } as const;
 
+const reportAction1 = {
+    accountID: adminAccountID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+    created: '2024-12-21 13:05:21',
+    message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+    reportActionID: '11111111',
+    originalMessage: {
+        IOUTransactionID: transactionID,
+        IOUReportID: report1.reportID,
+    },
+    reportID: report1.reportID,
+    reportName: report1.reportName,
+};
+
+const reportAction2 = {
+    accountID: adminAccountID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+    created: '2024-12-21 13:05:22',
+    message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+    reportActionID: '22222222',
+    originalMessage: {
+        IOUTransactionID: transactionID2,
+        IOUReportID: report2.reportID,
+    },
+    reportID: report2.reportID,
+    reportName: report2.reportName,
+};
+
+const reportAction3 = {
+    accountID: adminAccountID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+    created: '2024-12-21 13:05:23',
+    message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+    reportActionID: '33333333',
+    originalMessage: {
+        IOUTransactionID: transactionID3,
+        IOUReportID: report3.reportID,
+    },
+    reportID: report3.reportID,
+    reportName: report3.reportName,
+};
+
+const reportAction4 = {
+    accountID: adminAccountID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+    created: '2024-12-21 13:05:24',
+    message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+    reportActionID: '44444444',
+    originalMessage: {
+        IOUTransactionID: transactionID4,
+        IOUReportID: report3.reportID,
+    },
+    reportID: report3.reportID,
+    reportName: report3.reportName,
+};
+
+const policy = {
+    id: 'Admin',
+    approvalMode: 'ADVANCED',
+    autoReimbursement: {
+        limit: 0,
+    },
+    autoReimbursementLimit: 0,
+    autoReporting: true,
+    autoReportingFrequency: 'immediate',
+    harvesting: {
+        enabled: false,
+    },
+    preventSelfApproval: false,
+    owner: adminEmail,
+    reimbursementChoice: 'reimburseManual',
+    role: 'admin',
+    type: 'team',
+    employeeList: {
+        [adminEmail]: {
+            email: adminEmail,
+            role: CONST.POLICY.ROLE.ADMIN,
+            forwardsTo: '',
+            submitsTo: approverEmail,
+        },
+        [approverEmail]: {
+            email: approverEmail,
+            role: CONST.POLICY.ROLE.USER,
+            approvalLimit: 100,
+            submitsTo: adminEmail,
+            overLimitForwardsTo: overlimitApproverEmail,
+        },
+        [overlimitApproverEmail]: {
+            email: overlimitApproverEmail,
+            role: CONST.POLICY.ROLE.ADMIN,
+            submitsTo: approverEmail,
+        },
+        [submitterEmail]: {
+            email: submitterEmail,
+            role: CONST.POLICY.ROLE.USER,
+            submitsTo: adminEmail,
+        },
+    },
+} as const;
+
 const allViolations = {
     [`transactionViolations_${transactionID2}`]: [
         {
@@ -210,50 +310,9 @@ const searchResults: OnyxTypes.SearchResults = {
                 login: submitterEmail,
             },
         },
-        [`policy_${policyID}`]: {
-            id: 'Admin',
-            approvalMode: 'ADVANCED',
-            autoReimbursement: {
-                limit: 0,
-            },
-            autoReimbursementLimit: 0,
-            autoReporting: true,
-            autoReportingFrequency: 'immediate',
-            harvesting: {
-                enabled: false,
-            },
-            preventSelfApproval: false,
-            owner: adminEmail,
-            reimbursementChoice: 'reimburseManual',
-            role: 'admin',
-            type: 'team',
-            employeeList: {
-                [adminEmail]: {
-                    email: adminEmail,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    forwardsTo: '',
-                    submitsTo: approverEmail,
-                },
-                [approverEmail]: {
-                    email: approverEmail,
-                    role: CONST.POLICY.ROLE.USER,
-                    approvalLimit: 100,
-                    submitsTo: adminEmail,
-                    overLimitForwardsTo: overlimitApproverEmail,
-                },
-                [overlimitApproverEmail]: {
-                    email: overlimitApproverEmail,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    submitsTo: approverEmail,
-                },
-                [submitterEmail]: {
-                    email: submitterEmail,
-                    role: CONST.POLICY.ROLE.USER,
-                    submitsTo: adminEmail,
-                },
-            },
-        },
+        [`policy_${policyID}`]: policy,
         [`reportActions_${reportID}`]: {
+            [reportAction1.reportActionID]: reportAction1,
             test: {
                 accountID: adminAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -296,6 +355,13 @@ const searchResults: OnyxTypes.SearchResults = {
                 reportID,
                 reportName: 'Admin1',
             },
+        },
+        [`reportActions_${reportID2}`]: {
+            [reportAction2.reportActionID]: reportAction2,
+        },
+        [`reportActions_${reportID3}`]: {
+            [reportAction3.reportActionID]: reportAction3,
+            [reportAction4.reportActionID]: reportAction4,
         },
         [`report_${reportID}`]: report1,
         [`report_${reportID2}`]: report2,
@@ -470,7 +536,7 @@ const searchResults: OnyxTypes.SearchResults = {
             reportID: reportID3,
             reportType: 'iou',
             tag: '',
-            transactionID: transactionID3,
+            transactionID: transactionID4,
             transactionThreadReportID: '1014872441234902',
             transactionType: 'cash',
             description: '',
@@ -627,6 +693,23 @@ const searchResultsGroupByWithdrawalID: OnyxTypes.SearchResults = {
 
 const reportActionListItems = [
     {
+        ...reportAction1,
+        date: '2024-12-21 13:05:21',
+        formattedFrom: 'Admin',
+        from: {
+            accountID: 18439984,
+            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+            displayName: 'Admin',
+            login: adminEmail,
+        },
+        keyForList: reportAction1.reportActionID,
+        originalMessage: {
+            IOUReportID: report1.reportID,
+            IOUTransactionID: transactionID,
+        },
+        message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+    },
+    {
         accountID: 18439984,
         actionName: 'ADDCOMMENT',
         created: '2024-12-21 13:05:20',
@@ -656,6 +739,59 @@ const reportActionListItems = [
         reportID: '123456789',
         reportName: 'Expense Report #123',
     },
+    {
+        ...reportAction2,
+        date: '2024-12-21 13:05:22',
+        formattedFrom: 'Admin',
+        from: {
+            accountID: 18439984,
+            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+            displayName: 'Admin',
+            login: adminEmail,
+        },
+        keyForList: reportAction2.reportActionID,
+        originalMessage: {
+            IOUReportID: report2.reportID,
+            IOUTransactionID: transactionID2,
+        },
+        message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+    },
+    {
+        ...reportAction3,
+        date: '2024-12-21 13:05:23',
+        formattedFrom: 'Admin',
+        from: {
+            accountID: 18439984,
+            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+            displayName: 'Admin',
+            login: adminEmail,
+        },
+        keyForList: reportAction3.reportActionID,
+        originalMessage: {
+            IOUReportID: report3.reportID,
+            IOUTransactionID: transactionID3,
+        },
+        message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+        reportName: 'owes ₫44.00',
+    },
+    {
+        ...reportAction4,
+        date: '2024-12-21 13:05:24',
+        formattedFrom: 'Admin',
+        from: {
+            accountID: 18439984,
+            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+            displayName: 'Admin',
+            login: adminEmail,
+        },
+        keyForList: reportAction4.reportActionID,
+        originalMessage: {
+            IOUReportID: report3.reportID,
+            IOUTransactionID: transactionID4,
+        },
+        message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
+        reportName: 'owes ₫44.00',
+    },
 ] as ReportActionListItemType[];
 
 const transactionsListItems = [
@@ -665,6 +801,8 @@ const transactionsListItems = [
         allActions: ['submit'],
         amount: -5000,
         report: report1,
+        policy,
+        reportAction: reportAction1,
         canDelete: true,
         canHold: true,
         canUnhold: false,
@@ -733,6 +871,8 @@ const transactionsListItems = [
         allActions: ['review', 'approve'],
         amount: -5000,
         report: report2,
+        policy,
+        reportAction: reportAction2,
         canDelete: true,
         canHold: true,
         canUnhold: false,
@@ -806,6 +946,8 @@ const transactionsListItems = [
         action: 'view',
         allActions: ['view'],
         report: report3,
+        policy,
+        reportAction: reportAction3,
         canDelete: true,
         canHold: true,
         canUnhold: false,
@@ -874,6 +1016,8 @@ const transactionsListItems = [
         action: 'view',
         allActions: ['view'],
         report: report3,
+        policy,
+        reportAction: reportAction4,
         canDelete: true,
         canHold: true,
         canUnhold: false,
@@ -896,7 +1040,7 @@ const transactionsListItems = [
         reportID: '99999',
         reportType: 'iou',
         tag: '',
-        transactionID: '3',
+        transactionID: '4',
         transactionThreadReportID: '1014872441234902',
         transactionType: 'cash',
         from: {
@@ -918,7 +1062,7 @@ const transactionsListItems = [
         date: '2025-03-05',
         shouldShowMerchant: true,
         shouldShowYear: true,
-        keyForList: '3',
+        keyForList: '4',
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         receipt: undefined,
@@ -978,6 +1122,8 @@ const transactionReportGroupListItems = [
                 action: 'submit',
                 allActions: ['submit'],
                 report: report1,
+                policy,
+                reportAction: reportAction1,
                 amount: -5000,
                 canDelete: true,
                 canHold: true,
@@ -1084,6 +1230,8 @@ const transactionReportGroupListItems = [
                 action: 'review',
                 allActions: ['review', 'approve'],
                 report: report2,
+                policy,
+                reportAction: reportAction2,
                 amount: -5000,
                 canDelete: true,
                 canHold: true,
@@ -1714,7 +1862,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 57;
+            const expectedPropertyCount = 59;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1748,7 +1896,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 57;
+            const expectedPropertyCount = 59;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1829,38 +1977,16 @@ describe('SearchUIUtils', () => {
 
     describe('Test getSortedSections', () => {
         it('should return getSortedReportActionData result when type is CHAT', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.EXPENSE.ALL, reportActionListItems, localeCompare)).toStrictEqual([
-                {
-                    accountID: 18439984,
-                    actionName: 'ADDCOMMENT',
-                    created: '2024-12-21 13:05:20',
-                    date: '2024-12-21 13:05:20',
-                    formattedFrom: 'Admin',
-                    from: {
-                        accountID: 18439984,
-                        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                        displayName: 'Admin',
-                        login: adminEmail,
-                    },
-                    keyForList: 'Admin',
-                    message: [
-                        {
-                            html: '<p>Payment has been processed.</p>',
-                            text: 'Payment has been processed.',
-                            type: 'text',
-                            whisperedTo: [],
-                        },
-                        {
-                            html: '<p>Please review this expense.</p>',
-                            text: 'Please review this expense.',
-                            type: 'comment',
-                        },
-                    ],
-                    reportActionID: 'Admin',
-                    reportID: '123456789',
-                    reportName: 'Expense Report #123',
-                },
-            ]);
+            const sortedActions = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.CHAT,
+                CONST.SEARCH.STATUS.EXPENSE.ALL,
+                reportActionListItems,
+                localeCompare,
+            ) as ReportActionListItemType[];
+            // Should return all report actions sorted by creation date in descending order (newest first)
+            expect(sortedActions).toHaveLength(5);
+            expect(sortedActions.at(0)?.created).toBe('2024-12-21 13:05:24'); // reportAction4 (newest)
+            expect(sortedActions.at(4)?.created).toBe('2024-12-21 13:05:20'); // ADDCOMMENT action (oldest)
         });
 
         it('should return getSortedTransactionData result when groupBy is undefined', () => {
