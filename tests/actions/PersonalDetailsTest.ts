@@ -634,7 +634,7 @@ describe('actions/PersonalDetails', () => {
                 avatar: 'current-avatar.jpg',
                 fallbackIcon: 'fallback-icon.jpg',
                 accountID: 123,
-                email: 'test@test.te'
+                email: 'test@test.te',
             };
             const expectedDefaultAvatar = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';
 
