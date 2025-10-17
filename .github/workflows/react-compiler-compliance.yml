@@ -15,7 +15,6 @@ jobs:
     name: React Compiler Compliance
     if: ${{ github.actor != 'OSBotify' }}
     runs-on: ubuntu-latest
-
     steps:
       # v4
       - name: Checkout
