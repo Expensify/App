@@ -747,7 +747,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     spellCheck={false}
                     iconLeft={textInputIconLeft}
                     onSubmitEditing={selectFocusedOption}
-                    blurOnSubmit={!!flattenedSections.allOptions.length}
+                    submitBehavior={flattenedSections.allOptions.length ? 'blurAndSubmit' : 'submit'}
                     isLoading={isLoadingNewOptions}
                     testID="selection-list-text-input"
                     shouldInterceptSwipe={shouldTextInputInterceptSwipe}
