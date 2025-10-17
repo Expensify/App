@@ -12,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
 import useWorkspaceList from '@hooks/useWorkspaceList';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SetDefaultWorkspaceNavigatorParamList} from '@libs/Navigation/types';
@@ -37,7 +38,11 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
     const session = useSession();
 
     const selectPolicy = (selectedPolicyID?: string) => {
-        if (!selectedPolicyID || !navigateTo) {
+        if (!selectedPolicyID) {
+            return;
+        }
+        if (!navigateTo) {
+            Log.hmmm(`[SeDefaultWorkspacePage] navigateTo is undefined. Cannot navigate after setting default workspace to ${selectedPolicyID}`);
             return;
         }
         // eslint-disable-next-line rulesdir/no-default-id-values
