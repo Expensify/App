@@ -140,6 +140,7 @@ function translate<TPath extends TranslationPaths>(locale: Locale | undefined, p
 
 /**
  * Uses the locale in this file updated by the Onyx subscriber.
+ * @deprecated for the same reason as Onyx.connect. Use useLocalize instead.
  */
 function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parameters: TranslationParameters<TPath>) {
     const currentLocale = IntlStore.getCurrentLocale();
