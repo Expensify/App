@@ -5066,10 +5066,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
         },
 
-        noTextDecorationLine: {
-            textDecorationLine: 'none',
-        },
-
         emptyStateForeground: {
             margin: 32,
             justifyContent: 'center',
