@@ -64,14 +64,19 @@ type SelectionListProps<TItem extends ListItem> = {
     /** Array of selected item keys */
     selectedItems?: readonly string[];
 
-    /** Styles to apply to the list */
-    listStyle?: StyleProp<ViewStyle>;
+    style?: {
+        /** Styles to apply to the list */
+        listStyle?: StyleProp<ViewStyle>;
 
-    /** Styles applied for the title of the list item */
-    listItemTitleStyles?: StyleProp<TextStyle>;
+        /** Styles applied for the title of the list item */
+        listItemTitleStyles?: StyleProp<TextStyle>;
 
-    /** Styles for the list item wrapper */
-    listItemWrapperStyle?: StyleProp<ViewStyle>;
+        /** Styles for the list item wrapper */
+        listItemWrapperStyle?: StyleProp<ViewStyle>;
+
+        /** Styles to apply to the list container */
+        containerStyle?: StyleProp<ViewStyle>;
+    };
 
     /** Function that determines if an item is selected */
     isSelected?: (item: TItem) => boolean;
