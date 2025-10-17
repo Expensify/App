@@ -261,6 +261,7 @@ function MoneyRequestParticipantsSelector({
                 !!chatOptions?.userToInvite,
                 debouncedSearchTerm.trim(),
                 participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
+                countryCode,
             ),
         [
             chatOptions.personalDetails,
@@ -271,6 +272,7 @@ function MoneyRequestParticipantsSelector({
             cleanSearchTerm,
             debouncedSearchTerm,
             participants,
+            countryCode,
         ],
     );
     /**
