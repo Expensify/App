@@ -52,6 +52,7 @@ function ImportedMultiLevelTagsPage({route}: ImportedMultiLevelTagsPageProps) {
         <ScreenWrapper
             testID={ImportedMultiLevelTagsPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('workspace.tags.importTags')}
