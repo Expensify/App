@@ -4,9 +4,21 @@ The Red Brick Road (RBR) and Green Brick Road (GBR) are each a method to direct 
 ## Terminology
 - **Brick Road**: The Brick Road is named after the Yellow Brick Road from the popular movie The Wizard of Oz. In the Wizard of Oz, Dorothy must follow the Yellow Brick Road in order to reach the Emerald City, similar to how the Brick Roads in Expensify lead the user down a certain path to reach the final destination of a resolution.
 - **Red Brick Road**: The Red Brick Road (RBR) is the red dot that shows up under certain conditions that will lead the user down a path of errors or violations to fix.
-    - **The UI Pattern**: The Red Brick Road will show up in the UI as a red dot next to an inbox item, expense, report or other specific menu item.
+    - **The UI Pattern**:
+        - The Red Brick Road will show up in the UI as a red dot next to an inbox item, expense, report or other specific menu item.
+        - The goal is to bring the user to some kind of action.
+        - With the RBR, it usually ends at some kind of error with instructions on how to fix it.
+        - The dots (or indicators) should be present on the navigation items (eg. links, buttons) that the user needs to click on to take them to where the action item will be.
+The dots (or indicators) should be present on the navigation items (eg. links, buttons) that the user needs to click on to take them to where the action item will be
 - **Green Brick Road**: The Green Brick Road (GBR) is the red dot that shows up under certain conditions that will lead the user down a path of errors or violations to fix.
-    - **The UI Pattern**: The Green Brick Road will show up in the UI as a green dot next to an inbox item, expense, report, or other specific menu item.
+    - **The UI Pattern**:
+        - The Green Brick Road will show up in the UI as a green dot next to an inbox item, expense, report, or other specific menu item.
+        - The goal is to bring the user to some kind of action.
+        - With GBR, it's usually a big green button to signal they made it to the end of the road.
+        - The dots (or indicators) should be present on the navigation items (eg. links, buttons) that the user needs to click on to take them to where the action item will be.
+- **Both Brick Roads**
+    - **The UI Pattern**:
+        - For both Brick Roads, it MUST take the user to something that is actionable. If there is nothing the user can do to resolve the brick road, then the brick road should not exist.- 
 
 ## Green Brick Road (GBR)
 This section is broken down into the rules and examples for each section where the Green Brick Road will appear.
@@ -57,4 +69,8 @@ Examples:
 ### Account
 Examples:
 - A third party card assigned to a user has a broken connection
+
+### Other
+Examples:
+- There is an error that occurred from an action the user took while they were offline
 
