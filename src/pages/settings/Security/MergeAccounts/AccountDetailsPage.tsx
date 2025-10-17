@@ -72,7 +72,6 @@ function AccountDetailsPage() {
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS>>();
     const [email, setEmail] = useState(params?.email ?? '');
     const {inputCallbackRef} = useAutoFocusInput();
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
     const validateCodeSent = getValidateCodeForAccountMerge?.validateCodeSent;
     const latestError = getLatestErrorMessage(getValidateCodeForAccountMerge);
     const errorKey = getValidateCodeErrorKey(latestError);
@@ -145,7 +144,7 @@ function AccountDetailsPage() {
         } else if (login.trim() === userEmailOrPhone) {
             addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('common.error.email'));
         } else {
-            const phoneLogin = getPhoneLogin(login, countryCode);
+            const phoneLogin = getPhoneLogin(login);
             const validateIfNumber = validateNumber(phoneLogin);
 
             if (!Str.isValidEmail(login) && !validateIfNumber) {
