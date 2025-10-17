@@ -57,7 +57,7 @@ function useOptions() {
             countryCode,
         );
 
-        const headerMessage = getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0, !!userToInvite, '');
+        const headerMessage = getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0, !!userToInvite, '', false, countryCode);
 
         if (isLoading) {
             // eslint-disable-next-line react-compiler/react-compiler
