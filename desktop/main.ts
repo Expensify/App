@@ -64,20 +64,12 @@ const loadMacGetAuthStatus = async (): Promise<MacGetAuthStatus | undefined> => 
         if (process.platform !== 'darwin') {
             macGetAuthStatusPromise = Promise.resolve<MacGetAuthStatus | undefined>(undefined);
         } else {
-            macGetAuthStatusPromise = import('node-mac-permissions')
-                .then((module) => {
-                    const resolvedModule: MacPermissionsModule = ('default' in module ? module.default : module) ?? {};
-                    if (typeof resolvedModule.getAuthStatus !== 'function') {
-                        logMacPermissionsWarningOnce('node-mac-permissions does not expose getAuthStatus, defaulting to denied');
-                        return undefined;
-                    }
-
-                    return resolvedModule.getAuthStatus;
-                })
-                .catch((error: unknown) => {
-                    logMacPermissionsWarningOnce('node-mac-permissions not available, defaulting to denied:', error);
-                    return undefined;
-                });
+            try {
+                macGetAuthStatusPromise = Promise.resolve(((await import('node-mac-permissions')) as MacPermissionsModule).getAuthStatus);
+            } catch (error: unknown) {
+                logMacPermissionsWarningOnce('node-mac-permissions not available, defaulting to denied:', error);
+                return undefined;
+            }
         }
     }
 
