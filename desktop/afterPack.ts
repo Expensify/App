@@ -4,15 +4,15 @@ import path from 'node:path';
 
 const getAssetSuffix = () => {
     if (process.env.ELECTRON_ENV === 'adhoc') {
-        return '-adhoc';
+        return 'Adhoc';
     }
 
     if (process.env.ELECTRON_ENV === 'development') {
-        return '-dev';
+        return 'Dev';
     }
 
     if (process.env.ELECTRON_ENV === 'staging') {
-        return '-staging';
+        return 'Staging';
     }
 
     return '';
