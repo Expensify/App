@@ -117,11 +117,12 @@ function ParentNavigationSubtitle({
     };
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1, styles.mnw0]}>
             {!!statusText && (
                 <View
                     style={[
                         styles.reportStatusContainer,
+                        styles.flexShrink0,
                         styles.mr1,
                         {
                             backgroundColor: statusTextBackgroundColor,
@@ -132,7 +133,7 @@ function ParentNavigationSubtitle({
                 </View>
             )}
             <Text
-                style={[styles.optionAlternateText, styles.textLabelSupporting, styles.flex1]}
+                style={[styles.optionAlternateText, styles.textLabelSupporting, styles.flexShrink1, styles.mnw0]}
                 numberOfLines={1}
             >
                 {!!reportName && (
