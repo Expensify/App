@@ -319,7 +319,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isChatIOUReportArchived,
                 );
             } else {
-                console.log('delete Money request');
                 deleteMoneyRequest(
                     originalMessage?.IOUTransactionID,
                     reportAction,
