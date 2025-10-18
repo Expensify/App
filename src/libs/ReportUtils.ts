@@ -9354,6 +9354,15 @@ function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | str
     return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+function getMoneyRequestReportPendingAction(reportOrID: OnyxEntry<Report> | string): PendingAction | undefined {
+    const report = typeof reportOrID === 'string' ? getReport(reportOrID, allReports) : reportOrID;
+    if (!isMoneyRequestReport(report)) {
+        return undefined;
+    }
+    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    return parentReportAction?.pendingAction;
+}
+
 function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: boolean, canUserPerformWrite: boolean | undefined, isOffline: boolean) {
     if (isInNarrowPaneModal) {
         Navigation.navigate(
@@ -12251,6 +12260,7 @@ export {
     isMoneyRequest,
     isMoneyRequestReport,
     isMoneyRequestReportPendingDeletion,
+    getMoneyRequestReportPendingAction,
     isOneOnOneChat,
     isOneTransactionThread,
     isOpenExpenseReport,
