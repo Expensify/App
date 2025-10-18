@@ -14,7 +14,7 @@ import RenderHTML from './RenderHTML';
 
 type MoneyReportHeaderStatusBarProps = {
     /** The next step for the report */
-    nextStep: ReportNextStep;
+    nextStep: ReportNextStep | undefined;
 };
 
 type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS>;
@@ -29,9 +29,9 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
     const styles = useThemeStyles();
     const theme = useTheme();
     const messageContent = useMemo(() => {
-        const messageArray = nextStep.message;
+        const messageArray = nextStep?.message;
         return NextStepUtils.parseMessage(messageArray);
-    }, [nextStep.message]);
+    }, [nextStep?.message]);
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
