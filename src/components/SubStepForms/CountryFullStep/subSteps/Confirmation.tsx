@@ -36,10 +36,14 @@ function Confirmation({onNext, policyID, isComingFromExpensifyCard}: Confirmatio
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const [selectedCountry, setSelectedCountry] = useState<string>('');
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const isConnectedToPolicy = !!policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const currency = policy?.outputCurrency ?? '';
+
+    // TODO: change this after introducing Global Reimbursements
+    const currency = !isConnectedToPolicy ? CONST.CURRENCY.USD : (reimbursementAccountDraft?.currency ?? policy?.outputCurrency ?? '');
 
     const shouldAllowChange = currency === CONST.CURRENCY.EUR;
     const defaultCountries = shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES;
@@ -47,8 +51,8 @@ function Confirmation({onNext, policyID, isComingFromExpensifyCard}: Confirmatio
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID) && isComingFromExpensifyCard;
     const countriesSupportedForExpensifyCard = getAvailableEuCountries();
 
-    const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
-    const [selectedCountry, setSelectedCountry] = useState<string>(countryDefaultValue);
+    // TODO: change this after introducing Global Reimbursements
+    const countryDefaultValue = !isConnectedToPolicy ? CONST.COUNTRY.US : (reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '');
 
     const disableSubmit = !(currency in CONST.CURRENCY);
 
@@ -99,18 +103,20 @@ function Confirmation({onNext, policyID, isComingFromExpensifyCard}: Confirmatio
                 title={currency}
                 interactive={false}
             />
-            <View style={styles.ph5}>
-                <Text style={[styles.mb3, styles.mutedTextLabel]}>
-                    {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
-                    <TextLink
-                        style={[styles.label]}
-                        onPress={handleSettingsPress}
-                    >
-                        {translate('common.settings').toLowerCase()}
-                    </TextLink>
-                    .
-                </Text>
-            </View>
+            {!!policyID && (
+                <View style={styles.ph5}>
+                    <Text style={[styles.mb3, styles.mutedTextLabel]}>
+                        {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
+                        <TextLink
+                            style={[styles.label]}
+                            onPress={handleSettingsPress}
+                        >
+                            {translate('common.settings').toLowerCase()}
+                        </TextLink>
+                        .
+                    </Text>
+                </View>
+            )}
             <InputWrapper
                 InputComponent={PushRowWithModal}
                 optionsList={isUkEuCurrencySupported ? countriesSupportedForExpensifyCard : defaultCountries}
@@ -119,7 +125,7 @@ function Confirmation({onNext, policyID, isComingFromExpensifyCard}: Confirmatio
                 modalHeaderTitle={translate('countryStep.selectCountry')}
                 searchInputTitle={translate('countryStep.findCountry')}
                 shouldAllowChange={shouldAllowChange}
-                value={selectedCountry}
+                value={selectedCountry || countryDefaultValue}
                 inputID={COUNTRY}
                 shouldSaveDraft={false}
             />
