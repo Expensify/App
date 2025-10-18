@@ -2115,6 +2115,7 @@ ${amount} per ${merchant} - ${date}`,
     workflowsExpensesFromPage: {
         title: 'Spese da',
         header: 'Quando i seguenti membri inviano spese:',
+        notAllowedError: "I flussi di lavoro con gli stessi mittenti del flusso di lavoro predefinito devono avere lo stesso approvatore. Aggiorna l'approvatore per abbinarlo.",
     },
     workflowsApproverPage: {
         genericErrorMessage: "L'approvatore non può essere modificato. Per favore riprova o contatta il supporto.",

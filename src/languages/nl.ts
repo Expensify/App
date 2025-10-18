@@ -2115,6 +2115,7 @@ ${amount} voor ${merchant} - ${date}`,
     workflowsExpensesFromPage: {
         title: 'Uitgaven van',
         header: 'Wanneer de volgende leden onkosten indienen:',
+        notAllowedError: 'Workflows met dezelfde indieners als de standaardworkflow moeten dezelfde goedkeurder hebben. Werk de goedkeurder bij om deze overeen te laten komen.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'De goedkeurder kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met de ondersteuning.',

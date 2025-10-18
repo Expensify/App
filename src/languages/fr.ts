@@ -2123,6 +2123,7 @@ ${amount} pour ${merchant} - ${date}`,
     workflowsExpensesFromPage: {
         title: 'Dépenses de',
         header: 'Lorsque les membres suivants soumettent des dépenses :',
+        notAllowedError: "Les workflows avec les mêmes expéditeurs que le workflow par défaut doivent avoir le même approbateur. Veuillez mettre à jour l'approbateur pour correspondre.",
     },
     workflowsApproverPage: {
         genericErrorMessage: "L'approbateur n'a pas pu être modifié. Veuillez réessayer ou contacter le support.",
