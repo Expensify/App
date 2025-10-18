@@ -14,7 +14,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {isReceiptError} from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -96,7 +96,7 @@ function MoneyRequestReceiptView({
 }: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const parentReportID = report?.parentReportID;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
@@ -107,7 +107,6 @@ function MoneyRequestReceiptView({
     });
 
     const [isLoading, setIsLoading] = useState(true);
-
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const isTrackExpense = isTrackExpenseReport(report);
     const moneyRequestReport = parentReport;
@@ -187,11 +186,16 @@ function MoneyRequestReceiptView({
         !isTransactionScanning && (hasReceipt || !!receiptRequiredViolation || !!customRulesViolation) && !!(receiptViolations.length || didReceiptScanSucceed) && isPaidGroupPolicy(report);
     const shouldShowReceiptAudit = !isInvoice && (shouldShowReceiptEmptyState || hasReceipt);
 
-    const errors = {
-        ...(transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors),
-        ...parentReportAction?.errors,
-    };
-
+    const errorsWithoutReportCreation = useMemo(
+        () => ({
+            ...(transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors),
+            ...parentReportAction?.errors,
+        }),
+        [transaction, parentReportAction],
+    );
+    const reportCreationError = useMemo(() => (getCreationReportErrors(report) ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : {}), [report]);
+    const hasOnlyReportCreationError = useMemo(() => isEmptyObject(errorsWithoutReportCreation) && !isEmptyObject(reportCreationError), [errorsWithoutReportCreation, reportCreationError]);
+    const errors = useMemo(() => ({...errorsWithoutReportCreation, ...reportCreationError}), [errorsWithoutReportCreation, reportCreationError]);
     const showReceiptErrorWithEmptyState = shouldShowReceiptEmptyState && !hasReceipt && !isEmptyObject(errors);
 
     const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
@@ -216,6 +220,13 @@ function MoneyRequestReceiptView({
             }
             clearError(linkedTransactionID);
             clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
+            return;
+        }
+        if (hasOnlyReportCreationError) {
+            if (isInNarrowPaneModal) {
+                Navigation.goBack();
+            }
+            navigateToConciergeChatAndDeleteReport(report.reportID, true, true);
             return;
         }
         revert(transaction, getLastModifiedExpense(report?.reportID));
