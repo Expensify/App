@@ -16,6 +16,7 @@ import React from 'react';
  */
 const mapChildrenFlat = <T, C>(element: C, fn: (child: C, index: number) => T) => {
     if (typeof element === 'function') {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         return element(false) as C;
     }
 

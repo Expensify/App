@@ -20,11 +20,11 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 import Navigation from '@libs/Navigation/Navigation';
 import {isDefaultAvatar} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {deleteAvatar, openPublicProfilePage, updateAvatar} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type ErrorData = {
     validationError?: TranslationPaths | null | '';

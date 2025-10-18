@@ -1,6 +1,6 @@
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {splitExtensionFromFileName, validateImageForCorruption} from './fileDownload/FileUtils';
 import getImageResolution from './fileDownload/getImageResolution';
 
