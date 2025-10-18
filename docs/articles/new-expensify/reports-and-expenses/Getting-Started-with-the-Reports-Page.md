@@ -136,7 +136,7 @@ Smart suggestions recommend the next best action—like submitting a report or a
 # FAQ
 
 ## Can I export reports from the Reports page?
-Yes! You can export filtered reports to CSV using the export option at the top of the Reports page.
+Yes! You can [export filtered reports to CSV](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses) using the export option at the top of the Reports page.
 
 ## What if I don’t see filters?
 Some filters depend on your workspace settings (like tags or categories). If they’re missing, check with your Workspace Admin.
