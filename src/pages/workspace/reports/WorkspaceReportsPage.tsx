@@ -280,6 +280,7 @@ function WorkspaceReportFieldsPage({
                                                     data={reportFieldsSections}
                                                     renderItem={renderItem}
                                                     keyExtractor={keyExtractor}
+                                                    maintainVisibleContentPosition={{disabled: true}}
                                                 />
                                             </View>
                                             {!hasAccountingConnections && (
