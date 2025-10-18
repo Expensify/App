@@ -86,7 +86,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         setShouldRequestPassword(false);
         setShouldAttemptPDFLoad(false);
         onLoadError?.();
-        // eslint-disable-next-line @typescript-eslint/ban-types
+        // eslint-disable-next-line @typescript-eslint/no-restricted-types
     }) as (error: object) => void;
 
     /**
