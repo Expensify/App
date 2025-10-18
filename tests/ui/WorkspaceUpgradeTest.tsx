@@ -106,7 +106,7 @@ describe('WorkspaceUpgrade', () => {
             CONST.SUBSCRIPTION_PRICES[CONST.PAYMENT_CARD_CURRENCY.USD][CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
             CONST.PAYMENT_CARD_CURRENCY.USD,
         );
-        await waitFor(() => expect(screen.getByText(expectedUSD)).toBeTruthy());
+        expect(await screen.findByText(expectedUSD)).toBeTruthy();
         unmountDefault();
 
         // Iterate through all payment card currencies
@@ -122,12 +122,12 @@ describe('WorkspaceUpgrade', () => {
 
             // Render the WorkspaceUpgradePage without a feature to render GenericFeaturesView
             const {unmount: unmountGeneric} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id});
-            await waitFor(() => expect(screen.getByText(price)).toBeTruthy());
+            expect(await screen.findByText(price)).toBeTruthy();
             unmountGeneric();
 
             // Render the WorkspaceUpgradePage with rules as a feature to render UpgradeIntro
             const {unmount: unmountRules} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id, featureName: 'rules'});
-            await waitFor(() => expect(screen.getByText(price)).toBeTruthy());
+            expect(await screen.findByText(price)).toBeTruthy();
             unmountRules();
         }
 
