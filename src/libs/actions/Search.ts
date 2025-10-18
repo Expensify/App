@@ -365,9 +365,9 @@ function search({
         allowPostSearchRecount: false,
     });
 
-    waitForWrites(READ_COMMANDS.SEARCH).then(() => {
+    return waitForWrites(READ_COMMANDS.SEARCH).then(() => {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
+        return API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
             const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
             const reports = Object.keys(response?.data ?? {})
                 .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
@@ -394,6 +394,8 @@ function search({
                     allowPostSearchRecount: true,
                 });
             }
+
+            return result?.jsonCode;
         });
     });
 }
