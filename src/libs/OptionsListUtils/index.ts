@@ -1810,9 +1810,9 @@ function getValidOptions(
     let workspaceChats: SearchOptionData[] = [];
     let selfDMChat: SearchOptionData | undefined;
 
+    const searchTerms = processSearchString(searchString);
     if (includeRecentReports) {
         // if maxElements is passed, filter the recent reports by searchString and return only most recent reports (@see recentReportsComparator)
-        const searchTerms = processSearchString(searchString);
 
         const filteringFunction = (report: SearchOption<Report>) => {
             let searchText = `${report.text ?? ''}${report.login ?? ''}`;
@@ -1867,7 +1867,7 @@ function getValidOptions(
 
             return false;
         });
-        recentReportOptions = recentAttendees as SearchOptionData[];
+        recentReportOptions = filterReports(recentAttendees as SearchOptionData[], searchTerms);
     }
 
     // Get valid personal details and check if we can find the current user:
