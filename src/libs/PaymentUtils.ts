@@ -125,6 +125,10 @@ const selectPaymentType = (
     triggerKYCFlow: TriggerKYCFlow,
     policy: OnyxEntry<Policy>,
     onPress: (paymentType?: PaymentMethodType, payAsBusiness?: boolean, methodID?: number, paymentMethod?: KYCPaymentMethod) => void,
+    currentAccountID: number,
+    currentEmail: string,
+    hasViolations: boolean,
+    isASAPSubmitBetaEnabled: boolean,
     isUserValidated?: boolean,
     confirmApproval?: () => void,
     iouReport?: OnyxEntry<Report>,
@@ -148,7 +152,7 @@ const selectPaymentType = (
         if (confirmApproval) {
             confirmApproval();
         } else {
-            approveMoneyRequest(iouReport);
+            approveMoneyRequest(iouReport, policy, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, true);
         }
         return;
     }

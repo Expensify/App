@@ -9640,9 +9640,7 @@ function getPayMoneyRequestParams({
     let optimisticNextStep = null;
     if (!isInvoiceReport) {
         currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`] ?? null;
-        // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        optimisticNextStep = buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.REIMBURSED);
+        optimisticNextStep = buildNextStepNew({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
     }
 
     const optimisticChatReport = {
@@ -11049,11 +11047,6 @@ function cancelPayment(
         value: buildNextStepNew({
             report: expenseReport,
             predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
-            policy,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
-            hasViolations,
-            isASAPSubmitBetaEnabled,
         }),
     });
 

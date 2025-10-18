@@ -1195,7 +1195,20 @@ function MoneyReportHeader({
         </Text>
     );
     const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) =>
-        selectPaymentType(event, iouPaymentType, triggerKYCFlow, policy, confirmPayment, isUserValidated, confirmApproval, moneyRequestReport);
+        selectPaymentType(
+            event,
+            iouPaymentType,
+            triggerKYCFlow,
+            policy,
+            confirmPayment,
+            accountID,
+            email ?? '',
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            isUserValidated,
+            confirmApproval,
+            moneyRequestReport,
+        );
 
     const showNextStepBar = shouldShowNextStep && !!optimisticNextStep?.message?.length;
     const showNextStepSkeleton = shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
