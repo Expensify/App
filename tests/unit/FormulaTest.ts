@@ -19,7 +19,8 @@ jest.mock('@libs/ReportUtils', () => ({
 }));
 
 jest.mock('@libs/CurrencyUtils', () => ({
-    getCurrencySymbol: jest.fn(),
+    ...jest.requireActual<typeof CurrencyUtils>('@libs/CurrencyUtils'),
+    isValidCurrencyCode: jest.fn(),
 }));
 
 const mockReportActionsUtils = ReportActionsUtils as jest.Mocked<typeof ReportActionsUtils>;
@@ -117,12 +118,7 @@ describe('CustomFormula', () => {
         beforeEach(() => {
             jest.clearAllMocks();
 
-            mockCurrencyUtils.getCurrencySymbol.mockImplementation((currency: string) => {
-                if (currency === 'USD') {
-                    return '$';
-                }
-                return currency;
-            });
+            mockCurrencyUtils.isValidCurrencyCode.mockImplementation((code: string) => ['USD', 'EUR', 'JPY', 'NPR'].includes(code));
 
             const mockReportActions = {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -231,6 +227,69 @@ describe('CustomFormula', () => {
         test('should preserve exact spacing around formula parts', () => {
             const result = compute('Report with type after 4 spaces   {report:type}-and no space after computed part', mockContext);
             expect(result).toBe('Report with type after 4 spaces   Expense Report-and no space after computed part');
+        });
+
+        describe('Currency Formatting', () => {
+            const currencyContext: FormulaContext = {
+                report: {
+                    reportID: '123',
+                    total: -10000,
+                } as Report,
+                policy: {} as Policy,
+            };
+
+            beforeEach(() => {
+                jest.clearAllMocks();
+            });
+
+            test('should handle total with nosymbol format', () => {
+                currencyContext.report.currency = 'USD';
+                const result = compute('{report:total:nosymbol}', currencyContext);
+                // Should format without currency symbol
+                expect(result).toBe('100.00');
+            });
+
+            test('should handle total with currency override format', () => {
+                currencyContext.report.currency = 'USD';
+                const result = compute('{report:total:EUR}', currencyContext);
+                // Should format as EUR instead of USD
+                expect(result).toBe('€100.00');
+            });
+
+            test('should handle lowercase currency override format', () => {
+                currencyContext.report.currency = 'USD';
+                const result = compute('{report:total:eur }', currencyContext);
+                // Should format as EUR despite lowercase and whitespace is trimmed
+                expect(result).toBe('€100.00');
+            });
+
+            test('should handle undefined currency gracefully', () => {
+                currencyContext.report.currency = undefined;
+                const result = compute('{report:total}', currencyContext);
+                // Should handle missing currency and format without currency symbol
+                expect(result).toBe('100.00');
+            });
+
+            test('should handle invalid currency code gracefully', () => {
+                currencyContext.report.currency = 'UNKNOWN';
+                const result = compute('{report:total}', currencyContext);
+                // Should fallback to formula definition when currency code is not recognized
+                expect(result).toBe('{report:total}');
+            });
+
+            test('should return zero amount when format currency is invalid', () => {
+                currencyContext.report.currency = 'EUR';
+                const result = compute('{report:total:UNKNOWN}', currencyContext);
+                // Should return 0.00 when invalid currency format is used (matches backend behavior)
+                expect(result).toBe('0.00');
+            });
+
+            test('should use report currency when not explicitly defined in formula', () => {
+                currencyContext.report.currency = 'NPR';
+                const result = compute('{report:total}', currencyContext);
+                // Should format with report currency (NPR formats with a non-breaking space \u00A0)
+                expect(result).toBe('NPR\u00A0100.00');
+            });
         });
     });
 
