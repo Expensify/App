@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import TextLink from '@components/TextLink';
@@ -14,13 +14,10 @@ function ClickableRenderer({tnode}: ClickableRendererProps) {
     const styles = useThemeStyles();
     const id = tnode.attributes.id;
 
-    const onPress = () => {
+    const onPress = useCallback(() => {
         const action = ClickableActionsUtils[id];
-
-        if (action) {
-            action();
-        }
-    };
+        action?.();
+    }, [id]);
 
     return (
         <TextLink
