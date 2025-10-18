@@ -25,15 +25,15 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
         [hasWriteAccess],
     );
 
-    const [sortedAllReportActions] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringReportID}`,
-        {
-            canEvict: false,
-            selector: getSortedAllReportActionsSelector,
-            canBeMissing: true,
-        },
-        [getSortedAllReportActionsSelector],
-    );
+    // Noticed that using the selector option still returns stale data when the reportID changes.
+    // Specifically, it briefly returns the reportActions of the previous reportID.
+    // Therefore, as a temporary workaround, the sorting process is separated.
+    const [allReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringReportID}`, {
+        canEvict: false,
+        canBeMissing: true,
+    });
+    const sortedAllReportActions = useMemo(() => getSortedAllReportActionsSelector(allReportActions), [allReportActions, getSortedAllReportActionsSelector]);
+
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyStringReportID}`, {canBeMissing: true});
 
     const {
