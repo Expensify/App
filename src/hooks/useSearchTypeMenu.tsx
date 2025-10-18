@@ -38,7 +38,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const {singleExecution} = useSingleExecution();
     const {windowHeight} = useWindowDimensions();
     const {translate} = useLocalize();
-    const {typeMenuSections} = useSearchTypeMenuSections();
+    const {typeMenuSections, suggestedSearchesReady} = useSearchTypeMenuSections();
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
@@ -135,7 +135,11 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         };
     }, [savedSearches, hash, getOverflowMenu, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies, currentUserAccountID, disableDefaultSelection]);
 
-    const {flattenedMenuItems, defaultTodoIndex} = useMemo(() => getFlattenedMenuItemsWithDefaultTodoIndex(typeMenuSections), [typeMenuSections]);
+    const isMenuReady = suggestedSearchesReady && typeMenuSections.length > 0;
+
+    const activeSections = isMenuReady ? typeMenuSections : [];
+
+    const {flattenedMenuItems, defaultTodoIndex} = useMemo(() => getFlattenedMenuItemsWithDefaultTodoIndex(activeSections), [activeSections]);
     const shouldUseDefaultSelection = shouldDefaultToTodo && isDefaultQuery;
     const shouldFallbackToTodoDefault = shouldUseDefaultSelection && defaultTodoIndex !== -1;
 
@@ -148,6 +152,9 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         const similarSearchIndex = flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
 
         if (!shouldFallbackToTodoDefault) {
+            if (shouldUseDefaultSelection && defaultTodoIndex === -1) {
+                return -1;
+            }
             return similarSearchIndex;
         }
 
@@ -161,10 +168,20 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         }
 
         return defaultTodoIndex;
-    }, [flattenedMenuItems, similarSearchHash, isSavedSearchActive, shouldFallbackToTodoDefault, defaultTodoIndex]);
+    }, [flattenedMenuItems, similarSearchHash, isSavedSearchActive, shouldFallbackToTodoDefault, defaultTodoIndex, shouldUseDefaultSelection]);
+
+    const activeMenuKey = useMemo(() => {
+        if (!isMenuReady) {
+            return 'loading';
+        }
+        return flattenedMenuItems.at(activeItemIndex)?.key ?? '';
+    }, [flattenedMenuItems, activeItemIndex, isMenuReady]);
 
     const popoverMenuItems = useMemo(() => {
-        return typeMenuSections
+        if (!isMenuReady) {
+            return [];
+        }
+        return activeSections
             .map((section, sectionIndex) => {
                 const sectionItems: PopoverMenuItem[] = [
                     {
@@ -181,7 +198,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                     sectionItems.push(...savedSearchesMenuItems);
                 } else {
                     section.menuItems.forEach((item, itemIndex) => {
-                        const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
+                        const previousItemCount = activeSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
                         const flattenedIndex = previousItemCount + itemIndex;
                         const isSelected = flattenedIndex === activeItemIndex;
 
@@ -207,7 +224,18 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                 return sectionItems;
             })
             .flat();
-    }, [typeMenuSections, savedSearchesMenuItems, translate, styles.textSupporting, activeItemIndex, theme.iconSuccessFill, theme.border, singleExecution, disableDefaultSelection]);
+    }, [
+        isMenuReady,
+        activeSections,
+        savedSearchesMenuItems,
+        translate,
+        styles.textSupporting,
+        activeItemIndex,
+        theme.iconSuccessFill,
+        theme.border,
+        singleExecution,
+        disableDefaultSelection,
+    ]);
 
     const openMenu = useCallback(() => {
         setIsPopoverVisible(true);
@@ -223,5 +251,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         theme,
         styles,
         windowHeight,
+        isMenuReady,
+        activeMenuKey,
     };
 }

@@ -216,6 +216,34 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const shouldUseDefaultSelection = shouldDefaultToTodo && isDefaultQuery;
     const shouldFallbackToTodoDefault = shouldUseDefaultSelection && defaultTodoIndex !== -1;
 
+    useEffect(() => {
+        if (!shouldUseDefaultSelection || defaultTodoIndex === -1) {
+            return;
+        }
+
+        const defaultMenuItem = flattenedMenuItems.at(defaultTodoIndex);
+        if (!defaultMenuItem) {
+            return;
+        }
+
+        if (defaultMenuItem.similarSearchHash === similarSearchHash) {
+            disableDefaultSelection();
+            return;
+        }
+
+        disableDefaultSelection();
+        clearAllFilters();
+        clearSelectedTransactions();
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultMenuItem.searchQuery}));
+    }, [
+        shouldUseDefaultSelection,
+        defaultTodoIndex,
+        flattenedMenuItems,
+        similarSearchHash,
+        disableDefaultSelection,
+        clearSelectedTransactions,
+    ]);
+
     const activeItemIndex = useMemo(() => {
         // If we have a suggested search, then none of the menu items are active
         if (isSavedSearchActive) {

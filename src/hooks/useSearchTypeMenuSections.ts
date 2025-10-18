@@ -3,7 +3,6 @@ import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import memoize from '@libs/memoize';
 import Permissions from '@libs/Permissions';
-import {arePaymentsEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {createTypeMenuSections, getSuggestedSearches, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
@@ -65,26 +64,7 @@ const useSearchTypeMenuSections = () => {
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
 
-    const policiesReady = useMemo(() => {
-        if (!allPolicies) {
-            return false;
-        }
-
-        return Object.values(allPolicies).every((policy) => {
-            if (!policy) {
-                return true;
-            }
-
-            const hasEmployeeList = policy.employeeList !== undefined;
-            const hasExporter = policy.exporter !== undefined;
-            const needsReimburser =
-                isPaidGroupPolicy(policy) && arePaymentsEnabled(policy) && !!policy.achAccount?.bankAccountID && policy.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
-            const hasReimburser = !needsReimburser || policy.achAccount?.reimburser !== undefined;
-
-            return hasEmployeeList && hasExporter && hasReimburser;
-        });
-    }, [allPolicies]);
-
+    const policiesReady = allPolicies !== undefined;
     const cardFeedsReady = workspaceCardFeeds !== undefined && userCardList !== undefined;
     const sessionReady = !!currentUserLoginAndAccountID?.email && currentUserLoginAndAccountID?.accountID !== undefined;
 
