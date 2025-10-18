@@ -205,6 +205,28 @@ describe('CustomFormula', () => {
             expect(result).toBe('Test Policy');
         });
 
+        test('should compute report ID in base62 format', () => {
+            const result = compute('{report:id}', mockContext);
+            expect(result).toBe('R0000000001z');
+        });
+
+        test('should compute report status', () => {
+            const contextWithStatus: FormulaContext = {
+                ...mockContext,
+                report: {
+                    ...mockContext.report,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                },
+            };
+            const result = compute('{report:status}', contextWithStatus);
+            expect(result).toBe('Submitted');
+        });
+
+        test('should compute expenses count', () => {
+            const result = compute('{report:expensescount}', mockContext);
+            expect(result).toBe('3');
+        });
+
         test('should handle empty formula', () => {
             expect(compute('', mockContext)).toBe('');
         });
@@ -231,6 +253,128 @@ describe('CustomFormula', () => {
         test('should preserve exact spacing around formula parts', () => {
             const result = compute('Report with type after 4 spaces   {report:type}-and no space after computed part', mockContext);
             expect(result).toBe('Report with type after 4 spaces   Expense Report-and no space after computed part');
+        });
+
+        test('should compute complex formula with multiple new parts', () => {
+            const contextWithStatus: FormulaContext = {
+                ...mockContext,
+                report: {
+                    ...mockContext.report,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                },
+            };
+            const result = compute('Report {report:id} has {report:expensescount} expenses and is {report:status}', contextWithStatus);
+            expect(result).toBe('Report R0000000001z has 3 expenses and is Approved');
+        });
+
+        test('should handle combination of new and existing formula parts', () => {
+            const contextWithStatus: FormulaContext = {
+                ...mockContext,
+                report: {
+                    ...mockContext.report,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                },
+            };
+            const result = compute('{report:type} {report:id} - {report:status} - Total: {report:total} ({report:expensescount} expenses)', contextWithStatus);
+            expect(result).toBe('Expense Report R0000000001z - Submitted - Total: $100.00 (3 expenses)');
+        });
+
+        test('should handle different status numbers', () => {
+            const testCases = [
+                {statusNum: CONST.REPORT.STATUS_NUM.OPEN, expected: 'Open'},
+                {statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, expected: 'Submitted'},
+                {statusNum: CONST.REPORT.STATUS_NUM.CLOSED, expected: 'Closed'},
+                {statusNum: CONST.REPORT.STATUS_NUM.APPROVED, expected: 'Approved'},
+                {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, expected: 'Reimbursed'},
+            ];
+
+            testCases.forEach(({statusNum, expected}) => {
+                const contextWithStatus: FormulaContext = {
+                    ...mockContext,
+                    report: {
+                        ...mockContext.report,
+                        statusNum,
+                    },
+                };
+                const result = compute('{report:status}', contextWithStatus);
+                expect(result).toBe(expected);
+            });
+        });
+
+        test('should handle undefined status number', () => {
+            const contextWithUndefinedStatus: FormulaContext = {
+                ...mockContext,
+                report: {
+                    ...mockContext.report,
+                    statusNum: undefined,
+                },
+            };
+            const result = compute('{report:status}', contextWithUndefinedStatus);
+            expect(result).toBe('{report:status}');
+        });
+
+        test('should count only non-partial transactions for expensescount', () => {
+            const mockTransactionsWithPartials = [
+                {
+                    transactionID: 'trans1',
+                    created: '2025-01-15T12:00:00Z',
+                    amount: 5000,
+                    merchant: 'ACME Ltd.',
+                },
+                {
+                    transactionID: 'trans2',
+                    created: '2025-01-08T16:45:00Z',
+                    amount: 0,
+                    merchant: 'Beta Corp.',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                },
+                {
+                    transactionID: 'trans3',
+                    created: '2025-01-12T09:15:00Z',
+                    amount: 2000,
+                    merchant: '',
+                },
+                {
+                    transactionID: 'trans4',
+                    created: '2025-01-10T14:30:00Z',
+                    amount: 3000,
+                    merchant: 'Gamma Inc.',
+                },
+            ] as Transaction[];
+
+            mockReportUtils.getReportTransactions.mockReturnValue(mockTransactionsWithPartials);
+            const result = compute('{report:expensescount}', mockContext);
+            expect(result).toBe('2');
+        });
+
+        test('should return 0 for expensescount when no transactions exist', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+            const result = compute('{report:expensescount}', mockContext);
+            expect(result).toBe('0');
+        });
+
+        test('should return 0 for expensescount when reportID is empty', () => {
+            const contextWithEmptyReportID: FormulaContext = {
+                ...mockContext,
+                report: {
+                    ...mockContext.report,
+                    reportID: '',
+                },
+            };
+            const result = compute('{report:expensescount}', contextWithEmptyReportID);
+            expect(result).toBe('0');
+        });
+
+        test('should compute report ID with different reportID values', () => {
+            const contextWithDifferentID: FormulaContext = {
+                ...mockContext,
+                report: {
+                    ...mockContext.report,
+                    reportID: '456789',
+                },
+            };
+            const result = compute('{report:id}', contextWithDifferentID);
+            expect(result).toBe('R00000001upZ');
         });
     });
 

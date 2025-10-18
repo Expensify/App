@@ -3,8 +3,9 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import {getCurrencySymbol} from './CurrencyUtils';
+import getBase62ReportID from './getBase62ReportID';
 import {getAllReportActions} from './ReportActionsUtils';
-import {getReportTransactions} from './ReportUtils';
+import {getHumanReadableStatus, getReportTransactions} from './ReportUtils';
 import {getCreated, isPartialTransaction} from './TransactionUtils';
 
 type FormulaPart = {
@@ -244,6 +245,12 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
     }
 
     switch (field.toLowerCase()) {
+        case 'id':
+            return getBase62ReportID(Number(report.reportID));
+        case 'status':
+            return formatStatus(report.statusNum);
+        case 'expensescount':
+            return String(getExpensesCount(report.reportID));
         case 'type':
             return formatType(report.type);
         case 'startdate':
@@ -262,6 +269,29 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         default:
             return part.definition;
     }
+}
+
+/**
+ * Get the number of expenses in a report
+ */
+function getExpensesCount(reportID: string): number {
+    if (!reportID) {
+        return 0;
+    }
+
+    const transactions = getReportTransactions(reportID);
+    return transactions?.filter((transaction) => !isPartialTransaction(transaction))?.length ?? 0;
+}
+
+/**
+ * Format a report status number to human-readable string
+ */
+function formatStatus(statusNum: number | undefined): string {
+    if (statusNum === undefined) {
+        return '';
+    }
+
+    return getHumanReadableStatus(statusNum);
 }
 
 /**
