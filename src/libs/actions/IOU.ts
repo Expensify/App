@@ -174,6 +174,7 @@ import {
     hasReportBeenRetracted,
     isArchivedReport,
     isClosedReport as isClosedReportUtil,
+    isHiddenForCurrentUser,
     isDraftReport,
     isExpenseReport,
     isIndividualInvoiceRoom,
@@ -6658,7 +6659,7 @@ function createSplitsAndOnyxData({
     splitChatReport.lastActorAccountID = currentUserAccountID;
     splitChatReport.lastVisibleActionCreated = splitIOUReportAction.created;
 
-    if (splitChatReport.participants && getReportNotificationPreference(splitChatReport) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+    if (splitChatReport.participants && isHiddenForCurrentUser(splitChatReport)) {
         splitChatReport.participants[currentUserAccountID] = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
     }
 
