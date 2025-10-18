@@ -73,9 +73,9 @@ type PaymentData = {
     bankAccountID?: number;
     fundID?: number;
     policyID?: string;
-    adminsChatReportID?: number;
+    adminsChatReportID?: string;
     adminsCreatedReportActionID?: number;
-    expenseChatReportID?: number;
+    expenseChatReportID?: string;
     expenseCreatedReportActionID?: number;
     customUnitRateID?: string;
     customUnitID?: string;
