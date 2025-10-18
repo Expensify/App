@@ -1441,6 +1441,7 @@ const translations = {
         dates: 'Date di calendario',
         rates: 'Tariffe',
         submitsTo: ({name}: SubmitsToParams) => `Invia a ${name}`,
+        waitingForSubmitterToFixViolations: "In attesa che tu risolva i problemi. I tuoi amministratori hanno limitato l'invio di spese con violazioni.",
         moveExpenses: () => ({one: 'Sposta spesa', other: 'Sposta spese'}),
         reject: {
             educationalTitle: 'Devi trattenere o rifiutare?',

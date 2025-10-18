@@ -1443,6 +1443,7 @@ const translations = {
         dates: '日付',
         rates: '料金',
         submitsTo: ({name}: SubmitsToParams) => `${name}に送信`,
+        waitingForSubmitterToFixViolations: '問題の修正をお待ちしています。管理者が違反のある経費の提出を制限しています。',
         moveExpenses: () => ({one: '経費を移動', other: '経費を移動'}),
         reject: {
             educationalTitle: '保留しますか、それとも却下しますか？',
