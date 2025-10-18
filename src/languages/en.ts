@@ -362,7 +362,7 @@ const translations = {
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
         inbox: 'Inbox',
-        success: 'Success',
+        success: 'Great Success',
         group: 'Group',
         profile: 'Profile',
         referral: 'Referral',
