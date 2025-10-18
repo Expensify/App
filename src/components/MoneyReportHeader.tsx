@@ -224,7 +224,6 @@ function MoneyReportHeader({
         return Object.values(reportTransactions);
     }, [reportTransactions]);
 
-    // Check if submission should be blocked due to strict policy rules and violations
     const shouldBlockSubmit = useMemo(() => {
         return shouldBlockSubmitDueToStrictPolicyRules(moneyRequestReport?.reportID, violations, isStrictPolicyRulesEnabled, transactions);
     }, [moneyRequestReport?.reportID, violations, isStrictPolicyRulesEnabled, transactions]);
