@@ -778,6 +778,7 @@ const SCREENS = {
     SHARE: {
         ROOT: 'Share_Root',
         SHARE_DETAILS: 'Share_Details',
+        SHARE_DETAILS_ATTACHMENT: 'Share_Details_Attachment',
         SUBMIT_DETAILS: 'Submit_Details',
     },
     TRANSACTION_RECEIPT: 'TransactionReceipt',

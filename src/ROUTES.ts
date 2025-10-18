@@ -2377,6 +2377,7 @@ const ROUTES = {
         route: 'share/share-details/:reportOrAccountID',
         getRoute: (reportOrAccountID: string) => `share/share-details/${reportOrAccountID}` as const,
     },
+    SHARE_DETAILS_ATTACHMENT: 'share/details/:reportOrAccountID/attachment',
     SHARE_SUBMIT_DETAILS: {
         route: 'share/submit-details/:reportOrAccountID',
         getRoute: (reportOrAccountID: string) => `share/submit-details/${reportOrAccountID}` as const,
