@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as NextStepUtils from '@libs/NextStepUtils';
+import {parseMessage} from '@libs/NextStepUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type ReportNextStep from '@src/types/onyx/ReportNextStep';
@@ -30,7 +30,7 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
     const theme = useTheme();
     const messageContent = useMemo(() => {
         const messageArray = nextStep?.message;
-        return NextStepUtils.parseMessage(messageArray);
+        return parseMessage(messageArray);
     }, [nextStep?.message]);
 
     return (
