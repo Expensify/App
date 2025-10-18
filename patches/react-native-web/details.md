@@ -142,3 +142,15 @@
 - Upstream PR/issue: This was a patch on top of patches 008 and 009 of react-native-web.
 - E/App issue: https://github.com/Expensify/App/issues/66821
 - PR introducing patch: https://github.com/Expensify/App/pull/69820
+
+### [react-native-web+0.20.0+013+fix-inverted-flatlist-scroll.patch](react-native-web+0.20.0+013+fix-inverted-flatlist-scroll.patch)
+
+- Reason:
+  
+    ```
+    Fix function scrollToIndex for inverted flatlist
+    ```
+  
+- Upstream PR/issue: The patch isn't something we can apply to upstream
+- E/App issue: https://github.com/Expensify/App/issues/44647
+- PR introducing patch: https://github.com/Expensify/App/pull/52689
