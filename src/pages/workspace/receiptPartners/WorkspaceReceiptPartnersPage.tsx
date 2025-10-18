@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -52,6 +53,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const integrations = policy?.receiptPartners;
     const isAutoRemove = !!integrations?.uber?.autoRemove;
     const isAutoInvite = !!integrations?.uber?.autoInvite;
+    const centralBillingAccountEmail = !!integrations?.uber?.centralBillingAccountEmail;
 
     // Track focus and connection change to route to the invite flow once after successful connection
     const prevIsUberConnected = usePrevious(isUberConnected);
@@ -306,11 +308,26 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                                 />
                                             </View>
                                         </OfflineWithFeedback>
+                                        {centralBillingAccountEmail && (
+                                            <OfflineWithFeedback pendingAction={integrations?.uber?.pendingFields?.centralBillingAccountEmail}>
+                                                <MenuItemWithTopDescription
+                                                    description={translate('workspace.receiptPartners.uber.centralBillingAccount')}
+                                                    title={integrations.uber.centralBillingAccountEmail}
+                                                    shouldShowRightIcon
+                                                    style={[styles.sectionMenuItemTopDescription, styles.mt5]}
+                                                    onPress={() =>
+                                                        Navigation.navigate(
+                                                            ROUTES.WORKSPACE_RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER),
+                                                        )
+                                                    }
+                                                />
+                                            </OfflineWithFeedback>
+                                        )}
                                         <MenuItem
                                             title={translate('workspace.receiptPartners.uber.manageInvites')}
                                             shouldShowRightIcon
                                             icon={Expensicons.Mail}
-                                            style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                                            style={[styles.sectionMenuItemTopDescription, styles.mbn3, !centralBillingAccountEmail && styles.mt6]}
                                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER))}
                                         />
                                     </>
