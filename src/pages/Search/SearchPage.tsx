@@ -305,14 +305,14 @@ function SearchPage({route}: SearchPageProps) {
 
             // Determine if only full reports are selected by comparing the reportIDs of the selected transactions and the reportIDs of the selected reports
             const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
-            const groupByReports = queryJSON?.groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
+            const typeExpenseReport = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
             const typeInvoice = queryJSON?.type === CONST.REPORT.TYPE.INVOICE;
             const typeExpense = queryJSON?.type === CONST.REPORT.TYPE.EXPENSE;
             const isAllOneTransactionReport = Object.values(selectedTransactions).every((transaction) => transaction.isFromOneTransactionReport);
 
             // If we're grouping by invoice or report, and all the expenses on the report are selected, or if all
             // the selected expenses are the only expenses of their parent expense report include the report level export option.
-            const includeReportLevelExport = ((groupByReports || typeInvoice) && areFullReportsSelected) || (typeExpense && !groupByReports && isAllOneTransactionReport);
+            const includeReportLevelExport = ((typeExpenseReport || typeInvoice) && areFullReportsSelected) || (typeExpense && !typeExpenseReport && isAllOneTransactionReport);
 
             // Collect a list of export templates available to the user from their account, policy, and custom integrations templates
             const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
