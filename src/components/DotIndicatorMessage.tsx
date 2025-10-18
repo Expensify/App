@@ -50,10 +50,6 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     const [shouldShowErrorModal, setShouldShowErrorModal] = useState(false);
 
-    if (Object.keys(messages).length === 0) {
-        return null;
-    }
-
     // Fetch the keys, sort them, and map through each key to get the corresponding message
     const sortedMessages: Array<string | ReceiptError> = Object.keys(messages)
         .sort()
@@ -72,6 +68,10 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
         : undefined;
 
     useHTMLClickableActions(clickableActions);
+
+    if (Object.keys(messages).length === 0) {
+        return null;
+    }
 
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {

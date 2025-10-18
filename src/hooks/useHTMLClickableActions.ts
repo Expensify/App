@@ -13,8 +13,8 @@ function useHTMLClickableActions(actions?: Record<string, ClickableAction>) {
     const prevRef = useRef<Record<string, ClickableAction> | null>(null);
 
     useEffect(() => {
-        const previousActions = prevRef.current || {};
-        const currentActions = actions || {};
+        const previousActions = prevRef.current ?? {};
+        const currentActions = actions ?? {};
 
         // Register an actions that are new or has been changed
         for (const [id, action] of Object.entries(currentActions)) {
