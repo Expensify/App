@@ -1638,7 +1638,7 @@ function getSections(
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return getReportSections(data, currentSearch, currentAccountID, formatPhoneNumber, reportActions);
+        return getReportSections(data, currentSearch, currentAccountID, formatPhoneNumber, reportActions, queryJSON);
     }
 
     if (groupBy) {
