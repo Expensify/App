@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {NavigationContainer} from '@react-navigation/native';
-import {act, cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
