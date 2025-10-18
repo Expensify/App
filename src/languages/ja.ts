@@ -2930,8 +2930,8 @@ ${date} - ${merchant}に${amount}`,
         needSSNFull9: 'SSNの確認に問題が発生しています。SSNの9桁すべてを入力してください。',
         weCouldNotVerify: '確認できませんでした',
         pleaseFixIt: '続行する前にこの情報を修正してください。',
-        failedKYCTextBefore: '本人確認ができませんでした。後でもう一度お試しいただくか、にお問い合わせください。',
-        failedKYCTextAfter: 'ご質問がある場合。',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `本人確認ができませんでした。後でもう一度お試しいただくか、<a href="mailto:${conciergeEmail}">${conciergeEmail}</a> にお問い合わせください。ご質問がある場合。`,
     },
     termsStep: {
         headerTitle: '利用規約と手数料',

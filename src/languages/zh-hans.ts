@@ -2904,8 +2904,8 @@ ${merchant}的${amount} - ${date}`,
         needSSNFull9: '我们无法验证您的SSN。请输入您SSN的完整九位数字。',
         weCouldNotVerify: '我们无法验证',
         pleaseFixIt: '请在继续之前修正此信息',
-        failedKYCTextBefore: '我们无法验证您的身份。请稍后再试或联系',
-        failedKYCTextAfter: '如果您有任何问题。',
+        failedKYCMessage: ({conciergeEmail}: {conciergeEmail: string}) =>
+            `我们无法验证您的身份。请稍后再试或联系 <a href="mailto:${conciergeEmail}">${conciergeEmail}</a> 如果您有任何问题。`,
     },
     termsStep: {
         headerTitle: '条款和费用',
