@@ -5,7 +5,7 @@
  * When the user clicks that tag, the corresponding function is executed.
  */
 
-export type ClickableAction = () => void | Promise<void>;
+type ClickableAction = () => void | Promise<void>;
 
 const HTMLClickableActions = new Map<string, ClickableAction>();
 
@@ -35,3 +35,5 @@ function getHTMLClickableAction(id: string): ClickableAction | undefined {
 }
 
 export {setHTMLClickableAction, removeHTMLClickableAction, getHTMLClickableAction};
+
+export type {ClickableAction};
