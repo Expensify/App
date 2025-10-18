@@ -11803,10 +11803,12 @@ function convertToNumber(value) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
+const DEFAULT_REPO_IDENTIFIER = 'Expensify/App';
 const GIT_CONST = {
     GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER ?? 'Expensify',
-    APP_REPO: (process.env.GITHUB_REPOSITORY ?? 'Expensify/App').split('/').at(1) ?? '',
+    APP_REPO: (process.env.GITHUB_REPOSITORY ?? DEFAULT_REPO_IDENTIFIER).split('/').at(1) ?? '',
     MOBILE_EXPENSIFY_REPO: 'Mobile-Expensify',
+    DEFAULT_BASE_REF: 'main',
 };
 const CONST = {
     ...GIT_CONST,
@@ -12390,7 +12392,7 @@ class GithubUtils {
     /**
      * Get the contents of a file from the API at a given ref as a string.
      */
-    static async getFileContents(path, ref = 'main') {
+    static async getFileContents(path, ref = CONST_1.default.DEFAULT_BASE_REF) {
         const { data } = await this.octokit.repos.getContent({
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
@@ -12539,10 +12541,27 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const github_1 = __nccwpck_require__(5438);
 const child_process_1 = __nccwpck_require__(2081);
 const util_1 = __nccwpck_require__(3837);
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const Logger_1 = __nccwpck_require__(8891);
-const exec = (0, util_1.promisify)(child_process_1.exec);
+function exec(command, options) {
+    const optionsWithEncoding = {
+        ...options,
+        encoding: 'utf8',
+        cwd: process.cwd(),
+    };
+    return (0, util_1.promisify)(child_process_1.exec)(command, optionsWithEncoding);
+}
+function execSync(command, options) {
+    const optionsWithEncoding = {
+        ...options,
+        encoding: 'utf8',
+        cwd: process.cwd(),
+    };
+    return (0, child_process_1.execSync)(command, optionsWithEncoding);
+}
 const IS_CI = process.env.CI === 'true';
+const GITHUB_BASE_REF = process.env.GITHUB_BASE_REF;
 /**
  * Utility class for git operations.
  */
@@ -12555,9 +12574,7 @@ class Git {
      */
     static isValidRef(ref) {
         try {
-            (0, child_process_1.execSync)(`git rev-parse --verify "${ref}^{object}"`, {
-                encoding: 'utf8',
-                cwd: process.cwd(),
+            execSync(`git rev-parse --verify "${ref}^{object}"`, {
                 stdio: 'pipe', // Suppress output
             });
             return true;
@@ -12587,10 +12604,7 @@ class Git {
             command += ` -- ${quotedPaths}`;
         }
         // Execute git diff with unified format - let errors bubble up
-        const diffOutput = (0, child_process_1.execSync)(command, {
-            encoding: 'utf8',
-            cwd: process.cwd(),
-        });
+        const diffOutput = execSync(command);
         return Git.parseDiff(diffOutput);
     }
     /**
@@ -12753,7 +12767,7 @@ class Git {
      */
     static show(ref, filePath) {
         try {
-            return (0, child_process_1.execSync)(`git show ${ref}:${filePath}`, { encoding: 'utf8' });
+            return execSync(`git show ${ref}:${filePath}`);
         }
         catch (error) {
             throw new Error(`Failed to get file content from git: ${error instanceof Error ? error.message : String(error)}`);
@@ -12772,13 +12786,10 @@ class Git {
         }
         try {
             (0, Logger_1.log)(`🔄 Fetching missing ref: ${ref}`);
-            await exec(`git fetch --no-tags --depth=1 --quiet ${remote} ${ref}`, {
-                encoding: 'utf8',
-                cwd: process.cwd(),
-            });
+            await exec(`git fetch ${remote} ${ref} --no-tags --depth=1 --quiet`);
             // Verify the ref is now available
             if (!this.isValidRef(ref)) {
-                throw new Error(`Reference ${ref} is still not valid after fetching`);
+                throw new Error(`Reference ${ref} is still not valid after fetching from remote ${remote}`);
             }
         }
         catch (error) {
@@ -12786,19 +12797,17 @@ class Git {
         }
     }
     static async getMainBranchCommitHash(remote) {
+        const baseRefName = GITHUB_BASE_REF ?? CONST_1.default.DEFAULT_BASE_REF;
         // Fetch the main branch from the specified remote (or locally) to ensure it's available
         if (IS_CI || remote) {
-            await this.ensureRef('main', remote);
+            await exec(`git fetch ${remote ?? 'origin'} ${baseRefName} --no-tags --depth=1`);
         }
         // In CI, use a simpler approach - just use the remote main branch directly
         // This avoids issues with shallow clones and merge-base calculations
         if (IS_CI) {
-            const mainBaseRef = remote ? `${remote}/main` : 'origin/main';
+            const mainBaseRef = remote ? `${remote}/${baseRefName}` : `origin/${baseRefName}`;
             try {
-                const { stdout: revParseOutput } = await exec(`git rev-parse ${mainBaseRef}`, {
-                    encoding: 'utf8',
-                    cwd: process.cwd(),
-                });
+                const { stdout: revParseOutput } = await exec(`git rev-parse ${mainBaseRef}`);
                 const mergeBaseHash = revParseOutput.trim();
                 // Validate the output is a proper SHA hash
                 if (!mergeBaseHash || !/^[a-fA-F0-9]{40}$/.test(mergeBaseHash)) {
@@ -12811,24 +12820,18 @@ class Git {
                 throw new Error(`Could not get commit hash for ${mainBaseRef}`);
             }
         }
-        const mainBaseRef = remote ? `${remote}/main` : 'main';
+        const mainBaseRef = remote ? `${remote}/${baseRefName}` : baseRefName;
         // For local development, try to find the actual merge base
         let mergeBaseHash;
         try {
-            const { stdout: mergeBaseOutput } = await exec(`git merge-base ${mainBaseRef} HEAD`, {
-                encoding: 'utf8',
-                cwd: process.cwd(),
-            });
+            const { stdout: mergeBaseOutput } = await exec(`git merge-base ${mainBaseRef} HEAD`);
             mergeBaseHash = mergeBaseOutput.trim();
         }
         catch {
             (0, Logger_1.warn)(`Warning: Could not find merge base between ${mainBaseRef} and HEAD.`);
             // If merge-base fails locally, fall back to using the remote main branch
             try {
-                const { stdout: revParseOutput } = await exec(`git rev-parse ${mainBaseRef}`, {
-                    encoding: 'utf8',
-                    cwd: process.cwd(),
-                });
+                const { stdout: revParseOutput } = await exec(`git rev-parse ${mainBaseRef}`);
                 mergeBaseHash = revParseOutput.trim();
             }
             catch (fallbackError) {
@@ -12849,10 +12852,7 @@ class Git {
      */
     static async hasUncommittedChanges() {
         try {
-            const { stdout } = await exec('git status --porcelain', {
-                encoding: 'utf8',
-                cwd: process.cwd(),
-            });
+            const { stdout } = await exec('git status --porcelain');
             const status = stdout.trim();
             return status.length > 0;
         }
@@ -12860,26 +12860,20 @@ class Git {
             return false;
         }
     }
-    static async getChangedFiles(fromRef, toRef = 'HEAD') {
+    static async getChangedFileNames(fromRef, toRef = 'HEAD') {
         if (IS_CI) {
             const { data: changedFiles } = await GithubUtils_1.default.octokit.pulls.listFiles({
-                owner: 'Expensify',
-                repo: 'App',
+                owner: CONST_1.default.GITHUB_OWNER,
+                repo: CONST_1.default.APP_REPO,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 pull_number: github_1.context.payload.pull_request?.number ?? 0,
             });
             return changedFiles.map((file) => file.filename);
         }
-        try {
-            // Get the diff output and check status
-            const diffResult = this.diff(fromRef, toRef);
-            const files = diffResult.files.map((file) => file.filePath);
-            return files;
-        }
-        catch (error) {
-            (0, Logger_1.error)('Could not determine changed files:', error);
-            throw error;
-        }
+        // Get the diff output and check status
+        const diffResult = this.diff(fromRef, toRef);
+        const files = diffResult.files.map((file) => file.filePath);
+        return files;
     }
 }
 exports["default"] = Git;
