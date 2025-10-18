@@ -3,6 +3,8 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import {getCurrencySymbol} from './CurrencyUtils';
+import type {WorkingUpdates} from './OptimisticReportNamesCache';
+import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getReportTransactions} from './ReportUtils';
 import {getCreated, isPartialTransaction} from './TransactionUtils';
@@ -25,6 +27,8 @@ type FormulaContext = {
     report: Report;
     policy: OnyxEntry<Policy>;
     transaction?: Transaction;
+    workingUpdates: WorkingUpdates;
+    updateContext: UpdateContext;
 };
 
 const FORMULA_PART_TYPES = {
@@ -471,7 +475,7 @@ function formatType(type: string | undefined): string {
 /**
  * Get the date of the oldest transaction for a given report
  */
-function getOldestTransactionDate(reportID: string, context?: FormulaContext): string | undefined {
+function getOldestTransactionDate(reportID: string, context: FormulaContext): string | undefined {
     if (!reportID) {
         return undefined;
     }
@@ -485,6 +489,8 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
 
     transactions.forEach((transaction) => {
         // Use updated transaction data if available and matches this transaction
+
+        // FormulaContext transaction is the most current, so it takes priority
         const currentTransaction = context?.transaction && transaction.transactionID === context.transaction.transactionID ? context.transaction : transaction;
 
         const created = getCreated(currentTransaction);
