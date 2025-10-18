@@ -1,0 +1,95 @@
+diff --git a/node_modules/react-native-performance/android/src/main/java/com/oblador/performance/PerformanceModule.java b/node_modules/react-native-performance/android/src/main/java/com/oblador/performance/PerformanceModule.java
+index 2fa7d5d..9127f32 100644
+--- a/node_modules/react-native-performance/android/src/main/java/com/oblador/performance/PerformanceModule.java
++++ b/node_modules/react-native-performance/android/src/main/java/com/oblador/performance/PerformanceModule.java
+@@ -17,13 +17,25 @@ import java.util.Queue;
+ import java.util.concurrent.ConcurrentLinkedQueue;
+ 
+ // Should extend NativeRNPerformanceManagerSpec when codegen for old architecture is solved
+-public class PerformanceModule extends ReactContextBaseJavaModule implements TurboModule, RNPerformance.MarkerListener {
++public class PerformanceModule extends NativeRNPerformanceManagerSpec implements RNPerformance.MarkerListener {
+     public static final String PERFORMANCE_MODULE = "RNPerformanceManager";
+     public static final String BRIDGE_SETUP_START = "bridgeSetupStart";
+ 
+     private static boolean eventsBuffered = true;
+     private static final Queue<PerformanceEntry> markBuffer = new ConcurrentLinkedQueue<>();
+     private static boolean didEmit = false;
++    private final ReactMarker.MarkerListener markerListener = (name, tag, instanceKey) -> {
++        switch (name) {
++            case CONTENT_APPEARED:
++                eventsBuffered = false;
++                emitNativeStartupTime();
++                emitBufferedMarks();
++                break;
++            case RELOAD:
++                eventsBuffered = true;
++                break;
++        }
++    };
+ 
+     public PerformanceModule(@NonNull final ReactApplicationContext reactContext) {
+         super(reactContext);
+@@ -118,6 +130,16 @@ public class PerformanceModule extends ReactContextBaseJavaModule implements Tur
+         return PERFORMANCE_MODULE;
+     }
+ 
++    @Override
++    public void addListener(String eventName) {
++        // needed for spec
++    }
++
++    @Override
++    public void removeListeners(double count) {
++        // needed for spec
++    }
++
+     private void emitNativeStartupTime() {
+         safelyEmitMark(new PerformanceMark("nativeLaunchStart", StartTimeProvider.getStartTime()));
+         safelyEmitMark(new PerformanceMark("nativeLaunchEnd", StartTimeProvider.getEndTime()));
+@@ -125,18 +147,7 @@ public class PerformanceModule extends ReactContextBaseJavaModule implements Tur
+ 
+     private void setupMarkerListener() {
+         ReactMarker.addListener(
+-                (name, tag, instanceKey) -> {
+-                    switch (name) {
+-                        case CONTENT_APPEARED:
+-                            eventsBuffered = false;
+-                            emitNativeStartupTime();
+-                            emitBufferedMarks();
+-                            break;
+-                        case RELOAD:
+-                            eventsBuffered = true;
+-                            break;
+-                    }
+-                }
++                markerListener
+         );
+     }
+ 
+@@ -213,8 +224,9 @@ public class PerformanceModule extends ReactContextBaseJavaModule implements Tur
+     }
+ 
+     @Override
+-    public void onCatalystInstanceDestroy() {
+-        super.onCatalystInstanceDestroy();
++    public void invalidate() {
++        super.invalidate();
+         RNPerformance.getInstance().removeListener(this);
++        ReactMarker.removeListener(markerListener);
+     }
+ }
+diff --git a/node_modules/react-native-performance/android/src/main/java/com/oblador/performance/RNPerformance.java b/node_modules/react-native-performance/android/src/main/java/com/oblador/performance/RNPerformance.java
+index 4d6223b..e252fdc 100644
+--- a/node_modules/react-native-performance/android/src/main/java/com/oblador/performance/RNPerformance.java
++++ b/node_modules/react-native-performance/android/src/main/java/com/oblador/performance/RNPerformance.java
+@@ -43,9 +43,7 @@ public class RNPerformance {
+ 
+     @DoNotStrip
+     protected void removeListener(MarkerListener listener) {
+-        if (!sListeners.contains(listener)) {
+-            sListeners.remove(listener);
+-        }
++        sListeners.remove(listener);
+     }
+ 
+     public void mark(@NonNull String markName) {
