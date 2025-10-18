@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SafeString from '@src/utils/SafeString';
 import type {TextSelectorModalProps} from './types';
 
 function TextSelectorModal({
@@ -148,7 +149,7 @@ function TextSelectorModal({
                         ref={inputCallbackRef}
                         InputComponent={TextInput}
                         value={currentValue}
-                        onValueChange={(changedValue) => setValue(changedValue.toString())}
+                        onValueChange={(changedValue) => setValue(SafeString(changedValue))}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...rest}
                         inputID={rest.inputID}

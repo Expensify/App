@@ -9,6 +9,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {Beta, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
+import SafeString from '@src/utils/SafeString';
 import {getLinkedTransactionID} from './ReportActionsUtils';
 import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList} from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
@@ -108,7 +109,7 @@ function onyxDataToString(data: OnyxEntry<unknown>) {
         return stringifyJSON(data as Record<string, unknown>);
     }
 
-    return String(data);
+    return SafeString(data);
 }
 
 type OnyxDataType = 'number' | 'object' | 'string' | 'boolean' | 'undefined';
@@ -166,7 +167,7 @@ function compareStringWithOnyxData(text: string, data: OnyxEntry<unknown>) {
         return text === stringifyJSON(data as Record<string, unknown>);
     }
 
-    return text === String(data);
+    return text === SafeString(data);
 }
 
 /**
