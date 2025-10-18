@@ -284,6 +284,7 @@ function EmptySearchViewContent({
                 viewTourTaskReport,
                 viewTourTaskParentReport,
                 isViewTourTaskParentReportArchived,
+                currentUserPersonalDetails.accountID,
             );
         };
 
