@@ -102,6 +102,8 @@ function SearchPage({route}: SearchPageProps) {
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
+    const [searchRequestStatus, setSearchRequestStatus] = useState<number | null>(null);
+    const [searchRequestLoadingStatus, setSearchRequestLoadingStatus] = useState(false);
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
@@ -694,7 +696,12 @@ function SearchPage({route}: SearchPageProps) {
         if (typeof value === 'string') {
             searchInServer(value);
         } else {
-            search(value);
+            setSearchRequestLoadingStatus(true);
+            search(value)
+                .then((jsonCode) => setSearchRequestStatus(Number(jsonCode ?? 0)))
+                .finally(() => {
+                    setSearchRequestLoadingStatus(false);
+                });
         }
     }, []);
 
@@ -839,6 +846,8 @@ function SearchPage({route}: SearchPageProps) {
                                     onSortPressedCallback={() => {
                                         setIsSorting(true);
                                     }}
+                                    searchRequestStatus={searchRequestStatus}
+                                    searchRequestLoadingStatus={searchRequestLoadingStatus}
                                 />
                                 {shouldShowFooter && (
                                     <SearchPageFooter

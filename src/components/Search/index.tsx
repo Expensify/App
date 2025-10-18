@@ -33,7 +33,7 @@ import Performance from '@libs/Performance';
 import {getPolicyRole, isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, selectArchivedReportsIdSet, selectFilteredReportActions} from '@libs/ReportUtils';
-import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, hasInvalidSearchTypes} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
     getColumnsToShow,
@@ -84,6 +84,8 @@ type SearchProps = {
     handleSearch: (value: SearchParams) => void;
     onSortPressedCallback?: () => void;
     isMobileSelectionModeEnabled: boolean;
+    searchRequestStatus?: number | null;
+    searchRequestLoadingStatus?: boolean;
 };
 
 const expenseHeaders = getExpenseHeaders();
@@ -209,7 +211,17 @@ const activePaidPoliciesSelector = (allPolicies: OnyxCollection<Policy>): OnyxCo
     return Object.fromEntries(Object.entries(allPolicies ?? {}).filter(([, userPolicy]) => isPaidGroupPolicyPolicyUtils(userPolicy)));
 };
 
-function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch, isMobileSelectionModeEnabled, onSortPressedCallback}: SearchProps) {
+function Search({
+    queryJSON,
+    searchResults,
+    onSearchListScroll,
+    contentContainerStyle,
+    handleSearch,
+    isMobileSelectionModeEnabled,
+    onSortPressedCallback,
+    searchRequestStatus,
+    searchRequestLoadingStatus,
+}: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -388,7 +400,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     // we also need to check that the searchResults matches the type and status of the current search
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
 
-    const shouldShowLoadingState = !isOffline && (!isDataLoaded || (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0));
+    const shouldShowLoadingState =
+        !isOffline && (!isDataLoaded || (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) || !!searchRequestLoadingStatus);
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
@@ -857,14 +870,14 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }
 
     if (hasErrors) {
-        const hasInvalidTypes = hasInvalidSearchTypes(type, groupBy);
+        const isInvalidQuery = searchRequestStatus === 401;
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <FullPageErrorView
                     shouldShow
                     subtitleStyle={styles.textSupporting}
                     title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
-                    subtitle={translate(hasInvalidTypes ? 'errorPage.wrongTypeSubtitle' : 'errorPage.subtitle')}
+                    subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'errorPage.subtitle')}
                 />
             </View>
         );

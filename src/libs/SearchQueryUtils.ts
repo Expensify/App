@@ -375,25 +375,6 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
 }
 
 /**
- * Checks whether any of the provided values have an invalid data type.
- *
- * Currently, arrays are considered invalid types, but this function
- * can be easily extended to check for other invalid types as needed.
- *
- * @param values - The list of values to validate.
- * @returns Returns `true` if any value has an invalid type (e.g., an array), otherwise `false`.
- *
- * @example
- * // ✅ Valid case
- * hasInvalidSearchTypes('user', 'role'); // false
- *
- * // ❌ Invalid case
- * hasInvalidSearchTypes(['user'], 'role'); // true
- */
-function hasInvalidSearchTypes<T>(...values: T[]): boolean {
-    return values.some((value) => Array.isArray(value));
-}
-/**
  * Parses a given search query string into a structured `SearchQueryJSON` format.
  * This format of query is most commonly shared between components and also sent to backend to retrieve search results.
  *
@@ -1168,5 +1149,4 @@ export {
     getAllPolicyValues,
     getUserFriendlyValue,
     getUserFriendlyKey,
-    hasInvalidSearchTypes,
 };
