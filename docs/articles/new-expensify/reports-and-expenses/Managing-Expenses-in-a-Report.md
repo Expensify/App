@@ -1,157 +1,88 @@
 ---
 title: Managing Expenses in a Report
-description: Learn how to add, remove, and move expenses in a report in New Expensify, including how comments and system messages interact with them.
-keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, expense table, expense comments, report audit history, report troubleshooting]
+description: Learn how to properly attach, verify, and troubleshoot receipts on expenses in New Expensify
+keywords: [New Expensify, attach receipt, verify receipt, missing receipt, expense attachments, audit trail, New Expensify, receipt not showing]
 ---
 
-Easily manage expenses inside reports in New Expensify. This guide covers how to add, delete, or move expenses, and how they interact with comments, system messages, and audit trails.
+Make sure your receipts are attached correctly to individual expenses for audit and accounting compliance. This guide walks through how to attach, verify, and troubleshoot receipts in New Expensify.
 
-# Managing Expenses in a Report
+# How to attach receipts to expenses
 
-## Add Expenses to a Report
+## Who can attach receipts to expenses
 
-You can add expenses to a report in two ways:
+- You’re the member who created the expense.
+- You’re a Workspace Admin editing another member’s expense.
+- The report is in a **unreported**, **draft** or **outstanding** state.
 
-### Create a new expense
-1. Open the draft report.
-2. Select **Add expense** > **Create expense**.
-3. Enter the expense details and click **Save**.
-4. The new expense appears instantly in the report.
+If a report is **Approved** or **Paid**, a Workspace Admin will need to unapprove it before making changes.
 
-### Add existing unreported expenses
-1. Select **Add expense** > **Add unreported expenses**.
-2. Select one or more expenses.
-3. Click **Add to report**.
+## Where to attach receipts to expenses
 
-**Tip:** To add additional expenses later, go to **More > Add expense**.
+Receipts must be attached **directly to the individual expense**, not uploaded into the report comments.
 
----
+- Attaching a receipt in a report comment does **not** link it to any expense.
+- Auditors and accounting systems only recognize receipts that are linked at the **expense level**.
 
-## Delete Expenses From a Report
+## How to attach receipts to expenses
 
-You can delete one or more expenses from a report:
+**Web**
+1. Open the expense.
+2. Click the green **+** on the receipt icon.
+3. Upload a new file or choose from existing receipts.
 
-### Delete a single expense
-1. Open the report.
-2. Check the box next to the expense.
-3. Select the **green** selection button > **Delete**.
+**Mobile**
+1. Open the expense.
+2. Click the green **+** on the receipt icon.
+3. Take a photo or upload a file from your device gallery.
 
-### Delete multiple expenses
-1. Check the boxes for all expenses you want to delete.
-2. Select the **green** selection button > **Delete**.
+## When to use report comments for supporting documentation
 
----
+Each expense can only have one receipt attached. If you have **additional supporting documents** that don’t belong directly on the expense, use the report comment thread to upload them.
 
-## Move or Remove Expenses
+**Examples of supporting docs to upload in comments:**
+- An itemized restaurant receipt (if the expense has the final total with tip)
+- Contracts or invoices related to reimbursed expenses
+- Travel itineraries or booking confirmations
 
-### Move expenses to another report
-1. Check the boxes next to the expenses.
-2. Select the **green** selection button > **Move expense(s)**.
-3. Choose the destination report from the panel.
+**Important:** Only the receipt attached to the expense is used for audits and exports. Anything in the report comments is considered supplemental.
 
-### Remove expenses from a report
-1. Check the boxes next to the expenses.
-2. Select the **green** selection button > **Move expense(s)**.
-3. Choose **Remove from report**.
+## How to fix a missing or misplaced receipt
 
----
+If a receipt was added to the report comments instead of the expense:
 
-## Edit Expenses in Approved or Paid Reports
+### Option 1: Reattach manually
+1. Download the file from the comment.
+2. Open the correct expense.
+3. Select the green **+** and upload it directly.
 
-Approved and Paid reports are locked for editing. To make changes:
+### Option 2: Use SmartScan to create a new expense
+1. Forward the receipt to **receipts@expensify.com** or upload it via the **Receipts** tab.
+2. SmartScan will create a new expense.
+3. Edit the SmartScanned expense or move it to the correct report.
 
-1. Open the report (as an Admin).
-2. Select **More > Cancel Payment** (if Paid).
-3. Then select **More > Unapprove**.
+## How to edit a receipt in an Approved or Paid report
 
-After it's unapproved:
-- The member can select **More > Undo Submit**.
-- They can now edit or remove expenses before resubmitting.
+If the report is locked:
 
-**Important:** If the report was exported to an accounting system, delete the exported data from that system before exporting again. Unapproving a report doesn’t retract the export.
+1. (Admins only) Open the report.
+2. Select **More > Cancel Payment** if Paid.
+3. Select **More > Unapprove**.
+4. The member can then select **More > Undo Submit**.
+5. Now they can edit the expense and reattach the receipt.
 
-### Example
+**Note:** If the report was exported to accounting, delete the exported version before resubmitting.
 
-Taylor submits a report to Jordan. Jordan approves, pays, and exports it to NetSuite, then notices the report includes an unpaid invoice meant for the AP team. Jordan cancels the payment, unapproves the report, and Taylor undoes the submission to remove the invoice. Meanwhile, Jordan deletes the exported report from NetSuite, preparing it for fresh export.
+# FAQ
 
----
+## Why isn’t my receipt showing on the expense?
+It was likely uploaded in the report comments. Receipts must be attached directly to the expense to show up properly.
 
-## View the Expense Table in a Report
+## Can I attach one receipt to multiple expenses?
+No. Each expense must have its own receipt. You can upload the same file multiple times if needed.
 
-Every report includes an expense table. Each row shows:
+## Can someone else upload a receipt to my expense?
+Only Workspace Admins or the expense owner can attach a receipt to an expense.
 
-- Date
-- Merchant
-- Category
-- Amount
-- Workspace violations (if applicable)
-
-Clicking a row opens the full expense details in the side panel.
-
----
-
-## Comments and Collaboration
-
-Each report includes a comment thread to help track conversations and share documents.
-
-### Key features:
-- Add comments below the expense table or on individual expenses.
-- Use **@mentions** to notify teammates.
-- Upload documents to support conversations.
-- Comments update live for everyone with access to the report.
-
----
-
-## System Messages and Audit History
-
-Reports include a complete audit trail of every action—submit, approve, pay, export, etc. -in the comment thread. Expenses also log a history of edits, making it easy to follow changes for compliance or troubleshooting.
-
----
-
-# Troubleshooting the Reports Page
-
-## Why can’t I find a report I just created?
-
-**Possible causes:**
-- You're filtered into a different workspace.
-- Your search term doesn't match the report name.
-
-**Solutions:**
-- Clear any filters and search again.
-- Use a broader or partial search term.
-
----
-
-## Why is the **Create report** button missing?
-
-You’re not a member of a workspace.
-
-**Solutions:**
-- Go to **Workspaces > New Workspace** to create one.
-- Or ask your workspace admin to invite you to the company’s workspace.
-
----
-
-## Why can’t I submit a report?
-
-**Possible causes:**
-- The report has no expenses.
-- The report is already submitted.
-- All expenses are still SmartScanning or pending Expensify Card transactions.
-
-**Solutions:**
-- Add at least one complete expense.
-- Wait for SmartScan to finish or card transactions to post.
-
----
-
-## Why can’t I move or delete expenses from a report?
-
-**Possible causes:**
-- You don’t have permission to edit the report.
-- The report is approved or paid.
-
-**Solutions:**
-- Ask a workspace admin to unapprove the report.
-- Retract the report if you submitted it.
+## Will the auditor see receipts added in report comments?
+No. Only receipts attached to the expense itself are visible in audit logs, exports, and accounting reports.
 
