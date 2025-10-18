@@ -36,15 +36,6 @@ function ValidateCodeActionForm({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldSkipInitialValidation]);
 
-    useEffect(() => {
-        return () => {
-            if (!isUnmounted.current) {
-                return;
-            }
-            clearError();
-        };
-    }, [clearError]);
-
     return (
         <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
             <Text style={[themeStyles.mb6, descriptionPrimaryStyles]}>{descriptionPrimary}</Text>

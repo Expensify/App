@@ -30,6 +30,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 const getMergeErrorPage = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> | null => {
     if (err.includes('403')) {
@@ -92,6 +93,13 @@ function AccountValidatePage() {
     const privateSubscription = usePrivateSubscription();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
+    const [, loginListResult] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [, sessionResult] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {canBeMissing: true});
+    const [, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP, {canBeMissing: true});
+    const [, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
+    const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
+
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_VALIDATE>>();
 
     const email = params.login ?? '';
@@ -150,6 +158,16 @@ function AccountValidatePage() {
 
         return unsubscribe;
     }, [navigation]);
+
+    const didClearError = useRef(false);
+
+    useEffect(() => {
+        if (isLoadingOnyxValues || didClearError.current) {
+            return;
+        }
+        didClearError.current = true;
+        clearMergeWithValidateCode();
+    }, [isLoadingOnyxValues]);
 
     const authenticationErrorKey = getAuthenticationErrorKey(latestError);
     const validateCodeError = !errorPage && authenticationErrorKey ? {authError: translate(authenticationErrorKey)} : undefined;
