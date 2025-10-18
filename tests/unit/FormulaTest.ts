@@ -451,4 +451,92 @@ describe('CustomFormula', () => {
             expect(result).toBe('2025-01-12');
         });
     });
+
+    describe('Submission Info Formula Parts', () => {
+        const submissionContext: FormulaContext = {
+            report: {
+                reportID: '123',
+                ownerAccountID: 100,
+                managerID: 200,
+            } as Report,
+            policy: {
+                id: 'policy1',
+                name: 'Test Policy',
+                role: 'admin' as const,
+                type: 'team' as const,
+                owner: 'owner@test.com',
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
+                employeeList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'user@test.com': {email: 'user@test.com', employeeUserID: 'EMP001', employeePayrollID: 'PAY123'},
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'manager@test.com': {email: 'manager@test.com', employeeUserID: 'EMP002', employeePayrollID: 'PAY456'},
+                },
+            } as Policy,
+            personalDetails: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '100': {accountID: 100, firstName: 'John', lastName: 'User', displayName: 'John User', login: 'user@test.com'},
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '200': {accountID: 200, firstName: 'Jane', lastName: 'Manager', displayName: 'Jane Manager', login: 'manager@test.com'},
+            },
+        };
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+            mockReportActionsUtils.getAllReportActions.mockReturnValue({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1': {reportActionID: '1', created: '2025-01-20T10:00:00Z', actionName: 'SUBMITTED'},
+            } as unknown as ReportActions);
+        });
+
+        test('should compute submitter (from) fields', () => {
+            expect(compute('{report:submit:from:firstname}', submissionContext)).toBe('John');
+            expect(compute('{report:submit:from:fullname}', submissionContext)).toBe('John User');
+            expect(compute('{report:submit:from:email}', submissionContext)).toBe('user@test.com');
+            expect(compute('{report:submit:from:userid}', submissionContext)).toBe('100');
+        });
+
+        test('should compute manager (to) fields', () => {
+            expect(compute('{report:submit:to:firstname}', submissionContext)).toBe('Jane');
+            expect(compute('{report:submit:to:fullname}', submissionContext)).toBe('Jane Manager');
+            expect(compute('{report:submit:to:email}', submissionContext)).toBe('manager@test.com');
+        });
+
+        test('should compute submission date with formats', () => {
+            expect(compute('{report:submit:date}', submissionContext)).toBe('2025-01-20');
+            expect(compute('{report:submit:date:MM/dd/yyyy}', submissionContext)).toBe('01/20/2025');
+        });
+
+        test('should compute custom fields from policy employeeList', () => {
+            expect(compute('{report:submit:from:customfield1}', submissionContext)).toBe('EMP001');
+            expect(compute('{report:submit:from:customfield2}', submissionContext)).toBe('PAY123');
+            expect(compute('{report:submit:to:customfield1}', submissionContext)).toBe('EMP002');
+        });
+
+        test('should return empty when managerID is missing (unsubmitted report)', () => {
+            const unsubmittedContext: FormulaContext = {
+                ...submissionContext,
+                report: {reportID: '123', ownerAccountID: 100, managerID: undefined} as Report,
+            };
+
+            // Returns space (visually empty) to match Classic behavior
+            expect(compute('{report:submit:to:firstname}', unsubmittedContext)).toBe(' ');
+            expect(compute('Report from {report:submit:from:firstname} to {report:submit:to:firstname}', unsubmittedContext)).toBe('Report from John to  ');
+        });
+
+        test('should return formula definition when data is missing', () => {
+            const emptyContext: FormulaContext = {
+                report: {reportID: '123'} as Report,
+                policy: undefined,
+                personalDetails: {},
+            };
+
+            mockReportActionsUtils.getAllReportActions.mockReturnValueOnce({} as ReportActions);
+
+            expect(compute('{report:submit:from:firstname}', emptyContext)).toBe('{report:submit:from:firstname}');
+            expect(compute('{report:submit:date}', emptyContext)).toBe('{report:submit:date}');
+            expect(compute('{report:submit:from:invalidField}', submissionContext)).toBe('{report:submit:from:invalidField}');
+        });
+    });
 });
