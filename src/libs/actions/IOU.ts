@@ -172,6 +172,7 @@ import {
     hasOutstandingChildRequest,
     hasReportBeenReopened,
     hasReportBeenRetracted,
+    hasViolations as hasViolationsReportUtils,
     isArchivedReport,
     isClosedReport as isClosedReportUtil,
     isDraftReport,
@@ -10104,13 +10105,6 @@ function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report
     });
 }
 
-function isLastApprover(approvalChain: string[]): boolean {
-    if (approvalChain.length === 0) {
-        return true;
-    }
-    return approvalChain.at(-1) === currentUserEmail;
-}
-
 function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: boolean) {
     if (!expenseReport) {
         return;
@@ -10132,15 +10126,23 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const approvalChain = getApprovalChain(getPolicy(expenseReport.policyID), expenseReport);
+    const policy = getPolicy(expenseReport.policyID);
+    const nextApproverAccountID = getNextApproverAccountID(expenseReport);
+    const predictedNextStatus = !nextApproverAccountID ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
+    const predictedNextState = !nextApproverAccountID ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
+    const managerID = !nextApproverAccountID ? expenseReport.managerID : nextApproverAccountID;
 
-    const predictedNextStatus = isLastApprover(approvalChain) ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
-    const predictedNextState = isLastApprover(approvalChain) ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
-    const managerID = isLastApprover(approvalChain) ? expenseReport.managerID : getNextApproverAccountID(expenseReport);
-
-    // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const optimisticNextStep = buildNextStep(expenseReport, predictedNextStatus);
+    const hasViolations = hasViolationsReportUtils(expenseReport.reportID, allTransactionViolations);
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const optimisticNextStep = buildNextStepNew({
+        report: expenseReport,
+        policy,
+        currentUserAccountIDParam: userAccountID,
+        currentUserEmailParam: currentUserEmail,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        predictedNextStatus,
+    });
     const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
 
     const optimisticReportActionsData: OnyxUpdate = {
