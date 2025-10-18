@@ -4329,13 +4329,6 @@ function getNextApproverAccountID(report: OnyxEntry<Report>, isUnapproved = fals
         return bypassApprover === currentUserAccountID && !isUnapproved ? undefined : bypassApprover;
     }
 
-    // Check if the report's managerID has been explicitly set (different from the normal approval chain)
-    // This handles cases where the approver was changed via addReportApprover/REROUTE action
-    const normalManagerID = getManagerAccountID(policy, report);
-    if (report?.managerID && report.managerID !== normalManagerID && report.managerID !== currentUserAccountID) {
-        return report.managerID;
-    }
-
     const approvalChain = getApprovalChain(policy, report);
     const submitToAccountID = getSubmitToAccountID(policy, report);
 
@@ -4353,7 +4346,7 @@ function getNextApproverAccountID(report: OnyxEntry<Report>, isUnapproved = fals
 
     const currentUserIndex = approvalChain.indexOf(currentUserEmail ?? '');
     const nextApproverEmail = currentUserIndex === -1 ? approvalChain.at(0) : approvalChain.at(currentUserIndex + 1);
-    
+
     if (!nextApproverEmail) {
         // If there's no next approver in the chain, return undefined to indicate the current user is the final approver
         return undefined;
@@ -11510,15 +11503,6 @@ function getBypassApproverIfTakenControl(expenseReport: OnyxEntry<Report>): numb
 
         if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
             return action.actorAccountID ?? null;
-        }
-
-        // REROUTE means the approver was changed to someone else
-        // In this case, we should use the report's managerID as the next approver
-        if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
-            console.log('action NYA GAN', action);
-            console.log('action.originalMessage?.mentionedAccountIDs NYA GAN', action.originalMessage?.mentionedAccountIDs);
-            return action.originalMessage?.mentionedAccountIDs?.at(0) ?? null;
-            // return expenseReport?.managerID ?? null;
         }
     }
 
