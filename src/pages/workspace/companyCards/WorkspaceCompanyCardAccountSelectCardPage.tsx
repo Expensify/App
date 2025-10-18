@@ -42,7 +42,8 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const [allBankCards] = useCardsList(policyID, bank as CompanyCardFeed);
     const card = allBankCards?.[cardID];
     const connectedIntegration = getConnectedIntegration(policy) ?? CONST.POLICY.CONNECTIONS.NAME.QBO;
-    const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card, Navigation.getActiveRoute());
+    const activeRoute = useMemo(() => Navigation.getActiveRoute(), []);
+    const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card, activeRoute);
     const currentConnectionName = getCurrentConnectionName(policy);
     const shouldShowTextInput = (exportMenuItem?.data?.length ?? 0) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
