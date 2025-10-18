@@ -1,3 +1,5 @@
+#!/usr/bin/env ts-node
+
 /* eslint-disable @typescript-eslint/await-thenable */
 import fs from 'fs';
 import path from 'path';
