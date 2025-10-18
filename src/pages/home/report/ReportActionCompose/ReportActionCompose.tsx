@@ -377,22 +377,24 @@ function ReportActionCompose({
     // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
     const composerRefShared = useSharedValue<{
         clear: (() => void) | undefined;
-    }>({clear: undefined});
+        validate: (() => boolean) | undefined;
+    }>({clear: undefined, validate: undefined});
 
     const handleSendMessage = useCallback(() => {
         'worklet';
 
-        const clearComposer = composerRefShared.get().clear;
-        if (!clearComposer) {
-            throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
+        const {clear, validate} = composerRefShared.get();
+
+        if (!clear || !validate) {
+            throw new Error('The composerRefShared.clear or composerRefShared.validate function is not set yet. This should never happen, and indicates a developer error.');
         }
 
-        if (isSendDisabled) {
+        if (isSendDisabled || !validate()) {
             return;
         }
 
         // This will cause onCleared to be triggered where we actually send the message
-        clearComposer();
+        clear();
     }, [isSendDisabled, composerRefShared]);
 
     const measureComposer = useCallback(
@@ -440,11 +442,10 @@ function ReportActionCompose({
             if (taskCommentMatch) {
                 const title = taskCommentMatch?.[3] ? taskCommentMatch[3].trim().replace(/\n/g, ' ') : '';
                 setHasExceededMaxCommentLength(false);
-                validateTaskTitleMaxLength(title);
-            } else {
-                setHasExceededMaxTitleLength(false);
-                validateCommentMaxLength(value, {reportID});
+                return validateTaskTitleMaxLength(title);
             }
+            setHasExceededMaxTitleLength(false);
+            return validateCommentMaxLength(value, {reportID});
         },
         [setHasExceededMaxCommentLength, setHasExceededMaxTitleLength, validateTaskTitleMaxLength, validateCommentMaxLength, reportID],
     );
@@ -532,6 +533,7 @@ function ReportActionCompose({
                                 composerRef.current = ref ?? undefined;
                                 composerRefShared.set({
                                     clear: ref?.clear,
+                                    validate: debouncedValidate.flush.bind(debouncedValidate),
                                 });
                             }}
                             suggestionsRef={suggestionsRef}
