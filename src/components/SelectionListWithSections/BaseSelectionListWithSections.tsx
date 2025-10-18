@@ -150,6 +150,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     canShowProductTrainingTooltip,
     renderScrollComponent,
     shouldShowRightCaret,
+    shouldHighlightSelectedItem = true,
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -656,6 +657,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         isSelected: selected,
                         ...item,
                     }}
+                    shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     index={index}
                     isFocused={isItemFocused}
@@ -745,7 +747,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     spellCheck={false}
                     iconLeft={textInputIconLeft}
                     onSubmitEditing={selectFocusedOption}
-                    blurOnSubmit={!!flattenedSections.allOptions.length}
+                    submitBehavior={flattenedSections.allOptions.length ? 'blurAndSubmit' : 'submit'}
                     isLoading={isLoadingNewOptions}
                     testID="selection-list-text-input"
                     shouldInterceptSwipe={shouldTextInputInterceptSwipe}
