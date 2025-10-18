@@ -24,7 +24,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
+import {navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs, searchInServer, setGroupDraft} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import memoize from '@libs/memoize';
@@ -300,6 +300,14 @@ function NewChatPage({ref}: NewChatPageProps) {
                 login = option.login;
             } else if (selectedOptions.length === 1) {
                 login = selectedOptions.at(0)?.login ?? '';
+            }
+            // Prefer using a known non-optimistic accountID to correctly resolve secondary logins
+            const accountID =
+                ((option && !option.isOptimisticAccount) ? option.accountID : undefined) ??
+                ((selectedOptions.length === 1 && !selectedOptions.at(0)?.isOptimisticAccount) ? selectedOptions.at(0)?.accountID : undefined);
+            if (accountID) {
+                KeyboardUtils.dismiss().then(() => navigateToAndOpenReportWithAccountIDs([accountID]));
+                return;
             }
             if (!login) {
                 Log.warn('Tried to create chat with empty login');
