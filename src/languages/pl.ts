@@ -5631,6 +5631,11 @@ ${amount} dla ${merchant} - ${date}`,
                 description: 'Twórz i zarządzaj własnymi stawkami, śledź w milach lub kilometrach i ustawiaj domyślne kategorie dla wydatków na odległość.',
                 onlyAvailableOnPlan: 'Stawki za odległość są dostępne w planie Collect, zaczynając od',
             },
+            auditor: {
+                title: 'Audytor',
+                description: 'Audytorzy mają dostęp tylko do odczytu wszystkich raportów, zapewniając pełną przejrzystość i monitorowanie zgodności.',
+                onlyAvailableOnPlan: 'Audytorzy są dostępni tylko w planie Control, od ',
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Wiele poziomów zatwierdzania',
                 description:
