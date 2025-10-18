@@ -1,5 +1,5 @@
 import React, {useRef, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import type {IconSize} from '@components/EReceiptThumbnail';
@@ -13,6 +13,7 @@ import ThumbnailImage from '@components/ThumbnailImage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+import {ReceiptSource} from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
 import shouldUseAspectRatioForEReceipts from './shouldUseAspectRatioForEReceipts';
 
@@ -33,7 +34,7 @@ type ReceiptImageProps = (
           isThumbnail?: boolean;
 
           /** Url of the receipt image */
-          source?: string;
+          source?: ReceiptSource;
 
           /** Whether it is a pdf thumbnail we are displaying */
           isPDFThumbnail?: boolean;
@@ -42,21 +43,21 @@ type ReceiptImageProps = (
           transactionID?: string;
           isEReceipt?: boolean;
           isThumbnail: boolean;
-          source?: string;
+          source?: ReceiptSource;
           isPDFThumbnail?: boolean;
       }
     | {
           transactionID?: string;
           isEReceipt?: boolean;
           isThumbnail?: boolean;
-          source: string;
+          source: ReceiptSource;
           isPDFThumbnail?: boolean;
       }
     | {
           transactionID?: string;
           isEReceipt?: boolean;
           isThumbnail?: boolean;
-          source: string;
+          source: string | ImageSourcePropType;
           isPDFThumbnail?: string;
       }
 ) & {
@@ -162,7 +163,7 @@ function ReceiptImage({
     if (isPDFThumbnail) {
         return (
             <PDFThumbnail
-                previewSourceURL={source ?? ''}
+                previewSourceURL={source?.toString() ?? ''}
                 style={[styles.w100, styles.h100]}
                 onLoadSuccess={onLoad}
             />
@@ -221,7 +222,7 @@ function ReceiptImage({
                 }
                 lastUpdateWidthTimestampRef.current = e.timeStamp;
             }}
-            source={{uri: source}}
+            source={typeof source === 'string' ? {uri: source} : source}
             style={[style ?? [styles.w100, styles.h100], styles.overflowHidden]}
             isAuthTokenRequired={!!isAuthTokenRequired}
             loadingIconSize={loadingIconSize}
