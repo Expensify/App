@@ -793,7 +793,6 @@ function MoneyReportHeader({
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}
                 isDisabled={shouldBlockSubmit}
-                tooltipText={shouldBlockSubmit ? translate('iou.waitingForSubmitterToFixViolations') : undefined}
             />
         ),
         [CONST.REPORT.PRIMARY_ACTIONS.APPROVE]: (

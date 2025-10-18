@@ -21,7 +21,6 @@ import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropd
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -72,7 +71,6 @@ import {
     isSettled,
     isTripRoom as isTripRoomReportUtils,
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
-    shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -474,10 +472,6 @@ function MoneyRequestReportPreviewContent({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
-    const shouldBlockSubmit = useMemo(() => {
-        return shouldBlockSubmitDueToStrictPolicyRules(iouReport?.reportID, violations, isStrictPolicyRulesEnabled, transactions);
-    }, [iouReport?.reportID, violations, isStrictPolicyRulesEnabled, transactions]);
-
     const reportPreviewAction = useMemo(() => {
         return getReportPreviewAction(
             violations,
@@ -620,18 +614,13 @@ function MoneyRequestReportPreviewContent({
             />
         ) : null,
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW]: (
-            <Tooltip
-                text={shouldBlockSubmit ? translate('iou.waitingForSubmitterToFixViolations') : ''}
-                shouldRender={shouldBlockSubmit}
-            >
-                <Button
-                    icon={Expensicons.DotIndicator}
-                    iconFill={theme.danger}
-                    iconHoverFill={theme.danger}
-                    text={translate('common.review')}
-                    onPress={() => openReportFromPreview()}
-                />
-            </Tooltip>
+            <Button
+                icon={Expensicons.DotIndicator}
+                iconFill={theme.danger}
+                iconHoverFill={theme.danger}
+                text={translate('common.review')}
+                onPress={() => openReportFromPreview()}
+            />
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW]: (
             <Button

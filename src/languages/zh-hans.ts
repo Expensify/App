@@ -1427,6 +1427,7 @@ const translations = {
         dates: '日期',
         rates: '费率',
         submitsTo: ({name}: SubmitsToParams) => `提交给${name}`,
+        waitingForSubmitterToFixViolations: '等待您修复问题。您的管理员已限制提交有违规的费用。',
         moveExpenses: () => ({one: '移动费用', other: '移动费用'}),
         reject: {
             educationalTitle: '应该保留还是拒绝？',

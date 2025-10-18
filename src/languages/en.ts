@@ -1421,7 +1421,7 @@ const translations = {
         dates: 'Dates',
         rates: 'Rates',
         submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
-        waitingForSubmitterToFixViolations: 'Waiting for you to fix the issue(s). Your admins have restricted submission of expenses that have violations.',
+        waitingForSubmitterToFixViolations: 'Waiting for you to fix the issue(s). Your admins have restricted submission of expenses with violations.',
         reject: {
             educationalTitle: 'Should you hold or reject?',
             educationalText: "If you're not ready to approve or pay an expense, you can hold or reject it.",

@@ -1450,6 +1450,7 @@ const translations = {
         dates: 'Daten',
         rates: 'Preise',
         submitsTo: ({name}: SubmitsToParams) => `Übermittelt an ${name}`,
+        waitingForSubmitterToFixViolations: 'Warten darauf, dass Sie die Probleme beheben. Ihre Administratoren haben die Einreichung von Ausgaben mit Verstößen eingeschränkt.',
         moveExpenses: () => ({one: 'Ausgabe verschieben', other: 'Ausgaben verschieben'}),
         reject: {
             educationalTitle: 'Solltest du halten oder ablehnen?',

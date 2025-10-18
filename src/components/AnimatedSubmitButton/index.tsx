@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Animated, {Keyframe, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
-import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -26,12 +25,9 @@ type AnimatedSubmitButtonProps = {
 
     // Whether the button should be disabled
     isDisabled?: boolean;
-
-    // Tooltip text to show on hover when button is disabled
-    tooltipText?: string;
 };
 
-function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, isDisabled, tooltipText}: AnimatedSubmitButtonProps) {
+function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, isDisabled}: AnimatedSubmitButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isAnimationRunning = isSubmittingAnimationRunning;
@@ -130,18 +126,13 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
                 </Animated.View>
             )}
             {!isAnimationRunning && (
-                <Tooltip
-                    text={tooltipText ?? ''}
-                    shouldRender={!!tooltipText}
-                >
-                    <Button
-                        success={success}
-                        text={text}
-                        onPress={onPress}
-                        icon={icon}
-                        isDisabled={isDisabled}
-                    />
-                </Tooltip>
+                <Button
+                    success={success}
+                    text={text}
+                    onPress={onPress}
+                    icon={icon}
+                    isDisabled={isDisabled}
+                />
             )}
         </Animated.View>
     );

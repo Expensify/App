@@ -1443,6 +1443,7 @@ const translations = {
         dates: 'Datums',
         rates: 'Tarieven',
         submitsTo: ({name}: SubmitsToParams) => `Dient in bij ${name}`,
+        waitingForSubmitterToFixViolations: 'Wachten tot u de problemen oplost. Uw beheerders hebben het indienen van uitgaven met overtredingen beperkt.',
         moveExpenses: () => ({one: 'Verplaats uitgave', other: 'Verplaats uitgaven'}),
         reject: {
             educationalTitle: 'Moet je vasthouden of afwijzen?',
