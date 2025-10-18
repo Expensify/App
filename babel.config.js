@@ -42,9 +42,9 @@ const defaultPluginsForWebpack = [
     // We use `@babel/plugin-transform-class-properties` for transforming ReactNative libraries and do not use it for our own
     // source code transformation as we do not use class property assignment.
     '@babel/plugin-transform-class-properties',
-
+    '@babel/plugin-proposal-export-namespace-from',
     // Keep it last
-    'react-native-reanimated/plugin',
+    'react-native-worklets/plugin',
     '@babel/plugin-transform-export-namespace-from',
 ];
 
@@ -81,8 +81,6 @@ const metro = {
         ['@babel/plugin-proposal-class-properties', {loose: true}],
         ['@babel/plugin-proposal-private-methods', {loose: true}],
         ['@babel/plugin-proposal-private-property-in-object', {loose: true}],
-        // The reanimated babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation
-        'react-native-reanimated/plugin',
 
         /* Fullstory */
         '@fullstory/react-native',
@@ -134,6 +132,8 @@ const metro = {
             },
         ],
         '@babel/plugin-transform-export-namespace-from',
+        // The worklets babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/
+        'react-native-worklets/plugin',
     ],
     env: {
         production: {
