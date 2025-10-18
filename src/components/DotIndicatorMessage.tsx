@@ -1,15 +1,15 @@
 /* eslint-disable react/no-array-index-key */
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import type {ReactElement} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useHTMLClickableActions from '@hooks/useHTMLClickableActions';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import HTMLClickableActions from '@libs/HTMLClickableActionsUtils';
 import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
@@ -50,6 +50,10 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     const [shouldShowErrorModal, setShouldShowErrorModal] = useState(false);
 
+    if (Object.keys(messages).length === 0) {
+        return null;
+    }
+
     // Fetch the keys, sort them, and map through each key to get the corresponding message
     const sortedMessages: Array<string | ReceiptError> = Object.keys(messages)
         .sort()
@@ -59,20 +63,15 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const uniqueMessages: Array<ReceiptError | string> = [...new Set(sortedMessages)].map((message) => message);
 
     const isErrorMessage = type === 'error';
+    const receiptError = uniqueMessages.find(isReceiptError);
+    const clickableActions = receiptError
+        ? {
+              retry: () => handleRetryPress(receiptError, dismissError, setShouldShowErrorModal),
+              download: () => fileDownload(receiptError.source, receiptError.filename).finally(() => dismissError()),
+          }
+        : undefined;
 
-    useEffect(() => {
-        const receiptError = uniqueMessages.find(isReceiptError);
-        if (!receiptError) {
-            return;
-        }
-
-        HTMLClickableActions.retry = () => handleRetryPress(receiptError, dismissError, setShouldShowErrorModal);
-        HTMLClickableActions.download = () => fileDownload(receiptError.source, receiptError.filename).finally(() => dismissError());
-    }, [uniqueMessages, dismissError]);
-
-    if (Object.keys(messages).length === 0) {
-        return null;
-    }
+    useHTMLClickableActions(clickableActions);
 
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {

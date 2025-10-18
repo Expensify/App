@@ -3,7 +3,7 @@ import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-ht
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import TextLink from '@components/TextLink';
 import useThemeStyles from '@hooks/useThemeStyles';
-import ClickableActionsUtils from '@libs/HTMLClickableActionsUtils';
+import {getHTMLClickableAction} from '@libs/HTMLClickableActionsUtils';
 
 type ClickableRendererProps = CustomRendererProps<TText | TPhrasing>;
 
@@ -15,7 +15,7 @@ function ClickableRenderer({tnode}: ClickableRendererProps) {
     const id = tnode.attributes.id;
 
     const onPress = useCallback(() => {
-        const action = ClickableActionsUtils[id];
+        const action = getHTMLClickableAction(id);
         action?.();
     }, [id]);
 
