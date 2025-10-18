@@ -15,10 +15,11 @@ function DisplayNames({
     shouldUseFullTitle,
     displayNamesWithTooltips,
     renderAdditionalText,
+    shouldParseFullTitle = true,
     forwardedFSClass,
 }: DisplayNamesProps) {
     const {translate} = useLocalize();
-    const title = StringUtils.lineBreaksToSpaces(Parser.htmlToText(fullTitle)) || translate('common.hidden');
+    const title = StringUtils.lineBreaksToSpaces(shouldParseFullTitle ? Parser.htmlToText(fullTitle) : fullTitle) || translate('common.hidden');
 
     if (!tooltipEnabled) {
         return (
