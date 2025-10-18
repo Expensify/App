@@ -117,6 +117,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type ReportNextStep from '@src/types/onyx/ReportNextStep';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ActivityIndicator from './ActivityIndicator';
@@ -403,7 +404,6 @@ function MoneyReportHeader({
     const isSubmitterSameAsNextApprover = isReportOwner(moneyRequestReport) && nextApproverAccountID === moneyRequestReport?.ownerAccountID;
     let optimisticNextStep = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
 
-    // When strict policy rules are enabled and there are violations, show a custom next step message
     if (shouldBlockSubmit && isReportOwner(moneyRequestReport)) {
         optimisticNextStep = {
             type: 'alert',
@@ -1295,7 +1295,7 @@ function MoneyReportHeader({
             {shouldShowMoreContent && (
                 <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
                     <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
-                        {showNextStepBar && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
+                        {showNextStepBar && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep as ReportNextStep} />}
                         {showNextStepSkeleton && <MoneyReportHeaderStatusBarSkeleton />}
                         {!!statusBarProps && (
                             <MoneyRequestHeaderStatusBar
