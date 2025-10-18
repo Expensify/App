@@ -108,6 +108,7 @@ function ProfileAvatar() {
             avatar: currentUserPersonalDetails?.avatar,
             fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
             accountID: currentUserPersonalDetails?.accountID,
+            email: currentUserPersonalDetails?.email,
         });
     }, [currentUserPersonalDetails]);
 
