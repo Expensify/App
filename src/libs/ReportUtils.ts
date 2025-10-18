@@ -82,6 +82,7 @@ import {
     getIOUReportActionToApproveOrPay,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
+    setMoneyRequestReportID,
     unholdRequest,
 } from './actions/IOU';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
@@ -10324,6 +10325,7 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID: stri
             searchText: policyName,
         },
     ]);
+    setMoneyRequestReportID(transactionID, expenseChatReportID);
     if (isCategorizing) {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID));
     } else {
