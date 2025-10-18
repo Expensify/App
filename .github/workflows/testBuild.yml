@@ -192,9 +192,10 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
+          cache-dependency-path: desktop/requirements.txt
 
       - name: Ensure setuptools for node-gyp
-        run: python -m pip install --upgrade pip setuptools
+        run: pip install --upgrade -r desktop/requirements.txt
 
       - name: Load Desktop credentials from 1Password
         id: load-credentials
@@ -226,7 +227,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           GCP_GEOLOCATION_API_KEY: ${{ secrets.GCP_GEOLOCATION_API_KEY_STAGING }}
-          PYTHON: ${{ steps.setup-python.outputs.python-path }}
 
   web:
     name: Build and deploy Web
@@ -471,7 +471,7 @@ jobs:
           </dict>
           </plist>
           EOF
-      
+
       - name: Rock Remote Build - iOS
         id: rock-remote-build-ios
         uses: callstackincubator/ios@79778c5739839044d2ca5af75ace7ba0467b5366 # v3
