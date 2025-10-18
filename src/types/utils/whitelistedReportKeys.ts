@@ -8,6 +8,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         avatarUrl: unknown;
         chatType: unknown;
+        created: unknown;
         hasOutstandingChildRequest: unknown;
         hasOutstandingChildTask: unknown;
         isOwnPolicyExpenseChat: unknown;

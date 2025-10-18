@@ -436,6 +436,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'preexistingReportID':
         case 'private_isArchived':
         case 'welcomeMessage':
+        case 'created':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -558,6 +559,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'pendingFields':
             return validateObject<ObjectElement<Report | ReportNameValuePairs, 'pendingFields'>>(value, {
                 description: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                created: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 privateNotes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 currency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 type: CONST.RED_BRICK_ROAD_PENDING_ACTION,
