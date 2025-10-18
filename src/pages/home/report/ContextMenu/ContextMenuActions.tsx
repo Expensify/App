@@ -884,8 +884,8 @@ const ContextMenuActions: ContextMenuAction[] = [
             );
         },
         onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction}) => {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const reportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID || reportIDParam : reportIDParam;
+            const iouReportID = isMoneyRequestAction(moneyRequestAction) ? (getOriginalMessage(moneyRequestAction)?.IOUReportID ?? reportIDParam) : reportIDParam;
+            const reportID = iouReportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? iouReportID : reportIDParam;
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
                 hideContextMenu(false, () => showDeleteModal(reportID, moneyRequestAction ?? reportAction));
