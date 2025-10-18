@@ -351,6 +351,7 @@ jobs:
         uses: callstackincubator/android@1585a4a0b32801c26d2dae67a09f0df530df25c0 # v3
         env:
           IS_HYBRID_APP: true
+          GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ github.token }}
         with:
           variant: 'Adhoc'
