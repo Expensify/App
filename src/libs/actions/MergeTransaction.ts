@@ -18,7 +18,7 @@ import {
     isReportManager,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {getAmount, getTransactionViolationsOfTransaction, isManagedCardTransaction, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
+import {getAmount, getTransactionViolationsOfTransaction, isDistanceRequest, isManagedCardTransaction, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
@@ -63,6 +63,11 @@ function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2
     // Temporary exclude IOU reports from eligible list
     // See: https://github.com/Expensify/App/issues/70329#issuecomment-3277062003
     if (isIOUReport(transaction1.reportID) || isIOUReport(transaction2.reportID)) {
+        return false;
+    }
+
+    // Do not allow merging of distance request with other non-distance request
+    if (isDistanceRequest(transaction1) !== isDistanceRequest(transaction2)) {
         return false;
     }
 
@@ -186,6 +191,21 @@ function getOnyxTargetTransactionData(
         });
     }
 
+    // getUpdateMoneyRequestParams currently derives optimistic distance data from transaction.routes.
+    // In the merge flow, the selected merchant determines waypoints/customUnit => we can optimistic distance data from the selected merchant's waypoints/customUnit instead of transaction.routes
+    if (mergeTransaction.waypoints) {
+        data.onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
+            value: {
+                comment: {
+                    waypoints: mergeTransaction.waypoints,
+                    customUnit: mergeTransaction.customUnit,
+                },
+            },
+        });
+    }
+
     return data.onyxData;
 }
 
@@ -218,6 +238,8 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
         comment: JSON.stringify({
             ...targetTransaction.comment,
             comment: mergeTransaction.description,
+            customUnit: mergeTransaction.customUnit,
+            waypoints: mergeTransaction.waypoints,
             attendees: mergeTransaction.attendees,
         }),
         billable: mergeTransaction.billable,
@@ -352,4 +374,4 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
     API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData});
 }
 
-export {setupMergeTransactionData, setMergeTransactionKey, getTransactionsForMerging, mergeTransactionRequest};
+export {setupMergeTransactionData, setMergeTransactionKey, getTransactionsForMerging, mergeTransactionRequest, areTransactionsEligibleForMerge};

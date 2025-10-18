@@ -1,6 +1,6 @@
 import type {Attendee} from './IOU';
 import type Transaction from './Transaction';
-import type {Comment, Receipt} from './Transaction';
+import type {Comment, Receipt, Routes, TransactionCustomUnit, WaypointCollection} from './Transaction';
 
 /** Model of transaction merge data */
 type MergeTransaction = {
@@ -51,6 +51,15 @@ type MergeTransaction = {
 
     /** The report ID of the transaction */
     reportID: string;
+
+    /** Custom unit data for distance requests */
+    customUnit?: TransactionCustomUnit;
+
+    /** Waypoints for distance requests */
+    waypoints?: WaypointCollection;
+
+    /** Routes for distance requests */
+    routes?: Routes | null;
 
     /** The attendees of the transaction */
     attendees?: Attendee[];
