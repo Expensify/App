@@ -91,7 +91,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         includeRecentReports: false,
         includeCurrentUser: true,
         getValidOptionsConfig: {
-            includeP2P: true,
             includeSelfDM: false,
             includeInvoiceRooms: false,
             action,

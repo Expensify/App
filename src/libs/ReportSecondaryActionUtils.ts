@@ -74,7 +74,7 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
     return canAddTransaction(report, isReportArchived);
 }
 
-function isSplitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, isNewDotUpdateSplitsBeta = true): boolean {
+function isSplitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
     if (Number(reportTransactions?.length) !== 1) {
         return false;
     }
@@ -91,12 +91,8 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
         return false;
     }
 
-    const {isBillSplit, isExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction);
+    const {isBillSplit} = getOriginalTransactionWithSplitInfo(reportTransaction);
     if (isBillSplit) {
-        return false;
-    }
-
-    if (isExpenseSplit && !isNewDotUpdateSplitsBeta) {
         return false;
     }
 
@@ -541,7 +537,14 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
     return isMoneyRequestReportEligibleForMerge(parentReport.reportID, isAdmin);
 }
 
-function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, reportTransactions: Transaction[], reportActions?: ReportAction[], policy?: Policy): boolean {
+function isRemoveHoldAction(
+    report: Report,
+    chatReport: OnyxEntry<Report>,
+    reportTransactions: Transaction[],
+    reportActions?: ReportAction[],
+    policy?: Policy,
+    primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '',
+): boolean {
     const isReportOnHold = reportTransactions.some(isOnHoldTransactionUtils);
 
     if (!isReportOnHold) {
@@ -555,9 +558,10 @@ function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, repor
     }
 
     const isHolder = reportTransactions.some((transaction) => isHoldCreator(transaction, transactionThreadReportID));
+    const isPrimaryActionRemoveHold = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
 
     if (isHolder) {
-        return false;
+        return !isPrimaryActionRemoveHold;
     }
 
     return policy?.role === CONST.POLICY.ROLE.ADMIN;
@@ -578,7 +582,6 @@ function getSecondaryReportActions({
     reportActions,
     policies,
     isChatReportArchived = false,
-    isNewDotUpdateSplitsBeta,
 }: {
     currentUserEmail: string;
     report: Report;
@@ -591,7 +594,6 @@ function getSecondaryReportActions({
     policies?: OnyxCollection<Policy>;
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
-    isNewDotUpdateSplitsBeta?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -643,7 +645,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
     }
 
-    if (isRemoveHoldAction(report, chatReport, reportTransactions, reportActions, policy)) {
+    if (isRemoveHoldAction(report, chatReport, reportTransactions, reportActions, policy, primaryAction)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
@@ -651,7 +653,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 
-    if (isSplitAction(report, reportTransactions, policy, isNewDotUpdateSplitsBeta)) {
+    if (isSplitAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
@@ -676,7 +678,6 @@ function getSecondaryReportActions({
     if (isDeleteAction(report, reportTransactions, reportActions ?? [], policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
-
     return options;
 }
 
@@ -707,7 +708,6 @@ function getSecondaryTransactionThreadActions(
     reportAction: ReportAction | undefined,
     policy: OnyxEntry<Policy>,
     transactionThreadReport?: OnyxEntry<Report>,
-    isNewDotUpdateSplitsBeta?: boolean,
 ): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -723,7 +723,7 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
-    if (isSplitAction(parentReport, [reportTransaction], policy, isNewDotUpdateSplitsBeta)) {
+    if (isSplitAction(parentReport, [reportTransaction], policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
 
