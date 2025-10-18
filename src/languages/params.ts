@@ -942,7 +942,12 @@ type MergeAccountIntoParams = {
     login: string;
 };
 
+type ToggleImportTitleParams = {
+    mappingTitle: string;
+};
+
 export type {
+    ToggleImportTitleParams,
     ContactMethodsRouteParams,
     ContactMethodParams,
     SplitExpenseEditTitleParams,
