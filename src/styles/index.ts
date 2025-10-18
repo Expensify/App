@@ -135,6 +135,8 @@ const link = (theme: ThemeColors) =>
         textDecorationColor: theme.link,
         // We set fontFamily directly in order to avoid overriding fontWeight and fontStyle.
         fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
+        // We do not want to have underline on links
+        textDecorationLine: 'none',
     }) satisfies ViewStyle & MixedStyleDeclaration;
 
 const emailLink = (theme: ThemeColors) =>

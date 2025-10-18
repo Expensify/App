@@ -5,14 +5,13 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -58,7 +57,6 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
@@ -156,14 +154,10 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                         additionalStyles={styles.mr1}
                     />
                     <Text style={[styles.offlineFeedbackText, styles.pr5]}>
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('workspace.companyCards.brokenConnectionErrorFirstPart')}</Text>
-                        <TextLink
-                            style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
-                            onPress={openBankConnection}
-                        >
-                            {translate('workspace.companyCards.brokenConnectionErrorLink')}
-                        </TextLink>
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('workspace.companyCards.brokenConnectionErrorSecondPart')}</Text>
+                        <RenderHTML
+                            html={translate('workspace.companyCards.brokenConnectionError')}
+                            onLinkPress={openBankConnection}
+                        />
                     </Text>
                 </View>
             )}
