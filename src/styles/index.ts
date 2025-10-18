@@ -5208,7 +5208,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         avatarSelectorWrapper: {
-            margin: 5,
+            margin: 1,
             borderRadius: 50,
             padding: 3,
             borderWidth: 2,
@@ -5223,7 +5223,11 @@ const staticStyles = (theme: ThemeColors) =>
         avatarSelectorListContainer: {
             flexDirection: 'row',
             flexWrap: 'wrap',
+            marginLeft: 'auto',
+            marginRight: 'auto',
         },
+
+        avatarSelected: {borderColor: theme.success, borderWidth: 2},
 
         expenseWidgetRadius: {
             borderRadius: variables.componentBorderRadiusNormal,
