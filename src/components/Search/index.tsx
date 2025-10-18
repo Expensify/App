@@ -391,7 +391,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return [[], 0];
         }
 
-        // Merging live REPORT_NAME_VALUE_PAIRS into search data to get latest archived status
+        // Merging live REPORT_NAME_VALUE_PAIRS into search data to get latest archived status for both online and offline
         const mergedSearchData = {
             ...searchResults.data,
             ...allReportNameValuePairs,
