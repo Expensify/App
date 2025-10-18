@@ -72,13 +72,11 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const initialSelectedOptions = useMemo(
         () =>
             attendees.map((attendee) => ({
-                accountID: attendee.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                login: attendee.email,
-                text: attendee.displayName,
-                searchText: attendee.searchText ?? attendee.displayName,
-                avatarUrl: attendee.avatarUrl,
+                ...attendee,
                 reportID: CONST.DEFAULT_NUMBER_ID.toString(),
                 selected: true,
+                login: attendee.email,
+                ...getPersonalDetailByEmail(attendee.email),
             })),
         [attendees],
     );
