@@ -8,6 +8,7 @@ import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Xero from '@libs/actions/connections/Xero';
+import {getCleanCategoryName} from '@libs/CategoryUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
@@ -32,16 +33,19 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
 
     const menuItems = useMemo(() => {
         const trackingCategories = Xero.getTrackingCategories(policy);
-        return trackingCategories.map((category: XeroTrackingCategory & {value: string}) => ({
-            id: category.id,
-            description: translate('workspace.xero.mapTrackingCategoryTo', {categoryName: category.name}) as TranslationPaths,
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP.getRoute(policyID, category.id, category.name)),
-            title: translate(
-                `workspace.xero.trackingCategoriesOptions.${
-                    !StringUtils.isEmptyString(category.value) ? category.value.toUpperCase() : CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.DEFAULT
-                }` as TranslationPaths,
-            ),
-        }));
+        return trackingCategories.map((category: XeroTrackingCategory & {value: string}) => {
+            const cleanCategoryName = getCleanCategoryName(category.name);
+            return {
+                id: category.id,
+                description: translate('workspace.xero.mapTrackingCategoryTo', {categoryName: cleanCategoryName}) as TranslationPaths,
+                onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP.getRoute(policyID, category.id, category.name)),
+                title: translate(
+                    `workspace.xero.trackingCategoriesOptions.${
+                        !StringUtils.isEmptyString(category.value) ? category.value.toUpperCase() : CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.DEFAULT
+                    }` as TranslationPaths,
+                ),
+            };
+        });
     }, [translate, policy, policyID]);
 
     return (

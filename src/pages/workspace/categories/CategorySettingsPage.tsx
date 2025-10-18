@@ -17,7 +17,7 @@ import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
+import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate, getCleanCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -61,6 +61,7 @@ function CategorySettingsPage({
     const {environmentURL} = useEnvironment();
 
     const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories ?? {}).find((category) => category.previousCategoryName === categoryName);
+    const cleanCategoryName = getCleanCategoryName(policyCategory?.name ?? '');
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
@@ -184,7 +185,7 @@ function CategorySettingsPage({
                 testID={CategorySettingsPage.displayName}
             >
                 <HeaderWithBackButton
-                    title={categoryName}
+                    title={cleanCategoryName}
                     onBackButtonPress={navigateBack}
                 />
                 <ConfirmModal
@@ -230,7 +231,7 @@ function CategorySettingsPage({
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
                         <MenuItemWithTopDescription
-                            title={policyCategory.name}
+                            title={cleanCategoryName}
                             description={translate('common.name')}
                             onPress={navigateToEditCategory}
                             shouldShowRightIcon
