@@ -10,6 +10,7 @@ import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionShee
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
+import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {deleteMoneyRequest, deleteTrackExpense} from '@libs/actions/IOU';
@@ -52,6 +53,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
     const isReportArchived = useReportIsArchived(reportIDRef.current);
     const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current));
+    const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
 
     const cursorRelativePosition = useRef({
         horizontal: 0,
@@ -304,9 +306,32 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         if (isMoneyRequestAction(reportAction)) {
             const originalMessage = getOriginalMessage(reportAction);
             if (isTrackExpenseAction(reportAction)) {
-                deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations, isReportArchived);
+                deleteTrackExpense(
+                    reportIDRef.current,
+                    originalMessage?.IOUTransactionID,
+                    reportAction,
+                    iouReport,
+                    chatReport,
+                    duplicateTransactions,
+                    duplicateTransactionViolations,
+                    undefined,
+                    isReportArchived,
+                    isChatIOUReportArchived,
+                );
             } else {
-                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations);
+                console.log('delete Money request');
+                deleteMoneyRequest(
+                    originalMessage?.IOUTransactionID,
+                    reportAction,
+                    duplicateTransactions,
+                    duplicateTransactionViolations,
+                    iouReport,
+                    chatReport,
+                    undefined,
+                    undefined,
+                    undefined,
+                    isChatIOUReportArchived,
+                );
             }
         } else if (isReportPreviewAction(reportAction)) {
             deleteAppReport(reportAction.childReportID);
@@ -319,7 +344,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
-    }, [duplicateTransactions, duplicateTransactionViolations, isReportArchived, isOriginalReportArchived]);
+    }, [duplicateTransactions, duplicateTransactionViolations, isReportArchived, isOriginalReportArchived, isChatIOUReportArchived, iouReport, chatReport]);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));

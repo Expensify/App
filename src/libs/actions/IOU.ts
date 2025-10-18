@@ -8156,14 +8156,15 @@ function updateMoneyRequestAmountAndCurrency({
 function prepareToCleanUpMoneyRequest(
     transactionID: string,
     reportAction: OnyxTypes.ReportAction,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    chatReport: OnyxEntry<OnyxTypes.Report>,
     shouldRemoveIOUTransactionID = true,
     transactionIDsPendingDeletion?: string[],
     selectedTransactionIDs?: string[],
+    isChatReportArchived = false,
 ) {
     // STEP 1: Get all collections we're updating
-    const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] ?? null;
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
+    const iouReportID = iouReport?.reportID;
     const reportPreviewAction = getReportPreviewAction(iouReport?.chatReportID, iouReport?.reportID);
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isTransactionOnHold = isOnHold(transaction);
@@ -8204,7 +8205,7 @@ function prepareToCleanUpMoneyRequest(
 
     let canUserPerformWriteAction = true;
     if (chatReport) {
-        canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport);
+        canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isChatReportArchived);
     }
     // If we are deleting the last transaction on a report, then delete the report too
     const shouldDeleteIOUReport = getReportTransactions(iouReportID).filter((trans) => !transactionIDsPendingDeletion?.includes(trans.transactionID)).length === 1;
@@ -8239,7 +8240,7 @@ function prepareToCleanUpMoneyRequest(
         }
     }
     // STEP 4: Update the iouReport and reportPreview with new totals and messages if it wasn't deleted
-    let updatedIOUReport: OnyxInputValue<OnyxTypes.Report>;
+    let updatedIOUReport;
     const currency = getCurrency(transaction);
     const updatedReportPreviewAction: Partial<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = cloneDeep(reportPreviewAction ?? {});
     updatedReportPreviewAction.pendingAction = shouldDeleteIOUReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
@@ -8324,11 +8325,9 @@ function prepareToCleanUpMoneyRequest(
         updatedReportPreviewAction,
         transactionThreadID,
         transactionThread,
-        chatReport,
         transaction,
         transactionViolations,
         reportPreviewAction,
-        iouReport,
     };
 }
 
@@ -8339,12 +8338,28 @@ function prepareToCleanUpMoneyRequest(
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @returns The URL to navigate to
  */
-function getNavigationUrlOnMoneyRequestDelete(transactionID: string | undefined, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false): Route | undefined {
+function getNavigationUrlOnMoneyRequestDelete(
+    transactionID: string | undefined,
+    reportAction: OnyxTypes.ReportAction,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    chatReport: OnyxEntry<OnyxTypes.Report>,
+    isSingleTransactionView = false,
+    isChatReportArchived = false,
+): Route | undefined {
     if (!transactionID) {
         return undefined;
     }
 
-    const {shouldDeleteTransactionThread, shouldDeleteIOUReport, iouReport} = prepareToCleanUpMoneyRequest(transactionID, reportAction);
+    const {shouldDeleteTransactionThread, shouldDeleteIOUReport} = prepareToCleanUpMoneyRequest(
+        transactionID,
+        reportAction,
+        iouReport,
+        chatReport,
+        undefined,
+        undefined,
+        undefined,
+        isChatReportArchived,
+    );
 
     // Determine which report to navigate back to
     if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
@@ -8370,7 +8385,10 @@ function getNavigationUrlAfterTrackExpenseDelete(
     chatReportID: string | undefined,
     transactionID: string | undefined,
     reportAction: OnyxTypes.ReportAction,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    chatIOUReport: OnyxEntry<OnyxTypes.Report>,
     isSingleTransactionView = false,
+    isChatReportArchived = false,
 ): Route | undefined {
     if (!chatReportID || !transactionID) {
         return undefined;
@@ -8380,7 +8398,7 @@ function getNavigationUrlAfterTrackExpenseDelete(
 
     // If not a self DM, handle it as a regular money request
     if (!isSelfDM(chatReport)) {
-        return getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
+        return getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, iouReport, chatIOUReport, isSingleTransactionView, isChatReportArchived);
     }
 
     // Only navigate if in single transaction view and the thread will be deleted
@@ -8399,20 +8417,19 @@ function getNavigationUrlAfterTrackExpenseDelete(
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @return the url to navigate back once the money request is deleted
  */
-function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, reportID: string, isSingleTransactionView = false) {
-    const {
-        shouldDeleteTransactionThread,
-        shouldDeleteIOUReport,
-        updatedReportAction,
-        updatedIOUReport,
-        updatedReportPreviewAction,
-        transactionThreadID,
-        chatReport,
-        iouReport,
-        reportPreviewAction,
-    } = prepareToCleanUpMoneyRequest(transactionID, reportAction, false);
+function cleanUpMoneyRequest(
+    transactionID: string,
+    reportAction: OnyxTypes.ReportAction,
+    reportID: string,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    chatReport: OnyxEntry<OnyxTypes.Report>,
+    isSingleTransactionView = false,
+    isChatIOUReportArchived = false,
+) {
+    const {shouldDeleteTransactionThread, shouldDeleteIOUReport, updatedReportAction, updatedIOUReport, updatedReportPreviewAction, transactionThreadID, reportPreviewAction} =
+        prepareToCleanUpMoneyRequest(transactionID, reportAction, iouReport, chatReport, false, undefined, undefined, isChatIOUReportArchived);
 
-    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
+    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, iouReport, chatReport, isSingleTransactionView, isChatIOUReportArchived);
     // build Onyx data
 
     // Onyx operations to delete the transaction, update the IOU report action and chat report action
@@ -8505,7 +8522,7 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
     if (shouldDeleteIOUReport) {
         let canUserPerformWriteAction = true;
         if (chatReport) {
-            canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport);
+            canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isChatIOUReportArchived);
         }
 
         const lastMessageText = getLastVisibleMessage(
@@ -8563,9 +8580,12 @@ function deleteMoneyRequest(
     reportAction: OnyxTypes.ReportAction,
     transactions: OnyxCollection<OnyxTypes.Transaction>,
     violations: OnyxCollection<OnyxTypes.TransactionViolations>,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    chatReport: OnyxEntry<OnyxTypes.Report>,
     isSingleTransactionView = false,
     transactionIDsPendingDeletion?: string[],
     selectedTransactionIDs?: string[],
+    isChatIOUReportArchived = false,
 ) {
     if (!transactionID) {
         return;
@@ -8580,14 +8600,12 @@ function deleteMoneyRequest(
         updatedReportPreviewAction,
         transactionThreadID,
         transactionThread,
-        chatReport,
         transaction,
         transactionViolations,
-        iouReport,
         reportPreviewAction,
-    } = prepareToCleanUpMoneyRequest(transactionID, reportAction, false, transactionIDsPendingDeletion, selectedTransactionIDs);
+    } = prepareToCleanUpMoneyRequest(transactionID, reportAction, iouReport, chatReport, false, transactionIDsPendingDeletion, selectedTransactionIDs, isChatIOUReportArchived);
 
-    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
+    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, iouReport, chatReport, isSingleTransactionView, isChatIOUReportArchived);
 
     // STEP 2: Build Onyx data
     // The logic mostly resembles the cleanUpMoneyRequest function
@@ -8680,7 +8698,7 @@ function deleteMoneyRequest(
     if (shouldDeleteIOUReport) {
         let canUserPerformWriteAction = true;
         if (chatReport) {
-            canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport);
+            canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isChatIOUReportArchived);
         }
 
         const optimisticReportActions = reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {};
@@ -8856,21 +8874,24 @@ function deleteTrackExpense(
     chatReportID: string | undefined,
     transactionID: string | undefined,
     reportAction: OnyxTypes.ReportAction,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    chatIOUReport: OnyxEntry<OnyxTypes.Report>,
     transactions: OnyxCollection<OnyxTypes.Transaction>,
     violations: OnyxCollection<OnyxTypes.TransactionViolations>,
     isSingleTransactionView = false,
     isChatReportArchived = false,
+    isChatIOUReportArchived = false,
 ) {
     if (!chatReportID || !transactionID) {
         return;
     }
 
-    const urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(chatReportID, transactionID, reportAction, isSingleTransactionView);
+    const urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(chatReportID, transactionID, reportAction, iouReport, chatIOUReport, isSingleTransactionView, isChatIOUReportArchived);
 
     // STEP 1: Get all collections we're updating
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
     if (!isSelfDM(chatReport)) {
-        deleteMoneyRequest(transactionID, reportAction, transactions, violations, isSingleTransactionView);
+        deleteMoneyRequest(transactionID, reportAction, transactions, violations, iouReport, chatIOUReport, isSingleTransactionView, undefined, undefined, isChatIOUReportArchived);
         return urlToNavigateBack;
     }
 
@@ -13337,20 +13358,23 @@ function clearSplitTransactionDraftErrors(transactionID: string | undefined) {
 }
 
 function saveSplitTransactions(
+    originalTransactionID: string,
     draftTransaction: OnyxEntry<OnyxTypes.Transaction>,
     hash: number,
     policyCategories: OnyxTypes.PolicyCategories | undefined,
     policy: OnyxTypes.Policy | undefined,
     policyRecentlyUsedCategories: OnyxTypes.RecentlyUsedCategories | undefined,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    chatReport: OnyxEntry<OnyxTypes.Report>,
+    firstIOU: OnyxEntry<OnyxTypes.ReportAction> | undefined,
+    isChatReportArchived = false,
 ) {
     const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
 
-    const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
-    const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
 
     const policyTags = getPolicyTagsData(expenseReport?.policyID);
     const participants = getMoneyRequestParticipantsFromReport(expenseReport);
@@ -13581,9 +13605,17 @@ function saveSplitTransactions(
             value: originalTransaction,
         });
 
-        const firstIOU = iouActions.at(0);
         if (firstIOU) {
-            const {updatedReportAction, iouReport, transactionThread} = prepareToCleanUpMoneyRequest(originalTransactionID, firstIOU);
+            const {updatedReportAction, transactionThread} = prepareToCleanUpMoneyRequest(
+                originalTransactionID,
+                firstIOU,
+                iouReport,
+                chatReport,
+                undefined,
+                undefined,
+                undefined,
+                isChatReportArchived,
+            );
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,
@@ -13664,7 +13696,7 @@ function saveSplitTransactions(
     InteractionManager.runAfterInteractions(() => removeDraftSplitTransaction(originalTransactionID));
 
     const isSearchPageTopmostFullScreenRoute = isSearchTopmostFullScreenRoute();
-    const transactionThreadReportID = iouActions.at(0)?.childReportID;
+    const transactionThreadReportID = firstIOU?.childReportID;
     const transactionThreadReportScreen = Navigation.getReportRouteByID(transactionThreadReportID);
 
     if (isSearchPageTopmostFullScreenRoute || !transactionReport?.parentReportID) {
@@ -13953,6 +13985,7 @@ export {
     markRejectViolationAsResolved,
     setMoneyRequestReimbursable,
     computePerDiemExpenseAmount,
+    getIOUActionForTransactions,
     initSplitExpense,
     initSplitExpenseItemData,
     addSplitExpenseField,
