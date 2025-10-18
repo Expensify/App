@@ -11,14 +11,28 @@ import {writeFileSync} from 'fs';
 import {join} from 'path';
 import type {TupleToUnion} from 'type-fest';
 import CLI from './utils/CLI';
-import Git, {GIT_ERRORS} from './utils/Git';
-import {bold, info, log, error as logError, success as logSuccess, note, warn} from './utils/Logger';
+import Git from './utils/Git';
+import type {DiffResult} from './utils/Git';
+import {log, bold as logBold, error as logError, info as logInfo, note as logNote, success as logSuccess, warn as logWarn} from './utils/Logger';
 
 const DEFAULT_REPORT_FILENAME = 'react-compiler-report.json';
 
+const SUPPRESSED_COMPILER_ERRORS = [
+    // This error is caused by an internal limitation of React Compiler
+    // https://github.com/facebook/react/issues/29583
+    '(BuildHIR::lowerExpression) Expected Identifier, got MemberExpression key in ObjectExpression',
+] as const satisfies string[];
+
+const VERBOSE_OUTPUT_LINE_REGEXES = {
+    SUCCESS: /Successfully compiled (?:hook|component) \[([^\]]+)\]\(([^)]+)\)/,
+    FAILURE_WITH_REASON: /Failed to compile ([^:]+):(\d+):(\d+)\. Reason: (.+)/,
+    FAILURE_WITHOUT_REASON: /Failed to compile ([^:]+):(\d+):(\d+)\./,
+    REASON: /Reason: (.+)/,
+} as const satisfies Record<string, RegExp>;
+
 type HealthcheckJsonResults = {
     success: string[];
-    failures: CompilerFailure;
+    failure: string[];
 };
 
 type CompilerResults = {
@@ -30,55 +44,76 @@ type CompilerFailure = {
     file: string;
     line?: number;
     column?: number;
-    reason: string;
+    reason?: string;
 };
 
-function check(filesToCheck?: string[], shouldGenerateReport = false) {
+type DiffFilteringCommits = {
+    from: string;
+    to: string;
+};
+
+type PrintResultsOptions = {
+    shouldPrintSuccesses: boolean;
+};
+
+type BaseCheckOptions = PrintResultsOptions & {
+    remote?: string;
+    reportFileName?: string;
+    shouldGenerateReport?: boolean;
+    shouldFilterByDiff?: boolean;
+};
+
+type CheckOptions = BaseCheckOptions & {
+    filesToCheck?: string[];
+};
+
+async function check({
+    filesToCheck,
+    shouldGenerateReport = false,
+    reportFileName = DEFAULT_REPORT_FILENAME,
+    shouldFilterByDiff = false,
+    remote,
+    shouldPrintSuccesses = false,
+}: CheckOptions): Promise<boolean> {
     if (filesToCheck) {
-        info(`Running React Compiler check for ${filesToCheck.length} files or glob patterns...`);
+        logInfo(`Running React Compiler check for ${filesToCheck.length} files or glob patterns...`);
     } else {
-        info('Running React Compiler check for all files...');
+        logInfo('Running React Compiler check for all files...');
     }
 
     const src = createFilesGlob(filesToCheck);
-    const results = runCompilerHealthcheck(src);
+    let results = runCompilerHealthcheck(src);
+
+    if (shouldFilterByDiff) {
+        const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
+        const headCommitHash = 'HEAD';
+        const diffFilteringCommits: DiffFilteringCommits = {from: mainBaseCommitHash, to: headCommitHash};
+        results = await filterResultsByDiff(results, diffFilteringCommits, {shouldPrintSuccesses});
+    }
+
+    printResults(results, {shouldPrintSuccesses});
+
+    if (shouldGenerateReport) {
+        generateReport(results, reportFileName);
+    }
 
     const isPassed = results.failures.size === 0;
-    if (isPassed) {
-        logSuccess('All changed files pass React Compiler compliance check!');
+    return isPassed;
+}
+
+async function checkChangedFiles({remote, ...restOptions}: BaseCheckOptions): Promise<boolean> {
+    logInfo('Checking changed files for React Compiler compliance...');
+
+    const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
+    const changedFiles = await Git.getChangedFileNames(mainBaseCommitHash);
+    const filesToCheck = [...new Set(changedFiles)];
+
+    if (filesToCheck.length === 0) {
+        logSuccess('No React files changed, skipping check.');
         return true;
     }
 
-    printFailureSummary(results);
-
-    if (shouldGenerateReport) {
-        generateReport(results, DEFAULT_REPORT_FILENAME);
-    }
-
-    return false;
-}
-
-async function checkChangedFiles(remote: string): Promise<boolean> {
-    info('Checking changed files for React Compiler compliance...');
-
-    try {
-        const changedFiles = await Git.getChangedFiles(remote);
-        const filesToCheck = [...new Set(changedFiles)];
-
-        if (filesToCheck.length === 0) {
-            logSuccess('No React files changed, skipping check.');
-            return true;
-        }
-
-        return check(filesToCheck);
-    } catch (error) {
-        if (error instanceof Error && error.message === GIT_ERRORS.FAILED_TO_FETCH_FROM_REMOTE) {
-            logError(`Could not fetch from remote ${remote}. If your base remote is not ${remote}, please specify another remote with the --remote flag.`);
-        }
-
-        logError('Could not determine changed files:', error);
-        return false;
-    }
+    return check({filesToCheck, ...restOptions});
 }
 
 function runCompilerHealthcheck(src?: string): CompilerResults {
@@ -94,36 +129,24 @@ function runCompilerHealthcheck(src?: string): CompilerResults {
         cwd: process.cwd(),
     });
 
-    // Parse and then normalize via Set/Map to ensure true uniqueness
-    const parsed = parseCombinedOutput(output);
-
-    // Use Set to deduplicate success entries
-    const successSet = new Set(parsed.success);
-
-    // Use Map keyed by unique file key to deduplicate failures
-    const failureMap = new Map<string, CompilerFailure>();
-    parsed.failures.forEach((failure) => {
-        const key = getUniqueFileKey(failure);
-        // Prefer the first occurrence that has a reason
-        const existing = failureMap.get(key);
-        if (!existing) {
-            failureMap.set(key, failure);
-            return;
-        }
-        if (!existing.reason && failure.reason) {
-            failureMap.set(key, failure);
-        }
-    });
-
-    return {success: successSet, failures: failureMap};
+    return parseHealthcheckOutput(output);
 }
 
-function parseCombinedOutput(output: string): CompilerResults {
+function parseHealthcheckOutput(output: string): CompilerResults {
     const lines = output.split('\n');
-    const successSet = new Set<string>();
-    const failure = new Map<string, CompilerFailure>();
 
-    // First, try to extract JSON from the output
+    const initialResults: CompilerResults = {
+        success: new Set<string>(),
+        failures: new Map<string, CompilerFailure>(),
+    };
+
+    const verboseResults = parseVerboseOutput(lines, initialResults);
+    const finalResults = parseJsonOutput(lines, verboseResults);
+
+    return finalResults;
+}
+
+function parseJsonOutput(lines: string[], results: CompilerResults): CompilerResults {
     let jsonStart = -1;
     let jsonEnd = -1;
     for (let i = 0; i < lines.length; i++) {
@@ -136,117 +159,150 @@ function parseCombinedOutput(output: string): CompilerResults {
         }
     }
 
-    // Parse JSON if found
-    if (jsonStart !== -1 && jsonEnd !== -1) {
-        try {
-            const jsonLines = lines.slice(jsonStart, jsonEnd + 1);
-            const jsonStr = jsonLines.join('\n');
-            const jsonResult = JSON.parse(jsonStr) as HealthcheckJsonResults;
-            jsonResult.success.forEach((success) => successSet.add(success));
-        } catch (error) {
-            warn('Failed to parse JSON from combined output:', error);
-        }
-    } else {
-        warn('No JSON found in combined output, parsing verbose text only');
+    if (jsonStart === -1 || jsonEnd === -1) {
+        logWarn('No JSON found in combined output, parsing verbose text only');
+
+        return results;
     }
 
-    // Parse verbose output for detailed failure information
-    let currentFailure: CompilerFailure | null = null;
+    // Parse JSON if found
+    try {
+        const jsonLines = lines.slice(jsonStart, jsonEnd + 1);
+        const jsonStr = jsonLines.join('\n');
+        const jsonResult = JSON.parse(jsonStr) as HealthcheckJsonResults;
+
+        // Process successful compilations from JSON
+        jsonResult.success.forEach((successfulFile) => results.success.add(successfulFile));
+
+        // Process failures from JSON
+        jsonResult.failure.forEach((failedFile) => {
+            // Get all failures for this file (all lines and columns)
+            const fileFailures = Array.from(results.failures.entries()).filter(([, failure]) => failure.file === failedFile);
+
+            // Only add JSON file failure if no failure for this file exists already (all lines and columns)
+            if (fileFailures.length > 0) {
+                return;
+            }
+
+            const newFailure: CompilerFailure = {
+                file: failedFile,
+            };
+            const key = getUniqueFileKey(newFailure);
+            results.failures.set(key, newFailure);
+        });
+    } catch (error) {
+        logWarn('Failed to parse JSON from combined react-compiler-healthcheck output:', error);
+    }
+
+    return results;
+}
+
+function parseVerboseOutput(lines: string[], results: CompilerResults): CompilerResults {
+    let currentFailureWithoutReason: CompilerFailure | null = null;
 
     for (const line of lines) {
-        // Parse successful compilation from verbose output
-        const successMatch = line.match(/Successfully compiled (?:hook|component) \[([^\]]+)\]\(([^)]+)\)/);
+        // Parse successful file paths
+        const successMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.SUCCESS);
         if (successMatch) {
             const filePath = successMatch[2];
-            successSet.add(filePath);
+            results.success.add(filePath);
             continue;
         }
 
-        // Parse failed compilation with file, location, and reason all on one line
-        const failureWithReasonMatch = line.match(/Failed to compile ([^:]+):(\d+):(\d+)\. Reason: (.+)/);
+        // Parse failed file paths with file, location, and reason all on one line
+        const failureWithReasonMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.FAILURE_WITH_REASON);
         if (failureWithReasonMatch) {
-            const newFailure = {
+            const newFailure: CompilerFailure = {
                 file: failureWithReasonMatch[1],
                 line: parseInt(failureWithReasonMatch[2], 10),
                 column: parseInt(failureWithReasonMatch[3], 10),
                 reason: failureWithReasonMatch[4],
             };
 
-            const key = getUniqueFileKey(newFailure);
-            // Only add if not already exists, or if existing one has no reason
-            const existing = failure.get(key);
-            if (!existing?.reason) {
-                failure.set(key, newFailure);
+            // If we already have a reason, we don't want to set the reason again
+            currentFailureWithoutReason = null;
+
+            if (shouldSuppressCompilerError(newFailure.reason)) {
+                continue;
             }
-            currentFailure = null;
+
+            // Only add if not already exists, or if existing one has no reason
+            const key = getUniqueFileKey(newFailure);
+            const existing = results.failures.get(key);
+            if (!existing?.reason) {
+                results.failures.set(key, newFailure);
+            }
+
             continue;
         }
 
         // Parse failed compilation with file and location only (fallback)
-        const failureMatch = line.match(/Failed to compile ([^:]+):(\d+):(\d+)\./);
+        const failureMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.FAILURE_WITHOUT_REASON);
         if (failureMatch) {
-            // Save previous failure if exists
-            if (currentFailure) {
-                const key = getUniqueFileKey(currentFailure);
-                const existing = failure.get(key);
-                if (!existing?.reason) {
-                    failure.set(key, currentFailure);
-                }
-            }
-
-            const key = getUniqueFileKey({
+            const newFailure: CompilerFailure = {
                 file: failureMatch[1],
                 line: parseInt(failureMatch[2], 10),
                 column: parseInt(failureMatch[3], 10),
-                reason: '',
-            });
+            };
 
             // Only create new failure if it doesn't exist
-            if (failure.has(key)) {
-                // Use existing failure if it exists
-                const existingFailure = failure.get(key);
-                if (existingFailure) {
-                    currentFailure = existingFailure;
-                }
+            const key = getUniqueFileKey(newFailure);
+            if (results.failures.has(key)) {
                 continue;
             }
 
-            currentFailure = {
-                file: failureMatch[1],
-                line: parseInt(failureMatch[2], 10),
-                column: parseInt(failureMatch[3], 10),
-                reason: '',
-            };
+            results.failures.set(key, newFailure);
+            currentFailureWithoutReason = newFailure;
             continue;
         }
 
         // Parse reason line (fallback for multi-line reasons)
-        const reasonMatch = line.match(/Reason: (.+)/);
-        if (reasonMatch && currentFailure) {
+        const reasonMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.REASON);
+        if (reasonMatch && currentFailureWithoutReason) {
+            const reason = reasonMatch[1];
+
             // Only update reason if it's not already set
-            if (!currentFailure.reason) {
-                currentFailure.reason = reasonMatch[1];
-                failure.set(getUniqueFileKey(currentFailure), currentFailure);
+            if (currentFailureWithoutReason.reason) {
+                currentFailureWithoutReason = null;
+                continue;
             }
-            currentFailure = null;
+
+            if (shouldSuppressCompilerError(reason)) {
+                currentFailureWithoutReason = null;
+                continue;
+            }
+
+            const newFailure: CompilerFailure = {
+                file: currentFailureWithoutReason.file,
+                line: currentFailureWithoutReason.line,
+                column: currentFailureWithoutReason.column,
+                reason,
+            };
+
+            results.failures.set(getUniqueFileKey(newFailure), newFailure);
+
+            currentFailureWithoutReason = null;
             continue;
         }
     }
 
-    // Add any remaining failure
-    if (currentFailure) {
-        const key = getUniqueFileKey(currentFailure);
-        const existing = failure.get(key);
-        if (!existing?.reason) {
-            failure.set(key, currentFailure);
-        }
-    }
-
-    return {success: successSet, failures: failure};
+    return results;
 }
 
-function getUniqueFileKey(failure: CompilerFailure): string {
-    return `${failure.file}:${failure.line}:${failure.column}`;
+function shouldSuppressCompilerError(reason: string | undefined): boolean {
+    if (!reason) {
+        return false;
+    }
+
+    // Check if the error reason matches any of the suppressed error patterns
+    return SUPPRESSED_COMPILER_ERRORS.some((suppressedError) => reason.includes(suppressedError));
+}
+
+function getUniqueFileKey({file, line, column}: CompilerFailure): string {
+    const isLineSet = line !== undefined;
+    const isLineAndColumnSet = isLineSet && column !== undefined;
+
+    return file + (isLineSet ? `:${line}` : '') + (isLineAndColumnSet ? `:${column}` : '');
 }
 
 function createFilesGlob(filesToCheck?: string[]): string | undefined {
@@ -261,12 +317,100 @@ function createFilesGlob(filesToCheck?: string[]): string | undefined {
     return `**/+(${filesToCheck.join('|')})`;
 }
 
-function printFailureSummary({success, failures}: CompilerResults): void {
-    // const failedFileNames = getDistinctFileNames(Array.from(failures.values()), (f) => f.file, fileToCheck);
+/**
+ * Filters compiler results to only include failures for lines that were changed in the git diff.
+ * This helps focus on new issues introduced by the current changes rather than pre-existing issues.
+ *
+ * @param results - The compiler results to filter
+ * @param diffFilteringCommits - The commit range to diff (from and to)
+ * @returns Filtered compiler results containing only failures in changed lines
+ */
+async function filterResultsByDiff(results: CompilerResults, diffFilteringCommits: DiffFilteringCommits, {shouldPrintSuccesses}: PrintResultsOptions): Promise<CompilerResults> {
+    // Check for uncommitted changes and warn if any exist
+    if (await Git.hasUncommittedChanges()) {
+        logWarn('Warning: You have uncommitted changes. The diff results may not accurately reflect your current working directory.');
+    }
 
-    if (success.size > 0) {
-        log();
-        logSuccess(`Successfully compiled ${success.size} files with React Compiler:`);
+    logInfo(`Filtering results by diff between ${diffFilteringCommits.from} and ${diffFilteringCommits.to}...`);
+
+    // Get the diff between the two commits
+    const diffResult: DiffResult = Git.diff(diffFilteringCommits.from, diffFilteringCommits.to);
+
+    // If there are no changes, return empty results
+    if (!diffResult.hasChanges) {
+        return {
+            success: new Set(),
+            failures: new Map(),
+        };
+    }
+
+    // Create a map of file paths to changed line numbers for quick lookup
+    const changedLinesMap = new Map<string, Set<number>>();
+    for (const file of diffResult.files) {
+        const changedLines = new Set<number>();
+        file.addedLines.forEach((line) => changedLines.add(line));
+        file.modifiedLines.forEach((line) => changedLines.add(line));
+        changedLinesMap.set(file.filePath, changedLines);
+    }
+
+    // Filter failures to only include those on changed lines
+    const filteredFailures = new Map<string, CompilerFailure>();
+    results.failures.forEach((failure, key) => {
+        const changedLines = changedLinesMap.get(failure.file);
+
+        // If the file is not in the diff, skip this failure
+        if (!changedLines) {
+            return;
+        }
+
+        // If the failure has a line number, check if it's in the changed lines
+        if (failure.line !== undefined) {
+            const isLineChanged = changedLines.has(failure.line);
+            if (isLineChanged) {
+                filteredFailures.set(key, failure);
+            }
+            return;
+        }
+
+        // If there's no line number, include the failure if the file has changes
+        filteredFailures.set(key, failure);
+    });
+
+    // Filter success set to only include files that are in the diff
+    const changedFiles = new Set(diffResult.files.map((file) => file.filePath));
+    const filteredSuccesses = new Set<string>();
+    results.success.forEach((file) => {
+        if (!changedFiles.has(file)) {
+            return;
+        }
+        filteredSuccesses.add(file);
+    });
+
+    if (shouldPrintSuccesses) {
+        if (filteredSuccesses.size === 0) {
+            logInfo('No successes remain after filtering by diff.');
+        } else {
+            logInfo(`${filteredSuccesses.size} out of ${results.success.size} successes remain after filtering by diff.`);
+        }
+    }
+
+    if (filteredFailures.size === 0) {
+        logInfo('No failures remain after filtering by diff.');
+    } else {
+        logInfo(`${filteredFailures.size} out of ${results.failures.size} failures remain after filtering by diff.`);
+    }
+
+    return {
+        success: filteredSuccesses,
+        failures: filteredFailures,
+    };
+}
+
+function printResults({success, failures}: CompilerResults, {shouldPrintSuccesses}: PrintResultsOptions): void {
+    const isPassed = failures.size === 0;
+    if (isPassed) {
+        logSuccess('All changed files pass React Compiler compliance check!');
+        return;
     }
 
     const tab = '    ';
@@ -276,17 +420,24 @@ function printFailureSummary({success, failures}: CompilerResults): void {
         distinctFileNames.add(failure.file);
     });
 
+    if (shouldPrintSuccesses) {
+        log();
+        logSuccess(`Successfully compiled ${success.size} files with React Compiler:`);
+        log();
+
+        success.forEach((successFile) => {
+            logSuccess(`${successFile}`);
+        });
+    }
+
     log();
     logError(`Failed to compile ${distinctFileNames.size} files with React Compiler:`);
     log();
 
-    // Print unique failures for the files that were checked
     failures.forEach((failure) => {
         const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
-        bold(`${failure.file}${location}`);
-        if (failure.reason) {
-            note(`${tab}${failure.reason}`);
-        }
+        logBold(`${failure.file}${location}`);
+        logNote(`${tab}${failure.reason ?? 'No reason provided'}`);
     });
 
     log();
@@ -295,7 +446,7 @@ function printFailureSummary({success, failures}: CompilerResults): void {
 
 function generateReport(results: CompilerResults, outputFileName = DEFAULT_REPORT_FILENAME): void {
     log('\n');
-    info('Creating React Compiler Compliance Check report:');
+    logInfo('Creating React Compiler Compliance Check report:');
 
     // Save detailed report
     const reportFile = join(process.cwd(), outputFileName);
@@ -353,15 +504,29 @@ async function main() {
         ],
         namedArgs: {
             remote: {
-                description: 'Git remote name to use for main branch (default: origin)',
+                description: 'Git remote name to use for main branch (default: no remote locally and origin in CI)',
                 required: false,
                 supersedes: ['check-changed'],
-                default: 'origin',
+            },
+            reportFileName: {
+                description: 'File name to save the report to',
+                required: false,
+                default: DEFAULT_REPORT_FILENAME,
             },
         },
         flags: {
+            filterByDiff: {
+                description: 'Filter the files to check by the diff between the current commit/PR and the main branch',
+                required: false,
+                default: false,
+            },
             report: {
                 description: 'Generate a report of the results',
+                required: false,
+                default: false,
+            },
+            printSuccesses: {
+                description: 'Print the successes',
                 required: false,
                 default: false,
             },
@@ -369,23 +534,28 @@ async function main() {
     });
 
     const {command, file} = cli.positionalArgs;
-    const {remote} = cli.namedArgs;
-    const {report: shouldGenerateReport} = cli.flags;
+    const {remote, reportFileName} = cli.namedArgs;
+    const {report: shouldGenerateReport, filterByDiff: shouldFilterByDiff, printSuccesses: shouldPrintSuccesses} = cli.flags;
+
+    const commonOptions: BaseCheckOptions = {shouldGenerateReport, reportFileName, shouldFilterByDiff, shouldPrintSuccesses};
+
+    async function runCommand() {
+        switch (command) {
+            case 'check':
+                return Checker.check({filesToCheck: file !== '' ? [file] : undefined, ...commonOptions});
+            case 'check-changed':
+                return Checker.checkChangedFiles({remote, ...commonOptions});
+            default:
+                logError(`Unknown command: ${String(command)}`);
+                return Promise.resolve(false);
+        }
+    }
 
     let isPassed = false;
     try {
-        switch (command) {
-            case 'check':
-                isPassed = Checker.check(file !== '' ? [file] : undefined, shouldGenerateReport);
-                break;
-            case 'check-changed':
-                isPassed = await Checker.checkChangedFiles(remote);
-                break;
-            default:
-                logError(`Unknown command: ${String(command)}`);
-                isPassed = false;
-        }
+        isPassed = await runCommand();
     } catch (error) {
+        logError('Error running react-compiler-compliance-check:', error);
         isPassed = false;
     } finally {
         process.exit(isPassed ? 0 : 1);
