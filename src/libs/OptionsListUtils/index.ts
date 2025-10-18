@@ -1885,7 +1885,6 @@ function getValidOptions(
             };
         }
 
-        const searchTerms = processSearchString(searchString);
         const filteringFunction = (personalDetail: OptionData) => {
             if (
                 !personalDetail?.login ||
