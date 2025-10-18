@@ -300,7 +300,7 @@ function editPerDiemRateSubrate(policyID: string, rateID: string, subRateID: str
 }
 
 function editPerDiemRateAmount(policyID: string, rateID: string, subRateID: string, customUnit: CustomUnit | undefined, newAmount: number) {
-    if (!policyID || !rateID || isEmptyObject(customUnit) || !newAmount) {
+    if (!policyID || !rateID || isEmptyObject(customUnit) || newAmount === null || newAmount === undefined) {
         return;
     }
 
