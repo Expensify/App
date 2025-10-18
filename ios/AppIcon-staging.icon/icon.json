@@ -34,7 +34,20 @@
       "hidden" : false,
       "layers" : [
         {
-          "blend-mode" : "normal",
+          "glass-specializations" : [
+            {
+              "value" : false
+            },
+            {
+              "appearance" : "tinted",
+              "value" : true
+            }
+          ],
+          "hidden" : false,
+          "image-name" : "Adhoc-Icon-Tinted-1024x1024.png",
+          "name" : "Adhoc-Icon-Tinted-1024x1024"
+        },
+        {
           "fill-specializations" : [
             {
               "value" : "automatic"
@@ -55,10 +68,25 @@
               }
             }
           ],
-          "glass" : true,
+          "glass-specializations" : [
+            {
+              "value" : false
+            },
+            {
+              "appearance" : "tinted",
+              "value" : false
+            }
+          ],
           "hidden" : false,
           "image-name" : "App Icon.png",
-          "name" : "App Icon"
+          "name" : "App Icon",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
         }
       ],
       "lighting-specializations" : [
@@ -67,7 +95,6 @@
           "value" : "individual"
         }
       ],
-      "name" : "Group",
       "opacity-specializations" : [
         {
           "appearance" : "tinted",
