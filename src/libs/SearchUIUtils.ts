@@ -1275,6 +1275,43 @@ function getTaskSections(
     );
 }
 
+/**
+ * @private
+ *
+ * Extracts the core Transaction fields from a TransactionListItemType
+ * This removes UI-specific fields like formattedFrom, hash, violations, etc.
+ */
+function getTransactionFromTransactionListItem(item: TransactionListItemType): OnyxTypes.Transaction {
+    // Extract only the core Transaction fields, excluding UI-specific fields
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const {
+        // Remove UI-specific fields
+        keyForList,
+        action,
+        allActions,
+        report,
+        from,
+        to,
+        formattedFrom,
+        formattedTo,
+        formattedTotal,
+        formattedMerchant,
+        date,
+        shouldShowMerchant,
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        shouldShowYear,
+        isAmountColumnWide,
+        isTaxAmountColumnWide,
+        violations,
+        hash,
+        moneyRequestReportActionID,
+        // Keep all other fields (core Transaction fields)
+        ...transaction
+    } = item;
+
+    return transaction as OnyxTypes.Transaction;
+}
+
 /** Creates transaction thread report and navigates to it from the search page */
 function createAndOpenSearchTransactionThread(item: TransactionListItemType, iouReportAction: OnyxEntry<OnyxTypes.ReportAction>, hash: number, backTo: string) {
     // We know that iou report action exists, but it wasn't loaded yet. We need to load iou report to have the necessary data in the onyx.
@@ -1282,7 +1319,17 @@ function createAndOpenSearchTransactionThread(item: TransactionListItemType, iou
     if (!iouReportAction && iouReportID && iouReportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
         openReport(iouReportID);
     }
-    const transactionThreadReport = createTransactionThreadReport(item.report, iouReportAction ?? ({reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction));
+
+    // Only pass transaction data if there's no iouReportAction (legacy transaction case)
+    // When iouReportAction exists, the transaction should already be in Onyx from the parent report
+    const transaction = !iouReportAction ? getTransactionFromTransactionListItem(item) : undefined;
+    const transactionViolations = !iouReportAction ? item.violations : undefined;
+    const transactionThreadReport = createTransactionThreadReport(
+        item.report,
+        iouReportAction ?? ({reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction),
+        transaction,
+        transactionViolations,
+    );
     if (transactionThreadReport?.reportID) {
         updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
     }
