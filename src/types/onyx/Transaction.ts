@@ -528,9 +528,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Holds individual shares of a split keyed by accountID, only used locally */
         splitShares?: SplitShares;
 
-        /** Holds the accountIDs of accounts who paid the split, for now only supports a single payer */
-        splitPayerAccountIDs?: number[];
-
         /** Whether the user input should be kept */
         shouldShowOriginalAmount?: boolean;
 

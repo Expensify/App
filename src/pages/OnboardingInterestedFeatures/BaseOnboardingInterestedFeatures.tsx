@@ -223,7 +223,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         }
 
         // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID();
@@ -259,14 +259,14 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
 
     // Create items for enabled features
     const enabledFeatures: Feature[] = features
-        .filter((feature) => feature.enabledByDefault)
+        .filter((feature) => !!feature.enabledByDefault || feature.id === FEATURE_IDS.ACCOUNTING)
         .map((feature) => ({
             ...feature,
         }));
 
     // Create items for features they may be interested in
     const mayBeInterestedFeatures: Feature[] = features
-        .filter((feature) => !feature.enabledByDefault)
+        .filter((feature) => !feature.enabledByDefault && feature.id !== FEATURE_IDS.ACCOUNTING)
         .map((feature) => ({
             ...feature,
         }));

@@ -82,11 +82,9 @@ purchaseCurrency = "purchaseCurrency"i / "purchase-currency"i {return "purchaseC
 // Value transformation rules
 values
   = perDiem
-  / report
   / draft
 
 perDiem = "perDiem"i / "per-diem"i { return "perDiem"; }
-report = "reports"i / "report"i {return "reports"; }
 draft = "drafts"i / "draft"i {return "drafts"; }
 
 operator "operator"

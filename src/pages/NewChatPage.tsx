@@ -70,6 +70,7 @@ function useOptions() {
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     const defaultOptions = useMemo(() => {
         const filteredOptions = memoizedGetValidOptions(
@@ -77,13 +78,15 @@ function useOptions() {
                 reports: listOptions.reports ?? [],
                 personalDetails: (listOptions.personalDetails ?? []).concat(contacts),
             },
+            draftComments,
             {
                 betas: betas ?? [],
                 includeSelfDM: true,
             },
+            countryCode,
         );
         return filteredOptions;
-    }, [betas, listOptions.personalDetails, listOptions.reports, contacts]);
+    }, [listOptions.reports, listOptions.personalDetails, contacts, draftComments, betas, countryCode]);
 
     const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
 

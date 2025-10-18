@@ -15,7 +15,7 @@ import tokenizedSearch from './tokenizedSearch';
  */
 function getCustomUnitID(report: OnyxEntry<Report>, parentReport: OnyxEntry<Report>) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(report?.policyID ?? parentReport?.policyID);
     let customUnitID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
     let category: string | undefined;

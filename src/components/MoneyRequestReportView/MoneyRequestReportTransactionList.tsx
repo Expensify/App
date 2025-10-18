@@ -19,16 +19,16 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {setActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
+import {setOptimisticTransactionThread} from '@libs/actions/Report';
+import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import FS from '@libs/Fullstory';
-import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getMoneyRequestSpendBreakdown, isExpenseReport} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
-import {getAmount, getCategory, getCreated, getMerchant, getTag, getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {getAmount, getCategory, getCreated, getMerchant, getTag, getTransactionPendingAction, isTransactionPendingDelete, shouldShowViolation} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -159,6 +159,28 @@ function MoneyRequestReportTransactionList({
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const personalDetailsList = usePersonalDetails();
 
+    // Filter violations based on user visibility
+    const filteredViolations = useMemo(() => {
+        if (!violations || !report || !policy || !transactions) {
+            return violations;
+        }
+
+        const filtered: Record<string, OnyxTypes.TransactionViolation[]> = {};
+
+        for (const transaction of transactions) {
+            const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+            if (transactionViolations) {
+                const filteredTransactionViolations = transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name));
+
+                if (filteredTransactionViolations.length > 0) {
+                    filtered[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = filteredTransactionViolations;
+                }
+            }
+        }
+
+        return filtered;
+    }, [violations, report, policy, transactions]);
+
     const toggleTransaction = useCallback(
         (transactionID: string) => {
             let newSelectedTransactionIDs = selectedTransactionIDs;
@@ -213,24 +235,27 @@ function MoneyRequestReportTransactionList({
         (activeTransactionID: string) => {
             const iouAction = getIOUActionForTransactionID(reportActions, activeTransactionID);
             const backTo = Navigation.getActiveRoute();
-            const reportIDToNavigate = iouAction?.childReportID;
+            let reportIDToNavigate = iouAction?.childReportID;
 
             const routeParams = {
                 reportID: reportIDToNavigate,
                 backTo,
             } as ReportScreenNavigationProps;
 
-            if (!iouAction?.childReportID) {
+            if (!reportIDToNavigate) {
                 const transactionThreadReport = createTransactionThreadReport(report, iouAction);
                 if (transactionThreadReport) {
-                    routeParams.reportID = transactionThreadReport.reportID;
+                    reportIDToNavigate = transactionThreadReport.reportID;
+                    routeParams.reportID = reportIDToNavigate;
                 }
+            } else {
+                setOptimisticTransactionThread(reportIDToNavigate, report?.reportID, iouAction?.reportActionID, report?.policyID);
             }
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigation
-            const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
-            setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs).then(() => {
+            const sortedSiblingTransactionIDs = sortedTransactions.map((transaction) => transaction.transactionID);
+            setActiveTransactionIDs(sortedSiblingTransactionIDs).then(() => {
                 if (reportIDToNavigate) {
                     markReportIDAsExpense(reportIDToNavigate);
                 }
@@ -348,7 +373,7 @@ function MoneyRequestReportTransactionList({
                         <MoneyRequestReportTransactionItem
                             key={transaction.transactionID}
                             transaction={transaction}
-                            violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
+                            violations={filteredViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
                             columns={columnsToShow}
                             report={report}
                             isSelectionModeEnabled={isMobileSelectionModeEnabled}

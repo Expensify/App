@@ -1401,6 +1401,24 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(false);
         });
 
+        it('should return false for actionable card fraud alert if the resolution is recognized', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+                reportActionID: '1',
+                originalMessage: {
+                    resolution: CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED,
+                    cardID: 123,
+                    maskedCardNumber: '1234',
+                    triggerAmount: 0,
+                    triggerMerchant: 'Merchant',
+                },
+                created: '2025-09-29',
+            };
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, false);
+            expect(actual).toBe(false);
+        });
+
         it('should return true for moved transaction if the report destination is available', async () => {
             // Given a moved transaction action but the report destination is available
             const report: Report = createRandomReport(2);

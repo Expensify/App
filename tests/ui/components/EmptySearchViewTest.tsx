@@ -166,8 +166,7 @@ describe('EmptySearchView', () => {
 
                 // Given a query string for expense search with draft status
                 const queryString = buildQueryStringFromFilterFormValues({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
                     from: [CURRENT_USER_ACCOUNT_ID.toString()],
                 });
@@ -219,7 +218,6 @@ describe('EmptySearchView', () => {
                             similarSearchHash={queryJSON?.similarSearchHash ?? 1}
                             type={dataType}
                             hasResults={false}
-                            groupBy={CONST.SEARCH.GROUP_BY.REPORTS}
                         />
                     </Wrapper>,
                 );
@@ -241,8 +239,7 @@ describe('EmptySearchView', () => {
 
                 // Given: A query string for expense search with draft status
                 const queryString = buildQueryStringFromFilterFormValues({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
                     from: [CURRENT_USER_ACCOUNT_ID.toString()],
                 });
@@ -289,7 +286,6 @@ describe('EmptySearchView', () => {
                             similarSearchHash={queryJSON?.similarSearchHash ?? 1}
                             type={dataType}
                             hasResults={false}
-                            groupBy={CONST.SEARCH.GROUP_BY.REPORTS}
                         />
                     </Wrapper>,
                 );

@@ -28,7 +28,15 @@ function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?:
     return isFeatureEnabled || hasAllBetasEnabled;
 }
 
+/**
+ * Track flows are temporarily disabled.
+ */
+function canUseTrackFlows(): boolean {
+    return false;
+}
+
 export default {
     canUseLinkPreviews,
+    canUseTrackFlows,
     isBetaEnabled,
 };
