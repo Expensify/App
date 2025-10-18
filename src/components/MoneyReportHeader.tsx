@@ -467,7 +467,7 @@ function MoneyReportHeader({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(moneyRequestReport, true);
+            approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, true);
             if (currentSearchQueryJSON) {
                 search({
                     searchKey: currentSearchKey,
@@ -973,7 +973,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                unapproveExpenseReport(moneyRequestReport);
+                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT]: {
@@ -1080,7 +1080,7 @@ function MoneyReportHeader({
             icon: Expensicons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
             onSelected: () => {
-                retractReport(moneyRequestReport);
+                retractReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
@@ -1092,7 +1092,7 @@ function MoneyReportHeader({
                     setIsReopenWarningModalVisible(true);
                     return;
                 }
-                reopenReport(moneyRequestReport);
+                reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REJECT]: {
@@ -1423,7 +1423,7 @@ function MoneyReportHeader({
                 confirmText={translate('iou.unapproveReport')}
                 onConfirm={() => {
                     setIsUnapproveModalVisible(false);
-                    unapproveExpenseReport(moneyRequestReport);
+                    unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
                 }}
                 cancelText={translate('common.cancel')}
                 onCancel={() => setIsUnapproveModalVisible(false)}
@@ -1436,7 +1436,7 @@ function MoneyReportHeader({
                 confirmText={translate('iou.reopenReport')}
                 onConfirm={() => {
                     setIsReopenWarningModalVisible(false);
-                    reopenReport(moneyRequestReport);
+                    reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
                 }}
                 cancelText={translate('common.cancel')}
                 onCancel={() => setIsReopenWarningModalVisible(false)}

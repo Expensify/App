@@ -10111,7 +10111,15 @@ function isLastApprover(approvalChain: string[]): boolean {
     return approvalChain.at(-1) === currentUserEmail;
 }
 
-function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: boolean) {
+function approveMoneyRequest(
+    expenseReport: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
+    hasViolations: boolean,
+    isASAPSubmitBetaEnabled: boolean,
+    full?: boolean,
+) {
     if (!expenseReport) {
         return;
     }
@@ -10138,9 +10146,15 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
     const predictedNextState = isLastApprover(approvalChain) ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
     const managerID = isLastApprover(approvalChain) ? expenseReport.managerID : getNextApproverAccountID(expenseReport);
 
-    // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const optimisticNextStep = buildNextStep(expenseReport, predictedNextStatus);
+    const optimisticNextStep = buildNextStepNew({
+        report: expenseReport,
+        predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+        policy,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+    });
     const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
 
     const optimisticReportActionsData: OnyxUpdate = {
@@ -10312,7 +10326,14 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
 }
 
-function reopenReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
+function reopenReport(
+    expenseReport: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
+    hasViolations: boolean,
+    isASAPSubmitBetaEnabled: boolean,
+) {
     if (!expenseReport) {
         return;
     }
@@ -10321,9 +10342,16 @@ function reopenReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
     const optimisticReopenedReportAction = buildOptimisticReopenedReportAction();
     const predictedNextState = CONST.REPORT.STATE_NUM.OPEN;
     const predictedNextStatus = CONST.REPORT.STATUS_NUM.OPEN;
-    // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const optimisticNextStep = buildNextStep(expenseReport, predictedNextStatus, undefined, undefined, true);
+    const optimisticNextStep = buildNextStepNew({
+        report: expenseReport,
+        predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+        policy,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        hasViolations: hasViolations,
+        isASAPSubmitBetaEnabled,
+        isReopen: true,
+    });
     const optimisticReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
@@ -10437,7 +10465,14 @@ function reopenReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
     API.write(WRITE_COMMANDS.REOPEN_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function retractReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
+function retractReport(
+    expenseReport: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
+    hasViolations: boolean,
+    isASAPSubmitBetaEnabled: boolean,
+) {
     if (!expenseReport) {
         return;
     }
@@ -10446,9 +10481,15 @@ function retractReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
     const optimisticRetractReportAction = buildOptimisticRetractedReportAction();
     const predictedNextState = CONST.REPORT.STATE_NUM.OPEN;
     const predictedNextStatus = CONST.REPORT.STATUS_NUM.OPEN;
-    // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const optimisticNextStep = buildNextStep(expenseReport, predictedNextStatus);
+    const optimisticNextStep = buildNextStepNew({
+        report: expenseReport,
+        predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+        policy,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        hasViolations: hasViolations,
+        isASAPSubmitBetaEnabled,
+    });
     const optimisticReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
@@ -10562,7 +10603,14 @@ function retractReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
     API.write(WRITE_COMMANDS.RETRACT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
+function unapproveExpenseReport(
+    expenseReport: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
+    hasViolations: boolean,
+    isASAPSubmitBetaEnabled: boolean,
+) {
     if (isEmptyObject(expenseReport)) {
         return;
     }
@@ -10570,9 +10618,17 @@ function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
 
     const optimisticUnapprovedReportAction = buildOptimisticUnapprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
-    // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const optimisticNextStep = buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.SUBMITTED, false, true);
+    const optimisticNextStep = buildNextStepNew({
+        report: expenseReport,
+        predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        policy,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        hasViolations: hasViolations,
+        isASAPSubmitBetaEnabled,
+        shouldFixViolations: false,
+        isUnapprove: true,
+    });
 
     const optimisticReportActionData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -10691,9 +10747,9 @@ function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
 function submitReport(
     expenseReport: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    accountIDParam: number,
-    emailParam: string,
-    hasViolationsParam: boolean,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
+    hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
 ) {
     if (!expenseReport) {
@@ -10714,9 +10770,9 @@ function submitReport(
         report: expenseReport,
         predictedNextStatus: isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED,
         policy,
-        currentUserAccountIDParam: accountIDParam,
-        currentUserEmailParam: emailParam,
-        hasViolations: hasViolationsParam,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        hasViolations,
         isASAPSubmitBetaEnabled,
     });
     const approvalChain = getApprovalChain(policy, expenseReport);
@@ -10843,9 +10899,9 @@ function cancelPayment(
     chatReport: OnyxTypes.Report,
     policy: OnyxEntry<OnyxTypes.Policy>,
     isASAPSubmitBetaEnabled: boolean,
-    accountIDParam: number,
-    emailParam: string,
-    hasViolationsParam: boolean,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
+    hasViolations: boolean,
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
@@ -10863,9 +10919,9 @@ function cancelPayment(
         report: expenseReport,
         predictedNextStatus: statusNum,
         policy,
-        currentUserAccountIDParam: accountIDParam,
-        currentUserEmailParam: emailParam,
-        hasViolations: hasViolationsParam,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        hasViolations,
         isASAPSubmitBetaEnabled,
     });
     const iouReportActions = getAllReportActions(chatReport.iouReportID);
@@ -10994,9 +11050,9 @@ function cancelPayment(
             report: expenseReport,
             predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
             policy,
-            currentUserAccountIDParam: accountIDParam,
-            currentUserEmailParam: emailParam,
-            hasViolations: hasViolationsParam,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            hasViolations,
             isASAPSubmitBetaEnabled,
         }),
     });
