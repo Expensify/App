@@ -259,6 +259,20 @@ If ZERO violations are found, use the Bash tool to create a top-level PR comment
 gh pr comment --body "LGTM :feelsgood:. Thank you for your hard work!"
 ```
 
+**CRITICAL**: When using Bash commands:
+
+1. Escape bash-sensitive characters
+
+- If you need to use backticks (`` ` ``) for markdown code formatting in the command body, you MUST escape them with a backslash: `\``
+- DO NOT use unescaped backticks as they trigger command substitution in the shell
+- Example: For markdown inline code, write `\`file.tsx\`` instead of `` `file.tsx` ``
+- Full example: `gh pr comment --body "The file \`src/App.tsx\` has an issue"`
+
+1. Use simple commands
+
+- Use ONLY simple, direct commands like: `gh pr comment --body "text"`
+- If you need dynamic data, use other tools (Read, Grep, etc.) first, then construct simple bash commands
+
 ## Comment Format
 
 ```

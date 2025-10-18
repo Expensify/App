@@ -70,3 +70,17 @@ Provide your assessment as a **top-level PR comment** using this format:
 4. **Focus on the big picture** rather than individual line issues
 5. **Use Bash(gh pr comment:*) tool** to post the summary comment
 6. **Reference that inline comments provide specific details**
+
+**CRITICAL**: When using Bash commands:
+
+1. Escape bash-sensitive characters
+
+- If you need to use backticks (`` ` ``) for markdown code formatting in the command body, you MUST escape them with a backslash: `\``
+- DO NOT use unescaped backticks as they trigger command substitution in the shell
+- Example: For markdown inline code, write `\`file.tsx\`` instead of `` `file.tsx` ``
+- Full example: `gh pr comment --body "The file \`docs/article.md\` has an issue"`
+
+2. Use simple commands
+
+- Use ONLY simple, direct commands like: `gh pr comment --body "text"`
+- If you need dynamic data, use other tools (Read, Grep, etc.) first, then construct simple bash commands
