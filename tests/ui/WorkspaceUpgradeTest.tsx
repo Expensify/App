@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {NavigationContainer} from '@react-navigation/native';
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
@@ -52,6 +52,8 @@ describe('WorkspaceUpgrade', () => {
             await Onyx.clear();
         });
 
+        // Ensure any mounted components are unmounted and timers cleared
+        cleanup();
         jest.clearAllMocks();
     });
 
@@ -90,40 +92,43 @@ describe('WorkspaceUpgrade', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
         });
 
+        // Ensure user's personal details have no preferred currency set
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
+        });
+        await waitForBatchedUpdatesWithAct();
+
         // Render the WorkspaceUpgradePage without initializing user's preferred currency
-        renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id});
+        const {unmount: unmountDefault} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id});
 
         // Expect the price to be in USD, as the user's preferred currency is not initialized
-        expect(
-            screen.getByText(
-                `${convertToShortDisplayString(
-                    CONST.SUBSCRIPTION_PRICES[CONST.PAYMENT_CARD_CURRENCY.USD][CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
-                    CONST.PAYMENT_CARD_CURRENCY.USD,
-                )}`,
-            ),
-        ).toBeTruthy();
+        const expectedUSD = convertToShortDisplayString(
+            CONST.SUBSCRIPTION_PRICES[CONST.PAYMENT_CARD_CURRENCY.USD][CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
+            CONST.PAYMENT_CARD_CURRENCY.USD,
+        );
+        expect(await screen.findByText(expectedUSD)).toBeTruthy();
+        unmountDefault();
 
         // Iterate through all payment card currencies
         for (const currency of Object.values(CONST.PAYMENT_CARD_CURRENCY)) {
             // Format the price in the user's preferred currency
             const price = `${convertToShortDisplayString(CONST.SUBSCRIPTION_PRICES[currency][CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL], currency)}`;
 
-            // Initialized the user's preferred currency to another payment card currency
+            // Initialize the user's preferred currency to another payment card currency and wait for update
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CONST.DEFAULT_NUMBER_ID]: {localCurrencyCode: currency}});
             });
+            await waitForBatchedUpdatesWithAct();
 
             // Render the WorkspaceUpgradePage without a feature to render GenericFeaturesView
-            renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id});
-
-            expect(screen.getByText(price)).toBeTruthy();
+            const {unmount: unmountGeneric} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id});
+            expect(await screen.findByText(price)).toBeTruthy();
+            unmountGeneric();
 
             // Render the WorkspaceUpgradePage with rules as a feature to render UpgradeIntro
-            const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id, featureName: 'rules'});
-
-            expect(screen.getByText(price)).toBeTruthy();
-
-            unmount();
+            const {unmount: unmountRules} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id, featureName: 'rules'});
+            expect(await screen.findByText(price)).toBeTruthy();
+            unmountRules();
         }
 
         await waitForBatchedUpdates();
