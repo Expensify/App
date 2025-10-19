@@ -285,9 +285,6 @@ import type {AvatarSource} from './UserUtils';
 import {generateAccountID, getDefaultAvatarURL} from './UserUtils';
 import ViolationsUtils from './Violations/ViolationsUtils';
 
-// Dynamic Import to avoid circular dependency
-const UnreadIndicatorUpdaterHelper = () => import('./UnreadIndicatorUpdater');
-
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
 type SpendBreakdown = {
@@ -989,9 +986,6 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
-        UnreadIndicatorUpdaterHelper().then((module) => {
-            module.triggerUnreadUpdate();
-        });
 
         if (!value) {
             return;
@@ -4395,7 +4389,7 @@ function canEditFieldOfMoneyRequest(
     isDeleteAction?: boolean,
     isChatReportArchived = false,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    canMoveExpense = true,
+    isSearchPageOption?: boolean,
 ): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
@@ -4480,7 +4474,13 @@ function canEditFieldOfMoneyRequest(
         // Unreported transaction from OldDot can have the reportID as an empty string
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
-        if (isUnreportedExpense && canMoveExpense) {
+        const isUserWorkspaceMember = getActivePolicies(allPolicies ?? {}, currentUserEmail).filter((userPolicy) => isPaidGroupPolicyPolicyUtils(userPolicy)).length;
+
+        if (isUnreportedExpense && isSearchPageOption && isUserWorkspaceMember) {
+            return true;
+        }
+
+        if (isUnreportedExpense && !isSearchPageOption) {
             return true;
         }
 
@@ -5760,7 +5760,7 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
  */
 function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportArchived = false, reportAttributes?: ReportAttributesDerivedValue['reports']): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
-    if (report?.hasParentAccess === false) {
+    if (report?.hasParentAccess === false && !isReportManager(report)) {
         return {};
     }
 
@@ -8284,116 +8284,6 @@ function isEmptyReport(report: OnyxEntry<Report>, isReportArchived = false): boo
     }
 
     return generateIsEmptyReport(report, isReportArchived);
-}
-
-type ReportEmptyStateSummary = Pick<Report, 'policyID' | 'ownerAccountID' | 'type' | 'stateNum' | 'statusNum' | 'total' | 'nonReimbursableTotal' | 'pendingAction' | 'errors'> &
-    Pick<Report, 'reportID'>;
-
-function toReportEmptyStateSummary(report: Report | ReportEmptyStateSummary | undefined): ReportEmptyStateSummary | undefined {
-    if (!report) {
-        return undefined;
-    }
-
-    return {
-        reportID: report.reportID,
-        policyID: report.policyID ?? undefined,
-        ownerAccountID: report.ownerAccountID ?? undefined,
-        type: report.type ?? undefined,
-        stateNum: report.stateNum ?? undefined,
-        statusNum: report.statusNum ?? undefined,
-        total: report.total ?? undefined,
-        nonReimbursableTotal: report.nonReimbursableTotal ?? undefined,
-        pendingAction: report.pendingAction ?? undefined,
-        errors: report.errors ?? undefined,
-    };
-}
-
-function getReportSummariesForEmptyCheck(reports: OnyxCollection<Report> | Array<Report | ReportEmptyStateSummary | null | undefined> | undefined): ReportEmptyStateSummary[] {
-    if (!reports) {
-        return [];
-    }
-
-    const reportsArray = Array.isArray(reports) ? reports : Object.values(reports);
-    return reportsArray.map((report) => toReportEmptyStateSummary(report as Report | ReportEmptyStateSummary | undefined)).filter((summary): summary is ReportEmptyStateSummary => !!summary);
-}
-
-const reportSummariesOnyxSelector = (reports: Parameters<typeof getReportSummariesForEmptyCheck>[0]) => getReportSummariesForEmptyCheck(reports);
-
-/**
- * Checks if there are any empty (no transactions) open expense reports for a specific policy and user.
- * An empty report is defined as having zero transactions.
- * This excludes reports that are being deleted or have errors.
- */
-function hasEmptyReportsForPolicy(
-    reports: OnyxCollection<Report> | Array<Report | ReportEmptyStateSummary | null | undefined> | undefined,
-    policyID: string | undefined,
-    accountID?: number,
-    reportsTransactionsParam: Record<string, Transaction[]> = reportsTransactions,
-): boolean {
-    if (!accountID || !policyID) {
-        return false;
-    }
-
-    const summaries = getReportSummariesForEmptyCheck(reports);
-
-    return summaries.some((report) => {
-        if (!report.reportID || !report.policyID || report.policyID !== policyID || report.ownerAccountID !== accountID) {
-            return false;
-        }
-
-        // Exclude reports that are being deleted or have errors
-        if (report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errors) {
-            return false;
-        }
-
-        const isOpenExpense = report.type === CONST.REPORT.TYPE.EXPENSE && report.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
-        if (!isOpenExpense) {
-            return false;
-        }
-
-        const transactions = getReportTransactions(report.reportID, reportsTransactionsParam);
-        return transactions.length === 0;
-    });
-}
-
-/**
- * Returns a lookup object containing the policy IDs that have empty (no transactions) open expense reports for a specific user.
- * An empty report is defined as having zero transactions.
- * This excludes reports that are being deleted or have errors.
- */
-function getPolicyIDsWithEmptyReportsForAccount(
-    reports: OnyxCollection<Report> | Array<Report | ReportEmptyStateSummary | null | undefined> | undefined,
-    accountID?: number,
-    reportsTransactionsParam: Record<string, Transaction[]> = reportsTransactions,
-): Record<string, boolean> {
-    if (!accountID) {
-        return {};
-    }
-
-    const summaries = getReportSummariesForEmptyCheck(reports);
-    const policyLookup: Record<string, boolean> = {};
-
-    summaries.forEach((report) => {
-        if (!report.reportID || !report.policyID || report.ownerAccountID !== accountID) {
-            return;
-        }
-
-        if (report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errors) {
-            return;
-        }
-
-        const isOpenExpense = report.type === CONST.REPORT.TYPE.EXPENSE && report.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
-        if (!isOpenExpense) {
-            return;
-        }
-
-        const transactions = getReportTransactions(report.reportID, reportsTransactionsParam);
-        if (transactions.length === 0) {
-            policyLookup[report.policyID] = true;
-        }
-    });
-
-    return policyLookup;
 }
 
 /**
@@ -11097,10 +10987,10 @@ function prepareOnboardingOnyxData(
         hasOutstandingChildTask: false,
     };
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`];
-    const canUserPerformWriteActionVariable = canUserPerformWriteAction(report);
-    const {lastMessageText = ''} = getLastVisibleMessageActionUtils(targetChatReportID, canUserPerformWriteActionVariable);
+    const canUserPerformWriteAction1 = canUserPerformWriteAction(report);
+    const {lastMessageText = ''} = getLastVisibleMessageActionUtils(targetChatReportID, canUserPerformWriteAction1);
     if (lastMessageText) {
-        const lastVisibleAction = getLastVisibleAction(targetChatReportID, canUserPerformWriteActionVariable);
+        const lastVisibleAction = getLastVisibleAction(targetChatReportID, canUserPerformWriteAction1);
         const prevLastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;
         failureReport = {
@@ -12295,12 +12185,8 @@ export {
     getInvoicePayerName,
     getInvoicesChatName,
     getPayeeName,
-    getReportSummariesForEmptyCheck,
-    reportSummariesOnyxSelector,
-    getPolicyIDsWithEmptyReportsForAccount,
     hasActionWithErrorsForTransaction,
     hasAutomatedExpensifyAccountIDs,
-    hasEmptyReportsForPolicy,
     hasExpensifyGuidesEmails,
     hasHeldExpenses,
     hasIOUWaitingOnCurrentUserBankAccount,
