@@ -40,7 +40,7 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
-            const newCategoryName = getCleanCategoryName(values.categoryName.trim());
+            const newCategoryName = values.categoryName.trim();
 
             if (!isRequiredFulfilled(newCategoryName)) {
                 errors.categoryName = translate('workspace.categories.categoryRequiredError');

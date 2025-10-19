@@ -4,6 +4,7 @@ import reject from 'lodash/reject';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import {getCleanCategoryName} from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
@@ -537,7 +538,7 @@ const ViolationsUtils = {
             case 'receiptNotSmartScanned':
                 return translate('violations.receiptNotSmartScanned');
             case 'receiptRequired':
-                return translate('violations.receiptRequired', {formattedLimit, category});
+                return translate('violations.receiptRequired', {formattedLimit, category: getCleanCategoryName(category ?? '')});
             case 'customRules':
                 return translate('violations.customRules', {message});
             case 'rter':

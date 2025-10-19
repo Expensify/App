@@ -5,6 +5,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
+import {getCleanCategoryName} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
@@ -257,8 +258,8 @@ function getForReportAction({
     const hasModifiedCategory = isReportActionOriginalMessageAnObject && 'oldCategory' in reportActionOriginalMessage && 'category' in reportActionOriginalMessage;
     if (hasModifiedCategory) {
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.category ?? '',
-            reportActionOriginalMessage?.oldCategory ?? '',
+            getCleanCategoryName(reportActionOriginalMessage?.category ?? ''),
+            getCleanCategoryName(reportActionOriginalMessage?.oldCategory ?? ''),
             translateLocal('common.category'),
             true,
             setFragments,
