@@ -1,8 +1,8 @@
-import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
-import ChatListItem from '@components/SelectionList/ChatListItem';
-import TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
-import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
+import Onyx from 'react-native-onyx';
+import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
+import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
+import TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
 import type {
     ReportActionListItemType,
     TransactionCardGroupListItemType,
@@ -11,15 +11,14 @@ import type {
     TransactionMemberGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
-} from '@components/SelectionList/types';
-import DateUtils from '@libs/DateUtils';
+} from '@components/SelectionListWithSections/types';
 import Navigation from '@navigation/Navigation';
 // eslint-disable-next-line no-restricted-syntax
 import type * as ReportUserActions from '@userActions/Report';
 import {createTransactionThreadReport, openReport} from '@userActions/Report';
 // eslint-disable-next-line no-restricted-syntax
 import type * as SearchUtils from '@userActions/Search';
-import {updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
+import {setOptimisticDataForTransactionThreadPreview, updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -28,8 +27,9 @@ import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SearchDataTypes, SearchTransaction} from '@src/types/onyx/SearchResults';
-import createRandomTransaction from '../../utils/collections/transaction';
+import type {Connections} from '@src/types/onyx/Policy';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import getOnyxValue from '../../utils/getOnyxValue';
 import {formatPhoneNumber, localeCompare} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -46,6 +46,7 @@ jest.mock('@userActions/Search', () => ({
     ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
     updateSearchResultsWithTransactionThreadReportID: jest.fn(),
 }));
+
 const adminAccountID = 18439984;
 const adminEmail = 'admin@policy.com';
 const approverAccountID = 1111111;
@@ -340,7 +341,7 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: undefined,
+            moneyRequestReportActionID: '789',
             errors: undefined,
             filename: undefined,
             isActionLoading: false,
@@ -385,7 +386,7 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: undefined,
+            moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
@@ -431,7 +432,7 @@ const searchResults: OnyxTypes.SearchResults = {
             description: '',
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: undefined,
+            moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
@@ -477,7 +478,7 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: undefined,
+            moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
@@ -717,7 +718,7 @@ const transactionsListItems = [
         description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: undefined,
+        moneyRequestReportActionID: '789',
         errors: undefined,
         filename: undefined,
         isActionLoading: false,
@@ -784,7 +785,7 @@ const transactionsListItems = [
         description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: undefined,
+        moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
@@ -857,7 +858,7 @@ const transactionsListItems = [
         description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: undefined,
+        moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
@@ -925,7 +926,7 @@ const transactionsListItems = [
         description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: undefined,
+        moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
@@ -939,7 +940,7 @@ const transactionsListItems = [
 
 const transactionReportGroupListItems = [
     {
-        groupedBy: 'reports',
+        groupedBy: 'expense-report',
         accountID: 18439984,
         action: 'submit',
         allActions: ['submit'],
@@ -1032,7 +1033,7 @@ const transactionReportGroupListItems = [
                 taxAmount: undefined,
                 mccGroup: undefined,
                 modifiedMCCGroup: undefined,
-                moneyRequestReportActionID: undefined,
+                moneyRequestReportActionID: '789',
                 errors: undefined,
                 filename: undefined,
                 isActionLoading: false,
@@ -1045,7 +1046,7 @@ const transactionReportGroupListItems = [
         unheldTotal: -5000,
     },
     {
-        groupedBy: 'reports',
+        groupedBy: 'expense-report',
         accountID: 18439984,
         action: 'review',
         allActions: ['review', 'approve'],
@@ -1143,7 +1144,7 @@ const transactionReportGroupListItems = [
                 taxAmount: undefined,
                 mccGroup: undefined,
                 modifiedMCCGroup: undefined,
-                moneyRequestReportActionID: undefined,
+                moneyRequestReportActionID: '789',
                 pendingAction: undefined,
                 errors: undefined,
                 filename: undefined,
@@ -1156,7 +1157,7 @@ const transactionReportGroupListItems = [
         unheldTotal: -5000,
     },
     {
-        groupedBy: 'reports',
+        groupedBy: 'expense-report',
         accountID: 18439984,
         chatReportID: '6155022250251839',
         chatType: undefined,
@@ -1197,7 +1198,7 @@ const transactionReportGroupListItems = [
         transactions: [transactionsListItems.at(2), transactionsListItems.at(3)],
     },
     {
-        groupedBy: 'reports',
+        groupedBy: 'expense-report',
         accountID: 18439984,
         action: 'view',
         allActions: ['view'],
@@ -1414,3035 +1415,13 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
     },
 ];
 
-const randomUserAccountID = 35879589;
-const expenseReportID = '1234567890';
-
 describe('SearchUIUtils', () => {
     beforeAll(async () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
         await IntlStore.load('en');
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReportID}`, {
-            private_isArchived: DateUtils.getDBTime(),
-        });
-        await waitForBatchedUpdates();
     });
-
-    describe('canSubmitReportInSearch', () => {
-        const basePolicyForAdmin: OnyxTypes.Policy = {
-            id: policyID,
-            name: 'Test Policy',
-            outputCurrency: 'USD',
-            owner: adminEmail,
-            type: CONST.POLICY.TYPE.CORPORATE,
-            role: CONST.POLICY.ROLE.ADMIN,
-            ownerAccountID: adminAccountID,
-            areRulesEnabled: true,
-            preventSelfApproval: false,
-            isPolicyExpenseChatEnabled: true,
-        };
-
-        const basePolicyForUser: OnyxTypes.Policy = {
-            ...basePolicyForAdmin,
-            role: CONST.POLICY.ROLE.USER,
-        };
-
-        const baseExpenseReport: OnyxTypes.Report = {
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: submitterAccountID,
-            managerID: adminAccountID,
-            reportID: expenseReportID,
-            policyID,
-        };
-
-        const openExpenseReport: OnyxTypes.Report = {
-            ...baseExpenseReport,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        };
-
-        const submittedExpenseReport: OnyxTypes.Report = {
-            ...baseExpenseReport,
-            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-        };
-
-        const approvedExpenseReport: OnyxTypes.Report = {
-            ...baseExpenseReport,
-            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-        };
-
-        const baseSearchTransaction: SearchTransaction = {
-            ...createRandomTransaction(1),
-            reportID: expenseReportID,
-            amount: 1000,
-            currency: 'USD',
-            created: '2024-12-21',
-            accountID: submitterAccountID,
-            policyID,
-        } as SearchTransaction;
-
-        const searchTransaction1WithoutViolations: SearchTransaction = {
-            ...baseSearchTransaction,
-            hasViolation: false,
-            transactionID: '1',
-        };
-
-        const searchTransaction2WithoutViolations: SearchTransaction = {
-            ...baseSearchTransaction,
-            hasViolation: false,
-            transactionID: '2',
-        };
-
-        const searchTransaction1WithViolations: SearchTransaction = {
-            ...baseSearchTransaction,
-            hasViolation: true,
-            transactionID: '3',
-        };
-
-        const searchTransaction2WithViolations: SearchTransaction = {
-            ...baseSearchTransaction,
-            hasViolation: true,
-            transactionID: '4',
-        };
-
-        const searchTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations> = {
-            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${searchTransaction1WithViolations.transactionID}`]: [
-                {
-                    type: 'warning',
-                    name: 'rter',
-                    data: {
-                        tooltip: "Personal Cards: Fix your card from Account Settings. Corporate Cards: ask your Expensify admin to fix your company's card connection.",
-                        rterType: 'brokenCardConnection',
-                    },
-                    showInReview: true,
-                },
-            ],
-
-            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${searchTransaction2WithViolations.transactionID}`]: [
-                {
-                    type: 'warning',
-                    name: 'rter',
-                    data: {
-                        tooltip: "Personal Cards: Fix your card from Account Settings. Corporate Cards: ask your Expensify admin to fix your company's card connection.",
-                        rterType: 'brokenCardConnection',
-                    },
-                    showInReview: true,
-                },
-            ],
-        };
-
-        beforeAll(() => {});
-
-        describe('with only one transaction without violations', () => {
-            const searchTransactions: SearchTransaction[] = [searchTransaction1WithoutViolations];
-
-            describe('when autoReportingFrequency is INSTANT', () => {
-                const instantPolicyForAdmin = {
-                    ...basePolicyForAdmin,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                    harvesting: {
-                        enabled: true,
-                    },
-                };
-
-                const instantPolicyForUser = {
-                    ...basePolicyForUser,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                    harvesting: {
-                        enabled: true,
-                    },
-                };
-
-                describe('with various report states', () => {
-                    describe('with open expense report', () => {
-                        describe('with various users', () => {
-                            test('by policy user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    adminAccountID,
-                                    openExpenseReport,
-                                    [],
-                                    instantPolicyForAdmin,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by expense owner', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    submitterAccountID,
-                                    openExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by random user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    randomUserAccountID,
-                                    openExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-                        });
-                    });
-
-                    describe('with submitted expense report', () => {
-                        describe('with various users', () => {
-                            test('by policy user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    adminAccountID,
-                                    submittedExpenseReport,
-                                    [],
-                                    instantPolicyForAdmin,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by expense owner user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    submitterAccountID,
-                                    submittedExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            describe('by random user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    randomUserAccountID,
-                                    submittedExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-                        });
-                    });
-
-                    describe('with approved expense report', () => {
-                        describe('with various users', () => {
-                            test('by policy user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    adminAccountID,
-                                    approvedExpenseReport,
-                                    [],
-                                    instantPolicyForAdmin,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by expense owner user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    submitterAccountID,
-                                    approvedExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by random user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    randomUserAccountID,
-                                    approvedExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-                        });
-                    });
-
-                    describe('after report being retracted', () => {
-                        const openedExpenseReportActions: OnyxTypes.ReportAction[] = [
-                            {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.RETRACTED,
-                                created: DateUtils.getDBTime(),
-                                reportActionID: '',
-                            },
-                        ];
-
-                        describe('with various users', () => {
-                            test('by policy user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    adminAccountID,
-                                    openExpenseReport,
-                                    openedExpenseReportActions,
-                                    instantPolicyForAdmin,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(true);
-                            });
-
-                            test('by expense owner user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    submitterAccountID,
-                                    openExpenseReport,
-                                    openedExpenseReportActions,
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(true);
-                            });
-
-                            test('by random user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    randomUserAccountID,
-                                    openExpenseReport,
-                                    openedExpenseReportActions,
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-                        });
-                    });
-
-                    describe('after report being archived', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                openExpenseReport,
-                                [],
-                                instantPolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                                true,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                [],
-                                instantPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                                true,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                openExpenseReport,
-                                [],
-                                instantPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                                true,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-            });
-
-            describe('when autoReportingFrequency is IMMEDIATE', () => {
-                const immediatePolicyForAdmin = {
-                    ...basePolicyForAdmin,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-                    harvesting: {
-                        enabled: true,
-                    },
-                };
-                const immediatePolicyForUser = {
-                    ...basePolicyForUser,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-                    harvesting: {
-                        enabled: true,
-                    },
-                };
-
-                describe('with open expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                openExpenseReport,
-                                [],
-                                immediatePolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('with submitted expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                submittedExpenseReport,
-                                [],
-                                immediatePolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                submittedExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        describe('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                submittedExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('with approved expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                approvedExpenseReport,
-                                [],
-                                immediatePolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                approvedExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                approvedExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('after report being retracted', () => {
-                    const openedExpenseReportActions: OnyxTypes.ReportAction[] = [
-                        {
-                            actionName: CONST.REPORT.ACTIONS.TYPE.RETRACTED,
-                            created: DateUtils.getDBTime(),
-                            reportActionID: '',
-                        },
-                    ];
-
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                immediatePolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(true);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(true);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('after report being archived', () => {
-                    test('by policy user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            adminAccountID,
-                            openExpenseReport,
-                            [],
-                            immediatePolicyForAdmin,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-
-                    test('by expense owner user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            submitterAccountID,
-                            openExpenseReport,
-                            [],
-                            immediatePolicyForUser,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-
-                    test('by random user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            randomUserAccountID,
-                            openExpenseReport,
-                            [],
-                            immediatePolicyForUser,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-                });
-            });
-
-            describe('when autoReportingFrequency is MANUAL', () => {
-                const manualPolicyForAdmin = {
-                    ...basePolicyForAdmin,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-                    harvesting: {
-                        enabled: false,
-                    },
-                };
-
-                const manualPolicyForUser = {
-                    ...basePolicyForUser,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-                    harvesting: {
-                        enabled: false,
-                    },
-                };
-
-                describe('with open expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                openExpenseReport,
-                                [],
-                                manualPolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(true);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(true);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                openExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('with submitted expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                submittedExpenseReport,
-                                [],
-                                manualPolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                submittedExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        describe('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                submittedExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('with approved expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                approvedExpenseReport,
-                                [],
-                                manualPolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                approvedExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                approvedExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('after report being retracted', () => {
-                    const openedExpenseReportActions: OnyxTypes.ReportAction[] = [
-                        {
-                            actionName: CONST.REPORT.ACTIONS.TYPE.RETRACTED,
-                            created: DateUtils.getDBTime(),
-                            reportActionID: '',
-                        },
-                    ];
-
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                manualPolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(true);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(true);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('after report being archived', () => {
-                    test('by policy user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            adminAccountID,
-                            openExpenseReport,
-                            [],
-                            manualPolicyForAdmin,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-
-                    test('by expense owner user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            submitterAccountID,
-                            openExpenseReport,
-                            [],
-                            manualPolicyForUser,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-
-                    test('by random user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            randomUserAccountID,
-                            openExpenseReport,
-                            [],
-                            manualPolicyForUser,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-                });
-            });
-        });
-
-        describe('with only one transaction with violations', () => {
-            const searchTransactions: SearchTransaction[] = [searchTransaction1WithViolations];
-
-            describe('when autoReportingFrequency is INSTANT', () => {
-                const instantPolicyForAdmin = {
-                    ...basePolicyForAdmin,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                };
-
-                const instantPolicyForUser = {
-                    ...basePolicyForUser,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                };
-
-                describe('with various report states', () => {
-                    describe('with open expense report', () => {
-                        describe('with various users', () => {
-                            test('by policy user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    adminAccountID,
-                                    openExpenseReport,
-                                    [],
-                                    instantPolicyForAdmin,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by expense owner', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    submitterAccountID,
-                                    openExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by random user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    randomUserAccountID,
-                                    openExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-                        });
-                    });
-
-                    describe('with submitted expense report', () => {
-                        describe('with various users', () => {
-                            test('by policy user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    adminAccountID,
-                                    submittedExpenseReport,
-                                    [],
-                                    instantPolicyForAdmin,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by expense owner user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    submitterAccountID,
-                                    submittedExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            describe('by random user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    randomUserAccountID,
-                                    submittedExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-                        });
-                    });
-
-                    describe('with approved expense report', () => {
-                        describe('with various users', () => {
-                            test('by policy user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    adminAccountID,
-                                    approvedExpenseReport,
-                                    [],
-                                    instantPolicyForAdmin,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by expense owner user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    submitterAccountID,
-                                    approvedExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by random user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    randomUserAccountID,
-                                    approvedExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-                        });
-                    });
-
-                    describe('after report being retracted', () => {
-                        const openedExpenseReportActions: OnyxTypes.ReportAction[] = [
-                            {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.RETRACTED,
-                                created: DateUtils.getDBTime(),
-                                reportActionID: '',
-                            },
-                        ];
-
-                        describe('with various users', () => {
-                            test('by policy user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    adminAccountID,
-                                    openExpenseReport,
-                                    openedExpenseReportActions,
-                                    instantPolicyForAdmin,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by expense owner user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    submitterAccountID,
-                                    openExpenseReport,
-                                    openedExpenseReportActions,
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by random user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    randomUserAccountID,
-                                    openExpenseReport,
-                                    openedExpenseReportActions,
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-                        });
-                    });
-
-                    describe('after report being archived', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                openExpenseReport,
-                                [],
-                                instantPolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                                true,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                [],
-                                instantPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                                true,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                openExpenseReport,
-                                [],
-                                instantPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                                true,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-            });
-
-            describe('when autoReportingFrequency is IMMEDIATE', () => {
-                const immediatePolicyForAdmin = {
-                    ...basePolicyForAdmin,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-                    harvesting: {
-                        enabled: true,
-                    },
-                };
-                const immediatePolicyForUser = {
-                    ...basePolicyForUser,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-                    harvesting: {
-                        enabled: true,
-                    },
-                };
-
-                describe('with open expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                openExpenseReport,
-                                [],
-                                immediatePolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('with submitted expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                submittedExpenseReport,
-                                [],
-                                immediatePolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                submittedExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        describe('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                submittedExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('with approved expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                approvedExpenseReport,
-                                [],
-                                immediatePolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                approvedExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                approvedExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('after report being retracted', () => {
-                    const openedExpenseReportActions: OnyxTypes.ReportAction[] = [
-                        {
-                            actionName: CONST.REPORT.ACTIONS.TYPE.RETRACTED,
-                            created: DateUtils.getDBTime(),
-                            reportActionID: '',
-                        },
-                    ];
-
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                immediatePolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('after report being archived', () => {
-                    test('by policy user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            adminAccountID,
-                            openExpenseReport,
-                            [],
-                            immediatePolicyForAdmin,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-
-                    test('by expense owner user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            submitterAccountID,
-                            openExpenseReport,
-                            [],
-                            immediatePolicyForUser,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-
-                    test('by random user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            randomUserAccountID,
-                            openExpenseReport,
-                            [],
-                            immediatePolicyForUser,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-                });
-            });
-
-            describe('when autoReportingFrequency is MANUAL', () => {
-                const manualPolicyForAdmin = {
-                    ...basePolicyForAdmin,
-                    harvesting: {
-                        enabled: false,
-                        frequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL,
-                    },
-                };
-
-                const manualPolicyForUser = {
-                    ...basePolicyForUser,
-                    harvesting: {
-                        enabled: false,
-                        frequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL,
-                    },
-                };
-
-                describe('with open expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                openExpenseReport,
-                                [],
-                                manualPolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                openExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('with submitted expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                submittedExpenseReport,
-                                [],
-                                manualPolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                submittedExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        describe('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                submittedExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('with approved expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                approvedExpenseReport,
-                                [],
-                                manualPolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                approvedExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                approvedExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('after report being retracted', () => {
-                    const openedExpenseReportActions: OnyxTypes.ReportAction[] = [
-                        {
-                            actionName: CONST.REPORT.ACTIONS.TYPE.RETRACTED,
-                            created: DateUtils.getDBTime(),
-                            reportActionID: '',
-                        },
-                    ];
-
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                manualPolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('after report being archived', () => {
-                    test('by policy user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            adminAccountID,
-                            openExpenseReport,
-                            [],
-                            manualPolicyForAdmin,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-
-                    test('by expense owner user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            submitterAccountID,
-                            openExpenseReport,
-                            [],
-                            manualPolicyForUser,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-
-                    test('by random user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            randomUserAccountID,
-                            openExpenseReport,
-                            [],
-                            manualPolicyForUser,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-                });
-            });
-        });
-
-        describe('with multiple transactions without violations', () => {
-            const searchTransactions: SearchTransaction[] = [searchTransaction1WithoutViolations, searchTransaction2WithoutViolations];
-
-            describe('when autoReportingFrequency is INSTANT', () => {
-                const instantPolicyForAdmin = {
-                    ...basePolicyForAdmin,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                };
-
-                const instantPolicyForUser = {
-                    ...basePolicyForUser,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                };
-
-                describe('with various report states', () => {
-                    describe('with open expense report', () => {
-                        describe('with various users', () => {
-                            test('by policy user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    adminAccountID,
-                                    openExpenseReport,
-                                    [],
-                                    instantPolicyForAdmin,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by expense owner', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    submitterAccountID,
-                                    openExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by random user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    randomUserAccountID,
-                                    openExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-                        });
-                    });
-
-                    describe('with submitted expense report', () => {
-                        describe('with various users', () => {
-                            test('by policy user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    adminAccountID,
-                                    submittedExpenseReport,
-                                    [],
-                                    instantPolicyForAdmin,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by expense owner user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    submitterAccountID,
-                                    submittedExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            describe('by random user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    randomUserAccountID,
-                                    submittedExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-                        });
-                    });
-
-                    describe('with approved expense report', () => {
-                        describe('with various users', () => {
-                            test('by policy user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    adminAccountID,
-                                    approvedExpenseReport,
-                                    [],
-                                    instantPolicyForAdmin,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by expense owner user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    submitterAccountID,
-                                    approvedExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by random user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    randomUserAccountID,
-                                    approvedExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-                        });
-                    });
-
-                    describe('after report being retracted', () => {
-                        const openedExpenseReportActions: OnyxTypes.ReportAction[] = [
-                            {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.RETRACTED,
-                                created: DateUtils.getDBTime(),
-                                reportActionID: '',
-                            },
-                        ];
-
-                        describe('with various users', () => {
-                            test('by policy user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    adminAccountID,
-                                    openExpenseReport,
-                                    openedExpenseReportActions,
-                                    instantPolicyForAdmin,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by expense owner user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    submitterAccountID,
-                                    openExpenseReport,
-                                    openedExpenseReportActions,
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by random user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    randomUserAccountID,
-                                    openExpenseReport,
-                                    openedExpenseReportActions,
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-                        });
-                    });
-
-                    describe('after report being archived', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                openExpenseReport,
-                                [],
-                                instantPolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                                true,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                [],
-                                instantPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                                true,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                openExpenseReport,
-                                [],
-                                instantPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                                true,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-            });
-
-            describe('when autoReportingFrequency is IMMEDIATE', () => {
-                const immediatePolicyForAdmin = {
-                    ...basePolicyForAdmin,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-                    harvesting: {
-                        enabled: true,
-                    },
-                };
-                const immediatePolicyForUser = {
-                    ...basePolicyForUser,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-                    harvesting: {
-                        enabled: true,
-                    },
-                };
-
-                describe('with open expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                openExpenseReport,
-                                [],
-                                immediatePolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('with submitted expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                submittedExpenseReport,
-                                [],
-                                immediatePolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                submittedExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        describe('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                submittedExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('with approved expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                approvedExpenseReport,
-                                [],
-                                immediatePolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                approvedExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                approvedExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('after report being retracted', () => {
-                    const openedExpenseReportActions: OnyxTypes.ReportAction[] = [
-                        {
-                            actionName: CONST.REPORT.ACTIONS.TYPE.RETRACTED,
-                            created: DateUtils.getDBTime(),
-                            reportActionID: '',
-                        },
-                    ];
-
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                immediatePolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('after report being archived', () => {
-                    test('by policy user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            adminAccountID,
-                            openExpenseReport,
-                            [],
-                            immediatePolicyForAdmin,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-
-                    test('by expense owner user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            submitterAccountID,
-                            openExpenseReport,
-                            [],
-                            immediatePolicyForUser,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-
-                    test('by random user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            randomUserAccountID,
-                            openExpenseReport,
-                            [],
-                            immediatePolicyForUser,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-                });
-            });
-
-            describe('when autoReportingFrequency is MANUAL', () => {
-                const manualPolicyForAdmin = {
-                    ...basePolicyForAdmin,
-                    harvesting: {
-                        enabled: false,
-                        frequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL,
-                    },
-                };
-
-                const manualPolicyForUser = {
-                    ...basePolicyForUser,
-                    harvesting: {
-                        enabled: false,
-                        frequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL,
-                    },
-                };
-
-                describe('with open expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                openExpenseReport,
-                                [],
-                                manualPolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                openExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('with submitted expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                submittedExpenseReport,
-                                [],
-                                manualPolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                submittedExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        describe('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                submittedExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('with approved expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                approvedExpenseReport,
-                                [],
-                                manualPolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                approvedExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                approvedExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('after report being retracted', () => {
-                    const openedExpenseReportActions: OnyxTypes.ReportAction[] = [
-                        {
-                            actionName: CONST.REPORT.ACTIONS.TYPE.RETRACTED,
-                            created: DateUtils.getDBTime(),
-                            reportActionID: '',
-                        },
-                    ];
-
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                manualPolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('after report being archived', () => {
-                    test('by policy user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            adminAccountID,
-                            openExpenseReport,
-                            [],
-                            manualPolicyForAdmin,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-
-                    test('by expense owner user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            submitterAccountID,
-                            openExpenseReport,
-                            [],
-                            manualPolicyForUser,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-
-                    test('by random user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            randomUserAccountID,
-                            openExpenseReport,
-                            [],
-                            manualPolicyForUser,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-                });
-            });
-        });
-
-        describe('with multiple transaction with violations', () => {
-            const searchTransactions: SearchTransaction[] = [searchTransaction1WithViolations, searchTransaction2WithViolations];
-
-            describe('when autoReportingFrequency is INSTANT', () => {
-                const instantPolicyForAdmin = {
-                    ...basePolicyForAdmin,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                };
-
-                const instantPolicyForUser = {
-                    ...basePolicyForUser,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                };
-
-                describe('with various report states', () => {
-                    describe('with open expense report', () => {
-                        describe('with various users', () => {
-                            test('by policy user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    adminAccountID,
-                                    openExpenseReport,
-                                    [],
-                                    instantPolicyForAdmin,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by expense owner', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    submitterAccountID,
-                                    openExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by random user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    randomUserAccountID,
-                                    openExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-                        });
-                    });
-
-                    describe('with submitted expense report', () => {
-                        describe('with various users', () => {
-                            test('by policy user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    adminAccountID,
-                                    submittedExpenseReport,
-                                    [],
-                                    instantPolicyForAdmin,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by expense owner user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    submitterAccountID,
-                                    submittedExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            describe('by random user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    randomUserAccountID,
-                                    submittedExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-                        });
-                    });
-
-                    describe('with approved expense report', () => {
-                        describe('with various users', () => {
-                            test('by policy user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    adminAccountID,
-                                    approvedExpenseReport,
-                                    [],
-                                    instantPolicyForAdmin,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by expense owner user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    submitterAccountID,
-                                    approvedExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by random user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    randomUserAccountID,
-                                    approvedExpenseReport,
-                                    [],
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-                        });
-                    });
-
-                    describe('after report being retracted', () => {
-                        const openedExpenseReportActions: OnyxTypes.ReportAction[] = [
-                            {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.RETRACTED,
-                                created: DateUtils.getDBTime(),
-                                reportActionID: '',
-                            },
-                        ];
-
-                        describe('with various users', () => {
-                            test('by policy user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    adminAccountID,
-                                    openExpenseReport,
-                                    openedExpenseReportActions,
-                                    instantPolicyForAdmin,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by expense owner user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    submitterAccountID,
-                                    openExpenseReport,
-                                    openedExpenseReportActions,
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-
-                            test('by random user', () => {
-                                const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                    randomUserAccountID,
-                                    openExpenseReport,
-                                    openedExpenseReportActions,
-                                    instantPolicyForUser,
-                                    searchTransactions,
-                                    searchTransactionViolations,
-                                );
-
-                                expect(canSubmitReportInSearch).toBe(false);
-                            });
-                        });
-                    });
-
-                    describe('after report being archived', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                openExpenseReport,
-                                [],
-                                instantPolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                                true,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                [],
-                                instantPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                                true,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                openExpenseReport,
-                                [],
-                                instantPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                                true,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-            });
-
-            describe('when autoReportingFrequency is IMMEDIATE', () => {
-                const immediatePolicyForAdmin = {
-                    ...basePolicyForAdmin,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-                    harvesting: {
-                        enabled: true,
-                    },
-                };
-                const immediatePolicyForUser = {
-                    ...basePolicyForUser,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-                    harvesting: {
-                        enabled: true,
-                    },
-                };
-
-                describe('with open expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                openExpenseReport,
-                                [],
-                                immediatePolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('with submitted expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                submittedExpenseReport,
-                                [],
-                                immediatePolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                submittedExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        describe('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                submittedExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('with approved expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                approvedExpenseReport,
-                                [],
-                                immediatePolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                approvedExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                approvedExpenseReport,
-                                [],
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('after report being retracted', () => {
-                    const openedExpenseReportActions: OnyxTypes.ReportAction[] = [
-                        {
-                            actionName: CONST.REPORT.ACTIONS.TYPE.RETRACTED,
-                            created: DateUtils.getDBTime(),
-                            reportActionID: '',
-                        },
-                    ];
-
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                immediatePolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                immediatePolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('after report being archived', () => {
-                    test('by policy user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            adminAccountID,
-                            openExpenseReport,
-                            [],
-                            immediatePolicyForAdmin,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-
-                    test('by expense owner user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            submitterAccountID,
-                            openExpenseReport,
-                            [],
-                            immediatePolicyForUser,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-
-                    test('by random user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            randomUserAccountID,
-                            openExpenseReport,
-                            [],
-                            immediatePolicyForUser,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-                });
-            });
-
-            describe('when autoReportingFrequency is MANUAL', () => {
-                const manualPolicyForAdmin = {
-                    ...basePolicyForAdmin,
-                    harvesting: {
-                        enabled: false,
-                        frequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL,
-                    },
-                };
-
-                const manualPolicyForUser = {
-                    ...basePolicyForUser,
-                    harvesting: {
-                        enabled: false,
-                        frequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL,
-                    },
-                };
-
-                describe('with open expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                openExpenseReport,
-                                [],
-                                manualPolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                openExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('with submitted expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                submittedExpenseReport,
-                                [],
-                                manualPolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                submittedExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        describe('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                submittedExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('with approved expense report', () => {
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                approvedExpenseReport,
-                                [],
-                                manualPolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                approvedExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                approvedExpenseReport,
-                                [],
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('after report being retracted', () => {
-                    const openedExpenseReportActions: OnyxTypes.ReportAction[] = [
-                        {
-                            actionName: CONST.REPORT.ACTIONS.TYPE.RETRACTED,
-                            created: DateUtils.getDBTime(),
-                            reportActionID: '',
-                        },
-                    ];
-
-                    describe('with various users', () => {
-                        test('by policy user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                adminAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                manualPolicyForAdmin,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by expense owner user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                submitterAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-
-                        test('by random user', () => {
-                            const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                                randomUserAccountID,
-                                openExpenseReport,
-                                openedExpenseReportActions,
-                                manualPolicyForUser,
-                                searchTransactions,
-                                searchTransactionViolations,
-                            );
-
-                            expect(canSubmitReportInSearch).toBe(false);
-                        });
-                    });
-                });
-
-                describe('after report being archived', () => {
-                    test('by policy user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            adminAccountID,
-                            openExpenseReport,
-                            [],
-                            manualPolicyForAdmin,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-
-                    test('by expense owner user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            submitterAccountID,
-                            openExpenseReport,
-                            [],
-                            manualPolicyForUser,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-
-                    test('by random user', () => {
-                        const canSubmitReportInSearch = SearchUIUtils.canSubmitReportInSearch(
-                            randomUserAccountID,
-                            openExpenseReport,
-                            [],
-                            manualPolicyForUser,
-                            searchTransactions,
-                            searchTransactionViolations,
-                            true,
-                        );
-
-                        expect(canSubmitReportInSearch).toBe(false);
-                    });
-                });
-            });
-        });
-    });
-
     describe('Test getAction', () => {
         test('Should return `View` action for an invalid key', () => {
             const action = SearchUIUtils.getActions(searchResults.data, {}, 'invalid_key', CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
@@ -4679,16 +1658,16 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL, undefined)).toStrictEqual(TransactionListItem);
         });
 
-        it('should return TransactionGroupListItem when type is EXPENSE and groupBy is report', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(TransactionGroupListItem);
+        it('should return TransactionGroupListItem when type is EXPENSE-REPORT', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(TransactionGroupListItem);
         });
 
-        it('should return TransactionGroupListItem when type is TRIP and groupBy is report', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(TransactionGroupListItem);
+        it('should return TransactionListItem when type is TRIP', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(TransactionListItem);
         });
 
-        it('should return TransactionGroupListItem when type is INVOICE and groupBy is report', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(TransactionGroupListItem);
+        it('should return TransactionListItem when type is INVOICE', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(TransactionListItem);
         });
 
         it('should return TransactionGroupListItem when type is EXPENSE and groupBy is member', () => {
@@ -4754,13 +1733,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const result = SearchUIUtils.getSections(
-                CONST.SEARCH.DATA_TYPES.EXPENSE,
-                testSearchResults.data,
-                2074551,
-                formatPhoneNumber,
-                CONST.SEARCH.GROUP_BY.REPORTS,
-            ) as TransactionGroupListItemType[];
+            const result = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, testSearchResults.data, 2074551, formatPhoneNumber) as TransactionGroupListItemType[];
 
             const reportGroup = result.find((group) => group.transactions?.some((transaction) => transaction.transactionID === distanceTransactionID));
 
@@ -4773,22 +1746,54 @@ describe('SearchUIUtils', () => {
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
-        it('should return getReportSections result when type is EXPENSE and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
-                transactionReportGroupListItems,
-            );
+        it('should return transactionReportGroupListItems result when type is expense-report', () => {
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, searchResults.data, 2074551, formatPhoneNumber)).toStrictEqual(transactionReportGroupListItems);
         });
 
-        it('should return getReportSections result when type is TRIP and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, searchResults.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
-                transactionReportGroupListItems,
-            );
+        it('should return transactionsListItems result when type is TRIP', () => {
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, searchResults.data, 2074551, formatPhoneNumber)).toStrictEqual(transactionsListItems);
         });
 
-        it('should return getReportSections result when type is INVOICE and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, searchResults.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
-                transactionReportGroupListItems,
-            );
+        it('should return transactionsListItems result when type is INVOICE and groupBy is report', () => {
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, searchResults.data, 2074551, formatPhoneNumber)).toStrictEqual(transactionsListItems);
+        });
+
+        it('should handle data where transaction keys appear before report keys in getReportSections', () => {
+            const testDataTransactionFirst = {
+                // Transaction keys first
+                [`transactions_${transactionID}`]: searchResults.data[`transactions_${transactionID}`],
+                [`transactions_${transactionID2}`]: searchResults.data[`transactions_${transactionID2}`],
+                // Report keys after transactions
+                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
+                [`report_${reportID2}`]: searchResults.data[`report_${reportID2}`],
+                // Other required data
+                personalDetailsList: searchResults.data.personalDetailsList,
+                [`policy_${policyID}`]: searchResults.data[`policy_${policyID}`],
+            };
+
+            const testDataReportFirst = {
+                // Report keys first
+                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
+                [`report_${reportID2}`]: searchResults.data[`report_${reportID2}`],
+                // Transaction keys after reports
+                [`transactions_${transactionID}`]: searchResults.data[`transactions_${transactionID}`],
+                [`transactions_${transactionID2}`]: searchResults.data[`transactions_${transactionID2}`],
+                // Other required data
+                personalDetailsList: searchResults.data.personalDetailsList,
+                [`policy_${policyID}`]: searchResults.data[`policy_${policyID}`],
+            };
+
+            const resultTransactionFirst = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, testDataTransactionFirst, 2074551, formatPhoneNumber);
+            const resultReportFirst = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, testDataReportFirst, 2074551, formatPhoneNumber);
+
+            expect(resultTransactionFirst).toBeDefined();
+            expect(Array.isArray(resultTransactionFirst)).toBe(true);
+            expect(resultReportFirst).toBeDefined();
+            expect(Array.isArray(resultReportFirst)).toBe(true);
+
+            expect(resultTransactionFirst).toEqual(resultReportFirst);
+
+            expect(resultTransactionFirst.length).toBeGreaterThan(0);
         });
 
         it('should return getMemberSections result when type is EXPENSE and groupBy is from', () => {
@@ -4850,22 +1855,22 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionsListItems, localeCompare, 'date', 'asc', undefined)).toStrictEqual(transactionsListItems);
         });
 
-        it('should return getSortedReportData result when type is EXPENSE and groupBy is report', () => {
-            expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.REPORTS),
-            ).toStrictEqual(transactionReportGroupListItems);
+        it('should return getSortedReportData result when type is expense-report', () => {
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, '', transactionReportGroupListItems, localeCompare, 'date', 'asc')).toStrictEqual(
+                transactionReportGroupListItems,
+            );
         });
 
         it('should return getSortedReportData result when type is TRIP and groupBy is report', () => {
-            expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.REPORTS),
-            ).toStrictEqual(transactionReportGroupListItems);
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, '', transactionReportGroupListItems, localeCompare, 'date', 'asc')).toStrictEqual(
+                transactionReportGroupListItems,
+            );
         });
 
         it('should return getSortedReportData result when type is INVOICE and groupBy is report', () => {
-            expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.REPORTS),
-            ).toStrictEqual(transactionReportGroupListItems);
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc')).toStrictEqual(
+                transactionReportGroupListItems,
+            );
         });
 
         it('should return getSortedMemberData result when type is EXPENSE and groupBy is member', () => {
@@ -4897,7 +1902,7 @@ describe('SearchUIUtils', () => {
 
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false)
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false, undefined)
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -4911,7 +1916,7 @@ describe('SearchUIUtils', () => {
                     }),
                     expect.objectContaining({
                         translationPath: 'common.reports',
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                        type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                         icon: Expensicons.Document,
                     }),
                     expect.objectContaining({
@@ -4975,7 +1980,19 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, mockSavedSearches, false);
+            const sections = SearchUIUtils.createTypeMenuSections(
+                adminEmail,
+                adminAccountID,
+                mockCardFeedsByPolicy,
+                undefined,
+                mockPolicies,
+                undefined,
+                mockSavedSearches,
+                false,
+                undefined,
+                true,
+                false,
+            );
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeDefined();
@@ -5025,7 +2042,19 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, mockSavedSearches, false);
+            const sections = SearchUIUtils.createTypeMenuSections(
+                adminEmail,
+                adminAccountID,
+                mockCardFeedsByPolicy,
+                undefined,
+                mockPolicies,
+                undefined,
+                mockSavedSearches,
+                false,
+                undefined,
+                true,
+                false,
+            );
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
             expect(accountingSection).toBeDefined();
@@ -5054,7 +2083,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false, undefined, true, false);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeDefined();
@@ -5063,7 +2092,7 @@ describe('SearchUIUtils', () => {
         it('should not show saved section when there are no saved searches', () => {
             const mockSavedSearches = {};
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false, undefined, true, false);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeUndefined();
@@ -5088,6 +2117,9 @@ describe('SearchUIUtils', () => {
                 undefined,
                 mockSavedSearches,
                 false, // not offline
+                undefined,
+                true,
+                false,
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -5113,6 +2145,9 @@ describe('SearchUIUtils', () => {
                 undefined,
                 mockSavedSearches,
                 true, // offline
+                undefined,
+                true,
+                false,
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -5133,7 +2168,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeUndefined();
@@ -5161,6 +2196,9 @@ describe('SearchUIUtils', () => {
                 mockPolicies,
                 undefined,
                 {},
+                false,
+                undefined,
+                true,
                 false,
             );
 
@@ -5192,7 +2230,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
             expect(accountingSection).toBeDefined();
@@ -5217,7 +2255,7 @@ describe('SearchUIUtils', () => {
             };
 
             const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, {}, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
 
             expect(accountingSection).toBeDefined();
@@ -5226,11 +2264,11 @@ describe('SearchUIUtils', () => {
         });
 
         it('should generate correct routes', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false)
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false)
                 .map((section) => section.menuItems)
                 .flat();
 
-            const expectedQueries = ['type:expense sortBy:date sortOrder:desc', 'type:expense sortBy:date sortOrder:desc groupBy:reports', 'type:chat sortBy:date sortOrder:desc'];
+            const expectedQueries = ['type:expense sortBy:date sortOrder:desc', 'type:expense-report sortBy:date sortOrder:desc', 'type:chat sortBy:date sortOrder:desc'];
 
             menuItems.forEach((item, index) => {
                 expect(item.searchQuery).toStrictEqual(expectedQueries.at(index));
@@ -5469,6 +2507,53 @@ describe('SearchUIUtils', () => {
         expect(isTaxAmountLengthLong2).toBe(true);
     });
 
+    describe('Test getSuggestedSearchesVisibility', () => {
+        test('Should not show export if there are no valid connections', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    exporter: adminEmail,
+                    approver: adminEmail,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    // Failed connection
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                            verified: false,
+                            lastSync: {
+                                errorDate: new Date().toISOString(),
+                                errorMessage: 'Error',
+                                isAuthenticationError: true,
+                                isConnected: false,
+                                isSuccessful: false,
+                                source: 'NEWEXPENSIFY',
+                                successfulDate: '',
+                            },
+                        },
+                    } as Connections,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, {}, adminAccountID);
+            expect(response.export).toBe(false);
+
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            policies[policyKey]!.connections![CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastSync = {
+                errorDate: '',
+                errorMessage: '',
+                isAuthenticationError: false,
+                isConnected: true,
+                isSuccessful: true,
+                source: 'NEWEXPENSIFY',
+                successfulDate: new Date().toISOString(),
+            };
+
+            const response2 = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, {}, adminAccountID);
+            expect(response2.export).toBe(true);
+        });
+    });
+
     describe('Test getColumnsToShow', () => {
         test('Should only show columns when at least one transaction has a value for them', () => {
             // Use the existing transaction as a base and modify only the fields we need to test
@@ -5679,6 +2764,58 @@ describe('SearchUIUtils', () => {
         test('Should load iou report if iouReportAction was not provided', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, hash, backTo);
             expect(openReport).toHaveBeenCalled();
+        });
+    });
+
+    describe('setOptimisticDataForTransactionThreadPreview', () => {
+        it('Should create an optimistic parent report if the hasParentReport is false', async () => {
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasParentReport: false} as SearchUtils.TransactionPreviewData);
+
+            await waitForBatchedUpdates();
+
+            const parentReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${transactionListItem.reportID}`);
+
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            expect(parentReport).toMatchObject(transactionListItem.report as OnyxTypes.Report);
+        });
+
+        it('Should create an optimistic parent report action if the hasParentReportAction is false', async () => {
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasParentReportAction: false} as SearchUtils.TransactionPreviewData);
+
+            await waitForBatchedUpdates();
+
+            const parentReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionListItem.reportID}`);
+            const parentReportAction = transactionListItem.moneyRequestReportActionID && parentReport?.[transactionListItem.moneyRequestReportActionID];
+
+            expect(parentReportAction).toBeTruthy();
+        });
+
+        it('Should create an optimistic transaction if the hasTransaction is false', async () => {
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasTransaction: false} as SearchUtils.TransactionPreviewData);
+
+            await waitForBatchedUpdates();
+
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionListItem.transactionID}`);
+
+            expect(transaction).toBeTruthy();
+        });
+
+        it('Should create an optimistic transaction thread if the hasTransactionThreadReport is false', async () => {
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasTransactionThreadReport: false} as SearchUtils.TransactionPreviewData);
+
+            await waitForBatchedUpdates();
+
+            const transactionThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${transactionListItem.transactionThreadReportID}`);
+
+            expect(transactionThread).toBeTruthy();
         });
     });
 });

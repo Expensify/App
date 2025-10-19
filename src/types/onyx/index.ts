@@ -28,6 +28,7 @@ import type CustomStatusDraft from './CustomStatusDraft';
 import type {OutstandingReportsByPolicyIDDerivedValue, ReportAttributesDerivedValue, ReportTransactionsAndViolationsDerivedValue} from './DerivedValues';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
+import type Domain from './Domain';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
@@ -90,6 +91,7 @@ import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
 import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
+import type LastSearchParams from './ReportNavigation';
 import type ReportNextStep from './ReportNextStep';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type {ReportFieldsViolations, ReportViolationName} from './ReportViolation';
@@ -107,6 +109,7 @@ import type Session from './Session';
 import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
+import type SupportalPermissionDenied from './SupportalPermissionDenied';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
@@ -148,8 +151,9 @@ export type {
     CurrencyList,
     CustomStatusDraft,
     DismissedReferralBanners,
-    DuplicateWorkspace,
+    Domain,
     Download,
+    DuplicateWorkspace,
     WorkspaceCardsList,
     ExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
@@ -233,6 +237,7 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
+    SupportalPermissionDenied,
     PurchaseList,
     ReportUserIsTyping,
     PolicyReportField,
@@ -271,6 +276,7 @@ export type {
     SidePanel,
     LastPaymentMethodType,
     ReportAttributesDerivedValue,
+    LastSearchParams,
     ReportTransactionsAndViolationsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     ScheduleCallDraft,

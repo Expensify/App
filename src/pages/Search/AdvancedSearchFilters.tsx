@@ -9,7 +9,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
-import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterKey, SearchGroupBy} from '@components/Search/types';
+import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterKey} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
@@ -181,6 +181,11 @@ const baseFilterConfig = {
         description: 'search.has' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS),
     },
+    is: {
+        getTitle: getFilterDisplayTitle,
+        description: 'search.filters.is' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.IS),
+    },
     from: {
         getTitle: getFilterParticipantDisplayTitle,
         description: 'common.from' as const,
@@ -334,10 +339,15 @@ function getFilterDisplayTitle(
     if (AMOUNT_FILTER_KEYS.includes(key as SearchAmountFilterKeys)) {
         const lessThanKey = `${key}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as keyof SearchAdvancedFiltersForm;
         const greaterThanKey = `${key}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as keyof SearchAdvancedFiltersForm;
+        const equalToKey = `${key}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as keyof SearchAdvancedFiltersForm;
 
         const lessThan = filters[lessThanKey];
         const greaterThan = filters[greaterThanKey];
+        const equalTo = filters[equalToKey];
 
+        if (equalTo) {
+            return translate('search.filters.amount.equalTo', {amount: convertToDisplayStringWithoutCurrency(Number(equalTo))});
+        }
         if (lessThan && greaterThan) {
             return translate('search.filters.amount.between', {
                 lessThan: convertToDisplayStringWithoutCurrency(Number(lessThan)),
@@ -388,7 +398,10 @@ function getFilterDisplayTitle(
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE) {
         const filterValue = filters[key];
-        return filterValue ? translate(`common.${filterValue as ValueOf<typeof CONST.SEARCH.DATA_TYPES>}`) : undefined;
+        if (filterValue === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+            return translate('common.expenseReport');
+        }
+        return filterValue ? translate(`common.${filterValue}`) : undefined;
     }
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION) {
@@ -408,15 +421,20 @@ function getFilterDisplayTitle(
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
         const filterValue = filters[key];
-        return filterValue ? filterValue.map((value) => translate(`search.filters.has.${value as ValueOf<typeof CONST.SEARCH.HAS_VALUES>}`)).join(', ') : undefined;
+        return filterValue ? filterValue.map((value) => translate(`common.${value as ValueOf<typeof CONST.SEARCH.HAS_VALUES>}`)).join(', ') : undefined;
+    }
+
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
+        const filterValue = filters[key];
+        return filterValue ? filterValue.map((value) => translate(`common.${value as ValueOf<typeof CONST.SEARCH.IS_VALUES>}`)).join(', ') : undefined;
     }
 
     const filterValue = filters[key];
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
 }
 
-function getStatusFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, type: SearchDataTypes, groupBy: SearchGroupBy | undefined, translate: LocaleContextProps['translate']) {
-    const statusOptions = getStatusOptions(type, groupBy).concat({text: translate('common.all'), value: CONST.SEARCH.STATUS.EXPENSE.ALL});
+function getStatusFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, type: SearchDataTypes, translate: LocaleContextProps['translate']) {
+    const statusOptions = getStatusOptions(type).concat({text: translate('common.all'), value: CONST.SEARCH.STATUS.EXPENSE.ALL});
     let filterValue = filters?.status;
 
     if (!filterValue?.length) {
@@ -480,8 +498,6 @@ function AdvancedSearchFilters() {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-
-    const groupBy = searchAdvancedFilters.groupBy;
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList, true), [userCardList, workspaceCardFeeds]);
@@ -554,7 +570,7 @@ function AdvancedSearchFilters() {
                 const workspacesData = workspaces.flatMap((value) => value.data);
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, workspacesData);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
-                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, groupBy, translate);
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, translate);
             } else {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
             }
@@ -576,7 +592,7 @@ function AdvancedSearchFilters() {
             items: filters.at(0) ?? [],
         },
         {
-            titleTranslationKey: 'common.expenses',
+            titleTranslationKey: queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT ? 'common.reports' : 'common.expenses',
             items: filters.at(1) ?? [],
         },
         {

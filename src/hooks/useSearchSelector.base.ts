@@ -10,7 +10,10 @@ import type {PersonalDetails} from '@src/types/onyx';
 import useDebouncedState from './useDebouncedState';
 import useOnyx from './useOnyx';
 
-type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<typeof CONST.SEARCH_SELECTOR, 'SEARCH_CONTEXT_GENERAL' | 'SEARCH_CONTEXT_SEARCH' | 'SEARCH_CONTEXT_MEMBER_INVITE'>];
+type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<
+    typeof CONST.SEARCH_SELECTOR,
+    'SEARCH_CONTEXT_GENERAL' | 'SEARCH_CONTEXT_SEARCH' | 'SEARCH_CONTEXT_MEMBER_INVITE' | 'SEARCH_CONTEXT_SHARE_DESTINATION'
+>];
 type SearchSelectorSelectionMode = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<typeof CONST.SEARCH_SELECTOR, 'SELECTION_MODE_SINGLE' | 'SELECTION_MODE_MULTI'>];
 
 type UseSearchSelectorConfig = {
@@ -19,6 +22,9 @@ type UseSearchSelectorConfig = {
 
     /** Maximum number of results to return (for heap optimization) */
     maxResultsPerPage?: number;
+
+    /** How many recent reports should be returned? The rest count from maxResultsPerPage will be with contacts. null value means no limit */
+    maxRecentReportsToShow?: number;
 
     /** What is the context that we are using this hook for */
     searchContext?: SearchSelectorContext;
@@ -116,6 +122,7 @@ type UseSearchSelectorReturn = {
 function useSearchSelectorBase({
     selectionMode,
     maxResultsPerPage = CONST.MAX_SELECTION_LIST_PAGE_LENGTH,
+    maxRecentReportsToShow,
     searchContext = 'search',
     includeUserToInvite = true,
     excludeLogins = CONST.EMPTY_OBJECT,
@@ -146,6 +153,7 @@ function useSearchSelectorBase({
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected ?? []);
     const [maxResults, setMaxResults] = useState(maxResultsPerPage);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     const onListEndReached = useCallback(() => {
         setMaxResults((previous) => previous + maxResultsPerPage);
@@ -162,30 +170,76 @@ function useSearchSelectorBase({
 
         switch (searchContext) {
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SEARCH:
-                return getSearchOptions(optionsWithContacts, betas ?? [], true, true, computedSearchTerm, maxResults, includeUserToInvite);
+                return getSearchOptions({
+                    options: optionsWithContacts,
+                    draftComments,
+                    betas: betas ?? [],
+                    isUsedInChatFinder: true,
+                    includeReadOnly: true,
+                    searchQuery: computedSearchTerm,
+                    maxResults,
+                    includeUserToInvite,
+                    countryCode,
+                });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
-                return getValidOptions(optionsWithContacts, {
+                return getValidOptions(optionsWithContacts, draftComments, {
                     betas: betas ?? [],
                     includeP2P: true,
                     includeSelectedOptions: false,
                     excludeLogins,
                     includeRecentReports,
                     maxElements: maxResults,
+                    maxRecentReportElements: maxRecentReportsToShow,
                     searchString: computedSearchTerm,
+                    includeUserToInvite,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
-                return getValidOptions(optionsWithContacts, {
+                return getValidOptions(optionsWithContacts, draftComments, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     searchString: computedSearchTerm,
                     maxElements: maxResults,
+                    maxRecentReportElements: maxRecentReportsToShow,
                     includeUserToInvite,
                     loginsToExclude: excludeLogins,
+                });
+            case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
+                return getValidOptions(optionsWithContacts, draftComments, {
+                    betas,
+                    selectedOptions,
+                    includeMultipleParticipantReports: true,
+                    showChatPreviewLine: true,
+                    forcePolicyNamePreview: true,
+                    includeThreads: true,
+                    includeMoneyRequests: true,
+                    includeTasks: true,
+                    excludeLogins,
+                    loginsToExclude: excludeLogins,
+                    includeOwnedWorkspaceChats: true,
+                    includeSelfDM: true,
+                    searchString: computedSearchTerm,
+                    maxElements: maxResults,
+                    includeUserToInvite,
                 });
             default:
                 return getEmptyOptions();
         }
-    }, [areOptionsInitialized, optionsWithContacts, betas, computedSearchTerm, maxResults, searchContext, includeUserToInvite, excludeLogins, includeRecentReports, getValidOptionsConfig]);
+    }, [
+        areOptionsInitialized,
+        searchContext,
+        optionsWithContacts,
+        draftComments,
+        betas,
+        computedSearchTerm,
+        maxResults,
+        includeUserToInvite,
+        countryCode,
+        excludeLogins,
+        includeRecentReports,
+        maxRecentReportsToShow,
+        getValidOptionsConfig,
+        selectedOptions,
+    ]);
 
     const isOptionSelected = useMemo(() => {
         return (option: OptionData) =>

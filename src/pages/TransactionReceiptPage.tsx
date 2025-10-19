@@ -1,9 +1,9 @@
 import React, {useEffect} from 'react';
 import AttachmentModal from '@components/AttachmentModal';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import {navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
+import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
 import {getReceiptFileName} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -29,7 +29,6 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [reportMetadata = CONST.DEFAULT_REPORT_METADATA] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
-    const {isBetaEnabled} = usePermissions();
 
     const mergeTransactionID = 'mergeTransactionID' in route.params ? route.params.mergeTransactionID : undefined;
     const isFromReviewDuplicates = 'isFromReviewDuplicates' in route.params ? route.params.isFromReviewDuplicates === 'true' : undefined;
@@ -78,8 +77,8 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
             return;
         }
 
-        const requestType = getRequestType(transaction, isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE));
-        const receiptFilename = transaction?.filename;
+        const requestType = getRequestType(transaction);
+        const receiptFilename = getReceiptFilenameFromTransaction(transaction);
         const receiptType = transaction?.receipt?.type;
         navigateToStartStepIfScanFileCannotBeRead(
             receiptFilename,
@@ -125,7 +124,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
             canDeleteReceipt={canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt}
             allowDownload={!isEReceipt}
             isTrackExpenseAction={isTrackExpenseAction}
-            originalFileName={isDraftTransaction ? transaction?.filename : receiptURIs?.filename}
+            originalFileName={isDraftTransaction ? getReceiptFilenameFromTransaction(transaction) : receiptURIs?.filename}
             defaultOpen
             iouAction={action}
             iouType={iouType}

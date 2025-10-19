@@ -7,23 +7,22 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type {Section} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
+import type {Section} from '@components/SelectionListWithSections/types';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {inviteToRoomAction, searchInServer} from '@libs/actions/Report';
+import {inviteToRoom, searchInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
-import {appendCountryCode} from '@libs/LoginUtils';
+import {appendCountryCodeWithCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
@@ -56,14 +55,13 @@ function RoomInvitePage({
     },
 }: RoomInvitePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const isReportArchived = useReportIsArchived(report.reportID);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const {options, areOptionsInitialized} = useOptionsList();
 
@@ -134,7 +132,7 @@ function RoomInvitePage({
             filterSelectedOptions = selectedOptions.filter((option) => {
                 const accountID = option?.accountID;
                 const isOptionInPersonalDetails = personalDetails ? personalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID) : false;
-                const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(debouncedSearchTerm)));
+                const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(debouncedSearchTerm), countryCode ?? CONST.DEFAULT_COUNTRY_CODE));
                 const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number ? parsedPhoneNumber.number.e164 : debouncedSearchTerm.toLowerCase();
                 const isPartOfSearchTerm = (option.text?.toLowerCase() ?? '').includes(searchValue) || (option.login?.toLowerCase() ?? '').includes(searchValue);
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
@@ -166,7 +164,7 @@ function RoomInvitePage({
         }
 
         return sectionsArr;
-    }, [inviteOptions, areOptionsInitialized, selectedOptions, debouncedSearchTerm, translate]);
+    }, [inviteOptions, areOptionsInitialized, selectedOptions, debouncedSearchTerm, translate, countryCode]);
 
     const toggleOption = useCallback(
         (option: MemberForList) => {
@@ -209,11 +207,11 @@ function RoomInvitePage({
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
         if (reportID) {
-            inviteToRoomAction(reportID, invitedEmailsToAccountIDs, currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE);
-            clearUserSearchPhrase();
-            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID, backTo));
+            inviteToRoom(reportID, invitedEmailsToAccountIDs, formatPhoneNumber);
         }
-    }, [validate, selectedOptions, reportID, currentUserPersonalDetails.timezone, backTo]);
+        clearUserSearchPhrase();
+        Navigation.goBack(backRoute);
+    }, [selectedOptions, backRoute, reportID, validate, formatPhoneNumber]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backRoute);
@@ -227,12 +225,16 @@ function RoomInvitePage({
         }
         if (
             !inviteOptions.userToInvite &&
-            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue)) : searchValue]
+            excludedUsers[
+                parsePhoneNumber(appendCountryCodeWithCountryCode(searchValue, countryCode ?? CONST.DEFAULT_COUNTRY_CODE)).possible
+                    ? addSMSDomainIfPhoneNumber(appendCountryCodeWithCountryCode(searchValue, countryCode ?? CONST.DEFAULT_COUNTRY_CODE))
+                    : searchValue
+            ]
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
         }
         return getHeaderMessage((inviteOptions.personalDetails ?? []).length !== 0, !!inviteOptions.userToInvite, debouncedSearchTerm);
-    }, [debouncedSearchTerm, inviteOptions.userToInvite, inviteOptions.personalDetails, excludedUsers, translate, reportName]);
+    }, [debouncedSearchTerm, inviteOptions.userToInvite, inviteOptions.personalDetails, excludedUsers, countryCode, translate, reportName]);
 
     useEffect(() => {
         updateUserSearchPhrase(debouncedSearchTerm);

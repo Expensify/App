@@ -3,15 +3,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import {getCurrentUserAccountID} from './actions/Report';
-import {
-    arePaymentsEnabled,
-    getCorrectedAutoReportingFrequency,
-    getSubmitToAccountID,
-    getValidConnectedIntegration,
-    hasIntegrationAutoSync,
-    isPolicyAdmin,
-    isPreferredExporter,
-} from './PolicyUtils';
+import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasIntegrationAutoSync, isPolicyAdmin, isPreferredExporter} from './PolicyUtils';
 import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
     getMoneyRequestSpendBreakdown,
@@ -33,9 +25,11 @@ import {
     isReportApproved,
     isReportManuallyReimbursed,
     isSettled,
+    requiresManualSubmission,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isPending, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
+import ViolationsUtils from './Violations/ViolationsUtils';
 
 function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, isReportArchived: boolean, policy?: Policy, transactions?: Transaction[]) {
     if (isReportArchived) {
@@ -48,7 +42,6 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
     const isManager = report.managerID === getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const hasBeenRetracted = hasReportBeenReopenedUtils(report) || hasReportBeenRetractedUtils(report);
-    const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
 
     if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
         return false;
@@ -70,7 +63,7 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
         return true;
     }
 
-    return baseCanSubmit && isManualSubmitEnabled;
+    return baseCanSubmit && requiresManualSubmission(report, policy);
 }
 
 function canApprove(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[], shouldConsiderViolations = true) {
@@ -189,12 +182,13 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
 
 function canReview(report: Report, violations: OnyxCollection<TransactionViolation[]>, isReportArchived: boolean, policy?: Policy, transactions?: Transaction[]) {
     const hasAnyViolations = hasMissingSmartscanFields(report.reportID, transactions) || hasAnyViolationsUtil(report.reportID, violations);
+    const hasVisibleViolations = hasAnyViolations && ViolationsUtils.hasVisibleViolationsForUser(report, violations, policy, transactions);
     const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenExpenseReport(report);
     const isReimbursed = isSettled(report);
 
     if (
-        !hasAnyViolations ||
+        !hasVisibleViolations ||
         isReimbursed ||
         (!(isSubmitter && isOpen && policy?.areWorkflowsEnabled) &&
             !canApprove(report, violations, policy, transactions, false) &&
@@ -228,13 +222,16 @@ function getReportPreviewAction(
     transactions?: Transaction[],
     invoiceReceiverPolicy?: Policy,
     isPaidAnimationRunning?: boolean,
+    isApprovedAnimationRunning?: boolean,
     isSubmittingAnimationRunning?: boolean,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
 
-    if (isPaidAnimationRunning) {
+    // We want to have action displayed for either paid or approved animations
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (isPaidAnimationRunning || isApprovedAnimationRunning) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
 

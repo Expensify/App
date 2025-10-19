@@ -48,8 +48,30 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+        ],
+    ],
+    [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: [
+        [
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
         ],
         [
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
@@ -143,9 +165,10 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.TASK]: [
@@ -173,6 +196,14 @@ function isFeatureEnabledInPolicies(policies: OnyxCollection<Policy>, featureNam
     return Object.values(policies).some((policy) => isPolicyFeatureEnabled(policy, featureName));
 }
 
+const availablePolicyCategoriesSelector = (policyCategories: OnyxCollection<PolicyCategories>) =>
+    Object.fromEntries(
+        Object.entries(policyCategories ?? {}).filter(([, categories]) => {
+            const availableCategories = Object.values(categories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            return availableCategories.length > 0;
+        }),
+    );
+
 function useAdvancedSearchFilters() {
     const {localeCompare} = useLocalize();
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
@@ -186,13 +217,7 @@ function useAdvancedSearchFilters() {
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         canBeMissing: false,
-        selector: (policyCategories) =>
-            Object.fromEntries(
-                Object.entries(policyCategories ?? {}).filter(([, categories]) => {
-                    const availableCategories = Object.values(categories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-                    return availableCategories.length > 0;
-                }),
-            ),
+        selector: availablePolicyCategoriesSelector,
     });
     const selectedPolicyCategories = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, allPolicyCategories);
     const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
@@ -231,7 +256,7 @@ function useAdvancedSearchFilters() {
     const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(allCards).length, areCardsEnabled);
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length !== 0);
-    const shouldDisplayGroupByFilter = !!groupBy && groupBy !== CONST.SEARCH.GROUP_BY.REPORTS;
+    const shouldDisplayGroupByFilter = !!groupBy;
     const shouldDisplayGroupCurrencyFilter = shouldDisplayGroupByFilter;
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;

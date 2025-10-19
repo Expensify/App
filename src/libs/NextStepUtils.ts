@@ -23,6 +23,19 @@ import {
     isPayer,
 } from './ReportUtils';
 
+type BuildNextStepNewParams = {
+    report: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    hasViolations: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
+    shouldFixViolations?: boolean;
+    isUnapprove?: boolean;
+    isReopen?: boolean;
+};
+
 let currentUserAccountID = -1;
 let currentUserEmail = '';
 Onyx.connect({
@@ -83,8 +96,8 @@ function parseMessage(messages: Message[] | undefined) {
     });
 
     const formattedHtml = nextStepHTML
-        .replace(/%expenses/g, 'expense(s)')
-        .replace(/%Expenses/g, 'Expense(s)')
+        .replace(/%expenses/g, 'expenses')
+        .replace(/%Expenses/g, 'Expenses')
         .replace(/%tobe/g, 'are');
 
     return `<next-step>${formattedHtml}</next-step>`;
@@ -133,6 +146,10 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
  * @param isUnapprove - whether a report is being unapproved
  * @param isReopen - whether a report is being reopened
  * @returns nextStep
+ */
+/**
+ * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
+ * All usages of this function should be replaced with useOnyx hook in React components.
  */
 function buildNextStep(
     report: OnyxEntry<Report>,
@@ -194,7 +211,7 @@ function buildNextStep(
             {
                 text: ' to ',
             },
-            ...(shouldShowFixMessage ? [{text: 'fix the issue(s)'}] : [{text: 'pay'}, {text: ' %expenses.'}]),
+            ...(shouldShowFixMessage ? [{text: 'fix the issues'}] : [{text: 'pay'}, {text: ' %expenses.'}]),
         ],
     };
 
@@ -228,7 +245,7 @@ function buildNextStep(
                             text: ' to ',
                         },
                         {
-                            text: 'fix the issue(s)',
+                            text: 'fix the issues',
                         },
                     ],
                 };
@@ -502,18 +519,10 @@ function buildNextStep(
  * Generates an optimistic nextStep based on a current report status and other properties.
  * Need to rename this function and remove the buildNextStep function above after migrating to this function
  */
-function buildNextStepNew(
-    report: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    currentUserAccountIDParam: number,
-    currentUserEmailParam: string,
-    hasViolations: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>,
-    shouldFixViolations?: boolean,
-    isUnapprove?: boolean,
-    isReopen?: boolean,
-): ReportNextStep | null {
+function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStep | null {
+    const {report, policy, currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled, predictedNextStatus, shouldFixViolations, isUnapprove, isReopen} =
+        params;
+
     if (!isExpenseReport(report)) {
         return null;
     }
@@ -532,6 +541,7 @@ function buildNextStepNew(
         ((report.total !== 0 && report.total !== undefined) ||
             (report.unheldTotal !== 0 && report.unheldTotal !== undefined) ||
             (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     const ownerDisplayName = ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID});
     const policyOwnerDisplayName = policyOwnerPersonalDetails?.displayName ?? policyOwnerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: policy?.ownerAccountID});
@@ -562,7 +572,7 @@ function buildNextStepNew(
             {
                 text: ' to ',
             },
-            ...(shouldShowFixMessage ? [{text: 'fix the issue(s)'}] : [{text: 'pay'}, {text: ' %expenses.'}]),
+            ...(shouldShowFixMessage ? [{text: 'fix the issues'}] : [{text: 'pay'}, {text: ' %expenses.'}]),
         ],
     };
 
@@ -596,7 +606,7 @@ function buildNextStepNew(
                             text: ' to ',
                         },
                         {
-                            text: 'fix the issue(s)',
+                            text: 'fix the issues',
                         },
                     ],
                 };
@@ -736,7 +746,7 @@ function buildNextStepNew(
         // Generates an optimistic nextStep once a report has been submitted
         case CONST.REPORT.STATUS_NUM.SUBMITTED: {
             if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
-                optimisticNextStep = nextStepPayExpense;
+                optimisticNextStep = reimbursableSpend === 0 ? noActionRequired : nextStepPayExpense;
                 break;
             }
             // Another owner
@@ -822,7 +832,8 @@ function buildNextStepNew(
                         email: currentUserEmailParam,
                     },
                     report,
-                )
+                ) ||
+                reimbursableSpend === 0
             ) {
                 optimisticNextStep = noActionRequired;
 
@@ -865,4 +876,11 @@ function buildNextStepNew(
     return optimisticNextStep;
 }
 
-export {parseMessage, buildNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled, buildNextStepNew};
+export {
+    parseMessage,
+    // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    buildNextStep,
+    buildOptimisticNextStepForPreventSelfApprovalsEnabled,
+    buildNextStepNew,
+};
