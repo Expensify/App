@@ -134,13 +134,24 @@ function WorkspacesListPage() {
     usePreloadFullScreenNavigators();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
+    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     // The workspace was deleted in this page
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
+    const continueDeleteWorkspace = useCallback(() => {
+        if (isOffline) {
+            setPolicyIDToDelete(undefined);
+            setPolicyNameToDelete(undefined);
+            setShouldShowOfflineModal(true);
+            return;
+        }
+
+        setIsDeleteModalOpen(true);
+    }, [isOffline]);
     const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyIDToDelete);
-    const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
-    const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
-    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
+    const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} =
+        usePayAndDowngrade(continueDeleteWorkspace);
 
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
 
@@ -159,7 +170,7 @@ function WorkspacesListPage() {
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policyToDelete = getPolicy(policyIDToDelete);
     const prevPolicyToDelete = usePrevious(policyToDelete);
     const hasCardFeedOrExpensifyCard =
@@ -301,14 +312,7 @@ function WorkspacesListPage() {
                             return;
                         }
 
-                        if (isOffline) {
-                            setPolicyIDToDelete(undefined);
-                            setPolicyNameToDelete(undefined);
-                            setShouldShowOfflineModal(true);
-                            return;
-                        }
-
-                        setIsDeleteModalOpen(true);
+                        continueDeleteWorkspace();
                     },
                     shouldKeepModalOpen: shouldCalculateBillNewDot,
                     shouldCallAfterModalHide: !shouldCalculateBillNewDot,
@@ -386,8 +390,8 @@ function WorkspacesListPage() {
             isLessThanMediumScreen,
             isLoadingBill,
             resetLoadingSpinnerIconIndex,
+            continueDeleteWorkspace,
             isRestrictedToPreferredPolicy,
-            isOffline,
         ],
     );
 
@@ -476,7 +480,7 @@ function WorkspacesListPage() {
         const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicateWorkspace.policyID);
         if (duplicateWorkspaceIndex > 0) {
             flatlistRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearDuplicateWorkspace();
             });
