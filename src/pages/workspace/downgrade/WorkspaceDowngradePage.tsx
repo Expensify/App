@@ -2,10 +2,9 @@ import React, {useMemo, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -120,16 +119,10 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
                 shouldShowCancelButton={false}
                 onCancel={onClose}
                 prompt={
-                    <Text>
-                        {translate('workspace.moreFeatures.companyCards.downgradeSubTitleFirstPart')}{' '}
-                        <TextLink
-                            style={styles.link}
-                            onPress={onMoveToCompanyCardFeeds}
-                        >
-                            {translate('workspace.moreFeatures.companyCards.downgradeSubTitleMiddlePart')}
-                        </TextLink>{' '}
-                        {translate('workspace.moreFeatures.companyCards.downgradeSubTitleLastPart')}
-                    </Text>
+                    <RenderHTML
+                        html={translate('workspace.moreFeatures.companyCards.downgradeSubTitle')}
+                        onLinkPress={onMoveToCompanyCardFeeds}
+                    />
                 }
                 confirmText={translate('common.buttonConfirm')}
             />

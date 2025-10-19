@@ -4790,9 +4790,8 @@ ${amount} per ${merchant} - ${date}`,
                 noAccountsFound: 'Nessun account trovato',
                 defaultCard: 'Carta predefinita',
                 downgradeTitle: `Impossibile effettuare il downgrade dello spazio di lavoro`,
-                downgradeSubTitleFirstPart: `Questo workspace non può essere declassato perché sono collegati più flussi di carte (escludendo le carte Expensify). Per favore`,
-                downgradeSubTitleMiddlePart: `mantieni solo un feed di carte`,
-                downgradeSubTitleLastPart: 'per procedere.',
+                downgradeSubTitle: `Questo workspace non può essere declassato perché sono collegati più flussi di carte (escludendo le carte Expensify). Per favore <a href="#">mantieni solo un feed di carte</a> per procedere.`,
+
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Per favore, aggiungi l'account in ${connection} e sincronizza nuovamente la connessione.`,
                 expensifyCardBannerTitle: 'Ottieni la Expensify Card',
                 expensifyCardBannerSubtitle:

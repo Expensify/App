@@ -4773,9 +4773,8 @@ ${amount} dla ${merchant} - ${date}`,
                 noAccountsFound: 'Nie znaleziono kont',
                 defaultCard: 'Domyślna karta',
                 downgradeTitle: `Nie można obniżyć poziomu workspace.`,
-                downgradeSubTitleFirstPart: `Tego miejsca pracy nie można obniżyć, ponieważ jest połączonych wiele kanałów kart (z wyłączeniem kart Expensify). Proszę`,
-                downgradeSubTitleMiddlePart: `zachowaj tylko jeden kanał kart`,
-                downgradeSubTitleLastPart: 'aby kontynuować.',
+                downgradeSubTitle: `Tego miejsca pracy nie można obniżyć, ponieważ jest połączonych wiele kanałów kart (z wyłączeniem kart Expensify). Proszę <a href="#">zachowaj tylko jeden kanał kart</a> aby kontynuować.`,
+
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Proszę dodać konto w ${connection} i ponownie zsynchronizować połączenie.`,
                 expensifyCardBannerTitle: 'Zdobądź kartę Expensify',
                 expensifyCardBannerSubtitle:
