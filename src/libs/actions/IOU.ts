@@ -777,15 +777,6 @@ Onyx.connect({
     },
 });
 
-let allDraftSplitTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allDraftSplitTransactions = value ?? {};
-    },
-});
-
 let allNextSteps: NonNullable<OnyxCollection<OnyxTypes.ReportNextStep>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.NEXT_STEP,
@@ -7864,11 +7855,16 @@ function completeSplitBill(
     notifyNewAction(chatReportID, sessionAccountID);
 }
 
-function setDraftSplitTransaction(transactionID: string | undefined, transactionChanges: TransactionChanges = {}, policy?: OnyxEntry<OnyxTypes.Policy>) {
+function setDraftSplitTransaction(
+    transactionID: string | undefined,
+    splitTransactionDraft: OnyxEntry<OnyxTypes.Transaction>,
+    transactionChanges: TransactionChanges = {},
+    policy?: OnyxEntry<OnyxTypes.Policy>,
+) {
     if (!transactionID) {
         return undefined;
     }
-    let draftSplitTransaction = allDraftSplitTransactions[`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`];
+    let draftSplitTransaction = splitTransactionDraft;
 
     if (!draftSplitTransaction) {
         draftSplitTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -13272,16 +13268,18 @@ function removeSplitExpenseField(draftTransaction: OnyxEntry<OnyxTypes.Transacti
     });
 }
 
-function updateSplitExpenseField(splitExpenseDraftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string) {
-    if (!splitExpenseDraftTransaction || !splitExpenseTransactionID) {
+function updateSplitExpenseField(
+    splitExpenseDraftTransaction: OnyxEntry<OnyxTypes.Transaction>,
+    originalTransactionDraft: OnyxEntry<OnyxTypes.Transaction>,
+    splitExpenseTransactionID: string,
+) {
+    if (!splitExpenseDraftTransaction || !splitExpenseTransactionID || !originalTransactionDraft) {
         return;
     }
 
     const originalTransactionID = splitExpenseDraftTransaction?.comment?.originalTransactionID;
 
-    const draftTransaction = allDraftSplitTransactions[`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`];
-
-    const splitExpenses = draftTransaction?.comment?.splitExpenses?.map((item) => {
+    const splitExpenses = originalTransactionDraft?.comment?.splitExpenses?.map((item) => {
         if (item.transactionID === splitExpenseTransactionID) {
             const transactionDetails = getTransactionDetails(splitExpenseDraftTransaction);
 
