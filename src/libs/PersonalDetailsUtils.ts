@@ -149,12 +149,16 @@ function getPersonalDetailByEmail(email: string): PersonalDetails | undefined {
  */
 function getAccountIDsByLogins(logins: string[]): number[] {
     return logins.reduce<number[]>((foundAccountIDs, login) => {
-        const currentDetail = personalDetails.find((detail) => detail?.login === login?.toLowerCase());
-        if (!currentDetail) {
+        const normalizedLogin = login?.toLowerCase();
+        const matchingDetails = personalDetails.filter((detail) => detail?.login === normalizedLogin);
+        // Prefer the confirmed personal detail once it arrives, fall back to the optimistic entry otherwise
+        const preferredDetail = matchingDetails.find((detail) => !detail?.isOptimisticPersonalDetail) ?? matchingDetails.at(0);
+
+        if (!preferredDetail) {
             // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
             foundAccountIDs.push(generateAccountID(login));
         } else {
-            foundAccountIDs.push(Number(currentDetail.accountID));
+            foundAccountIDs.push(preferredDetail.accountID);
         }
         return foundAccountIDs;
     }, []);
