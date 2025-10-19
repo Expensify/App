@@ -35,6 +35,7 @@ import {
     replaceReceipt,
     requestMoney,
     resolveDuplicates,
+    retractReport,
     saveSplitTransactions,
     sendInvoice,
     setDraftSplitTransaction,
@@ -8906,6 +8907,38 @@ describe('actions/IOU', () => {
                     }),
                 ]),
             );
+        });
+    });
+
+    describe('retractReport', () => {
+        it('should restore the chat report iouReportID', async () => {
+            // Given a chat report with no iouReportID
+            const chatReport: Report = {
+                ...createRandomReport(0),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                iouReportID: undefined,
+            };
+
+            const expenseReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatType: undefined,
+            };
+
+            // When retracting the submitted expense report
+            retractReport(expenseReport, chatReport);
+
+            // Then the chat report iouReportID should be set back to the retracted expense report
+            const iouReportID = await new Promise<string>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report?.iouReportID ?? '');
+                    },
+                });
+            });
+            expect(iouReportID).toBe(expenseReport.reportID);
         });
     });
 });

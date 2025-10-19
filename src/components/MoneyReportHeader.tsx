@@ -1080,7 +1080,7 @@ function MoneyReportHeader({
             icon: Expensicons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
             onSelected: () => {
-                retractReport(moneyRequestReport);
+                retractReport(moneyRequestReport, chatReport);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
