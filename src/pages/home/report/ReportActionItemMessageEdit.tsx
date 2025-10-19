@@ -551,6 +551,7 @@ function ReportActionItemMessageEdit({
                             isGroupPolicyReport={isGroupPolicyReport}
                             shouldCalculateCaretPosition
                             onScroll={onSaveScrollAndHideSuggestionMenu}
+                            testID="composer"
                         />
                     </View>
 
@@ -613,3 +614,4 @@ function ReportActionItemMessageEdit({
 ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
 
 export default ReportActionItemMessageEdit;
+export type {ReportActionItemMessageEditProps};

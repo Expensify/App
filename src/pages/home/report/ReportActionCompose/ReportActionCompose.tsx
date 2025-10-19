@@ -637,4 +637,4 @@ ReportActionCompose.displayName = 'ReportActionCompose';
 
 export default memo(ReportActionCompose);
 export {onSubmitAction};
-export type {SuggestionsRef, ComposerRef};
+export type {SuggestionsRef, ComposerRef, ReportActionComposeProps};
