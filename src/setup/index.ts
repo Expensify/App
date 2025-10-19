@@ -1,6 +1,7 @@
 import toSortedPolyfill from 'array.prototype.tosorted';
 import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
+import intlPolyfill from '@libs/IntlPolyfill';
 import {setDeviceID} from '@userActions/Device';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
@@ -65,6 +66,9 @@ export default function () {
     // Force app layout to work left to right because our design does not currently support devices using this mode
     I18nManager.allowRTL(false);
     I18nManager.forceRTL(false);
+
+    // Polyfill the Intl API if locale data is not as expected
+    intlPolyfill();
 
     // Perform any other platform-specific setup
     platformSetup();
