@@ -72,7 +72,6 @@ const onyxKeysToRemove: Array<ValueOf<typeof ONYXKEYS>> = [
     ONYXKEYS.ONFIDO_APPLICANT_ID,
 ];
 
-// Legacy keys to mask for backward compatibility with maskFragileData
 const keysToMask = [
     'addressCity',
     'addressName',
@@ -178,13 +177,10 @@ const processOnyxKeyWithRule = (key: string, data: unknown, rule: ExportRule): u
             const fieldValue = (data as Record<string, unknown>)[fieldKey];
 
             if (rule.maskList.includes(fieldKey)) {
-                // Field should be masked but preserved
                 processedData[fieldKey] = maskValuePreservingLength(fieldValue);
             } else if (rule.allowList.includes(fieldKey)) {
-                // Field is explicitly allowed
                 processedData[fieldKey] = fieldValue;
             } else {
-                // Field is not in allowList or maskList - redact it
                 processedData[fieldKey] = MASKING_PATTERN;
             }
         });
@@ -276,28 +272,22 @@ const removePrivateOnyxKeys = (onyxState: OnyxState): OnyxState => {
 const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
     let onyxState = {...data};
 
-    // Remove private/sensitive Onyx keys first
     onyxState = removePrivateOnyxKeys(onyxState);
 
-    // Process each onyx key according to its rule
     Object.keys(onyxState).forEach((key) => {
-        // Handle collection keys (keys that start with a collection prefix)
         let ruleKey = key;
         const collectionKey = Object.values(ONYXKEYS.COLLECTION).find((cKey) => key.startsWith(cKey));
         if (collectionKey) {
             ruleKey = collectionKey;
         }
 
-        // Get rule for this key
         const rule = ONYX_KEY_EXPORT_POLICIES[ruleKey];
 
-        // Process the key's data according to its rule
         if (rule) {
             onyxState[key] = processOnyxKeyWithRule(key, onyxState[key], rule);
         }
     });
 
-    // Apply additional fragile data masking if enabled (for backwards compatibility)
     if (isMaskingFragileDataEnabled) {
         onyxState = maskFragileData(onyxState) as OnyxState;
     }
