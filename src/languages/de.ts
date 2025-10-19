@@ -5384,7 +5384,7 @@ ${amount} für ${merchant} - ${date}`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Wählen Sie das Bankkonto, gegen das Ihre Expensify Card-Zahlungen abgeglichen werden sollen.',
                 settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
-                    `Stellen Sie sicher, dass dieses Konto mit Ihrem <a href="${settlementAccountUrl}">Expensify Card-Kartenabrechnungskonto</a> (endend mit ${lastFourPAN}) übereinstimmt, damit die kontinuierliche Abstimmung ordnungsgemäß funktioniert.`,
+                    `Stellen Sie sicher, dass dieses Konto mit Ihrem übereinstimmt <a href="${settlementAccountUrl}">Expensify Card-Kartenabrechnungskonto</a> (endend mit ${lastFourPAN}), damit die kontinuierliche Abstimmung ordnungsgemäß funktioniert.`,
             },
         },
         export: {
