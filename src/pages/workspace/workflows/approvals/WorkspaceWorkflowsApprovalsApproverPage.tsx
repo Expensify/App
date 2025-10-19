@@ -203,7 +203,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     },
                     approverIndex,
                     currentApprovalWorkflow,
-                    policyID: route.params.policyID,
+                    policy,
                 });
             }
 
