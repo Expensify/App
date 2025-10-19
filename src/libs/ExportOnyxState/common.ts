@@ -37,7 +37,22 @@ const ONYX_KEY_EXPORT_POLICIES: Record<string, ExportRule> = {
         maskList: ['firstName', 'lastName', 'displayName', 'avatar', 'login'],
     },
     [ONYXKEYS.COLLECTION.REPORT]: {
-        allowList: ['reportID', 'type', 'chatType', 'stateNum', 'statusNum', 'isOwnPolicyExpenseChat', 'participantAccountIDs', 'total', 'currency', 'created'],
+        allowList: [
+            'reportID',
+            'type',
+            'chatType',
+            'lastActorAccountID',
+            'participants',
+            'pendingFields',
+            'ownerAccountID',
+            'stateNum',
+            'statusNum',
+            'isOwnPolicyExpenseChat',
+            'participantAccountIDs',
+            'total',
+            'currency',
+            'created',
+        ],
         maskList: ['reportName', 'description', 'ownerAccountID', 'managerID'],
     },
     [ONYXKEYS.COLLECTION.TRANSACTION]: {
