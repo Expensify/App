@@ -1,11 +1,78 @@
 import {Str} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Credentials, Session} from '@src/types/onyx';
 import type OnyxState from '@src/types/onyx/OnyxState';
 import type {MaskOnyxState} from './types';
 
 const MASKING_PATTERN = '***';
+
+type ExportRule = {
+    allowList: string[];
+    maskList: string[];
+};
+
+const ONYX_KEY_EXPORT_POLICIES: Record<string, ExportRule> = {
+    [ONYXKEYS.SESSION]: {
+        allowList: ['email', 'accountID', 'loading', 'creationDate', 'errors'],
+        maskList: [],
+    },
+    [ONYXKEYS.STASHED_SESSION]: {
+        allowList: ['email', 'accountID', 'loading', 'creationDate', 'errors'],
+        maskList: [],
+    },
+    [ONYXKEYS.CREDENTIALS]: {
+        allowList: ['login', 'accountID'],
+        maskList: [],
+    },
+    [ONYXKEYS.STASHED_CREDENTIALS]: {
+        allowList: ['login', 'accountID'],
+        maskList: [],
+    },
+    [ONYXKEYS.ACCOUNT]: {
+        allowList: ['validated', 'isFromPublicDomain', 'isUsingExpensifyCard'],
+        maskList: ['primaryLogin'],
+    },
+    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+        allowList: ['accountID', 'timezone', 'status', 'pronouns'],
+        maskList: ['firstName', 'lastName', 'displayName', 'avatar', 'login'],
+    },
+    [ONYXKEYS.COLLECTION.REPORT]: {
+        allowList: ['reportID', 'type', 'chatType', 'stateNum', 'statusNum', 'isOwnPolicyExpenseChat', 'participantAccountIDs', 'total', 'currency', 'created'],
+        maskList: ['reportName', 'description', 'ownerAccountID', 'managerID'],
+    },
+    [ONYXKEYS.COLLECTION.TRANSACTION]: {
+        allowList: ['transactionID', 'reportID', 'amount', 'currency', 'created', 'category', 'tag', 'billable'],
+        maskList: ['merchant', 'description', 'comment'],
+    },
+    [ONYXKEYS.COLLECTION.POLICY]: {
+        allowList: ['id', 'type', 'role', 'outputCurrency', 'isPolicyExpenseChatEnabled', 'areCategoriesEnabled', 'areTagsEnabled'],
+        maskList: ['name', 'avatar'],
+    },
+    [ONYXKEYS.USER_WALLET]: {
+        allowList: ['currentBalance', 'availableBalance', 'tierName'],
+        maskList: [],
+    },
+    [ONYXKEYS.BANK_ACCOUNT_LIST]: {
+        allowList: ['accountType', 'currency'],
+        maskList: ['accountNumber', 'routingNumber', 'addressName'],
+    },
+    [ONYXKEYS.CARD_LIST]: {
+        allowList: ['accountID', 'bank', 'isVirtual', 'cardID'],
+        maskList: ['lastFourPAN', 'nameOnCard'],
+    },
+};
+
+const onyxKeysToRemove: Array<ValueOf<typeof ONYXKEYS>> = [
+    ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
+    ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID,
+    ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING,
+    ONYXKEYS.NVP_PRIVATE_BILLING_STATUS,
+    ONYXKEYS.PLAID_LINK_TOKEN,
+    ONYXKEYS.ONFIDO_TOKEN,
+    ONYXKEYS.ONFIDO_APPLICANT_ID,
+];
+
+// Legacy keys to mask for backward compatibility with maskFragileData
 const keysToMask = [
     'addressCity',
     'addressName',
@@ -48,8 +115,6 @@ const keysToMask = [
     'zip',
     'zipCode',
 ];
-
-const onyxKeysToRemove: Array<ValueOf<typeof ONYXKEYS>> = [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID];
 
 const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
 
@@ -97,32 +162,37 @@ function replaceEmailInString(text: string, emailReplacement: string) {
     return text.replace(emailRegex, emailReplacement);
 }
 
-const maskSessionDetails = (session: Session): Session => {
-    const allowList = ['email', 'accountID', 'loading', 'creationDate', 'errors'];
-    const maskedData: OnyxState = {};
+const processOnyxKeyWithRule = (key: string, data: unknown, rule: ExportRule): unknown => {
+    if (data === null || data === undefined) {
+        return data;
+    }
 
-    Object.keys(session).forEach((key) => {
-        if (allowList.includes(key)) {
-            maskedData[key] = session[key as keyof Session];
-            return;
-        }
-        maskedData[key] = MASKING_PATTERN;
-    });
-    return maskedData as Session;
-};
+    if (Array.isArray(data)) {
+        return data.map((item) => (typeof item === 'object' ? processOnyxKeyWithRule(key, item, rule) : item));
+    }
 
-const maskCredentials = (credentials: Credentials): Credentials => {
-    const allowList = ['login', 'accountID'];
-    const maskedData: OnyxState = {};
+    if (typeof data === 'object') {
+        const processedData: Record<string, unknown> = {};
 
-    Object.keys(credentials).forEach((key) => {
-        if (allowList.includes(key)) {
-            maskedData[key] = credentials[key as keyof Credentials];
-            return;
-        }
-        maskedData[key] = MASKING_PATTERN;
-    });
-    return maskedData as Credentials;
+        Object.keys(data as Record<string, unknown>).forEach((fieldKey) => {
+            const fieldValue = (data as Record<string, unknown>)[fieldKey];
+
+            if (rule.maskList.includes(fieldKey)) {
+                // Field should be masked but preserved
+                processedData[fieldKey] = maskValuePreservingLength(fieldValue);
+            } else if (rule.allowList.includes(fieldKey)) {
+                // Field is explicitly allowed
+                processedData[fieldKey] = fieldValue;
+            } else {
+                // Field is not in allowList or maskList - redact it
+                processedData[fieldKey] = MASKING_PATTERN;
+            }
+        });
+
+        return processedData;
+    }
+
+    return data;
 };
 
 const maskEmail = (email: string) => {
@@ -204,29 +274,30 @@ const removePrivateOnyxKeys = (onyxState: OnyxState): OnyxState => {
 };
 
 const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
-    let onyxState = data;
+    let onyxState = {...data};
 
-    // Mask session details by default
-    if (onyxState.session) {
-        onyxState.session = maskSessionDetails(onyxState.session as Session);
-    }
-    if (onyxState.stashedSession) {
-        onyxState.stashedSession = maskSessionDetails(onyxState.stashedSession as Session);
-    }
-
-    // Remove private/sensitive Onyx keys
+    // Remove private/sensitive Onyx keys first
     onyxState = removePrivateOnyxKeys(onyxState);
 
-    // Mask credentials
-    if (onyxState.credentials) {
-        onyxState.credentials = maskCredentials(onyxState.credentials as Credentials);
-    }
+    // Process each onyx key according to its rule
+    Object.keys(onyxState).forEach((key) => {
+        // Handle collection keys (keys that start with a collection prefix)
+        let ruleKey = key;
+        const collectionKey = Object.values(ONYXKEYS.COLLECTION).find((cKey) => key.startsWith(cKey));
+        if (collectionKey) {
+            ruleKey = collectionKey;
+        }
 
-    if (onyxState.stashedCredentials) {
-        onyxState.stashedCredentials = maskCredentials(onyxState.stashedCredentials as Credentials);
-    }
+        // Get rule for this key
+        const rule = ONYX_KEY_EXPORT_POLICIES[ruleKey];
 
-    // Mask fragile data other than session details if the user has enabled the option
+        // Process the key's data according to its rule
+        if (rule) {
+            onyxState[key] = processOnyxKeyWithRule(key, onyxState[key], rule);
+        }
+    });
+
+    // Apply additional fragile data masking if enabled (for backwards compatibility)
     if (isMaskingFragileDataEnabled) {
         onyxState = maskFragileData(onyxState) as OnyxState;
     }
