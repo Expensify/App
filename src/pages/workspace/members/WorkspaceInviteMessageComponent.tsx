@@ -24,6 +24,8 @@ import {addMembersToWorkspace, clearWorkspaceInviteRoleDraft} from '@libs/action
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
@@ -62,6 +64,7 @@ function WorkspaceInviteMessageComponent({
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT, {canBeMissing: true});
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
 
     const viewportOffsetTop = useViewportOffsetTop();
     const [welcomeNote, setWelcomeNote] = useState<string>();
@@ -76,6 +79,22 @@ function WorkspaceInviteMessageComponent({
     });
     const [workspaceInviteRoleDraft = CONST.POLICY.ROLE.USER] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, {canBeMissing: true});
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
+    const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
+    const memberNames = Object.values(personalDetailsOfInvitedEmails)
+        .map((personalDetail) => {
+            const displayName = getDisplayNameOrDefault(personalDetail, '', false);
+            if (displayName) {
+                return displayName;
+            }
+
+            // We don't have login details for users who are not in the database yet
+            // So we need to fallback to their login from the invitedEmailsToAccountIDsDraft
+            const accountID = personalDetail.accountID;
+            const loginFromInviteMap = Object.entries(invitedEmailsToAccountIDsDraft ?? {}).find(([, id]) => id === accountID)?.[0];
+
+            return loginFromInviteMap;
+        })
+        .join(', ');
 
     const welcomeNoteSubject = useMemo(
         () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
@@ -113,12 +132,14 @@ function WorkspaceInviteMessageComponent({
         addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, policyID, policyMemberAccountIDs, workspaceInviteRoleDraft, formatPhoneNumber);
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
+
         if (goToNextStep) {
             goToNextStep();
             return;
         }
+
         if ((backTo as string)?.endsWith('members')) {
-            Navigation.setNavigationActionToMicrotaskQueue(Navigation.dismissModal);
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
             return;
         }
 
@@ -129,6 +150,7 @@ function WorkspaceInviteMessageComponent({
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.dismissModal();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
             });
@@ -173,6 +195,7 @@ function WorkspaceInviteMessageComponent({
                     <HeaderWithBackButton
                         title={translate('workspace.inviteMessage.confirmDetails')}
                         subtitle={policyName}
+                        shouldShowBackButton
                         onCloseButtonPress={() => Navigation.dismissModal()}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
@@ -186,19 +209,6 @@ function WorkspaceInviteMessageComponent({
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
-                    footerContent={
-                        <PressableWithoutFeedback
-                            onPress={openPrivacyURL}
-                            role={CONST.ROLE.LINK}
-                            accessibilityLabel={translate('common.privacy')}
-                            href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
-                            style={[styles.mv2, styles.alignSelfStart]}
-                        >
-                            <View style={[styles.flexRow]}>
-                                <Text style={[styles.mr1, styles.label, styles.link]}>{translate('common.privacy')}</Text>
-                            </View>
-                        </PressableWithoutFeedback>
-                    }
                 >
                     {isInviteNewMemberStep && <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>}
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
@@ -209,15 +219,23 @@ function WorkspaceInviteMessageComponent({
                                 displayInRows: true,
                             }}
                             secondaryAvatarContainerStyle={styles.secondAvatarInline}
-                            shouldShowTooltip={shouldShowTooltip}
                             invitedEmailsToAccountIDs={invitedEmailsToAccountIDsDraft}
+                            shouldUseCustomFallbackAvatar
+                            shouldShowTooltip={shouldShowTooltip}
                         />
-                    </View>
-                    <View style={[styles.mb5]}>
-                        <Text>{translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
                     </View>
                     <View style={[styles.mb3]}>
                         <View style={[styles.mhn5, styles.mb3]}>
+                            <MenuItemWithTopDescription
+                                title={memberNames}
+                                description={translate('common.members')}
+                                numberOfLinesTitle={2}
+                                shouldShowRightIcon
+                                onPress={() => {
+                                    Navigation.goBack(backTo);
+                                }}
+                            />
+
                             <MenuItemWithTopDescription
                                 title={translate(`workspace.common.roleName`, {role: workspaceInviteRoleDraft})}
                                 description={translate('common.role')}
@@ -226,6 +244,9 @@ function WorkspaceInviteMessageComponent({
                                     Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.getRoute(policyID, Navigation.getActiveRoute()));
                                 }}
                             />
+                        </View>
+                        <View style={[styles.mb3]}>
+                            <Text style={[styles.textSupportingNormal]}>{translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
                         </View>
                         <InputWrapper
                             InputComponent={TextInput}
@@ -253,6 +274,17 @@ function WorkspaceInviteMessageComponent({
                             }}
                             shouldSaveDraft
                         />
+                        <PressableWithoutFeedback
+                            onPress={openPrivacyURL}
+                            role={CONST.ROLE.LINK}
+                            accessibilityLabel={translate('common.privacy')}
+                            href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
+                            style={[styles.mt6, styles.alignSelfStart]}
+                        >
+                            <View style={[styles.flexRow]}>
+                                <Text style={[styles.mr1, styles.label, styles.link]}>{translate('common.privacy')}</Text>
+                            </View>
+                        </PressableWithoutFeedback>
                     </View>
                 </FormProvider>
             </ScreenWrapper>
