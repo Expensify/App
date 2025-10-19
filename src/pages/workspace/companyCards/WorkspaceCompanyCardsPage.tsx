@@ -128,8 +128,8 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         const isFeedExpired = isSelectedFeedExpired(selectedFeedOAuthData);
         const plaidAccessToken = selectedFeedCompanyCardsData?.plaidAccessToken;
 
-        // Refetch plaid card list if we somehow lost the selected feed data
-        if (plaidAccessToken && !selectedFeedOAuthData) {
+        // Refetch plaid card list
+        if (!isFeedExpired && plaidAccessToken) {
             const country = selectedFeedCompanyCardsData?.country ?? '';
             importPlaidAccounts('', selectedFeed, '', country, getDomainNameForPolicy(policyID), '', undefined, undefined, plaidAccessToken);
         }
