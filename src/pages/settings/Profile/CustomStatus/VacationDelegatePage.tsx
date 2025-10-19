@@ -28,6 +28,7 @@ function VacationDelegatePage() {
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [newVacationDelegate, setNewVacationDelegate] = useState('');
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: false});
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
@@ -54,7 +55,13 @@ function VacationDelegatePage() {
     });
 
     const headerMessage = useMemo(() => {
-        return getHeaderMessage((availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0, !!availableOptions.userToInvite, searchTerm);
+        return getHeaderMessage(
+            (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
+            !!availableOptions.userToInvite,
+            searchTerm,
+            false,
+            countryCode,
+        );
     }, [availableOptions.recentReports?.length, availableOptions.personalDetails?.length, availableOptions.userToInvite, searchTerm]);
 
     const sections = useMemo(() => {

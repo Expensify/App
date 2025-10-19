@@ -115,6 +115,7 @@ function MoneyRequestParticipantsSelector({
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListHandle | null>(null);
@@ -225,6 +226,7 @@ function MoneyRequestParticipantsSelector({
                 !!availableOptions?.userToInvite,
                 searchTerm.trim(),
                 participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
+                countryCode,
             ),
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -237,6 +239,7 @@ function MoneyRequestParticipantsSelector({
             cleanSearchTerm,
             searchTerm,
             participants,
+            countryCode,
         ],
     );
     /**
