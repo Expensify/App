@@ -124,8 +124,6 @@ function runCompilerHealthcheck(src?: string): CompilerResults {
         cwd: process.cwd(),
     });
 
-    console.log(output);
-
     return parseHealthcheckOutput(output);
 }
 
