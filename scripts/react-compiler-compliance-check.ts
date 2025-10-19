@@ -30,11 +30,6 @@ const VERBOSE_OUTPUT_LINE_REGEXES = {
     REASON: /Reason: (.+)/,
 } as const satisfies Record<string, RegExp>;
 
-type HealthcheckJsonResults = {
-    success: string[];
-    failure: string[];
-};
-
 type CompilerResults = {
     success: Set<string>;
     failures: Map<string, CompilerFailure>;
@@ -123,11 +118,13 @@ function runCompilerHealthcheck(src?: string): CompilerResults {
         srcString = srcString?.endsWith('"') ? srcString : `${srcString}"`;
     }
 
-    const command = `npx react-compiler-healthcheck ${src ? `--src ${srcString}` : ''} --json --verbose `;
+    const command = `npx react-compiler-healthcheck ${src ? `--src ${srcString}` : ''} --verbose `;
     const output = execSync(command, {
         encoding: 'utf8',
         cwd: process.cwd(),
     });
+
+    console.log(output);
 
     return parseHealthcheckOutput(output);
 }
@@ -135,71 +132,16 @@ function runCompilerHealthcheck(src?: string): CompilerResults {
 function parseHealthcheckOutput(output: string): CompilerResults {
     const lines = output.split('\n');
 
-    const initialResults: CompilerResults = {
+    const results: CompilerResults = {
         success: new Set<string>(),
         failures: new Map<string, CompilerFailure>(),
     };
 
-    const verboseResults = parseVerboseOutput(lines, initialResults);
-    const finalResults = parseJsonOutput(lines, verboseResults);
+    const suppressedErrorFileKeys = new Set<string>();
 
-    return finalResults;
-}
-
-function parseJsonOutput(lines: string[], results: CompilerResults): CompilerResults {
-    let jsonStart = -1;
-    let jsonEnd = -1;
-    for (let i = 0; i < lines.length; i++) {
-        if (lines.at(i)?.trim().startsWith('{')) {
-            jsonStart = i;
-        }
-        if (jsonStart !== -1 && lines.at(i)?.trim().endsWith('}')) {
-            jsonEnd = i;
-            break;
-        }
-    }
-
-    if (jsonStart === -1 || jsonEnd === -1) {
-        logWarn('No JSON found in combined output, parsing verbose text only');
-
-        return results;
-    }
-
-    // Parse JSON if found
-    try {
-        const jsonLines = lines.slice(jsonStart, jsonEnd + 1);
-        const jsonStr = jsonLines.join('\n');
-        const jsonResult = JSON.parse(jsonStr) as HealthcheckJsonResults;
-
-        // Process successful compilations from JSON
-        jsonResult.success.forEach((successfulFile) => results.success.add(successfulFile));
-
-        // Process failures from JSON
-        jsonResult.failure.forEach((failedFile) => {
-            // Get all failures for this file (all lines and columns)
-            const fileFailures = Array.from(results.failures.entries()).filter(([, failure]) => failure.file === failedFile);
-
-            // Only add JSON file failure if no failure for this file exists already (all lines and columns)
-            if (fileFailures.length > 0) {
-                return;
-            }
-
-            const newFailure: CompilerFailure = {
-                file: failedFile,
-            };
-            const key = getUniqueFileKey(newFailure);
-            results.failures.set(key, newFailure);
-        });
-    } catch (error) {
-        logWarn('Failed to parse JSON from combined react-compiler-healthcheck output:', error);
-    }
-
-    return results;
-}
-
-function parseVerboseOutput(lines: string[], results: CompilerResults): CompilerResults {
     let currentFailureWithoutReason: CompilerFailure | null = null;
 
+    // Parse verbose output
     for (const line of lines) {
         // Parse successful file paths
         const successMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.SUCCESS);
@@ -218,16 +160,17 @@ function parseVerboseOutput(lines: string[], results: CompilerResults): Compiler
                 column: parseInt(failureWithReasonMatch[3], 10),
                 reason: failureWithReasonMatch[4],
             };
+            const key = getUniqueFileKey(newFailure);
 
             // If we already have a reason, we don't want to set the reason again
             currentFailureWithoutReason = null;
 
             if (shouldSuppressCompilerError(newFailure.reason)) {
+                suppressedErrorFileKeys.add(getUniqueFileKey(newFailure));
                 continue;
             }
 
             // Only add if not already exists, or if existing one has no reason
-            const key = getUniqueFileKey(newFailure);
             const existing = results.failures.get(key);
             if (!existing?.reason) {
                 results.failures.set(key, newFailure);
@@ -237,17 +180,17 @@ function parseVerboseOutput(lines: string[], results: CompilerResults): Compiler
         }
 
         // Parse failed compilation with file and location only (fallback)
-        const failureMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.FAILURE_WITHOUT_REASON);
-        if (failureMatch) {
+        const failureWithoutReasonMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.FAILURE_WITHOUT_REASON);
+        if (failureWithoutReasonMatch) {
             const newFailure: CompilerFailure = {
-                file: failureMatch[1],
-                line: parseInt(failureMatch[2], 10),
-                column: parseInt(failureMatch[3], 10),
+                file: failureWithoutReasonMatch[1],
+                line: parseInt(failureWithoutReasonMatch[2], 10),
+                column: parseInt(failureWithoutReasonMatch[3], 10),
             };
 
             // Only create new failure if it doesn't exist
             const key = getUniqueFileKey(newFailure);
-            if (results.failures.has(key)) {
+            if (results.failures.has(key) || suppressedErrorFileKeys.has(key)) {
                 continue;
             }
 
@@ -267,19 +210,20 @@ function parseVerboseOutput(lines: string[], results: CompilerResults): Compiler
                 continue;
             }
 
-            if (shouldSuppressCompilerError(reason)) {
-                currentFailureWithoutReason = null;
-                continue;
-            }
-
-            const newFailure: CompilerFailure = {
+            const currentFailure: CompilerFailure = {
                 file: currentFailureWithoutReason.file,
                 line: currentFailureWithoutReason.line,
                 column: currentFailureWithoutReason.column,
                 reason,
             };
+            const currentFailureKey = getUniqueFileKey(currentFailure);
 
-            results.failures.set(getUniqueFileKey(newFailure), newFailure);
+            if (shouldSuppressCompilerError(reason) || suppressedErrorFileKeys.has(currentFailureKey)) {
+                currentFailureWithoutReason = null;
+                continue;
+            }
+
+            results.failures.set(currentFailureKey, currentFailure);
 
             currentFailureWithoutReason = null;
             continue;
