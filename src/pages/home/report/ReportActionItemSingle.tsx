@@ -9,6 +9,7 @@ import useReportActionAvatars from '@components/ReportActionAvatars/useReportAct
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -101,6 +102,7 @@ function ReportActionItemSingle({
     const mainAccountID = delegateAccountID ? (reportPreviewSenderID ?? potentialIOUReport?.ownerAccountID ?? action?.childOwnerAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const mainAccountLogin = mainAccountID ? (personalDetails?.[mainAccountID]?.login ?? details.login) : details.login;
     const accountOwnerDetails = getPersonalDetailByEmail(String(mainAccountLogin ?? ''));
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     // Vacation delegate details for submitted action
     const vacationer = getVacationer(action);
@@ -156,8 +158,9 @@ function ReportActionItemSingle({
         return theme.sidebar;
     };
 
+    const currentSelectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected, [currentUserPersonalDetails]);
     const hasEmojiStatus = !details.shouldDisplayAllActors && details.status?.emojiCode;
-    const formattedDate = DateUtils.getStatusUntilDate(details.status?.clearAfter ?? '');
+    const formattedDate = DateUtils.getStatusUntilDate(details.status?.clearAfter ?? '', details.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected, currentSelectedTimezone);
     const statusText = details.status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 
