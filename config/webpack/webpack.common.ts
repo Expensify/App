@@ -3,6 +3,7 @@ import CopyPlugin from 'copy-webpack-plugin';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
+import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import path from 'path';
 import TerserPlugin from 'terser-webpack-plugin';
 import type {Class} from 'type-fest';
@@ -166,6 +167,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 __DEV__: /staging|prod|adhoc/.test(file) === false,
             }),
+            ...(isDevelopment ? [] : [new MiniCssExtractPlugin()]),
 
             // This allows us to interactively inspect JS bundle contents
             ...(process.env.ANALYZE_BUNDLE === 'true' ? [new BundleAnalyzerPlugin()] : []),
@@ -232,7 +234,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 },
                 {
                     test: /\.css$/i,
-                    use: ['style-loader', 'css-loader'],
+                    use: isDevelopment ? ['style-loader', 'css-loader'] : [MiniCssExtractPlugin.loader, 'css-loader'],
                 },
                 {
                     test: /\.(woff|woff2)$/i,
@@ -353,6 +355,18 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     heicTo: {
                         test: /[\\/]node_modules[\\/](heic-to)[\\/]/,
                         name: 'heicTo',
+                        chunks: 'all',
+                    },
+                    // ExpensifyIcons chunk - separate chunk loaded eagerly for offline support
+                    expensifyIcons: {
+                        test: /[\\/]src[\\/]components[\\/]Icon[\\/]chunks[\\/]expensify-icons\.chunk\.ts$/,
+                        name: 'expensifyIcons',
+                        chunks: 'all',
+                    },
+                    // Illustrations chunk - separate chunk loaded eagerly for offline support
+                    illustrations: {
+                        test: /[\\/]src[\\/]components[\\/]Icon[\\/]chunks[\\/]illustrations\.chunk\.ts$/,
+                        name: 'illustrations',
                         chunks: 'all',
                     },
                     // Extract all 3rd party dependencies (~75% of App) to separate js file

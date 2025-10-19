@@ -1,6 +1,5 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
-import lodashUnion from 'lodash/union';
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 import * as API from '@libs/API';
@@ -33,20 +32,18 @@ import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory, PolicyTagLists, RecentlyUsedCategories, TransactionViolations} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, PolicyTagLists, Report, TransactionViolations} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-let allRecentlyUsedCategories: OnyxCollection<RecentlyUsedCategories> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES,
-    waitForCollectionCallback: true,
-    callback: (val) => (allRecentlyUsedCategories = val),
-});
-
-function appendSetupCategoriesOnboardingData(onyxData: OnyxData, isSetupCategoriesTaskParentReportArchived: boolean) {
-    const finishOnboardingTaskData = getFinishOnboardingTaskOnyxData('setupCategories', isSetupCategoriesTaskParentReportArchived);
+function appendSetupCategoriesOnboardingData(
+    onyxData: OnyxData,
+    setupCategoryTaskReport: OnyxEntry<Report>,
+    setupCategoryTaskParentReport: OnyxEntry<Report>,
+    isSetupCategoriesTaskParentReportArchived: boolean,
+) {
+    const finishOnboardingTaskData = getFinishOnboardingTaskOnyxData(setupCategoryTaskReport, setupCategoryTaskParentReport, isSetupCategoriesTaskParentReportArchived);
     onyxData.optimisticData?.push(...(finishOnboardingTaskData.optimisticData ?? []));
     onyxData.successData?.push(...(finishOnboardingTaskData.successData ?? []));
     onyxData.failureData?.push(...(finishOnboardingTaskData.failureData ?? []));
@@ -309,20 +306,12 @@ function getPolicyCategories(policyID: string) {
     API.read(READ_COMMANDS.GET_POLICY_CATEGORIES, params);
 }
 
-function buildOptimisticPolicyRecentlyUsedCategories(policyID?: string, category?: string) {
-    if (!policyID || !category) {
-        return [];
-    }
-
-    const policyRecentlyUsedCategories = allRecentlyUsedCategories?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`] ?? [];
-
-    return lodashUnion([category], policyRecentlyUsedCategories);
-}
-
 function setWorkspaceCategoryEnabled(
     policyID: string,
     categoriesToUpdate: Record<string, {name: string; enabled: boolean}>,
     isSetupCategoriesTaskParentReportArchived: boolean,
+    setupCategoryTaskReport: OnyxEntry<Report>,
+    setupCategoryTaskParentReport: OnyxEntry<Report>,
     policyCategories: PolicyCategories = {},
     policyTagLists: PolicyTagLists = {},
     allTransactionViolations: OnyxCollection<TransactionViolations> = {},
@@ -392,7 +381,7 @@ function setWorkspaceCategoryEnabled(
     };
 
     pushTransactionViolationsOnyxData(onyxData, policyID, policyTagLists, policyCategories, allTransactionViolations, {}, optimisticPolicyCategoriesData);
-    appendSetupCategoriesOnboardingData(onyxData, isSetupCategoriesTaskParentReportArchived);
+    appendSetupCategoriesOnboardingData(onyxData, setupCategoryTaskReport, setupCategoryTaskParentReport, isSetupCategoriesTaskParentReportArchived);
 
     const parameters = {
         policyID,
@@ -592,9 +581,15 @@ function removePolicyCategoryReceiptsRequired(policyID: string, categoryName: st
     API.write(WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_RECEIPTS_REQUIRED, parameters, onyxData);
 }
 
-function createPolicyCategory(policyID: string, categoryName: string, isSetupCategoriesTaskParentReportArchived: boolean) {
+function createPolicyCategory(
+    policyID: string,
+    categoryName: string,
+    isSetupCategoriesTaskParentReportArchived: boolean,
+    setupCategoryTaskReport: OnyxEntry<Report>,
+    setupCategoryTaskParentReport: OnyxEntry<Report>,
+) {
     const onyxData = buildOptimisticPolicyCategories(policyID, [categoryName]);
-    appendSetupCategoriesOnboardingData(onyxData, isSetupCategoriesTaskParentReportArchived);
+    appendSetupCategoriesOnboardingData(onyxData, setupCategoryTaskReport, setupCategoryTaskParentReport, isSetupCategoriesTaskParentReportArchived);
     const parameters = {
         policyID,
         categories: JSON.stringify([{name: categoryName}]),
@@ -625,7 +620,7 @@ function importPolicyCategories(policyID: string, categories: PolicyCategory[]) 
 
 function renamePolicyCategory(policyID: string, policyCategory: {oldName: string; newName: string}, policyCategories: PolicyCategories = {}) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const policyCategoryToUpdate = policyCategories?.[policyCategory.oldName];
 
@@ -974,6 +969,8 @@ function deleteWorkspaceCategories(
     policyID: string,
     categoryNamesToDelete: string[],
     isSetupCategoriesTaskParentReportArchived: boolean,
+    setupCategoryTaskReport: OnyxEntry<Report>,
+    setupCategoryTaskParentReport: OnyxEntry<Report>,
     policyTagLists: PolicyTagLists = {},
     policyCategories: PolicyCategories = {},
     transactionViolations: OnyxCollection<TransactionViolations> = {},
@@ -1023,7 +1020,7 @@ function deleteWorkspaceCategories(
 
     const optimisticPolicyData: Partial<Policy> = shouldDisableRequiresCategory ? {requiresCategory: false} : {};
     pushTransactionViolationsOnyxData(onyxData, policyID, policyTagLists, policyCategories, transactionViolations, optimisticPolicyData, optimisticPolicyCategoriesData);
-    appendSetupCategoriesOnboardingData(onyxData, isSetupCategoriesTaskParentReportArchived);
+    appendSetupCategoriesOnboardingData(onyxData, setupCategoryTaskReport, setupCategoryTaskParentReport, isSetupCategoriesTaskParentReportArchived);
 
     const parameters = {
         policyID,
@@ -1123,7 +1120,8 @@ function enablePolicyCategories(
 
     const parameters: EnablePolicyCategoriesParams = {policyID, enabled};
 
-    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, parameters, onyxData);
+    // We can't use writeWithNoDuplicatesEnableFeatureConflicts because the categories data is also changed when disabling/enabling this feature
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout() && shouldGoBack) {
         goBackWhenEnableFeature(policyID);
@@ -1403,7 +1401,7 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
 
 function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const expenseRules = policy?.rules?.expenseRules ?? [];
     const updatedExpenseRules: ExpenseRule[] = lodashCloneDeep(expenseRules);
@@ -1471,7 +1469,6 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
 export {
     buildOptimisticPolicyCategories,
     buildOptimisticMccGroup,
-    buildOptimisticPolicyRecentlyUsedCategories,
     clearCategoryErrors,
     createPolicyCategory,
     deleteWorkspaceCategories,

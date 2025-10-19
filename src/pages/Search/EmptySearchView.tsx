@@ -15,13 +15,12 @@ import MenuItem from '@components/MenuItem';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ScrollView from '@components/ScrollView';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
-import type {SearchGroupBy} from '@components/Search/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsOnboardingTaskParentReportArchived from '@hooks/useIsOnboardingTaskParentReportArchived';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -34,8 +33,9 @@ import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
+import Permissions from '@libs/Permissions';
 import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy, isPolicyMember} from '@libs/PolicyUtils';
-import {generateReportID} from '@libs/ReportUtils';
+import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -48,7 +48,6 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
     similarSearchHash: number;
-    groupBy?: SearchGroupBy | undefined;
     type: SearchDataTypes;
     hasResults: boolean;
 };
@@ -89,7 +88,7 @@ const tripsFeatures: FeatureListItem[] = [
     },
 ];
 
-function EmptySearchView({similarSearchHash, type, groupBy, hasResults}: EmptySearchViewProps) {
+function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {typeMenuSections} = useSearchTypeMenuSections();
 
@@ -127,7 +126,6 @@ function EmptySearchView({similarSearchHash, type, groupBy, hasResults}: EmptySe
             <EmptySearchViewContent
                 similarSearchHash={similarSearchHash}
                 type={type}
-                groupBy={groupBy}
                 hasResults={hasResults}
                 currentUserPersonalDetails={currentUserPersonalDetails}
                 typeMenuSections={typeMenuSections}
@@ -149,7 +147,6 @@ const hasTransactionsSelector = (transactions: OnyxCollection<Transaction>) =>
 function EmptySearchViewContent({
     similarSearchHash,
     type,
-    groupBy,
     hasResults,
     currentUserPersonalDetails,
     typeMenuSections,
@@ -167,14 +164,21 @@ function EmptySearchViewContent({
     const styles = useThemeStyles();
     const contextMenuAnchor = useRef<RNText>(null);
     const [modalVisible, setModalVisible] = useState(false);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
 
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         canBeMissing: true,
         selector: hasTransactionsSelector,
     });
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
-
-    const isViewTourParentReportArchived = useIsOnboardingTaskParentReportArchived(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
+    const {
+        taskReport: viewTourTaskReport,
+        taskParentReport: viewTourTaskParentReport,
+        isOnboardingTaskParentReportArchived: isViewTourTaskParentReportArchived,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
 
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
@@ -272,11 +276,19 @@ function EmptySearchViewContent({
         }
 
         const startTestDriveAction = () => {
-            startTestDrive(introSelected, false, tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember, isViewTourParentReportArchived);
+            startTestDrive(
+                introSelected,
+                false,
+                tryNewDot?.hasBeenAddedToNudgeMigration ?? false,
+                isUserPaidPolicyMember,
+                viewTourTaskReport,
+                viewTourTaskParentReport,
+                isViewTourTaskParentReportArchived,
+            );
         };
 
         // If we are grouping by reports, show a custom message rather than a type-specific message
-        if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
+        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             if (hasResults) {
                 return {
                     ...defaultViewItemHeader,
@@ -316,12 +328,12 @@ function EmptySearchViewContent({
 
                                           if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
                                               // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
-                                              Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
+                                              Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
                                               return;
                                           }
 
                                           if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                                              const createdReportID = createNewReport(currentUserPersonalDetails, workspaceIDForReportCreation);
+                                              const createdReportID = createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, workspaceIDForReportCreation);
                                               Navigation.setNavigationActionToMicrotaskQueue(() => {
                                                   Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
                                               });
@@ -429,7 +441,6 @@ function EmptySearchViewContent({
                 };
         }
     }, [
-        groupBy,
         type,
         typeMenuItems,
         similarSearchHash,
@@ -444,7 +455,9 @@ function EmptySearchViewContent({
         introSelected,
         tryNewDot?.hasBeenAddedToNudgeMigration,
         isUserPaidPolicyMember,
-        isViewTourParentReportArchived,
+        viewTourTaskReport,
+        viewTourTaskParentReport,
+        isViewTourTaskParentReportArchived,
         hasResults,
         defaultViewItemHeader,
         hasSeenTour,
@@ -452,6 +465,8 @@ function EmptySearchViewContent({
         activePolicy,
         activePolicyID,
         currentUserPersonalDetails,
+        isASAPSubmitBetaEnabled,
+        hasViolations,
         tripViewChildren,
         hasTransactions,
         shouldRedirectToExpensifyClassic,

@@ -57,7 +57,8 @@ function restoreOriginalTransactionFromBackup(transactionID: string | undefined,
         return;
     }
 
-    connection = Onyx.connect({
+    // We need to use connectWithoutView as this action is called during unmount, and we need to read the latest value from Onyx before we can restore it. As it is called during unmount, it does not impact UI rendering.
+    connection = Onyx.connectWithoutView({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`,
         callback: (backupTransaction) => {
             Onyx.disconnect(connection);
@@ -150,7 +151,7 @@ type BuildOptimisticTransactionParams = {
 
 function buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUserPersonalDetails, reportID}: BuildOptimisticTransactionParams): Transaction {
     const newTransactionID = generateTransactionID();
-    const {currency, iouRequestType, isFromGlobalCreate, splitPayerAccountIDs} = initialTransaction ?? {};
+    const {currency, iouRequestType, isFromGlobalCreate} = initialTransaction ?? {};
     const newTransaction = {
         amount: 0,
         created: format(new Date(), 'yyyy-MM-dd'),
@@ -161,7 +162,6 @@ function buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUs
         transactionID: newTransactionID,
         isFromGlobalCreate,
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-        splitPayerAccountIDs,
     } as Transaction;
     createDraftTransaction(newTransaction);
     return newTransaction;

@@ -48,7 +48,6 @@ import {
     getTaxValue,
     hasMissingSmartscanFields,
     hasRoute as hasRouteUtil,
-    isCustomUnitRateIDForP2P as isCustomUnitRateIDForP2PUtil,
     isMerchantMissing,
     isScanRequest as isScanRequestUtil,
 } from '@libs/TransactionUtils';
@@ -293,7 +292,6 @@ function MoneyRequestConfirmationList({
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = useMemo(() => isScanRequestUtil(transaction), [transaction]);
     const isCreateExpenseFlow = !!transaction?.isFromGlobalCreate && !isPerDiemRequest;
-    const isCustomUnitRateIDForP2P = isCustomUnitRateIDForP2PUtil(transaction);
 
     const transactionID = transaction?.transactionID;
     const customUnitRateID = getRateID(transaction);
@@ -328,7 +326,7 @@ function MoneyRequestConfirmationList({
     // A flag for showing the categories field
     const shouldShowCategories = (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
-    const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest && !isTypeSend && !isPerDiemRequest;
+    const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest;
 
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
@@ -452,26 +450,9 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        if (isCustomUnitRateIDForP2P && DistanceRequestUtils.getDefaultMileageRate(policy)) {
-            const defaultMileageRatePolicy = DistanceRequestUtils.getDefaultMileageRate(policy);
-            setCustomUnitRateID(transactionID, defaultMileageRatePolicy?.customUnitRateID);
-            return;
-        }
-
         // If none of the above conditions are met, display the rate error
         setFormError(errorKey);
-    }, [
-        isDistanceRequest,
-        isPolicyExpenseChat,
-        transactionID,
-        mileageRate,
-        customUnitRateID,
-        policy,
-        isMovingTransactionFromTrackExpense,
-        setFormError,
-        clearFormErrors,
-        isCustomUnitRateIDForP2P,
-    ]);
+    }, [isDistanceRequest, isPolicyExpenseChat, transactionID, mileageRate, customUnitRateID, policy, isMovingTransactionFromTrackExpense, setFormError, clearFormErrors]);
 
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
     const isFirstUpdatedDistanceAmount = useRef(false);
@@ -623,7 +604,7 @@ function MoneyRequestConfirmationList({
     );
 
     useEffect(() => {
-        if (!isTypeSplit || !transaction?.splitShares) {
+        if (!isTypeSplit || !transaction?.splitShares || !isFocused) {
             return;
         }
 
@@ -720,7 +701,7 @@ function MoneyRequestConfirmationList({
                     onFormatAmount={convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID, Number(value))}
                     maxLength={formattedTotalAmount.length + 1}
-                    contentWidth={(formattedTotalAmount.length + 1) * 8}
+                    contentWidth={(formattedTotalAmount.length + 1) * CONST.CHARACTER_WIDTH}
                     shouldApplyPaddingToContainer
                     shouldUseDefaultLineHeightForPrefix={false}
                     shouldWrapInputInContainer={false}
@@ -1020,7 +1001,7 @@ function MoneyRequestConfirmationList({
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     blurActiveElement();
                 });
@@ -1146,7 +1127,6 @@ function MoneyRequestConfirmationList({
             currency={currency}
             didConfirm={!!didConfirm}
             distance={distance}
-            rawAmount={amountToBeUsed}
             formattedAmount={formattedAmount}
             formattedAmountPerAttendee={formattedAmountPerAttendee}
             formError={formError}
