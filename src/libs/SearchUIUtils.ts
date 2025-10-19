@@ -1282,7 +1282,7 @@ function getTaskSections(
  * This removes UI-specific fields like formattedFrom, hash, violations, etc.
  */
 function getTransactionFromTransactionListItem(item: TransactionListItemType): OnyxTypes.Transaction {
-    // Extract only the core Transaction fields, excluding UI-specific fields
+    // Extract only the core Transaction fields, excluding UI-specific and search-specific fields
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const {
         // Remove UI-specific fields
@@ -1305,6 +1305,12 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
         violations,
         hash,
         moneyRequestReportActionID,
+        canDelete,
+        canHold,
+        canUnhold,
+        reportType,
+        convertedAmount,
+        convertedCurrency,
         // Keep all other fields (core Transaction fields)
         ...transaction
     } = item;
@@ -1324,9 +1330,12 @@ function createAndOpenSearchTransactionThread(item: TransactionListItemType, iou
     // When iouReportAction exists, the transaction should already be in Onyx from the parent report
     const transaction = !iouReportAction ? getTransactionFromTransactionListItem(item) : undefined;
     const transactionViolations = !iouReportAction ? item.violations : undefined;
+
+    // Treat "0" as empty for reportActionID (0 means no action exists)
+    const reportActionID = item.moneyRequestReportActionID === '0' ? '' : item.moneyRequestReportActionID;
     const transactionThreadReport = createTransactionThreadReport(
         item.report,
-        iouReportAction ?? ({reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction),
+        iouReportAction ?? ({reportActionID} as OnyxTypes.ReportAction),
         transaction,
         transactionViolations,
     );
