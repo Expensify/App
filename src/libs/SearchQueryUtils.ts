@@ -398,7 +398,7 @@ function normalizeValue<T>(value: T | T[]): T {
  * @param value Raw value pulled from the query JSON or defaults.
  * @return Serialized `key:value` segment or `undefined` when the value should be skipped.
  */
-function serializeRootEntry(key: string, value: unknown) {
+function serializeRootEntry(key: string, value: unknown): string | undefined {
     if (value === undefined || value === null) {
         return;
     }
@@ -409,6 +409,9 @@ function serializeRootEntry(key: string, value: unknown) {
         }
         const seen = new Set<string>();
         const dedupedValues = value.filter((item) => {
+            if (typeof item !== 'string' && typeof item !== 'number' && typeof item !== 'boolean') {
+                return false; // skip unserializable types
+            }
             const serialized = String(item);
             if (seen.has(serialized)) {
                 return false;
@@ -426,6 +429,10 @@ function serializeRootEntry(key: string, value: unknown) {
 
     if (typeof value === 'string' && value.length === 0) {
         return;
+    }
+
+    if (typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean') {
+        return; // Avoid serializing objects like [object Object]
     }
 
     return `${key}:${String(value)}`;
