@@ -4389,7 +4389,7 @@ function canEditFieldOfMoneyRequest(
     isDeleteAction?: boolean,
     isChatReportArchived = false,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    canMoveExpense = true,
+    isSearchPageOption?: boolean,
 ): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
@@ -4474,7 +4474,13 @@ function canEditFieldOfMoneyRequest(
         // Unreported transaction from OldDot can have the reportID as an empty string
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
-        if (isUnreportedExpense && canMoveExpense) {
+        const isUserWorkspaceMember = getActivePolicies(allPolicies ?? {}, currentUserEmail).filter((userPolicy) => isPaidGroupPolicyPolicyUtils(userPolicy)).length;
+
+        if (isUnreportedExpense && isSearchPageOption && isUserWorkspaceMember) {
+            return true;
+        }
+
+        if (isUnreportedExpense && !isSearchPageOption) {
             return true;
         }
 
@@ -5754,7 +5760,7 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
  */
 function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportArchived = false, reportAttributes?: ReportAttributesDerivedValue['reports']): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
-    if (report?.hasParentAccess === false) {
+    if (report?.hasParentAccess === false && !isReportManager(report)) {
         return {};
     }
 
@@ -11103,10 +11109,10 @@ function prepareOnboardingOnyxData(
         hasOutstandingChildTask: false,
     };
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`];
-    const canUserPerformWriteActionVariable = canUserPerformWriteAction(report);
-    const {lastMessageText = ''} = getLastVisibleMessageActionUtils(targetChatReportID, canUserPerformWriteActionVariable);
+    const canUserPerformWriteAction1 = canUserPerformWriteAction(report);
+    const {lastMessageText = ''} = getLastVisibleMessageActionUtils(targetChatReportID, canUserPerformWriteAction1);
     if (lastMessageText) {
-        const lastVisibleAction = getLastVisibleAction(targetChatReportID, canUserPerformWriteActionVariable);
+        const lastVisibleAction = getLastVisibleAction(targetChatReportID, canUserPerformWriteAction1);
         const prevLastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;
         failureReport = {
