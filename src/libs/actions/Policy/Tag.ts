@@ -537,7 +537,7 @@ function clearPolicyTagListErrors(policyID: string, tagListIndex: number) {
 
 function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}, tagListIndex: number) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = PolicyUtils.getPolicy(policyID);
     const tagList = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.at(tagListIndex);
     if (!tagList) {
@@ -748,7 +748,8 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
 
     const parameters: EnablePolicyTagsParams = {policyID, enabled};
 
-    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
+    // We can't use writeWithNoDuplicatesEnableFeatureConflicts because the tags data is also changed when disabling/enabling this feature
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature(policyID);
@@ -1102,7 +1103,7 @@ function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: num
 
 function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = PolicyUtils.getPolicy(policyID);
     const prevApprovalRules = policy?.rules?.approvalRules ?? [];
     const approverRuleToUpdate = PolicyUtils.getTagApproverRule(policyID, tag);

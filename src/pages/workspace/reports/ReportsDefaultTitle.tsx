@@ -51,10 +51,10 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM> = {};
             if (!defaultTitle) {
                 errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.fieldRequired');
-            } else if (defaultTitle.length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
+            } else if (defaultTitle.length > CONST.REPORT_TITLE_FORMULA_LIMIT) {
                 errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.characterLimitExceedCounter', {
                     length: defaultTitle.length,
-                    limit: CONST.WORKSPACE_NAME_CHARACTER_LIMIT,
+                    limit: CONST.REPORT_TITLE_FORMULA_LIMIT,
                 });
             }
             return errors;
