@@ -537,7 +537,14 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
     return isMoneyRequestReportEligibleForMerge(parentReport.reportID, isAdmin);
 }
 
-function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, reportTransactions: Transaction[], reportActions?: ReportAction[], policy?: Policy): boolean {
+function isRemoveHoldAction(
+    report: Report,
+    chatReport: OnyxEntry<Report>,
+    reportTransactions: Transaction[],
+    reportActions?: ReportAction[],
+    policy?: Policy,
+    primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '',
+): boolean {
     const isReportOnHold = reportTransactions.some(isOnHoldTransactionUtils);
 
     if (!isReportOnHold) {
@@ -551,9 +558,10 @@ function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, repor
     }
 
     const isHolder = reportTransactions.some((transaction) => isHoldCreator(transaction, transactionThreadReportID));
+    const isPrimaryActionRemoveHold = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
 
     if (isHolder) {
-        return false;
+        return !isPrimaryActionRemoveHold;
     }
 
     return policy?.role === CONST.POLICY.ROLE.ADMIN;
@@ -637,7 +645,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
     }
 
-    if (isRemoveHoldAction(report, chatReport, reportTransactions, reportActions, policy)) {
+    if (isRemoveHoldAction(report, chatReport, reportTransactions, reportActions, policy, primaryAction)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
@@ -670,7 +678,6 @@ function getSecondaryReportActions({
     if (isDeleteAction(report, reportTransactions, reportActions ?? [], policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
-
     return options;
 }
 
