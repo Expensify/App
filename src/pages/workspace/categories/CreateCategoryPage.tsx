@@ -7,6 +7,7 @@ import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createPolicyCategory} from '@libs/actions/Policy/Category';
+import {getCleanCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -35,6 +36,7 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
 
     const createCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
+            // const cleanCategoryName = getCleanCategoryName()
             createPolicyCategory(route.params.policyID, values.categoryName.trim(), isSetupCategoryTaskParentReportArchived, setupCategoryTaskReport, setupCategoryTaskParentReport);
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo) : undefined);
         },

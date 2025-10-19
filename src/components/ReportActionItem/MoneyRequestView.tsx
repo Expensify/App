@@ -28,7 +28,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
 import {getCompanyCardDescription} from '@libs/CardUtils';
-import {isCategoryMissing} from '@libs/CategoryUtils';
+import {getCleanCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -442,7 +442,8 @@ function MoneyRequestView({
     const merchantCopyValue = !canEditMerchant ? updatedMerchantTitle : undefined;
     const dateCopyValue = !canEditDate ? transactionDate : undefined;
     const categoryValue = updatedTransaction?.category ?? categoryForDisplay;
-    const categoryCopyValue = !canEdit ? categoryValue : undefined;
+    const cleanCategoryName = getCleanCategoryName(categoryValue);
+    const categoryCopyValue = !canEdit ? cleanCategoryName : undefined;
     const cardCopyValue = cardProgramName;
     const taxRateValue = taxRateTitle ?? fallbackTaxRateTitle;
     const taxRateCopyValue = !canEditTaxFields ? taxRateValue : undefined;
@@ -736,7 +737,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
                         <MenuItemWithTopDescription
                             description={translate('common.category')}
-                            title={categoryValue}
+                            title={cleanCategoryName}
                             numberOfLinesTitle={2}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}

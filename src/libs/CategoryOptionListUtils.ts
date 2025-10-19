@@ -7,6 +7,7 @@ import type {PolicyCategories} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
+import {getCleanCategoryName} from './CategoryUtils';
 import {translateLocal} from './Localize';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
 import tokenizedSearch from './tokenizedSearch';
@@ -41,11 +42,12 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 return;
             }
 
+            const cleanCategoryName = getCleanCategoryName(option.name);
             optionCollection.set(option.name, {
-                text: option.name,
+                text: cleanCategoryName,
                 keyForList: option.name,
                 searchText: option.name,
-                tooltipText: option.name,
+                tooltipText: cleanCategoryName,
                 isDisabled: !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isSelected: !!option.isSelected,
                 pendingAction: option.pendingAction,
@@ -65,11 +67,12 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 return;
             }
 
+            const cleanOptionName = getCleanCategoryName(optionName);
             optionCollection.set(searchText, {
-                text: `${indents}${optionName}`,
+                text: `${indents}${cleanOptionName}`,
                 keyForList: searchText,
                 searchText,
-                tooltipText: optionName,
+                tooltipText: cleanOptionName,
                 isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : isParentOptionDisabled,
                 isSelected: isChild ? !!option.isSelected : !!selectedParentOption,
                 pendingAction: option.pendingAction,

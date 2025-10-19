@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCleanCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
@@ -111,7 +112,7 @@ function SplitListItem<TItem extends ListItem>({
                                         numberOfLines={1}
                                         style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                     >
-                                        {splitItem.category}
+                                        {getCleanCategoryName(splitItem.category)}
                                     </Text>
                                 </View>
                             )}

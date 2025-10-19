@@ -11,6 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCleanCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {shouldShowReceiptEmptyState} from '@libs/IOUUtils';
@@ -269,6 +270,8 @@ function MoneyRequestConfirmationListFooter({
     });
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
+
+    const cleanCategoryName = useMemo(() => getCleanCategoryName(iouCategory), [iouCategory]);
 
     const allOutstandingReports = useMemo(() => {
         const outstandingReports = Object.values(outstandingReportsByPolicyID ?? {}).flatMap((outstandingReportsPolicy) => Object.values(outstandingReportsPolicy ?? {}));
@@ -550,7 +553,7 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key={translate('common.category')}
                     shouldShowRightIcon={!isReadOnly}
-                    title={iouCategory}
+                    title={cleanCategoryName}
                     description={translate('common.category')}
                     numberOfLinesTitle={2}
                     onPress={() => {
