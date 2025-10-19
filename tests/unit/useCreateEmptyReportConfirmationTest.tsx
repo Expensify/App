@@ -294,7 +294,7 @@ describe('useCreateEmptyReportConfirmation', () => {
         expect(JSON.stringify(renderedPrompt.toJSON())).toContain(`report.newReport.emptyReportConfirmationPrompt:${initialPolicyName}`);
         renderedPrompt.unmount();
 
-        let cancelHandler = getRequiredHandler(modal.props.onCancel, 'onCancel');
+        const cancelHandler = getRequiredHandler(modal.props.onCancel, 'onCancel');
         act(() => {
             cancelHandler();
         });

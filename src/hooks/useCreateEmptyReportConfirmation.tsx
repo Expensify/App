@@ -95,7 +95,7 @@ export default function useCreateEmptyReportConfirmation({policyName, onConfirm,
                 onConfirm={handleConfirm}
                 onCancel={handleCancel}
                 prompt={prompt}
-                title={translate('report.newReport.emptyReportConfirmationTitle') + ' '} // Adding a space at the end because of this bug in react-native: https://github.com/facebook/react-native/issues/53286
+                title={`${translate('report.newReport.emptyReportConfirmationTitle')} `} // Adding a space at the end because of this bug in react-native: https://github.com/facebook/react-native/issues/53286
             />
         ),
         [handleCancel, handleConfirm, isVisible, prompt, translate],
