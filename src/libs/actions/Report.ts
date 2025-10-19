@@ -1438,6 +1438,13 @@ function createTransactionThreadReport(
         return;
     }
 
+    // Sync fresh report data from snapshot to allReports. When navigating from search,
+    // allReports may be stale and missing parentReportID/parentReportActionID, causing
+    // getAllAncestorReportActionIDs() to fail when adding comments optimistically.
+    if (iouReport?.reportID && reportToUse.reportID === iouReport.reportID) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+    }
+
     const optimisticTransactionThreadReportID = generateReportID();
     const optimisticTransactionThread = buildTransactionThread(iouReportAction, reportToUse, undefined, optimisticTransactionThreadReportID);
     openReport(
