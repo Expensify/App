@@ -373,29 +373,46 @@ function ReportActionCompose({
 
     const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!exceededMaxLength;
 
+    const validateMaxLength = useCallback(
+        (value: string) => {
+            const taskCommentMatch = value?.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
+            if (taskCommentMatch) {
+                const title = taskCommentMatch?.[3] ? taskCommentMatch[3].trim().replace(/\n/g, ' ') : '';
+                setHasExceededMaxCommentLength(false);
+                return validateTaskTitleMaxLength(title);
+            }
+            setHasExceededMaxTitleLength(false);
+            return validateCommentMaxLength(value, {reportID});
+        },
+        [setHasExceededMaxCommentLength, setHasExceededMaxTitleLength, validateTaskTitleMaxLength, validateCommentMaxLength, reportID],
+    );
+
+    const debouncedValidate = useMemo(() => lodashDebounce(validateMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME, {leading: true}), [validateMaxLength]);
+
     // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
     // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
     const composerRefShared = useSharedValue<{
         clear: (() => void) | undefined;
-        validate: (() => boolean) | undefined;
-    }>({clear: undefined, validate: undefined});
+    }>({clear: undefined});
 
     const handleSendMessage = useCallback(() => {
-        'worklet';
-
-        const {clear, validate} = composerRefShared.get();
-
-        if (!clear || !validate) {
-            throw new Error('The composerRefShared.clear or composerRefShared.validate function is not set yet. This should never happen, and indicates a developer error.');
-        }
-
-        if (isSendDisabled || !validate()) {
+        if (isSendDisabled || !debouncedValidate.flush()) {
             return;
         }
 
-        // This will cause onCleared to be triggered where we actually send the message
-        clear();
-    }, [isSendDisabled, composerRefShared]);
+        runOnUI(() => {
+            'worklet';
+
+            const {clear: clearComposer} = composerRefShared.get();
+
+            if (!clearComposer) {
+                throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
+            }
+
+            // This will cause onCleared to be triggered where we actually send the message
+            clearComposer?.();
+        })();
+    }, [isSendDisabled, debouncedValidate, composerRefShared]);
 
     const measureComposer = useCallback(
         (e: LayoutChangeEvent) => {
@@ -435,22 +452,6 @@ function ReportActionCompose({
         const emojiOffsetWithComposeBox = (emojiPositionValues.composeBoxMinHeight - emojiPositionValues.emojiButtonHeight) / 2;
         return reportActionComposeHeight - emojiOffsetWithComposeBox - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM;
     }, [emojiPositionValues]);
-
-    const validateMaxLength = useCallback(
-        (value: string) => {
-            const taskCommentMatch = value?.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
-            if (taskCommentMatch) {
-                const title = taskCommentMatch?.[3] ? taskCommentMatch[3].trim().replace(/\n/g, ' ') : '';
-                setHasExceededMaxCommentLength(false);
-                return validateTaskTitleMaxLength(title);
-            }
-            setHasExceededMaxTitleLength(false);
-            return validateCommentMaxLength(value, {reportID});
-        },
-        [setHasExceededMaxCommentLength, setHasExceededMaxTitleLength, validateTaskTitleMaxLength, validateCommentMaxLength, reportID],
-    );
-
-    const debouncedValidate = useMemo(() => lodashDebounce(validateMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME, {leading: true}), [validateMaxLength]);
 
     const onValueChange = useCallback(
         (value: string) => {
@@ -533,7 +534,6 @@ function ReportActionCompose({
                                 composerRef.current = ref ?? undefined;
                                 composerRefShared.set({
                                     clear: ref?.clear,
-                                    validate: debouncedValidate.flush.bind(debouncedValidate),
                                 });
                             }}
                             suggestionsRef={suggestionsRef}
