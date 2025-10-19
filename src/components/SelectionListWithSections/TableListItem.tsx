@@ -28,6 +28,7 @@ function TableListItem<TItem extends ListItem>({
     shouldSyncFocus,
     titleContainerStyles,
     shouldUseDefaultRightHandSideCheckmark,
+    shouldShowRightCaret,
 }: TableListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -82,6 +83,7 @@ function TableListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
+            shouldShowRightCaret={shouldShowRightCaret}
         >
             {(hovered) => (
                 <>

@@ -18,7 +18,7 @@ import type * as ReportUserActions from '@userActions/Report';
 import {createTransactionThreadReport, openReport} from '@userActions/Report';
 // eslint-disable-next-line no-restricted-syntax
 import type * as SearchUtils from '@userActions/Search';
-import {updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
+import {setOptimisticDataForTransactionThreadPreview, updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -29,6 +29,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import getOnyxValue from '../../utils/getOnyxValue';
 import {formatPhoneNumber, localeCompare} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -340,7 +341,7 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: undefined,
+            moneyRequestReportActionID: '789',
             errors: undefined,
             filename: undefined,
             isActionLoading: false,
@@ -385,7 +386,7 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: undefined,
+            moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
@@ -431,7 +432,7 @@ const searchResults: OnyxTypes.SearchResults = {
             description: '',
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: undefined,
+            moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
@@ -477,7 +478,7 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: undefined,
+            moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
@@ -717,7 +718,7 @@ const transactionsListItems = [
         description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: undefined,
+        moneyRequestReportActionID: '789',
         errors: undefined,
         filename: undefined,
         isActionLoading: false,
@@ -784,7 +785,7 @@ const transactionsListItems = [
         description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: undefined,
+        moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
@@ -857,7 +858,7 @@ const transactionsListItems = [
         description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: undefined,
+        moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
@@ -925,7 +926,7 @@ const transactionsListItems = [
         description: '',
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: undefined,
+        moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
@@ -939,7 +940,7 @@ const transactionsListItems = [
 
 const transactionReportGroupListItems = [
     {
-        groupedBy: 'reports',
+        groupedBy: 'expense-report',
         accountID: 18439984,
         action: 'submit',
         allActions: ['submit'],
@@ -1032,7 +1033,7 @@ const transactionReportGroupListItems = [
                 taxAmount: undefined,
                 mccGroup: undefined,
                 modifiedMCCGroup: undefined,
-                moneyRequestReportActionID: undefined,
+                moneyRequestReportActionID: '789',
                 errors: undefined,
                 filename: undefined,
                 isActionLoading: false,
@@ -1045,7 +1046,7 @@ const transactionReportGroupListItems = [
         unheldTotal: -5000,
     },
     {
-        groupedBy: 'reports',
+        groupedBy: 'expense-report',
         accountID: 18439984,
         action: 'review',
         allActions: ['review', 'approve'],
@@ -1143,7 +1144,7 @@ const transactionReportGroupListItems = [
                 taxAmount: undefined,
                 mccGroup: undefined,
                 modifiedMCCGroup: undefined,
-                moneyRequestReportActionID: undefined,
+                moneyRequestReportActionID: '789',
                 pendingAction: undefined,
                 errors: undefined,
                 filename: undefined,
@@ -1156,7 +1157,7 @@ const transactionReportGroupListItems = [
         unheldTotal: -5000,
     },
     {
-        groupedBy: 'reports',
+        groupedBy: 'expense-report',
         accountID: 18439984,
         chatReportID: '6155022250251839',
         chatType: undefined,
@@ -1197,7 +1198,7 @@ const transactionReportGroupListItems = [
         transactions: [transactionsListItems.at(2), transactionsListItems.at(3)],
     },
     {
-        groupedBy: 'reports',
+        groupedBy: 'expense-report',
         accountID: 18439984,
         action: 'view',
         allActions: ['view'],
@@ -1657,16 +1658,16 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL, undefined)).toStrictEqual(TransactionListItem);
         });
 
-        it('should return TransactionGroupListItem when type is EXPENSE and groupBy is report', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(TransactionGroupListItem);
+        it('should return TransactionGroupListItem when type is EXPENSE-REPORT', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(TransactionGroupListItem);
         });
 
-        it('should return TransactionGroupListItem when type is TRIP and groupBy is report', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(TransactionGroupListItem);
+        it('should return TransactionListItem when type is TRIP', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(TransactionListItem);
         });
 
-        it('should return TransactionGroupListItem when type is INVOICE and groupBy is report', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(TransactionGroupListItem);
+        it('should return TransactionListItem when type is INVOICE', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(TransactionListItem);
         });
 
         it('should return TransactionGroupListItem when type is EXPENSE and groupBy is member', () => {
@@ -1732,13 +1733,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const result = SearchUIUtils.getSections(
-                CONST.SEARCH.DATA_TYPES.EXPENSE,
-                testSearchResults.data,
-                2074551,
-                formatPhoneNumber,
-                CONST.SEARCH.GROUP_BY.REPORTS,
-            ) as TransactionGroupListItemType[];
+            const result = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, testSearchResults.data, 2074551, formatPhoneNumber) as TransactionGroupListItemType[];
 
             const reportGroup = result.find((group) => group.transactions?.some((transaction) => transaction.transactionID === distanceTransactionID));
 
@@ -1751,22 +1746,54 @@ describe('SearchUIUtils', () => {
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
-        it('should return getReportSections result when type is EXPENSE and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
-                transactionReportGroupListItems,
-            );
+        it('should return transactionReportGroupListItems result when type is expense-report', () => {
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, searchResults.data, 2074551, formatPhoneNumber)).toStrictEqual(transactionReportGroupListItems);
         });
 
-        it('should return getReportSections result when type is TRIP and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, searchResults.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
-                transactionReportGroupListItems,
-            );
+        it('should return transactionsListItems result when type is TRIP', () => {
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, searchResults.data, 2074551, formatPhoneNumber)).toStrictEqual(transactionsListItems);
         });
 
-        it('should return getReportSections result when type is INVOICE and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, searchResults.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
-                transactionReportGroupListItems,
-            );
+        it('should return transactionsListItems result when type is INVOICE and groupBy is report', () => {
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, searchResults.data, 2074551, formatPhoneNumber)).toStrictEqual(transactionsListItems);
+        });
+
+        it('should handle data where transaction keys appear before report keys in getReportSections', () => {
+            const testDataTransactionFirst = {
+                // Transaction keys first
+                [`transactions_${transactionID}`]: searchResults.data[`transactions_${transactionID}`],
+                [`transactions_${transactionID2}`]: searchResults.data[`transactions_${transactionID2}`],
+                // Report keys after transactions
+                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
+                [`report_${reportID2}`]: searchResults.data[`report_${reportID2}`],
+                // Other required data
+                personalDetailsList: searchResults.data.personalDetailsList,
+                [`policy_${policyID}`]: searchResults.data[`policy_${policyID}`],
+            };
+
+            const testDataReportFirst = {
+                // Report keys first
+                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
+                [`report_${reportID2}`]: searchResults.data[`report_${reportID2}`],
+                // Transaction keys after reports
+                [`transactions_${transactionID}`]: searchResults.data[`transactions_${transactionID}`],
+                [`transactions_${transactionID2}`]: searchResults.data[`transactions_${transactionID2}`],
+                // Other required data
+                personalDetailsList: searchResults.data.personalDetailsList,
+                [`policy_${policyID}`]: searchResults.data[`policy_${policyID}`],
+            };
+
+            const resultTransactionFirst = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, testDataTransactionFirst, 2074551, formatPhoneNumber);
+            const resultReportFirst = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, testDataReportFirst, 2074551, formatPhoneNumber);
+
+            expect(resultTransactionFirst).toBeDefined();
+            expect(Array.isArray(resultTransactionFirst)).toBe(true);
+            expect(resultReportFirst).toBeDefined();
+            expect(Array.isArray(resultReportFirst)).toBe(true);
+
+            expect(resultTransactionFirst).toEqual(resultReportFirst);
+
+            expect(resultTransactionFirst.length).toBeGreaterThan(0);
         });
 
         it('should return getMemberSections result when type is EXPENSE and groupBy is from', () => {
@@ -1828,22 +1855,22 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionsListItems, localeCompare, 'date', 'asc', undefined)).toStrictEqual(transactionsListItems);
         });
 
-        it('should return getSortedReportData result when type is EXPENSE and groupBy is report', () => {
-            expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.REPORTS),
-            ).toStrictEqual(transactionReportGroupListItems);
+        it('should return getSortedReportData result when type is expense-report', () => {
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, '', transactionReportGroupListItems, localeCompare, 'date', 'asc')).toStrictEqual(
+                transactionReportGroupListItems,
+            );
         });
 
         it('should return getSortedReportData result when type is TRIP and groupBy is report', () => {
-            expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.REPORTS),
-            ).toStrictEqual(transactionReportGroupListItems);
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, '', transactionReportGroupListItems, localeCompare, 'date', 'asc')).toStrictEqual(
+                transactionReportGroupListItems,
+            );
         });
 
         it('should return getSortedReportData result when type is INVOICE and groupBy is report', () => {
-            expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.REPORTS),
-            ).toStrictEqual(transactionReportGroupListItems);
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc')).toStrictEqual(
+                transactionReportGroupListItems,
+            );
         });
 
         it('should return getSortedMemberData result when type is EXPENSE and groupBy is member', () => {
@@ -1875,7 +1902,7 @@ describe('SearchUIUtils', () => {
 
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined)
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false, undefined)
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -1889,7 +1916,7 @@ describe('SearchUIUtils', () => {
                     }),
                     expect.objectContaining({
                         translationPath: 'common.reports',
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                        type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                         icon: Expensicons.Document,
                     }),
                     expect.objectContaining({
@@ -1953,7 +1980,19 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, mockSavedSearches, false, undefined);
+            const sections = SearchUIUtils.createTypeMenuSections(
+                adminEmail,
+                adminAccountID,
+                mockCardFeedsByPolicy,
+                undefined,
+                mockPolicies,
+                undefined,
+                mockSavedSearches,
+                false,
+                undefined,
+                true,
+                false,
+            );
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeDefined();
@@ -2003,7 +2042,19 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, mockSavedSearches, false, undefined);
+            const sections = SearchUIUtils.createTypeMenuSections(
+                adminEmail,
+                adminAccountID,
+                mockCardFeedsByPolicy,
+                undefined,
+                mockPolicies,
+                undefined,
+                mockSavedSearches,
+                false,
+                undefined,
+                true,
+                false,
+            );
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
             expect(accountingSection).toBeDefined();
@@ -2032,7 +2083,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false, undefined);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false, undefined, true, false);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeDefined();
@@ -2041,7 +2092,7 @@ describe('SearchUIUtils', () => {
         it('should not show saved section when there are no saved searches', () => {
             const mockSavedSearches = {};
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false, undefined);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false, undefined, true, false);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeUndefined();
@@ -2067,6 +2118,8 @@ describe('SearchUIUtils', () => {
                 mockSavedSearches,
                 false, // not offline
                 undefined,
+                true,
+                false,
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -2093,6 +2146,8 @@ describe('SearchUIUtils', () => {
                 mockSavedSearches,
                 true, // offline
                 undefined,
+                true,
+                false,
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -2113,7 +2168,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false, undefined);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeUndefined();
@@ -2143,6 +2198,8 @@ describe('SearchUIUtils', () => {
                 {},
                 false,
                 undefined,
+                true,
+                false,
             );
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
@@ -2173,7 +2230,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false, undefined);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
             expect(accountingSection).toBeDefined();
@@ -2198,7 +2255,7 @@ describe('SearchUIUtils', () => {
             };
 
             const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, {}, false, undefined);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
 
             expect(accountingSection).toBeDefined();
@@ -2207,11 +2264,11 @@ describe('SearchUIUtils', () => {
         });
 
         it('should generate correct routes', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined)
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false)
                 .map((section) => section.menuItems)
                 .flat();
 
-            const expectedQueries = ['type:expense sortBy:date sortOrder:desc', 'type:expense sortBy:date sortOrder:desc groupBy:reports', 'type:chat sortBy:date sortOrder:desc'];
+            const expectedQueries = ['type:expense sortBy:date sortOrder:desc', 'type:expense-report sortBy:date sortOrder:desc', 'type:chat sortBy:date sortOrder:desc'];
 
             menuItems.forEach((item, index) => {
                 expect(item.searchQuery).toStrictEqual(expectedQueries.at(index));
@@ -2707,6 +2764,58 @@ describe('SearchUIUtils', () => {
         test('Should load iou report if iouReportAction was not provided', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, hash, backTo);
             expect(openReport).toHaveBeenCalled();
+        });
+    });
+
+    describe('setOptimisticDataForTransactionThreadPreview', () => {
+        it('Should create an optimistic parent report if the hasParentReport is false', async () => {
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasParentReport: false} as SearchUtils.TransactionPreviewData);
+
+            await waitForBatchedUpdates();
+
+            const parentReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${transactionListItem.reportID}`);
+
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            expect(parentReport).toMatchObject(transactionListItem.report as OnyxTypes.Report);
+        });
+
+        it('Should create an optimistic parent report action if the hasParentReportAction is false', async () => {
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasParentReportAction: false} as SearchUtils.TransactionPreviewData);
+
+            await waitForBatchedUpdates();
+
+            const parentReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionListItem.reportID}`);
+            const parentReportAction = transactionListItem.moneyRequestReportActionID && parentReport?.[transactionListItem.moneyRequestReportActionID];
+
+            expect(parentReportAction).toBeTruthy();
+        });
+
+        it('Should create an optimistic transaction if the hasTransaction is false', async () => {
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasTransaction: false} as SearchUtils.TransactionPreviewData);
+
+            await waitForBatchedUpdates();
+
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionListItem.transactionID}`);
+
+            expect(transaction).toBeTruthy();
+        });
+
+        it('Should create an optimistic transaction thread if the hasTransactionThreadReport is false', async () => {
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasTransactionThreadReport: false} as SearchUtils.TransactionPreviewData);
+
+            await waitForBatchedUpdates();
+
+            const transactionThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${transactionListItem.transactionThreadReportID}`);
+
+            expect(transactionThread).toBeTruthy();
         });
     });
 });

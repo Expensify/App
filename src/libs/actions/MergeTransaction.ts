@@ -18,7 +18,7 @@ import {
     isReportManager,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {getAmount, getTransactionViolationsOfTransaction, isCardTransaction, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
+import {getAmount, getTransactionViolationsOfTransaction, isManagedCardTransaction, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
@@ -51,7 +51,7 @@ function getTransactionsForMergingFromAPI(transactionID: string) {
 
 function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2: Transaction) {
     // Do not allow merging two card transactions
-    if (isCardTransaction(transaction1) && isCardTransaction(transaction2)) {
+    if (isManagedCardTransaction(transaction1) && isManagedCardTransaction(transaction2)) {
         return false;
     }
 
@@ -149,9 +149,9 @@ function getOnyxTargetTransactionData(
     policy: OnyxEntry<Policy>,
     policyTags: OnyxEntry<PolicyTagLists>,
     policyCategories: OnyxEntry<PolicyCategories>,
-    isUnreportedExpense: boolean,
 ) {
     let data: UpdateMoneyRequestData;
+    const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const transactionThreadReportID = getTransactionThreadReportID(targetTransaction);
     const violations = getTransactionViolationsOfTransaction(targetTransaction.transactionID);
 
@@ -169,11 +169,21 @@ function getOnyxTargetTransactionData(
         }),
     );
     filteredTransactionChanges.comment = filteredTransactionChanges.description;
+    const shouldBuildOptimisticModifiedExpenseReportAction = false;
 
     if (isUnreportedExpense) {
-        data = getUpdateTrackExpenseParams(targetTransaction.transactionID, transactionThreadReportID, filteredTransactionChanges, policy);
+        data = getUpdateTrackExpenseParams(targetTransaction.transactionID, transactionThreadReportID, filteredTransactionChanges, policy, shouldBuildOptimisticModifiedExpenseReportAction);
     } else {
-        data = getUpdateMoneyRequestParams(targetTransaction.transactionID, transactionThreadReportID, filteredTransactionChanges, policy, policyTags, policyCategories, violations);
+        data = getUpdateMoneyRequestParams({
+            transactionID: targetTransaction.transactionID,
+            transactionThreadReportID,
+            transactionChanges: filteredTransactionChanges,
+            policy,
+            policyTagList: policyTags,
+            policyCategories,
+            violations,
+            shouldBuildOptimisticModifiedExpenseReportAction,
+        });
     }
 
     return data.onyxData;
@@ -192,10 +202,9 @@ type MergeTransactionRequestParams = {
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction
  */
 function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, policy, policyTags, policyCategories}: MergeTransactionRequestParams) {
-    const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-
-    // If the target transaction we're keeping is unreported, the amount needs to be always negative. Otherwise for expense reports it needs to be the opposite sign.
-    const finalAmount = isUnreportedExpense ? -Math.abs(mergeTransaction.amount) : -mergeTransaction.amount;
+    // For both unreported expenses and expense reports, negate the display amount when storing
+    // This preserves the user's chosen sign while following the storage convention
+    const finalAmount = -mergeTransaction.amount;
 
     // Call the merge transaction action
     const params = {
@@ -218,7 +227,7 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
         reportID: mergeTransaction.reportID,
     };
 
-    const onyxTargetTransactionData = getOnyxTargetTransactionData(targetTransaction, mergeTransaction, policy, policyTags, policyCategories, isUnreportedExpense);
+    const onyxTargetTransactionData = getOnyxTargetTransactionData(targetTransaction, mergeTransaction, policy, policyTags, policyCategories);
 
     // Optimistic delete the source transaction and also delete its report if it was a single expense report
     const optimisticSourceTransactionData: OnyxUpdate = {
@@ -267,6 +276,20 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
               },
           ]
         : [];
+    const successSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceTransaction.reportID}`,
+                  value: {
+                      [iouActionOfSourceTransaction.reportActionID]: {
+                          pendingAction: null,
+                      },
+                  },
+              },
+          ]
+        : [];
+
     const failureSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
         ? [
               {
@@ -324,7 +347,7 @@ function mergeTransactionRequest({mergeTransactionID, mergeTransaction, targetTr
         ...failureTransactionViolations,
         ...failureSourceReportActionData,
     ];
-    const successData: OnyxUpdate[] = onyxTargetTransactionData.successData ?? [];
+    const successData: OnyxUpdate[] = [...successSourceReportActionData, ...(onyxTargetTransactionData.successData ?? [])];
 
     API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData});
 }
