@@ -1,5 +1,5 @@
-import React, {useCallback, useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -49,9 +49,9 @@ type UseCreateEmptyReportConfirmationResult = {
  */
 export default function useCreateEmptyReportConfirmation({policyName, onConfirm, onCancel}: UseCreateEmptyReportConfirmationParams): UseCreateEmptyReportConfirmationResult {
     const {translate} = useLocalize();
-    const [isVisible, setIsVisible] = useState(false);
-
     const workspaceDisplayName = useMemo(() => (policyName?.trim().length ? policyName : translate('report.newReport.genericWorkspaceName')), [policyName, translate]);
+    const [isVisible, setIsVisible] = useState(false);
+    const [modalWorkspaceName, setModalWorkspaceName] = useState(workspaceDisplayName);
 
     const handleConfirm = useCallback(() => {
         onConfirm();
@@ -64,24 +64,26 @@ export default function useCreateEmptyReportConfirmation({policyName, onConfirm,
     }, [onCancel]);
 
     const handleReportsLinkPress = useCallback(() => {
+        onCancel?.();
         setIsVisible(false);
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS})}));
-    }, []);
+    }, [onCancel]);
 
     const openCreateReportConfirmation = useCallback(() => {
         // The caller is responsible for determining if empty report confirmation
         // should be shown. We simply open the modal when called.
+        setModalWorkspaceName(workspaceDisplayName);
         setIsVisible(true);
-    }, []);
+    }, [workspaceDisplayName]);
 
     const prompt = useMemo(
         () => (
             <Text>
-                {translate('report.newReport.emptyReportConfirmationPrompt', {workspaceName: workspaceDisplayName})}{' '}
+                {translate('report.newReport.emptyReportConfirmationPrompt', {workspaceName: modalWorkspaceName})}{' '}
                 <TextLink onPress={handleReportsLinkPress}>{translate('report.newReport.emptyReportConfirmationPromptLink')}.</TextLink>
             </Text>
         ),
-        [handleReportsLinkPress, translate, workspaceDisplayName],
+        [handleReportsLinkPress, modalWorkspaceName, translate],
     );
 
     const CreateReportConfirmationModal = useMemo(
@@ -93,7 +95,7 @@ export default function useCreateEmptyReportConfirmation({policyName, onConfirm,
                 onConfirm={handleConfirm}
                 onCancel={handleCancel}
                 prompt={prompt}
-                title={translate('report.newReport.emptyReportConfirmationTitle')}
+                title={translate('report.newReport.emptyReportConfirmationTitle') + ' '} // Adding a space at the end because of this bug in react-native: https://github.com/facebook/react-native/issues/53286
             />
         ),
         [handleCancel, handleConfirm, isVisible, prompt, translate],

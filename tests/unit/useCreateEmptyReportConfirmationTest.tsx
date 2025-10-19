@@ -59,6 +59,10 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 type HookValue = ReturnType<typeof useCreateEmptyReportConfirmation>;
+type HookProps = {
+    policyName?: string;
+    onCancel?: () => void;
+};
 
 type MockConfirmModalElement = ReactElement<MockConfirmModalProps>;
 
@@ -188,6 +192,123 @@ describe('useCreateEmptyReportConfirmation', () => {
 
         expect(Navigation.navigate).toHaveBeenCalledWith(expectedSearchRoute);
         unmount();
+    });
+
+    it('calls onCancel when reports link in prompt is pressed', () => {
+        const onConfirm = jest.fn();
+        const onCancel = jest.fn();
+
+        const {result} = renderHook<HookValue, MockConfirmModalProps>(() =>
+            useCreateEmptyReportConfirmation({
+                policyID,
+                policyName,
+                onConfirm,
+                onCancel,
+            }),
+        );
+
+        act(() => {
+            result.current.openCreateReportConfirmation();
+        });
+
+        const modal = getModal(result.current);
+        const {unmount} = render(modal.props.prompt as ReactElement);
+        const onPress = mockTextLinkProps?.onPress;
+
+        expect(onPress).toBeDefined();
+
+        act(() => {
+            onPress?.();
+        });
+
+        expect(onCancel).toHaveBeenCalledTimes(1);
+        unmount();
+    });
+
+    it('retains displayed workspace name while parent clears selection', () => {
+        const onConfirm = jest.fn();
+        const onCancel = jest.fn();
+        const initialPolicyName = policyName;
+
+        const {result, rerender} = renderHook(
+            ({policyName: currentPolicyName, onCancel: currentOnCancel}: HookProps) =>
+                useCreateEmptyReportConfirmation({
+                    policyID,
+                    policyName: currentPolicyName,
+                    onConfirm,
+                    onCancel: currentOnCancel,
+                }),
+            {
+                initialProps: {
+                    policyName: initialPolicyName,
+                    onCancel,
+                },
+            },
+        );
+
+        act(() => {
+            result.current.openCreateReportConfirmation();
+        });
+
+        const modal = getModal(result.current);
+        const renderedPrompt = render(modal.props.prompt as ReactElement);
+        expect(JSON.stringify(renderedPrompt.toJSON())).toContain(`report.newReport.emptyReportConfirmationPrompt:${initialPolicyName}`);
+        renderedPrompt.unmount();
+
+        rerender({policyName: '', onCancel});
+
+        const updatedModal = getModal(result.current);
+        const renderedPromptAfterClear = render(updatedModal.props.prompt as ReactElement);
+        expect(JSON.stringify(renderedPromptAfterClear.toJSON())).toContain(`report.newReport.emptyReportConfirmationPrompt:${initialPolicyName}`);
+        renderedPromptAfterClear.unmount();
+    });
+
+    it('uses updated workspace name on subsequent opens', () => {
+        const onConfirm = jest.fn();
+        const onCancel = jest.fn();
+        const initialPolicyName = policyName;
+        const updatedPolicyName = 'Finance Team';
+
+        const {result, rerender} = renderHook(
+            ({policyName: currentPolicyName, onCancel: currentOnCancel}: HookProps) =>
+                useCreateEmptyReportConfirmation({
+                    policyID,
+                    policyName: currentPolicyName,
+                    onConfirm,
+                    onCancel: currentOnCancel,
+                }),
+            {
+                initialProps: {
+                    policyName: initialPolicyName,
+                    onCancel,
+                },
+            },
+        );
+
+        act(() => {
+            result.current.openCreateReportConfirmation();
+        });
+
+        let modal = getModal(result.current);
+        const renderedPrompt = render(modal.props.prompt as ReactElement);
+        expect(JSON.stringify(renderedPrompt.toJSON())).toContain(`report.newReport.emptyReportConfirmationPrompt:${initialPolicyName}`);
+        renderedPrompt.unmount();
+
+        let cancelHandler = getRequiredHandler(modal.props.onCancel, 'onCancel');
+        act(() => {
+            cancelHandler();
+        });
+
+        rerender({policyName: updatedPolicyName, onCancel});
+
+        act(() => {
+            result.current.openCreateReportConfirmation();
+        });
+
+        modal = getModal(result.current);
+        const renderedPromptAfterUpdate = render(modal.props.prompt as ReactElement);
+        expect(JSON.stringify(renderedPromptAfterUpdate.toJSON())).toContain(`report.newReport.emptyReportConfirmationPrompt:${updatedPolicyName}`);
+        renderedPromptAfterUpdate.unmount();
     });
 
     it('falls back to generic workspace name in translations when necessary', () => {

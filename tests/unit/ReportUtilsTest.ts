@@ -8256,6 +8256,22 @@ describe('ReportUtils', () => {
             expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(true);
         });
 
+        it('returns true when an owned submitted expense report has no transactions', () => {
+            const reportID = 'submitted-empty-report';
+            const reports = toCollection(
+                buildReport({
+                    reportID,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                }),
+            );
+            const transactions: Record<string, Transaction[]> = {
+                [reportID]: [],
+            };
+
+            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(true);
+        });
+
         it('returns false when an owned expense report already has transactions', () => {
             const reportID = 'with-transaction';
             const reports = toCollection(buildReport({reportID}));
@@ -8264,6 +8280,21 @@ describe('ReportUtils', () => {
             };
 
             expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(false);
+        });
+
+        it('treats transactions pending deletion as removed when checking emptiness', () => {
+            const reportID = 'pending-delete-report';
+            const reports = toCollection(buildReport({reportID}));
+            const transactions: Record<string, Transaction[]> = {
+                [reportID]: [
+                    {
+                        ...createTransactionForReport(reportID),
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                ],
+            };
+
+            expect(hasEmptyReportsForPolicy(reports, policyID, accountID, transactions)).toBe(true);
         });
 
         it('ignores reports owned by other users or policies', () => {
@@ -8408,6 +8439,41 @@ describe('ReportUtils', () => {
             expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactions)).toEqual({
                 [policyID]: true,
                 [otherPolicyID]: true,
+            });
+        });
+
+        it('marks submitted empty reports as outstanding for the policy lookup', () => {
+            const reportID = 'submitted-empty-lookup';
+            const reports = toCollection(
+                buildReport({
+                    reportID,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                }),
+            );
+            const transactions: Record<string, Transaction[]> = {
+                [reportID]: [],
+            };
+
+            expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactions)).toEqual({
+                [policyID]: true,
+            });
+        });
+
+        it('ignores transactions pending deletion when compiling policy lookup', () => {
+            const reportID = 'pending-delete-lookup';
+            const reports = toCollection(buildReport({reportID}));
+            const transactions: Record<string, Transaction[]> = {
+                [reportID]: [
+                    {
+                        ...createTransactionForReport(reportID),
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                ],
+            };
+
+            expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactions)).toEqual({
+                [policyID]: true,
             });
         });
 
