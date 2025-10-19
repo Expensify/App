@@ -1333,12 +1333,7 @@ function createAndOpenSearchTransactionThread(item: TransactionListItemType, iou
 
     // Treat "0" as empty for reportActionID (0 means no action exists)
     const reportActionID = item.moneyRequestReportActionID === '0' ? '' : item.moneyRequestReportActionID;
-    const transactionThreadReport = createTransactionThreadReport(
-        item.report,
-        iouReportAction ?? ({reportActionID} as OnyxTypes.ReportAction),
-        transaction,
-        transactionViolations,
-    );
+    const transactionThreadReport = createTransactionThreadReport(item.report, iouReportAction ?? ({reportActionID} as OnyxTypes.ReportAction), transaction, transactionViolations);
     if (transactionThreadReport?.reportID) {
         updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
     }

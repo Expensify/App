@@ -2792,7 +2792,7 @@ describe('SearchUIUtils', () => {
 
             // "0" is treated as empty string for reportActionID
             const expectedReportActionID = moneyRequestReportActionID === '0' ? '' : moneyRequestReportActionID;
-            
+
             expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, {reportActionID: expectedReportActionID}, expect.objectContaining(expectedTransaction), violations);
             expect(updateSearchResultsWithTransactionThreadReportID).toHaveBeenCalledWith(hash, transactionID, threadReportID);
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
