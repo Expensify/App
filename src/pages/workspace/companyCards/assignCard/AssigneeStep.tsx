@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -49,13 +49,17 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const {userToInvite, searchValue, personalDetails, debouncedSearchValue, setSearchValue, areOptionsInitialized, headerMessage, isSearchingForReports} = useOptions();
     const isEditing = assignCard?.isEditing;
 
-    const [selectedMember, setSelectedMember] = useState(assignCard?.data?.email ?? '');
-
     const submit = (assignee: ListItem) => {
         let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
+        const personalDetail = getPersonalDetailByEmail(assignee?.login ?? '');
+        const memberName = personalDetail?.firstName ? personalDetail.firstName : personalDetail?.login;
+        const data: Partial<AssignCardData> = {
+            email: assignee?.login ?? '',
+            cardName: getDefaultCardName(memberName),
+        };
+
         Keyboard.dismiss();
-        setSelectedMember(assignee.login ?? '');
-        if (selectedMember === assignCard?.data?.email) {
+        if (assignee?.login === assignCard?.data?.email) {
             setAssignCardStepAndData({
                 currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
                 isEditing: false,
@@ -63,24 +67,17 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             return;
         }
 
-        if (userToInvite?.login === selectedMember) {
+        if (userToInvite?.accountID === assignee?.accountID) {
             setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.INVITE_NEW_MEMBER,
                 data: {
-                    email: selectedMember,
-                    assigneeAccountID: userToInvite?.accountID,
+                    email: assignee?.login ?? '',
+                    assigneeAccountID: assignee?.accountID,
                 },
             });
-            setDraftInviteAccountID(selectedMember, userToInvite?.accountID, policy?.id);
+            setDraftInviteAccountID(assignee?.login ?? '', assignee?.accountID, policy?.id);
             return;
         }
-
-        const personalDetail = getPersonalDetailByEmail(selectedMember);
-        const memberName = personalDetail?.firstName ? personalDetail.firstName : personalDetail?.login;
-        const data: Partial<AssignCardData> = {
-            email: selectedMember,
-            cardName: getDefaultCardName(memberName),
-        };
 
         if (hasOnlyOneCardToAssign(filteredCardList)) {
             nextStep = CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE;
@@ -124,7 +121,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 alternateText: email,
                 login: email,
                 accountID: personalDetail?.accountID,
-                isSelected: selectedMember === email,
+                isSelected: assignCard?.data?.email === email,
                 icons: [
                     {
                         source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
@@ -139,24 +136,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, selectedMember, formatPhoneNumber, localeCompare]);
-
-    const membersDetailsWithInviteNewMember = useMemo(() => {
-        if (!userToInvite) {
-            return {};
-        }
-
-        const newMember: ListItem = {
-            keyForList: userToInvite?.login,
-            text: userToInvite?.login,
-            alternateText: userToInvite?.login,
-            login: userToInvite?.login,
-            isSelected: selectedMember === userToInvite?.login,
-            accountID: userToInvite?.accountID,
-        };
-
-        return newMember;
-    }, [selectedMember, userToInvite]);
+    }, [isOffline, policy?.employeeList, assignCard?.data?.email, formatPhoneNumber, localeCompare]);
 
     const sections = useMemo(() => {
         if (!debouncedSearchValue) {
@@ -179,7 +159,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             },
             {
                 title: undefined,
-                data: userToInvite ? [membersDetailsWithInviteNewMember] : [],
+                data: userToInvite ? [userToInvite] : [],
                 shouldShow: !!userToInvite,
             },
             ...(personalDetails
@@ -192,7 +172,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                   ]
                 : []),
         ];
-    }, [debouncedSearchValue, membersDetails, userToInvite, membersDetailsWithInviteNewMember, personalDetails, countryCode]);
+    }, [debouncedSearchValue, membersDetails, userToInvite, personalDetails, countryCode]);
 
     return (
         <InteractiveStepWrapper

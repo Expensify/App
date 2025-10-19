@@ -61,6 +61,7 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails}: Invite
                 isInviteNewMemberStep
                 goToNextStep={goToNextStep}
                 shouldShowTooltip={false}
+                shouldShowMemberNames={false}
             />
         </InteractiveStepWrapper>
     );

@@ -47,6 +47,7 @@ type WorkspaceInviteMessageComponentProps = {
     currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
     shouldShowTooltip?: boolean;
     shouldShowBackButton?: boolean;
+    shouldShowMemberNames?: boolean;
     isInviteNewMemberStep?: boolean;
     goToNextStep?: () => void;
 };
@@ -58,6 +59,7 @@ function WorkspaceInviteMessageComponent({
     currentUserPersonalDetails,
     shouldShowTooltip = true,
     shouldShowBackButton = true,
+    shouldShowMemberNames = true,
     isInviteNewMemberStep = false,
     goToNextStep,
 }: WorkspaceInviteMessageComponentProps) {
@@ -226,16 +228,17 @@ function WorkspaceInviteMessageComponent({
                     </View>
                     <View style={[styles.mb3]}>
                         <View style={[styles.mhn5, styles.mb3]}>
-                            <MenuItemWithTopDescription
-                                title={memberNames}
-                                description={translate('common.members')}
-                                numberOfLinesTitle={2}
-                                shouldShowRightIcon
-                                onPress={() => {
-                                    Navigation.goBack(backTo);
-                                }}
-                            />
-
+                            {shouldShowMemberNames && (
+                                <MenuItemWithTopDescription
+                                    title={memberNames}
+                                    description={translate('common.members')}
+                                    numberOfLinesTitle={2}
+                                    shouldShowRightIcon
+                                    onPress={() => {
+                                        Navigation.goBack(backTo);
+                                    }}
+                                />
+                            )}
                             <MenuItemWithTopDescription
                                 title={translate(`workspace.common.roleName`, {role: workspaceInviteRoleDraft})}
                                 description={translate('common.role')}
