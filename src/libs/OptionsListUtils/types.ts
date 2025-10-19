@@ -43,6 +43,7 @@ type SearchOptionData = Pick<
     | 'avatar'
     | 'phoneNumber'
     | 'searchText'
+    | 'timezone'
 
     // State properties
     | 'isSelected'

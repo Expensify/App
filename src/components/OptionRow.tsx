@@ -10,6 +10,7 @@ import {shouldOptionShowTooltip} from '@libs/OptionsListUtils';
 import {getDisplayNamesWithTooltips} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import type {Timezone} from '@src/types/onyx/PersonalDetails';
 import Button from './Button';
 import DisplayNames from './DisplayNames';
 import Hoverable from './Hoverable';
@@ -84,6 +85,9 @@ type OptionRowProps = {
 
     /** Key used internally by React */
     keyForList?: string;
+
+    /** Timezone of the user from their personal details */
+    timezone?: Timezone;
 };
 
 function OptionRow({
