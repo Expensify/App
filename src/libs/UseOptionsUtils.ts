@@ -1,5 +1,4 @@
 import {useEffect, useMemo, useState} from 'react';
-import {useBetas} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useOnyx from '@hooks/useOnyx';
@@ -12,13 +11,15 @@ import {filterAndOrderOptions, getHeaderMessage, getValidOptions} from './Option
 const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'AssigneeStep.getValidOptions'});
 
 function useOptions() {
-    const betas = useBetas();
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [isLoading, setIsLoading] = useState(true);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const existingDelegates = useMemo(() => Object.fromEntries((account?.delegatedAccess?.delegates ?? []).map(({email}) => [email, true])), [account?.delegatedAccess?.delegates]);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     useEffect(() => {
         if (!isLoading || !optionsList.reports || !optionsList.personalDetails) {
@@ -42,6 +43,7 @@ function useOptions() {
                 reports: optionsList.reports,
                 personalDetails: optionsList.personalDetails,
             },
+            draftComments,
             {
                 betas,
                 excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
@@ -57,7 +59,7 @@ function useOptions() {
             currentUserOption,
             headerMessage,
         };
-    }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates]);
+    }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates, draftComments]);
 
     const options = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), countryCode, {
@@ -76,7 +78,7 @@ function useOptions() {
         };
     }, [debouncedSearchValue, defaultOptions, existingDelegates, countryCode]);
 
-    return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
+    return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized, isSearchingForReports};
 }
 
 export default useOptions;

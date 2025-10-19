@@ -46,7 +46,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const [cardFeeds] = useCardFeeds(policy?.id);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
 
-    const {userToInvite, searchValue, personalDetails, debouncedSearchValue, setSearchValue, areOptionsInitialized, headerMessage} = useOptions();
+    const {userToInvite, searchValue, personalDetails, debouncedSearchValue, setSearchValue, areOptionsInitialized, headerMessage, isSearchingForReports} = useOptions();
     const isEditing = assignCard?.isEditing;
 
     const [selectedMember, setSelectedMember] = useState(assignCard?.data?.email ?? '');
@@ -215,6 +215,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 shouldUpdateFocusedIndex
                 addBottomSafeAreaPadding
                 showLoadingPlaceholder={!areOptionsInitialized}
+                isLoadingNewOptions={!!isSearchingForReports}
             />
         </InteractiveStepWrapper>
     );
