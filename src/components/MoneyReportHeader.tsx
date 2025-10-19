@@ -1195,20 +1195,20 @@ function MoneyReportHeader({
         </Text>
     );
     const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) =>
-        selectPaymentType(
+        selectPaymentType({
             event,
             iouPaymentType,
             triggerKYCFlow,
             policy,
-            confirmPayment,
-            accountID,
-            email ?? '',
+            onPress: confirmPayment,
+            currentAccountID: accountID,
+            currentEmail: email ?? '',
             hasViolations,
             isASAPSubmitBetaEnabled,
             isUserValidated,
             confirmApproval,
-            moneyRequestReport,
-        );
+            iouReport: moneyRequestReport,
+        });
 
     const showNextStepBar = shouldShowNextStep && !!optimisticNextStep?.message?.length;
     const showNextStepSkeleton = shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;

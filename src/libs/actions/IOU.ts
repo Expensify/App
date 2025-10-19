@@ -10346,7 +10346,7 @@ function reopenReport(
         policy,
         currentUserAccountIDParam,
         currentUserEmailParam,
-        hasViolations: hasViolations,
+        hasViolations,
         isASAPSubmitBetaEnabled,
         isReopen: true,
     });
@@ -10485,7 +10485,7 @@ function retractReport(
         policy,
         currentUserAccountIDParam,
         currentUserEmailParam,
-        hasViolations: hasViolations,
+        hasViolations,
         isASAPSubmitBetaEnabled,
     });
     const optimisticReportActionsData: OnyxUpdate = {
@@ -10622,7 +10622,7 @@ function unapproveExpenseReport(
         policy,
         currentUserAccountIDParam,
         currentUserEmailParam,
-        hasViolations: hasViolations,
+        hasViolations,
         isASAPSubmitBetaEnabled,
         shouldFixViolations: false,
         isUnapprove: true,

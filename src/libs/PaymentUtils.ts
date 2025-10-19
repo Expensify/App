@@ -27,6 +27,21 @@ type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 type TriggerKYCFlow = (params: ContinueActionParams) => void;
 type AccountType = ValueOf<typeof CONST.PAYMENT_METHODS> | undefined;
 
+type SelectPaymentTypeParams = {
+    event: KYCFlowEvent;
+    iouPaymentType: PaymentMethodType;
+    triggerKYCFlow: TriggerKYCFlow;
+    policy: OnyxEntry<Policy>;
+    onPress: (paymentType?: PaymentMethodType, payAsBusiness?: boolean, methodID?: number, paymentMethod?: KYCPaymentMethod) => void;
+    currentAccountID: number;
+    currentEmail: string;
+    hasViolations: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    isUserValidated?: boolean;
+    confirmApproval?: () => void;
+    iouReport?: OnyxEntry<Report>;
+};
+
 /**
  * Check to see if user has either a debit card or personal US bank account added that can be used with a wallet.
  */
@@ -119,20 +134,9 @@ function calculateWalletTransferBalanceFee(currentBalance: number, methodType: s
  * It navigates users to verification pages if necessary, triggers KYC flows for specific payment methods,
  * handles direct approvals, or proceeds with basic payment processing.
  */
-const selectPaymentType = (
-    event: KYCFlowEvent,
-    iouPaymentType: PaymentMethodType,
-    triggerKYCFlow: TriggerKYCFlow,
-    policy: OnyxEntry<Policy>,
-    onPress: (paymentType?: PaymentMethodType, payAsBusiness?: boolean, methodID?: number, paymentMethod?: KYCPaymentMethod) => void,
-    currentAccountID: number,
-    currentEmail: string,
-    hasViolations: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    isUserValidated?: boolean,
-    confirmApproval?: () => void,
-    iouReport?: OnyxEntry<Report>,
-) => {
+const selectPaymentType = (params: SelectPaymentTypeParams) => {
+    const {event, iouPaymentType, triggerKYCFlow, policy, onPress, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, isUserValidated, confirmApproval, iouReport} =
+        params;
     if (policy && shouldRestrictUserBillableActions(policy.id)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
@@ -212,4 +216,4 @@ export {
     isSecondaryActionAPaymentOption,
     getActivePaymentType,
 };
-export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, PaymentOption};
+export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, PaymentOption, SelectPaymentTypeParams};
