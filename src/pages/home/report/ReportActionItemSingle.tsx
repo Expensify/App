@@ -158,7 +158,7 @@ function ReportActionItemSingle({
         return theme.sidebar;
     };
 
-    const currentSelectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected, [currentUserPersonalDetails]);
+    const currentSelectedTimezone = currentUserPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected;
     const hasEmojiStatus = !details.shouldDisplayAllActors && details.status?.emojiCode;
     const formattedDate = DateUtils.getStatusUntilDate(details.status?.clearAfter ?? '', details.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected, currentSelectedTimezone);
     const statusText = details.status?.text ?? '';

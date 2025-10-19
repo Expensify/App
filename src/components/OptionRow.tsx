@@ -85,9 +85,6 @@ type OptionRowProps = {
 
     /** Key used internally by React */
     keyForList?: string;
-
-    /** Timezone of the user from their personal details */
-    timezone?: Timezone;
 };
 
 function OptionRow({
