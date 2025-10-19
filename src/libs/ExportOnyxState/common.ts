@@ -167,7 +167,7 @@ const processOnyxKeyWithRule = (key: string, data: unknown, rule: ExportRule): u
     }
 
     if (Array.isArray(data)) {
-        return data.map((item) => (typeof item === 'object' ? processOnyxKeyWithRule(key, item, rule) : item));
+        return data.map((item: unknown) => (typeof item === 'object' ? processOnyxKeyWithRule(key, item, rule) : item));
     }
 
     if (typeof data === 'object') {
