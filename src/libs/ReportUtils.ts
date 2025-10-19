@@ -1411,8 +1411,7 @@ function isIOUReportUsingReport(report: OnyxEntry<Report>): report is Report {
 /**
  * Checks if a report is a task report.
  */
-function isTaskReport(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string): boolean {
-    const report = typeof reportOrID === 'string' ? (getReport(reportOrID, allReports) ?? null) : reportOrID;
+function isTaskReport(report: OnyxInputOrEntry<Report>): boolean {
     return report?.type === CONST.REPORT.TYPE.TASK;
 }
 
