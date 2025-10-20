@@ -7310,7 +7310,13 @@ ${amount} para ${merchant} - ${date}`,
         exportInProgress: 'Exportação em andamento',
         conciergeWillSend: 'Concierge enviará o arquivo em breve.',
     },
-    avatarPage: {title: 'Editar foto de perfil', uploadPhoto: 'Carregar foto', selectAvatar: 'Selecionar avatar'},
+    avatarPage: {
+        title: 'Editar foto de perfil',
+        upload: 'Carregar',
+        uploadPhoto: 'Carregar foto',
+        selectAvatar: 'Selecionar avatar',
+        chooseCustomAvatar: 'Ou escolha um avatar personalizado',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
