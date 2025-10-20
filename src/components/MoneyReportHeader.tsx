@@ -49,7 +49,6 @@ import type {ReportsSplitNavigatorParamList, SearchFullscreenNavigatorParamList,
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
-import Permissions from '@libs/Permissions';
 import {getConnectedIntegration, getValidConnectedIntegration} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
