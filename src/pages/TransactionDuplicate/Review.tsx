@@ -35,6 +35,7 @@ function TransactionDuplicateReview() {
     const currentPersonalDetails = useCurrentUserPersonalDetails();
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const [allTransactionViolation] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.threadReportID}`, {canBeMissing: true});
@@ -73,6 +74,7 @@ function TransactionDuplicateReview() {
             policy,
             isASAPSubmitBetaEnabled,
             allTransactions,
+            allTransactionViolation,
         });
         Navigation.goBack();
     };

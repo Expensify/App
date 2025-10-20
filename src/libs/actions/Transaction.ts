@@ -388,6 +388,7 @@ type DismissDuplicateTransactionViolationProps = {
     policy: OnyxEntry<Policy>;
     isASAPSubmitBetaEnabled: boolean;
     allTransactions: OnyxCollection<Transaction>;
+    allTransactionViolation: OnyxCollection<TransactionViolation[]>;
 };
 
 /**
@@ -401,6 +402,7 @@ function dismissDuplicateTransactionViolation({
     policy,
     isASAPSubmitBetaEnabled,
     allTransactions,
+    allTransactionViolation,
 }: DismissDuplicateTransactionViolationProps) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]).filter((transaction): transaction is Transaction => transaction !== undefined);
