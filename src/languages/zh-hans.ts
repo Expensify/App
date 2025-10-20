@@ -6077,15 +6077,7 @@ ${merchant}的${amount} - ${date}`,
         searchName: '搜索名称',
         savedSearchesMenuItemTitle: '已保存',
         groupedExpenses: '分组费用',
-        bulkActions: {
-            approve: '批准',
-            pay: '支付',
-            delete: '删除',
-            hold: '保持',
-            unhold: '移除保留',
-            reject: '拒绝',
-            noOptionsAvailable: '所选费用组没有可用选项。',
-        },
+        bulkActions: {approve: '批准', pay: '支付', delete: '删除', hold: '保持', unhold: '移除保留', reject: '拒绝', noOptionsAvailable: '所选费用组没有可用选项。'},
         filtersHeader: '筛选器',
         filters: {
             date: {
