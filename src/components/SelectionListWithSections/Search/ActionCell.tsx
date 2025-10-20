@@ -13,7 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {payMoneyRequestOnSearch} from '@libs/actions/Search';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {isInvoiceReport} from '@libs/ReportUtils';
+import {getMoneyRequestSpendBreakdown, isInvoiceReport} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -127,6 +127,9 @@ function ActionCell({
     }
 
     if (action === CONST.SEARCH.ACTION_TYPES.PAY && !isInvoiceReport(iouReport)) {
+        const {reimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
+        const isNegativeAmount = reimbursableSpend < 0;
+        
         return (
             <SettlementButton
                 shouldUseShortForm
@@ -144,6 +147,7 @@ function ActionCell({
                 shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
                 isDisabled={isOffline}
                 isLoading={isLoading}
+                onlyShowPayElsewhere={isNegativeAmount}
             />
         );
     }

@@ -88,6 +88,7 @@ import {isExportAction} from './ReportPrimaryActionUtils';
 import {
     canUserPerformWriteAction,
     getIcons,
+    getMoneyRequestSpendBreakdown,
     getPersonalDetailsForAccountID,
     getReportName,
     getReportOrDraftReport,
@@ -1170,7 +1171,9 @@ function getActions(
             : undefined;
 
     const chatReport = getChatReport(data, report);
-    const canBePaid = canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const isNegativeAmount = reimbursableSpend < 0;
+    const canBePaid = canIOUBePaid(report, chatReport, policy, allReportTransactions, isNegativeAmount, chatReportRNVP, invoiceReceiverPolicy);
 
     if (canBePaid && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.PAY);
