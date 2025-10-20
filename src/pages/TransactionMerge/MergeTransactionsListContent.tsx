@@ -23,6 +23,7 @@ import {
 } from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportName, getReportOrDraftReport} from '@libs/ReportUtils';
+import {getCreated} from '@libs/TransactionUtils';
 import {openReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -72,7 +73,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
                         isSelected: eligibleTransaction.transactionID === mergeTransaction?.sourceTransactionID,
                         errors: eligibleTransaction.errors as Errors | undefined,
                     }))
-                    .sort((a, b) => localeCompare(b.created, a.created)),
+                    .sort((a, b) => localeCompare(getCreated(b), getCreated(a))),
                 shouldShow: true,
             },
         ];
