@@ -223,12 +223,10 @@ const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
 1. **First, get the list of changed files and their diffs:**
    - Use `gh pr diff` to see what actually changed in the PR
    - Focus ONLY on the changed lines, not the entire file
-
 2. **For analyzing changed files:**
    - **For large files (>5000 lines):** Use the Grep tool to search for specific violation patterns instead of reading the entire file. Focus grep searches on the changed portions shown in the diff.
    - **For smaller files:** You may read the full file using the Read tool
    - **If a Read fails with token limit error:** Immediately switch to using Grep with targeted patterns for the rules you're checking
-
 3. **Search strategy for large files:**
    - PERF-1: Search for `renderItem` and `...` patterns in the same vicinity
    - PERF-2: Search for `.every(`, `.some(`, `.find(`, `.filter(` patterns
@@ -236,30 +234,22 @@ const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
    - PERF-4: Search for `useMemo`, `useCallback`, and prop passing patterns
    - PERF-5: Search for `React.memo` and `deepEqual` patterns
    - PERF-6: Search for `useEffect`, `useMemo`, `useCallback` dependency arrays
-
 4. **For each violation found, immediately create an inline comment** using the available GitHub inline comment tool
-
 5. **Required parameters for each inline comment:**
    - `path`: Full file path (e.g., "src/components/ReportActionsList.tsx")
    - `line`: Line number where the issue occurs
    - `body`: Concise and actionable description of the violation and fix, following the below Comment Format
-
 6. **Each comment must reference exactly one Rule ID.**
-
 7. **Output must consist exclusively of calls to mcp__github_inline_comment__create_inline_comment in the required format.** No other text, Markdown, or prose is allowed.
-
 8. **If no violations are found, create a comment** (with no quotes, markdown, or additional text):
    LGTM :feelsgood:. Thank you for your hard work!
-
 9. **Output LGTM if and only if**:
    - You examined EVERY changed line in EVERY changed file (via diff + targeted grep/read)
    - You checked EVERY changed file against ALL rules
    - You found ZERO violations matching the exact rule criteria
    - You verified no false negatives by checking each rule systematically
     If you found even ONE violation or have ANY uncertainty do NOT create LGTM comment - create inline comments instead.
-
 10. **DO NOT invent new rules, stylistic preferences, or commentary outside the listed rules.**
-
 11. **DO NOT describe what you are doing, create comments with a summary, explanations, extra content, comments on rules that are NOT violated or ANYTHING ELSE.**
     Only inline comments regarding rules violations or general comment with LGTM message are allowed.
     EXCEPTION: If you believe something MIGHT be a Rule violation but are uncertain, err on the side of creating an inline comment with your concern rather than skipping it.
