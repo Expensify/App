@@ -1,6 +1,7 @@
 import Emojis, {importEmojiLocale} from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';
 import {buildEmojisTrie} from '@libs/EmojiTrie';
+// eslint-disable-next-line no-restricted-syntax
 import * as EmojiUtils from '@libs/EmojiUtils';
 
 describe('EmojiTest', () => {
