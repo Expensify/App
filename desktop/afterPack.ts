@@ -18,7 +18,6 @@ const getAssetSuffix = () => {
     return '';
 };
 
-
 // This will copy Assets.car with MacOS Liquid Glass icon
 // and will be removed after Electron builder supports this natively
 export default function afterPack(context: AfterPackContext) {
