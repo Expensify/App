@@ -29,7 +29,7 @@ function useTransactionViolations(transactionID?: string, shouldShowRterForSettl
                     !isViolationDismissed(transaction, violation, currentUserDetails.email ?? '') &&
                     shouldShowViolation(iouReport, policy, violation.name, currentUserDetails.email ?? '', shouldShowRterForSettledReport),
             ),
-        [transaction, transactionViolations, iouReport, policy, shouldShowRterForSettledReport, currentUserDetails.email ?? ''],
+        [transaction, transactionViolations, iouReport, policy, shouldShowRterForSettledReport, currentUserDetails.email],
     );
 }
 

@@ -180,7 +180,7 @@ function MoneyRequestReportTransactionList({
         }
 
         return filtered;
-    }, [violations, report, policy, transactions]);
+    }, [violations, report, policy, transactions, currentUserDetails.email]);
 
     const toggleTransaction = useCallback(
         (transactionID: string) => {

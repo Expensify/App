@@ -494,6 +494,7 @@ function MoneyRequestReportPreviewContent({
         isIouReportArchived,
         invoiceReceiverPolicy,
         isChatReportArchived,
+        currentUserDetails.email,
     ]);
 
     const addExpenseDropdownOptions = useMemo(

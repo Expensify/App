@@ -105,7 +105,7 @@ function TransactionListItem<TItem extends ListItem>({
                 !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '') &&
                 shouldShowViolation(snapshotReport, snapshotPolicy as Policy, violation.name, currentUserDetails.email ?? '', false),
         );
-    }, [snapshotPolicy, snapshotReport, transactionItem, violations]);
+    }, [snapshotPolicy, snapshotReport, transactionItem, violations, currentUserDetails.email]);
 
     const handleActionButtonPress = useCallback(() => {
         handleActionButtonPressUtil(
