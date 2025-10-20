@@ -5240,6 +5240,13 @@ const staticStyles = (theme: ThemeColors) =>
             right: 0,
         },
 
+        stickToTop: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+        },
+
         earlyDiscountButton: {
             flexGrow: 1,
             flexShrink: 1,
