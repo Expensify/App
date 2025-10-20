@@ -21,6 +21,8 @@ const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
 
 // Define the specific merge fields we want to handle
 const MERGE_FIELDS = ['amount', 'currency', 'merchant', 'created', 'category', 'tag', 'description', 'taxValue', 'reimbursable', 'billable', 'attendees', 'reportID'] as const;
+// Some fields are dependant on others. We need to automatically derive the correct field values depending on user selection.
+const DERIVED_MERGE_FIELDS = [...MERGE_FIELDS, 'taxCode', 'taxAmount'] as const;
 type MergeFieldKey = TupleToUnion<typeof MERGE_FIELDS>;
 type MergeFieldOption = {
     transaction: Transaction;
@@ -459,6 +461,7 @@ export {
     getReportIDForExpense,
     getMergeFieldErrorText,
     MERGE_FIELDS,
+    DERIVED_MERGE_FIELDS,
 };
 
 export type {MergeFieldKey, MergeFieldData};
