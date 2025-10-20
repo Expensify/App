@@ -557,14 +557,12 @@ async function main() {
         }
     }
 
-    let isPassed = false;
     try {
-        isPassed = await runCommand();
+        const isPassed = await runCommand();
+        process.exit(isPassed ? 0 : 1);
     } catch (error) {
         logError('Error running react-compiler-compliance-check:', error);
-        isPassed = false;
-    } finally {
-        process.exit(isPassed ? 0 : 1);
+        process.exit(1);
     }
 }
 
