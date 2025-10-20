@@ -138,6 +138,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         <ScreenWrapper
             testID={ImportedCategoriesPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('workspace.categories.importCategories')}
