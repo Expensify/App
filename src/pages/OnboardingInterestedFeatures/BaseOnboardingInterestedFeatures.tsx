@@ -19,13 +19,14 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
+import {createWorkspace, generatePolicyID, updateInterestedFeatures} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import CONST from '@src/CONST';
+import CONST, {FEATURE_IDS} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -58,59 +59,69 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const features: Feature[] = useMemo(() => {
         return [
             {
-                id: CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
+                id: FEATURE_IDS.CATEGORIES,
                 title: translate('workspace.moreFeatures.categories.title'),
                 icon: illustrations.FolderOpen,
                 enabledByDefault: true,
+                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES,
             },
             {
-                id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
+                id: FEATURE_IDS.ACCOUNTING,
                 title: translate('workspace.moreFeatures.connections.title'),
                 icon: illustrations.Accounting,
                 enabledByDefault: !!userReportedIntegration,
+                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
             },
             {
-                id: CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED,
+                id: FEATURE_IDS.COMPANY_CARDS,
                 title: translate('workspace.moreFeatures.companyCards.title'),
                 icon: illustrations.CompanyCard,
                 enabledByDefault: true,
+                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
             },
             {
-                id: CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
+                id: FEATURE_IDS.WORKFLOWS,
                 title: translate('workspace.moreFeatures.workflows.title'),
                 icon: illustrations.Workflows,
                 enabledByDefault: true,
+                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS,
             },
             {
-                id: CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED,
+                id: FEATURE_IDS.INVOICES,
                 title: translate('workspace.moreFeatures.invoices.title'),
                 icon: illustrations.InvoiceBlue,
+                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
             },
             {
-                id: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
+                id: FEATURE_IDS.RULES,
                 title: translate('workspace.moreFeatures.rules.title'),
                 icon: illustrations.Rules,
+                apiEndpoint: WRITE_COMMANDS.SET_POLICY_RULES_ENABLED,
                 requiresUpdate: true,
             },
             {
-                id: CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
+                id: FEATURE_IDS.DISTANCE_RATES,
                 title: translate('workspace.moreFeatures.distanceRates.title'),
                 icon: illustrations.Car,
+                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES,
             },
             {
-                id: CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED,
+                id: FEATURE_IDS.EXPENSIFY_CARD,
                 title: translate('workspace.moreFeatures.expensifyCard.title'),
                 icon: illustrations.HandCard,
+                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS,
             },
             {
-                id: CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED,
+                id: FEATURE_IDS.TAGS,
                 title: translate('workspace.moreFeatures.tags.title'),
                 icon: illustrations.Tag,
+                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_TAGS,
             },
             {
-                id: CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+                id: FEATURE_IDS.PER_DIEM,
                 title: translate('workspace.moreFeatures.perDiem.title'),
                 icon: illustrations.PerDiem,
+                apiEndpoint: WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM,
                 requiresUpdate: true,
             },
         ];
@@ -141,7 +152,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
 
         // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
         // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
-        const {adminsChatReportID, policyID} = shouldCreateWorkspace
+        const {adminsChatReportID, policyID, type} = shouldCreateWorkspace
             ? createWorkspace({
                   policyOwnerEmail: undefined,
                   makeMeAdmin: true,
@@ -155,7 +166,11 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                   userReportedIntegration: newUserReportedIntegration,
                   featuresMap,
               })
-            : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
+            : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID, type: undefined};
+
+        if (policyID) {
+            updateInterestedFeatures(featuresMap, policyID, type);
+        }
 
         if (shouldCreateWorkspace) {
             setOnboardingAdminsChatReportID(adminsChatReportID);
@@ -212,14 +227,14 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
 
     // Create items for enabled features
     const enabledFeatures: Feature[] = features
-        .filter((feature) => !!feature.enabledByDefault || feature.id === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED)
+        .filter((feature) => !!feature.enabledByDefault || feature.id === FEATURE_IDS.ACCOUNTING)
         .map((feature) => ({
             ...feature,
         }));
 
     // Create items for features they may be interested in
     const mayBeInterestedFeatures: Feature[] = features
-        .filter((feature) => !feature.enabledByDefault && feature.id !== CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED)
+        .filter((feature) => !feature.enabledByDefault && feature.id !== FEATURE_IDS.ACCOUNTING)
         .map((feature) => ({
             ...feature,
         }));
