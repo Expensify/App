@@ -221,7 +221,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             newSet.add(reportID);
             return newSet;
         });
-    }, []);
+    }, [allReports]);
 
     /**
      * Checks if a report ID is marked as an expense report.
