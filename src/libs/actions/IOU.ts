@@ -80,7 +80,6 @@ import Permissions from '@libs/Permissions';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
-    getCorrectedAutoReportingFrequency,
     getDistanceRateCustomUnit,
     getDistanceRateCustomUnitRate,
     getMemberAccountIDsForWorkspace,
@@ -10067,7 +10066,6 @@ function canSubmitReport(
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations);
-    const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, allViolations);
     const hasOnlyPendingCardOrScanFailTransactions = transactions.length > 0 && transactions.every((t) => isPendingCardOrScanningTransaction(t));
 
@@ -10085,7 +10083,7 @@ function canSubmitReport(
         return true;
     }
 
-    return baseCanSubmit && isManualSubmitEnabled;
+    return baseCanSubmit;
 }
 
 function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, updatedIouReport: OnyxEntry<OnyxTypes.Report>): OnyxEntry<ReportAction> {

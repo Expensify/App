@@ -109,7 +109,7 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
         return true;
     }
 
-    return requiresManualSubmission(report, policy) && baseIsSubmit;
+    return baseIsSubmit;
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {

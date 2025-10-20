@@ -63,7 +63,7 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
         return true;
     }
 
-    return baseCanSubmit && requiresManualSubmission(report, policy);
+    return baseCanSubmit;
 }
 
 function canApprove(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[], shouldConsiderViolations = true) {

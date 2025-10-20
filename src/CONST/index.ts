@@ -6511,6 +6511,7 @@ const CONST = {
             EXPORT: 'export',
             APPROVE: 'approve',
             PAY: 'pay',
+            SUBMIT: 'submit',
             HOLD: 'hold',
             UNHOLD: 'unhold',
             DELETE: 'delete',
