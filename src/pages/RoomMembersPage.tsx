@@ -135,7 +135,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         }
         setSearchValue('');
         setRemoveMembersConfirmModalVisible(false);
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedMembers([]);
             clearUserSearchPhrase();
