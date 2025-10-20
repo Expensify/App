@@ -73,6 +73,7 @@ describe('mergeTransactionRequest', () => {
             merchant: 'Updated Merchant',
             category: 'Updated Category',
             tag: 'Updated Tag',
+            reportID: 'target-report-456',
         };
         const mergeTransactionID = 'merge789';
 
@@ -334,6 +335,84 @@ describe('mergeTransactionRequest', () => {
 
         // Should not contain duplicate transaction violations
         expect(updatedTargetViolations?.some((v) => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)).toBeFalsy();
+    });
+
+    it('should delete the none selected report', async () => {
+        // Given:
+        // - Target transaction with original merchant and category values
+        // - Source transaction that will be deleted after merge (only transaction in its report)
+        // - Merge transaction containing the final values to keep
+        const targetTransaction = {
+            ...createRandomTransaction(1),
+            amount: 100,
+            currency: 'USD',
+            transactionID: 'target123',
+            merchant: 'Original Merchant',
+            category: 'Original Category',
+            reportID: 'target-report-456',
+        };
+        const sourceExpenseReport = {
+            ...createExpenseReport(1),
+            reportID: 'source-report-123',
+        };
+        const targetReport = {
+            ...createExpenseReport(1),
+            reportID: 'target-report-456',
+        };
+        const sourceTransaction = {
+            ...createRandomTransaction(2),
+            transactionID: 'source456',
+            reportID: sourceExpenseReport.reportID,
+        };
+        const mergeTransaction = {
+            ...createRandomMergeTransaction(1),
+            amount: 200,
+            currency: 'USD',
+            targetTransactionID: 'target123',
+            sourceTransactionID: 'source456',
+            merchant: 'Updated Merchant',
+            category: 'Updated Category',
+            tag: 'Updated Tag',
+            reportID: 'source-report-123',
+        };
+        const mergeTransactionID = 'merge789';
+
+        // Set up initial state in Onyx
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`, sourceExpenseReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`, targetReport);
+
+        mockFetch?.pause?.();
+
+        // When: The merge transaction request is initiated
+        // This should immediately update the UI with optimistic values
+        mergeTransactionRequest({
+            mergeTransactionID,
+            mergeTransaction,
+            targetTransaction,
+            sourceTransaction,
+            policy: undefined,
+            policyTags: undefined,
+            policyCategories: undefined,
+        });
+
+        await mockFetch?.resume?.();
+        await waitForBatchedUpdates();
+
+        const updatedTargetReport = await new Promise<Report | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`,
+                callback: (report) => {
+                    Onyx.disconnect(connection);
+                    resolve(report ?? null);
+                },
+            });
+        });
+
+        // Verify target report is deleted (since we selected the source report as the report of merge transaction and the target report only has one transaction)
+        expect(updatedTargetReport).toBeNull();
     });
 
     describe('Report deletion logic', () => {
