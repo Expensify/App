@@ -2,7 +2,7 @@ import type {GetDeviceOrientationAwareImageSize} from './types';
 
 /**
  * Native does NOT automatically handles image rotation based on device orientation
- * On Anrdoid, react-native-image-size already evaluates the rotation of the image
+ * On Android, react-native-image-size already returns the rotation of the image
  */
 const getDeviceOrientationAwareImageSize: GetDeviceOrientationAwareImageSize = ({imageSize, aspectRatioWidth, aspectRatioHeight}) => {
     const {width, height, rotation} = imageSize;
