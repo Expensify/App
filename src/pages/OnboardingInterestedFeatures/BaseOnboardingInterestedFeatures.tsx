@@ -160,7 +160,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         }
 
         const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
-        const newUserReportedIntegration = selectedFeatures.some((feature) => feature === 'accounting') ? userReportedIntegration : undefined;
+        const newUserReportedIntegration = selectedFeatures.some((feature) => feature === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) ? userReportedIntegration : undefined;
         const featuresMap = features.map((feature) => ({
             ...feature,
             enabled: selectedFeatures.includes(feature.id),
