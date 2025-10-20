@@ -143,11 +143,12 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
 
             {(reportField.type === 'text' || isReportFieldTitle) && (
                 <EditReportFieldText
-                    fieldName={Str.UCFirst(reportField.name)}
+                    fieldName={reportField.name}
                     fieldKey={fieldKey}
                     fieldValue={fieldValue}
                     isRequired={!isReportFieldDeletable}
                     onSubmit={handleReportFieldChange}
+                    fieldList={policy?.fieldList}
                 />
             )}
 
