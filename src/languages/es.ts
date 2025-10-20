@@ -1508,7 +1508,10 @@ const translations = {
     },
     avatarPage: {
         title: 'Editar foto de perfil',
+        upload: 'Subir',
         uploadPhoto: 'Subir foto',
+        selectAvatar: 'Seleccionar avatar',
+        chooseCustomAvatar: 'O elige un avatar personalizado',
     },
     modal: {
         backdropLabel: 'Fondo del Modal',

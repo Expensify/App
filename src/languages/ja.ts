@@ -7260,7 +7260,13 @@ ${date} - ${merchant}に${amount}`,
         exportInProgress: 'エクスポート中',
         conciergeWillSend: 'コンシェルジュがまもなくファイルを送信します。',
     },
-    avatarPage: {title: 'プロフィール写真を編集', uploadPhoto: '写真をアップロード'},
+    avatarPage: {
+        title: 'プロフィール写真を編集',
+        upload: 'アップロード',
+        uploadPhoto: '写真をアップロード',
+        selectAvatar: 'アバターを選択',
+        chooseCustomAvatar: 'またはカスタムアバターを選択',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
