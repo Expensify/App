@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import * as LoginUtils from '@libs/LoginUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -33,12 +34,14 @@ describe('LoginUtils', () => {
     describe('appendCountryCode', () => {
         it('Should return valid phone number with country code when received a phone with country code', () => {
             const givenPhone = '+12345678901';
-            const parsedPhone = LoginUtils.appendCountryCode(givenPhone);
+            const countryCode = CONST.DEFAULT_COUNTRY_CODE;
+            const parsedPhone = LoginUtils.appendCountryCodeWithCountryCode(givenPhone, countryCode);
             expect(parsedPhone).toBe('+12345678901');
         });
         it('Should return valid phone number with country code when received a phone without country code', () => {
             const givenPhone = '2345678901';
-            const parsedPhone = LoginUtils.appendCountryCode(givenPhone);
+            const countryCode = CONST.DEFAULT_COUNTRY_CODE;
+            const parsedPhone = LoginUtils.appendCountryCodeWithCountryCode(givenPhone, countryCode);
             expect(parsedPhone).toBe('+12345678901');
         });
     });

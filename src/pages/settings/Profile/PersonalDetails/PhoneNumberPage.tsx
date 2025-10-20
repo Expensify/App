@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getEarliestErrorField} from '@libs/ErrorUtils';
-import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
+import {appendCountryCodeWithCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isRequiredFulfilled, isValidPhoneNumber} from '@libs/ValidationUtils';
 import {clearPhoneNumberError, updatePhoneNumber as updatePhone} from '@userActions/PersonalDetails';
@@ -25,6 +25,7 @@ import type {PrivatePersonalDetails} from '@src/types/onyx';
 function PhoneNumberPage() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -57,7 +58,7 @@ function PhoneNumberPage() {
                 return errors;
             }
 
-            const phoneNumberWithCountryCode = appendCountryCode(phoneNumberValue);
+            const phoneNumberWithCountryCode = appendCountryCodeWithCountryCode(phoneNumberValue, countryCode);
 
             if (!isValidPhoneNumber(phoneNumberWithCountryCode)) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.phoneNumber');
