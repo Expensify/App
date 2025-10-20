@@ -1,7 +1,7 @@
 ---
 title: Automatically Submit Employee Reports
-description: Learn how to configure automatic report submissions in Expensify Classic using Delay Submissions in your Workspace settings.
-keywords: [Expensify Classic, automatic report submission, delay submissions, submission frequency, expense report schedule}
+description: Learn how to configure automatic report submissions in Expensify Classic using Submission Frequency in your Workspace settings.
+keywords: [Expensify Classic, automatic report submission, delay submissions, submission frequency, expense report schedule]
 ---
 
 
@@ -13,7 +13,7 @@ By setting a submission schedule for your workspace, expenses are automatically 
 
 When an employee creates an expense, it's automatically added to a report. If no report exists, a new one is created. Reports are then submitted according to the schedule you choose—daily, weekly, monthly, twice per month, by trip, or manually.
 
-**Note:** If you're using **Delay Submissions** and an expense has a violation, it won't be submitted until the violation is fixed. That expense is removed from the current report and added to a new open report.
+**Note:** If you're using **Submission Frequency** and an expense has a violation, it won't be submitted until the violation is fixed. That expense is removed from the current report and added to a new open report.
 
 ---
 
@@ -22,8 +22,9 @@ When an employee creates an expense, it's automatically added to a report. If no
 To enable and configure automatic submissions:
 
 1. Go to **Settings > Workspace > [Workspace Name] > Workflows**.
-2. Turn on **Delay Submissions** by toggling it on.
+2. Turn on **Submission Frequency** by toggling it on.
 3. Select a **Submission frequency** from the following options:
+   - **Instantly** - Expenses are submitted upon creation.
    - **Daily** – Reports are submitted every evening. Violations are submitted once corrected.
    - **Weekly** – Reports are submitted weekly. Violations are submitted on Sunday after correction.
    - **Twice a month** – Reports are submitted on the 15th and the last day of the month. Violations are submitted at the next applicable date.
@@ -35,19 +36,19 @@ To enable and configure automatic submissions:
 
 # FAQ
 
-## I turned off Delay Submissions. Why are reports still being submitted automatically?
+## I turned off Submission Frequency. Why are reports still being submitted automatically?
 
-Turning off Delay Submissions for a Workspace doesn't affect an employee's Workspace settings. If reports are still auto-submitted, the employee will likely have Delay Submissions enabled in their workspace.
+Turning off Submission Frequency for a Workspace doesn't affect an employee's Workspace settings. If reports are still auto-submitted, the employee will likely have Submission Frequency enabled in their workspace.
 
-## What time of day are reports submitted via Delay Submissions?
+## What time of day are reports submitted via Submission Frequency?
 
 All automatic report submissions occur in the evening Pacific Standard Time (PST).
 
-## What happens if Delay Submissions is enabled on both the Individual and Company Workspace?
+## What happens if Submission Frequency is enabled on both the Individual and Company Workspace?
 
-The Company Workspace settings override the Individual Workspace settings. However, suppose your Company Workspace is configured to **Manually** submit reports, but an employee has Delay Submissions enabled on their **Individual Workspace** with a set frequency (like daily or weekly. In that case, their personal settings will control submission timing. Reports will be submitted automatically based on the frequency selected in their workspace.
+The Company Workspace settings override the Individual Workspace settings. However, suppose your Company Workspace is configured to **Manually** submit reports, but an employee has Submission Frequency enabled on their **Individual Workspace** with a set frequency (like daily or weekly. In that case, their personal settings will control submission timing. Reports will be submitted automatically based on the frequency selected in their workspace.
 
-## Does Delay Submissions automatically create separate reports for each of my credit cards?
+## Does Submission Frequency automatically create separate reports for each of my credit cards?
 
 No. All expenses are collected into a single report and submitted based on the selected frequency.
 

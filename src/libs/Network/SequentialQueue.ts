@@ -306,6 +306,10 @@ function isPaused(): boolean {
     return isQueuePaused;
 }
 
+function getShouldFailAllRequests(): boolean {
+    return shouldFailAllRequests;
+}
+
 // Flush the queue when the connection resumes
 onReconnection(flush);
 
@@ -392,6 +396,7 @@ function resetQueue(): void {
 export {
     flush,
     getCurrentRequest,
+    getShouldFailAllRequests,
     isPaused,
     isRunning,
     pause,

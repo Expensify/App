@@ -111,7 +111,7 @@ function IOURequestStepDescription({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplit) {
-            setDraftSplitTransaction(transaction?.transactionID, {comment: newComment});
+            setDraftSplitTransaction(transaction?.transactionID, splitDraftTransaction, {comment: newComment});
             navigateBack();
             return;
         }
@@ -173,7 +173,7 @@ function IOURequestStepDescription({
             </FormProvider>
             <DiscardChangesConfirmation
                 onCancel={() => {
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         inputRef.current?.focus();
                     });

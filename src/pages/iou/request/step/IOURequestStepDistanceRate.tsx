@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -63,7 +63,7 @@ function IOURequestStepDistanceRate({
         Navigation.goBack(backTo);
     };
 
-    const sections = sortedRates.map((rate) => {
+    const options = sortedRates.map((rate) => {
         const unit = transaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(transaction, rate) : rate.unit;
         const isSelected = currentRateID
             ? currentRateID === rate.customUnitRateID
@@ -72,7 +72,7 @@ function IOURequestStepDistanceRate({
         return {
             text: rate.name ?? rateForDisplay,
             alternateText: rate.name ? rateForDisplay : '',
-            keyForList: rate.customUnitRateID,
+            keyForList: rate.customUnitRateID ?? rateForDisplay,
             value: rate.customUnitRateID,
             isDisabled: !rate.enabled,
             isSelected,
@@ -81,7 +81,7 @@ function IOURequestStepDistanceRate({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
-    const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
+    const initiallyFocusedOption = options.find((item) => item.isSelected)?.keyForList;
 
     function selectDistanceRate(customUnitRateID: string) {
         let taxAmount;
@@ -119,11 +119,11 @@ function IOURequestStepDistanceRate({
             <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate')}</Text>
 
             <SelectionList
-                sections={[{data: sections}]}
+                data={options}
                 ListItem={RadioListItem}
                 onSelectRow={({value}) => selectDistanceRate(value ?? '')}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedOptionKey={initiallyFocusedOption}
+                initiallyFocusedItemKey={initiallyFocusedOption}
             />
         </StepScreenWrapper>
     );

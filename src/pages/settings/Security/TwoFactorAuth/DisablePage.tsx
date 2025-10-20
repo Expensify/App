@@ -5,7 +5,6 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,7 +20,7 @@ import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 function DisablePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
@@ -45,10 +44,10 @@ function DisablePage() {
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.DISABLE}
             title={translate('twoFactorAuth.disableTwoFactorAuth')}
         >
-            <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <View style={[styles.ph5, styles.mt3]}>
-                    <Text>{translate('twoFactorAuth.explainProcessToRemove')}</Text>
-                </View>
+            <ScrollView
+                contentContainerStyle={styles.flexGrow1}
+                keyboardShouldPersistTaps="handled"
+            >
                 <View style={[styles.mh5, styles.mb4, styles.mt3]}>
                     <TwoFactorAuthForm
                         innerRef={formRef}

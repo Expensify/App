@@ -1,5 +1,5 @@
 import {CardStyleInterpolators} from '@react-navigation/stack';
-import type {StackCardInterpolationProps} from '@react-navigation/stack/src/types';
+import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import {useContext, useMemo} from 'react';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';

@@ -75,7 +75,7 @@ function IOURequestStepDate({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplit) {
-            setDraftSplitTransaction(transactionID, {created: newCreated});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {created: newCreated});
             navigateBack();
             return;
         }
