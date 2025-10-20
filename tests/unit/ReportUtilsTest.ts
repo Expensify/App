@@ -25,6 +25,7 @@ import {
     buildTransactionThread,
     canAddTransaction,
     canCreateRequest,
+    canDeleteMoneyRequestReport,
     canDeleteReportAction,
     canDeleteTransaction,
     canEditMoneyRequest,
@@ -2997,6 +2998,13 @@ describe('ReportUtils', () => {
             ];
             const latestReport: OnyxEntry<Report> = {reportID: '1', lastReadTime: '2023-07-08 07:15:44.030'};
             expect(getMostRecentlyVisitedReport(reports, undefined)).toEqual(latestReport);
+        });
+    });
+
+    describe('canDeleteMoneyRequestReport', () => {
+        it('should allow deletion if the report is open invoice report', () => {
+            const invoiceReport = {...createInvoiceReport(343), ownerAccountID: currentUserAccountID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+            expect(canDeleteMoneyRequestReport(invoiceReport, [], [])).toBe(true);
         });
     });
 
