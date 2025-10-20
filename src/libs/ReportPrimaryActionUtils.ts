@@ -41,6 +41,7 @@ import {
 import {getSession} from './SessionUtils';
 import {
     allHavePendingRTERViolation,
+    getTransactionViolations,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
@@ -366,6 +367,10 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
 
     if (isRemoveHoldAction(report, chatReport, reportTransactions) || isPayActionWithAllExpensesHeld) {
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
+    }
+
+    if (isExpenseReportUtils(report) && reportTransactions.length === 1 && isMarkAsResolvedAction(report, getTransactionViolations(reportTransactions.at(0), violations), policy)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
 
     if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions)) {
