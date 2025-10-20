@@ -201,6 +201,7 @@ function MoneyRequestParticipantsSelector({
                 isPerDiemRequest,
                 showRBR: false,
             },
+            countryCode,
         );
 
         const orderedOptions = orderOptions(optionList);
@@ -223,6 +224,7 @@ function MoneyRequestParticipantsSelector({
         isCategorizeOrShareAction,
         isPerDiemRequest,
         canShowManagerMcTest,
+        countryCode,
         isCorporateCardTransaction,
     ]);
 
@@ -258,6 +260,7 @@ function MoneyRequestParticipantsSelector({
                 !!chatOptions?.userToInvite,
                 debouncedSearchTerm.trim(),
                 participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
+                countryCode,
             ),
         [
             chatOptions.personalDetails,
@@ -268,6 +271,7 @@ function MoneyRequestParticipantsSelector({
             cleanSearchTerm,
             debouncedSearchTerm,
             participants,
+            countryCode,
         ],
     );
     /**
@@ -488,7 +492,7 @@ function MoneyRequestParticipantsSelector({
 
     const initiateContactImportAndSetState = useCallback(() => {
         setContactPermissionState(RESULTS.GRANTED);
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(importAndSaveContacts);
     }, [importAndSaveContacts, setContactPermissionState]);
 
