@@ -45,6 +45,7 @@ import {
     getReportRecipientAccountIDs,
     isChatRoom,
     isGroupChat,
+    isInvoiceReport,
     isReportApproved,
     isReportTransactionThread,
     isSettled,
@@ -223,7 +224,7 @@ function ReportActionCompose({
         const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived, isRestrictedToPreferredPolicy).length;
         const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledOrApproved;
         const isRoomOrGroupChat = isChatRoom(report) || isGroupChat(report);
-        return !isRoomOrGroupChat && (canModifyReceipt || hasMoneyRequestOptions);
+        return !isRoomOrGroupChat && (canModifyReceipt || hasMoneyRequestOptions) && !isInvoiceReport(report);
     }, [shouldAddOrReplaceReceipt, report, reportParticipantIDs, policy, isReportArchived, isRestrictedToPreferredPolicy]);
 
     // Placeholder to display in the chat input.
