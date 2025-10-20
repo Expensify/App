@@ -12486,7 +12486,11 @@ function shouldOptimisticallyUpdateSearch(
     isInvoice: boolean | undefined,
     transaction?: OnyxEntry<OnyxTypes.Transaction>,
 ) {
-    if (currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.INVOICE && currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
+    if (
+        currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.INVOICE &&
+        currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.EXPENSE &&
+        currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT
+    ) {
         return false;
     }
     let shouldOptimisticallyUpdateByStatus;
@@ -12512,7 +12516,10 @@ function shouldOptimisticallyUpdateSearch(
     const unapprovedCashSimilarSearchHash = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH].similarSearchHash;
 
     const validSearchTypes =
-        (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) || (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE);
+        (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) ||
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE) ||
+        currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     return (
         shouldOptimisticallyUpdateByStatus &&
