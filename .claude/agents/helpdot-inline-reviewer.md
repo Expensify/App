@@ -57,9 +57,19 @@ keywords: [feature name, related terms, navigation path, etc.]
    - Focus ONLY on documentation files (*.md, *.csv, etc.)
 
 2. **For analyzing changed files:**
-   - **For large files (>5000 lines):** Use the Grep tool to search for specific patterns (e.g., "policy", "user", wrong terminology) or read specific line ranges
-   - **For normal-sized files:** Read the full file using the Read tool
-   - **If a Read fails with token limit error:** Use Grep to search for specific violation patterns or use offset/limit parameters to read the file in chunks
+   - **Use a hybrid approach** because different violations require different analysis methods:
+     - **Grep is suitable for pattern-based violations only:**
+       - Terminology violations ("policy" → "workspace", "user" → "member")
+       - Button label violations ("Save" → "Confirm", "Continue" → "Next")
+       - Missing YAML frontmatter markers (`---`)
+     - **Full file reading is required for semantic violations:**
+       - Readability issues (clarity, flow, scannability, reading level)
+       - AI Readiness issues (vague headings, unclear references, logical structure)
+       - Proper hierarchy and document structure
+   - **Reading strategy:**
+     - Most documentation files are small (<1000 lines) - read them in full
+     - For files >1000 lines: Read in overlapping chunks using offset/limit to maintain context
+     - **Never rely on grep alone** - semantic violations require understanding context, not just pattern matching
 
 3. **For each violation found, immediately create an inline comment** using the available GitHub inline comment tool
 
