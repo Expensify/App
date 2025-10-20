@@ -52,9 +52,18 @@ keywords: [feature name, related terms, navigation path, etc.]
 
 ## Instructions
 
-1. **Read each changed file carefully** using the Read tool
-2. **For each violation found, immediately create an inline comment** using the available GitHub inline comment tool
-3. **Required parameters for each inline comment:**
+1. **First, get the list of changed files:**
+   - Use `gh pr diff` to see what actually changed in the PR
+   - Focus ONLY on documentation files (*.md, *.csv, etc.)
+
+2. **For analyzing changed files:**
+   - **For large files (>5000 lines):** Use the Grep tool to search for specific patterns (e.g., "policy", "user", wrong terminology) or read specific line ranges
+   - **For normal-sized files:** Read the full file using the Read tool
+   - **If a Read fails with token limit error:** Use Grep to search for specific violation patterns or use offset/limit parameters to read the file in chunks
+
+3. **For each violation found, immediately create an inline comment** using the available GitHub inline comment tool
+
+4. **Required parameters for each inline comment:**
    - `path`: Full file path (e.g., "docs/articles/new-expensify/chat/Create-a-New-Chat.md")
    - `line`: Line number where the issue occurs
    - `body`: Concise description of the violation and fix
