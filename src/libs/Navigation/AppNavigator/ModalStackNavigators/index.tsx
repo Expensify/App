@@ -14,6 +14,7 @@ import type {
     AddUnreportedExpensesParamList,
     ConsoleNavigatorParamList,
     DebugParamList,
+    DomainModalNavigatorParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
     FlagCommentNavigatorParamList,
@@ -909,6 +910,11 @@ const ScheduleCallModalStackNavigator = createModalStackNavigator<ScheduleCallPa
     [SCREENS.SCHEDULE_CALL.CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/ScheduleCall/ScheduleCallConfirmationPage').default,
 });
 
+const DomainModalStackNavigator = createModalStackNavigator<DomainModalNavigatorParamList>({
+    [SCREENS.DOMAIN.VERIFY_DOMAIN]: () => require<ReactComponentModule>('../../../../pages/domain/VerifyDomainPage').default,
+    [SCREENS.DOMAIN.DOMAIN_VERIFIED]: () => require<ReactComponentModule>('../../../../pages/domain/DomainVerifiedPage').default,
+});
+
 export {
     AddPersonalBankAccountModalStackNavigator,
     EditRequestStackNavigator,
@@ -955,4 +961,5 @@ export {
     AddUnreportedExpenseModalStackNavigator,
     ScheduleCallModalStackNavigator,
     MergeTransactionStackNavigator,
+    DomainModalStackNavigator,
 };

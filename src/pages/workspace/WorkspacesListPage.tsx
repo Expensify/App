@@ -96,7 +96,7 @@ type WorkspaceItem = ListItem &
 // eslint-disable-next-line react/no-unused-prop-types
 type GetWorkspaceMenuItem = {item: WorkspaceItem; index: number};
 
-type DomainItem = ListItem & {title: string; action: () => void; disabled: boolean};
+type DomainItem = ListItem & {domainAccountID: number; title: string; action: () => void; isAdmin: boolean; isValidated: boolean};
 
 // eslint-disable-next-line react/no-unused-prop-types
 type GetDomainMenuItem = {item: DomainItem; index: number};
@@ -412,29 +412,44 @@ function WorkspacesListPage() {
      * Gets the menu item for each domain
      */
     const getDomainMenuItem = useCallback(
-        ({item, index}: GetDomainMenuItem) => (
-            <OfflineWithFeedback
-                key={`domain_${item.title}_${index}`}
-                pendingAction={item.pendingAction}
-                style={styles.mb2}
-            >
-                <PressableWithoutFeedback
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel="row"
-                    style={styles.mh5}
-                    onPress={item.action}
-                    disabled={item.disabled}
+        ({item, index}: GetDomainMenuItem) => {
+            const threeDotsMenuItems: PopoverMenuItem[] | undefined =
+                !item.isValidated && item.isAdmin
+                    ? [
+                          {
+                              icon: Expensicons.Globe,
+                              text: translate('domain.verifyDomain.title'),
+                              onSelected: () => Navigation.navigate(ROUTES.DOMAIN_DOMAIN_VERIFIED.getRoute(item.domainAccountID)),
+                          },
+                      ]
+                    : undefined;
+
+            return (
+                <OfflineWithFeedback
+                    key={`domain_${item.title}_${index}`}
+                    pendingAction={item.pendingAction}
+                    style={styles.mb2}
                 >
-                    {({hovered}) => (
-                        <DomainsListRow
-                            title={item.title}
-                            isHovered={hovered}
-                        />
-                    )}
-                </PressableWithoutFeedback>
-            </OfflineWithFeedback>
-        ),
-        [styles],
+                    <PressableWithoutFeedback
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel="row"
+                        style={styles.mh5}
+                        onPress={item.action}
+                        disabled={!item.isAdmin}
+                    >
+                        {({hovered}) => (
+                            <DomainsListRow
+                                title={item.title}
+                                isValidated={item.isValidated}
+                                isHovered={hovered}
+                                menuItems={threeDotsMenuItems}
+                            />
+                        )}
+                    </PressableWithoutFeedback>
+                </OfflineWithFeedback>
+            );
+        },
+        [styles, translate],
     );
 
     const navigateToWorkspace = useCallback(
@@ -449,7 +464,13 @@ function WorkspacesListPage() {
         [shouldUseNarrowLayout],
     );
 
-    const navigateToDomain = useCallback(() => openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL), []);
+    const navigateToDomain = useCallback(({accountID, isValidated}: {accountID: number; isAdmin: boolean; isValidated: boolean}) => {
+        if (isValidated) {
+            openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
+        } else {
+            Navigation.navigate(ROUTES.DOMAIN_VERIFY_DOMAIN.getRoute(accountID));
+        }
+    }, []);
 
     /**
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
@@ -527,10 +548,14 @@ function WorkspacesListPage() {
                 return acc;
             }
 
+            const isAdmin = !!adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domain.accountID}`];
+
             acc.push({
+                domainAccountID: domain.accountID,
                 title: Str.extractEmailDomain(domain.email),
-                action: navigateToDomain,
-                disabled: !adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domain.accountID}`],
+                action: () => navigateToDomain({accountID: domain.accountID, isAdmin, isValidated: domain.validated}),
+                isAdmin,
+                isValidated: domain.validated,
                 pendingAction: domain.pendingAction,
             });
 

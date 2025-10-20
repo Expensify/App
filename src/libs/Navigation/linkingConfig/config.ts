@@ -1712,6 +1712,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.DOMAIN]: {
+                    screens: {
+                        [SCREENS.DOMAIN.VERIFY_DOMAIN]: ROUTES.DOMAIN_VERIFY_DOMAIN.route,
+                        [SCREENS.DOMAIN.DOMAIN_VERIFIED]: ROUTES.DOMAIN_DOMAIN_VERIFIED.route,
+                    },
+                },
             },
         },
 

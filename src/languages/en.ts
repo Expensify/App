@@ -529,6 +529,7 @@ const translations = {
         letsDoThis: `Let's do this!`,
         letsStart: `Let's start`,
         showMore: 'Show more',
+        showLess: 'Show less',
         merchant: 'Merchant',
         category: 'Category',
         report: 'Report',
@@ -7264,6 +7265,24 @@ const translations = {
         expenseLevelExport: 'All Data - expense level',
         exportInProgress: 'Export in progress',
         conciergeWillSend: 'Concierge will send you the file shortly.',
+    },
+    domain: {
+        notVerified: 'Not verified',
+        verifyDomain: {
+            title: 'Verify domain',
+            beforeProceeding: ({domainName}: {domainName: string}) => `Before proceeding, verify that you own <strong>${domainName}</strong> by updating its DNS settings.`,
+            accessYourDNS: ({domainName}: {domainName: string}) => `Access your DNS provider and open DNS settings for <strong>${domainName}</strong>.`,
+            addTXTRecord: 'Add the following TXT record:',
+            saveChanges: 'Save changes and return here to verify your domain.',
+            youMayNeedToConsult: "You may need to consult your organization's IT department to complete verification.",
+            warning: 'After verification, all Expensify members on your domain will receive an email that their account will be managed under your domain.',
+        },
+        domainVerified: {
+            title: 'Domain verified',
+            header: 'Wooo! Your domain has been verified',
+            description: ({domainName}: {domainName: string}) =>
+                `The domain <strong>${domainName}</strong> has been successfully verified and you can now set up SAML and other security features.`,
+        },
     },
 };
 

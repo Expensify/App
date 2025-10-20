@@ -3299,6 +3299,14 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
     },
+    DOMAIN_VERIFY_DOMAIN: {
+        route: 'domain/:accountID/verify-domain',
+        getRoute: (accountID: number) => `domain/${accountID}/verify-domain` as const,
+    },
+    DOMAIN_DOMAIN_VERIFIED: {
+        route: 'domain/:accountID/domain-verified',
+        getRoute: (accountID: number) => `domain/${accountID}/domain-verified` as const,
+    },
 } as const;
 
 /**
