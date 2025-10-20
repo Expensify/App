@@ -573,7 +573,6 @@ function MoneyRequestReportPreviewContent({
                     startApprovedAnimation();
                     approveMoneyRequest(iouReport, isFullApproval);
                 }}
-                onConfirmApproval={confirmApproval}
             />
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY]: (

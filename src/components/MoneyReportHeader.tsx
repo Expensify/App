@@ -798,7 +798,6 @@ function MoneyReportHeader({
                         });
                     }
                 }}
-                onConfirmApproval={confirmApproval}
             />
         ),
         [CONST.REPORT.PRIMARY_ACTIONS.PAY]: (

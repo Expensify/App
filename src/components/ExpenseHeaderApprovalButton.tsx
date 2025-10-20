@@ -28,9 +28,6 @@ type ExpenseHeaderApprovalButtonProps = {
 
     /** Callback when approval is confirmed */
     onApprove: (isFullApproval: boolean) => void;
-
-    /** Callback for simple approval confirmation */
-    onConfirmApproval: () => void;
 };
 
 type ApprovalOption = {
@@ -99,7 +96,6 @@ function ExpenseHeaderApprovalButton({
     nonHeldAmount,
     fullAmount,
     onApprove,
-    onConfirmApproval,
 }: ExpenseHeaderApprovalButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -136,7 +132,7 @@ function ExpenseHeaderApprovalButton({
     return (
         <Button
             success
-            onPress={onConfirmApproval}
+            onPress={() => onApprove(true)}
             text={translate('iou.approve')}
         />
     );
