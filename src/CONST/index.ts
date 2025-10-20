@@ -703,7 +703,6 @@ const CONST = {
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         NEWDOT_REVERT_SPLITS: 'newDotRevertSplits',
-        NEWDOT_UPDATE_SPLITS: 'newDotUpdateSplits',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
@@ -1054,6 +1053,7 @@ const CONST = {
         POLICY_CONNECTIONS_URL: (policyID: string) => `policy?param={"policyID":"${policyID}"}#connections`,
         POLICY_CONNECTIONS_URL_ENCODED: (policyID: string) => `policy?param=%7B%22policyID%22%3A%22${policyID}%22%7D#connections`,
         SIGN_OUT: 'signout',
+        SUPPORTAL_RESTORE_STASHED_LOGIN: '_support/index?action=restoreStashedLogin',
     },
 
     EXPENSIFY_POLICY_DOMAIN,
@@ -1647,6 +1647,7 @@ const CONST = {
     // we set this height threshold to 30dpi, since gesture bars will never be taller than that. (Samsung & Huawei: ~14-15dpi)
     NAVIGATION_BAR_ANDROID_SOFT_KEYS_MINIMUM_HEIGHT_THRESHOLD: 30,
     TRANSACTION: {
+        RESULTS_PAGE_SIZE: 20,
         DEFAULT_MERCHANT: 'Expense',
         UNKNOWN_MERCHANT: 'Unknown Merchant',
         PARTIAL_TRANSACTION_MERCHANT: '(none)',
@@ -5385,6 +5386,7 @@ const CONST = {
     LOTTIE_VIEW_TEST_ID: 'LottieView',
 
     DOT_INDICATOR_TEST_ID: 'DotIndicator',
+    ANIMATED_COLLAPSIBLE_CONTENT_TEST_ID: 'animated-collapsible-content',
 
     CHAT_HEADER_LOADER_HEIGHT: 36,
 
@@ -6476,6 +6478,7 @@ const CONST = {
         ME: 'me',
         DATA_TYPES: {
             EXPENSE: 'expense',
+            EXPENSE_REPORT: 'expense-report',
             INVOICE: 'invoice',
             TASK: 'task',
             TRIP: 'trip',
@@ -6533,7 +6536,6 @@ const CONST = {
             DESC: 'desc',
         },
         GROUP_BY: {
-            REPORTS: 'reports',
             FROM: 'from',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
@@ -6550,6 +6552,14 @@ const CONST = {
             EXPENSE: {
                 ALL: '',
                 UNREPORTED: 'unreported',
+                DRAFTS: 'drafts',
+                OUTSTANDING: 'outstanding',
+                APPROVED: 'approved',
+                DONE: 'done',
+                PAID: 'paid',
+            },
+            EXPENSE_REPORT: {
+                ALL: '',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
@@ -6709,7 +6719,6 @@ const CONST = {
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
                 [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
-                [this.GROUP_BY.REPORTS]: 'report',
                 [this.STATUS.EXPENSE.DRAFTS]: 'draft',
             };
         },
