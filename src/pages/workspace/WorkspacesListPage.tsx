@@ -517,18 +517,26 @@ function WorkspacesListPage() {
     const sortWorkspace = useCallback((workspaceItems: WorkspaceItem[]) => workspaceItems.sort((a, b) => localeCompare(a.title, b.title)), [localeCompare]);
     const [inputValue, setInputValue, filteredWorkspaces] = useSearchResults(workspaces, filterWorkspace, sortWorkspace);
 
-    const domains = useMemo(
-        () =>
-            Object.values(allDomains ?? {})
-                .filter((domain) => domain !== undefined)
-                .map((domain) => ({
-                    title: Str.extractEmailDomain(domain.email),
-                    action: navigateToDomain,
-                    disabled: !adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domain.accountID}`],
-                    pendingAction: domain.pendingAction,
-                })) satisfies DomainItem[],
-        [navigateToDomain, allDomains, adminAccess],
-    );
+    const domains = useMemo(() => {
+        if (!allDomains) {
+            return [];
+        }
+
+        return Object.values(allDomains).reduce<DomainItem[]>((acc, domain) => {
+            if (!domain) {
+                return acc;
+            }
+
+            acc.push({
+                title: Str.extractEmailDomain(domain.email),
+                action: navigateToDomain,
+                disabled: !adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domain.accountID}`],
+                pendingAction: domain.pendingAction,
+            });
+
+            return acc;
+        }, []);
+    }, [navigateToDomain, allDomains, adminAccess]);
 
     useEffect(() => {
         if (isEmptyObject(duplicateWorkspace) || !filteredWorkspaces.length || !isFocused) {
@@ -591,7 +599,7 @@ function WorkspacesListPage() {
     );
 
     const getHeaderButton = () =>
-        workspaces.length > 0 ? (
+        workspaces.length ? (
             <Button
                 accessibilityLabel={translate('workspace.new.newWorkspace')}
                 text={translate('workspace.new.newWorkspace')}
