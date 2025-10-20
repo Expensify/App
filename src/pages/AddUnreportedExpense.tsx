@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
+import Button from '@components/Button';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -23,7 +24,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
 import Permissions from '@libs/Permissions';
 import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import {isIOUReport} from '@libs/ReportUtils';
+import {getTransactionDetails, isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {createUnreportedExpenseSections, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
@@ -73,6 +74,11 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     return false;
                 }
 
+                // Negative values are not allowed for unreported expenses
+                if ((getTransactionDetails(item)?.amount ?? 0) < 0) {
+                    return false;
+                }
+
                 if (isPerDiemRequest(item)) {
                     // Only show per diem expenses if the target workspace has per diem enabled and the per diem expense was created in the same workspace
                     const workspacePerDiemUnit = getPerDiemCustomUnit(policy);
@@ -110,8 +116,13 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
 
     const styles = useThemeStyles();
     const selectionListRef = useRef<SelectionListHandle>(null);
+
+    const shouldShowTextInput = useMemo(() => {
+        return transactions.length >= CONST.SEARCH_ITEM_LIMIT;
+    }, [transactions.length]);
+
     const filteredTransactions = useMemo(() => {
-        if (!debouncedSearchValue.trim()) {
+        if (!debouncedSearchValue.trim() || !shouldShowTextInput) {
             return transactions;
         }
 
@@ -135,13 +146,58 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
 
             return searchableFields;
         });
-    }, [transactions, debouncedSearchValue]);
+    }, [debouncedSearchValue, shouldShowTextInput, transactions]);
 
     const sections: Array<SectionListDataType<Transaction & ListItem>> = useMemo(() => createUnreportedExpenseSections(filteredTransactions), [filteredTransactions]);
 
-    const shouldShowTextInput = useMemo(() => {
-        return transactions.length >= CONST.SEARCH_ITEM_LIMIT;
-    }, [transactions.length]);
+    const handleConfirm = useCallback(() => {
+        if (selectedIds.size === 0) {
+            setErrorMessage(translate('iou.selectUnreportedExpense'));
+            return;
+        }
+        Navigation.dismissModal();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            if (report && isIOUReport(report)) {
+                convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID);
+            } else {
+                changeTransactionsReport(
+                    [...selectedIds],
+                    report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
+                    isASAPSubmitBetaEnabled,
+                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    session?.email ?? '',
+                    policy,
+                    reportNextStep,
+                    policyCategories,
+                );
+            }
+        });
+        setErrorMessage('');
+    }, [selectedIds, translate, report, isASAPSubmitBetaEnabled, session?.accountID, session?.email, policy, reportNextStep, policyCategories]);
+
+    const footerContent = useMemo(() => {
+        return (
+            <>
+                {!!errorMessage && (
+                    <FormHelpMessage
+                        style={[styles.ph1, styles.mb2]}
+                        isError
+                        message={errorMessage}
+                    />
+                )}
+                <Button
+                    success
+                    large
+                    style={[styles.w100, styles.justifyContentCenter]}
+                    text={translate('iou.addUnreportedExpenseConfirm')}
+                    onPress={handleConfirm}
+                    pressOnEnter
+                    enterKeyEventListenerPriority={1}
+                />
+            </>
+        );
+    }, [errorMessage, styles, translate, handleConfirm]);
 
     const headerMessage = useMemo(() => {
         if (debouncedSearchValue.trim() && sections.at(0)?.data.length === 0) {
@@ -217,9 +273,11 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
 
     return (
         <ScreenWrapper
-            shouldEnableKeyboardAvoidingView={false}
+            shouldEnableKeyboardAvoidingView
             includeSafeAreaPaddingBottom
             shouldEnablePickerAvoiding={false}
+            shouldEnableMaxHeight
+            enableEdgeToEdgeBottomSafeAreaPadding
             testID={NewChatSelectorPage.displayName}
             focusTrapSettings={{active: false}}
         >
@@ -253,46 +311,12 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 canSelectMultiple
                 sections={sections}
                 ListItem={UnreportedExpenseListItem}
-                confirmButtonStyles={[styles.justifyContentCenter]}
-                showConfirmButton
-                confirmButtonText={translate('iou.addUnreportedExpenseConfirm')}
-                onConfirm={() => {
-                    if (selectedIds.size === 0) {
-                        setErrorMessage(translate('iou.selectUnreportedExpense'));
-                        return;
-                    }
-                    Navigation.dismissModal();
-                    // eslint-disable-next-line deprecation/deprecation
-                    InteractionManager.runAfterInteractions(() => {
-                        if (report && isIOUReport(report)) {
-                            convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID);
-                        } else {
-                            changeTransactionsReport(
-                                [...selectedIds],
-                                report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
-                                isASAPSubmitBetaEnabled,
-                                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                                session?.email ?? '',
-                                policy,
-                                reportNextStep,
-                                policyCategories,
-                            );
-                        }
-                    });
-                    setErrorMessage('');
-                }}
                 onEndReached={fetchMoreUnreportedTransactions}
                 onEndReachedThreshold={0.75}
+                addBottomSafeAreaPadding
                 listFooterContent={shouldShowUnreportedTransactionsSkeletons ? <UnreportedExpensesSkeleton fixedNumberOfItems={3} /> : undefined}
-            >
-                {!!errorMessage && (
-                    <FormHelpMessage
-                        style={[styles.mb2, styles.ph4]}
-                        isError
-                        message={errorMessage}
-                    />
-                )}
-            </SelectionList>
+                footerContent={footerContent}
+            />
         </ScreenWrapper>
     );
 }
