@@ -40,13 +40,13 @@ function SystemChatReportFooterMessage() {
                 return (
                     <RenderHTML
                         html={translate('systemChatFooterMessage.newDotManageTeam', {
-                            reportName: adminChatReport?.reportName ?? CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
+                            adminReportName: adminChatReport?.reportName ?? CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
                             href: `${environmentURL}${ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID)}`,
                         })}
                     />
                 );
             default:
-                return <>{translate('systemChatFooterMessage.default')}</>;
+                return <RenderHTML html={translate('systemChatFooterMessage.default')} />;
         }
     }, [adminChatReport?.reportName, adminChatReport?.reportID, choice, translate, environmentURL]);
 

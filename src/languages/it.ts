@@ -6690,9 +6690,9 @@ ${amount} per ${merchant} - ${date}`,
         copyReferralLink: 'Copia il link di invito',
     },
     systemChatFooterMessage: {
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({reportName, href}: {reportName: string; href: string}) =>
-            `Chatta con il tuo specialista di configurazione in <a href="${href}">${reportName}</a> per assistenza`,
-        default: `Messaggio ${CONST?.CONCIERGE_CHAT_NAME} per assistenza con la configurazione`,
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: ({adminReportName, href}: {adminReportName: string; href: string}) =>
+            `Chatta con il tuo specialista di configurazione in <a href="${href}">${adminReportName}</a> per assistenza`,
+        default: `Messaggio <concierge-link>${CONST.CONCIERGE_CHAT_NAME}</concierge-link> per assistenza con la configurazione`,
     },
     violations: {
         allTagLevelsRequired: 'Tutti i tag richiesti',
