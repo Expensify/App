@@ -12,7 +12,6 @@ import {join} from 'path';
 import type {TupleToUnion} from 'type-fest';
 import CLI from './utils/CLI';
 import Git from './utils/Git';
-import type {DiffResult} from './utils/Git';
 import {log, bold as logBold, error as logError, info as logInfo, note as logNote, success as logSuccess, warn as logWarn} from './utils/Logger';
 
 const TAB = '    ';
@@ -88,8 +87,8 @@ async function check({
 
     if (shouldFilterByDiff) {
         const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
-        const headCommitHash = 'HEAD';
-        const diffFilteringCommits: DiffFilteringCommits = {from: mainBaseCommitHash, to: headCommitHash};
+        const diffFilteringCommits: DiffFilteringCommits = {from: mainBaseCommitHash, to: 'HEAD'};
+
         results = await filterResultsByDiff(results, diffFilteringCommits, {shouldPrintSuccesses, shouldPrintSuppressedErrors});
     }
 
@@ -125,7 +124,7 @@ function runCompilerHealthcheck(src?: string): CompilerResults {
         srcString = srcString?.endsWith('"') ? srcString : `${srcString}"`;
     }
 
-    const command = `npx react-compiler-healthcheck ${src ? `--src ${srcString}` : ''} --verbose `;
+    const command = `npx react-compiler-healthcheck ${src ? `--src ${srcString}` : ''} --verbose`;
     const output = execSync(command, {
         encoding: 'utf8',
         cwd: process.cwd(),
@@ -158,9 +157,9 @@ function parseHealthcheckOutput(output: string): CompilerResults {
     const lines = output.split('\n');
 
     const results: CompilerResults = {
-        success: new Set<string>(),
-        failures: new Map<string, CompilerFailure>(),
-        suppressedFailures: new Map<string, CompilerFailure>(),
+        success: new Set(),
+        failures: new Map(),
+        suppressedFailures: new Map(),
     };
 
     let currentFailureWithoutReason: CompilerFailure | null = null;
@@ -289,7 +288,7 @@ async function filterResultsByDiff(
     logInfo(`Filtering results by diff between ${diffFilteringCommits.from} and ${diffFilteringCommits.to}...`);
 
     // Get the diff between the two commits
-    const diffResult: DiffResult = Git.diff(diffFilteringCommits.from, diffFilteringCommits.to);
+    const diffResult = Git.diff(diffFilteringCommits.from, diffFilteringCommits.to);
 
     // If there are no changes, return empty results
     if (!diffResult.hasChanges) {
@@ -303,9 +302,7 @@ async function filterResultsByDiff(
     // Create a map of file paths to changed line numbers for quick lookup
     const changedLinesMap = new Map<string, Set<number>>();
     for (const file of diffResult.files) {
-        const changedLines = new Set<number>();
-        file.addedLines.forEach((line) => changedLines.add(line));
-        file.modifiedLines.forEach((line) => changedLines.add(line));
+        const changedLines = new Set([...file.addedLines, ...file.modifiedLines]);
         changedLinesMap.set(file.filePath, changedLines);
     }
 
@@ -548,7 +545,7 @@ async function main() {
     async function runCommand() {
         switch (command) {
             case 'check':
-                return Checker.check({filesToCheck: file !== '' ? [file] : undefined, ...commonOptions});
+                return Checker.check({files: file ? [file] : undefined, ...commonOptions});
             case 'check-changed':
                 return Checker.checkChangedFiles({remote, ...commonOptions});
             default:
