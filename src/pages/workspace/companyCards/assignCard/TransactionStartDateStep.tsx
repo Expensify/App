@@ -1,5 +1,5 @@
 import {format, subDays} from 'date-fns';
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import DatePicker from '@components/DatePicker';
@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import {setAssignCardStepAndData, setTransactionStartDate} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,6 +27,7 @@ function TransactionStartDateStep() {
 
     const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
     const startDate = assignCard?.startDate ?? data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+    const [errorText, setErrorText] = useState('');
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -39,10 +41,16 @@ function TransactionStartDateStep() {
     };
 
     const handleSelectDateOption = (dateOption: string) => {
+        setErrorText('');
         setDateOptionSelected(dateOption);
     };
 
     const submit = () => {
+        if (!isRequiredFulfilled(startDate)) {
+            setErrorText(translate('common.error.fieldRequired'));
+            return;
+        }
+
         const date90DaysBack = format(subDays(new Date(), 90), CONST.DATE.FNS_FORMAT_STRING);
 
         setAssignCardStepAndData({
@@ -109,13 +117,15 @@ function TransactionStartDateStep() {
                             <View style={[styles.ph5]}>
                                 <DatePicker
                                     inputID=""
-                                    value={startDate}
+                                    defaultValue={startDate}
                                     label={translate('iou.startDate')}
                                     onInputChange={(value) => {
+                                        setErrorText('');
                                         setTransactionStartDate(value);
                                     }}
                                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                                     maxDate={new Date()}
+                                    errorText={errorText}
                                 />
                             </View>
                         ) : null
