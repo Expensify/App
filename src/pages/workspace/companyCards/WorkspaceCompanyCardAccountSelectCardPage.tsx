@@ -42,6 +42,8 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const [allBankCards] = useCardsList(policyID, bank as CompanyCardFeed);
     const card = allBankCards?.[cardID];
     const connectedIntegration = getConnectedIntegration(policy) ?? CONST.POLICY.CONNECTIONS.NAME.QBO;
+    // We need to have an unchanged active route for getExportMenuItem so the export page link is not updated incorrectly when user is in other pages
+    // See https://github.com/Expensify/App/issues/72352 for more details.
     const activeRoute = useMemo(() => Navigation.getActiveRoute(), []);
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card, activeRoute);
     const currentConnectionName = getCurrentConnectionName(policy);
