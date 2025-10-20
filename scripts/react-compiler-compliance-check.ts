@@ -369,7 +369,7 @@ async function filterResultsByDiff(
     return {
         success: filteredSuccesses,
         failures: filteredFailures,
-        suppressedFailures: results.suppressedFailures,
+        suppressedFailures: filteredSuppressedFailures,
     };
 }
 
