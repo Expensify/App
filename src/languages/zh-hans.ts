@@ -613,7 +613,7 @@ const translations = {
         disabled: '禁用',
         import: '导入',
         offlinePrompt: '您现在无法执行此操作。',
-        outstanding: '未完成的',
+        outstanding: '未完成',
         chats: '聊天',
         tasks: '任务',
         unread: '未读',
@@ -636,6 +636,7 @@ const translations = {
         downloadAsPDF: '下载为PDF',
         downloadAsCSV: '下载为CSV',
         help: '帮助',
+        expenseReport: '费用报告',
         expenseReports: '费用报告',
         rateOutOfPolicy: '超出政策的费率',
         reimbursable: '可报销的',
@@ -966,6 +967,7 @@ const translations = {
         buttonMySettings: '我的设置',
         fabNewChat: '开始聊天',
         fabNewChatExplained: '开始聊天（浮动操作）',
+        fabScanReceiptExplained: '扫描收据（浮动操作）',
         chatPinned: '聊天已置顶',
         draftedMessage: '草稿消息',
         listOfChatMessages: '聊天消息列表',
@@ -1457,6 +1459,7 @@ const translations = {
                 subtitle: '在我们将此报告路由到其余审批工作流之前，为此报告选择一个额外的审批人。',
             },
         },
+        chooseWorkspace: '选择一个工作区',
     },
     transactionMerge: {
         listPage: {
@@ -1822,6 +1825,7 @@ const translations = {
         twoFactorAuthIsRequiredForAdminsDescription: '您的Xero会计连接需要使用双重身份验证。要继续使用Expensify，请启用它。',
         twoFactorAuthCannotDisable: '无法禁用双重身份验证',
         twoFactorAuthRequired: '您的Xero连接需要双因素认证（2FA），且无法禁用。',
+        explainProcessToRemoveWithRecovery: '为了禁用双因素认证 (2FA)，请输入有效的恢复代码。',
     },
     recoveryCodeForm: {
         error: {
@@ -1987,6 +1991,25 @@ const translations = {
         cardDetailsLoadingFailure: '加载卡片详情时发生错误。请检查您的互联网连接并重试。',
         validateCardTitle: '让我们确认一下身份',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `请输入发送到${contactMethod}的验证码以查看您的卡详细信息。验证码应在一两分钟内到达。`,
+        cardFraudAlert: {
+            confirmButtonText: '是的，我愿意。',
+            reportFraudButtonText: '不，不是我',
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) => `已清除可疑活动并重新激活卡片 x${cardLastFour}。一切准备就绪，可以继续报销了！`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `已停用以${cardLastFour}结尾的卡片`,
+            alertMessage: ({
+                cardLastFour,
+                amount,
+                merchant,
+                date,
+            }: {
+                cardLastFour: string;
+                amount: string;
+                merchant: string;
+                date: string;
+            }) => `在卡号以${cardLastFour}结尾的卡上发现可疑活动。您是否认可此笔费用？
+
+${merchant}的${amount} - ${date}`,
+        },
     },
     workflowsPage: {
         workflowTitle: '花费',
@@ -1997,6 +2020,7 @@ const translations = {
         submissionFrequencyDescription: '选择提交费用的频率。',
         submissionFrequencyDateOfMonth: '月份日期',
         addApprovalsTitle: '添加审批',
+        disableApprovalPromptDescription: '禁用审批将删除所有现有的审批工作流程。',
         addApprovalButton: '添加审批工作流程',
         addApprovalTip: '此默认工作流程适用于所有成员，除非存在更具体的工作流程。',
         approver: '审批人',
@@ -2571,7 +2595,7 @@ const translations = {
                 descriptionTwo: '分类和标记费用',
                 descriptionThree: '创建和分享报告',
             },
-            price: '免费试用30天，然后只需<strong>$5/月</strong>升级。',
+            price: '免费试用30天，然后只需<strong>$5/用户/月</strong>升级。',
             createWorkspace: '创建工作区',
         },
         confirmWorkspace: {
@@ -4502,7 +4526,7 @@ const translations = {
             changeCardMonthlyLimitTypeWarning: ({limit}: CharacterLimitParams) => `如果您将此卡的限额类型更改为每月，由于已达到${limit}的每月限额，新交易将被拒绝。`,
             addShippingDetails: '添加运输详情',
             issuedCard: ({assignee}: AssigneeParams) => `已为${assignee}发放了一张Expensify卡！该卡将在2-3个工作日内送达。`,
-            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `已为${assignee}发放了一张Expensify卡！一旦添加了运送详情，卡片将被寄出。`,
+            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `已向${assignee}发放一张 Expensify Card！确认运送信息后将寄出该卡。`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `已向${assignee}发放了一张虚拟${link}！该卡可以立即使用。`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} 添加了送货详情。Expensify Card 将在2-3个工作日内送达。`,
             verifyingHeader: '验证中',
@@ -6107,7 +6131,6 @@ const translations = {
             reimbursable: '可报销的',
             purchaseCurrency: '购买货币',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.REPORTS]: '报告',
                 [CONST.SEARCH.GROUP_BY.FROM]: '从',
                 [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现ID',
@@ -6127,7 +6150,9 @@ const translations = {
         },
         has: '有',
         groupBy: '组别',
-        moneyRequestReport: {emptyStateTitle: '此报告没有费用。', emptyStateSubtitle: '您可以通过下面的按钮或上方“更多”菜单中的“添加费用”选项将费用添加到此报告中。'},
+        moneyRequestReport: {
+            emptyStateTitle: '此报告没有费用。',
+        },
         noCategory: '无类别',
         noTag: '无标签',
         expenseType: '费用类型',
@@ -6249,8 +6274,8 @@ const translations = {
         noActivityYet: '暂无活动',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `将${fieldName}从${oldValue}更改为${newValue}`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `将${fieldName}更改为${newValue}`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `已将${fieldName}更改为"${newValue}"（之前为"${oldValue}"`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `已将${fieldName}设置为"${newValue}"`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `已更改工作区${fromPolicyName ? `（之前为 ${fromPolicyName}）` : ''}`;
@@ -7027,6 +7052,7 @@ const translations = {
             isWaitingForAssigneeToCompleteAction: '正在等待受让人完成操作',
             hasChildReportAwaitingAction: '有子报告等待处理',
             hasMissingInvoiceBankAccount: '缺少发票银行账户',
+            hasUnresolvedCardFraudAlert: '有未解决的卡片欺诈警告',
         },
         reasonRBR: {
             hasErrors: '报告或报告操作数据中有错误',

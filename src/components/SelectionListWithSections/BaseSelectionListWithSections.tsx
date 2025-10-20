@@ -658,6 +658,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     }}
                     shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     index={index}
+                    sectionIndex={section?.indexOffset}
                     isFocused={isItemFocused}
                     isDisabled={isDisabled}
                     showTooltip={shouldShowTooltips}
@@ -783,11 +784,14 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     );
 
     const updateAndScrollToFocusedIndex = useCallback(
-        (newFocusedIndex: number) => {
+        (newFocusedIndex: number, shouldSkipWhenIndexNonZero = false) => {
+            if (shouldSkipWhenIndexNonZero && focusedIndex > 0) {
+                return;
+            }
             setFocusedIndex(newFocusedIndex);
             scrollToIndex(newFocusedIndex, true);
         },
-        [scrollToIndex, setFocusedIndex],
+        [focusedIndex, scrollToIndex, setFocusedIndex],
     );
 
     /** Function to focus text input */
