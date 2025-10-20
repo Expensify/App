@@ -12546,9 +12546,9 @@ const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const Logger_1 = __nccwpck_require__(8891);
 function exec(command, options) {
     const optionsWithEncoding = {
-        ...options,
         encoding: 'utf8',
         cwd: process.cwd(),
+        ...options,
     };
     return (0, util_1.promisify)(child_process_1.exec)(command, optionsWithEncoding);
 }
