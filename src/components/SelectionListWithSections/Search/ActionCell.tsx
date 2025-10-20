@@ -129,7 +129,7 @@ function ActionCell({
     if (action === CONST.SEARCH.ACTION_TYPES.PAY && !isInvoiceReport(iouReport)) {
         const {reimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
         const isNegativeAmount = reimbursableSpend < 0;
-        
+
         return (
             <SettlementButton
                 shouldUseShortForm
