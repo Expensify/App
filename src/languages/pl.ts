@@ -181,7 +181,6 @@ import type {
     QBDSetupErrorBodyParams,
     RailTicketParams,
     ReceiptPartnersUberSubtitleParams,
-    ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
     RemoveMemberPromptParams,
@@ -209,6 +208,7 @@ import type {
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
     SettlementAccountInfoParams,
+    SettlementAccountReconciliationParams,
     SettlementDateParams,
     ShareParams,
     SignerInfoMessageParams,
@@ -5375,9 +5375,9 @@ ${amount} dla ${merchant} - ${date}`,
                 `<muted-text-label>Aby włączyć funkcję ciągłego uzgadniania, włącz <a href="${accountingAdvancedSettingsLink}">automatyczną synchronizację</a> dla ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Wybierz konto bankowe, z którym będą uzgadniane płatności kartą Expensify.',
-                accountMatches: 'Upewnij się, że to konto pasuje do Twojego',
-                settlementAccount: 'Konto rozliczeniowe karty Expensify',
-                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `(kończący się na ${lastFourPAN}), aby Ciągła Rekonsyliacja działała poprawnie.`,
+
+                settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
+                    `Upewnij się, że to konto pasuje do Twojego <a href="${settlementAccountUrl}">Konto rozliczeniowe karty Expensify</a> (kończący się na ${lastFourPAN}), aby Ciągła Rekonsyliacja działała poprawnie.`,
             },
         },
         export: {

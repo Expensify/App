@@ -181,7 +181,6 @@ import type {
     QBDSetupErrorBodyParams,
     RailTicketParams,
     ReceiptPartnersUberSubtitleParams,
-    ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
     RemoveMemberPromptParams,
@@ -209,6 +208,7 @@ import type {
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
     SettlementAccountInfoParams,
+    SettlementAccountReconciliationParams,
     SettlementDateParams,
     ShareParams,
     SignerInfoMessageParams,
@@ -5383,9 +5383,8 @@ ${amount} für ${merchant} - ${date}`,
                 `<muted-text-label>Um den kontinuierlichen Abgleich zu aktivieren, aktivieren Sie bitte die <a href="${accountingAdvancedSettingsLink}">automatische Synchronisierung</a> für ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Wählen Sie das Bankkonto, gegen das Ihre Expensify Card-Zahlungen abgeglichen werden sollen.',
-                accountMatches: 'Stellen Sie sicher, dass dieses Konto mit Ihrem übereinstimmt',
-                settlementAccount: 'Expensify-Kartenabrechnungskonto',
-                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `(endend mit ${lastFourPAN}), damit die kontinuierliche Abstimmung ordnungsgemäß funktioniert.`,
+                settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
+                    `Stellen Sie sicher, dass dieses Konto mit Ihrem übereinstimmt <a href="${settlementAccountUrl}">Expensify Card-Kartenabrechnungskonto</a> (endend mit ${lastFourPAN}), damit die kontinuierliche Abstimmung ordnungsgemäß funktioniert.`,
             },
         },
         export: {
