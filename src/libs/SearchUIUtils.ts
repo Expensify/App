@@ -1105,9 +1105,6 @@ function getActions(
     }
 
     const transaction = isTransaction ? data[key] : undefined;
-    if (isUnreportedAndHasInvalidDistanceRateTransaction(transaction)) {
-        return [CONST.SEARCH.ACTION_TYPES.REVIEW];
-    }
     // Tracked and unreported expenses don't have a report, so we return early.
     if (!report) {
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
@@ -1123,7 +1120,7 @@ function getActions(
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might. We return early if there are any errors for performance reasons, so we don't need to compute any other possible actions.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (transaction?.errors || report?.errors) {
-        return [CONST.SEARCH.ACTION_TYPES.REVIEW];
+        return [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
     // We don't need to run the logic if this is not a transaction or iou/expense report, so let's shortcut the logic for performance reasons
@@ -1139,8 +1136,6 @@ function getActions(
         allReportTransactions = transaction ? [transaction] : [];
     }
 
-    const {isSubmitter, isAdmin, isApprover} = getReviewerPermissionFlags(report, policy, currentAccountID);
-
     const reportNVP = getReportNameValuePairsFromKey(data, report);
     const isIOUReportArchived = isArchivedReport(reportNVP);
 
@@ -1150,14 +1145,6 @@ function getActions(
     const hasAnyViolationsForReport = hasAnyViolations(report.reportID, allViolations, allReportTransactions);
     const hasVisibleViolationsForReport = hasAnyViolationsForReport && ViolationsUtils.hasVisibleViolationsForUser(report, allViolations, policy, allReportTransactions);
 
-    // Only check for violations if we need to (when user has permission to review)
-    if ((isSubmitter || isApprover || isAdmin) && hasVisibleViolationsForReport) {
-        if (isSubmitter && !isApprover && !isAdmin && !canReview(report, allViolations, isIOUReportArchived || isChatReportArchived, policy, allReportTransactions)) {
-            allActions.push(CONST.SEARCH.ACTION_TYPES.VIEW);
-        } else {
-            allActions.push(CONST.SEARCH.ACTION_TYPES.REVIEW);
-        }
-    }
     // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
     // If this condition is not met, return early for performance reasons
     if (isTransaction && !transaction?.isFromOneTransactionReport) {
@@ -1202,7 +1189,7 @@ function getActions(
     }
 
     if (reportNVP?.exportFailedTime) {
-        return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.REVIEW];
+        return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
     return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];

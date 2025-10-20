@@ -39,6 +39,14 @@ import MemberListItemHeader from './MemberListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
+import { getTransactionViolations } from '@libs/TransactionUtils';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import FormHelpMessage from '@components/FormHelpMessage';
+import * as Expensicons from '@components/Icon/Expensicons';
+import Text from '@components/Text';
+import Icon from '@components/Icon';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 
 function TransactionGroupListItem<TItem extends ListItem>({
     item,
@@ -65,6 +73,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const {formatPhoneNumber} = useLocalize();
     const {selectedTransactions} = useSearchContext();
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const isSelectionModeEnabled = useMobileSelectionMode();
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportID}`, {canBeMissing: true});
@@ -262,6 +272,29 @@ function TransactionGroupListItem<TItem extends ListItem>({
             ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
             : undefined;
 
+    const hasViolations = transactions.some((transaction) => {
+        const transactionViolations = getTransactionViolations(transaction, violations);
+        return transactionViolations && transactionViolations.length > 0;
+    });
+
+    const getDescription = useMemo(() => {
+        if (!hasViolations) {
+            return;
+        }
+        return (
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml3, (!isSmallScreenWidth || isSelectionModeEnabled) && {paddingLeft: 2}]}>
+                <Icon
+                    src={Expensicons.DotIndicator}
+                    fill={theme.danger}
+                    additionalStyles={[styles.mr1]}
+                    width={12}
+                    height={12}
+                />
+                <Text style={[styles.textMicro, styles.textDanger]}>{'Report contains expenses with violations'}</Text>
+            </View>
+        );
+    }, [hasViolations, theme]);
+
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
             <PressableWithFeedback
@@ -289,6 +322,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         header={getHeader}
                         onPress={onExpandIconPress}
                         expandButtonStyle={styles.pv4Half}
+                        description={getDescription}
                     >
                         <TransactionGroupListExpandedItem
                             showTooltip={showTooltip}

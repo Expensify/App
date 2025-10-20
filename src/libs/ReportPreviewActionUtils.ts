@@ -253,9 +253,6 @@ function getReportPreviewAction(
     if (canExport(report, violations, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
-    if (canReview(report, violations, isReportArchived, policy, transactions)) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
-    }
 
     return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
 }

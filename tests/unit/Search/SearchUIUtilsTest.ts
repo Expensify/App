@@ -1476,15 +1476,15 @@ describe('SearchUIUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`, searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`]);
 
             const action = SearchUIUtils.getActions(searchResults.data, duplicateViolation, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
         test('Should return `Review` action for transaction on policy with delayed submission and with violations', () => {
             let action = SearchUIUtils.getActions(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
 
             action = SearchUIUtils.getActions(searchResults.data, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
         test('Should return `Paid` action for a manually settled report', () => {
@@ -1576,7 +1576,7 @@ describe('SearchUIUtils', () => {
                 },
             };
             const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${errorReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
         test('Should return `View` action for non-money request reports', () => {
@@ -1625,7 +1625,7 @@ describe('SearchUIUtils', () => {
                 },
             };
             const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${failedExportReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
         test('Should return `Review` action if transaction has errors', () => {
             const errorTransactionID = 'transaction_error';
@@ -1638,7 +1638,7 @@ describe('SearchUIUtils', () => {
                 },
             };
             const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${errorTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
         test('Should return `Pay` action for an IOU report ready to be paid', async () => {
             Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});

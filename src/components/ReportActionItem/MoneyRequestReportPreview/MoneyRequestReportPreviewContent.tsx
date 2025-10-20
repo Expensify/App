@@ -609,15 +609,6 @@ function MoneyRequestReportPreviewContent({
                 }}
             />
         ) : null,
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW]: (
-            <Button
-                icon={Expensicons.DotIndicator}
-                iconFill={theme.danger}
-                iconHoverFill={theme.danger}
-                text={translate('common.review')}
-                onPress={() => openReportFromPreview()}
-            />
-        ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW]: (
             <Button
                 text={translate('common.view')}
