@@ -51,7 +51,7 @@ function TransactionDuplicateReview() {
     const transactionIDs = useMemo(() => (transactionID ? [transactionID, ...duplicateTransactionIDs] : duplicateTransactionIDs), [transactionID, duplicateTransactionIDs]);
     const transactionsSelector = useCallback(
         (transactions: OnyxCollection<Transaction>) =>
-            transactionIDs.map((id) => transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime()),
+            transactionIDs.map((id) => transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime()),
         [transactionIDs],
     );
 

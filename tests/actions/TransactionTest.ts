@@ -1,4 +1,3 @@
-import {rand, randBoolean, randNumber} from '@ngneat/falso';
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 import {getUnixTime} from 'date-fns';
 import Onyx from 'react-native-onyx';
@@ -80,7 +79,7 @@ describe('Transaction', () => {
             }
 
             // Set up Onyx with transactions
-            const onyxPromises: Promise<void>[] = [];
+            const onyxPromises: Array<Promise<void>> = [];
             transactions.forEach((transaction) => {
                 onyxPromises.push(Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction));
                 onyxPromises.push(Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, transactionViolations[transaction.transactionID]));
@@ -111,6 +110,7 @@ describe('Transaction', () => {
                 displayName: 'Test User',
                 avatar: '',
             };
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             onyxPromises.push(Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {1: personalDetails}));
 
             await Promise.all(onyxPromises);
@@ -138,21 +138,21 @@ describe('Transaction', () => {
             const allTransactionViolation: Record<string, TransactionViolation[]> = {};
 
             // Get initial transaction data
-            const transaction0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs[0]}`);
+            const transaction0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(0)}`);
             if (transaction0) {
                 allTransactions[transactionIDs[0]] = transaction0;
             }
-            const transaction1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs[1]}`);
+            const transaction1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(1)}`);
             if (transaction1) {
                 allTransactions[transactionIDs[1]] = transaction1;
             }
 
             // Get initial violation data to verify they exist
-            const initialViolations0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs[0]}`);
+            const initialViolations0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs.at(0)}`);
             if (initialViolations0) {
                 allTransactionViolation[transactionIDs[0]] = initialViolations0;
             }
-            const initialViolations1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs[1]}`);
+            const initialViolations1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs.at(1)}`);
             if (initialViolations1) {
                 allTransactionViolation[transactionIDs[1]] = initialViolations1;
             }
@@ -175,15 +175,15 @@ describe('Transaction', () => {
             await waitForBatchedUpdates();
 
             // Then check optimistic data - violations should be removed immediately
-            let updatedViolations0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs[0]}`);
-            let updatedViolations1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs[1]}`);
+            let updatedViolations0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs.at(0)}`);
+            let updatedViolations1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs.at(1)}`);
 
             expect(updatedViolations0?.find((v) => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)).toBeUndefined();
             expect(updatedViolations1?.find((v) => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)).toBeUndefined();
 
             // Check that transaction comments have dismissedViolations in optimistic data
-            let updatedTransaction0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs[0]}`);
-            let updatedTransaction1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs[1]}`);
+            let updatedTransaction0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(0)}`);
+            let updatedTransaction1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(1)}`);
 
             expect(updatedTransaction0?.comment?.dismissedViolations?.duplicatedTransaction).toBeDefined();
             expect(updatedTransaction1?.comment?.dismissedViolations?.duplicatedTransaction).toBeDefined();
@@ -196,15 +196,15 @@ describe('Transaction', () => {
             await waitForBatchedUpdates();
 
             // Then check success data - violations should still be removed
-            updatedViolations0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs[0]}`);
-            updatedViolations1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs[1]}`);
+            updatedViolations0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs.at(0)}`);
+            updatedViolations1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs.at(1)}`);
 
             expect(updatedViolations0?.find((v) => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)).toBeUndefined();
             expect(updatedViolations1?.find((v) => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)).toBeUndefined();
 
             // Check that transaction comments still have dismissedViolations after success
-            updatedTransaction0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs[0]}`);
-            updatedTransaction1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs[1]}`);
+            updatedTransaction0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(0)}`);
+            updatedTransaction1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(1)}`);
 
             expect(updatedTransaction0?.comment?.dismissedViolations?.duplicatedTransaction).toBeDefined();
             expect(updatedTransaction1?.comment?.dismissedViolations?.duplicatedTransaction).toBeDefined();
@@ -283,10 +283,14 @@ describe('Transaction', () => {
 
             for (const transactionID of transactionIDs) {
                 const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-                if (transaction) allTransactions[transactionID] = transaction;
+                if (transaction) {
+                    allTransactions[transactionID] = transaction;
+                }
 
                 const violations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
-                if (violations) allTransactionViolation[transactionID] = violations;
+                if (violations) {
+                    allTransactionViolation[transactionID] = violations;
+                }
             }
 
             // When dismissing duplicate transaction violations
@@ -324,10 +328,14 @@ describe('Transaction', () => {
 
             for (const transactionID of transactionIDs) {
                 const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-                if (transaction) allTransactions[transactionID] = transaction;
+                if (transaction) {
+                    allTransactions[transactionID] = transaction;
+                }
 
                 const violations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
-                if (violations) allTransactionViolation[transactionID] = violations;
+                if (violations) {
+                    allTransactionViolation[transactionID] = violations;
+                }
             }
 
             // When dismissing duplicate transaction violations
@@ -359,23 +367,23 @@ describe('Transaction', () => {
             const allTransactions: Record<string, TransactionType> = {};
 
             // Get initial transaction data
-            const transaction0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs[0]}`);
+            const transaction0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(0)}`);
             if (transaction0) {
                 allTransactions[transactionIDs[0]] = transaction0;
             }
 
-            const transaction1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs[1]}`);
+            const transaction1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(1)}`);
             if (transaction1) {
                 allTransactions[transactionIDs[1]] = transaction1;
             }
 
             // Get initial violations to verify they exist
-            const initialViolations0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs[0]}`);
+            const initialViolations0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs.at(0)}`);
             const allTransactionViolation: Record<string, TransactionViolation[]> = {};
             if (initialViolations0) {
                 allTransactionViolation[transactionIDs[0]] = initialViolations0;
             }
-            const initialViolations1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs[1]}`);
+            const initialViolations1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs.at(1)}`);
             if (initialViolations1) {
                 allTransactionViolation[transactionIDs[1]] = initialViolations1;
             }
@@ -402,8 +410,8 @@ describe('Transaction', () => {
             await waitForBatchedUpdates();
 
             // Then the violations should be restored to original state after failure
-            const restoredViolations0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs[0]}`);
-            const restoredViolations1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs[1]}`);
+            const restoredViolations0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs.at(0)}`);
+            const restoredViolations1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs.at(1)}`);
 
             expect(restoredViolations0?.find((v) => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)).toBeDefined();
             expect(restoredViolations1?.find((v) => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)).toBeDefined();
@@ -443,8 +451,8 @@ describe('Transaction', () => {
             });
 
             // Then the violations should be dismissed successfully
-            const updatedViolations0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs[0]}`);
-            const updatedViolations1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs[1]}`);
+            const updatedViolations0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs.at(0)}`);
+            const updatedViolations1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs.at(1)}`);
 
             expect(updatedViolations0?.find((v) => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)).toBeUndefined();
             expect(updatedViolations1?.find((v) => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)).toBeUndefined();
