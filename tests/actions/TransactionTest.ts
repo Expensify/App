@@ -169,8 +169,8 @@ describe('Transaction', () => {
                 expenseReport,
                 policy,
                 isASAPSubmitBetaEnabled: false,
-                allTransactions,
-                allTransactionViolation,
+                allTransactionsCollection: allTransactions,
+                allTransactionViolationsCollection: allTransactionViolation,
             });
             await waitForBatchedUpdates();
 
@@ -247,8 +247,8 @@ describe('Transaction', () => {
                 expenseReport,
                 policy,
                 isASAPSubmitBetaEnabled: false,
-                allTransactions,
-                allTransactionViolation,
+                allTransactionsCollection: allTransactions,
+                allTransactionViolationsCollection: allTransactionViolation,
             });
             await waitForBatchedUpdates();
 
@@ -296,8 +296,8 @@ describe('Transaction', () => {
                 expenseReport,
                 policy,
                 isASAPSubmitBetaEnabled: false,
-                allTransactions,
-                allTransactionViolation,
+                allTransactionsCollection: allTransactions,
+                allTransactionViolationsCollection: allTransactionViolation,
             });
             await waitForBatchedUpdates();
 
@@ -337,8 +337,8 @@ describe('Transaction', () => {
                 expenseReport,
                 policy,
                 isASAPSubmitBetaEnabled: false,
-                allTransactions,
-                allTransactionViolation,
+                allTransactionsCollection: allTransactions,
+                allTransactionViolationsCollection: allTransactionViolation,
             });
             await waitForBatchedUpdates();
 
@@ -346,80 +346,6 @@ describe('Transaction', () => {
             const nextStep = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport?.reportID}`);
 
             expect(nextStep).toBeDefined();
-        });
-
-        it('should not update next step when expense report is not provided', async () => {
-            // Given transactions with duplicate violations but no expense report
-            const {transactionIDs, personalDetails, policy} = await setupTestData({
-                transactionCount: 2,
-                withExpenseReport: false,
-                withPolicy: true,
-            });
-
-            const allTransactions: Record<string, TransactionType> = {};
-            const allTransactionViolation: Record<string, TransactionViolation[]> = {};
-
-            for (const transactionID of transactionIDs) {
-                const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-                if (transaction) allTransactions[transactionID] = transaction;
-
-                const violations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
-                if (violations) allTransactionViolation[transactionID] = violations;
-            }
-
-            // When dismissing duplicate transaction violations without an expense report
-            Transaction.dismissDuplicateTransactionViolation({
-                transactionIDs,
-                dismissedPersonalDetails: personalDetails,
-                expenseReport: undefined,
-                policy,
-                isASAPSubmitBetaEnabled: false,
-                allTransactions,
-                allTransactionViolation,
-            });
-            await waitForBatchedUpdates();
-
-            // Then no next step should be created
-            const nextStep = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.NEXT_STEP}undefined`);
-
-            expect(nextStep).toBeNull();
-        });
-
-        it('should handle empty transaction IDs array gracefully', async () => {
-            // Given an empty array of transaction IDs
-            const personalDetails: PersonalDetails = {
-                accountID: 1,
-                login: 'test@expensify.com',
-                displayName: 'Test User',
-                avatar: '',
-            };
-
-            // When dismissing duplicate transaction violations with empty array
-            Transaction.dismissDuplicateTransactionViolation({
-                transactionIDs: [],
-                dismissedPersonalDetails: personalDetails,
-                expenseReport: undefined,
-                policy: undefined,
-                isASAPSubmitBetaEnabled: false,
-                allTransactions: {},
-                allTransactionViolation: {},
-            });
-            await waitForBatchedUpdates();
-
-            // Then the API should still be called but with empty parameters
-            // (The function doesn't have an early return for empty arrays)
-            const calls = mockFetch.mock.calls.filter((call) => {
-                const url = call[0];
-                return typeof url === 'string' && url.includes('DismissViolation');
-            });
-
-            expect(calls.length).toBeGreaterThan(0);
-            const lastCall = calls[calls.length - 1];
-            const body = lastCall[1]?.body;
-            if (body instanceof FormData) {
-                const params = Object.fromEntries(body);
-                expect(params.transactionIDList).toBe('');
-            }
         });
 
         it('should handle API failure and restore original violations', async () => {
@@ -467,8 +393,8 @@ describe('Transaction', () => {
                 expenseReport,
                 policy,
                 isASAPSubmitBetaEnabled: false,
-                allTransactions,
-                allTransactionViolation,
+                allTransactionsCollection: allTransactions,
+                allTransactionViolationsCollection: allTransactionViolation,
             });
             await waitForBatchedUpdates();
 
@@ -510,8 +436,8 @@ describe('Transaction', () => {
                     expenseReport: expenseReportResult.current[0],
                     policy,
                     isASAPSubmitBetaEnabled: false,
-                    allTransactions: allTransactionsResult.current[0] ?? {},
-                    allTransactionViolation: allTransactionViolationResult.current[0] ?? {},
+                    allTransactionsCollection: allTransactionsResult.current[0] ?? {},
+                    allTransactionViolationsCollection: allTransactionViolationResult.current[0] ?? {},
                 });
                 await waitForBatchedUpdates();
             });

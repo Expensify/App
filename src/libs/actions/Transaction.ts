@@ -387,8 +387,8 @@ type DismissDuplicateTransactionViolationProps = {
     expenseReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
     isASAPSubmitBetaEnabled: boolean;
-    allTransactions: OnyxCollection<Transaction>;
-    allTransactionViolation: OnyxCollection<TransactionViolation[]>;
+    allTransactionsCollection: OnyxCollection<Transaction>;
+    allTransactionViolationsCollection: OnyxCollection<TransactionViolation[]>;
 };
 
 /**
@@ -401,11 +401,11 @@ function dismissDuplicateTransactionViolation({
     expenseReport,
     policy,
     isASAPSubmitBetaEnabled,
-    allTransactions,
-    allTransactionViolation,
+    allTransactionsCollection,
+    allTransactionViolationsCollection,
 }: DismissDuplicateTransactionViolationProps) {
-    const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
-    const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]).filter((transaction): transaction is Transaction => transaction !== undefined);
+    const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolationsCollection?.[id] ?? []}));
+    const currentTransactions = transactionIDs.map((id) => allTransactionsCollection?.[id]).filter((transaction): transaction is Transaction => transaction !== undefined);
     const transactionsReportActions = currentTransactions.map((transaction) => getIOUActionForReportID(transaction.reportID, transaction.transactionID));
     const optimisticDismissedViolationReportActions = transactionsReportActions.map(() => {
         return buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
