@@ -32,7 +32,6 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
         selector: selectFilteredReportActions,
     });
 
-
     const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
     let results: Array<string | undefined> = [];
     if (!!type && !!groupBy && !!currentSearchResults?.data && !!currentSearchResults?.search) {
