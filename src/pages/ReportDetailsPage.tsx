@@ -23,12 +23,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
-import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
+import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -147,6 +147,7 @@ type CaseID = ValueOf<typeof CASES>;
 function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetailsPageProps) {
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
@@ -256,7 +257,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         }
         return parentReportAction;
     }, [caseID, parentReportAction, reportActions, transactionThreadReport?.parentReportActionID]);
-    const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
 
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
@@ -554,6 +554,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         parentReportAction,
         iouTransactionID,
         moneyRequestReport?.reportID,
+        isBetaEnabled,
         session,
         isTaskActionable,
         isRootGroupChat,
@@ -790,30 +791,16 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
         if (isTrackExpense) {
             deleteTrackExpense(
-                moneyRequestReport,
+                moneyRequestReport?.reportID,
                 iouTransactionID,
                 requestParentReportAction,
-                iouReport,
-                chatIOUReport,
                 duplicateTransactions,
                 duplicateTransactionViolations,
                 isSingleTransactionView,
                 isMoneyRequestReportArchived,
-                isChatIOUReportArchived,
             );
         } else {
-            deleteMoneyRequest(
-                iouTransactionID,
-                requestParentReportAction,
-                duplicateTransactions,
-                duplicateTransactionViolations,
-                iouReport,
-                chatIOUReport,
-                isSingleTransactionView,
-                undefined,
-                undefined,
-                isChatIOUReportArchived,
-            );
+            deleteMoneyRequest(iouTransactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations, isSingleTransactionView);
             removeTransaction(iouTransactionID);
         }
     }, [
@@ -822,15 +809,12 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         caseID,
         iouTransactionID,
         isSingleTransactionView,
-        moneyRequestReport,
+        moneyRequestReport?.reportID,
         removeTransaction,
         report,
         requestParentReportAction,
         isReportArchived,
         isMoneyRequestReportArchived,
-        iouReport,
-        chatIOUReport,
-        isChatIOUReportArchived,
     ]);
 
     // A flag to indicate whether the user chose to delete the transaction or not
@@ -861,24 +845,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         if (!isEmptyObject(requestParentReportAction)) {
             const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
             if (isTrackExpense) {
-                urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(
-                    moneyRequestReport,
-                    iouTransactionID,
-                    requestParentReportAction,
-                    iouReport,
-                    chatIOUReport,
-                    isSingleTransactionView,
-                    isChatIOUReportArchived,
-                );
+                urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(moneyRequestReport?.reportID, iouTransactionID, requestParentReportAction, isSingleTransactionView);
             } else {
-                urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
-                    iouTransactionID,
-                    requestParentReportAction,
-                    iouReport,
-                    chatIOUReport,
-                    isSingleTransactionView,
-                    isChatIOUReportArchived,
-                );
+                urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(iouTransactionID, requestParentReportAction, isSingleTransactionView);
             }
         }
 
@@ -888,7 +857,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
             navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
         }
-    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport, isChatIOUReportArchived, iouReport, chatIOUReport]);
+    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport?.reportID]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 
