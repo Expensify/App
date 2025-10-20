@@ -312,7 +312,7 @@ describe('getReportPreviewAction', () => {
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-            total: 0, // Zero amount IOU
+            total: 0,
             isWaitingOnBankAccount: false,
         };
 
