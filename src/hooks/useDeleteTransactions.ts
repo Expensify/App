@@ -128,6 +128,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 updateSplitTransactions({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
                         reportID: report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
                         originalTransactionID: transactionID,
