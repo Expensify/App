@@ -754,7 +754,7 @@ function MoneyRequestView({
                                             upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
                                         }),
                                     );
-                                } else if (shouldSelectPolicy) {
+                                } else if (!policy && shouldSelectPolicy) {
                                     Navigation.navigate(
                                         ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
                                             ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
