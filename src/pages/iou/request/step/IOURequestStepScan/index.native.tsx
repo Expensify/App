@@ -236,11 +236,7 @@ function IOURequestStepScan({
                     .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
             };
 
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                // Check initial camera permission status
-                refreshCameraPermissionStatus();
-            });
+            refreshCameraPermissionStatus();
 
             // Refresh permission status when app gain focus
             const subscription = AppState.addEventListener('change', (appState) => {
