@@ -7,6 +7,7 @@ import type {ReactElement} from 'react';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ResultMetadata} from 'react-native-onyx/dist/useOnyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -42,6 +43,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import OptionRowLHNData from './OptionRowLHNData';
 import OptionRowRendererComponent from './OptionRowRendererComponent';
 import type {LHNOptionsListProps, RenderItemProps} from './types';
@@ -71,7 +73,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [introSelected, introSelectedFetchStatus] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [isFullscreenVisible, isFullscreenVisibleFetchStatus] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
 
-    const fetchStatuses = [
+    const fetchStatuses: Array<ResultMetadata<unknown>> = [
         reportsFetchStatus,
         reportAttributesFetchStatus,
         reportNameValuePairsFetchStatus,
@@ -86,7 +88,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         isFullscreenVisibleFetchStatus,
     ];
 
-    const isAnyLoading = fetchStatuses.some((statusObj) => statusObj?.status === 'loading') || isLoading;
+    const isAnyLoading = isLoadingOnyxValue(...fetchStatuses) || isLoading;
 
     const theme = useTheme();
     const styles = useThemeStyles();
