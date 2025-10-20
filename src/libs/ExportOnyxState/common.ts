@@ -11,7 +11,7 @@ type ExportRule = {
     maskList: string[];
 };
 
-const ONYX_KEY_EXPORT_POLICIES: Record<string, ExportRule> = {
+const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
     [ONYXKEYS.SESSION]: {
         allowList: ['email', 'accountID', 'loading', 'creationDate', 'errors'],
         maskList: [],
@@ -296,7 +296,7 @@ const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
             ruleKey = collectionKey;
         }
 
-        const rule = ONYX_KEY_EXPORT_POLICIES[ruleKey];
+        const rule = ONYX_KEY_EXPORT_RULES[ruleKey];
 
         if (rule) {
             onyxState[key] = processOnyxKeyWithRule(key, onyxState[key], rule);
