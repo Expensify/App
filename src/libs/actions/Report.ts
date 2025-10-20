@@ -4416,24 +4416,23 @@ function completeOnboarding({
 
     // We should only set testDriveModalDismissed to false if it's not already true (i.e., if the modal hasn't been dismissed yet).
     if (!shouldSkipTestDriveModal && onboarding?.testDriveModalDismissed !== true) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.NVP_ONBOARDING,
-                value: {testDriveModalDismissed: false},
-            });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {testDriveModalDismissed: false},
+        });
 
-            successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.NVP_ONBOARDING,
-                value: {testDriveModalDismissed: false},
-            });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {testDriveModalDismissed: false},
+        });
 
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.NVP_ONBOARDING,
-                value: {testDriveModalDismissed: null},
-            });
-        }
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {testDriveModalDismissed: null},
+        });
     }
 
     API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
