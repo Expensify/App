@@ -1516,6 +1516,7 @@ const translations = {
     },
     avatarPage: {
         title: 'Edit profile picture',
+        upload: 'Upload',
         uploadPhoto: 'Upload photo',
         selectAvatar: 'Select avatar',
         chooseCustomAvatar: 'Or choose a custom avatar',

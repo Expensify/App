@@ -11,6 +11,8 @@ type OpenPicker = (options: {onPicked: (files: FileObject[]) => void}) => void;
 type UseAvatarMenuParams = {
     /** Whether the user is using a default avatar */
     isUsingDefaultAvatar: boolean;
+    /** Whether the user has chosen a new avatar in the form  but hasn't uploaded it yet */
+    isAvatarSelected: boolean;
     /** Account ID for navigation */
     accountID: number;
     /** Callback when avatar is removed */
@@ -24,7 +26,7 @@ type UseAvatarMenuParams = {
 /**
  * Custom hook to create avatar menu items
  */
-function useAvatarMenu({isUsingDefaultAvatar, accountID, onImageRemoved, showAvatarCropModal, clearError}: UseAvatarMenuParams) {
+function useAvatarMenu({isUsingDefaultAvatar, isAvatarSelected, accountID, onImageRemoved, showAvatarCropModal, clearError}: UseAvatarMenuParams) {
     const {translate} = useLocalize();
 
     /**
@@ -44,24 +46,25 @@ function useAvatarMenu({isUsingDefaultAvatar, accountID, onImageRemoved, showAva
                     value: null,
                 },
             ];
-
-            // If current avatar is a default avatar, only show upload option
-            if (isUsingDefaultAvatar) {
+            // If current avatar is a default avatar and for no avatar is selected in the form, only show upload option
+            if (isUsingDefaultAvatar && !isAvatarSelected) {
                 return menuItems;
             }
-
-            // Add remove and view photo options for non-default avatars
+            menuItems.push({
+                icon: Expensicons.Trashcan,
+                text: translate('avatarWithImagePicker.removePhoto'),
+                value: null,
+                onSelected: () => {
+                    clearError();
+                    onImageRemoved();
+                },
+            });
+            // If an avatar is selected in the form do NOT show view photo
+            if (isAvatarSelected) {
+                return menuItems;
+            }
             return [
                 ...menuItems,
-                {
-                    icon: Expensicons.Trashcan,
-                    text: translate('avatarWithImagePicker.removePhoto'),
-                    value: null,
-                    onSelected: () => {
-                        clearError();
-                        onImageRemoved();
-                    },
-                },
                 {
                     value: null,
                     icon: Expensicons.Eye,
@@ -70,7 +73,7 @@ function useAvatarMenu({isUsingDefaultAvatar, accountID, onImageRemoved, showAva
                 },
             ];
         },
-        [accountID, isUsingDefaultAvatar, onImageRemoved, showAvatarCropModal, translate, clearError],
+        [accountID, isUsingDefaultAvatar, onImageRemoved, showAvatarCropModal, translate, clearError, isAvatarSelected],
     );
 
     return {createMenuItems};

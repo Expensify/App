@@ -108,6 +108,11 @@ function ProfileAvatar() {
     }, []);
 
     const onImageRemoved = useCallback(() => {
+        if (isDirty) {
+            setSelected(undefined);
+            setImageData({...EMPTY_FILE});
+            return;
+        }
         deleteAvatar({
             avatar: currentUserPersonalDetails?.avatar,
             fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
@@ -116,13 +121,14 @@ function ProfileAvatar() {
         setSelected(undefined);
         setImageData({...EMPTY_FILE});
         Navigation.dismissModal();
-    }, [currentUserPersonalDetails]);
+    }, [currentUserPersonalDetails, isDirty]);
 
     const clearError = useCallback(() => {
         setError(null, {});
     }, []);
 
     const {createMenuItems} = useAvatarMenu({
+        isAvatarSelected: isDirty,
         isUsingDefaultAvatar,
         accountID,
         onImageRemoved,
@@ -191,7 +197,8 @@ function ProfileAvatar() {
                     shouldValidateImage={false}
                 >
                     {({openPicker}) => {
-                        if (isUsingDefaultAvatar) {
+                        const menuItems = createMenuItems(openPicker);
+                        if (menuItems?.length <= 1) {
                             return (
                                 <Button
                                     icon={Expensicons.Upload}
@@ -215,7 +222,7 @@ function ProfileAvatar() {
                                 onPress={() => {}}
                                 anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                                 customText={translate('common.edit')}
-                                options={createMenuItems(openPicker)}
+                                options={menuItems}
                                 isSplitButton={false}
                             />
                         );
@@ -260,6 +267,13 @@ function ProfileAvatar() {
             </FixedFooter>
             <DiscardChangesConfirmation getHasUnsavedChanges={() => isDirty} />
             <AvatarCropModal
+                onBackButtonPress={() => {
+                    if (!isAvatarCropModalOpen) {
+                        return;
+                    }
+                    setImageData({...EMPTY_FILE});
+                    setIsAvatarCropModalOpen(false);
+                }}
                 onClose={() => {
                     if (!isAvatarCropModalOpen) {
                         return;
@@ -271,6 +285,7 @@ function ProfileAvatar() {
                 imageUri={imageData.uri}
                 imageName={imageData.name}
                 imageType={imageData.type}
+                buttonLabel={translate('avatarPage.upload')}
             />
         </ScreenWrapper>
     );
