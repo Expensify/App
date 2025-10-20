@@ -7,7 +7,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useEnvironment from '@hooks/useEnvironment';
