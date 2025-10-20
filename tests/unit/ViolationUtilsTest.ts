@@ -6,7 +6,7 @@ import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed}
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
 const categoryOutOfPolicyViolation = {
@@ -714,5 +714,165 @@ describe('getRBRMessages', () => {
         const expectedResult = `${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
 
         expect(result).toBe(expectedResult);
+    });
+});
+
+describe('hasVisibleViolationsForUser', () => {
+    const submitterAccountID = 12345;
+    const testReportID = 'test-report-123';
+    const testTransactionID = 'test-transaction-123';
+    const testPolicyID = 'test-policy-123';
+
+    const mockReport = {
+        reportID: testReportID,
+        ownerAccountID: submitterAccountID,
+        policyID: testPolicyID,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+    } as Report;
+
+    const mockPolicy = {
+        id: testPolicyID,
+        role: CONST.POLICY.ROLE.ADMIN,
+        type: CONST.POLICY.TYPE.TEAM,
+    } as Policy;
+
+    const mockTransaction = {
+        transactionID: testTransactionID,
+        reportID: testReportID,
+        accountID: submitterAccountID,
+        amount: 1000,
+        created: '2023-01-01',
+        currency: 'USD',
+        merchant: 'Test Merchant',
+    } as Transaction;
+
+    beforeEach(() => {
+        Onyx.set(ONYXKEYS.SESSION, {accountID: submitterAccountID});
+    });
+
+    it('should return false when report is null', () => {
+        const violations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [missingCategoryViolation],
+        };
+
+        const result = ViolationsUtils.hasVisibleViolationsForUser(undefined, violations, mockPolicy, [mockTransaction]);
+        expect(result).toBe(false);
+    });
+
+    it('should return false when violations is null', () => {
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, undefined, mockPolicy, [mockTransaction]);
+        expect(result).toBe(false);
+    });
+
+    it('should return false when transactions is null', () => {
+        const violations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [missingCategoryViolation],
+        };
+
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, mockPolicy);
+        expect(result).toBe(false);
+    });
+
+    it('should return false when no violations exist for transactions', () => {
+        const violations = {};
+
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, mockPolicy, [mockTransaction]);
+        expect(result).toBe(false);
+    });
+
+    it('should return true when violations are visible to submitter', () => {
+        const violations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [missingCategoryViolation],
+        };
+
+        // Mock shouldShowViolation to return true for missing category
+        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockReturnValue(true);
+
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, mockPolicy, [mockTransaction]);
+        expect(result).toBe(true);
+    });
+
+    it('should return false when violations are hidden from submitter', () => {
+        const violations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [
+                {
+                    name: CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+                    type: CONST.VIOLATION_TYPES.NOTICE,
+                },
+            ],
+        };
+
+        // Mock shouldShowViolation to return false for RECEIPT_NOT_SMART_SCANNED (hidden from submitter)
+        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
+            if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
+                return false; // Hidden from submitter
+            }
+            return true;
+        });
+
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, mockPolicy, [mockTransaction]);
+        expect(result).toBe(false);
+    });
+
+    it('should return true when at least one violation is visible', () => {
+        const violations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [
+                {
+                    name: CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+                    type: CONST.VIOLATION_TYPES.NOTICE,
+                },
+                missingCategoryViolation,
+            ],
+        };
+
+        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
+            if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
+                return false;
+            }
+            if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY) {
+                return true;
+            }
+            return true;
+        });
+
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, mockPolicy, [mockTransaction]);
+        expect(result).toBe(true);
+    });
+
+    it('should handle multiple transactions correctly', () => {
+        const secondTransactionID = 'test-transaction-456';
+        const secondTransaction = {
+            transactionID: secondTransactionID,
+            reportID: testReportID,
+            accountID: submitterAccountID,
+            amount: 2000,
+            created: '2023-01-02',
+            currency: 'USD',
+            merchant: 'Test Merchant 2',
+        } as Transaction;
+
+        const violations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [
+                {
+                    name: CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+                    type: CONST.VIOLATION_TYPES.NOTICE,
+                },
+            ],
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${secondTransactionID}`]: [missingCategoryViolation],
+        };
+
+        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
+            if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
+                return false;
+            }
+            if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY) {
+                return true;
+            }
+            return true;
+        });
+
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, mockPolicy, [mockTransaction, secondTransaction]);
+        expect(result).toBe(true);
     });
 });

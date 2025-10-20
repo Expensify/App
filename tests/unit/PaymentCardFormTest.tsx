@@ -17,7 +17,6 @@ jest.mock('@react-native-community/geolocation', () => ({
 }));
 
 jest.mock('@libs/ReportUtils', () => ({
-    UnreadIndicatorUpdaterHelper: jest.fn(),
     getReportIDFromLink: jest.fn(() => ''),
     parseReportRouteParams: jest.fn(() => ({reportID: ''})),
 }));

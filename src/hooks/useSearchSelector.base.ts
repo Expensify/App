@@ -153,6 +153,7 @@ function useSearchSelectorBase({
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected ?? []);
     const [maxResults, setMaxResults] = useState(maxResultsPerPage);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     const onListEndReached = useCallback(() => {
         setMaxResults((previous) => previous + maxResultsPerPage);
@@ -169,9 +170,19 @@ function useSearchSelectorBase({
 
         switch (searchContext) {
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SEARCH:
-                return getSearchOptions(optionsWithContacts, betas ?? [], true, true, computedSearchTerm, maxResults, includeUserToInvite);
+                return getSearchOptions({
+                    options: optionsWithContacts,
+                    draftComments,
+                    betas: betas ?? [],
+                    isUsedInChatFinder: true,
+                    includeReadOnly: true,
+                    searchQuery: computedSearchTerm,
+                    maxResults,
+                    includeUserToInvite,
+                    countryCode,
+                });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
-                return getValidOptions(optionsWithContacts, {
+                return getValidOptions(optionsWithContacts, draftComments, {
                     betas: betas ?? [],
                     includeP2P: true,
                     includeSelectedOptions: false,
@@ -183,7 +194,7 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
-                return getValidOptions(optionsWithContacts, {
+                return getValidOptions(optionsWithContacts, draftComments, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     searchString: computedSearchTerm,
@@ -193,7 +204,7 @@ function useSearchSelectorBase({
                     loginsToExclude: excludeLogins,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
-                return getValidOptions(optionsWithContacts, {
+                return getValidOptions(optionsWithContacts, draftComments, {
                     betas,
                     selectedOptions,
                     includeMultipleParticipantReports: true,
@@ -217,10 +228,12 @@ function useSearchSelectorBase({
         areOptionsInitialized,
         searchContext,
         optionsWithContacts,
+        draftComments,
         betas,
         computedSearchTerm,
         maxResults,
         includeUserToInvite,
+        countryCode,
         excludeLogins,
         includeRecentReports,
         maxRecentReportsToShow,

@@ -735,12 +735,12 @@ describe('DebugUtils', () => {
             Onyx.clear();
         });
         it('returns null when report is not defined', () => {
-            const reason = DebugUtils.getReasonForShowingRowInLHN({report: undefined, chatReport: chatReportR14932, doesReportHaveViolations: false});
+            const reason = DebugUtils.getReasonForShowingRowInLHN({report: undefined, chatReport: chatReportR14932, doesReportHaveViolations: false, draftComment: ''});
             expect(reason).toBeNull();
         });
         it('returns correct reason when report has a valid draft comment', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`, 'Hello world!');
-            const reason = DebugUtils.getReasonForShowingRowInLHN({report: baseReport, chatReport: chatReportR14932, doesReportHaveViolations: false});
+            const reason = DebugUtils.getReasonForShowingRowInLHN({report: baseReport, chatReport: chatReportR14932, doesReportHaveViolations: false, draftComment: 'Hello world!'});
             expect(reason).toBe('debug.reasonVisibleInLHN.hasDraftComment');
         });
         it('returns correct reason when report has GBR', () => {
@@ -752,6 +752,7 @@ describe('DebugUtils', () => {
                 },
                 chatReport: chatReportR14932,
                 doesReportHaveViolations: false,
+                draftComment: '',
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasGBR');
         });
@@ -763,6 +764,7 @@ describe('DebugUtils', () => {
                 },
                 chatReport: chatReportR14932,
                 doesReportHaveViolations: false,
+                draftComment: '',
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.pinnedByUser');
         });
@@ -778,6 +780,7 @@ describe('DebugUtils', () => {
                 },
                 chatReport: chatReportR14932,
                 doesReportHaveViolations: false,
+                draftComment: '',
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasAddWorkspaceRoomErrors');
         });
@@ -801,6 +804,7 @@ describe('DebugUtils', () => {
                 chatReport: chatReportR14932,
                 isInFocusMode: true,
                 doesReportHaveViolations: false,
+                draftComment: '',
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isUnread');
         });
@@ -818,6 +822,7 @@ describe('DebugUtils', () => {
                 hasRBR: false,
                 isReportArchived: isReportArchived.current,
                 doesReportHaveViolations: false,
+                draftComment: '',
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isArchived');
         });
@@ -829,6 +834,7 @@ describe('DebugUtils', () => {
                 },
                 chatReport: chatReportR14932,
                 doesReportHaveViolations: false,
+                draftComment: '',
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isSelfDM');
         });
@@ -837,6 +843,7 @@ describe('DebugUtils', () => {
                 report: baseReport,
                 chatReport: chatReportR14932,
                 doesReportHaveViolations: false,
+                draftComment: '',
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isFocused');
         });
@@ -889,7 +896,13 @@ describe('DebugUtils', () => {
                     reportID: '1',
                 },
             });
-            const reason = DebugUtils.getReasonForShowingRowInLHN({report: MOCK_TRANSACTION_REPORT, chatReport: chatReportR14932, hasRBR: true, doesReportHaveViolations: true});
+            const reason = DebugUtils.getReasonForShowingRowInLHN({
+                report: MOCK_TRANSACTION_REPORT,
+                chatReport: chatReportR14932,
+                hasRBR: true,
+                doesReportHaveViolations: true,
+                draftComment: '',
+            });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
         it('returns correct reason when report has violations', async () => {
@@ -941,11 +954,17 @@ describe('DebugUtils', () => {
                     reportID: '1',
                 },
             });
-            const reason = DebugUtils.getReasonForShowingRowInLHN({report: MOCK_EXPENSE_REPORT, chatReport: chatReportR14932, hasRBR: true, doesReportHaveViolations: true});
+            const reason = DebugUtils.getReasonForShowingRowInLHN({
+                report: MOCK_EXPENSE_REPORT,
+                chatReport: chatReportR14932,
+                hasRBR: true,
+                doesReportHaveViolations: true,
+                draftComment: '',
+            });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
         it('returns correct reason when report has errors', () => {
-            const reason = DebugUtils.getReasonForShowingRowInLHN({report: baseReport, chatReport: chatReportR14932, hasRBR: true, doesReportHaveViolations: false});
+            const reason = DebugUtils.getReasonForShowingRowInLHN({report: baseReport, chatReport: chatReportR14932, hasRBR: true, doesReportHaveViolations: false, draftComment: ''});
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
     });

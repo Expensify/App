@@ -65,7 +65,7 @@ function IOURequestStepTaxRatePage({
         const taxAmount = getTaxAmount(policy, currentTransaction, taxes.code, getAmount(currentTransaction, false, true));
 
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(currentTransaction.transactionID, {
+            setDraftSplitTransaction(currentTransaction.transactionID, splitDraftTransaction, {
                 taxAmount: convertToBackendAmount(taxAmount ?? 0),
                 taxCode: taxes.code,
             });

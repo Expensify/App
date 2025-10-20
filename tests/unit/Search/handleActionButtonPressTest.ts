@@ -9,7 +9,7 @@ import type {LastPaymentMethod, SearchResults} from '@src/types/onyx';
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
 const mockReportItemWithHold = {
-    groupedBy: 'reports',
+    groupedBy: 'expense-report',
     shouldAnimateInHighlight: false,
     accountID: 1206,
     action: 'approve',

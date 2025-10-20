@@ -14,7 +14,6 @@
 * [Platform-Specific Setup](#platform-specific-setup)
 * [Testing on browsers in simulators and emulators](#testing-on-browsers-in-simulators-and-emulators)
 * [Running The Tests](#running-the-tests)
-* [Debugging](#debugging)
 
 #### Additional Reading
 * [Application Philosophy](contributingGuides/philosophies/INDEX.md)

@@ -130,6 +130,7 @@ function MoneyRequestParticipantsSelector({
         shouldInitialize: didScreenTransitionEnd,
     });
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListHandle | null>(null);
@@ -176,6 +177,7 @@ function MoneyRequestParticipantsSelector({
                 reports: options.reports,
                 personalDetails: options.personalDetails.concat(contacts),
             },
+            draftComments,
             {
                 betas,
                 selectedOptions: participants as Participant[],
@@ -199,6 +201,7 @@ function MoneyRequestParticipantsSelector({
                 isPerDiemRequest,
                 showRBR: false,
             },
+            countryCode,
         );
 
         const orderedOptions = orderOptions(optionList);
@@ -208,18 +211,20 @@ function MoneyRequestParticipantsSelector({
             ...orderedOptions,
         };
     }, [
-        action,
-        contacts,
         areOptionsInitialized,
-        betas,
         didScreenTransitionEnd,
-        iouType,
-        isCategorizeOrShareAction,
-        options.personalDetails,
         options.reports,
+        options.personalDetails,
+        contacts,
+        draftComments,
+        betas,
         participants,
+        iouType,
+        action,
+        isCategorizeOrShareAction,
         isPerDiemRequest,
         canShowManagerMcTest,
+        countryCode,
         isCorporateCardTransaction,
     ]);
 
@@ -255,6 +260,7 @@ function MoneyRequestParticipantsSelector({
                 !!chatOptions?.userToInvite,
                 debouncedSearchTerm.trim(),
                 participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
+                countryCode,
             ),
         [
             chatOptions.personalDetails,
@@ -265,6 +271,7 @@ function MoneyRequestParticipantsSelector({
             cleanSearchTerm,
             debouncedSearchTerm,
             participants,
+            countryCode,
         ],
     );
     /**
@@ -485,7 +492,7 @@ function MoneyRequestParticipantsSelector({
 
     const initiateContactImportAndSetState = useCallback(() => {
         setContactPermissionState(RESULTS.GRANTED);
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(importAndSaveContacts);
     }, [importAndSaveContacts, setContactPermissionState]);
 

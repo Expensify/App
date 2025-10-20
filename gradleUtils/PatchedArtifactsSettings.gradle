@@ -15,7 +15,7 @@ def patchedArtifacts = settings.getExtensions().create('patchedArtifacts', Patch
 
 def warnIfNotConfigured(reason) {
     ExpensiLog.warn("$reason")
-    ExpensiLog.warn("For setup instructions, refer to: https://github.com/Expensify/App?tab=readme-ov-file#enabling-prebuilt-react-native-artifacts-on-android")
+    ExpensiLog.warn("For setup instructions, refer to: https://github.com/Expensify/App/blob/main/contributingGuides/SETUP_ANDROID.md#enabling-prebuilt-react-native-artifacts")
 }
 
 def getNewDotRootDir() {
@@ -132,7 +132,7 @@ settings.extensions.configure(PatchedArtifactsConfig) { config ->
 
     if(config.version == null || config.packageName == null || config.githubUsername == null || config.githubToken == null) {
         config.buildFromSource = true
-        ExpensiLog.lifecycle("No matching artifacts version found for ${config.packageName}. Building react-native from source.")
+        ExpensiLog.error("No matching artifacts version found for ${config.packageName}. Building react-native from source.")
     }
     else {
         config.buildFromSource = false
