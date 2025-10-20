@@ -8929,12 +8929,12 @@ describe('actions/IOU', () => {
             retractReport(expenseReport, chatReport);
 
             // Then the chat report iouReportID should be set back to the retracted expense report
-            const iouReportID = await new Promise<string>((resolve) => {
+            const iouReportID = await new Promise<string | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                     callback: (report) => {
                         Onyx.disconnect(connection);
-                        resolve(report?.iouReportID ?? '');
+                        resolve(report?.iouReportID);
                     },
                 });
             });
