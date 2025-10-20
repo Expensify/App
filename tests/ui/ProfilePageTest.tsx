@@ -1,16 +1,15 @@
-import { NavigationContainer } from '@react-navigation/native';
+import {NavigationContainer} from '@react-navigation/native';
 import type * as ReactNavigation from '@react-navigation/native';
-import { render, screen, waitFor } from '@testing-library/react-native';
+import {render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import type { ValueOf } from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import ProfilePage from '@pages/settings/Profile/ProfilePage';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),

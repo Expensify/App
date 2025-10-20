@@ -1,7 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react-native';
+import {render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import type { ValueOf } from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import ComposeProviders from '@components/ComposeProviders';
 import ContactMethodsPage from '@pages/settings/Profile/Contacts/ContactMethodsPage';
 import DelegateNoAccessModalProvider from '@src/components/DelegateNoAccessModalProvider';
@@ -9,7 +9,6 @@ import LockedAccountModalProvider from '@src/components/LockedAccountModalProvid
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
 
 // Mock navigation used by the page
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -118,7 +117,7 @@ describe('ContactMethodsPage', () => {
         // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
         expect(node).toHaveTextContent('info-brickRoadIndicator');
 
-        // Verify that GBR dissapears 
+        // Verify that GBR dissapears
         Onyx.merge(ONYXKEYS.LOGIN_LIST, {
             [otherEmail]: {
                 partnerUserID: otherEmail,
