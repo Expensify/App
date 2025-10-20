@@ -7328,6 +7328,11 @@ ${amount} für ${merchant} - ${date}`,
         conciergeWillSend: 'Concierge sendet dir die Datei in Kürze.',
     },
     avatarPage: {title: 'Profilbild bearbeiten', uploadPhoto: 'Foto hochladen'},
+    openAppFailureModal: {
+        title: 'Etwas ist schiefgelaufen...',
+        subtitle: `Wir konnten nicht alle Ihre Daten laden. Wir wurden benachrichtigt und untersuchen das Problem. Wenn das weiterhin besteht, wenden Sie sich bitte an`,
+        refreshAndTryAgain: 'Aktualisieren und erneut versuchen',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
