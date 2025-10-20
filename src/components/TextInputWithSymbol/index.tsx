@@ -1,10 +1,9 @@
 import React from 'react';
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
-import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import BaseTextInputWithSymbol from './BaseTextInputWithSymbol';
 import type {TextInputWithSymbolProps} from './types';
 
-function TextInputWithSymbol({onSelectionChange = () => {}, ...props}: TextInputWithSymbolProps, ref: React.ForwardedRef<BaseTextInputRef>) {
+function TextInputWithSymbol({onSelectionChange = () => {}, ref, ...props}: TextInputWithSymbolProps) {
     return (
         <BaseTextInputWithSymbol
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -19,4 +18,4 @@ function TextInputWithSymbol({onSelectionChange = () => {}, ...props}: TextInput
 
 TextInputWithSymbol.displayName = 'TextInputWithSymbol';
 
-export default React.forwardRef(TextInputWithSymbol);
+export default TextInputWithSymbol;

@@ -11,8 +11,6 @@ describe('getAttributes', () => {
         'policiesLength',
         'transactionsLength',
         'transactionViolationsLength',
-        'policyType',
-        'policyRole',
     ];
 
     const checkAttributes = (attributes: Partial<PerfAttributes>, expectedAttributes: Array<keyof Partial<PerfAttributes>>) => {

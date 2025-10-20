@@ -37,7 +37,6 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange}: DateSe
     const styles = useThemeStyles();
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
-    const shouldShowHorizontalRule = !!presets?.length;
 
     const applyChanges = useCallback(() => {
         if (!searchDatePresetFilterBaseRef.current) {
@@ -93,7 +92,6 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange}: DateSe
                     selectedDateModifier={selectedDateModifier}
                     onSelectDateModifier={setSelectedDateModifier}
                     presets={presets}
-                    shouldShowHorizontalRule={shouldShowHorizontalRule}
                 />
             </View>
             <View style={[styles.flexRow, styles.gap2, styles.ph5]}>

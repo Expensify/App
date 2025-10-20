@@ -4,7 +4,6 @@ description: Learn how to resolve common errors that prevent reports from export
 keywords: [New Expensify, Xero errors, export failure, troubleshoot Xero, manual export]
 ---
 
-<div id="new-expensify" markdown="1">
 
 If your expense reports aren’t exporting to Xero, this guide covers common causes and how to fix them.
 
@@ -43,4 +42,3 @@ If a report is still **Open**, you’ll see a message indicating the data isn’
 3. If the report is **Processing**, it must be approved by an admin or approver.
 4. Once approved, go to the top of the report, select **Export**, and choose **Xero**.
 
-</div>

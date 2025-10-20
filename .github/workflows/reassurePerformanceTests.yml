@@ -40,6 +40,9 @@ jobs:
                 echo "Deleted file: $file"
               fi
             done
+      - name: Capture PR head SHA
+        if: ${{ github.event_name == 'pull_request' }}
+        run: echo "PR_SHA=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
 
       - name: Run performance testing script
         shell: bash
@@ -54,7 +57,7 @@ jobs:
           git add Mobile-Expensify
           npm install --force || (rm -rf node_modules && npm install --force) 
           NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
-          git switch --force --detach -
+          git switch --force --detach "${PR_SHA:-${GITHUB_SHA}}"
           cd Mobile-Expensify
           git checkout "$(git rev-parse HEAD)"
           cd ..

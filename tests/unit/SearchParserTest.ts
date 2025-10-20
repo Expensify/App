@@ -389,6 +389,16 @@ const tests = [
         },
     },
     {
+        query: 'status:all',
+        expected: {
+            type: 'expense',
+            status: '',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: null,
+        },
+    },
+    {
         query: 'amount>200 las vegas category:"Hotel : Marriott"',
         expected: {
             type: 'expense',
@@ -487,6 +497,20 @@ const tests = [
         },
     },
     {
+        query: 'type:expense withdrawal-id:1234567890',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
+                right: '1234567890',
+            },
+        },
+    },
+    {
         query: 'type:expense withdrawn:last-month',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -497,6 +521,132 @@ const tests = [
                 operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
                 left: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
                 right: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            },
+        },
+    },
+    {
+        query: 'type:chat is:read',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: CONST.SEARCH.IS_VALUES.READ,
+            },
+        },
+    },
+    {
+        query: 'type:chat is:unread',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: CONST.SEARCH.IS_VALUES.UNREAD,
+            },
+        },
+    },
+    {
+        query: 'type:chat is:pinned',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: CONST.SEARCH.IS_VALUES.PINNED,
+            },
+        },
+    },
+    {
+        query: 'type:chat is:pinned,read,unread',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: [CONST.SEARCH.IS_VALUES.PINNED, CONST.SEARCH.IS_VALUES.READ, CONST.SEARCH.IS_VALUES.UNREAD],
+            },
+        },
+    },
+    {
+        query: 'type:chat has:attachment',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+                right: CONST.SEARCH.HAS_VALUES.ATTACHMENT,
+            },
+        },
+    },
+    {
+        query: 'type:chat has:link',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+                right: CONST.SEARCH.HAS_VALUES.LINK,
+            },
+        },
+    },
+    {
+        query: 'type:chat has:link,attachment',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+                right: [CONST.SEARCH.HAS_VALUES.LINK, CONST.SEARCH.HAS_VALUES.ATTACHMENT],
+            },
+        },
+    },
+    {
+        query: 'type:chat is:READ',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: 'READ', // Case is preserved as-is
+            },
+        },
+    },
+    {
+        query: 'type:chat is:PINNED',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: 'PINNED', // Case is preserved as-is
             },
         },
     },

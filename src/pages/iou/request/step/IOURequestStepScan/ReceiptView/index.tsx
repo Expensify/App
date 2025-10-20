@@ -1,3 +1,4 @@
+import {transactionDraftReceiptsViewSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView';
@@ -12,7 +13,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getTransactionOrDraftTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {removeDraftTransaction, removeTransactionReceipt, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -37,19 +37,16 @@ function ReceiptView({route}: ReceiptViewProps) {
     const {setAttachmentError} = useAttachmentErrors();
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
     const styles = useThemeStyles();
-
     const [currentReceipt, setCurrentReceipt] = useState<ReceiptWithTransactionIDAndSource | null>();
     const [page, setPage] = useState<number>(-1);
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
 
     const [receipts = getEmptyArray<ReceiptWithTransactionIDAndSource>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: (items) =>
-            Object.values(items ?? {})
-                .map((transaction) => (transaction?.receipt ? {...transaction?.receipt, transactionID: transaction.transactionID} : undefined))
-                .filter((receipt): receipt is ReceiptWithTransactionIDAndSource => !!receipt),
+        selector: transactionDraftReceiptsViewSelector,
         canBeMissing: true,
     });
-
+    const secondTransactionID = receipts.at(1)?.transactionID;
+    const [secondTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${secondTransactionID}`, {canBeMissing: true});
     useEffect(() => {
         if (!receipts || receipts.length === 0) {
             return;
@@ -67,6 +64,7 @@ function ReceiptView({route}: ReceiptViewProps) {
             return;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (currentReceipt.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
                 if (receipts.length === 1) {
@@ -74,16 +72,14 @@ function ReceiptView({route}: ReceiptViewProps) {
                     return;
                 }
 
-                const secondTransactionID = receipts.at(1)?.transactionID;
-                const secondTransaction = secondTransactionID ? getTransactionOrDraftTransaction(secondTransactionID) : undefined;
-                replaceDefaultDraftTransaction(secondTransaction);
+                replaceDefaultDraftTransaction(secondTransactionID ? secondTransaction : undefined);
                 return;
             }
             removeDraftTransaction(currentReceipt.transactionID);
         });
 
         Navigation.goBack();
-    }, [currentReceipt, receipts]);
+    }, [currentReceipt, receipts.length, secondTransaction, secondTransactionID]);
 
     const handleCloseConfirmModal = () => {
         setIsDeleteReceiptConfirmModalVisible(false);
@@ -123,7 +119,7 @@ function ReceiptView({route}: ReceiptViewProps) {
                 page={page}
                 setPage={setPage}
                 attachmentID={currentReceipt?.transactionID}
-                onClose={handleGoBack}
+                onSwipeDown={handleGoBack}
                 autoHideArrows={autoHideArrows}
                 cancelAutoHideArrow={cancelAutoHideArrows}
                 setShouldShowArrows={setShouldShowArrows}

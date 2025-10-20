@@ -37,6 +37,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Last four Primary Account Number digits */
     lastFourPAN?: string;
 
+    /** Pin of the card */
+    pin?: string;
+
     /** Card number */
     cardNumber?: string;
 
@@ -125,10 +128,10 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     }> &
-        OnyxCommon.OnyxValueWithOfflineFeedback<{
+        OnyxCommon.OnyxValueWithOfflineFeedback<
             /** Type of export card */
-            [key in ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES>]: string;
-        }>;
+            Record<ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES>, string>
+        >;
 }>;
 
 /** Model of card just added to a wallet */
@@ -223,6 +226,9 @@ type IssueNewCardData = {
 
     /** Name of the card */
     cardTitle: string;
+
+    /** Currency of the card */
+    currency: string;
 };
 
 /** Model of Issue new card flow */

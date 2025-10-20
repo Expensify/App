@@ -1,3 +1,4 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import React from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
@@ -19,7 +20,7 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
     const {translate} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
 
     const updatePolicyAddress = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
         if (!policy) {
@@ -33,9 +34,7 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
             country: values.country,
         });
         if (!isUserValidated) {
-            Navigation.navigate(
-                ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(ROUTES.TRAVEL_MY_TRIPS, ROUTES.TRAVEL_TCS.getRoute(route.params.domain) ?? CONST.TRAVEL.DEFAULT_DOMAIN),
-            );
+            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(route.params.domain));
             return;
         }
         Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(route.params.domain ?? CONST.TRAVEL.DEFAULT_DOMAIN), {forceReplace: true});

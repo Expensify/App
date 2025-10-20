@@ -22,3 +22,9 @@
 - E/App issue: https://github.com/Expensify/App/pull/63623
 - PR Introducing Patch:  🛑
 
+### [react-native-reanimated+3.19.1+004+reduce-motion-animation-callbacks.patch](react-native-reanimated+3.19.1+004+reduce-motion-animation-callbacks.patch)
+
+- Reason: The layout animation callbacks were not called when Reduce Motion accessibility setting was enabled on mobile devices (on native apps). This caused the app to be unresponsive after opening a modal.
+- Upstream PR/issue: https://github.com/software-mansion/react-native-reanimated/pull/8142
+- E/App issue: https://github.com/Expensify/App/issues/69190
+- PR Introducing Patch: https://github.com/Expensify/App/pull/69444

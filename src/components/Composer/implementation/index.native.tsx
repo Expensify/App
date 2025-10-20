@@ -69,7 +69,7 @@ function Composer(
      * Set the TextInput Ref
      * @param {Element} el
      */
-    const setTextInputRef = useCallback((el: AnimatedMarkdownTextInputRef) => {
+    const setTextInputRef = useCallback((el: AnimatedMarkdownTextInputRef | null) => {
         // eslint-disable-next-line react-compiler/react-compiler
         textInput.current = el;
         if (typeof ref !== 'function' || textInput.current === null) {

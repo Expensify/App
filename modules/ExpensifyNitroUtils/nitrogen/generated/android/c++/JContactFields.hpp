@@ -29,7 +29,7 @@ namespace margelo::nitro::utils {
     [[nodiscard]]
     ContactFields toCpp() const {
       static const auto clazz = javaClassStatic();
-      static const auto fieldOrdinal = clazz->getField<int>("_ordinal");
+      static const auto fieldOrdinal = clazz->getField<int>("value");
       int ordinal = this->getFieldValue(fieldOrdinal);
       return static_cast<ContactFields>(ordinal);
     }

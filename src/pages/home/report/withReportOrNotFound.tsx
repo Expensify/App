@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/no-negated-variables */
 import {useIsFocused} from '@react-navigation/native';
-import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
+import type {ComponentType} from 'react';
 import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -13,6 +13,7 @@ import {canAccessReport} from '@libs/ReportUtils';
 import type {
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
+    ReportChangeApproverParamList,
     ReportChangeWorkspaceNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
@@ -52,18 +53,17 @@ type ScreenProps =
     | PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.SHARE_CODE>
     | PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOT>
     | PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DETAILS>
-    | PlatformStackScreenProps<ReportChangeWorkspaceNavigatorParamList, typeof SCREENS.REPORT_CHANGE_WORKSPACE.ROOT>;
+    | PlatformStackScreenProps<ReportChangeWorkspaceNavigatorParamList, typeof SCREENS.REPORT_CHANGE_WORKSPACE.ROOT>
+    | PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.ROOT>;
 
 type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
     route: ScreenProps['route'];
     navigation: ScreenProps['navigation'];
 };
 
-export default function (
-    shouldRequireReportID = true,
-): <TProps extends WithReportOrNotFoundProps, TRef>(WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>) => React.ComponentType<TProps & React.RefAttributes<TRef>> {
-    return function <TProps extends WithReportOrNotFoundProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
-        function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
+export default function (shouldRequireReportID = true): <TProps extends WithReportOrNotFoundProps>(WrappedComponent: ComponentType<TProps>) => ComponentType<TProps> {
+    return function <TProps extends WithReportOrNotFoundProps>(WrappedComponent: ComponentType<TProps>) {
+        function WithReportOrNotFound(props: TProps) {
             const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
             const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`, {canBeMissing: true});
             const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
@@ -124,14 +124,13 @@ export default function (
                     policy={policy}
                     reportMetadata={reportMetadata}
                     isLoadingReportData={isLoadingReportData}
-                    ref={ref}
                 />
             );
         }
 
         WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-        return React.forwardRef(WithReportOrNotFound);
+        return WithReportOrNotFound;
     };
 }
 

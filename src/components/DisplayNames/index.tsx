@@ -6,7 +6,17 @@ import DisplayNamesWithoutTooltip from './DisplayNamesWithoutTooltip';
 import DisplayNamesWithToolTip from './DisplayNamesWithTooltip';
 import type DisplayNamesProps from './types';
 
-function DisplayNames({fullTitle, tooltipEnabled, textStyles, numberOfLines, shouldAddEllipsis, shouldUseFullTitle, displayNamesWithTooltips, renderAdditionalText}: DisplayNamesProps) {
+function DisplayNames({
+    fullTitle,
+    tooltipEnabled,
+    textStyles,
+    numberOfLines,
+    shouldAddEllipsis,
+    shouldUseFullTitle,
+    displayNamesWithTooltips,
+    renderAdditionalText,
+    forwardedFSClass,
+}: DisplayNamesProps) {
     const {translate} = useLocalize();
     const title = StringUtils.lineBreaksToSpaces(Parser.htmlToText(fullTitle)) || translate('common.hidden');
 
@@ -17,6 +27,7 @@ function DisplayNames({fullTitle, tooltipEnabled, textStyles, numberOfLines, sho
                 numberOfLines={numberOfLines}
                 fullTitle={title}
                 renderAdditionalText={renderAdditionalText}
+                forwardedFSClass={forwardedFSClass}
             />
         );
     }
@@ -29,6 +40,7 @@ function DisplayNames({fullTitle, tooltipEnabled, textStyles, numberOfLines, sho
                 textStyles={textStyles}
                 numberOfLines={numberOfLines}
                 renderAdditionalText={renderAdditionalText}
+                forwardedFSClass={forwardedFSClass}
             />
         );
     }
@@ -41,6 +53,7 @@ function DisplayNames({fullTitle, tooltipEnabled, textStyles, numberOfLines, sho
             shouldAddEllipsis={shouldAddEllipsis}
             numberOfLines={numberOfLines}
             renderAdditionalText={renderAdditionalText}
+            forwardedFSClass={forwardedFSClass}
         />
     );
 }

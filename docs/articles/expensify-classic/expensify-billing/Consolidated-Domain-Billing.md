@@ -4,7 +4,6 @@ description: Learn how to enable and manage Consolidated Domain Billing, allowin
 keywords: [Expensify Classic, consolidated billing, one billing owner]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Consolidated Domain Billing allows organizations to have different billing owners for workspaces while ensuring that only one person is billed for all paid workspaces within a verified domain.
 
@@ -56,4 +55,3 @@ When a **Domain Admin** enables Consolidated Domain Billing:
 
 No, enabling this feature means you will be billed for **all** domain members who choose a subscription.
 
-</div>
