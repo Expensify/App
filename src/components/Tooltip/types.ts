@@ -103,6 +103,8 @@ type EducationalTooltipProps = ChildrenProps &
 
         /** Whether the tooltip should hide during scrolling */
         shouldHideOnScroll?: boolean;
+
+        uniqueID?: string;
     };
 
 type TooltipExtendedProps = (EducationalTooltipProps | TooltipProps) & {

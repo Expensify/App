@@ -27,10 +27,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {getDomainNameForPolicy, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import {clearAddNewCardFlow, openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {importPlaidAccounts} from '@userActions/Plaid';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -122,7 +123,16 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
         let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.ASSIGNEE;
         const employeeList = Object.values(policy?.employeeList ?? {}).filter((employee) => !isDeletedPolicyEmployee(employee, isOffline));
-        const isFeedExpired = isSelectedFeedExpired(selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
+        const selectedFeedCompanyCardsData = selectedFeed ? cardFeeds?.settings?.companyCards?.[selectedFeed] : undefined;
+        const selectedFeedOAuthData = selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined;
+        const isFeedExpired = isSelectedFeedExpired(selectedFeedOAuthData);
+        const plaidAccessToken = selectedFeedCompanyCardsData?.plaidAccessToken;
+
+        // Refetch plaid card list
+        if (!isFeedExpired && plaidAccessToken) {
+            const country = selectedFeedCompanyCardsData?.country ?? '';
+            importPlaidAccounts('', selectedFeed, '', country, getDomainNameForPolicy(policyID), '', undefined, undefined, plaidAccessToken);
+        }
 
         if (employeeList.length === 1) {
             const userEmail = Object.keys(policy?.employeeList ?? {}).at(0) ?? '';

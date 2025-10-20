@@ -8,7 +8,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import useActiveRoute from '@hooks/useActiveRoute';
-import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -110,7 +109,6 @@ function MoneyRequestReceiptView({
     const [isLoading, setIsLoading] = useState(true);
 
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
-    const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
     const isTrackExpense = isTrackExpenseReport(report);
     const moneyRequestReport = parentReport;
     const linkedTransactionID = useMemo(() => {
@@ -208,7 +206,7 @@ function MoneyRequestReceiptView({
                 return;
             }
             if (parentReportAction) {
-                cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, report.reportID, iouReport, chatIOUReport, true, isChatIOUReportArchived);
+                cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, report.reportID, true);
                 return;
             }
         }
@@ -223,7 +221,7 @@ function MoneyRequestReceiptView({
         revert(transaction, getLastModifiedExpense(report?.reportID));
         clearError(transaction.transactionID);
         clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
-    }, [transaction, chatReport, parentReportAction, isChatIOUReportArchived, linkedTransactionID, report?.reportID, iouReport, chatIOUReport]);
+    }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID]);
 
     let receiptStyle: StyleProp<ViewStyle>;
 

@@ -116,12 +116,7 @@ function IOURequestStepUpgrade({
             policyID: undefined,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
             currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
-            featuresMap: [
-                {
-                    id: CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
-                    enabled: isDistanceRateUpgrade,
-                },
-            ],
+            areDistanceRatesEnabled: isDistanceRateUpgrade,
             adminParticipant,
         });
         setIsUpgraded(true);

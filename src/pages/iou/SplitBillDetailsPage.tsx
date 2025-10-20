@@ -143,7 +143,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                                 policyID={isPolicyExpenseChat(report) ? report?.policyID : undefined}
                                 action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}
                                 onToggleBillable={(billable) => {
-                                    setDraftSplitTransaction(transaction?.transactionID, {billable});
+                                    setDraftSplitTransaction(transaction?.transactionID, draftTransaction, {billable});
                                 }}
                                 isConfirmed={isConfirmed}
                             />
