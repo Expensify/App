@@ -22,8 +22,15 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
 import {getMemberAccountIDsForWorkspace, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getDisplayNameForParticipant, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
+import {
+    getDisplayNameForParticipant,
+    hasViolations as hasViolationsReportUtils,
+    isAllowedToApproveExpenseReport,
+    isMoneyRequestReport,
+    isMoneyRequestReportPendingDeletion,
+} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -44,6 +51,10 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
 
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -114,9 +125,18 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
         if (!selectedApproverEmail || !employeeAccountID) {
             return;
         }
-        addReportApprover(report, selectedApproverEmail, Number(employeeAccountID), currentUserDetails.accountID);
+        addReportApprover(
+            report,
+            selectedApproverEmail,
+            Number(employeeAccountID),
+            currentUserDetails.accountID,
+            currentUserDetails.email ?? '',
+            policy,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+        );
         Navigation.dismissModal();
-    }, [allApprovers, selectedApproverEmail, report, currentUserDetails.accountID]);
+    }, [allApprovers, selectedApproverEmail, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled]);
 
     const button = useMemo(() => {
         return (
