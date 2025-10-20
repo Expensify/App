@@ -69,7 +69,9 @@ jobs:
 
       - name: Run Claude Code (code)
         if: steps.filter.outputs.code == 'true'
-        uses: anthropics/claude-code-action@a3ff61d47aa5118a43b33ae44c4087d9eb51111a # v1.0.8
+        uses: adamgrzybowski/claude-code-action@31607942e155c474cbfe87c6d12d7c90cb8e52bc # fork v1.0.13 + enable mcp for github_inline_comment for workflow_dispatch
+        env:
+          PR_NUMBER: ${{ steps.pr-data.outputs.PR_NUMBER }}
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
