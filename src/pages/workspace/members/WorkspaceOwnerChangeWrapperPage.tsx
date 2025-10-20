@@ -41,7 +41,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
             return;
         }
         requestWorkspaceOwnerChange(policyID);
-        // eslint-disable-next-line react-compiler/react-compiler react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [policyID]);
 
     useEffect(() => {
