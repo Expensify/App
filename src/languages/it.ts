@@ -1318,7 +1318,7 @@ const translations = {
             genericUnholdExpenseFailureMessage: 'Errore imprevisto nel rimuovere questa spesa dalla sospensione. Per favore riprova più tardi.',
             receiptDeleteFailureError: "Errore imprevisto durante l'eliminazione di questa ricevuta. Per favore, riprova più tardi.",
             receiptFailureMessage:
-                '<rbr>Si è verificato un errore durante il caricamento della tua ricevuta. Per favore <clickable id="retry">riprova</clickable> o <clickable id="download">salva la ricevuta</clickable> da caricare più tardi.</rbr>',
+                '<rbr>Si è verificato un errore durante il caricamento della tua ricevuta. Per favore <clickable id="receiptFailureMessage.retry">riprova</clickable> o <clickable id="receiptFailureMessage.download">salva la ricevuta</clickable> da caricare più tardi.</rbr>',
             receiptFailureMessageShort: 'Si è verificato un errore durante il caricamento della tua ricevuta.',
             genericDeleteFailureMessage: "Errore imprevisto nell'eliminazione di questa spesa. Per favore riprova più tardi.",
             genericEditFailureMessage: 'Errore imprevisto durante la modifica di questa spesa. Per favore riprova più tardi.',

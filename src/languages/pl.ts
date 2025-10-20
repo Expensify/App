@@ -1318,7 +1318,7 @@ const translations = {
             genericUnholdExpenseFailureMessage: 'Nieoczekiwany błąd podczas zdejmowania tego wydatku z blokady. Proszę spróbować ponownie później.',
             receiptDeleteFailureError: 'Nieoczekiwany błąd podczas usuwania tego paragonu. Proszę spróbować ponownie później.',
             receiptFailureMessage:
-                '<rbr>Wystąpił błąd podczas przesyłania paragonu. Proszę <clickable id="retry">spróbuj ponownie</clickable> lub <clickable id="download">zapisz paragon</clickable> do przesłania później.</rbr>',
+                '<rbr>Wystąpił błąd podczas przesyłania paragonu. Proszę <clickable id="receiptFailureMessage.retry">spróbuj ponownie</clickable> lub <clickable id="receiptFailureMessage.download">zapisz paragon</clickable> do przesłania później.</rbr>',
             receiptFailureMessageShort: 'Wystąpił błąd podczas przesyłania paragonu.',
             genericDeleteFailureMessage: 'Nieoczekiwany błąd podczas usuwania tego wydatku. Proszę spróbować ponownie później.',
             genericEditFailureMessage: 'Nieoczekiwany błąd podczas edytowania tego wydatku. Proszę spróbować ponownie później.',

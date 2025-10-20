@@ -1305,7 +1305,8 @@ const translations = {
             genericHoldExpenseFailureMessage: '暂时无法暂扣此费用，请稍后再试。',
             genericUnholdExpenseFailureMessage: '将此费用从保留状态中移除时发生意外错误。请稍后再试。',
             receiptDeleteFailureError: '删除此收据时发生意外错误。请稍后再试。',
-            receiptFailureMessage: '<rbr>上传您的收据时出错。请 <clickable id="retry">再试一次</clickable> 或 <clickable id="download">保存收据</clickable> 稍后上传。</rbr>',
+            receiptFailureMessage:
+                '<rbr>上传您的收据时出错。请 <clickable id="receiptFailureMessage.retry">再试一次</clickable> 或 <clickable id="receiptFailureMessage.download">保存收据</clickable> 稍后上传。</rbr>',
             receiptFailureMessageShort: '上传您的收据时出错。',
             genericDeleteFailureMessage: '删除此费用时出现意外错误。请稍后再试。',
             genericEditFailureMessage: '编辑此费用时发生意外错误。请稍后再试。',

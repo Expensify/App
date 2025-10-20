@@ -1320,7 +1320,7 @@ const translations = {
             genericHoldExpenseFailureMessage: 'この経費を保留する際に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericUnholdExpenseFailureMessage: 'この経費の保留を解除する際に予期しないエラーが発生しました。後でもう一度お試しください。',
             receiptDeleteFailureError: 'この領収書の削除中に予期しないエラーが発生しました。後でもう一度お試しください。',
-            receiptFailureMessage: `<rbr>領収書のアップロード中にエラーが発生しました。どうぞ <clickable id="retry">もう一度試してください。</clickable> または <clickable id="download">領収書を保存</clickable> 後でアップロードする。</rbr>`,
+            receiptFailureMessage: `<rbr>領収書のアップロード中にエラーが発生しました。どうぞ <clickable id="receiptFailureMessage.retry">もう一度試してください。</clickable> または <clickable id="receiptFailureMessage.download">領収書を保存</clickable> 後でアップロードする。</rbr>`,
             receiptFailureMessageShort: '領収書のアップロード中にエラーが発生しました。',
             genericDeleteFailureMessage: 'この経費を削除中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericEditFailureMessage: 'この経費の編集中に予期しないエラーが発生しました。後でもう一度お試しください。',

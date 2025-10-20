@@ -1299,7 +1299,7 @@ const translations = {
             genericUnholdExpenseFailureMessage: 'Unexpected error taking this expense off hold. Please try again later.',
             receiptDeleteFailureError: 'Unexpected error deleting this receipt. Please try again later.',
             receiptFailureMessage:
-                '<rbr>There was an error uploading your receipt. Please <clickable id="retry">try again</clickable> or <clickable id="download">save the receipt</clickable> to upload later.</rbr>',
+                '<rbr>There was an error uploading your receipt. Please <clickable id="receiptFailureMessage.retry">try again</clickable> or <clickable id="receiptFailureMessage.download">save the receipt</clickable> to upload later.</rbr>',
             receiptFailureMessageShort: 'There was an error uploading your receipt.',
             genericDeleteFailureMessage: 'Unexpected error deleting this expense. Please try again later.',
             genericEditFailureMessage: 'Unexpected error editing this expense. Please try again later.',

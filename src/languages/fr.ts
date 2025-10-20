@@ -1324,7 +1324,7 @@ const translations = {
             genericHoldExpenseFailureMessage: 'Erreur inattendue lors de la mise en attente de cette dépense. Veuillez réessayer plus tard.',
             genericUnholdExpenseFailureMessage: 'Erreur inattendue lors de la suppression de la mise en attente de cette dépense. Veuillez réessayer plus tard.',
             receiptDeleteFailureError: 'Erreur inattendue lors de la suppression de ce reçu. Veuillez réessayer plus tard.',
-            receiptFailureMessage: `<rbr>Une erreur s'est produite lors du téléchargement de votre reçu. Veuillez <clickable id="retry">réessayer</clickable> ou <clickable id="download">enregistrer le reçu</clickable> à télécharger plus tard.</rbr>`,
+            receiptFailureMessage: `<rbr>Une erreur s'est produite lors du téléchargement de votre reçu. Veuillez <clickable id="receiptFailureMessage.retry">réessayer</clickable> ou <clickable id="receiptFailureMessage.download">enregistrer le reçu</clickable> à télécharger plus tard.</rbr>`,
             receiptFailureMessageShort: "Une erreur s'est produite lors du téléchargement de votre reçu.",
             genericDeleteFailureMessage: 'Erreur inattendue lors de la suppression de cette dépense. Veuillez réessayer plus tard.',
             genericEditFailureMessage: 'Erreur inattendue lors de la modification de cette dépense. Veuillez réessayer plus tard.',

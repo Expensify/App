@@ -1292,7 +1292,7 @@ const translations = {
             genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura. Por favor, inténtalo de nuevo más tarde.',
             receiptDeleteFailureError: 'Error inesperado al borrar este recibo. Por favor, vuelve a intentarlo más tarde.',
             receiptFailureMessage:
-                '<rbr>Hubo un error al cargar tu recibo. Por favor, <clickable id="retry">inténtalo de nuevo</clickable> o <clickable id="download">guarda el recibo</clickable> para cargarlo más tarde.</rbr>',
+                '<rbr>Hubo un error al cargar tu recibo. Por favor, <clickable id="receiptFailureMessage.retry">inténtalo de nuevo</clickable> o <clickable id="receiptFailureMessage.download">guarda el recibo</clickable> para cargarlo más tarde.</rbr>',
             receiptFailureMessageShort: 'Hubo un error al cargar tu recibo.',
             genericDeleteFailureMessage: 'Error inesperado al eliminar este gasto. Por favor, inténtalo más tarde.',
             genericEditFailureMessage: 'Error inesperado al editar este gasto. Por favor, inténtalo más tarde.',

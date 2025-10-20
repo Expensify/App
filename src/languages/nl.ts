@@ -1320,7 +1320,7 @@ const translations = {
             genericUnholdExpenseFailureMessage: 'Onverwachte fout bij het van hold halen van deze uitgave. Probeer het later opnieuw.',
             receiptDeleteFailureError: 'Onverwachte fout bij het verwijderen van dit ontvangstbewijs. Probeer het later opnieuw.',
             receiptFailureMessage:
-                '<rbr>Er is een fout opgetreden bij het uploaden van uw bon. Alstublieft <clickable id="retry">probeer het opnieuw</clickable> of <clickable id="download">sla de bon op</clickable> om later te uploaden.</rbr>',
+                '<rbr>Er is een fout opgetreden bij het uploaden van uw bon. Alstublieft <clickable id="receiptFailureMessage.retry">probeer het opnieuw</clickable> of <clickable id="receiptFailureMessage.download">sla de bon op</clickable> om later te uploaden.</rbr>',
             receiptFailureMessageShort: 'Er is een fout opgetreden bij het uploaden van uw bon.',
             genericDeleteFailureMessage: 'Onverwachte fout bij het verwijderen van deze uitgave. Probeer het later opnieuw.',
             genericEditFailureMessage: 'Onverwachte fout bij het bewerken van deze uitgave. Probeer het later opnieuw.',
