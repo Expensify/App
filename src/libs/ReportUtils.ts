@@ -9354,6 +9354,9 @@ function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | str
     return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+/**
+ * Returns the pending action for a money request report by inspecting its parent report action.
+ */
 function getMoneyRequestReportPendingAction(reportOrID: OnyxEntry<Report> | string): PendingAction | undefined {
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, allReports) : reportOrID;
     if (!isMoneyRequestReport(report)) {
