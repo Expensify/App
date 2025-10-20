@@ -891,7 +891,11 @@ function changeTransactionsReport(
         const transactionAmount = getAmount(transaction, undefined, undefined, allowNegative);
 
         if (oldReport) {
-            updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : (oldReport?.total ?? 0)) + transactionAmount;
+            updatedReportTotals[oldReportID] = updatedReportTotals[oldReportID]
+                ? updatedReportTotals[oldReportID]
+                : transactionAmount < 0
+                  ? (oldReport?.total ?? 0) - transactionAmount
+                  : (oldReport?.total ?? 0) + transactionAmount;
             updatedReportNonReimbursableTotals[oldReportID] =
                 (updatedReportNonReimbursableTotals[oldReportID] ? updatedReportNonReimbursableTotals[oldReportID] : (oldReport?.nonReimbursableTotal ?? 0)) +
                 (transaction?.reimbursable ? 0 : transactionAmount);
