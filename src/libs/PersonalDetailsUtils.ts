@@ -35,21 +35,8 @@ Onyx.connect({
     },
 });
 
-let hiddenTranslation = '';
-let youTranslation = '';
-
-Onyx.connect({
-    key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
-    initWithStoredValues: false,
-    callback: (value) => {
-        if (value ?? true) {
-            return;
-        }
-        hiddenTranslation = translateLocal('common.hidden');
-        youTranslation = translateLocal('common.you').toLowerCase();
-    },
-});
-
+const hiddenTranslation = translateLocal('common.hidden');
+const youTranslation = translateLocal('common.you').toLowerCase();
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
 
 function getDisplayNameOrDefault(
