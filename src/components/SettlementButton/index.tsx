@@ -8,6 +8,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {Bank} from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
+import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {ContinueActionParams, PaymentMethod} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -141,6 +142,7 @@ function SettlementButton({
 
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const kycWallRef = useContext(KYCWallContext);
     const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
 
@@ -492,6 +494,7 @@ function SettlementButton({
 
     return (
         <KYCWall
+            ref={kycWallRef}
             onSuccessfulKYC={(paymentType) => onPress(paymentType, undefined, undefined)}
             enablePaymentsRoute={enablePaymentsRoute}
             addDebitCardRoute={addDebitCardRoute}

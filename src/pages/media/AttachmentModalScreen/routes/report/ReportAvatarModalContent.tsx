@@ -4,6 +4,7 @@ import {getDefaultGroupAvatar, getPolicyName, getReportName, getWorkspaceIcon, i
 import {getFullSizeAvatar} from '@libs/UserUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
+import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -15,7 +16,7 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
-    const attachment = useMemo(() => {
+    const attachment: AttachmentModalBaseContentProps = useMemo(() => {
         if (isGroupChat(report) && !isThread(report)) {
             return {
                 source: report?.avatarUrl ? getFullSizeAvatar(report.avatarUrl, 0) : getDefaultGroupAvatar(report?.reportID),
@@ -25,7 +26,7 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
         }
 
         return {
-            source: getFullSizeAvatar(getWorkspaceIcon(report).source, 0),
+            source: getFullSizeAvatar(getWorkspaceIcon(report, policy).source, 0),
             headerTitle: getPolicyName({report, policy}),
             // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID,
@@ -33,13 +34,21 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
         };
     }, [policy, report]);
 
+    const onDownloadAttachment = useDownloadAttachment();
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = !report?.reportID && !isLoadingApp;
+    const isLoading = (!report?.reportID || !policy?.id) && !!isLoadingApp;
+
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
             ...attachment,
-            shouldShowNotFoundPage: !report?.reportID && !isLoadingApp,
-            isLoading: (!report?.reportID || !policy?.id) && !!isLoadingApp,
+            shouldShowNotFoundPage,
+            isLoading,
+            maybeIcon: true,
+            onDownloadAttachment,
         }),
-        [attachment, isLoadingApp, policy?.id, report?.reportID],
+        [attachment, shouldShowNotFoundPage, isLoading, onDownloadAttachment],
     );
 
     return (

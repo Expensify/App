@@ -20,10 +20,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setOptimisticTransactionThread} from '@libs/actions/Report';
-import {setActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
+import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import FS from '@libs/Fullstory';
-import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -255,8 +254,8 @@ function MoneyRequestReportTransactionList({
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigation
-            const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
-            setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs).then(() => {
+            const sortedSiblingTransactionIDs = sortedTransactions.map((transaction) => transaction.transactionID);
+            setActiveTransactionIDs(sortedSiblingTransactionIDs).then(() => {
                 if (reportIDToNavigate) {
                     markReportIDAsExpense(reportIDToNavigate);
                 }

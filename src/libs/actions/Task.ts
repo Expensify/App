@@ -26,7 +26,7 @@ import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getMostRecentReportID, navigateToConciergeChatAndDeleteReport, notifyNewAction} from './Report';
+import {getMostRecentReportID, navigateToConciergeChatAndDeleteReport, notifyNewAction, optimisticReportLastData} from './Report';
 import {setSelfTourViewed} from './Welcome';
 
 type OptimisticReport = Pick<OnyxTypes.Report, 'reportName' | 'managerID' | 'pendingFields' | 'participants'>;
@@ -333,7 +333,7 @@ function createTaskAndNavigate(
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
     if (!isCreatedUsingMarkdown) {
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             clearOutTaskInfo();
         });
@@ -1081,6 +1081,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>, isReportArchived: boole
     const optimisticReportActions = parentReportAction?.reportActionID ? {[parentReportAction?.reportActionID]: optimisticReportAction} : {};
     const hasOutstandingChildTask = getOutstandingChildTask(report);
 
+    const optimisticLastReportData = optimisticReportLastData(parentReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), optimisticReportActions as ReportActions, canUserPerformWriteAction);
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1096,10 +1097,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>, isReportArchived: boole
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`,
             value: {
-                lastMessageText:
-                    ReportActionsUtils.getLastVisibleMessage(parentReport?.reportID, canUserPerformWriteAction, optimisticReportActions as OnyxTypes.ReportActions).lastMessageText ?? '',
-                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(parentReport?.reportID, canUserPerformWriteAction, optimisticReportActions as OnyxTypes.ReportActions)
-                    ?.created,
+                ...optimisticLastReportData,
                 hasOutstandingChildTask,
             },
         },

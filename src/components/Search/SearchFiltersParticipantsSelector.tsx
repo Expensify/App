@@ -69,8 +69,9 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
             },
+            countryCode,
         );
-    }, [areOptionsInitialized, draftComments, options.personalDetails, options.reports]);
+    }, [areOptionsInitialized, draftComments, options.personalDetails, options.reports, countryCode]);
 
     const unselectedOptions = useMemo(() => {
         return filterSelectedOptions(defaultOptions, new Set(selectedOptions.map((option) => option.accountID)));

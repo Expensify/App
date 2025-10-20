@@ -83,9 +83,10 @@ function useOptions() {
                 betas: betas ?? [],
                 includeSelfDM: true,
             },
+            countryCode,
         );
         return filteredOptions;
-    }, [listOptions.reports, listOptions.personalDetails, contacts, draftComments, betas]);
+    }, [listOptions.reports, listOptions.personalDetails, contacts, draftComments, betas, countryCode]);
 
     const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
 

@@ -1,10 +1,11 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
@@ -28,6 +29,7 @@ function AddPersonalBankAccountPage() {
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA, {canBeMissing: true});
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
     const topmostFullScreenRoute = navigationRef.current?.getRootState()?.routes.findLast((route) => isFullScreenName(route.name));
+    const kycWallRef = useContext(KYCWallContext);
 
     const goBack = useCallback(() => {
         switch (topmostFullScreenRoute?.name) {
@@ -69,12 +71,12 @@ function AddPersonalBankAccountPage() {
             if (exitReportID) {
                 Navigation.dismissModalWithReport({reportID: exitReportID});
             } else if (shouldContinue && onSuccessFallbackRoute) {
-                continueSetup(onSuccessFallbackRoute);
+                continueSetup(kycWallRef, onSuccessFallbackRoute);
             } else {
                 goBack();
             }
         },
-        [personalBankAccount, goBack],
+        [personalBankAccount, goBack, kycWallRef],
     );
 
     useEffect(() => clearPersonalBankAccount, []);

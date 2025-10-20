@@ -698,11 +698,11 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
         ) {
-            filtersForm[key as typeof filterKey] = filterValues.filter((id) => personalDetails && personalDetails[id]);
+            filtersForm[key as typeof filterKey] = filterValues.filter((id) => personalDetails?.[id]);
         }
 
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER) {
-            filtersForm[key as typeof filterKey] = filterValues.find((id) => personalDetails && personalDetails[id]);
+            filtersForm[key as typeof filterKey] = filterValues.find((id) => personalDetails?.[id]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY) {
             const validCurrency = new Set(Object.keys(currencyList));

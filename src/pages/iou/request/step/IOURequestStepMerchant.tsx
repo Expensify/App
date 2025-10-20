@@ -94,7 +94,7 @@ function IOURequestStepMerchant({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, {merchant: newMerchant});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant});
             navigateBack();
             return;
         }
@@ -148,7 +148,7 @@ function IOURequestStepMerchant({
             </FormProvider>
             <DiscardChangesConfirmation
                 onCancel={() => {
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         inputRef.current?.focus();
                     });
