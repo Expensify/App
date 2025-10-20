@@ -9,7 +9,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
-import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchDatePreset, SearchFilterKey, SearchGroupBy} from '@components/Search/types';
+import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchDatePreset, SearchFilterKey} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
