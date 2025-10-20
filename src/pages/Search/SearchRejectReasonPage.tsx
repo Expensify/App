@@ -10,10 +10,14 @@ import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import type {SearchReportParamList} from '@navigation/types';
 import RejectReasonFormView from '@pages/iou/RejectReasonFormView';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
 
-function SearchRejectReasonPage({route}: PlatformStackScreenProps<Omit<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>>) {
+type SearchRejectReasonPageProps =
+    | PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS>
+    | PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP>;
+
+function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const {translate} = useLocalize();
     const {backTo = ''} = route.params ?? {};
     const context = useSearchContext();
