@@ -22,6 +22,7 @@ import {getTransactionViolations} from '@libs/TransactionUtils';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
 function TransactionGroupListExpanded<TItem extends ListItem>({
     transactionsQueryJSON,
@@ -46,6 +47,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 }: TransactionGroupListExpandedProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const currentUserDetails = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
     const {currentSearchHash} = useSearchContext();
     const transactionsSnapshotMetadata = useMemo(() => {
@@ -187,7 +189,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                     <TransactionItemRow
                         report={transaction.report}
                         transactionItem={transaction}
-                        violations={getTransactionViolations(transaction, violations)}
+                        violations={getTransactionViolations(transaction, violations, currentUserDetails.email ?? '')}
                         isSelected={!!transaction.isSelected}
                         dateColumnSize={dateColumnSize}
                         amountColumnSize={amountColumnSize}

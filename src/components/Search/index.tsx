@@ -12,6 +12,7 @@ import type {ReportActionListItemType, SearchListItem, SelectionListHandle, Tran
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -234,6 +235,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const {accountID, email} = useCurrentUserPersonalDetails();
 
     // Filter violations based on user visibility
     const filteredViolations = useMemo(() => {
@@ -258,7 +260,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
                 if (transactionViolations) {
                     const filteredTransactionViolations = transactionViolations.filter((violation) =>
-                        shouldShowViolation(report as OnyxEntry<Report>, policy as OnyxEntry<Policy>, violation.name),
+                        shouldShowViolation(report as OnyxEntry<Report>, policy as OnyxEntry<Policy>, violation.name, email ?? ''),
                     );
 
                     if (filteredTransactionViolations.length > 0) {
@@ -283,7 +285,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     });
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
 
     const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
@@ -389,7 +390,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return [[], 0];
         }
 
-        const data1 = getSections(type, searchResults.data, accountID, formatPhoneNumber, validGroupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
+        const data1 = getSections(type, searchResults.data, accountID, email ?? '', formatPhoneNumber, validGroupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
         return [data1, data1.length];
     }, [searchKey, exportReportActions, validGroupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON]);
 

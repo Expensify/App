@@ -474,6 +474,7 @@ function MoneyRequestReportPreviewContent({
         return getReportPreviewAction(
             violations,
             isIouReportArchived || isChatReportArchived,
+            currentUserDetails.email ?? '',
             iouReport,
             policy,
             transactions,

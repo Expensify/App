@@ -7,12 +7,13 @@ import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
-import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -149,7 +150,7 @@ function MoneyRequestReportTransactionList({
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
     const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
-    const session = useSession();
+    const currentUserDetails = useCurrentUserPersonalDetails();
 
     const hasPendingAction = useMemo(() => {
         return hasPendingDeletionTransaction || transactions.some(getTransactionPendingAction);
@@ -170,7 +171,7 @@ function MoneyRequestReportTransactionList({
         for (const transaction of transactions) {
             const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
             if (transactionViolations) {
-                const filteredTransactionViolations = transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name));
+                const filteredTransactionViolations = transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, currentUserDetails.email ?? ''));
 
                 if (filteredTransactionViolations.length > 0) {
                     filtered[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = filteredTransactionViolations;
@@ -224,9 +225,9 @@ function MoneyRequestReportTransactionList({
     }, [newTransactions, sortBy, sortOrder, transactions, localeCompare, report]);
 
     const columnsToShow = useMemo(() => {
-        const columns = getColumnsToShow(session?.accountID, transactions, true);
+        const columns = getColumnsToShow(currentUserDetails?.accountID, transactions, true);
         return (Object.keys(columns) as SearchColumnType[]).filter((column) => columns[column]);
-    }, [transactions, session?.accountID]);
+    }, [transactions, currentUserDetails?.accountID]);
 
     /**
      * Navigate to the transaction thread for a transaction, creating one optimistically if it doesn't yet exist.
