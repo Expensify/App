@@ -40,8 +40,8 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
         if (policy?.isChangeOwnerFailed || policy?.isChangeOwnerSuccessful) {
             return;
         }
-        // requestWorkspaceOwnerChange(policyID);
-        // eslint-disable-next-line react-comp react-hooks/exhaustive-deps
+        requestWorkspaceOwnerChange(policyID);
+        // eslint-disable-next-line react-compiler/react-compiler react-hooks/exhaustive-deps
     }, [policyID]);
 
     useEffect(() => {
