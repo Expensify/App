@@ -3673,7 +3673,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     if (chatReport && expenseReport) {
                         // And when the payment is cancelled
-                        cancelPayment(expenseReport, chatReport);
+                        cancelPayment(expenseReport, chatReport, {} as Policy, true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -4819,7 +4819,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (expenseReport) {
-                        submitReport(expenseReport);
+                        submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -4961,7 +4961,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (expenseReport) {
-                        submitReport(expenseReport);
+                        submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -5138,7 +5138,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     mockFetch?.fail?.();
                     if (expenseReport) {
-                        submitReport(expenseReport);
+                        submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -5864,15 +5864,17 @@ describe('actions/IOU', () => {
                 taxRates: CONST.DEFAULT_TAX,
                 rules: {expenseRules: createCategoryTaxExpenseRules(category, ruleTaxCode)},
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {
+            const draftTransaction: Transaction = {
+                ...createRandomTransaction(1),
                 taxCode,
                 taxAmount: 0,
                 amount: 100,
-            });
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, draftTransaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
             // When setting a category of a draft split transaction
-            setDraftSplitTransaction(transactionID, {category}, fakePolicy);
+            setDraftSplitTransaction(transactionID, draftTransaction, {category}, fakePolicy);
 
             await waitForBatchedUpdates();
 
@@ -5903,15 +5905,17 @@ describe('actions/IOU', () => {
                     taxRates: CONST.DEFAULT_TAX,
                     rules: {},
                 };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {
+                const draftTransaction: Transaction = {
+                    ...createRandomTransaction(1),
                     taxCode,
                     taxAmount,
                     amount: 100,
-                });
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, draftTransaction);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When setting a category of a draft split transaction
-                setDraftSplitTransaction(transactionID, {category}, fakePolicy);
+                setDraftSplitTransaction(transactionID, draftTransaction, {category}, fakePolicy);
 
                 await waitForBatchedUpdates();
 
@@ -5940,11 +5944,15 @@ describe('actions/IOU', () => {
                     taxRates: CONST.DEFAULT_TAX,
                     rules: {expenseRules: createCategoryTaxExpenseRules(category, ruleTaxCode)},
                 };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {amount: 100});
+                const draftTransaction: Transaction = {
+                    ...createRandomTransaction(1),
+                    amount: 100,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, draftTransaction);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When setting a draft split transaction without category update
-                setDraftSplitTransaction(transactionID, {}, fakePolicy);
+                setDraftSplitTransaction(transactionID, draftTransaction, {}, fakePolicy);
 
                 await waitForBatchedUpdates();
 
@@ -6740,7 +6748,7 @@ describe('actions/IOU', () => {
             if (chatReport && expenseReport) {
                 mockFetch?.pause?.();
                 // And when the payment is cancelled
-                cancelPayment(expenseReport, chatReport);
+                cancelPayment(expenseReport, chatReport, {} as Policy, true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true);
             }
             await waitForBatchedUpdates();
 

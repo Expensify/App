@@ -89,7 +89,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const isPerDiem = isPerDiemRequest(transaction);
     const isCard = isManagedCardTransaction(transaction);
-
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(iouActions.at(0));
