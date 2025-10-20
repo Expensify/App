@@ -66,7 +66,7 @@ describe('ProfilePage contact method indicator', () => {
 
     it('shows error when login list has errors', async () => {
         const email = 'user@example.com';
-        
+
         // Current user provided by mocked hook uses the same email
         Onyx.merge(ONYXKEYS.LOGIN_LIST, {
             [email]: {

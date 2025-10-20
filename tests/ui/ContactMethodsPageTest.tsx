@@ -68,7 +68,7 @@ describe('ContactMethodsPage', () => {
         renderPage();
 
         let node = screen.getByTestId(`menu-${defaultEmail}`);
-        
+
         // ContactMethodsPage doesn't set any BR for validated logins
         expect(node).toHaveTextContent('none-brickRoadIndicator');
 
