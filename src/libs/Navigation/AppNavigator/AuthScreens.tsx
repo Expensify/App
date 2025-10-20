@@ -1,6 +1,6 @@
 import type {RouteProp} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import React, {memo, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useContext, useEffect, useRef, useState} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -178,11 +178,6 @@ function AuthScreens() {
             App.reconnectApp(lastUpdateIDAppliedToClientRef.current);
         }
     };
-
-    // On HybridApp we need to prevent flickering during transition to OldDot
-    const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {
-        return CONFIG.IS_HYBRID_APP && Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route) && isOnboardingCompleted === true;
-    }, [isOnboardingCompleted]);
 
     useEffect(() => {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
@@ -612,7 +607,7 @@ function AuthScreens() {
                     component={FeatureTrainingModalNavigator}
                     listeners={modalScreenListeners}
                 />
-                {(isOnboardingCompleted === false || shouldRenderOnboardingExclusivelyOnHybridApp) && (
+                {isOnboardingCompleted === false && (
                     <RootStack.Screen
                         name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                         options={{...rootNavigatorScreenOptions.basicModalNavigator, gestureEnabled: false}}
