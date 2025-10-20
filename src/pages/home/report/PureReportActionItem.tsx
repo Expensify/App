@@ -17,6 +17,7 @@ import Icon from '@components/Icon';
 import {Eye} from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
+import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
@@ -41,6 +42,7 @@ import TextLink from '@components/TextLink';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -463,12 +465,14 @@ function PureReportActionItem({
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
+    const {isBetaEnabled} = usePermissions();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const reactionListRef = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(AttachmentModalContext);
+    const kycWallRef = useContext(KYCWallContext);
     const composerTextInputRef = useRef<TextInput | HTMLTextAreaElement>(null);
     const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
@@ -952,6 +956,7 @@ function PureReportActionItem({
         policy,
         currentUserAccountID,
         personalDetail.timezone,
+        isBetaEnabled,
         createDraftTransactionAndNavigateToParticipantSelector,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
@@ -1119,6 +1124,7 @@ function PureReportActionItem({
                         )}
                         {missingPaymentMethod === 'wallet' && (
                             <KYCWall
+                                ref={kycWallRef}
                                 onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL}
@@ -1445,10 +1451,10 @@ function PureReportActionItem({
                                         </Button>
                                     )}
                                     {/**
-                                     These are the actionable buttons that appear at the bottom of a Concierge message
-                                     for example: Invite a user mentioned but not a member of the room
-                                     https://github.com/Expensify/App/issues/32741
-                                     */}
+                                These are the actionable buttons that appear at the bottom of a Concierge message
+                                for example: Invite a user mentioned but not a member of the room
+                                https://github.com/Expensify/App/issues/32741
+                            */}
                                     {actionableItemButtons.length > 0 && (
                                         <ActionableItemButtons
                                             items={actionableItemButtons}
@@ -1788,7 +1794,6 @@ function PureReportActionItem({
         </PressableWithSecondaryInteraction>
     );
 }
-
 export type {PureReportActionItemProps};
 export default memo(PureReportActionItem, (prevProps, nextProps) => {
     const prevParentReportAction = prevProps.parentReportAction;
