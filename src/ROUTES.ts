@@ -3296,7 +3296,7 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
     },
 
-    MULTIFACTORAUTHENTICATION_FALLBACK: 'multifactorauthentication/fallback',
+    MULTIFACTORAUTHENTICATION_FALLBACK: 'multifactorauthentication/code-authentication',
 
     MULTIFACTORAUTHENTICATION_APPROVE_TRANSACTION: {
         route: 'multifactorauthentication/approve-transaction/:transactionID/:reportID',

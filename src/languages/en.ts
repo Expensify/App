@@ -7309,7 +7309,8 @@ const translations = {
         },
         revokePage: {
             headerTitle: 'Face/fingerprint verification',
-            pageContent: 'Face/fingerprint verification is enabled on one or more devices. Revoking access will require a magic code for the next face/fingerprint verification on any device.',
+            revokeContent: 'Face/fingerprint verification is enabled on one or more devices. Revoking access will require a magic code for the next face/fingerprint verification on any device.',
+            renableContent: 'Face/fingerprint verification is set up on one or more devices, but requires a magic code to re-enable. After that, you can revoke access here.',
             confirmationContent: 'You’ll need a magic code for the next face/fingerprint verification on any device.',
             bottomButtonContent: 'Revoke access',
         },
