@@ -41,13 +41,8 @@ type MacPermissionsModule = {
 type MacGetAuthStatus = MacPermissionsModule['getAuthStatus'];
 
 let macGetAuthStatusPromise: Promise<MacGetAuthStatus | undefined> | undefined;
-let hasLoggedMacPermissionsWarning = false;
 
-const logMacPermissionsWarningOnce = (message: string, error?: unknown) => {
-    if (hasLoggedMacPermissionsWarning) {
-        return;
-    }
-
+const logMacPermissionsWarning = (message: string, error?: unknown) => {
     if (error instanceof Error) {
         log.warn(message, error.message);
     } else if (typeof error === 'string') {
@@ -55,8 +50,6 @@ const logMacPermissionsWarningOnce = (message: string, error?: unknown) => {
     } else {
         log.warn(message);
     }
-
-    hasLoggedMacPermissionsWarning = true;
 };
 
 const loadMacGetAuthStatus = async (): Promise<MacGetAuthStatus | undefined> => {
@@ -67,7 +60,7 @@ const loadMacGetAuthStatus = async (): Promise<MacGetAuthStatus | undefined> => 
             try {
                 macGetAuthStatusPromise = Promise.resolve(((await import('node-mac-permissions')) as MacPermissionsModule).getAuthStatus);
             } catch (error: unknown) {
-                logMacPermissionsWarningOnce('node-mac-permissions not available, defaulting to denied:', error);
+                logMacPermissionsWarning('node-mac-permissions not available, defaulting to denied:', error);
                 return undefined;
             }
         }
