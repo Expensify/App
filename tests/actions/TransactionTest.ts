@@ -36,29 +36,6 @@ describe('Transaction', () => {
 
     describe('dismissDuplicateTransactionViolation', () => {
         /**
-         * Creates a duplicate transaction violation with duplicate IDs
-         */
-        function createDuplicateViolation(duplicateIDs: string[]): TransactionViolation {
-            return {
-                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
-                type: 'violation',
-                data: {
-                    duplicates: duplicateIDs,
-                },
-            };
-        }
-
-        /**
-         * Creates a generic violation (not a duplicate violation)
-         */
-        function createGenericViolation(violationName: string): TransactionViolation {
-            return {
-                name: violationName as TransactionViolation['name'],
-                type: 'violation',
-            };
-        }
-
-        /**
          * Sets up test data with transactions, violations, and related reports
          */
         async function setupTestData(options: {
@@ -84,10 +61,19 @@ describe('Transaction', () => {
 
                 // Create violations for each transaction
                 const violations: TransactionViolation[] = [];
-                violations.push(createDuplicateViolation(duplicateViolationIDs ?? transactionIDs));
+                violations.push({
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                    type: 'violation',
+                    data: {
+                        duplicates: duplicateViolationIDs ?? transactionIDs,
+                    },
+                });
 
                 if (withOtherViolations) {
-                    violations.push(createGenericViolation(CONST.VIOLATIONS.RTER));
+                    violations.push({
+                        name: CONST.VIOLATIONS.RTER,
+                        type: 'violation',
+                    });
                 }
 
                 transactionViolations[transaction.transactionID] = violations;
@@ -149,6 +135,7 @@ describe('Transaction', () => {
             });
 
             const allTransactions: Record<string, TransactionType> = {};
+            const allTransactionViolation: Record<string, TransactionViolation[]> = {};
 
             // Get initial transaction data
             const transaction0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs[0]}`);
@@ -162,7 +149,13 @@ describe('Transaction', () => {
 
             // Get initial violation data to verify they exist
             const initialViolations0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs[0]}`);
+            if (initialViolations0) {
+                allTransactionViolation[transactionIDs[0]] = initialViolations0;
+            }
             const initialViolations1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs[1]}`);
+            if (initialViolations1) {
+                allTransactionViolation[transactionIDs[1]] = initialViolations1;
+            }
 
             expect(initialViolations0?.find((v) => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)).toBeDefined();
             expect(initialViolations1?.find((v) => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)).toBeDefined();
@@ -177,6 +170,7 @@ describe('Transaction', () => {
                 policy,
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
+                allTransactionViolation,
             });
             await waitForBatchedUpdates();
 
@@ -229,7 +223,7 @@ describe('Transaction', () => {
             });
 
             const allTransactions: Record<string, TransactionType> = {};
-            const allTransactionViolationsData: Record<string, TransactionViolation[]> = {};
+            const allTransactionViolation: Record<string, TransactionViolation[]> = {};
 
             // Get data for the function
             for (const transactionID of transactionIDs) {
@@ -240,7 +234,7 @@ describe('Transaction', () => {
 
                 const violations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
                 if (violations) {
-                    allTransactionViolationsData[transactionID] = violations;
+                    allTransactionViolation[transactionID] = violations;
                 }
             }
 
@@ -254,6 +248,7 @@ describe('Transaction', () => {
                 policy,
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
+                allTransactionViolation,
             });
             await waitForBatchedUpdates();
 
@@ -284,14 +279,14 @@ describe('Transaction', () => {
             });
 
             const allTransactions: Record<string, TransactionType> = {};
-            const allTransactionViolationsData: Record<string, TransactionViolation[]> = {};
+            const allTransactionViolation: Record<string, TransactionViolation[]> = {};
 
             for (const transactionID of transactionIDs) {
                 const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
                 if (transaction) allTransactions[transactionID] = transaction;
 
                 const violations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
-                if (violations) allTransactionViolationsData[transactionID] = violations;
+                if (violations) allTransactionViolation[transactionID] = violations;
             }
 
             // When dismissing duplicate transaction violations
@@ -302,6 +297,7 @@ describe('Transaction', () => {
                 policy,
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
+                allTransactionViolation,
             });
             await waitForBatchedUpdates();
 
@@ -324,14 +320,14 @@ describe('Transaction', () => {
             });
 
             const allTransactions: Record<string, TransactionType> = {};
-            const allTransactionViolationsData: Record<string, TransactionViolation[]> = {};
+            const allTransactionViolation: Record<string, TransactionViolation[]> = {};
 
             for (const transactionID of transactionIDs) {
                 const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
                 if (transaction) allTransactions[transactionID] = transaction;
 
                 const violations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
-                if (violations) allTransactionViolationsData[transactionID] = violations;
+                if (violations) allTransactionViolation[transactionID] = violations;
             }
 
             // When dismissing duplicate transaction violations
@@ -342,6 +338,7 @@ describe('Transaction', () => {
                 policy,
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
+                allTransactionViolation,
             });
             await waitForBatchedUpdates();
 
@@ -360,14 +357,14 @@ describe('Transaction', () => {
             });
 
             const allTransactions: Record<string, TransactionType> = {};
-            const allTransactionViolationsData: Record<string, TransactionViolation[]> = {};
+            const allTransactionViolation: Record<string, TransactionViolation[]> = {};
 
             for (const transactionID of transactionIDs) {
                 const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
                 if (transaction) allTransactions[transactionID] = transaction;
 
                 const violations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
-                if (violations) allTransactionViolationsData[transactionID] = violations;
+                if (violations) allTransactionViolation[transactionID] = violations;
             }
 
             // When dismissing duplicate transaction violations without an expense report
@@ -378,6 +375,7 @@ describe('Transaction', () => {
                 policy,
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
+                allTransactionViolation,
             });
             await waitForBatchedUpdates();
 
@@ -404,6 +402,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 isASAPSubmitBetaEnabled: false,
                 allTransactions: {},
+                allTransactionViolation: {},
             });
             await waitForBatchedUpdates();
 
@@ -446,7 +445,14 @@ describe('Transaction', () => {
 
             // Get initial violations to verify they exist
             const initialViolations0 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs[0]}`);
+            const allTransactionViolation: Record<string, TransactionViolation[]> = {};
+            if (initialViolations0) {
+                allTransactionViolation[transactionIDs[0]] = initialViolations0;
+            }
             const initialViolations1 = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionIDs[1]}`);
+            if (initialViolations1) {
+                allTransactionViolation[transactionIDs[1]] = initialViolations1;
+            }
 
             expect(initialViolations0?.find((v) => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)).toBeDefined();
             expect(initialViolations1?.find((v) => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)).toBeDefined();
@@ -462,6 +468,7 @@ describe('Transaction', () => {
                 policy,
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
+                allTransactionViolation,
             });
             await waitForBatchedUpdates();
 
@@ -487,10 +494,12 @@ describe('Transaction', () => {
             // When using useOnyx to get the data
             const {result: expenseReportResult} = renderHook(() => useOnyx(`${ONYXKEYS.COLLECTION.REPORT}expenseReport1`));
             const {result: allTransactionsResult} = renderHook(() => useOnyx(ONYXKEYS.COLLECTION.TRANSACTION));
+            const {result: allTransactionViolationResult} = renderHook(() => useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS));
 
             await waitFor(() => {
                 expect(expenseReportResult.current[0]).toBeDefined();
                 expect(allTransactionsResult.current[0]).toBeDefined();
+                expect(allTransactionViolationResult.current[0]).toBeDefined();
             });
 
             // When dismissing violations using data from useOnyx
@@ -502,6 +511,7 @@ describe('Transaction', () => {
                     policy,
                     isASAPSubmitBetaEnabled: false,
                     allTransactions: allTransactionsResult.current[0] ?? {},
+                    allTransactionViolation: allTransactionViolationResult.current[0] ?? {},
                 });
                 await waitForBatchedUpdates();
             });
