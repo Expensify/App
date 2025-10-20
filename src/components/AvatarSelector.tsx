@@ -41,33 +41,12 @@ function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_
     return (
         <>
             {!!label && (
-                <View style={[styles.pt5, styles.ph2]}>
+                <View style={[styles.ph2, styles.justifyContentStart,]}>
                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
                 </View>
             )}
             <View style={styles.avatarSelectorListContainer}>
-                {/* {CUSTOM_AVATAR_CATALOG.map(({id, local}) => {
-                    const isSelected = selectedID === id;
 
-                    return (
-                        <PressableWithFeedback
-                            key={id}
-                            accessible
-                            accessibilityRole="button"
-                            accessibilityLabel={translate('avatarPage.selectAvatar')}
-                            onPress={() => onSelect(id)}
-                            style={[styles.avatarSelectorWrapper, isSelected && styles.avatarSelected]}
-                        >
-                            <Avatar
-                                type={CONST.ICON_TYPE_AVATAR}
-                                source={local}
-                                size={size}
-                                containerStyles={styles.avatarSelectorContainer}
-                                testID={`AvatarSelector_${id}`}
-                            />
-                        </PressableWithFeedback>
-                    );
-                })} */}
                 {avatarList.map(({id, StyledLetterAvatar}) => {
                     const isSelected = selectedID === id;
 

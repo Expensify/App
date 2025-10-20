@@ -229,8 +229,9 @@ function ProfileAvatar() {
                 contentContainerStyle={styles.flexGrow1}
                 keyboardShouldPersistTaps="handled"
             >
-                <View style={[styles.ph5, styles.flexColumn, styles.flex1, styles.gap2, styles.alignItemsCenter]}>
+                <View style={[styles.ph5, styles.flexColumn, styles.flex1, styles.gap2]}>
                     <AvatarSelector
+                        label={translate('avatarPage.chooseCustomAvatar')}
                         name={currentUserPersonalDetails?.displayName}
                         selectedID={selected}
                         onSelect={(id) => {
