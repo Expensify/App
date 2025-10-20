@@ -214,7 +214,7 @@ function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 function isCorporateCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    return isCardTransaction(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
+    return isManagedCardTransaction(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
 }
 
 function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
@@ -991,9 +991,9 @@ function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolea
 }
 
 /**
- * Determine whether a transaction is made with a card (Expensify or Company Card).
+ * Determine whether a transaction is made with a centrally managed card (Expensify or Company Card).
  */
-function isCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
+function isManagedCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
     return !!transaction?.managedCard;
 }
 
@@ -2044,7 +2044,7 @@ export {
     isManualDistanceRequest,
     isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,
-    isCardTransaction,
+    isManagedCardTransaction,
     isDuplicate,
     isPending,
     isPosted,
