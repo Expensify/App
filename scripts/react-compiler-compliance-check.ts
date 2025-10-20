@@ -64,11 +64,11 @@ type BaseCheckOptions = PrintResultsOptions & {
 };
 
 type CheckOptions = BaseCheckOptions & {
-    filesToCheck?: string[];
+    files?: string[];
 };
 
 async function check({
-    filesToCheck,
+    files,
     shouldGenerateReport = false,
     reportFileName = DEFAULT_REPORT_FILENAME,
     shouldFilterByDiff = false,
@@ -76,13 +76,13 @@ async function check({
     shouldPrintSuccesses = false,
     shouldPrintSuppressedErrors = false,
 }: CheckOptions): Promise<boolean> {
-    if (filesToCheck) {
-        logInfo(`Running React Compiler check for ${filesToCheck.length} files or glob patterns...`);
+    if (files) {
+        logInfo(`Running React Compiler check for ${files.length} files or glob patterns...`);
     } else {
         logInfo('Running React Compiler check for all files...');
     }
 
-    const src = createFilesGlob(filesToCheck);
+    const src = createFilesGlob(files);
     let results = runCompilerHealthcheck(src);
 
     if (shouldFilterByDiff) {
@@ -107,14 +107,13 @@ async function checkChangedFiles({remote, ...restOptions}: BaseCheckOptions): Pr
 
     const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
     const changedFiles = await Git.getChangedFileNames(mainBaseCommitHash);
-    const filesToCheck = [...new Set(changedFiles)];
 
-    if (filesToCheck.length === 0) {
+    if (changedFiles.length === 0) {
         logSuccess('No React files changed, skipping check.');
         return true;
     }
 
-    return check({filesToCheck, ...restOptions});
+    return check({files: changedFiles, ...restOptions});
 }
 
 function runCompilerHealthcheck(src?: string): CompilerResults {
@@ -255,16 +254,16 @@ function getUniqueFileKey({file, line, column}: CompilerFailure): string {
     return file + (isLineSet ? `:${line}` : '') + (isLineAndColumnSet ? `:${column}` : '');
 }
 
-function createFilesGlob(filesToCheck?: string[]): string | undefined {
-    if (!filesToCheck || filesToCheck.length === 0) {
+function createFilesGlob(files?: string[]): string | undefined {
+    if (!files || files.length === 0) {
         return undefined;
     }
 
-    if (filesToCheck.length === 1) {
-        return filesToCheck.at(0);
+    if (files.length === 1) {
+        return files.at(0);
     }
 
-    return `**/+(${filesToCheck.join('|')})`;
+    return `**/+(${files.join('|')})`;
 }
 
 /**
