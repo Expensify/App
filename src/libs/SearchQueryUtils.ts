@@ -861,16 +861,21 @@ function buildFilterFormValuesFromQuery(
             const dateBeforeKey = `${CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}${suffix}` as ReportFieldDateKey;
             const dateAfterKey = `${CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${CONST.SEARCH.DATE_MODIFIERS.AFTER}${suffix}` as ReportFieldDateKey;
 
-            const dateBeforeFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && isValidDate(filter.value.toString()));
-            const dateAfterFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && isValidDate(filter.value.toString()));
-            const dateOnFilter = filterList.find((filter) => {
-                return filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString()));
-            });
+            let dateBeforeFilter, dateAfterFilter, dateOnFilter, negatedFilter, textFilter;
 
-            const negatedFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
-            const textFilter = filterList.find((filter) => {
-                return filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && !isValidDate(filter.value.toString()) && !isSearchDatePreset(filter.value.toString());
-            });
+            for (const filter of filterList) {
+                if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && isValidDate(filter.value.toString())) {
+                    dateBeforeFilter = filter;
+                } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && isValidDate(filter.value.toString())) {
+                    dateAfterFilter = filter;
+                } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString()))) {
+                    dateOnFilter = filter;
+                } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+                    negatedFilter = filter;
+                } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && !isValidDate(filter.value.toString()) && !isSearchDatePreset(filter.value.toString())) {
+                    textFilter = filter;
+                }
+            }
 
             filtersForm[textKey] = textFilter?.value.toString() ?? filtersForm[textKey];
             filtersForm[negatedKey] = negatedFilter?.value.toString() ?? filtersForm[negatedKey];

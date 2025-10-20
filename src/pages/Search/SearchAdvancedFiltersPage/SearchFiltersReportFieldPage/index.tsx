@@ -1,5 +1,5 @@
 import React, {useMemo, useState} from 'react';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
