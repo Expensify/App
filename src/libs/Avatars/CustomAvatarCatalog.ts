@@ -6,7 +6,7 @@ import * as LetterDefaultAvatars from '@components/Icon/WorkspaceDefaultAvatars'
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
-import type {AvatarEntry, CustomAvatarID, DefaultAvatarIDs, LetterAvatarColorStyle, LetterAvatarIDs, LetterAvatarVariant, SeasonF1AvatarIDs} from './CustomAvatarCatalog.types';
+import type {AvatarEntry, CustomAvatarID, DefaultAvatarIDs, LetterAvatarColorStyle, LetterAvatarIDs, SeasonF1AvatarIDs} from './CustomAvatarCatalog.types';
 
 const CDN_DEFAULT_AVATARS = `${CONST.CLOUDFRONT_URL}/images/avatars`;
 const CDN_SEASON_F1 = `${CONST.CLOUDFRONT_URL}/images/avatars/custom-avatars/season-f1`;
