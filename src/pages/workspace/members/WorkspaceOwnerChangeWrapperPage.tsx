@@ -37,7 +37,11 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
     const shouldShowPaymentCardForm = error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD || isAuthRequired;
 
     useEffect(() => {
-        requestWorkspaceOwnerChange(policyID);
+        if (policy?.isChangeOwnerFailed || policy?.isChangeOwnerSuccessful) {
+            return;
+        }
+        // requestWorkspaceOwnerChange(policyID);
+        // eslint-disable-next-line react-comp react-hooks/exhaustive-deps
     }, [policyID]);
 
     useEffect(() => {
