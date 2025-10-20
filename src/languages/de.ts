@@ -637,6 +637,7 @@ const translations = {
         downloadAsPDF: 'Als PDF herunterladen',
         downloadAsCSV: 'Als CSV herunterladen',
         help: 'Hilfe',
+        expenseReport: 'Spesenabrechnung',
         expenseReports: 'Spesenabrechnungen',
         rateOutOfPolicy: 'Satz außerhalb der Richtlinien',
         reimbursable: 'Erstattungsfähig',
@@ -975,6 +976,7 @@ const translations = {
         buttonMySettings: 'Meine Einstellungen',
         fabNewChat: 'Chat starten',
         fabNewChatExplained: 'Chat starten (Floating action)',
+        fabScanReceiptExplained: 'Kassenbon scannen (Floating Action)',
         chatPinned: 'Chat angeheftet',
         draftedMessage: 'Entwurfene Nachricht',
         listOfChatMessages: 'Liste der Chatnachrichten',
@@ -1481,6 +1483,7 @@ const translations = {
                 subtitle: 'Wählen Sie einen zusätzlichen Genehmiger für diesen Bericht, bevor wir ihn durch den Rest des Genehmigungs-Workflows leiten.',
             },
         },
+        chooseWorkspace: 'Wählen Sie einen Arbeitsbereich aus',
     },
     transactionMerge: {
         listPage: {
@@ -1856,6 +1859,7 @@ const translations = {
             'Ihre Xero-Buchhaltungsverbindung erfordert die Verwendung der Zwei-Faktor-Authentifizierung. Um Expensify weiterhin zu nutzen, aktivieren Sie diese bitte.',
         twoFactorAuthCannotDisable: '2FA kann nicht deaktiviert werden.',
         twoFactorAuthRequired: 'Die Zwei-Faktor-Authentifizierung (2FA) ist für Ihre Xero-Verbindung erforderlich und kann nicht deaktiviert werden.',
+        explainProcessToRemoveWithRecovery: 'Um die Zwei-Faktor-Authentifizierung (2FA) zu deaktivieren, geben Sie bitte einen gültigen Wiederherstellungscode ein.',
     },
     recoveryCodeForm: {
         error: {
@@ -2024,6 +2028,26 @@ const translations = {
         validateCardTitle: 'Lassen Sie uns sicherstellen, dass Sie es sind',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Bitte geben Sie den magischen Code ein, der an ${contactMethod} gesendet wurde, um Ihre Kartendetails anzuzeigen. Er sollte in ein bis zwei Minuten ankommen.`,
+        cardFraudAlert: {
+            confirmButtonText: 'Ja, das tue ich.',
+            reportFraudButtonText: 'Nein, das war ich nicht.',
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) =>
+                `die verdächtige Aktivität geklärt und die Karte x${cardLastFour} reaktiviert. Alles bereit, um weiter Ausgaben zu erfassen!`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `hat die Karte mit den Endziffern ${cardLastFour} deaktiviert`,
+            alertMessage: ({
+                cardLastFour,
+                amount,
+                merchant,
+                date,
+            }: {
+                cardLastFour: string;
+                amount: string;
+                merchant: string;
+                date: string;
+            }) => `verdächtige Aktivitäten auf der Karte mit der Endung ${cardLastFour} festgestellt. Erkennen Sie diese Abbuchung?
+
+${amount} für ${merchant} - ${date}`,
+        },
     },
     workflowsPage: {
         workflowTitle: 'Ausgaben',
@@ -2036,6 +2060,7 @@ const translations = {
         addApprovalsTitle: 'Genehmigungen hinzufügen',
         addApprovalButton: 'Genehmigungsworkflow hinzufügen',
         addApprovalTip: 'Dieser Standard-Workflow gilt für alle Mitglieder, es sei denn, es existiert ein spezifischerer Workflow.',
+        disableApprovalPromptDescription: 'Durch das Deaktivieren von Genehmigungen werden alle vorhandenen Genehmigungsworkflows gelöscht.',
         approver: 'Genehmiger',
         addApprovalsDescription: 'Zusätzliche Genehmigung erforderlich, bevor eine Zahlung autorisiert wird.',
         makeOrTrackPaymentsTitle: 'Zahlungen vornehmen oder verfolgen',
@@ -2593,7 +2618,7 @@ const translations = {
                 descriptionTwo: 'Kategorisieren und taggen Sie Ausgaben',
                 descriptionThree: 'Berichte erstellen und teilen',
             },
-            price: 'Testen Sie es 30 Tage lang kostenlos, dann upgraden Sie für nur <strong>$5/Monat</strong>.',
+            price: 'Testen Sie es 30 Tage lang kostenlos, dann upgraden Sie für nur <strong>$5/Benutzer/Monat</strong>.',
             createWorkspace: 'Arbeitsbereich erstellen',
         },
         confirmWorkspace: {
@@ -4586,7 +4611,7 @@ const translations = {
             addShippingDetails: 'Versanddetails hinzufügen',
             issuedCard: ({assignee}: AssigneeParams) => `hat ${assignee} eine Expensify-Karte ausgestellt! Die Karte wird in 2-3 Werktagen ankommen.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
-                `hat ${assignee} eine Expensify-Karte ausgestellt! Die Karte wird versendet, sobald die Versanddetails hinzugefügt wurden.`,
+                `Für ${assignee} wurde eine Expensify Card ausgestellt! Die Karte wird versendet, sobald die Versanddetails bestätigt wurden.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `hat ${assignee} eine virtuelle ${link} ausgestellt! Die Karte kann sofort verwendet werden.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} hat Versanddetails hinzugefügt. Die Expensify Card wird in 2-3 Werktagen ankommen.`,
             verifyingHeader: 'Überprüfen',
@@ -6237,7 +6262,6 @@ const translations = {
             reimbursable: 'Erstattungsfähig',
             purchaseCurrency: 'Kaufwährung',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Bericht',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Auszahlungs-ID',
@@ -6259,7 +6283,6 @@ const translations = {
         groupBy: 'Gruppe nach',
         moneyRequestReport: {
             emptyStateTitle: 'Dieser Bericht enthält keine Ausgaben.',
-            emptyStateSubtitle: 'Sie können Ausgaben zu diesem Bericht hinzufügen, indem Sie die Schaltfläche unten oder die Option "Ausgabe hinzufügen" im Menü "Mehr" oben verwenden.',
         },
         noCategory: 'Keine Kategorie',
         noTag: 'Kein Tag',
@@ -6384,8 +6407,8 @@ const translations = {
         noActivityYet: 'Noch keine Aktivität',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `geändert ${fieldName} von ${oldValue} zu ${newValue}`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `${fieldName} in ${newValue} geändert`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `hat ${fieldName} in "${newValue}" geändert (zuvor "${oldValue}")`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `hat ${fieldName} auf "${newValue}" gesetzt`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `Arbeitsbereich geändert${fromPolicyName ? ` (zuvor ${fromPolicyName})` : ''}`;
@@ -7189,6 +7212,7 @@ const translations = {
             isWaitingForAssigneeToCompleteAction: 'Wartet darauf, dass der Zuständige die Aktion abschließt.',
             hasChildReportAwaitingAction: 'Hat einen untergeordneten Bericht, der auf eine Aktion wartet',
             hasMissingInvoiceBankAccount: 'Fehlendes Rechnungsbankkonto',
+            hasUnresolvedCardFraudAlert: 'Hat eine ungelöste Karten-Fraud-Warnung',
         },
         reasonRBR: {
             hasErrors: 'Hat Fehler in den Berichtsdaten oder Berichtsaktionen',
