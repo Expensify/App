@@ -18,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
+import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
@@ -31,7 +32,6 @@ import Performance from '@libs/Performance';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, selectArchivedReportsIdSet, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import type {SearchKey} from '@libs/SearchUIUtils';
 import {
     createAndOpenSearchTransactionThread,
     getColumnsToShow,
@@ -105,6 +105,7 @@ function mapTransactionItemToSelectedEntry(
                 undefined,
                 undefined,
                 outstandingReportsByPolicyID,
+                true,
             ),
             action: item.action,
             reportID: item.reportID,
@@ -186,6 +187,7 @@ function prepareTransactionsList(
                 undefined,
                 undefined,
                 outstandingReportsByPolicyID,
+                true,
             ),
             action: item.action,
             reportID: item.reportID,
@@ -230,7 +232,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
@@ -286,41 +287,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
 
     const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
-    const shouldCalculateTotals = useMemo(() => {
-        if (offset !== 0) {
-            return false;
-        }
 
-        const savedSearchValues = Object.values(savedSearches ?? {});
-
-        if (!savedSearchValues.length && !searchKey) {
-            return false;
-        }
-
-        const eligibleSearchKeys: Partial<SearchKey[]> = [
-            CONST.SEARCH.SEARCH_KEYS.SUBMIT,
-            CONST.SEARCH.SEARCH_KEYS.APPROVE,
-            CONST.SEARCH.SEARCH_KEYS.PAY,
-            CONST.SEARCH.SEARCH_KEYS.EXPORT,
-            CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
-            CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
-            CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
-            CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
-        ];
-
-        if (eligibleSearchKeys.includes(searchKey)) {
-            return true;
-        }
-
-        for (const savedSearch of savedSearchValues) {
-            const searchData = buildSearchQueryJSON(savedSearch.query);
-            if (searchData && searchData.similarSearchHash === similarSearchHash) {
-                return true;
-            }
-        }
-
-        return false;
-    }, [offset, savedSearches, searchKey, similarSearchHash]);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, similarSearchHash, offset === 0);
 
     const previousReportActions = usePrevious(reportActions);
     const reportActionsArray = useMemo(
@@ -348,7 +316,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, groupBy);
+    const validGroupBy = groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy) ? groupBy : undefined;
+    const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, validGroupBy);
 
     useEffect(() => {
         if (!isFocused) {
@@ -416,13 +385,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         // Group-by option cannot be used for chats or tasks
         const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
         const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-        if (groupBy && (isChat || isTask)) {
+        if (validGroupBy && (isChat || isTask)) {
             return [[], 0];
         }
 
-        const data1 = getSections(type, searchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
+        const data1 = getSections(type, searchResults.data, accountID, formatPhoneNumber, validGroupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
         return [data1, data1.length];
-    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON]);
+    }, [searchKey, exportReportActions, validGroupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -456,7 +425,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
         const newTransactionList: SelectedTransactions = {};
-        if (groupBy) {
+        if (validGroupBy) {
             data.forEach((transactionGroup) => {
                 if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
                     return;
@@ -476,6 +445,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                             undefined,
                             undefined,
                             outstandingReportsByPolicyID,
+                            true,
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
@@ -508,6 +478,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         undefined,
                         undefined,
                         outstandingReportsByPolicyID,
+                        true,
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
@@ -562,7 +533,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (!data.length || isRefreshingSelection.current) {
             return;
         }
-        const areItemsGrouped = !!groupBy;
+        const areItemsGrouped = !!validGroupBy;
         const flattenedItems = areItemsGrouped ? (data as TransactionGroupListItemType[]).flatMap((item) => item.transactions) : data;
         const areAllItemsSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
 
@@ -572,7 +543,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (!areAllItemsSelected) {
             selectAllMatchingItems(false);
         }
-    }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, selectAllMatchingItems, shouldShowSelectAllMatchingItems, groupBy]);
+    }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, selectAllMatchingItems, shouldShowSelectAllMatchingItems, validGroupBy]);
 
     const toggleTransaction = useCallback(
         (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
@@ -756,12 +727,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled) && groupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
-    const ListItem = getListItem(type, status, groupBy);
+    const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled) && validGroupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
+    const ListItem = getListItem(type, status, validGroupBy);
 
     const sortedSelectedData = useMemo(
         () =>
-            getSortedSections(type, status, data, localeCompare, sortBy, sortOrder, groupBy).map((item) => {
+            getSortedSections(type, status, data, localeCompare, sortBy, sortOrder, validGroupBy).map((item) => {
                 const baseKey = isChat
                     ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
@@ -782,7 +754,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
                 return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash);
             }),
-        [type, status, data, sortBy, sortOrder, groupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, localeCompare, hash],
+        [type, status, data, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, localeCompare, hash],
     );
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
@@ -810,7 +782,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [isFocused, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState, offset, data.length]);
 
     const toggleAllTransactions = useCallback(() => {
-        const areItemsGrouped = !!groupBy;
+        const areItemsGrouped = !!validGroupBy || isExpenseReportType;
         const totalSelected = Object.keys(selectedTransactions).length;
 
         if (totalSelected > 0) {
@@ -841,7 +813,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             ),
             data,
         );
-    }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID]);
+    }, [clearSelectedTransactions, data, validGroupBy, reportActionsArray, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID, isExpenseReportType]);
 
     const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
 
@@ -890,7 +862,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 <EmptySearchView
                     similarSearchHash={similarSearchHash}
                     type={type}
-                    groupBy={groupBy}
                     hasResults={searchResults?.search?.hasResults}
                 />
             </View>
@@ -905,9 +876,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const shouldShowYear = shouldShowYearUtil(searchResults?.data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
-    const shouldShowSorting = !groupBy;
-    const shouldShowTableHeader = isLargeScreenWidth && !isChat && !groupBy;
-    const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!groupBy || groupBy === CONST.SEARCH.GROUP_BY.REPORTS);
+    const shouldShowSorting = !validGroupBy;
+    const shouldShowTableHeader = isLargeScreenWidth && !isChat && !validGroupBy && !isExpenseReportType;
+    const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!validGroupBy || isExpenseReportType);
 
     return (
         <SearchScopeProvider>
@@ -927,7 +898,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                             <SearchTableHeader
                                 canSelectMultiple={canSelectMultiple}
                                 columns={columnsToShow}
-                                type={searchResults?.search.type}
+                                type={type}
                                 onSortPress={onSortPress}
                                 sortOrder={sortOrder}
                                 sortBy={sortBy}
@@ -936,7 +907,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                                 isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                                 shouldShowSorting={shouldShowSorting}
                                 areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                                groupBy={groupBy}
+                                groupBy={validGroupBy}
                             />
                         )
                     }
