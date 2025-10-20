@@ -9,9 +9,9 @@ import {log, error as logError, warn as logWarn} from './Logger';
 type ExecOptions = Omit<ExecWithCallbackOptions, 'encoding'> & {cwd?: ExecWithCallbackOptions['cwd']};
 function exec(command: string, options?: ExecOptions) {
     const optionsWithEncoding = {
-        ...options,
         encoding: 'utf8',
         cwd: process.cwd(),
+        ...options,
     };
 
     return promisify(execWithCallback)(command, optionsWithEncoding);
