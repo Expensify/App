@@ -49,7 +49,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const {translate} = useLocalize();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
         policyOpenWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
@@ -176,8 +176,10 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             availableOptions.personalDetails.length !== 0 || !!availableOptions.userToInvite || availableOptions.recentReports.length !== 0,
             !!availableOptions.userToInvite,
             searchValue,
+            false,
+            countryCode,
         );
-    }, [excludedUsers, translate, searchTerm, policyName, availableOptions.personalDetails.length, availableOptions.userToInvite, availableOptions.recentReports.length]);
+    }, [excludedUsers, translate, searchTerm, policyName, availableOptions.personalDetails.length, availableOptions.userToInvite, availableOptions.recentReports.length, countryCode]);
 
     const footerContent = useMemo(
         () => (
