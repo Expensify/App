@@ -441,19 +441,19 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         throw new Error('Data missing');
                     }
                     if (isTrackExpenseAction(parentReportAction)) {
-                        deleteTrackExpense(
-                            report?.parentReportID,
-                            parentReport,
-                            transaction.transactionID,
-                            parentReportAction,
+                        deleteTrackExpense({
+                            chatReportID: report?.parentReportID,
+                            chatReport: parentReport,
+                            transactionID: transaction.transactionID,
+                            reportAction: parentReportAction,
                             iouReport,
                             chatIOUReport,
-                            duplicateTransactions,
-                            duplicateTransactionViolations,
-                            true,
-                            isParentReportArchived,
+                            transactions: duplicateTransactions,
+                            violations: duplicateTransactionViolations,
+                            isSingleTransactionView: true,
+                            isChatReportArchived: isParentReportArchived,
                             isChatIOUReportArchived,
-                        );
+                        });
                     } else {
                         deleteMoneyRequest(
                             transaction.transactionID,

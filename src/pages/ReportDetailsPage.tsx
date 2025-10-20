@@ -792,19 +792,19 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
 
         if (isTrackExpense) {
-            deleteTrackExpense(
-                moneyRequestReport?.reportID,
-                moneyRequestReport,
-                iouTransactionID,
-                requestParentReportAction,
+            deleteTrackExpense({
+                chatReportID: moneyRequestReport?.reportID,
+                chatReport: moneyRequestReport,
+                transactionID: iouTransactionID,
+                reportAction: requestParentReportAction,
                 iouReport,
                 chatIOUReport,
-                duplicateTransactions,
-                duplicateTransactionViolations,
+                transactions: duplicateTransactions,
+                violations: duplicateTransactionViolations,
                 isSingleTransactionView,
-                isMoneyRequestReportArchived,
+                isChatReportArchived: isMoneyRequestReportArchived,
                 isChatIOUReportArchived,
-            );
+            });
         } else {
             deleteMoneyRequest(
                 iouTransactionID,

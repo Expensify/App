@@ -311,19 +311,19 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         if (isMoneyRequestAction(reportAction)) {
             const originalMessage = getOriginalMessage(reportAction);
             if (isTrackExpenseAction(reportAction)) {
-                deleteTrackExpense(
-                    reportIDRef.current,
-                    report,
-                    originalMessage?.IOUTransactionID,
+                deleteTrackExpense({
+                    chatReportID: reportIDRef.current,
+                    chatReport: report,
+                    transactionID: originalMessage?.IOUTransactionID,
                     reportAction,
                     iouReport,
-                    chatReport,
-                    duplicateTransactions,
-                    duplicateTransactionViolations,
-                    undefined,
-                    isReportArchived,
+                    chatIOUReport: chatReport,
+                    transactions: duplicateTransactions,
+                    violations: duplicateTransactionViolations,
+                    isSingleTransactionView: undefined,
+                    isChatReportArchived: isReportArchived,
                     isChatIOUReportArchived,
-                );
+                });
             } else {
                 deleteMoneyRequest(
                     originalMessage?.IOUTransactionID,

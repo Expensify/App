@@ -734,6 +734,20 @@ type GetSearchOnyxUpdateParams = {
     transactionThreadReportID: string | undefined;
 };
 
+type DeleteTrackExpenseParams = {
+    chatReportID: string | undefined;
+    chatReport: OnyxEntry<OnyxTypes.Report> | undefined;
+    transactionID: string | undefined;
+    reportAction: OnyxTypes.ReportAction;
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+    chatIOUReport: OnyxEntry<OnyxTypes.Report>;
+    transactions: OnyxCollection<OnyxTypes.Transaction>;
+    violations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    isSingleTransactionView: boolean | undefined;
+    isChatReportArchived: boolean | undefined;
+    isChatIOUReportArchived: boolean | undefined;
+};
+
 let allBetas: OnyxEntry<OnyxTypes.Beta[]>;
 Onyx.connect({
     key: ONYXKEYS.BETAS,
@@ -8869,20 +8883,19 @@ function deleteMoneyRequest(
     return urlToNavigateBack;
 }
 
-// eslint-disable-next-line @typescript-eslint/max-params
-function deleteTrackExpense(
-    chatReportID: string | undefined,
-    chatReport: OnyxEntry<OnyxTypes.Report> | undefined,
-    transactionID: string | undefined,
-    reportAction: OnyxTypes.ReportAction,
-    iouReport: OnyxEntry<OnyxTypes.Report>,
-    chatIOUReport: OnyxEntry<OnyxTypes.Report>,
-    transactions: OnyxCollection<OnyxTypes.Transaction>,
-    violations: OnyxCollection<OnyxTypes.TransactionViolations>,
+function deleteTrackExpense({
+    chatReportID,
+    chatReport,
+    transactionID,
+    reportAction,
+    iouReport,
+    chatIOUReport,
+    transactions,
+    violations,
     isSingleTransactionView = false,
     isChatReportArchived = false,
     isChatIOUReportArchived = false,
-) {
+}: DeleteTrackExpenseParams) {
     if (!chatReportID || !transactionID) {
         return;
     }
