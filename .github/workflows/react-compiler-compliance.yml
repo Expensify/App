@@ -24,7 +24,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Run React Compiler Compliance Check
-        run: npm run react-compiler-compliance-check check-changed --filterByDiff
+        run: npm run react-compiler-compliance-check check-changed --filterByDiff --printSuppressedErrors
         env:
           CI: true
           GITHUB_TOKEN: ${{ github.token }}

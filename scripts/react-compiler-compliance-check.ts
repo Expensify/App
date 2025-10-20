@@ -15,6 +15,8 @@ import Git from './utils/Git';
 import type {DiffResult} from './utils/Git';
 import {log, bold as logBold, error as logError, info as logInfo, note as logNote, success as logSuccess, warn as logWarn} from './utils/Logger';
 
+const TAB = '    ';
+
 const DEFAULT_REPORT_FILENAME = 'react-compiler-report.json';
 
 const SUPPRESSED_COMPILER_ERRORS = [
@@ -30,9 +32,12 @@ const VERBOSE_OUTPUT_LINE_REGEXES = {
     REASON: /Reason: (.+)/,
 } as const satisfies Record<string, RegExp>;
 
+type FailureMap = Map<string, CompilerFailure>;
+
 type CompilerResults = {
     success: Set<string>;
-    failures: Map<string, CompilerFailure>;
+    failures: FailureMap;
+    suppressedFailures: FailureMap;
 };
 
 type CompilerFailure = {
@@ -49,6 +54,7 @@ type DiffFilteringCommits = {
 
 type PrintResultsOptions = {
     shouldPrintSuccesses: boolean;
+    shouldPrintSuppressedErrors: boolean;
 };
 
 type BaseCheckOptions = PrintResultsOptions & {
@@ -69,6 +75,7 @@ async function check({
     shouldFilterByDiff = false,
     remote,
     shouldPrintSuccesses = false,
+    shouldPrintSuppressedErrors = false,
 }: CheckOptions): Promise<boolean> {
     if (filesToCheck) {
         logInfo(`Running React Compiler check for ${filesToCheck.length} files or glob patterns...`);
@@ -83,10 +90,10 @@ async function check({
         const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
         const headCommitHash = 'HEAD';
         const diffFilteringCommits: DiffFilteringCommits = {from: mainBaseCommitHash, to: headCommitHash};
-        results = await filterResultsByDiff(results, diffFilteringCommits, {shouldPrintSuccesses});
+        results = await filterResultsByDiff(results, diffFilteringCommits, {shouldPrintSuccesses, shouldPrintSuppressedErrors});
     }
 
-    printResults(results, {shouldPrintSuccesses});
+    printResults(results, {shouldPrintSuccesses, shouldPrintSuppressedErrors});
 
     if (shouldGenerateReport) {
         generateReport(results, reportFileName);
@@ -127,15 +134,28 @@ function runCompilerHealthcheck(src?: string): CompilerResults {
     return parseHealthcheckOutput(output);
 }
 
+// eslint-disable-next-line rulesdir/no-negated-variables
+function addIfDoesNotExist(failureMap: FailureMap, failure: CompilerFailure, shouldOnlyAddIfNoReason: boolean): boolean {
+    const key = getUniqueFileKey(failure);
+    if (failureMap.has(key)) {
+        if (shouldOnlyAddIfNoReason && failureMap.get(key)?.reason) {
+            return false;
+        }
+        return false;
+    }
+
+    failureMap.set(key, failure);
+    return true;
+}
+
 function parseHealthcheckOutput(output: string): CompilerResults {
     const lines = output.split('\n');
 
     const results: CompilerResults = {
         success: new Set<string>(),
         failures: new Map<string, CompilerFailure>(),
+        suppressedFailures: new Map<string, CompilerFailure>(),
     };
-
-    const suppressedErrorFileKeys = new Set<string>();
 
     let currentFailureWithoutReason: CompilerFailure | null = null;
 
@@ -158,23 +178,17 @@ function parseHealthcheckOutput(output: string): CompilerResults {
                 column: parseInt(failureWithReasonMatch[3], 10),
                 reason: failureWithReasonMatch[4],
             };
-            const key = getUniqueFileKey(newFailure);
 
             // If we already have a reason, we don't want to set the reason again
             currentFailureWithoutReason = null;
 
             if (shouldSuppressCompilerError(newFailure.reason)) {
-                suppressedErrorFileKeys.add(getUniqueFileKey(newFailure));
+                addIfDoesNotExist(results.suppressedFailures, newFailure, true);
                 continue;
             }
 
-            // Only add if not already exists, or if existing one has no reason
-            const existing = results.failures.get(key);
-            if (!existing?.reason) {
-                results.failures.set(key, newFailure);
-            }
-
-            continue;
+            // Only add if failure does not exist already, or if existing one has no reason
+            addIfDoesNotExist(results.failures, newFailure, true);
         }
 
         // Parse failed compilation with file and location only (fallback)
@@ -186,14 +200,11 @@ function parseHealthcheckOutput(output: string): CompilerResults {
                 column: parseInt(failureWithoutReasonMatch[3], 10),
             };
 
-            // Only create new failure if it doesn't exist
-            const key = getUniqueFileKey(newFailure);
-            if (results.failures.has(key) || suppressedErrorFileKeys.has(key)) {
-                continue;
-            }
-
-            results.failures.set(key, newFailure);
             currentFailureWithoutReason = newFailure;
+
+            // Only create new failure if it doesn't exist
+            addIfDoesNotExist(results.failures, newFailure, false);
+
             continue;
         }
 
@@ -202,29 +213,21 @@ function parseHealthcheckOutput(output: string): CompilerResults {
         if (reasonMatch && currentFailureWithoutReason) {
             const reason = reasonMatch[1];
 
-            // Only update reason if it's not already set
-            if (currentFailureWithoutReason.reason) {
-                currentFailureWithoutReason = null;
-                continue;
-            }
-
             const currentFailure: CompilerFailure = {
                 file: currentFailureWithoutReason.file,
                 line: currentFailureWithoutReason.line,
                 column: currentFailureWithoutReason.column,
                 reason,
             };
-            const currentFailureKey = getUniqueFileKey(currentFailure);
 
-            if (shouldSuppressCompilerError(reason) || suppressedErrorFileKeys.has(currentFailureKey)) {
-                currentFailureWithoutReason = null;
+            currentFailureWithoutReason = null;
+
+            if (shouldSuppressCompilerError(reason)) {
+                addIfDoesNotExist(results.suppressedFailures, currentFailure, true);
                 continue;
             }
 
-            results.failures.set(currentFailureKey, currentFailure);
-
-            currentFailureWithoutReason = null;
-            continue;
+            addIfDoesNotExist(results.failures, currentFailure, true);
         }
     }
 
@@ -267,7 +270,11 @@ function createFilesGlob(filesToCheck?: string[]): string | undefined {
  * @param diffFilteringCommits - The commit range to diff (from and to)
  * @returns Filtered compiler results containing only failures in changed lines
  */
-async function filterResultsByDiff(results: CompilerResults, diffFilteringCommits: DiffFilteringCommits, {shouldPrintSuccesses}: PrintResultsOptions): Promise<CompilerResults> {
+async function filterResultsByDiff(
+    results: CompilerResults,
+    diffFilteringCommits: DiffFilteringCommits,
+    {shouldPrintSuccesses, shouldPrintSuppressedErrors}: PrintResultsOptions,
+): Promise<CompilerResults> {
     // Check for uncommitted changes and warn if any exist
     if (await Git.hasUncommittedChanges()) {
         logWarn('Warning: You have uncommitted changes. The diff results may not accurately reflect your current working directory.');
@@ -283,6 +290,7 @@ async function filterResultsByDiff(results: CompilerResults, diffFilteringCommit
         return {
             success: new Set(),
             failures: new Map(),
+            suppressedFailures: new Map(),
         };
     }
 
@@ -318,6 +326,14 @@ async function filterResultsByDiff(results: CompilerResults, diffFilteringCommit
         filteredFailures.set(key, failure);
     });
 
+    const filteredSuppressedFailures = new Map<string, CompilerFailure>();
+    results.suppressedFailures.forEach((failure, key) => {
+        if (filteredFailures.has(key)) {
+            return;
+        }
+        filteredSuppressedFailures.set(key, failure);
+    });
+
     // Filter success set to only include files that are in the diff
     const changedFiles = new Set(diffResult.files.map((file) => file.filePath));
     const filteredSuccesses = new Set<string>();
@@ -336,6 +352,14 @@ async function filterResultsByDiff(results: CompilerResults, diffFilteringCommit
         }
     }
 
+    if (shouldPrintSuppressedErrors) {
+        if (filteredSuppressedFailures.size === 0) {
+            logInfo('No suppressed errors remain after filtering by diff.');
+        } else {
+            logInfo(`${filteredSuppressedFailures.size} out of ${results.suppressedFailures.size} successes remain after filtering by diff.`);
+        }
+    }
+
     if (filteredFailures.size === 0) {
         logInfo('No failures remain after filtering by diff.');
     } else {
@@ -345,24 +369,12 @@ async function filterResultsByDiff(results: CompilerResults, diffFilteringCommit
     return {
         success: filteredSuccesses,
         failures: filteredFailures,
+        suppressedFailures: results.suppressedFailures,
     };
 }
 
-function printResults({success, failures}: CompilerResults, {shouldPrintSuccesses}: PrintResultsOptions): void {
-    const isPassed = failures.size === 0;
-    if (isPassed) {
-        logSuccess('All changed files pass React Compiler compliance check!');
-        return;
-    }
-
-    const tab = '    ';
-
-    const distinctFileNames = new Set<string>();
-    failures.forEach((failure) => {
-        distinctFileNames.add(failure.file);
-    });
-
-    if (shouldPrintSuccesses) {
+function printResults({success, failures, suppressedFailures}: CompilerResults, {shouldPrintSuccesses, shouldPrintSuppressedErrors}: PrintResultsOptions): void {
+    if (shouldPrintSuccesses && success.size > 0) {
         log();
         logSuccess(`Successfully compiled ${success.size} files with React Compiler:`);
         log();
@@ -370,7 +382,48 @@ function printResults({success, failures}: CompilerResults, {shouldPrintSuccesse
         success.forEach((successFile) => {
             logSuccess(`${successFile}`);
         });
+
+        log();
     }
+
+    if (shouldPrintSuppressedErrors && suppressedFailures.size > 0) {
+        // Create a Map of suppressed error type -> Failure[] with distinct errors and a list of failures with that error
+        const suppressedErrorMap = new Map<string, CompilerFailure[]>();
+        suppressedFailures.forEach((failure) => {
+            if (!failure.reason) {
+                return;
+            }
+
+            if (!suppressedErrorMap.has(failure.reason)) {
+                suppressedErrorMap.set(failure.reason, []);
+            }
+
+            suppressedErrorMap.get(failure.reason)?.push(failure);
+        });
+
+        log();
+        logWarn(`Suppressed the following errors in these files:`);
+        log();
+
+        for (const [error, suppressedErrorFiles] of suppressedErrorMap.entries()) {
+            logBold(error);
+            const filesLine = suppressedErrorFiles.map((failure) => getUniqueFileKey(failure)).join(', ');
+            logNote(`${TAB} - ${filesLine}`);
+        }
+
+        log();
+    }
+
+    const isPassed = failures.size === 0;
+    if (isPassed) {
+        logSuccess('All changed files pass React Compiler compliance check!');
+        return;
+    }
+
+    const distinctFileNames = new Set<string>();
+    failures.forEach((failure) => {
+        distinctFileNames.add(failure.file);
+    });
 
     log();
     logError(`Failed to compile ${distinctFileNames.size} files with React Compiler:`);
@@ -379,7 +432,7 @@ function printResults({success, failures}: CompilerResults, {shouldPrintSuccesse
     failures.forEach((failure) => {
         const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
         logBold(`${failure.file}${location}`);
-        logNote(`${tab}${failure.reason ?? 'No reason provided'}`);
+        logNote(`${TAB}${failure.reason ?? 'No reason provided'}`);
     });
 
     log();
@@ -472,14 +525,19 @@ async function main() {
                 required: false,
                 default: false,
             },
+            printSuppressedErrors: {
+                description: 'Print suppressed errors',
+                required: false,
+                default: false,
+            },
         },
     });
 
     const {command, file} = cli.positionalArgs;
     const {remote, reportFileName} = cli.namedArgs;
-    const {report: shouldGenerateReport, filterByDiff: shouldFilterByDiff, printSuccesses: shouldPrintSuccesses} = cli.flags;
+    const {report: shouldGenerateReport, filterByDiff: shouldFilterByDiff, printSuccesses: shouldPrintSuccesses, printSuppressedErrors: shouldPrintSuppressedErrors} = cli.flags;
 
-    const commonOptions: BaseCheckOptions = {shouldGenerateReport, reportFileName, shouldFilterByDiff, shouldPrintSuccesses};
+    const commonOptions: BaseCheckOptions = {shouldGenerateReport, reportFileName, shouldFilterByDiff, shouldPrintSuccesses, shouldPrintSuppressedErrors};
 
     async function runCommand() {
         switch (command) {
