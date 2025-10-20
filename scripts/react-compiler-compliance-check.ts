@@ -418,7 +418,7 @@ function printResults({success, failures, suppressedFailures}: CompilerResults, 
 
     const isPassed = failures.size === 0;
     if (isPassed) {
-        logSuccess('All changed files pass React Compiler compliance check!');
+        logSuccess('All files pass React Compiler compliance check!');
         return;
     }
 
