@@ -3306,7 +3306,9 @@ const ROUTES = {
     MULTIFACTORAUTHENTICATION_NOTIFICATION: {
         route: 'multifactorauthentication/notification/:notificationType',
         getRoute: (notificationType: notificationType) => `multifactorauthentication/notification/${notificationType}` as const,
-    }
+    },
+
+    MULTIFACTORAUTHENTICATION_REVOKE: 'settings/security/multifactorauthentication/revoke',
 } as const;
 
 /**

@@ -811,6 +811,7 @@ const SCREENS = {
         APPROVE_TRANSACTION: 'MultifactorAuthentication_Approve_Transaction',
         NOTIFICATION: 'MultifactorAuthentication_Notification',
         FALLBACK: 'MultifactorAuthentication_Fallback',
+        REVOKE: 'MultifactorAuthentication_Revoke',
     }
 } as const;
 

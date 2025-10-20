@@ -7306,7 +7306,13 @@ const translations = {
             couldntSendMagicCodeContent: 'The transaction was denied. Chat with Concierge to resolve the issue before retrying.',
             couldntSendSMSCodeTitle: 'Couldn’t send SMS code',
             couldntSendSMSCodeContent: 'The transaction was denied. Chat with Concierge to resolve the issue before retrying.',
-        }
+        },
+        revokePage: {
+            headerTitle: 'Face/fingerprint verification',
+            pageContent: 'Face/fingerprint verification is enabled on one or more devices. Revoking access will require a magic code for the next face/fingerprint verification on any device.',
+            confirmationContent: 'You’ll need a magic code for the next face/fingerprint verification on any device.',
+            bottomButtonContent: 'Revoke access',
+        },
     },
 };
 

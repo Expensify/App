@@ -142,6 +142,25 @@ function SecuritySettingsPage() {
                 },
             },
             {
+                translationKey: 'multiFactorAuthentication.revokePage.headerTitle',
+                icon: Expensicons.Fingerprint,
+                action: () => {
+                    if (isDelegateAccessRestricted) {
+                        showDelegateNoAccessModal();
+                        return;
+                    }
+                    if (isAccountLocked) {
+                        showLockedAccountModal();
+                        return;
+                    }
+                    // if (!isUserValidated) {
+                    //     Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute());
+                    //     return;
+                    // }
+                    Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_REVOKE);
+                },
+            },
+            {
                 translationKey: 'mergeAccountsPage.mergeAccount',
                 icon: Expensicons.ArrowCollapse,
                 action: () => {
