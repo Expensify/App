@@ -235,7 +235,6 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
-import type {ArchivedReportsIDSet} from './SearchUIUtils';
 import {getSession} from './SessionUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {

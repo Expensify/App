@@ -47,8 +47,7 @@ import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getReportOrDraftReport, isArchivedReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
+import {generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {
     getAttendees,
     getDefaultTaxCode,

@@ -1,6 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
@@ -17,14 +16,14 @@ import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
-import {canCreateTaskInReport, canUserPerformWriteAction, isArchivedReport, isCanceledTaskReport} from '@libs/ReportUtils';
+import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {setShareDestinationValue} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report, ReportNameValuePairs} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 
 const selectReportHandler = (option: unknown) => {
     HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
