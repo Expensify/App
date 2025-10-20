@@ -10763,19 +10763,19 @@ function submitReport(
     const approvalChain = getApprovalChain(policy, expenseReport);
     const managerID = getAccountIDsByLogins(approvalChain).at(0);
 
-    const optimisticData: OnyxUpdate[] = !isSubmitAndClosePolicy
-        ? [
-              {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
-                  value: {
-                      [optimisticSubmittedReportAction.reportActionID]: {
-                          ...(optimisticSubmittedReportAction as OnyxTypes.ReportAction),
-                          pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                      },
-                  },
-              },
-              {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticSubmittedReportAction.reportActionID]: {
+                    ...(optimisticSubmittedReportAction as OnyxTypes.ReportAction),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        !isSubmitAndClosePolicy
+            ? {
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                   value: {
@@ -10786,10 +10786,8 @@ function submitReport(
                       stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                       statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                   },
-              },
-          ]
-        : [
-              {
+              }
+            : {
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                   value: {
@@ -10798,7 +10796,7 @@ function submitReport(
                       statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                   },
               },
-          ];
+    ];
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -10820,17 +10818,15 @@ function submitReport(
     }
 
     const successData: OnyxUpdate[] = [];
-    if (!isSubmitAndClosePolicy) {
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
-            value: {
-                [optimisticSubmittedReportAction.reportActionID]: {
-                    pendingAction: null,
-                },
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+        value: {
+            [optimisticSubmittedReportAction.reportActionID]: {
+                pendingAction: null,
             },
-        });
-    }
+        },
+    });
 
     const failureData: OnyxUpdate[] = [
         {
@@ -10847,17 +10843,15 @@ function submitReport(
             value: currentNextStep,
         },
     ];
-    if (!isSubmitAndClosePolicy) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
-            value: {
-                [optimisticSubmittedReportAction.reportActionID]: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
-                },
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+        value: {
+            [optimisticSubmittedReportAction.reportActionID]: {
+                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
             },
-        });
-    }
+        },
+    });
 
     if (parentReport?.reportID) {
         failureData.push({
