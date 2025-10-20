@@ -608,6 +608,11 @@ type AssignCardParams = {
     feed: string;
 };
 
+type ChooseCardForParams = {
+    assignee: string;
+    letUsKnowLink: string;
+};
+
 type SpreadSheetColumnParams = {
     name: string;
 };
@@ -1256,4 +1261,5 @@ export type {
     ErrorODIntegrationParams,
     DisconnectYourBankAccountParams,
     MergeAccountIntoParams,
+    ChooseCardForParams,
 };
