@@ -2621,6 +2621,7 @@ PODS:
     - SocketRocket
     - Yoga
   - react-native-pdf (7.0.2):
+    - boost
     - DoubleConversion
     - fast_float
     - fmt
@@ -4637,7 +4638,7 @@ SPEC CHECKSUMS:
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: 6645bc83721568992c3c981ed057e4048a48006e
   react-native-pager-view: e9b3e17cf3222a23fedcf72c969bcbe3640667d2
-  react-native-pdf: 6523dab10d5948360c6e55a7a606decb9cda6de3
+  react-native-pdf: 4bc6f9724e0fba055e5422e2702486a8d4963626
   react-native-performance: f034c3cb6981ee7ca6cd5f5e9a2fda5c91469d32
   react-native-plaid-link-sdk: 270016bf266e89ef8a95280a1696759f516395e9
   react-native-release-profiler: 08356de31cb8b8196a01c51ce77ac6936d8526b4
