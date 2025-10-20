@@ -92,6 +92,7 @@ describe('ProfilePage contact method indicator', () => {
 
         await waitFor(() => {
             node = screen.getByTestId('contact-method-menu-item');
+            
             // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
             expect(node).toHaveTextContent('none-brickRoadIndicator');
         });
@@ -127,6 +128,7 @@ describe('ProfilePage contact method indicator', () => {
 
         await waitFor(() => {
             node = screen.getByTestId('contact-method-menu-item');
+
             // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
             expect(node).toHaveTextContent('none-brickRoadIndicator');
         });

@@ -68,10 +68,12 @@ describe('ContactMethodsPage', () => {
         renderPage();
 
         let node = screen.getByTestId(`menu-${defaultEmail}`);
+        
         // ContactMethodsPage doesn't set any BR for validated logins
         expect(node).toHaveTextContent('none-brickRoadIndicator');
 
         node = screen.getByTestId(`menu-${otherEmail}`);
+
         // ContactMethodsPage sets brickRoadIndicator to 'error' when any errorFields are present
         expect(node).toHaveTextContent('error-brickRoadIndicator');
 
@@ -86,6 +88,7 @@ describe('ContactMethodsPage', () => {
 
         await waitFor(() => {
             node = screen.getByTestId(`menu-${otherEmail}`);
+
             // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
             expect(node).toHaveTextContent('none-brickRoadIndicator');
         });
@@ -110,10 +113,12 @@ describe('ContactMethodsPage', () => {
 
         renderPage();
         let node = screen.getByTestId(`menu-${defaultEmail}`);
+
         // ContactMethodsPage doesn't set any BR for validated logins
         expect(node).toHaveTextContent('none-brickRoadIndicator');
 
         node = screen.getByTestId(`menu-${otherEmail}`);
+
         // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
         expect(node).toHaveTextContent('info-brickRoadIndicator');
 
@@ -127,6 +132,7 @@ describe('ContactMethodsPage', () => {
 
         await waitFor(() => {
             node = screen.getByTestId(`menu-${otherEmail}`);
+
             // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
             expect(node).toHaveTextContent('none-brickRoadIndicator');
         });
