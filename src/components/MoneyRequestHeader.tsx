@@ -443,6 +443,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     if (isTrackExpenseAction(parentReportAction)) {
                         deleteTrackExpense(
                             report?.parentReportID,
+                            parentReport,
                             transaction.transactionID,
                             parentReportAction,
                             iouReport,
