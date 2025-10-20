@@ -316,7 +316,7 @@ function IOURequestStepAmount({
         const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, currency ?? CONST.CURRENCY.USD));
 
         if (isSplitBill) {
-            setDraftSplitTransaction(transactionID, {amount: newAmount, currency, taxCode, taxAmount});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {amount: newAmount, currency, taxCode, taxAmount});
             navigateBack();
             return;
         }
