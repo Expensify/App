@@ -1,5 +1,5 @@
 import {format, subDays} from 'date-fns';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import DatePicker from '@components/DatePicker';
