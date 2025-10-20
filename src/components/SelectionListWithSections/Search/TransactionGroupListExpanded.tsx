@@ -10,6 +10,7 @@ import type {ListItem, TransactionGroupListExpandedProps, TransactionListItemTyp
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -22,7 +23,6 @@ import {getTransactionViolations} from '@libs/TransactionUtils';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
 function TransactionGroupListExpanded<TItem extends ListItem>({
     transactionsQueryJSON,
