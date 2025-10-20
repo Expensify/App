@@ -396,9 +396,6 @@ function MultiFactorAuthenticationFallbackPage() {
                 {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
                 {renderResendCodeButton()}
             </View>
-            {/* <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pv0]}>
-                {canUseTouchScreen() && <BigNumberPad numberPressed={updateLastPressedDigit} />}
-            </View> */}
             <Button
                 success
                 large
