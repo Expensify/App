@@ -4399,8 +4399,6 @@ function completeOnboarding({
         selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
     };
 
-    // Only add the dismissed state of the test drive modal when the user is not redirected to oldDot,
-    // because we don't want the modal to reappear when returning from oldDot.
     // We should only set testDriveModalDismissed to false if it's not already true (i.e., if the modal hasn't been dismissed yet).
     if (!shouldSkipTestDriveModal && onboarding?.testDriveModalDismissed !== true) {
             optimisticData.push({
