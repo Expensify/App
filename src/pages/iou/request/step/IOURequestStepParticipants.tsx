@@ -356,7 +356,9 @@ function IOURequestStepParticipants({
             Navigation.goBack(backTo);
             return;
         }
-        navigateToStartMoneyRequestStep(iouRequestType, iouType, initialTransactionID, reportID, action);
+        const iouTypeValue = iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && action === CONST.IOU.ACTION.CREATE ? CONST.IOU.TYPE.CREATE : iouType;
+
+        navigateToStartMoneyRequestStep(iouRequestType, iouTypeValue, initialTransactionID, reportID, action);
     }, [backTo, iouRequestType, iouType, initialTransactionID, reportID, action]);
 
     useEffect(() => {
