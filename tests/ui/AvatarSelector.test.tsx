@@ -34,6 +34,7 @@ jest.mock('@hooks/useLetterAvatars', () => ({
         return {avatarList, avatarMap: {}};
     },
 }));
+const mockName = 'Alice';
 
 describe('AvatarSelector', () => {
     const onSelectMock = jest.fn();
@@ -57,7 +58,7 @@ describe('AvatarSelector', () => {
     describe('Common behavior', () => {
         it('renders with label when provided', async () => {
             const label = 'Choose an avatar';
-            renderAvatarSelector({label});
+            renderAvatarSelector({label, name: mockName});
             await waitForBatchedUpdates();
 
             expect(screen.getByText(label)).toBeOnTheScreen();
@@ -114,7 +115,6 @@ describe('AvatarSelector', () => {
     });
 
     describe('avatarList (letter avatars)', () => {
-        const mockName = 'Alice';
         const firstChar = getFirstAlphaNumericCharacter(mockName).toLowerCase();
 
         it('letter avatars have correct ID format when they are rendered', async () => {
