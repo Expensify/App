@@ -99,6 +99,7 @@ import {
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
+    getReportActionActorAccountID,
     getReportLastMessage,
     getReportName,
     getReportNotificationPreference,
@@ -420,6 +421,10 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
         return '';
     }
 
+    if (lastActorDetails.accountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        return CONST.CONCIERGE_DISPLAY_NAME;
+    }
+
     return lastActorDetails.accountID !== currentUserAccountID
         ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
           lastActorDetails.firstName || formatPhoneNumber(getDisplayNameOrDefault(lastActorDetails))
@@ -552,6 +557,36 @@ function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefin
 
 function hasHiddenDisplayNames(accountIDs: number[]) {
     return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => !getDisplayNameOrDefault(personalDetail, undefined, false));
+}
+
+function getLastActorDisplayNameFromLastVisibleActions(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null): string {
+    const reportID = report?.reportID;
+    const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
+
+    if (lastReportAction) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const lastActorAccountID = getReportActionActorAccountID(lastReportAction, undefined, undefined) || report?.lastActorAccountID;
+        let actorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? (allPersonalDetails?.[lastActorAccountID] ?? null) : null;
+
+        if (!actorDetails && lastReportAction.person?.at(0)?.text) {
+            actorDetails = {
+                displayName: lastReportAction.person?.at(0)?.text,
+                accountID: lastActorAccountID,
+            };
+        }
+
+        // Assign the actor account ID from the last action when it’s a REPORT_PREVIEW action.
+        // to ensures that actorDetails.accountID is correctly set in case it's empty string
+        if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && actorDetails) {
+            actorDetails.accountID = lastReportAction.actorAccountID;
+        }
+
+        if (actorDetails) {
+            return getLastActorDisplayName(actorDetails);
+        }
+    }
+
+    return getLastActorDisplayName(lastActorDetails);
 }
 
 /**
@@ -2689,6 +2724,7 @@ export {
     getIOUReportIDOfLastAction,
     getIsUserSubmittedExpenseOrScannedReceipt,
     getLastActorDisplayName,
+    getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
     getManagerMcTestParticipant,
     getMemberInviteOptions,
