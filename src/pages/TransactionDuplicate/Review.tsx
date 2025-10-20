@@ -16,8 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {openReport} from '@libs/actions/Report';
 import {dismissDuplicateTransactionViolation} from '@libs/actions/Transaction';
-import {setActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
-import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
+import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -68,34 +67,33 @@ function TransactionDuplicateReview() {
         },
         [transactionIDs],
     );
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`, {canBeMissing: true});
-    const originalReportIDsListRef = useRef<string[] | null>(null);
-    const [reportIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, {
+    const originalTransactionIDsListRef = useRef<string[] | null>(null);
+    const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, {
         canBeMissing: true,
     });
 
     const onPreviewPressed = useCallback(
         (reportID: string) => {
-            const siblingTransactionReportIDs = getThreadReportIDsForTransactions(Object.values(reportActions ?? {}), transactions ?? []);
-            setActiveTransactionThreadIDs(siblingTransactionReportIDs).then(() => {
+            const siblingTransactionIDsList = transactions?.map((transaction) => transaction.transactionID) ?? [];
+            setActiveTransactionIDs(siblingTransactionIDsList).then(() => {
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute()}));
             });
-            // Store the initial value of reportIDsList and only save it when the item is clicked for the first time
-            // to ensure that reportIDsList reflects its original value when this component is mounted
-            if (!originalReportIDsListRef.current) {
-                originalReportIDsListRef.current = reportIDsList;
+            // Store the initial value of transactionIDsList and only save it when the item is clicked for the first time
+            // to ensure that transactionIDsList reflects its original value when this component is mounted
+            if (!originalTransactionIDsListRef.current) {
+                originalTransactionIDsListRef.current = transactionIDsList;
             }
         },
-        [reportActions, reportIDsList, transactions],
+        [transactionIDsList, transactions],
     );
 
     useFocusEffect(
         useCallback(() => {
             InteractionManager.runAfterInteractions(() => {
-                if (!originalReportIDsListRef.current) {
+                if (!originalTransactionIDsListRef.current) {
                     return;
                 }
-                setActiveTransactionThreadIDs(originalReportIDsListRef.current);
+                setActiveTransactionIDs(originalTransactionIDsListRef.current);
             });
         }, []),
     );
