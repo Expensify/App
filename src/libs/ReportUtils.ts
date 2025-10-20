@@ -11221,10 +11221,11 @@ function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData,
  * Onboarding guides are assigned to signup with emails that do not contain a '+' and select the "Manage my team's expenses" intent.
  */
 function isPostingTasksInAdminsRoom(engagementChoice?: OnboardingPurpose): boolean {
+    const userHasPhonePrimaryEmail = Str.endsWith(currentUserEmail ?? '', CONST.SMS.DOMAIN);
     return (
         engagementChoice !== undefined &&
         [CONST.ONBOARDING_CHOICES.MANAGE_TEAM, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE].includes(engagementChoice as 'newDotManageTeam' | 'newDotTrackWorkspace') &&
-        !currentUserEmail?.includes('+')
+        (!currentUserEmail?.includes('+') || userHasPhonePrimaryEmail)
     );
 }
 
