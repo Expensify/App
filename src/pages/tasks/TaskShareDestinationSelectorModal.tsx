@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -40,28 +41,12 @@ const selectReportHandler = (option: unknown) => {
 const reportFilter = (reportOptions: Array<SearchOption<Report>>, archivedReportsIDList: ArchivedReportsIDSet) =>
     (reportOptions ?? []).reduce((filtered: Array<SearchOption<Report>>, option) => {
         const report = option.item;
-        const isReportArchived = archivedReportsIDList.has(report?.reportID);
+        const isReportArchived = archivedReportsIDList.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
         if (canUserPerformWriteAction(report, isReportArchived) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
             filtered.push(option);
         }
         return filtered;
     }, []);
-
-const archivedReportsIdSetSelector = (all?: OnyxCollection<ReportNameValuePairs>): ArchivedReportsIDSet => {
-    const ids = new Set<string>();
-    if (!all) {
-        return ids;
-    }
-
-    const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
-    for (const [key, value] of Object.entries(all)) {
-        if (isArchivedReport(value)) {
-            const reportID = key.slice(prefixLength);
-            ids.add(reportID);
-        }
-    }
-    return ids;
-};
 
 function TaskShareDestinationSelectorModal() {
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
@@ -70,6 +55,7 @@ function TaskShareDestinationSelectorModal() {
     const {isOffline} = useNetwork();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
+    const archivedReportsIdSet = useArchivedReportsIdSet();
 
     const {searchTerm, setSearchTerm, availableOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
@@ -80,10 +66,6 @@ function TaskShareDestinationSelectorModal() {
         onSingleSelect: selectReportHandler,
     });
 
-    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
-        canBeMissing: true,
-        selector: archivedReportsIdSetSelector,
-    });
 
     const filteredOptions = useMemo(() => {
         const filteredReports = reportFilter(availableOptions.recentReports as Array<SearchOption<Report>>, archivedReportsIdSet);
