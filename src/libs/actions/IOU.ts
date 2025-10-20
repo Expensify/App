@@ -8869,6 +8869,7 @@ function deleteMoneyRequest(
     return urlToNavigateBack;
 }
 
+// eslint-disable-next-line @typescript-eslint/max-params
 function deleteTrackExpense(
     chatReportID: string | undefined,
     chatReport: OnyxEntry<OnyxTypes.Report> | undefined,
