@@ -299,7 +299,7 @@ function AttachmentView({
             if (!isUploaded) {
                 return (
                     <>
-                        <View style={styles.imageModalImageCenterContainer}>
+                        <View style={[styles.imageModalImageCenterContainer, styles.ph10]}>
                             <DefaultAttachmentView
                                 icon={Gallery}
                                 fileName={file?.name}

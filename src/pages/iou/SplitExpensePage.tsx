@@ -22,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {
     addSplitExpenseField,
     clearSplitTransactionDraftErrors,
+    getIOURequestPolicyID,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
     saveSplitTransactions,
@@ -39,7 +40,7 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
-import {getChildTransactions, isCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getChildTransactions, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -72,6 +73,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: true});
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: true});
 
     const policy = usePolicy(report?.policyID);
     const isSplitAvailable = report && transaction && isSplitAction(report, [transaction], policy);
@@ -84,7 +86,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const currencySymbol = currencyList?.[transactionDetails.currency ?? '']?.symbol ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
     const isPerDiem = isPerDiemRequest(transaction);
-    const isCard = isCardTransaction(transaction);
+    const isCard = isManagedCardTransaction(transaction);
 
     const childTransactions = useMemo(() => getChildTransactions(transactionID), [transactionID]);
     const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
@@ -152,7 +154,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        saveSplitTransactions(draftTransaction, currentSearchHash, policyCategories, expenseReportPolicy);
+        saveSplitTransactions(draftTransaction, currentSearchHash, policyCategories, expenseReportPolicy, policyRecentlyUsedCategories);
     }, [
         splitExpenses,
         childTransactions.length,
@@ -166,6 +168,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         currentSearchHash,
         policyCategories,
         expenseReportPolicy,
+        policyRecentlyUsedCategories,
         splitFieldDataFromOriginalTransaction,
         translate,
         transactionID,
@@ -184,7 +187,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const [sections] = useMemo(() => {
         const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
-        const isTransactionMadeWithCard = isCardTransaction(transaction);
+        const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
         const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
 
         const items: SplitListItemType[] = (draftTransaction?.comment?.splitExpenses ?? []).map((item): SplitListItemType => {
@@ -303,9 +306,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             keyboardAvoidingViewBehavior="height"
             shouldDismissKeyboardBeforeClose={false}
         >
-            <FullPageNotFoundView
-                shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable || (!!childTransactions.length && !isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS))}
-            >
+            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
                 <View
                     ref={viewRef}
                     style={styles.flex1}
@@ -336,7 +337,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                                 return;
                             }
                             Keyboard.dismiss();
-                            // eslint-disable-next-line deprecation/deprecation
+                            // eslint-disable-next-line @typescript-eslint/no-deprecated
                             InteractionManager.runAfterInteractions(() => {
                                 initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
                             });

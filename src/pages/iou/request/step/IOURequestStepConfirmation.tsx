@@ -237,21 +237,6 @@ function IOURequestStepConfirmation({
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
     const isTestTransaction = transaction?.participants?.some((participant) => isSelectedManagerMcTest(participant.login));
-    const payeePersonalDetails = useMemo(() => {
-        if (personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1]) {
-            return personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1];
-        }
-
-        const participant = transaction?.participants?.find((val) => val.accountID === (transaction?.splitPayerAccountIDs?.at(0) ?? -1));
-
-        return {
-            login: participant?.login ?? '',
-            accountID: participant?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-            avatar: Expensicons.FallbackAvatar,
-            displayName: participant?.login ?? '',
-            isOptimisticPersonalDetail: true,
-        };
-    }, [personalDetails, transaction?.participants, transaction?.splitPayerAccountIDs]);
 
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && !isTestTransaction;
     const [isConfirmed, setIsConfirmed] = useState(false);
@@ -442,6 +427,7 @@ function IOURequestStepConfirmation({
         let isScanFilesCanBeRead = true;
 
         Promise.all(
+            // eslint-disable-next-line @typescript-eslint/await-thenable
             transactions.map((item) => {
                 const itemReceiptFilename = getReceiptFilenameFromTransaction(item);
                 const itemReceiptPath = item.receipt?.source;
@@ -535,6 +521,7 @@ function IOURequestStepConfirmation({
                         policy,
                         policyTagList: policyTags,
                         policyCategories,
+                        policyRecentlyUsedCategories,
                     },
                     gpsPoints,
                     action,
@@ -578,6 +565,7 @@ function IOURequestStepConfirmation({
             policy,
             policyTags,
             policyCategories,
+            policyRecentlyUsedCategories,
             action,
             transactionTaxCode,
             transactionTaxAmount,
@@ -724,6 +712,7 @@ function IOURequestStepConfirmation({
                     policy,
                     policyCategories,
                     policyTagList: policyTags,
+                    policyRecentlyUsedCategories,
                 },
                 transactionParams: {
                     amount: transaction.amount,
@@ -742,6 +731,7 @@ function IOURequestStepConfirmation({
                     billable: transaction.billable,
                     reimbursable: transaction.reimbursable,
                     attendees: transaction.comment?.attendees,
+                    receipt: isManualDistanceRequest ? receiptFiles[transaction.transactionID] : undefined,
                 },
                 backToReport,
             });
@@ -752,13 +742,15 @@ function IOURequestStepConfirmation({
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             iouType,
-            isManualDistanceRequest,
             policy,
             policyCategories,
             policyTags,
+            policyRecentlyUsedCategories,
+            isManualDistanceRequest,
             transactionTaxCode,
             transactionTaxAmount,
             customUnitRateID,
+            receiptFiles,
             backToReport,
         ],
     );
@@ -788,7 +780,7 @@ function IOURequestStepConfirmation({
 
             formHasBeenSubmitted.current = true;
 
-            if (iouType !== CONST.IOU.TYPE.TRACK && isDistanceRequest && !isMovingTransactionFromTrackExpense) {
+            if (iouType !== CONST.IOU.TYPE.TRACK && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
                 createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants, trimmedComment);
                 return;
             }
@@ -821,6 +813,7 @@ function IOURequestStepConfirmation({
                             taxCode: transactionTaxCode,
                             taxAmount: transactionTaxAmount,
                             shouldPlaySound: index === transactions.length - 1,
+                            policyRecentlyUsedCategories,
                         });
                     });
                 }
@@ -847,9 +840,9 @@ function IOURequestStepConfirmation({
                         reimbursable: transaction.reimbursable,
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
-                        splitPayerAccountIDs: transaction.splitPayerAccountIDs ?? [],
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        policyRecentlyUsedCategories,
                     });
                 }
                 return;
@@ -873,9 +866,9 @@ function IOURequestStepConfirmation({
                         reimbursable: !!transaction.reimbursable,
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
-                        splitPayerAccountIDs: transaction.splitPayerAccountIDs,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        policyRecentlyUsedCategories,
                     });
                 }
                 return;
@@ -1031,16 +1024,47 @@ function IOURequestStepConfirmation({
 
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 setIsConfirmed(true);
-                sendMoneyElsewhere(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
+                sendMoneyElsewhere(
+                    report,
+                    transaction.amount,
+                    currency,
+                    trimmedComment,
+                    currentUserPersonalDetails.accountID,
+                    participant,
+                    transaction.created,
+                    transaction.merchant,
+                    receiptFiles[transaction.transactionID],
+                );
                 return;
             }
 
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 setIsConfirmed(true);
-                sendMoneyWithWallet(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
+                sendMoneyWithWallet(
+                    report,
+                    transaction.amount,
+                    currency,
+                    trimmedComment,
+                    currentUserPersonalDetails.accountID,
+                    participant,
+                    transaction.created,
+                    transaction.merchant,
+                    receiptFiles[transaction.transactionID],
+                );
             }
         },
-        [transaction?.amount, transaction?.comment, transaction?.currency, participants, currentUserPersonalDetails.accountID, report],
+        [
+            transaction?.currency,
+            transaction?.comment?.comment,
+            transaction?.amount,
+            transaction?.created,
+            transaction?.merchant,
+            transaction?.transactionID,
+            participants,
+            report,
+            currentUserPersonalDetails.accountID,
+            receiptFiles,
+        ],
     );
 
     const setBillable = useCallback(
@@ -1134,11 +1158,10 @@ function IOURequestStepConfirmation({
         showPreviousTransaction();
     };
 
-    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest, isManualDistanceRequest);
+    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
     const shouldShowSmartScanFields =
         !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
-
     return (
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}
@@ -1224,7 +1247,6 @@ function IOURequestStepConfirmation({
                         isPerDiemRequest={isPerDiemRequest}
                         shouldShowSmartScanFields={shouldShowSmartScanFields}
                         action={action}
-                        payeePersonalDetails={payeePersonalDetails}
                         isConfirmed={isConfirmed}
                         isConfirming={isConfirming}
                         iouIsReimbursable={transaction?.reimbursable}
