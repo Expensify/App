@@ -2767,7 +2767,7 @@ describe('SearchUIUtils', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, hash, backTo);
 
             // When iouReportAction is undefined, should pass transaction and violations
-            // Extract the transaction by removing UI-specific fields
+            // Extract the transaction by removing UI-specific and search-specific fields
             const {
                 keyForList,
                 action,
@@ -2787,6 +2787,12 @@ describe('SearchUIUtils', () => {
                 violations,
                 hash: itemHash,
                 moneyRequestReportActionID,
+                canDelete,
+                canHold,
+                canUnhold,
+                reportType,
+                convertedAmount,
+                convertedCurrency,
                 ...expectedTransaction
             } = transactionListItem;
 
