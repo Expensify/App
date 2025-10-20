@@ -16,8 +16,6 @@ type ActivityIndicatorProps = RNActivityIndicatorProps & {
 
     /** Extra loading context to be passed to the logAppStateOnLongLoading function */
     extraLoadingContext?: ExtraLoadingContext;
-
-    children?: React.ReactNode;
 };
 
 function ActivityIndicator({timeout = CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT, extraLoadingContext, ...rest}: ActivityIndicatorProps) {
