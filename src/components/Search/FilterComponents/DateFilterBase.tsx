@@ -41,11 +41,14 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
         ? (dateKey.replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX) as ReportFieldDateKey)
         : (`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as const);
 
-    const defaultDateValues = {
-        [CONST.SEARCH.DATE_MODIFIERS.ON]: searchAdvancedFiltersForm?.[dateOnKey],
-        [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: searchAdvancedFiltersForm?.[dateBeforeKey],
-        [CONST.SEARCH.DATE_MODIFIERS.AFTER]: searchAdvancedFiltersForm?.[dateAfterKey],
-    };
+    const defaultDateValues = useMemo(
+        () => ({
+            [CONST.SEARCH.DATE_MODIFIERS.ON]: searchAdvancedFiltersForm?.[dateOnKey],
+            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: searchAdvancedFiltersForm?.[dateBeforeKey],
+            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: searchAdvancedFiltersForm?.[dateAfterKey],
+        }),
+        [searchAdvancedFiltersForm?.[dateOnKey], searchAdvancedFiltersForm?.[dateBeforeKey], searchAdvancedFiltersForm?.[dateAfterKey]],
+    );
 
     const presets = useMemo(() => {
         const hasFeed = !!searchAdvancedFiltersForm?.feed?.length;
