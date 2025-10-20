@@ -166,6 +166,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0,
             !!chatOptions?.userToInvite,
             debouncedSearchTerm.trim(),
+            false,
+            countryCode,
         );
 
         return [newSections, headerMessage];
@@ -177,8 +179,9 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         chatOptions.userToInvite,
         debouncedSearchTerm,
         personalDetails,
-        translate,
         reportAttributesDerived,
+        translate,
+        countryCode,
     ]);
 
     const selectAccountant = useCallback(

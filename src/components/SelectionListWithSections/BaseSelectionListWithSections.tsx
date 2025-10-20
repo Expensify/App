@@ -660,6 +660,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     index={index}
+                    sectionIndex={section?.indexOffset}
                     isFocused={isItemFocused}
                     isDisabled={isDisabled}
                     showTooltip={shouldShowTooltips}
