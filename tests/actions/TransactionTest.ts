@@ -3,7 +3,7 @@ import {getUnixTime} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useOnyx from '@hooks/useOnyx';
-import * as Transaction from '@libs/actions/Transaction';
+import {dismissDuplicateTransactionViolation} from '@libs/actions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, Transaction as TransactionType, TransactionViolation} from '@src/types/onyx';
@@ -163,7 +163,7 @@ describe('Transaction', () => {
             mockFetch.pause();
 
             // When dismissing duplicate transaction violations
-            Transaction.dismissDuplicateTransactionViolation({
+            dismissDuplicateTransactionViolation({
                 transactionIDs,
                 dismissedPersonalDetails: personalDetails,
                 expenseReport,
@@ -241,7 +241,7 @@ describe('Transaction', () => {
             const dismissTime = new Date();
 
             // When dismissing duplicate transaction violations
-            Transaction.dismissDuplicateTransactionViolation({
+            dismissDuplicateTransactionViolation({
                 transactionIDs,
                 dismissedPersonalDetails: personalDetails,
                 expenseReport,
@@ -294,7 +294,7 @@ describe('Transaction', () => {
             }
 
             // When dismissing duplicate transaction violations
-            Transaction.dismissDuplicateTransactionViolation({
+            dismissDuplicateTransactionViolation({
                 transactionIDs,
                 dismissedPersonalDetails: personalDetails,
                 expenseReport,
@@ -339,7 +339,7 @@ describe('Transaction', () => {
             }
 
             // When dismissing duplicate transaction violations
-            Transaction.dismissDuplicateTransactionViolation({
+            dismissDuplicateTransactionViolation({
                 transactionIDs,
                 dismissedPersonalDetails: personalDetails,
                 expenseReport,
@@ -395,7 +395,7 @@ describe('Transaction', () => {
 
             // When dismissing duplicate transaction violations and API fails
             mockFetch.fail();
-            Transaction.dismissDuplicateTransactionViolation({
+            dismissDuplicateTransactionViolation({
                 transactionIDs,
                 dismissedPersonalDetails: personalDetails,
                 expenseReport,
@@ -438,7 +438,7 @@ describe('Transaction', () => {
 
             // When dismissing violations using data from useOnyx
             await act(async () => {
-                Transaction.dismissDuplicateTransactionViolation({
+                dismissDuplicateTransactionViolation({
                     transactionIDs,
                     dismissedPersonalDetails: personalDetails,
                     expenseReport: expenseReportResult.current[0],
