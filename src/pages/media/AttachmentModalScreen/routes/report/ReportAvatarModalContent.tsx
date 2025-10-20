@@ -1,24 +1,22 @@
 import React, {useMemo} from 'react';
-import AttachmentModal from '@components/AttachmentModal';
 import useOnyx from '@hooks/useOnyx';
-import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {getDefaultGroupAvatar, getPolicyName, getReportName, getWorkspaceIcon, isGroupChat, isThread, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
+import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
+import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
+import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
+import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ReportAvatarProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_AVATAR>;
-
-function ReportAvatar({route}: ReportAvatarProps) {
+function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.REPORT_AVATAR>) {
     const {reportID, policyID} = route.params;
+
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
-    const attachment = useMemo(() => {
+    const attachment: AttachmentModalBaseContentProps = useMemo(() => {
         if (isGroupChat(report) && !isThread(report)) {
             return {
                 source: report?.avatarUrl ? getFullSizeAvatar(report.avatarUrl, 0) : getDefaultGroupAvatar(report?.reportID),
@@ -41,24 +39,32 @@ function ReportAvatar({route}: ReportAvatarProps) {
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID,
             isWorkspaceAvatar: true,
         };
-    }, [report, policy]);
+    }, [policy, report]);
+
+    const onDownloadAttachment = useDownloadAttachment();
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = !report?.reportID && !isLoadingApp;
+    const isLoading = (!report?.reportID || !policy?.id) && !!isLoadingApp;
+
+    const contentProps = useMemo<AttachmentModalBaseContentProps>(
+        () => ({
+            ...attachment,
+            shouldShowNotFoundPage,
+            isLoading,
+            maybeIcon: true,
+            onDownloadAttachment,
+        }),
+        [attachment, shouldShowNotFoundPage, isLoading, onDownloadAttachment],
+    );
 
     return (
-        <AttachmentModal
-            headerTitle={attachment.headerTitle}
-            defaultOpen
-            source={attachment.source}
-            onModalClose={() => {
-                Navigation.goBack(report?.reportID ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID) : undefined);
-            }}
-            isWorkspaceAvatar={attachment.isWorkspaceAvatar}
-            maybeIcon
-            originalFileName={attachment.originalFileName}
-            shouldShowNotFoundPage={!report?.reportID && !isLoadingApp}
-            isLoading={(!report?.reportID || !policy?.id) && !!isLoadingApp}
+        <AttachmentModalContainer
+            navigation={navigation}
+            contentProps={contentProps}
         />
     );
 }
+ReportAvatarModalContent.displayName = 'ReportAvatarModalContent';
 
-ReportAvatar.displayName = 'ReportAvatar';
-export default ReportAvatar;
+export default ReportAvatarModalContent;
