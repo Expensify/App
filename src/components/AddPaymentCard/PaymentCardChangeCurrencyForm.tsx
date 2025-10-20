@@ -130,14 +130,14 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
     return (
         <View style={[styles.mh5, styles.flexGrow1]}>
             <SelectionList
-                // customListHeader={<PaymentCardCurrencyHeader isSectionList />}
-                initiallyFocusedItemKey={currency}
-                // containerStyle={[styles.mhn5]}
                 data={currencyOptions}
+                ListItem={RadioListItem}
                 onSelectRow={(option) => {
                     selectCurrency(option.value);
                 }}
-                ListItem={RadioListItem}
+                style={{containerStyle: styles.mhn5}}
+                initiallyFocusedItemKey={currency}
+                customListHeader={<PaymentCardCurrencyHeader isSectionList />}
             />
         </View>
     );
