@@ -170,7 +170,6 @@ import type {
     QBDSetupErrorBodyParams,
     RailTicketParams,
     ReceiptPartnersUberSubtitleParams,
-    ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
     RemoveMemberPromptParams,
@@ -198,6 +197,7 @@ import type {
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
     SettlementAccountInfoParams,
+    SettlementAccountReconciliationParams,
     SettlementDateParams,
     ShareParams,
     SignerInfoMessageParams,
@@ -631,6 +631,7 @@ const translations = {
         downloadAsPDF: 'Download as PDF',
         downloadAsCSV: 'Download as CSV',
         help: 'Help',
+        expenseReport: 'Expense Report',
         expenseReports: 'Expense Reports',
         // @context Rate as a noun, not a verb
         rateOutOfPolicy: 'Rate out of policy',
@@ -2544,7 +2545,7 @@ const translations = {
                     '\n' +
                     `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
                     '2. Choose *Start chat*.\n' +
-                    '3. Enter emails or phone numbers..\n' +
+                    '3. Enter emails or phone numbers.\n' +
                     '4. Click the grey *+* button in the chat > *Split expense*.\n' +
                     '5. Create the expense by selecting *Manual*, *Scan*, or *Distance*.\n' +
                     '\n' +
@@ -2603,7 +2604,7 @@ const translations = {
                 descriptionTwo: 'Categorize and tag expenses',
                 descriptionThree: 'Create and share reports',
             },
-            price: 'Try it free for 30 days, then upgrade for just <strong>$5/month</strong>.',
+            price: 'Try it free for 30 days, then upgrade for just <strong>$5/user/month</strong>.',
             createWorkspace: 'Create workspace',
         },
         confirmWorkspace: {
@@ -4576,7 +4577,7 @@ const translations = {
                 `If you change this card's limit type to Monthly, new transactions will be declined because the ${limit} monthly limit has already been reached.`,
             addShippingDetails: 'Add shipping details',
             issuedCard: ({assignee}: AssigneeParams) => `issued ${assignee} an Expensify Card! The card will arrive in 2-3 business days.`,
-            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `issued ${assignee} an Expensify Card! The card will be shipped once shipping details are added.`,
+            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `issued ${assignee} an Expensify Card! The card will be shipped once shipping details are confirmed.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `issued ${assignee} a virtual ${link}! The card can be used right away.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} added shipping details. Expensify Card will arrive in 2-3 business days.`,
             verifyingHeader: 'Verifying',
@@ -5345,9 +5346,8 @@ const translations = {
                 `<muted-text-label>In order to enable Continuous Reconciliation, please enable <a href="${accountingAdvancedSettingsLink}">auto-sync</a> for ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
-                accountMatches: 'Make sure this account matches your ',
-                settlementAccount: 'Expensify Card settlement account ',
-                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `(ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
+                settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
+                    `Make sure this account matches your <a href="${settlementAccountUrl}">Expensify Card settlement account</a> (ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
             },
         },
         export: {
@@ -6215,7 +6215,6 @@ const translations = {
             reimbursable: 'Reimbursable',
             purchaseCurrency: 'Purchase currency',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Report',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'From',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Card',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Withdrawal ID',

@@ -6,7 +6,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
-import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -441,18 +440,19 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         throw new Error('Data missing');
                     }
                     if (isTrackExpenseAction(parentReportAction)) {
-                        deleteTrackExpense(
-                            parentReport,
-                            transaction.transactionID,
-                            parentReportAction,
+                        deleteTrackExpense({
+                            chatReportID: report?.parentReportID,
+                            chatReport: parentReport,
+                            transactionID: transaction.transactionID,
+                            reportAction: parentReportAction,
                             iouReport,
                             chatIOUReport,
-                            duplicateTransactions,
-                            duplicateTransactionViolations,
-                            isParentReportArchived,
+                            transactions: duplicateTransactions,
+                            violations: duplicateTransactionViolations,
+                            isSingleTransactionView: true,
+                            isChatReportArchived: isParentReportArchived,
                             isChatIOUReportArchived,
-                            true,
-                        );
+                        });
                     } else {
                         deleteMoneyRequest(
                             transaction.transactionID,
@@ -488,3 +488,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 
 export default MoneyRequestHeader;
+function useGetIOUReportFromReportAction(parentReportAction: OnyxEntry<ReportAction>): {iouReport: any; chatReport: any; isChatIOUReportArchived: any} {
+    throw new Error('Function not implemented.');
+}

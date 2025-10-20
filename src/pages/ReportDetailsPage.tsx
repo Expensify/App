@@ -792,18 +792,19 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
 
         if (isTrackExpense) {
-            deleteTrackExpense(
-                moneyRequestReport,
-                iouTransactionID,
-                requestParentReportAction,
+            deleteTrackExpense({
+                chatReportID: moneyRequestReport?.reportID,
+                chatReport: moneyRequestReport,
+                transactionID: iouTransactionID,
+                reportAction: requestParentReportAction,
                 iouReport,
                 chatIOUReport,
-                duplicateTransactions,
-                duplicateTransactionViolations,
-                isMoneyRequestReportArchived,
-                isChatIOUReportArchived,
+                transactions: duplicateTransactions,
+                violations: duplicateTransactionViolations,
                 isSingleTransactionView,
-            );
+                isChatReportArchived: isMoneyRequestReportArchived,
+                isChatIOUReportArchived,
+            });
         } else {
             deleteMoneyRequest(
                 iouTransactionID,
@@ -863,6 +864,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
             if (isTrackExpense) {
                 urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(
+                    moneyRequestReport?.reportID,
                     moneyRequestReport,
                     iouTransactionID,
                     requestParentReportAction,
