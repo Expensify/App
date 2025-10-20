@@ -5,7 +5,7 @@ function useRefreshKeyAfterInteraction(defaultValue: string) {
     const [counter, setCounter] = useState(0);
 
     useEffect(() => {
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setCounter((prev) => prev + 1);
         });
