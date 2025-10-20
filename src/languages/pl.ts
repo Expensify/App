@@ -7303,6 +7303,11 @@ ${amount} dla ${merchant} - ${date}`,
         conciergeWillSend: 'Concierge wkrótce prześle plik.',
     },
     avatarPage: {title: 'Edytuj zdjęcie profilowe', uploadPhoto: 'Prześlij zdjęcie'},
+    openAppFailureModal: {
+        title: 'Coś poszło nie tak...',
+        subtitle: `Nie udało nam się wczytać wszystkich Twoich danych. Zostaliśmy o tym powiadomieni i badamy problem. Jeśli problem będzie się utrzymywał, skontaktuj się z`,
+        refreshAndTryAgain: 'Odśwież i spróbuj ponownie',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

@@ -7166,6 +7166,7 @@ ${merchant}的${amount} - ${date}`,
         conciergeWillSend: 'Concierge 很快会将文件发送给您。',
     },
     avatarPage: {title: '编辑个人资料图片', uploadPhoto: '上传照片'},
+    openAppFailureModal: {title: '出了点问题...', subtitle: `我们未能加载您的所有数据。我们已收到通知，正在调查此问题。如果问题仍然存在，请联系`, refreshAndTryAgain: '刷新并重试'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

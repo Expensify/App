@@ -7317,6 +7317,11 @@ ${amount} voor ${merchant} - ${date}`,
         conciergeWillSend: 'Concierge stuurt je het bestand binnenkort.',
     },
     avatarPage: {title: 'Profielfoto bewerken', uploadPhoto: 'Foto uploaden'},
+    openAppFailureModal: {
+        title: 'Er is iets misgegaan...',
+        subtitle: `We hebben niet al uw gegevens kunnen laden. We zijn op de hoogte gesteld en onderzoeken het probleem. Als dit aanhoudt, neem dan contact op met`,
+        refreshAndTryAgain: 'Vernieuw en probeer het opnieuw',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

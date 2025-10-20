@@ -7311,6 +7311,11 @@ ${amount} para ${merchant} - ${date}`,
         conciergeWillSend: 'Concierge enviará o arquivo em breve.',
     },
     avatarPage: {title: 'Editar foto de perfil', uploadPhoto: 'Carregar foto'},
+    openAppFailureModal: {
+        title: 'Algo deu errado...',
+        subtitle: `Não conseguimos carregar todos os seus dados. Fomos notificados e estamos investigando o problema. Se isso persistir, entre em contato com`,
+        refreshAndTryAgain: 'Atualize e tente novamente',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
