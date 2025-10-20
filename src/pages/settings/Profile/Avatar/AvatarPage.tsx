@@ -131,7 +131,6 @@ function ProfileAvatar() {
     });
 
     const onPress = useCallback(() => {
-        // User uploaded a file
         if (imageData.file) {
             updateAvatar(imageData.file, {
                 avatar: currentUserPersonalDetails?.avatar,
@@ -171,7 +170,7 @@ function ProfileAvatar() {
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton title={translate('avatarPage.title')} />
-            <View style={[styles.flexColumn, styles.gap6, styles.alignItemsCenter, styles.pb5]}>
+            <View style={[styles.flexColumn, styles.gap5, styles.alignItemsCenter, styles.pb10]}>
                 <AvatarCapture
                     ref={avatarCaptureRef}
                     fileName={selected ?? 'avatar'}
@@ -229,7 +228,7 @@ function ProfileAvatar() {
                 contentContainerStyle={styles.flexGrow1}
                 keyboardShouldPersistTaps="handled"
             >
-                <View style={[styles.ph5, styles.flexColumn, styles.flex1, styles.gap2]}>
+                <View style={[styles.ph5, styles.flexColumn, styles.flex1, styles.gap3]}>
                     <AvatarSelector
                         label={translate('avatarPage.chooseCustomAvatar')}
                         name={currentUserPersonalDetails?.displayName}

@@ -41,9 +41,7 @@ function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_
     return (
         <>
             {!!label && avatarList?.length > 0 && (
-                <View style={[styles.ph2, styles.justifyContentStart]}>
-                    <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
-                </View>
+                <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre, styles.ph2])}>{label}</Text>
             )}
             <View style={styles.avatarSelectorListContainer}>
                 {avatarList.map(({id, StyledLetterAvatar}) => {
