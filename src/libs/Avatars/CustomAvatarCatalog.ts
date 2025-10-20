@@ -193,7 +193,6 @@ const buildOrderedAvatars = (): Array<{id: CustomAvatarID} & AvatarEntry> => {
     }));
 };
 
-
 /**
  * Returns a letter avatar component based on the first letter of the provided name.
  * @param name - The name to extract first letter/character from. (Expected 0-9, A-Z)
