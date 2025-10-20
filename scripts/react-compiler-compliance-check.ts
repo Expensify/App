@@ -135,13 +135,14 @@ function runCompilerHealthcheck(src?: string): CompilerResults {
 }
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function addFailureIfDoesNotExist(failureMap: FailureMap, newFailure: CompilerFailure, shouldUpdateReason: boolean): boolean {
+function addFailureIfDoesNotExist(failureMap: FailureMap, newFailure: CompilerFailure): boolean {
     const key = getUniqueFileKey(newFailure);
     const existingFailure = failureMap.get(key);
 
     if (existingFailure) {
         const isReasonSet = !!existingFailure.reason;
-        if (shouldUpdateReason && !isReasonSet) {
+        const isNewReasonSet = !!newFailure.reason;
+        if (!isReasonSet && isNewReasonSet) {
             failureMap.set(key, newFailure);
             return true;
         }
@@ -188,12 +189,12 @@ function parseHealthcheckOutput(output: string): CompilerResults {
             currentFailureWithoutReason = null;
 
             if (shouldSuppressCompilerError(newFailure.reason)) {
-                addFailureIfDoesNotExist(results.suppressedFailures, newFailure, true);
+                addFailureIfDoesNotExist(results.suppressedFailures, newFailure);
                 continue;
             }
 
             // Only add if failure does not exist already, or if existing one has no reason
-            addFailureIfDoesNotExist(results.failures, newFailure, true);
+            addFailureIfDoesNotExist(results.failures, newFailure);
         }
 
         // Parse failed compilation with file and location only (fallback)
@@ -208,7 +209,7 @@ function parseHealthcheckOutput(output: string): CompilerResults {
             currentFailureWithoutReason = newFailure;
 
             // Only create new failure if it doesn't exist
-            addFailureIfDoesNotExist(results.failures, newFailure, false);
+            addFailureIfDoesNotExist(results.failures, newFailure);
 
             continue;
         }
@@ -228,11 +229,11 @@ function parseHealthcheckOutput(output: string): CompilerResults {
             currentFailureWithoutReason = null;
 
             if (shouldSuppressCompilerError(reason)) {
-                addFailureIfDoesNotExist(results.suppressedFailures, currentFailure, true);
+                addFailureIfDoesNotExist(results.suppressedFailures, currentFailure);
                 continue;
             }
 
-            addFailureIfDoesNotExist(results.failures, currentFailure, true);
+            addFailureIfDoesNotExist(results.failures, currentFailure);
         }
     }
 
