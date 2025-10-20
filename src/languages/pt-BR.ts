@@ -637,6 +637,7 @@ const translations = {
         downloadAsPDF: 'Baixar como PDF',
         downloadAsCSV: 'Baixar como CSV',
         help: 'Ajuda',
+        expenseReport: 'Relatório de Despesas',
         expenseReports: 'Relatórios de Despesas',
         rateOutOfPolicy: 'Taxa fora da política',
         reimbursable: 'Reembolsável',
@@ -659,6 +660,8 @@ const translations = {
         reschedule: 'Reagendar',
         general: 'Geral',
         workspacesTabTitle: 'Workspaces',
+        getTheApp: 'Obtenha o aplicativo',
+        scanReceiptsOnTheGo: 'Digitalize recibos do seu telefone',
         headsUp: 'Atenção!',
         submitTo: 'Enviar para',
         forwardTo: 'Encaminhar para',
@@ -969,6 +972,7 @@ const translations = {
         buttonMySettings: 'Minhas configurações',
         fabNewChat: 'Iniciar chat',
         fabNewChatExplained: 'Iniciar chat (Ação flutuante)',
+        fabScanReceiptExplained: 'Digitalizar recibo (Ação flutuante)',
         chatPinned: 'Conversa fixada',
         draftedMessage: 'Mensagem rascunhada',
         listOfChatMessages: 'Lista de mensagens de chat',
@@ -1236,7 +1240,7 @@ const translations = {
         }: SettleExpensifyCardParams & {
             policyName: string;
         }) => (formattedAmount ? `Pagar ${formattedAmount} via ${policyName}` : `Pagar via ${policyName}`),
-        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pago ${amount} com conta bancária ${last4Digits}` : `Pago com conta bancária ${last4Digits}`),
+        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `pago ${amount} com conta bancária ${last4Digits}` : `pago com conta bancária ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
             `pago ${amount ? `${amount} ` : ''}com a conta bancária terminada em ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do espaço de trabalho</a>`,
         invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Conta pessoal • ${lastFour}`,
@@ -1467,6 +1471,7 @@ const translations = {
                 subtitle: 'Escolha um aprovador adicional para este relatório antes de o encaminharmos através do restante do fluxo de trabalho de aprovação.',
             },
         },
+        chooseWorkspace: 'Escolha um espaço de trabalho',
     },
     transactionMerge: {
         listPage: {
@@ -1485,6 +1490,7 @@ const translations = {
             pageTitle: 'Selecione os detalhes que deseja manter:',
             noDifferences: 'Nenhuma diferença encontrada entre as transações',
             pleaseSelectError: ({field}: {field: string}) => `Por favor selecione um(a) ${field}`,
+            pleaseSelectAttendees: 'Selecione participantes',
             selectAllDetailsError: 'Selecione todos os detalhes antes de continuar.',
         },
         confirmationPage: {
@@ -1554,10 +1560,7 @@ const translations = {
         subtitle: 'Ative a autenticação de dois fatores para manter sua conta segura.',
         goToSecurity: 'Voltar para a página de segurança',
     },
-    shareCodePage: {
-        title: 'Seu código',
-        subtitle: 'Convide membros para o Expensify compartilhando seu código QR pessoal ou link de indicação.',
-    },
+    shareCodePage: {title: 'Seu código', subtitle: 'Convide membros para o Expensify compartilhando seu código QR pessoal ou link de referência.'},
     pronounsPage: {
         pronouns: 'Pronomes',
         isShownOnProfile: 'Seus pronomes são exibidos no seu perfil.',
@@ -1568,8 +1571,8 @@ const translations = {
         contactMethods: 'Métodos de contato',
         featureRequiresValidate: 'Este recurso requer que você valide sua conta.',
         validateAccount: 'Valide sua conta',
-        helpTextBeforeEmail: 'Adicione mais maneiras para as pessoas encontrarem você e encaminharem recibos para',
-        helpTextAfterEmail: 'de vários endereços de e-mail.',
+        helpTextBeforeEmail: 'Adicione mais maneiras de enviar recibos. Encaminhe-os para',
+        helpTextAfterEmail: 'ou envie uma mensagem para 47777 (apenas números dos EUA).',
         pleaseVerify: 'Por favor, verifique este método de contato',
         getInTouch: 'Sempre que precisarmos entrar em contato com você, usaremos este método de contato.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, insira o código mágico enviado para ${contactMethod}. Ele deve chegar em um ou dois minutos.`,
@@ -1842,6 +1845,7 @@ const translations = {
             'Sua conexão de contabilidade com a Xero requer o uso de autenticação de dois fatores. Para continuar usando o Expensify, por favor, ative-a.',
         twoFactorAuthCannotDisable: 'Não é possível desativar a 2FA',
         twoFactorAuthRequired: 'A autenticação de dois fatores (2FA) é necessária para sua conexão com o Xero e não pode ser desativada.',
+        explainProcessToRemoveWithRecovery: 'Para desativar a autenticação de dois fatores (2FA), insira um código de recuperação válido.',
     },
     recoveryCodeForm: {
         error: {
@@ -2010,13 +2014,33 @@ const translations = {
         validateCardTitle: 'Vamos garantir que é você',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Por favor, insira o código mágico enviado para ${contactMethod} para visualizar os detalhes do seu cartão. Ele deve chegar dentro de um ou dois minutos.`,
+        cardFraudAlert: {
+            confirmButtonText: 'Sim, eu aceito',
+            reportFraudButtonText: 'Não, não fui eu',
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) => `limpou a atividade suspeita e reativou o cartão x${cardLastFour}. Tudo pronto para continuar gastando!`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `desativou o cartão com final ${cardLastFour}`,
+            alertMessage: ({
+                cardLastFour,
+                amount,
+                merchant,
+                date,
+            }: {
+                cardLastFour: string;
+                amount: string;
+                merchant: string;
+                date: string;
+            }) => `atividade suspeita identificada no cartão com final ${cardLastFour}. Você reconhece esta cobrança?
+
+${amount} para ${merchant} - ${date}`,
+        },
     },
     workflowsPage: {
         workflowTitle: 'Gastar',
         workflowDescription: 'Configurar um fluxo de trabalho desde o momento em que a despesa ocorre, incluindo aprovação e pagamento.',
         submissionFrequency: 'Frequência de envio',
-        submissionFrequencyDescription: 'Escolha um cronograma personalizado para enviar despesas ou deixe isso desativado para atualizações em tempo real sobre gastos.',
+        submissionFrequencyDescription: 'Escolha uma frequência para enviar despesas.',
         submissionFrequencyDateOfMonth: 'Data do mês',
+        disableApprovalPromptDescription: 'Desativar aprovações removerá todos os fluxos de trabalho de aprovação existentes.',
         addApprovalsTitle: 'Adicionar aprovações',
         addApprovalButton: 'Adicionar fluxo de trabalho de aprovação',
         addApprovalTip: 'Este fluxo de trabalho padrão se aplica a todos os membros, a menos que exista um fluxo de trabalho mais específico.',
@@ -2316,8 +2340,8 @@ const translations = {
         },
         interestedFeatures: {
             title: 'Quais recursos você está interessado?',
-            featuresAlreadyEnabled: 'Seu espaço de trabalho já tem o seguinte habilitado:',
-            featureYouMayBeInterestedIn: 'Ative recursos adicionais nos quais você possa estar interessado:',
+            featuresAlreadyEnabled: 'Aqui estão nossos recursos mais populares:',
+            featureYouMayBeInterestedIn: 'Ative recursos adicionais:',
         },
         error: {
             requiredFirstName: 'Por favor, insira seu primeiro nome para continuar',
@@ -2598,7 +2622,7 @@ const translations = {
                 descriptionTwo: 'Categorizar e etiquetar despesas',
                 descriptionThree: 'Criar e compartilhar relatórios',
             },
-            price: 'Experimente gratuitamente por 30 dias, depois faça o upgrade por apenas <strong>US$5/mês</strong>.',
+            price: 'Experimente gratuitamente por 30 dias, depois faça o upgrade por apenas <strong>US$5/usuário/mês</strong>.',
             createWorkspace: 'Criar espaço de trabalho',
         },
         confirmWorkspace: {
@@ -4584,7 +4608,7 @@ const translations = {
             addShippingDetails: 'Adicionar detalhes de envio',
             issuedCard: ({assignee}: AssigneeParams) => `emitiu um Cartão Expensify para ${assignee}! O cartão chegará em 2-3 dias úteis.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
-                `emitiu um Cartão Expensify para ${assignee}! O cartão será enviado assim que os detalhes de envio forem adicionados.`,
+                `Foi emitido para ${assignee} um Expensify Card! O cartão será enviado assim que os detalhes de envio forem confirmados.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `emitiu ${assignee} um ${link} virtual! O cartão pode ser usado imediatamente.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} adicionou os detalhes de envio. O Cartão Expensify chegará em 2-3 dias úteis.`,
             verifyingHeader: 'Verificando',
@@ -6229,7 +6253,6 @@ const translations = {
             reimbursable: 'Reembolsável',
             purchaseCurrency: 'Moeda da compra',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Relatório',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retirada',
@@ -6375,8 +6398,8 @@ const translations = {
         noActivityYet: 'Nenhuma atividade ainda',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `alterado ${fieldName} de ${oldValue} para ${newValue}`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `alterado ${fieldName} para ${newValue}`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `alterou ${fieldName} para "${newValue}" (anteriormente "${oldValue}")`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `definiu ${fieldName} como "${newValue}"`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `Espaço de trabalho alterado${fromPolicyName ? ` (anteriormente ${fromPolicyName})` : ''}`;
@@ -7173,6 +7196,7 @@ const translations = {
             isWaitingForAssigneeToCompleteAction: 'Está aguardando o responsável concluir a ação',
             hasChildReportAwaitingAction: 'Tem um relatório infantil aguardando ação',
             hasMissingInvoiceBankAccount: 'Falta a conta bancária da fatura',
+            hasUnresolvedCardFraudAlert: 'Tem uma alerta de fraude de cartão não resolvida',
         },
         reasonRBR: {
             hasErrors: 'Tem erros nos dados do relatório ou nas ações do relatório',
@@ -7235,7 +7259,7 @@ const translations = {
         book: {
             title: 'Agendar chamada',
             description: 'Encontre um horário que funcione para você.',
-            slots: 'Horários disponíveis para',
+            slots: ({date}: {date: string}) => `<muted-text>Horários disponíveis para <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: 'Confirmar chamada',
