@@ -4776,13 +4776,13 @@ function getTransactionReportName({
     const transaction = getLinkedTransaction(reportAction, transactions);
 
     if (isEmptyObject(transaction)) {
-        // Transaction data might be empty on app's first load, if so we fallback to Expense/Track Expense
+        // Transaction data might be empty on app's first load, if so we fallback using amount and currency from the reportAction's originalMessage property
         const originalMessage = getOriginalMessage(reportAction);
         if (originalMessage && 'amount' in originalMessage && 'currency' in originalMessage) {
             const amount = originalMessage?.amount;
             const currency = originalMessage?.currency;
             const formattedAmount = convertToDisplayString(amount, currency) ?? '';
-            return translateLocal('iou.threadExpenseReportName', {formattedAmount, comment: Parser.htmlToText('')});
+            return translateLocal('iou.threadExpenseReportName', {formattedAmount, comment: ''});
         }
 
         return isTrackExpenseAction(reportAction) ? translateLocal('iou.createExpense') : translateLocal('iou.expense');
