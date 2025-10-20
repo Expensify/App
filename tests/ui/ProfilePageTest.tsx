@@ -81,7 +81,7 @@ describe('ProfilePage contact method indicator', () => {
         let node = screen.getByText('error-brickRoadIndicator');
         expect(node).toBeDefined();
 
-        // Verify that RBR dissapears
+        // Verify that RBR disappears
         Onyx.merge(ONYXKEYS.LOGIN_LIST, {
             [email]: {
                 partnerUserID: email,
@@ -117,7 +117,7 @@ describe('ProfilePage contact method indicator', () => {
         let node = screen.getByText('info-brickRoadIndicator');
         expect(node).toBeDefined();
 
-        // Verify that GBR dissapears
+        // Verify that GBR disappears
         Onyx.merge(ONYXKEYS.LOGIN_LIST, {
             [otherEmail]: {
                 partnerUserID: otherEmail,

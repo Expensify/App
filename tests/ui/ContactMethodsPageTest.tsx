@@ -75,7 +75,7 @@ describe('ContactMethodsPage', () => {
         // ContactMethodsPage sets brickRoadIndicator to 'error' when any errorFields are present
         expect(node).toHaveTextContent('error-brickRoadIndicator');
 
-        // Verify that RBR dissapears
+        // Verify that RBR disappears
         Onyx.merge(ONYXKEYS.LOGIN_LIST, {
             [otherEmail]: {
                 partnerUserID: otherEmail,
@@ -117,7 +117,7 @@ describe('ContactMethodsPage', () => {
         // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
         expect(node).toHaveTextContent('info-brickRoadIndicator');
 
-        // Verify that GBR dissapears
+        // Verify that GBR disappears
         Onyx.merge(ONYXKEYS.LOGIN_LIST, {
             [otherEmail]: {
                 partnerUserID: otherEmail,
