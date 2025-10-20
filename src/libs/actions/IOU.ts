@@ -12617,8 +12617,6 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
 
     const reportAction = getIOUActionForReportID(reportID, transactionID);
     const childReportID = reportAction?.childReportID;
-    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
-    const reportOwnerLogin = allPersonalDetails[report?.ownerAccountID ?? 0]?.login ?? '';
 
     let movedToReport;
     let rejectedToReportID;
@@ -12832,7 +12830,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                 currency: getCurrency(transaction),
                 comment,
                 payeeEmail: currentUserEmail,
-                participants: [{accountID: report?.ownerAccountID ?? 0}],
+                participants: [{accountID: report?.ownerAccountID}],
                 transactionID: transaction.transactionID,
                 existingTransactionThreadReportID: childReportID,
                 shouldGenerateTransactionThreadReport: false,
