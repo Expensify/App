@@ -1,4 +1,5 @@
 import React, {useMemo, useState} from 'react';
+import {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -35,7 +36,6 @@ function SearchFiltersReportFieldPage() {
             }, {});
 
             const nonFormulaReportFields = Object.entries(allPolicyReportFields)
-                // JACK_TODO: 'formula' was reverted so the const doesn't exist. This should not be a magic string
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 .filter(([_, value]) => value.type !== 'formula')
                 .sort(([aKey], [bKey]) => localeCompare(aKey, bKey));
@@ -95,8 +95,8 @@ function SearchFiltersReportFieldPage() {
     };
 
     if (selectedField) {
-        // JACK_TODO: Make this a type somewhere
-        const fieldType = selectedField.type as 'text' | 'date' | 'dropdown';
+        // We only support list, date, & text for report fields, no other types
+        const fieldType = selectedField.type as ValueOf<typeof CONST.REPORT_FIELD_TYPES>;
 
         const UpdateReportFieldComponent = {
             [CONST.REPORT_FIELD_TYPES.LIST]: ReportFieldList,

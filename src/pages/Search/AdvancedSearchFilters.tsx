@@ -375,7 +375,7 @@ function getFilterDisplayTitle(
         const values: string[] = [];
 
         Object.entries(filters).forEach(([fieldKey, fieldValue]) => {
-            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX)) {
+            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX) || !fieldValue || !fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
                 return;
             }
 

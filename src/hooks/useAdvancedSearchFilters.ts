@@ -261,7 +261,6 @@ function useAdvancedSearchFilters() {
     const shouldDisplayGroupByFilter = !!groupBy;
     const shouldDisplayGroupCurrencyFilter = shouldDisplayGroupByFilter;
     const shouldDisplayReportFieldFilter = Object.values(policies).some((policy): policy is NonNullable<Policy> => {
-        // JACK_TODO: Dont use a magic string, the 'formula' const PR was reverted
         return Object.values(policy?.fieldList ?? {}).some((val) => val.type !== 'formula');
     });
 
