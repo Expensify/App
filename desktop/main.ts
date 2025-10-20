@@ -1,10 +1,11 @@
 import {exec} from 'child_process';
-import {app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell} from 'electron';
 import type {BaseWindow, BrowserView, MenuItem, MenuItemConstructorOptions, WebContents, WebviewTag} from 'electron';
+import {app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell} from 'electron';
 import contextMenu from 'electron-context-menu';
-import log from 'electron-log';
 import type {ElectronLog} from 'electron-log';
+import log from 'electron-log';
 import {autoUpdater} from 'electron-updater';
+import type {AuthType, PermissionType} from 'node-mac-permissions';
 import {machineId} from 'node-machine-id';
 import checkForUpdates from '@libs/checkForUpdates';
 import {translate} from '@libs/Localize';
@@ -23,6 +24,19 @@ const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownload
 
 const port = process.env.PORT ?? 8082;
 const {DESKTOP_SHORTCUT_ACCELERATOR} = CONST;
+
+const MAC_PERMISSION_STATUSES = {
+    AUTHORIZED: 'authorized',
+    DENIED: 'denied',
+    RESTRICTED: 'restricted',
+    NOT_DETERMINED: 'not determined',
+} as const;
+
+const LOCATION_PERMISSION_STATES = {
+    GRANTED: 'granted',
+    DENIED: 'denied',
+    PROMPT: 'prompt',
+} as const;
 
 // Setup google api key in process environment, we are setting it this way intentionally. It is required by the
 // geolocation api (window.navigator.geolocation.getCurrentPosition) to work on desktop.
@@ -59,7 +73,7 @@ function pasteAsPlainText(browserWindow: BrowserWindow | BrowserView | WebviewTa
 
     if ('webContents' in browserWindow) {
         // https://github.com/sindresorhus/electron-context-menu is passing in deprecated `BrowserView` to this function
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         browserWindow.webContents.insertText(text);
     }
 }
@@ -373,6 +387,39 @@ const mainWindow = (): Promise<void> => {
                             resolve(undefined);
                         });
                     });
+                });
+
+                ipcMain.handle(ELECTRON_EVENTS.CHECK_LOCATION_PERMISSION, async () => {
+                    try {
+                        type MacPermissionsModule = {
+                            getAuthStatus?: (authType: AuthType) => PermissionType | 'not determined';
+                        };
+                        const macPermissionsModule = (await import('node-mac-permissions')) as MacPermissionsModule | {default: MacPermissionsModule};
+                        const macPermissions: MacPermissionsModule = ('default' in macPermissionsModule ? macPermissionsModule.default : macPermissionsModule) ?? {};
+                        const {getAuthStatus} = macPermissions;
+
+                        if (!getAuthStatus || typeof getAuthStatus !== 'function') {
+                            log.warn('node-mac-permissions not available or invalid, defaulting to denied');
+                            return LOCATION_PERMISSION_STATES.DENIED;
+                        }
+
+                        const status = getAuthStatus('location');
+
+                        switch (status) {
+                            case MAC_PERMISSION_STATUSES.AUTHORIZED:
+                                return LOCATION_PERMISSION_STATES.GRANTED;
+                            case MAC_PERMISSION_STATUSES.DENIED:
+                            case MAC_PERMISSION_STATUSES.RESTRICTED:
+                                return LOCATION_PERMISSION_STATES.DENIED;
+                            case MAC_PERMISSION_STATUSES.NOT_DETERMINED:
+                                return LOCATION_PERMISSION_STATES.PROMPT;
+                            default:
+                                return LOCATION_PERMISSION_STATES.DENIED;
+                        }
+                    } catch (error) {
+                        log.warn('node-mac-permissions not available, defaulting to denied:', (error as Error)?.message);
+                        return LOCATION_PERMISSION_STATES.DENIED;
+                    }
                 });
                 /*
                  * The default origin of our Electron app is app://- instead of https://new.expensify.com or https://staging.new.expensify.com

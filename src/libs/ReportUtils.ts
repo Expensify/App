@@ -8,8 +8,9 @@ import isEmpty from 'lodash/isEmpty';
 import isNumber from 'lodash/isNumber';
 import mapValues from 'lodash/mapValues';
 import lodashMaxBy from 'lodash/maxBy';
+import type {ColorValue} from 'react-native';
 import {InteractionManager} from 'react-native';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
@@ -20,6 +21,7 @@ import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvata
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {ThemeColors} from '@styles/theme/types';
 import type {IOUAction, IOUType, OnboardingAccounting} from '@src/CONST';
 import CONST, {TASK_TO_FEATURE} from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
@@ -94,7 +96,6 @@ import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, Onboar
 import type {AddCommentOrAttachmentParams} from './API/parameters';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import {hasValidDraftComment} from './DraftCommentUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import getEnvironment from './Environment/getEnvironment';
 import type EnvironmentType from './Environment/getEnvironment/types';
@@ -110,6 +111,7 @@ import {isEmailPublicDomain} from './LoginUtils';
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import getStateFromPath from './Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
+import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
@@ -153,6 +155,7 @@ import {
 } from './PolicyUtils';
 import {
     formatLastMessageText,
+    getActionableCardFraudAlertResolutionMessage,
     getActionableJoinRequestPendingReportAction,
     getAllReportActions,
     getCardIssuedMessage,
@@ -191,6 +194,7 @@ import {
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceTagUpdateMessage,
     getWorkspaceUpdateFieldMessage,
+    isActionableCardFraudAlert,
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
@@ -198,7 +202,6 @@ import {
     isApprovedOrSubmittedReportAction,
     isCardIssuedAction,
     isCreatedTaskReportAction,
-    isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
     isExportIntegrationAction,
@@ -232,7 +235,6 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
-import type {ArchivedReportsIDSet} from './SearchUIUtils';
 import {getSession} from './SessionUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
@@ -263,7 +265,7 @@ import {
     hasReceipt as hasReceiptTransactionUtils,
     hasViolation,
     hasWarningTypeViolation,
-    isCardTransaction as isCardTransactionTransactionUtils,
+    isManagedCardTransaction as isCardTransactionTransactionUtils,
     isDemoTransaction,
     isDistanceRequest,
     isExpensifyCardTransaction,
@@ -281,9 +283,6 @@ import addTrailingForwardSlash from './UrlUtils';
 import type {AvatarSource} from './UserUtils';
 import {generateAccountID, getDefaultAvatarURL} from './UserUtils';
 import ViolationsUtils from './Violations/ViolationsUtils';
-
-// Dynamic Import to avoid circular dependency
-const UnreadIndicatorUpdaterHelper = () => import('./UnreadIndicatorUpdater');
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
@@ -986,9 +985,6 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
-        UnreadIndicatorUpdaterHelper().then((module) => {
-            module.triggerUnreadUpdate();
-        });
 
         if (!value) {
             return;
@@ -1238,14 +1234,6 @@ function getReport(reportID: string, reports: SearchReport[] | OnyxCollection<Re
     } else {
         return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     }
-}
-
-/**
- * Returns the report
- * @deprecated Get the data straight from Onyx
- */
-function getReportNameValuePairs(reportID?: string, reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = allReportNameValuePair): OnyxEntry<ReportNameValuePairs> {
-    return reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
 }
 
 /**
@@ -1620,7 +1608,7 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
 
     if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS) {
         // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const policy = getPolicy(report.invoiceReceiver.policyID);
         return isPolicyAdminPolicyUtils(policy);
     }
@@ -1922,7 +1910,7 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
     }
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const submitsToAccountID = getSubmitToAccountID(getPolicy(report.policyID), report);
 
     return isProcessingReport(report) && submitsToAccountID === report.managerID;
@@ -2195,7 +2183,7 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
     // since they are not a part of the company, and should not action it on their behalf.
     if (report.policyID) {
         // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const policy = getPolicy(report.policyID);
         if (!isExpensifyTeam(policy?.owner) && isExpensifyTeam(currentUserPersonalDetails?.login)) {
             return false;
@@ -2210,7 +2198,7 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
 function isAuditor(report: OnyxEntry<Report>): boolean {
     if (report?.policyID) {
         // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const policy = getPolicy(report.policyID);
         return isPolicyAuditor(policy);
     }
@@ -2544,7 +2532,7 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isRep
         return false;
     }
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(moneyRequestReport?.policyID);
 
     // Adding or deleting transactions is not allowed on a closed report
@@ -2576,7 +2564,7 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchiv
         return false;
     }
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(moneyRequestReport?.policyID);
     if (isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)) {
         return false;
@@ -2631,7 +2619,7 @@ function isMoneyRequestReportEligibleForMerge(reportID: string, isAdmin: boolean
 function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry<Report> | string) {
     const reportActions = getAllReportActions(chatReport.reportID);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(chatReport.policyID);
     return Object.values(reportActions).some((action) => {
         const iouReportID = getIOUReportIDFromReportActionPreview(action);
@@ -3249,7 +3237,7 @@ function getInvoiceReceiverIcons(report: OnyxInputOrEntry<Report>, personalDetai
     const receiverPolicyID = report?.invoiceReceiver?.policyID;
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const receiverPolicy = invoiceReceiverPolicy ?? getPolicy(receiverPolicyID);
     if (!isEmptyObject(receiverPolicy)) {
         return [
@@ -3453,7 +3441,7 @@ function getIconsForInvoiceReport(
 
     const receiverPolicyID = invoiceRoomReport?.invoiceReceiver?.policyID;
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const receiverPolicy = invoiceReceiverPolicy ?? getPolicy(receiverPolicyID);
 
     if (!isEmptyObject(receiverPolicy)) {
@@ -3767,7 +3755,11 @@ function buildOptimisticCancelPaymentReportAction(expenseReportID: string, amoun
  * @param [actionsToMerge] - the optimistic merge actions that needs to be considered while fetching last visible message
 
  */
-function getLastVisibleMessage(reportID: string | undefined, isReportArchived: boolean | undefined, actionsToMerge: ReportActions = {}): LastVisibleMessage {
+function getLastVisibleMessage(
+    reportID: string | undefined,
+    isReportArchived: boolean | undefined,
+    actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
+): LastVisibleMessage {
     const report = getReportOrDraftReport(reportID);
     const lastVisibleAction = getLastVisibleActionReportActionsUtils(reportID, canUserPerformWriteAction(report, isReportArchived), actionsToMerge);
 
@@ -3822,6 +3814,24 @@ type ReasonAndReportActionThatRequiresAttention = {
     reportAction?: OnyxEntry<ReportAction>;
 };
 
+/**
+ * Returns the unresolved card fraud alert action for a given report.
+ */
+function getUnresolvedCardFraudAlertAction(reportID: string): OnyxEntry<ReportAction> {
+    const reportActions = getAllReportActions(reportID);
+    return Object.values(reportActions).find((action): action is ReportAction => isActionableCardFraudAlert(action) && !getOriginalMessage(action)?.resolution);
+}
+
+/**
+ * Checks if a given report or option has an unresolved card fraud alert.
+ */
+function hasUnresolvedCardFraudAlert(reportOrOption: OnyxEntry<Report> | OptionData): boolean {
+    if (!reportOrOption?.reportID) {
+        return false;
+    }
+    return !!getUnresolvedCardFraudAlertAction(reportOrOption.reportID);
+}
+
 function getReasonAndReportActionThatRequiresAttention(
     optionOrReport: OnyxEntry<Report> | OptionData,
     parentReportAction?: OnyxEntry<ReportAction>,
@@ -3837,6 +3847,13 @@ function getReasonAndReportActionThatRequiresAttention(
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_JOIN_REQUEST,
             reportAction: getActionableJoinRequestPendingReportAction(optionOrReport.reportID),
+        };
+    }
+
+    if (hasUnresolvedCardFraudAlert(optionOrReport)) {
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_UNRESOLVED_CARD_FRAUD_ALERT,
+            reportAction: getUnresolvedCardFraudAlertAction(optionOrReport.reportID),
         };
     }
 
@@ -3864,7 +3881,7 @@ function getReasonAndReportActionThatRequiresAttention(
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(optionOrReport.policyID);
     if (
         (optionOrReport.hasOutstandingChildRequest === true || iouReportActionToApproveOrPay?.reportActionID) &&
@@ -4268,7 +4285,7 @@ function canEditMoneyRequest(
         return isSubmitted && isRequestor;
     }
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(moneyRequestReport?.policyID);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = currentUserAccountID === moneyRequestReport?.managerID;
@@ -4292,8 +4309,9 @@ function canEditMoneyRequest(
 
 function getNextApproverAccountID(report: OnyxEntry<Report>, isUnapproved = false) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(report?.policyID);
+
     const approvalChain = getApprovalChain(policy, report);
     const submitToAccountID = getSubmitToAccountID(policy, report);
 
@@ -4362,6 +4380,7 @@ function canEditFieldOfMoneyRequest(
     isDeleteAction?: boolean,
     isChatReportArchived = false,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+    isSearchPageOption?: boolean,
 ): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
@@ -4405,7 +4424,7 @@ function canEditFieldOfMoneyRequest(
     }
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(moneyRequestReport?.policyID);
     const isAdmin = isExpenseReport(moneyRequestReport) && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = isExpenseReport(moneyRequestReport) && currentUserAccountID === moneyRequestReport?.managerID;
@@ -4448,11 +4467,15 @@ function canEditFieldOfMoneyRequest(
 
         const isUserWorkspaceMember = getActivePolicies(allPolicies ?? {}, currentUserEmail).filter((userPolicy) => isPaidGroupPolicyPolicyUtils(userPolicy)).length;
 
-        if (isUnreportedExpense && isUserWorkspaceMember) {
+        if (isUnreportedExpense && isSearchPageOption && isUserWorkspaceMember) {
             return true;
         }
 
-        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID) && !isUnreportedExpense) {
+        if (isUnreportedExpense && !isSearchPageOption) {
+            return true;
+        }
+
+        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID)) {
             return false;
         }
 
@@ -4462,7 +4485,7 @@ function canEditFieldOfMoneyRequest(
         }
         const isOwner = moneyRequestReport?.ownerAccountID === currentUserAccountID;
 
-        if (isInvoiceReport(moneyRequestReport) && !isUnreportedExpense) {
+        if (isInvoiceReport(moneyRequestReport)) {
             return (
                 getOutstandingReportsForUser(
                     moneyRequestReport?.policyID,
@@ -4479,14 +4502,12 @@ function canEditFieldOfMoneyRequest(
             return false;
         }
 
-        return isUnreportedExpense
-            ? Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-                  getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
-              ).length > 0
-            : Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-                  getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
-              ).length > 1 ||
-                  (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID));
+        return (
+            Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
+                getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
+            ).length > 1 ||
+            (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID))
+        );
     }
 
     const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -5255,7 +5276,7 @@ function getInvoicesChatName({
     const invoiceReceiverAccountID = isIndividual ? invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID;
     const invoiceReceiverPolicyID = isIndividual ? undefined : invoiceReceiver?.policyID;
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const invoiceReceiverPolicy = receiverPolicy ?? getPolicy(invoiceReceiverPolicyID);
     const isCurrentUserReceiver = (isIndividual && invoiceReceiverAccountID === currentUserAccountID) || (!isIndividual && isPolicyAdminPolicyUtils(invoiceReceiverPolicy));
 
@@ -5409,6 +5430,14 @@ function getReportName(
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED)) {
         return getPolicyChangeLogDefaultTitleEnforcedMessage(parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT) && getOriginalMessage(parentReportAction)?.resolution) {
+        return getActionableCardFraudAlertResolutionMessage(parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+        return translateLocal('iou.paidElsewhere');
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
@@ -5722,7 +5751,7 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
  */
 function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportArchived = false, reportAttributes?: ReportAttributesDerivedValue['reports']): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
-    if (report?.hasParentAccess === false) {
+    if (report?.hasParentAccess === false && !isReportManager(report)) {
         return {};
     }
 
@@ -5887,7 +5916,7 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAt
 
     if (parsingDetails?.policyID) {
         // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const policyType = getPolicy(parsingDetails?.policyID)?.type;
         if (policyType) {
             isGroupPolicyReport = isGroupPolicy(policyType);
@@ -6169,7 +6198,7 @@ function buildOptimisticIOUReport(
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
     const policyID = chatReportID ? getReport(chatReportID, allReports)?.policyID : undefined;
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
 
     const participants: Participants = {
@@ -6344,7 +6373,7 @@ function buildOptimisticExpenseReport(
     const policyName = getPolicyName({report});
     const formattedTotal = convertToDisplayString(storedTotal, currency);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
 
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
@@ -6459,12 +6488,8 @@ function getDeletedTransactionMessage(action: ReportAction) {
 
 function getMovedTransactionMessage(report: OnyxEntry<Report>) {
     const reportName = getReportName(report) ?? report?.reportName ?? '';
-    const reportUrl = `${environmentURL}/r/${report?.reportID}`;
-    const message = translateLocal('iou.movedTransaction', {
-        reportUrl,
-        reportName,
-    });
-    return message;
+    const reportUrl = getReportURLForCurrentContext(report?.reportID);
+    return translateLocal('iou.movedTransaction', {reportUrl, reportName});
 }
 
 function getUnreportedTransactionMessage() {
@@ -6489,8 +6514,8 @@ function getMovedActionMessage(action: ReportAction, report: OnyxEntry<Report>) 
     const toPolicyName = getPolicyNameByID(toPolicyID);
     return translateLocal('iou.movedAction', {
         shouldHideMovedReportUrl: !isDM(report),
-        movedReportUrl: `${environmentURL}/r/${movedReportID}`,
-        newParentReportUrl: `${environmentURL}/r/${newParentReportID}`,
+        movedReportUrl: getReportURLForCurrentContext(movedReportID),
+        newParentReportUrl: getReportURLForCurrentContext(newParentReportID),
         toPolicyName,
     });
 }
@@ -6814,8 +6839,8 @@ function buildOptimisticMovedReportAction(
     const movedActionMessage = [
         {
             html: shouldHideMovedReportUrl
-                ? `moved this <a href='${CONST.NEW_EXPENSIFY_URL}r/${movedReportID}' target='_blank' rel='noreferrer noopener'>report</a> to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`
-                : `moved this report to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
+                ? `moved this <a href='${getReportURLForCurrentContext(movedReportID)}' target='_blank' rel='noreferrer noopener'>report</a> to the <a href='${getReportURLForCurrentContext(newParentReportID)}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`
+                : `moved this report to the <a href='${getReportURLForCurrentContext(newParentReportID)}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
             text: `moved this report to the ${policyName} workspace`,
             type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
         },
@@ -6855,10 +6880,10 @@ function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefine
     };
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const fromPolicy = getPolicy(fromPolicyID);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const toPolicy = getPolicy(toPolicyID);
 
     const changePolicyReportActionMessage = [
@@ -6902,11 +6927,8 @@ function buildOptimisticTransactionAction(
     targetReportID: string,
 ): ReportAction {
     const reportName = allReports?.[targetReportID]?.reportName ?? '';
-    const url = `${environmentURL}/r/${targetReportID}`;
-    const [actionText, messageHtml] =
-        type === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION
-            ? [`moved this expense to ${reportName}`, `moved this expense to <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`]
-            : ['moved this expense to your personal space', 'moved this expense to your personal space'];
+    const url = getReportURLForCurrentContext(targetReportID);
+    const [actionText, messageHtml] = [`moved this expense to ${reportName}`, `moved this expense to <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`];
 
     return {
         actionName: type,
@@ -7876,7 +7898,7 @@ function buildOptimisticChangeApproverReportAction(managerID: number, actorAccou
 function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): OptimisticAnnounceChat {
     const announceReport = getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const announceRoomOnyxData: AnnounceRoomOnyxData = {
         onyxOptimisticData: [],
@@ -8241,7 +8263,7 @@ function buildOptimisticMoneyRequestEntities({
  * Check if the report is empty, meaning it has no visible messages (i.e. only a "created" report action).
  * Added caching mechanism via derived values.
  */
-function isEmptyReport(report: OnyxEntry<Report>, isReportArchived = false): boolean {
+function isEmptyReport(report: OnyxEntry<Report>, isReportArchived: boolean | undefined): boolean {
     if (!report) {
         return true;
     }
@@ -8259,7 +8281,7 @@ function isEmptyReport(report: OnyxEntry<Report>, isReportArchived = false): boo
  * Check if the report is empty, meaning it has no visible messages (i.e. only a "created" report action).
  * No cache implementation which bypasses derived value check.
  */
-function generateIsEmptyReport(report: OnyxEntry<Report>, isReportArchived = false): boolean {
+function generateIsEmptyReport(report: OnyxEntry<Report>, isReportArchived: boolean | undefined): boolean {
     if (!report) {
         return true;
     }
@@ -8273,7 +8295,7 @@ function generateIsEmptyReport(report: OnyxEntry<Report>, isReportArchived = fal
 }
 
 // We need oneTransactionThreadReport to get the correct last visible action created
-function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>, isReportArchived = false): boolean {
+function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>, isReportArchived: boolean | undefined): boolean {
     if (!report) {
         return false;
     }
@@ -8350,9 +8372,31 @@ function isReportNotFound(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * The <ReportActionsListItemRenderer> does not render some ancestor report actions in a thread.
+ * So we exclude report-preview action, transaction-thread action unless it is a sent-money action and
+ * trip-preview action that is the first ancestor report action in the hierarchy.
+ *
+ * @param ancestorReportAction - The ancestor report action we determine whether it should be excluded
+ * @param isFirstAncestor - Whether it is the first report action in the hierarchy
+ * @returns boolean - true if the ancestor report action should be excluded, false otherwise
+ */
+function shouldExcludeAncestorReportAction(ancestorReportAction: ReportAction, isFirstAncestor: boolean): boolean {
+    if (isTripPreview(ancestorReportAction)) {
+        return !isFirstAncestor;
+    }
+
+    // Exclude transaction threads except sent-money actions
+    if (isTransactionThread(ancestorReportAction)) {
+        return !isSentMoneyReportAction(ancestorReportAction);
+    }
+
+    return isReportPreviewAction(ancestorReportAction);
+}
+
+/**
  * Check if the report is the parent report of the currently viewed report or at least one child report has report action
  */
-function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string | undefined, isReportArchived = false): boolean {
+function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string | undefined, isReportArchived: boolean | undefined): boolean {
     const currentReport = getReportOrDraftReport(currentReportId);
     const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : undefined);
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
@@ -8386,9 +8430,12 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
         if (!potentialReport) {
             return false;
         }
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${potentialReport.policyID}`];
+        const transactions = getReportTransactions(potentialReport.reportID);
 
         return (
             !isInvoiceReport(potentialReport) &&
+            ViolationsUtils.hasVisibleViolationsForUser(potentialReport, transactionViolations, policy, transactions) &&
             (hasViolations(potentialReport.reportID, transactionViolations, true) ||
                 hasWarningTypeViolations(potentialReport.reportID, transactionViolations, true) ||
                 hasNoticeTypeViolations(potentialReport.reportID, transactionViolations, true))
@@ -8590,7 +8637,8 @@ type ShouldReportBeInOptionListParams = {
     includeSelfDM?: boolean;
     login?: string;
     includeDomainEmail?: boolean;
-    isReportArchived?: boolean;
+    isReportArchived: boolean | undefined;
+    draftComment: string | undefined;
 };
 
 function reasonForReportToBeInOptionList({
@@ -8601,10 +8649,11 @@ function reasonForReportToBeInOptionList({
     betas,
     excludeEmptyChats,
     doesReportHaveViolations,
+    draftComment,
     includeSelfDM = false,
     login,
     includeDomainEmail = false,
-    isReportArchived = false,
+    isReportArchived,
 }: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
     const isInDefaultMode = !isInFocusMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -8635,13 +8684,6 @@ function reasonForReportToBeInOptionList({
 
     const currentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
     const reportActionValues = Object.values(currentReportActions);
-    const hasOnlyCreatedAction = reportActionValues.length === 1 && reportActionValues.at(0)?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
-
-    // Hide empty reports that have only a `CREATED` action, a total of 0, and are in a submitted state
-    // These reports should be hidden because they appear empty to users and there is nothing actionable for them to do
-    if (report?.total === 0 && report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && hasOnlyCreatedAction) {
-        return null;
-    }
 
     // We used to use the system DM for A/B testing onboarding tasks, but now only create them in the Concierge chat. We
     // still need to allow existing users who have tasks in the system DM to see them, but otherwise we don't need to
@@ -8672,12 +8714,17 @@ function reasonForReportToBeInOptionList({
         return CONST.REPORT_IN_LHN_REASONS.IS_FOCUSED;
     }
 
-    // Retrieve the draft comment for the report and convert it to a boolean
-    const hasDraftComment = hasValidDraftComment(report.reportID);
+    const hasOnlyCreatedAction = reportActionValues.length === 1 && reportActionValues.at(0)?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+
+    // Hide empty reports that have only a `CREATED` action, a total of 0, and are in a submitted state
+    // These reports should be hidden because they appear empty to users and there is nothing actionable for them to do
+    if (report?.total === 0 && report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && hasOnlyCreatedAction) {
+        return null;
+    }
 
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (hasDraftComment) {
+    if (draftComment) {
         return CONST.REPORT_IN_LHN_REASONS.HAS_DRAFT_COMMENT;
     }
 
@@ -9071,7 +9118,7 @@ function getMoneyRequestOptions(
     // We don't allow IOU actions if an Expensify account is a participant of the report, unless the policy that the report is on is owned by an Expensify account
     const doParticipantsIncludeExpensifyAccounts = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policyOwnerAccountID = getPolicy(report?.policyID)?.ownerAccountID;
     const isPolicyOwnedByExpensifyAccounts = policyOwnerAccountID ? CONST.EXPENSIFY_ACCOUNT_IDS.includes(policyOwnerAccountID) : false;
     if (doParticipantsIncludeExpensifyAccounts && !isPolicyOwnedByExpensifyAccounts) {
@@ -9182,7 +9229,7 @@ function canLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
         return false;
     }
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isSenderPolicyAdmin = getPolicy(report.policyID)?.role === CONST.POLICY.ROLE.ADMIN;
 
     if (isSenderPolicyAdmin) {
@@ -9194,7 +9241,7 @@ function canLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
     }
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isReceiverPolicyAdmin = getPolicy(report.invoiceReceiver.policyID)?.role === CONST.POLICY.ROLE.ADMIN;
 
     if (isReceiverPolicyAdmin) {
@@ -9321,7 +9368,7 @@ function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: b
     }
 }
 
-function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived?: boolean) {
+function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived: boolean | undefined) {
     const reportErrors = getCreationReportErrors(report);
 
     // If the expense report is marked for deletion, let us prevent any further write action.
@@ -9329,18 +9376,7 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived?:
         return false;
     }
 
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-
-    return (
-        !isArchivedNonExpenseReport(report, isReportArchived ?? !!reportNameValuePairs?.private_isArchived) &&
-        isEmptyObject(reportErrors) &&
-        report &&
-        isAllowedToComment(report) &&
-        !isAnonymousUser &&
-        canWriteInReport(report)
-    );
+    return !isArchivedNonExpenseReport(report, isReportArchived) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser && canWriteInReport(report);
 }
 
 /**
@@ -9385,7 +9421,7 @@ function canCreateRequest(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     iouType: ValueOf<typeof CONST.IOU.TYPE>,
-    isReportArchived = false,
+    isReportArchived: boolean | undefined,
     isRestrictedToPreferredPolicy = false,
 ): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
@@ -9636,10 +9672,13 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
                     return translateLocal(payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal', {amount: '', last4Digits});
                 }
                 translationKey = 'iou.businessBankAccount';
-                if (automaticAction && originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                    translationKey = 'iou.automaticallyPaidWithExpensify';
-                } else {
-                    translationKey = 'iou.automaticallyPaidWithBusinessBankAccount';
+
+                if (automaticAction) {
+                    if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                        translationKey = 'iou.automaticallyPaidWithExpensify';
+                    } else {
+                        translationKey = 'iou.automaticallyPaidWithBusinessBankAccount';
+                    }
                 }
                 break;
             default:
@@ -9945,41 +9984,6 @@ function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, repor
     );
 }
 
-function getAllAncestorReportActions(report: Report | null | undefined, currentUpdatedReport?: OnyxEntry<Report>): Ancestor[] {
-    if (!report) {
-        return [];
-    }
-    const allAncestors: Ancestor[] = [];
-    let parentReportID = report.parentReportID;
-    let parentReportActionID = report.parentReportActionID;
-
-    while (parentReportID) {
-        const parentReport = currentUpdatedReport && currentUpdatedReport.reportID === parentReportID ? currentUpdatedReport : getReportOrDraftReport(parentReportID);
-        const parentReportAction = getReportAction(parentReportID, parentReportActionID);
-
-        if (!parentReport || !parentReportAction || (isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction)) || isReportPreviewAction(parentReportAction)) {
-            break;
-        }
-
-        // For threads, we don't want to display trip summary
-        if (isTripPreview(parentReportAction) && allAncestors.length > 0) {
-            break;
-        }
-
-        const isParentReportActionUnread = isCurrentActionUnread(parentReport, parentReportAction);
-        allAncestors.push({
-            report: parentReport,
-            reportAction: parentReportAction,
-            shouldDisplayNewMarker: isParentReportActionUnread,
-        });
-
-        parentReportID = parentReport?.parentReportID;
-        parentReportActionID = parentReport?.parentReportActionID;
-    }
-
-    return allAncestors.reverse();
-}
-
 function getAllAncestorReportActionIDs(report: Report | null | undefined, includeTransactionThread = false): AncestorIDs {
     if (!report) {
         return {
@@ -10082,7 +10086,7 @@ function isReportOwner(report: OnyxInputOrEntry<Report>): boolean {
 
 function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAccountID?: number, reportPolicy?: OnyxEntry<Policy> | SearchPolicy): boolean {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = reportPolicy ?? getPolicy(report?.policyID);
     const isOwner = (approverAccountID ?? currentUserAccountID) === report?.ownerAccountID;
     return !(policy?.preventSelfApproval && isOwner);
@@ -10090,7 +10094,7 @@ function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAcco
 
 function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(report?.policyID);
     const submitToAccountID = getSubmitToAccountID(policy, report);
 
@@ -10134,14 +10138,25 @@ function hasMissingPaymentMethod(userWalletTierName: string | undefined, iouRepo
  * - we don't have an iouReport set in the chatReport
  * - we have one, but it's waiting on the payee adding a bank account
  * - we have one, but we can't add more transactions to it due to: report is approved or settled
+ * - It is a SmartScan request, the user is in the ASAP Submit beta, and the action is not "submit"
  */
-function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxInputOrEntry<Report> | undefined, chatReport: OnyxInputOrEntry<Report>, isScanRequest: boolean): boolean {
+function shouldCreateNewMoneyRequestReport(
+    existingIOUReport: OnyxInputOrEntry<Report> | undefined,
+    chatReport: OnyxInputOrEntry<Report>,
+    isScanRequest: boolean,
+    action?: IOUAction,
+): boolean {
     if (existingIOUReport && !!existingIOUReport.errorFields?.createChat) {
         return true;
     }
 
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
-    return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddTransaction(existingIOUReport) || (isScanRequest && isASAPSubmitBetaEnabled);
+    return (
+        !existingIOUReport ||
+        hasIOUWaitingOnCurrentUserBankAccount(chatReport) ||
+        !canAddTransaction(existingIOUReport) ||
+        (action !== CONST.IOU.ACTION.SUBMIT && isScanRequest && isASAPSubmitBetaEnabled)
+    );
 }
 
 function getTripIDFromTransactionParentReportID(transactionParentReportID: string | undefined): string | undefined {
@@ -10345,7 +10360,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
 
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
         // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const activePolicy = getPolicy(activePolicyID);
         if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
@@ -10528,7 +10543,7 @@ function getOutstandingChildRequest(iouReport: OnyxInputOrEntry<Report>): Outsta
     }
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(iouReport.policyID);
     const shouldBeManuallySubmitted = isPaidGroupPolicyPolicyUtils(policy) && !policy?.harvesting?.enabled;
     if (shouldBeManuallySubmitted) {
@@ -10586,7 +10601,7 @@ function prepareOnboardingOnyxData(
 
     const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] : '';
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const assignedGuideEmail = getPolicy(targetChatPolicyID)?.assignedGuide?.email ?? 'Setup Specialist';
     const assignedGuidePersonalDetail = Object.values(allPersonalDetails ?? {}).find((personalDetail) => personalDetail?.login === assignedGuideEmail);
     let assignedGuideAccountID: number;
@@ -10952,10 +10967,10 @@ function prepareOnboardingOnyxData(
         hasOutstandingChildTask: false,
     };
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`];
-    const canUserPerformWriteAction1 = canUserPerformWriteAction(report);
-    const {lastMessageText = ''} = getLastVisibleMessageActionUtils(targetChatReportID, canUserPerformWriteAction1);
+    const canUserPerformWriteActionVariable = canUserPerformWriteAction(report, undefined);
+    const {lastMessageText = ''} = getLastVisibleMessageActionUtils(targetChatReportID, canUserPerformWriteActionVariable);
     if (lastMessageText) {
-        const lastVisibleAction = getLastVisibleAction(targetChatReportID, canUserPerformWriteAction1);
+        const lastVisibleAction = getLastVisibleAction(targetChatReportID, canUserPerformWriteActionVariable);
         const prevLastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;
         failureReport = {
@@ -11032,7 +11047,7 @@ function prepareOnboardingOnyxData(
             key: `${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`,
             value: {
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 areConnectionsEnabled: getPolicy(onboardingPolicyID)?.areConnectionsEnabled,
                 pendingFields: {
                     areConnectionsEnabled: null,
@@ -11186,10 +11201,11 @@ function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData,
  * Onboarding guides are assigned to signup with emails that do not contain a '+' and select the "Manage my team's expenses" intent.
  */
 function isPostingTasksInAdminsRoom(engagementChoice?: OnboardingPurpose): boolean {
+    const userHasPhonePrimaryEmail = Str.endsWith(currentUserEmail ?? '', CONST.SMS.DOMAIN);
     return (
         engagementChoice !== undefined &&
         [CONST.ONBOARDING_CHOICES.MANAGE_TEAM, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE].includes(engagementChoice as 'newDotManageTeam' | 'newDotTrackWorkspace') &&
-        !currentUserEmail?.includes('+')
+        (!currentUserEmail?.includes('+') || userHasPhonePrimaryEmail)
     );
 }
 
@@ -11261,7 +11277,7 @@ function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
  * @param canUserPerformWriteActionInReport
  * @returns containing the calculated message preview data of the report
  */
-function getReportLastMessage(reportID: string, actionsToMerge?: ReportActions, isReportArchived = false) {
+function getReportLastMessage(reportID: string, isReportArchived: boolean | undefined, actionsToMerge?: ReportActions) {
     let result: Partial<Report> = {
         lastMessageText: '',
         lastVisibleActionCreated: '',
@@ -11491,7 +11507,7 @@ function hasMissingInvoiceBankAccount(iouReportID: string | undefined): boolean 
     }
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return invoiceReport?.ownerAccountID === currentUserAccountID && !getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount?.transferBankAccountID && isSettled(iouReportID);
 }
 
@@ -11726,23 +11742,6 @@ function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Re
     return getReportName(iouReport, undefined, undefined, undefined, undefined, reportAttributes) || action.childReportName;
 }
 
-function selectArchivedReportsIdSet(all: Record<string, OnyxInputOrEntry<ReportNameValuePairs>> | null | undefined): ArchivedReportsIDSet {
-    const archivedIDs = new Set<string>();
-    if (!all) {
-        return archivedIDs;
-    }
-
-    const prefixLen = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
-
-    for (const [key, value] of Object.entries(all)) {
-        if (isArchivedReport(value)) {
-            archivedIDs.add(key.slice(prefixLen));
-        }
-    }
-
-    return archivedIDs;
-}
-
 function selectFilteredReportActions(
     reportActions: Record<string, Record<string, OnyxInputOrEntry<ReportAction>> | undefined> | null | undefined,
 ): Record<string, ReportAction[]> | undefined {
@@ -11896,6 +11895,95 @@ function getReportStatusTranslation(stateNum?: number, statusNum?: number): stri
     return '';
 }
 
+function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, statusNum?: number): {backgroundColor?: ColorValue; textColor?: ColorValue} | undefined {
+    if (stateNum === undefined || statusNum === undefined) {
+        return undefined;
+    }
+
+    if (stateNum === CONST.REPORT.STATE_NUM.OPEN && statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
+        return theme.reportStatusBadge.draft;
+    }
+    if (stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+        return theme.reportStatusBadge.outstanding;
+    }
+    if (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
+        return theme.reportStatusBadge.closed;
+    }
+    if (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
+        return theme.reportStatusBadge.approved;
+    }
+    if (
+        (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED) ||
+        (stateNum === CONST.REPORT.STATE_NUM.BILLING && statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED) ||
+        (stateNum === CONST.REPORT.STATE_NUM.AUTOREIMBURSED && statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED)
+    ) {
+        return theme.reportStatusBadge.paid;
+    }
+
+    return undefined;
+}
+
+/**
+ * Checks if a workspace member is leaving a workspace room
+ * This is used to determine if we need to show special handling when a workspace member leaves a room
+ */
+function isWorkspaceMemberLeavingWorkspaceRoom(report: OnyxEntry<Report>, isPolicyEmployee: boolean, isPolicyAdminParam: boolean): boolean {
+    if (!report) {
+        return false;
+    }
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const hasAccessPolicyExpenseChat = isPolicyExpenseChat(report) && (report.isOwnPolicyExpenseChat || isPolicyAdminParam);
+    return (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || hasAccessPolicyExpenseChat) && isPolicyEmployee;
+}
+
+function getReportURLForCurrentContext(reportID: string | undefined): string {
+    if (!reportID) {
+        return `${environmentURL}/r/`;
+    }
+    const isInSearchContext = isSearchTopmostFullScreenRoute();
+    if (!isInSearchContext) {
+        return `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`;
+    }
+
+    // Navigation can return routes with a leading slash or missing when still mounting.
+    // Normalize everything to match the path shape used by ROUTES helpers.
+    const normalizeRoute = (route?: string) => {
+        if (!route) {
+            return undefined;
+        }
+        return route.startsWith('/') ? route.substring(1) : route;
+    };
+
+    const activeRoute = normalizeRoute(Navigation.getActiveRoute());
+
+    let backToRoute: string | undefined;
+
+    if (activeRoute) {
+        const [, queryString = ''] = activeRoute.split('?');
+        if (queryString) {
+            const params = new URLSearchParams(queryString);
+            const encodedBackTo = params.get('backTo');
+            if (encodedBackTo) {
+                // Prefer the backTo param when present; it points to the exact search state we left.
+                backToRoute = normalizeRoute(decodeURIComponent(encodedBackTo));
+            }
+        }
+
+        if (!backToRoute && activeRoute.startsWith(ROUTES.SEARCH_ROOT.route)) {
+            // Otherwise keep the current search route (preserves tab + filters) as the return target.
+            backToRoute = activeRoute;
+        }
+    }
+
+    if (!backToRoute?.startsWith(ROUTES.SEARCH_ROOT.route)) {
+        // Fall back to the generic search home when we can't recover a valid route.
+        backToRoute = ROUTES.SEARCH_ROOT.route;
+    }
+
+    const relativePath = ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: backToRoute});
+    return `${environmentURL}/${relativePath}`;
+}
+
 export {
     areAllRequestsBeingSmartScanned,
     buildOptimisticAddCommentReportAction,
@@ -11980,7 +12068,6 @@ export {
     generateReportID,
     getCreationReportErrors,
     getAllAncestorReportActionIDs,
-    getAllAncestorReportActions,
     getAllHeldTransactions,
     getAllPolicyReports,
     getAllWorkspaceReports,
@@ -12169,6 +12256,7 @@ export {
     isValidReportIDFromPath,
     isWaitingForAssigneeToCompleteAction,
     isWaitingForSubmissionFromCurrentUser,
+    isWorkspaceMemberLeavingWorkspaceRoom,
     isInvoiceRoom,
     isInvoiceRoomWithID,
     isInvoiceReport,
@@ -12183,7 +12271,6 @@ export {
     parseReportRouteParams,
     parseReportActionHtmlToText,
     requiresAttentionFromCurrentUser,
-    selectArchivedReportsIdSet,
     selectFilteredReportActions,
     shouldAutoFocusOnKeyPress,
     shouldCreateNewMoneyRequestReport,
@@ -12229,9 +12316,6 @@ export {
     getMostRecentlyVisitedReport,
     getSourceIDFromReportAction,
     getIntegrationNameFromExportMessage,
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    getReportNameValuePairs,
     hasReportViolations,
     isPayAtEndExpenseReport,
     getApprovalChain,
@@ -12248,6 +12332,7 @@ export {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     hasInvoiceReports,
     shouldUnmaskChat,
+    shouldExcludeAncestorReportAction,
     getReportMetadata,
     buildOptimisticSelfDMReport,
     isHiddenForCurrentUser,
@@ -12286,10 +12371,14 @@ export {
     isWorkspaceThread,
     isMoneyRequestReportEligibleForMerge,
     getReportStatusTranslation,
+    getReportURLForCurrentContext,
+    getReportStatusColorStyle,
     getMovedActionMessage,
     excludeParticipantsForDisplay,
     getReportName,
     doesReportContainRequestsFromMultipleUsers,
+    hasUnresolvedCardFraudAlert,
+    getUnresolvedCardFraudAlertAction,
 };
 export type {
     Ancestor,

@@ -19,7 +19,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportActions} from '@src/types/onyx';
 import {getFetchMockCalls, getGlobalFetchMock, setupGlobalFetchMock, signInWithTestUser} from '../utils/TestHelper';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -40,13 +39,13 @@ jest.mock('@react-native-community/geolocation', () => ({
 }));
 jest.mock('@src/components/Attachments/AttachmentCarousel/Pager/usePageScrollHandler', () => jest.fn());
 
-const renderPage = (initialRouteName: typeof SCREENS.ATTACHMENTS, initialParams: AuthScreensParamList[typeof SCREENS.ATTACHMENTS]) => {
+const renderPage = (initialRouteName: typeof SCREENS.REPORT_ATTACHMENTS, initialParams: AuthScreensParamList[typeof SCREENS.REPORT_ATTACHMENTS]) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, AttachmentModalContextProvider, CurrentReportIDContextProvider, PortalProvider, PlaybackContextProvider]}>
             <NavigationContainer>
                 <Stack.Navigator initialRouteName={initialRouteName}>
                     <Stack.Screen
-                        name={SCREENS.ATTACHMENTS}
+                        name={SCREENS.REPORT_ATTACHMENTS}
                         component={AttachmentModalScreen}
                         initialParams={initialParams}
                     />
@@ -154,11 +153,15 @@ describe('ReportAttachments', () => {
     beforeEach(async () => {
         global.fetch = getGlobalFetchMock();
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
-        Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        await waitForBatchedUpdatesWithAct();
 
         // Given a test user is signed in with Onyx setup and some initial data
         await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
     });
 
     afterEach(async () => {
@@ -170,11 +173,15 @@ describe('ReportAttachments', () => {
         jest.clearAllMocks();
     });
     it('should display the attachment if the source link is origin url', async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportAttachmentID}`, reportAttachmentOnyx);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAttachmentID}`, reportActionsAttachmentOnyx);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportAttachmentID}`, reportAttachmentOnyx);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAttachmentID}`, reportActionsAttachmentOnyx);
+        });
+
+        await waitForBatchedUpdatesWithAct();
 
         // Given the report attachments params
-        const params: AuthScreensParamList[typeof SCREENS.ATTACHMENTS] = {
+        const params: AuthScreensParamList[typeof SCREENS.REPORT_ATTACHMENTS] = {
             source: 'https://staging.expensify.com/chat-attachments/7006877151048865417/w_d060af4fb7ac4a815e6ed99df9ef8dd216fdd8c7.png',
             type: 'r',
             reportID: '7487537791562875',
@@ -184,7 +191,7 @@ describe('ReportAttachments', () => {
         };
 
         // And ReportAttachments is opened
-        renderPage(SCREENS.ATTACHMENTS, params);
+        renderPage(SCREENS.REPORT_ATTACHMENTS, params);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -194,7 +201,7 @@ describe('ReportAttachments', () => {
     });
     it('should fetch the report id, if the report has not yet been opened by the user', async () => {
         // Given the report attachments params
-        const params: AuthScreensParamList[typeof SCREENS.ATTACHMENTS] = {
+        const params: AuthScreensParamList[typeof SCREENS.REPORT_ATTACHMENTS] = {
             source: 'https://staging.expensify.com/chat-attachments/7006877151048865417/w_d060af4fb7ac4a815e6ed99df9ef8dd216fdd8c7.png',
             type: 'r',
             reportID: '7487537791562875',
@@ -204,8 +211,8 @@ describe('ReportAttachments', () => {
         };
 
         // And ReportAttachments is opened
-        renderPage(SCREENS.ATTACHMENTS, params);
-        await waitForBatchedUpdates();
+        renderPage(SCREENS.REPORT_ATTACHMENTS, params);
+        await waitForBatchedUpdatesWithAct();
 
         const openReportRequest = getFetchMockCalls(WRITE_COMMANDS.OPEN_REPORT).find((request) => {
             const body = request[1]?.body;
