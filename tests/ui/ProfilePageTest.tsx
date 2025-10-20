@@ -66,6 +66,7 @@ describe('ProfilePage contact method indicator', () => {
 
     it('shows error when login list has errors', async () => {
         const email = 'user@example.com';
+        
         // Current user provided by mocked hook uses the same email
         Onyx.merge(ONYXKEYS.LOGIN_LIST, {
             [email]: {
@@ -77,6 +78,7 @@ describe('ProfilePage contact method indicator', () => {
         await waitForBatchedUpdates();
 
         renderPage();
+
         // Description for contact method is 'contacts.contactMethod' via mocked translate
         let node = screen.getByText('error-brickRoadIndicator');
         expect(node).toBeDefined();
@@ -92,7 +94,7 @@ describe('ProfilePage contact method indicator', () => {
 
         await waitFor(() => {
             node = screen.getByTestId('contact-method-menu-item');
-            
+
             // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
             expect(node).toHaveTextContent('none-brickRoadIndicator');
         });
