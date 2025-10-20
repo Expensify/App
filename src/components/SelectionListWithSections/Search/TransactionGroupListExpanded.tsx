@@ -38,7 +38,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     transactionsVisibleLimit,
     setTransactionsVisibleLimit,
     isEmpty,
-    isExpenseReportType,
+    isGroupByReports,
     transactionsSnapshot,
     shouldDisplayEmptyView,
     searchTransactions,
@@ -53,14 +53,14 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     }, [transactionsSnapshot]);
 
     const visibleTransactions = useMemo(() => {
-        if (isExpenseReportType) {
+        if (isGroupByReports) {
             return transactions.slice(0, transactionsVisibleLimit);
         }
         return transactions;
-    }, [transactions, transactionsVisibleLimit, isExpenseReportType]);
+    }, [transactions, transactionsVisibleLimit, isGroupByReports]);
 
     const currentColumns = useMemo(() => {
-        if (isExpenseReportType) {
+        if (isGroupByReports) {
             return columns ?? [];
         }
         if (!transactionsSnapshot?.data) {
@@ -69,23 +69,23 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         const columnsToShow = getColumnsToShow(accountID, transactionsSnapshot?.data, false, transactionsSnapshot?.search.type === CONST.SEARCH.DATA_TYPES.TASK);
 
         return (Object.keys(columnsToShow) as SearchColumnType[]).filter((col) => columnsToShow[col]);
-    }, [accountID, columns, isExpenseReportType, transactionsSnapshot?.data, transactionsSnapshot?.search.type]);
+    }, [accountID, columns, isGroupByReports, transactionsSnapshot?.data, transactionsSnapshot?.search.type]);
 
     const areAllOptionalColumnsHidden = useMemo(() => {
-        if (isExpenseReportType) {
+        if (isGroupByReports) {
             return areAllOptionalColumnsHiddenProp ?? false;
         }
         const canBeMissingColumns = getExpenseHeaders(groupBy)
             .filter((header) => header.canBeMissing)
             .map((header) => header.columnName);
         return canBeMissingColumns.every((column) => !currentColumns.includes(column));
-    }, [areAllOptionalColumnsHiddenProp, currentColumns, groupBy, isExpenseReportType]);
+    }, [areAllOptionalColumnsHiddenProp, currentColumns, groupBy, isGroupByReports]);
 
     // Currently only the transaction report groups have transactions where the empty view makes sense
-    const shouldDisplayShowMoreButton = isExpenseReportType ? transactions.length > transactionsVisibleLimit : !!transactionsSnapshotMetadata?.hasMoreResults && !isOffline;
+    const shouldDisplayShowMoreButton = isGroupByReports ? transactions.length > transactionsVisibleLimit : !!transactionsSnapshotMetadata?.hasMoreResults && !isOffline;
     const currentOffset = transactionsSnapshotMetadata?.offset ?? 0;
     const shouldShowLoadingOnSearch = !!(!transactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
-    const shouldDisplayLoadingIndicator = !isExpenseReportType && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
+    const shouldDisplayLoadingIndicator = !isGroupByReports && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
@@ -115,7 +115,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         };
 
         // The arrow navigation in RHP is only allowed for group-by:reports
-        if (!isExpenseReportType) {
+        if (!isGroupByReports) {
             navigateToTransactionThread();
             return;
         }
@@ -131,12 +131,12 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     };
 
     const onShowMoreButtonPress = useCallback(() => {
-        if (isExpenseReportType) {
+        if (isGroupByReports) {
             setTransactionsVisibleLimit((currentPageSize) => currentPageSize + CONST.TRANSACTION.RESULTS_PAGE_SIZE);
         } else if (!isOffline && transactionsQueryJSON) {
             searchTransactions(CONST.SEARCH.RESULTS_PAGE_SIZE);
         }
-    }, [isExpenseReportType, isOffline, transactionsQueryJSON, setTransactionsVisibleLimit, searchTransactions]);
+    }, [isGroupByReports, isOffline, transactionsQueryJSON, setTransactionsVisibleLimit, searchTransactions]);
 
     if (shouldDisplayEmptyView) {
         return (
@@ -155,13 +155,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         <>
             {isLargeScreenWidth && (
                 <View
-                    style={[
-                        styles.searchListHeaderContainerStyle,
-                        styles.groupSearchListTableContainerStyle,
-                        styles.bgTransparent,
-                        styles.pl9,
-                        isExpenseReportType ? styles.pr10 : styles.pr3,
-                    ]}
+                    style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl9, isGroupByReports ? styles.pr10 : styles.pr3]}
                 >
                     <SearchTableHeader
                         canSelectMultiple
@@ -200,7 +194,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         onButtonPress={() => {
                             openReportInRHP(transaction);
                         }}
-                        style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half], isExpenseReportType && styles.pr10]}
+                        style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half], isGroupByReports && styles.pr10]}
                         isReportItemChild
                         isInSingleTransactionReport={isInSingleTransactionReport}
                         areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}

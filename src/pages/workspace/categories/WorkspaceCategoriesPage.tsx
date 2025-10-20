@@ -44,7 +44,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, shouldShowSyncError} from '@libs/PolicyUtils';
-import StringUtils from '@libs/StringUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {close} from '@userActions/Modal';
 import {clearCategoryErrors, deleteWorkspaceCategories, downloadCategoriesCSV, openPolicyCategoriesPage, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
@@ -194,10 +194,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     }, [policyCategories, isOffline, translate, updateWorkspaceCategoryEnabled, policy]);
 
     const filterCategory = useCallback((categoryOption: PolicyOption, searchInput: string) => {
-        const categoryText = StringUtils.normalize(categoryOption.text?.toLowerCase() ?? '');
-        const alternateText = StringUtils.normalize(categoryOption.alternateText?.toLowerCase() ?? '');
-        const normalizedSearchInput = StringUtils.normalize(searchInput);
-        return categoryText.includes(normalizedSearchInput) || alternateText.includes(normalizedSearchInput);
+        const results = tokenizedSearch([categoryOption], searchInput, (option) => [option.text ?? '', option.alternateText ?? '']);
+        return results.length > 0;
     }, []);
     const sortCategories = useCallback(
         (data: PolicyOption[]) => {

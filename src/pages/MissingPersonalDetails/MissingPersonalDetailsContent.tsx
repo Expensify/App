@@ -112,6 +112,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={MissingPersonalDetailsContent.displayName}
+            shouldShowOfflineIndicatorInWideScreen={!!isValidateCodeActionModalVisible}
         >
             <HeaderWithBackButton
                 title={translate('workspace.expensifyCard.addShippingDetails')}
