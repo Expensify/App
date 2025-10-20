@@ -5,8 +5,9 @@ import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useEnvironment from '@hooks/useEnvironment';
@@ -30,6 +31,8 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {BankName} from '@src/types/onyx/Bank';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+
+type BankAccountListItem = ListItem & {value: number | undefined};
 
 type WorkspaceSettlementAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT>;
 
@@ -74,7 +77,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
         fetchPolicyAccountingData();
     }, [cardSettings, hasActiveAccountingConnection, isUsingContinuousReconciliation, reconciliationConnection, fetchPolicyAccountingData]);
 
-    const data = useMemo(() => {
+    const data: BankAccountListItem[] = useMemo(() => {
         const options = eligibleBankAccounts.map((bankAccount) => {
             const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
             const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
@@ -96,7 +99,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                     </View>
                 ),
                 alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
-                keyForList: bankAccountID?.toString(),
+                keyForList: bankAccountID?.toString() ?? '',
                 isSelected: bankAccountID === paymentBankAccountID,
             };
         });
@@ -118,7 +121,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                     </View>
                 ),
                 alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
-                keyForList: paymentBankAccountID?.toString(),
+                keyForList: paymentBankAccountID?.toString() ?? '',
                 isSelected: true,
             });
         }
@@ -153,12 +156,12 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                 />
                 <SelectionList
                     addBottomSafeAreaPadding
-                    sections={[{data}]}
+                    data={data}
                     ListItem={RadioListItem}
                     onSelectRow={({value}) => updateSettlementAccount(value ?? 0)}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedOptionKey={paymentBankAccountID?.toString()}
-                    listHeaderContent={
+                    initiallyFocusedItemKey={paymentBankAccountID?.toString()}
+                    customListHeaderContent={
                         <>
                             <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
                             {!!isUsingContinuousReconciliation && !!connectionParam && hasActiveAccountingConnection && (
