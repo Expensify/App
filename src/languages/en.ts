@@ -3283,7 +3283,7 @@ const translations = {
         letsDoubleCheck: 'Let’s double check that everything looks right.',
         legalName: 'Legal name',
         proofOf: 'Proof of personal address',
-        enterOneEmail: ({companyName}: CompanyNameParams) => `Enter the email of director at ${companyName}`,
+        enterOneEmail: ({companyName}: CompanyNameParams) => `Enter the email of a director at ${companyName}`,
         regulationRequiresOneMoreDirector: 'Regulation requires at least one more director as a signer.',
         hangTight: 'Hang tight...',
         enterTwoEmails: ({companyName}: CompanyNameParams) => `Enter the emails of two directors at ${companyName}`,
@@ -3298,7 +3298,7 @@ const translations = {
         PDSandFSG: 'PDS + FSG disclosure paperwork',
         PDSandFSGDescription:
             "Our partnership with Corpay utilizes an API connection to take advantage of their vast network of international banking partners to power Global Reimbursements in Expensify. As per Australian regulation we are providing you with Corpay's Financial Services Guide (FSG) and Product Disclosure Statement (PDS).\n\nPlease read the FSG and PDS documents carefully as they contain full details and important information on the products and services Corpay offers. Retain these documents for future reference.",
-        pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a director of the business entity.',
+        pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a director of the business.',
         enterSignerInfo: 'Enter signer info',
         thisStep: 'This step has been completed',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>

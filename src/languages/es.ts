@@ -3295,7 +3295,7 @@ ${amount} para ${merchant} - ${date}`,
         PDSandFSG: 'Documentación de divulgación PDS + FSG',
         PDSandFSGDescription:
             'Nuestra colaboración con Corpay utiliza una conexión API para aprovechar su amplia red de socios bancarios internacionales y facilitar los reembolsos globales en Expensify. Según la normativa australiana, te proporcionamos la Guía de Servicios Financieros (FSG) y el Documento de Divulgación del Producto (PDS) de Corpay.\n\nPor favor, lee detenidamente los documentos FSG y PDS, ya que contienen información completa e importante sobre los productos y servicios que ofrece Corpay. Conserva estos documentos para futuras consultas.',
-        pleaseUpload: 'Sube documentación adicional a continuación para ayudarnos a verificar tu identidad como director de la entidad comercial.',
+        pleaseUpload: 'Sube documentación adicional a continuación para ayudarnos a verificar tu identidad como director de la empresa.',
         enterSignerInfo: 'Ingrese la información del firmante',
         thisStep: 'Este paso ha sido completado',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
