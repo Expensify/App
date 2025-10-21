@@ -233,7 +233,7 @@ function useSelectedTransactionsActions({
             const includeReportLevelExport = allTransactionsLength === selectedTransactionIDs.length;
 
             // If the user has any custom integration export templates, add them as export options
-            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, policy, includeReportLevelExport);
+            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, includeReportLevelExport);
             for (const template of exportTemplates) {
                 exportOptions.push({
                     text: template.name,

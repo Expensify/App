@@ -4,6 +4,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
+import {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
@@ -14,7 +15,6 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
@@ -664,6 +664,7 @@ function queueExportSearchWithTemplate({templateName, templateType, jsonQuery, r
 function getExportTemplates(
     integrationsExportTemplates: ExportTemplate[],
     csvExportLayouts: Record<string, ExportTemplate>,
+    translate: LocalizedTranslate,
     policy?: Policy,
     includeReportLevelExport = true,
 ): ExportTemplate[] {
@@ -678,21 +679,13 @@ function getExportTemplates(
 
     // By default, we always include the expense level export template
     const exportTemplates: ExportTemplate[] = [
-        normalizeTemplate(
-            CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
-            {name: Localize.translateLocal('export.expenseLevelExport')} as ExportTemplate,
-            CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
-        ),
+        normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, {name: translate('export.expenseLevelExport')} as ExportTemplate, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
     ];
 
     // Conditionally include the report level export template
     if (includeReportLevelExport) {
         exportTemplates.push(
-            normalizeTemplate(
-                CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT,
-                {name: Localize.translateLocal('export.reportLevelExport')} as ExportTemplate,
-                CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
-            ),
+            normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, {name: translate('export.reportLevelExport')} as ExportTemplate, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
         );
     }
 
