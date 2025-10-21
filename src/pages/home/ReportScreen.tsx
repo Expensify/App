@@ -531,7 +531,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             const {choice, inviteType} = introSelected;
             const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
             const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
-            console.log({choice, inviteType, isInviteIOUorInvoice, isInviteChoiceCorrect});
+
             if (isInviteChoiceCorrect && !isInviteIOUorInvoice) {
                 return;
             }
