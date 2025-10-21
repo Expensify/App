@@ -76,7 +76,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     const originalTransactionID = transaction?.comment?.originalTransactionID;
 
                     if (isExpenseSplit && originalTransactionID) {
-                        acc.splitTransactionsByOriginalTransactionID[originalTransactionID] = acc.splitTransactionsByOriginalTransactionID[originalTransactionID] || [];
+                        acc.splitTransactionsByOriginalTransactionID[originalTransactionID] ??= [];
                         acc.splitTransactionsByOriginalTransactionID[originalTransactionID].push(item);
                     } else {
                         acc.nonSplitTransactions.push(item);
