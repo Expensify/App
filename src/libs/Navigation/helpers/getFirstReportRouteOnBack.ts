@@ -93,7 +93,7 @@ function findFirstReportScreenOnBack(navigationState = navigationRef.getRootStat
             }
         }
 
-        // 2. Handle nested navigators (like modals/fullscreens)
+        // 2. Handle nested navigators (like modals)
         if (route.state) {
             const nestedReport = findFirstReportScreenOnBack(route.state as ReportNavigationState);
             if (nestedReport) {
