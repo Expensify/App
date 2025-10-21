@@ -8,13 +8,13 @@ import {isSelfDM} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {initMoneyRequest, replaceReceipt, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type AttachmentUploadValidationProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -116,7 +116,7 @@ function useAttachmentUploadValidation({
         );
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(onFilesValidated, false);
+    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(onFilesValidated);
 
     const validateAttachments = useCallback(
         ({dragEvent, files}: {dragEvent?: DragEvent; files?: FileObject | FileObject[]}) => {
@@ -161,7 +161,7 @@ function useAttachmentUploadValidation({
             const filteredItems = dataTransferItems && validIndices.length > 0 ? validIndices.map((index) => dataTransferItems.at(index) ?? ({} as DataTransferItem)) : undefined;
 
             attachmentUploadType.current = 'attachment';
-            validateFiles(fileObjects, filteredItems);
+            validateFiles(fileObjects, filteredItems, {isValidatingReceipts: false});
         },
         [isAttachmentPreviewActive, validateFiles],
     );
@@ -187,7 +187,7 @@ function useAttachmentUploadValidation({
             }
 
             attachmentUploadType.current = 'receipt';
-            validateFiles(files, items);
+            validateFiles(files, items, {isValidatingReceipts: true});
         },
         [policy, shouldAddOrReplaceReceipt, transactionID, validateFiles],
     );
