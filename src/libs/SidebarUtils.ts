@@ -13,6 +13,7 @@ import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {
     getLastActorDisplayName,
@@ -805,16 +806,21 @@ function getOptionData({
             const targetAccountIDsLength = targetAccountIDs.length !== 0 ? targetAccountIDs.length : (report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0);
             const verb =
                 lastActionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastActionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
-                    ? translateLocal('workspace.invite.invited')
-                    : translateLocal('workspace.invite.removed');
+                    ? // eslint-disable-next-line @typescript-eslint/no-deprecated
+                      translateLocal('workspace.invite.invited')
+                    : // eslint-disable-next-line @typescript-eslint/no-deprecated
+                      translateLocal('workspace.invite.removed');
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const users = translateLocal(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
             const roomName = getReportName(lastActionReport) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
-                        ? ` ${translateLocal('workspace.invite.to')}`
-                        : ` ${translateLocal('workspace.invite.from')}`;
+                        ? // eslint-disable-next-line @typescript-eslint/no-deprecated
+                          ` ${translateLocal('workspace.invite.to')}`
+                        : // eslint-disable-next-line @typescript-eslint/no-deprecated
+                          ` ${translateLocal('workspace.invite.from')}`;
                 result.alternateText += `${preposition} ${roomName}`;
             }
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME)) {
@@ -828,8 +834,10 @@ function getOptionData({
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY)) {
             result.alternateText = getWorkspaceFrequencyUpdateMessage(lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE)) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             result.alternateText = translateLocal('workspaceActions.upgradedWorkspace');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE)) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             result.alternateText = translateLocal('workspaceActions.downgradedWorkspace');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
             result.alternateText = Parser.htmlToText(getIntegrationSyncFailedMessage(lastAction, report?.policyID));
@@ -921,6 +929,7 @@ function getOptionData({
 
             if (!result.alternateText) {
                 result.alternateText = formatReportLastMessageText(
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     getWelcomeMessage(report, policy, participantPersonalDetailListExcludeCurrentUser, localeCompare, isReportArchived).messageText ?? translateLocal('report.noActivityYet'),
                 );
             }
@@ -930,6 +939,7 @@ function getOptionData({
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 getWelcomeMessage(report, policy, participantPersonalDetailListExcludeCurrentUser, localeCompare, isReportArchived).messageText || translateLocal('report.noActivityYet'),
             );
         }
@@ -1001,6 +1011,7 @@ function getWelcomeMessage(
             welcomeMessage.messageHtml = policy.description;
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         } else {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChat', {
                 submitterDisplayName: getDisplayNameForParticipant({accountID: report?.ownerAccountID}),
                 workspaceName: getPolicyName({report}),
@@ -1011,15 +1022,17 @@ function getWelcomeMessage(
     }
 
     if (isSelfDM(report)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         welcomeMessage.messageText = translateLocal('reportActionsView.beginningOfChatHistorySelfDM');
         return welcomeMessage;
     }
 
     if (isSystemChatUtil(report)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         welcomeMessage.messageText = translateLocal('reportActionsView.beginningOfChatHistorySystemDM');
         return welcomeMessage;
     }
-
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistory');
     const isMultipleParticipant = participantPersonalDetailList.length > 1;
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetailList, isMultipleParticipant, localeCompare);
@@ -1029,6 +1042,7 @@ function getWelcomeMessage(
                 return `${displayName}.`;
             }
             if (index === displayNamesWithTooltips.length - 2) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 return `${displayName} ${translateLocal('common.and')}`;
             }
             if (index < displayNamesWithTooltips.length - 2) {
@@ -1057,12 +1071,16 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = fal
     }
 
     if (isReportArchived) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfArchivedRoom', {reportName, reportDetailsLink});
     } else if (isDomainRoom(report)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryDomainRoom', {domainRoom: report?.reportName ?? ''});
     } else if (isAdminRoom(report)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryAdminRoom', {workspaceName});
     } else if (isAnnounceRoom(report)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoom', {workspaceName});
     } else if (isInvoiceRoom(report)) {
         const payer =
@@ -1072,12 +1090,14 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = fal
                   // eslint-disable-next-line @typescript-eslint/no-deprecated
                   getPolicy(report?.invoiceReceiver?.policyID)?.name;
         const receiver = getPolicyName({report});
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoom', {
             invoicePayer: payer ?? '',
             invoiceReceiver: receiver,
         });
     } else {
         // Message for user created rooms or other room types.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryUserRoom', {reportName, reportDetailsLink});
     }
     welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);

@@ -12,6 +12,7 @@ import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
 import filterArrayByMatch from '@libs/filterArrayByMatch';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import {appendCountryCode, appendCountryCodeWithCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {MaxHeap} from '@libs/MaxHeap';
@@ -428,7 +429,8 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
     return lastActorDetails.accountID !== currentUserAccountID
         ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
           lastActorDetails.firstName || formatPhoneNumber(getDisplayNameOrDefault(lastActorDetails))
-        : translateLocal('common.you');
+        : // eslint-disable-next-line @typescript-eslint/no-deprecated
+          translateLocal('common.you');
 }
 
 /**
@@ -475,10 +477,12 @@ function getAlternateText(
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
 
     if (isExpenseThread || option.isMoneyRequestReport) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateLocal('iou.expense');
     }
 
     if (option.isThread) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateLocal('threads.thread');
     }
 
@@ -491,10 +495,12 @@ function getAlternateText(
     }
 
     if (option.isTaskReport) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateLocal('task.task');
     }
 
     if (isGroupChat) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateLocal('common.group');
     }
 
@@ -623,6 +629,7 @@ function getLastMessageTextForReport({
             case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
             case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
             case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 lastMessageTextFromReport = translateLocal(`reportArchiveReasons.${archiveReason}`, {
                     displayName: formatPhoneNumber(getDisplayNameOrDefault(lastActorDetails)),
                     policyName: getPolicyName({report, policy}),
@@ -630,10 +637,12 @@ function getLastMessageTextForReport({
                 break;
             }
             case CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED: {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 lastMessageTextFromReport = translateLocal(`reportArchiveReasons.${archiveReason}`);
                 break;
             }
             default: {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 lastMessageTextFromReport = translateLocal(`reportArchiveReasons.default`);
             }
         }
@@ -672,10 +681,13 @@ function getLastMessageTextForReport({
     } else if (isDeletedParentAction(lastReportAction) && reportUtilsIsChatReport(report)) {
         lastMessageTextFromReport = getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (isPendingRemove(lastReportAction) && report?.reportID && isThreadParentMessage(lastReportAction, report.reportID)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = translateLocal('parentReportAction.hiddenMessage');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = translateLocal('iou.paidElsewhere');
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = `[${translateLocal('common.attachment')}]`;
     } else if (isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessage = getForReportAction({
@@ -701,24 +713,31 @@ function getLastMessageTextForReport({
     ) {
         const wasSubmittedViaHarvesting = !isMarkAsClosedAction(lastReportAction) ? (getOriginalMessage(lastReportAction)?.harvesting ?? false) : false;
         if (wasSubmittedViaHarvesting) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = Parser.htmlToText(translateLocal('iou.automaticallySubmitted'));
         } else {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = translateLocal('iou.submitted', {memo: getOriginalMessage(lastReportAction)?.message});
         }
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
         if (automaticAction) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = Parser.htmlToText(translateLocal('iou.automaticallyApproved'));
         } else {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = translateLocal('iou.approvedMessage');
         }
     } else if (isUnapprovedAction(lastReportAction)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = translateLocal('iou.unapproved');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
         if (automaticAction) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = Parser.htmlToText(translateLocal('iou.automaticallyForwarded'));
         } else {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = translateLocal('iou.forwarded');
         }
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
@@ -740,6 +759,7 @@ function getLastMessageTextForReport({
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM) {
         lastMessageTextFromReport = getLeaveRoomMessage();
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = translateLocal('violations.resolvedDuplicates');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
         lastMessageTextFromReport = getUpdateRoomDescriptionMessage(lastReportAction);
@@ -874,6 +894,7 @@ function createOption(
 
         // Set lastMessageText - use archived message if report is archived, otherwise use report's lastMessageText
         if (result.private_isArchived) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             result.lastMessageText = translateLocal('reportArchiveReasons.default');
         } else {
             result.lastMessageText = report.lastMessageText ?? '';
@@ -937,12 +958,15 @@ function getReportOption(participant: Participant, reportAttributesDerived?: Rep
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     if (option.isSelfDM) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
         option.text = getReportName(report);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
         option.text = getPolicyName({report});
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.workspace');
 
         if (report?.policyID) {
@@ -952,6 +976,7 @@ function getReportOption(participant: Participant, reportAttributesDerived?: Rep
             const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
             if (subtitle) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 option.alternateText = translateLocal('iou.submitsTo', {name: subtitle ?? ''});
             }
         }
@@ -982,9 +1007,11 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     if (option.isSelfDM) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
         option.text = getReportName(report);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else if (unknownUserDetails) {
         option.text = unknownUserDetails.text ?? unknownUserDetails.login;
@@ -992,6 +1019,7 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
         option.participantsList = [{...unknownUserDetails, displayName: unknownUserDetails.login, accountID: unknownUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID}];
     } else if (report?.ownerAccountID !== 0 || !option.text) {
         option.text = getPolicyName({report});
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.workspace');
     }
     option.isDisabled = true;
@@ -1023,6 +1051,7 @@ function getPolicyExpenseReportOption(participant: Participant | SearchOptionDat
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     option.text = getPolicyName({report: expenseReport});
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     option.alternateText = translateLocal('workspace.common.workspace');
     option.isSelected = participant.selected;
     option.selected = participant.selected; // Keep for backwards compatibility
@@ -1745,6 +1774,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
 
         if (shouldSeparateWorkspaceChat && newReportOption.isPolicyExpenseChat && !newReportOption.private_isArchived) {
             newReportOption.text = getPolicyName({report});
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             newReportOption.alternateText = translateLocal('workspace.common.workspace');
             if (report?.policyID) {
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
@@ -1753,6 +1783,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
                 const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
                 if (subtitle) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     newReportOption.alternateText = translateLocal('iou.submitsTo', {name: subtitle ?? ''});
                 }
                 const canSubmitPerDiemExpense = canSubmitPerDiemExpenseFromWorkspace(policy);
@@ -2260,6 +2291,7 @@ function getHeaderMessage(
     const isValidEmail = Str.isValidEmail(searchValue);
 
     if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone && !hasSelectableOptions) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('messages.errorMessageInvalidPhone');
     }
 
@@ -2267,14 +2299,17 @@ function getHeaderMessage(
     // Therefore, this skips the validation when there is no search value.
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue) && !isValidPhone) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('messages.errorMessageInvalidPhone');
         }
         if (/@/.test(searchValue) && !isValidEmail) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('messages.errorMessageInvalidEmail');
         }
         if (hasMatchedParticipant && (isValidEmail || isValidPhone)) {
             return '';
         }
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.noResultsFound');
     }
 
@@ -2286,6 +2321,7 @@ function getHeaderMessage(
  */
 function getHeaderMessageForNonUserList(hasSelectableOptions: boolean, searchValue: string): string {
     if (searchValue && !hasSelectableOptions) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.noResultsFound');
     }
     return '';
@@ -2376,6 +2412,7 @@ function getPersonalDetailSearchTerms(item: Partial<SearchOptionData>) {
 }
 
 function getCurrentUserSearchTerms(item: Partial<SearchOptionData>) {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return [item.text ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? '', translateLocal('common.you'), translateLocal('common.me')];
 }
 
