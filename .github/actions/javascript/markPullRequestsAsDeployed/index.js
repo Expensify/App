@@ -13076,6 +13076,7 @@ const CONST = {
     PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
     ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),
     ISSUE_OR_PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/(?:pull|issues)/([0-9]+).*`),
+    NO_QA_REGEX: /\[No\s?QA]/i,
     POLL_RATE: 10000,
     APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
     APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
@@ -13361,9 +13362,9 @@ class GithubUtils {
                 }, {});
                 console.log('Found the following Internal QA PRs:', internalQAPRMap);
                 // Detect and check off verified and NO QA PRs
-                const noQAPRs = Array.isArray(appPRData) ? appPRData.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
+                const noQAPRs = Array.isArray(appPRData) ? appPRData.filter((PR) => CONST_1.default.NO_QA_REGEX.test(PR.title)).map((item) => item.html_url) : [];
                 console.log('Found the following NO QA PRs:', noQAPRs);
-                const noQAMobileExpensifyPRs = Array.isArray(mobilePRData) ? mobilePRData.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
+                const noQAMobileExpensifyPRs = Array.isArray(mobilePRData) ? mobilePRData.filter((PR) => CONST_1.default.NO_QA_REGEX.test(PR.title)).map((item) => item.html_url) : [];
                 console.log('Found the following NO QA Mobile-Expensify PRs:', noQAMobileExpensifyPRs);
                 const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs, ...noQAMobileExpensifyPRs])];
                 const sortedPRList = [...new Set((0, arrayDifference_1.default)(PRList, Object.keys(internalQAPRMap)))].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
