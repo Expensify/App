@@ -11,6 +11,7 @@ import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWit
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -30,7 +31,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {canEditFieldOfMoneyRequest, selectArchivedReportsIdSet, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -272,10 +273,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         return filtered;
     }, [violations, searchResults]);
 
-    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
-        canBeMissing: true,
-        selector: selectArchivedReportsIdSet,
-    });
+    const archivedReportsIdSet = useArchivedReportsIdSet();
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
@@ -317,8 +315,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const validGroupBy = groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy) ? groupBy : undefined;
-    const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, validGroupBy);
+    const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, groupBy);
 
     useEffect(() => {
         if (!isFocused) {
@@ -386,13 +383,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         // Group-by option cannot be used for chats or tasks
         const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
         const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-        if (validGroupBy && (isChat || isTask)) {
+        if (groupBy && (isChat || isTask)) {
             return [[], 0];
         }
 
-        const data1 = getSections(type, searchResults.data, accountID, formatPhoneNumber, validGroupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
+        const data1 = getSections(type, searchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
         return [data1, data1.length];
-    }, [searchKey, exportReportActions, validGroupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON]);
+    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -427,7 +424,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
         const newTransactionList: SelectedTransactions = {};
-        if (validGroupBy) {
+        if (groupBy) {
             data.forEach((transactionGroup) => {
                 if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
                     return;
@@ -535,7 +532,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (!data.length || isRefreshingSelection.current) {
             return;
         }
-        const areItemsGrouped = !!validGroupBy;
+        const areItemsGrouped = !!groupBy;
         const flattenedItems = areItemsGrouped ? (data as TransactionGroupListItemType[]).flatMap((item) => item.transactions) : data;
         const areAllItemsSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
 
@@ -545,7 +542,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (!areAllItemsSelected) {
             selectAllMatchingItems(false);
         }
-    }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, selectAllMatchingItems, shouldShowSelectAllMatchingItems, validGroupBy]);
+    }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, selectAllMatchingItems, shouldShowSelectAllMatchingItems, groupBy]);
 
     const toggleTransaction = useCallback(
         (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
@@ -729,13 +726,12 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled) && validGroupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
-    const ListItem = getListItem(type, status, validGroupBy);
+    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled) && groupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
+    const ListItem = getListItem(type, status, groupBy);
 
     const sortedSelectedData = useMemo(
         () =>
-            getSortedSections(type, status, data, localeCompare, sortBy, sortOrder, validGroupBy).map((item) => {
+            getSortedSections(type, status, data, localeCompare, sortBy, sortOrder, groupBy).map((item) => {
                 const baseKey = isChat
                     ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
@@ -756,7 +752,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
                 return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash);
             }),
-        [type, status, data, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, localeCompare, hash],
+        [type, status, data, sortBy, sortOrder, groupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, localeCompare, hash],
     );
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
@@ -784,7 +780,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [isFocused, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState, offset, data.length]);
 
     const toggleAllTransactions = useCallback(() => {
-        const areItemsGrouped = !!validGroupBy || isExpenseReportType;
+        const areItemsGrouped = !!groupBy;
         const totalSelected = Object.keys(selectedTransactions).length;
 
         if (totalSelected > 0) {
@@ -815,7 +811,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             ),
             data,
         );
-    }, [clearSelectedTransactions, data, validGroupBy, reportActionsArray, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID, isExpenseReportType]);
+    }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID]);
 
     const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
 
@@ -864,6 +860,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 <EmptySearchView
                     similarSearchHash={similarSearchHash}
                     type={type}
+                    groupBy={groupBy}
                     hasResults={searchResults?.search?.hasResults}
                 />
             </View>
@@ -878,9 +875,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const shouldShowYear = shouldShowYearUtil(searchResults?.data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
-    const shouldShowSorting = !validGroupBy;
-    const shouldShowTableHeader = isLargeScreenWidth && !isChat && !validGroupBy && !isExpenseReportType;
-    const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!validGroupBy || isExpenseReportType);
+    const shouldShowSorting = !groupBy;
+    const shouldShowTableHeader = isLargeScreenWidth && !isChat && !groupBy;
+    const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!groupBy || groupBy === CONST.SEARCH.GROUP_BY.REPORTS);
 
     return (
         <SearchScopeProvider>
@@ -900,7 +897,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                             <SearchTableHeader
                                 canSelectMultiple={canSelectMultiple}
                                 columns={columnsToShow}
-                                type={type}
+                                type={searchResults?.search.type}
                                 onSortPress={onSortPress}
                                 sortOrder={sortOrder}
                                 sortBy={sortBy}
@@ -909,7 +906,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                                 isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                                 shouldShowSorting={shouldShowSorting}
                                 areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                                groupBy={validGroupBy}
+                                groupBy={groupBy}
                             />
                         )
                     }

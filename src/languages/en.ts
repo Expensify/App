@@ -13,7 +13,6 @@ import type {
     AddEmployeeParams,
     AddOrDeletePolicyCustomUnitRateParams,
     AddressLineParams,
-    AdminCanceledRequestParams,
     AirlineParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
@@ -632,7 +631,6 @@ const translations = {
         downloadAsPDF: 'Download as PDF',
         downloadAsCSV: 'Download as CSV',
         help: 'Help',
-        expenseReport: 'Expense Report',
         expenseReports: 'Expense Reports',
         // @context Rate as a noun, not a verb
         rateOutOfPolicy: 'Rate out of policy',
@@ -1258,7 +1256,7 @@ const translations = {
         forwarded: `approved`,
         rejectedThisReport: 'rejected this report',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started payment, but is waiting for ${submitterDisplayName} to add a bank account.`,
-        adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceled the payment`,
+        adminCanceledRequest: 'canceled the payment',
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -6223,6 +6221,7 @@ const translations = {
             reimbursable: 'Reimbursable',
             purchaseCurrency: 'Purchase currency',
             groupBy: {
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Report',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'From',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Card',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Withdrawal ID',

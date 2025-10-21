@@ -24,7 +24,6 @@ import type {
     AddEmployeeParams,
     AddOrDeletePolicyCustomUnitRateParams,
     AddressLineParams,
-    AdminCanceledRequestParams,
     AirlineParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
@@ -638,7 +637,6 @@ const translations = {
         downloadAsPDF: 'Télécharger en PDF',
         downloadAsCSV: 'Télécharger en CSV',
         help: 'Aide',
-        expenseReport: 'Rapport de dépenses',
         expenseReports: 'Rapports de dépenses',
         rateOutOfPolicy: 'Taux hors politique',
         reimbursable: 'Remboursable',
@@ -1283,7 +1281,7 @@ const translations = {
         forwarded: `approuvé`,
         rejectedThisReport: 'a rejeté ce rapport',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire.`,
-        adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''} a annulé le paiement`,
+        adminCanceledRequest: 'a annulé le paiement',
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `a annulé le paiement de ${amount}, car ${submitterDisplayName} n'a pas activé leur Expensify Wallet dans les 30 jours`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -6277,6 +6275,7 @@ ${amount} pour ${merchant} - ${date}`,
             reimbursable: 'Remboursable',
             purchaseCurrency: "Devise d'achat",
             groupBy: {
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Rapport',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retrait',

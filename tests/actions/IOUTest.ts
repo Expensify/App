@@ -213,10 +213,11 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
             };
             const currentSearchQueryJSON = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 status: '' as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 filters: {
                     operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
                     left: {
@@ -230,7 +231,7 @@ describe('actions/IOU', () => {
                         right: '20671314',
                     },
                 },
-                inputQuery: 'sortBy:date sortOrder:desc type:expense-report action:submit from:20671314',
+                inputQuery: 'sortBy:date sortOrder:desc type:expense groupBy:reports action:submit from:20671314',
                 flatFilters: [
                     {
                         key: CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION,
@@ -253,7 +254,7 @@ describe('actions/IOU', () => {
                 ],
                 hash: 1920151829,
                 recentSearchHash: 2100977843,
-                similarSearchHash: 1855682507,
+                similarSearchHash: 1476388677,
             } as SearchQueryJSON;
             const iouReport: Report = {...createRandomReport(2), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
@@ -271,10 +272,11 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
             };
             const currentSearchQueryJSON = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 status: '' as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 filters: {
                     operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
                     left: {
@@ -310,9 +312,9 @@ describe('actions/IOU', () => {
                 ],
 
                 hash: 1510971479,
-                inputQuery: 'sortBy:date sortOrder:desc type:expense-report action:approve to:20671314',
+                inputQuery: 'sortBy:date sortOrder:desc type:expense groupBy:reports action:approve to:20671314',
                 recentSearchHash: 967911777,
-                similarSearchHash: 1539858783,
+                similarSearchHash: 601088623,
             } as SearchQueryJSON;
             const iouReport: Report = {...createRandomReport(2), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
@@ -331,10 +333,11 @@ describe('actions/IOU', () => {
                 reimbursable: true,
             };
             const currentSearchQueryJSON = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 status: '' as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 filters: {
                     operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
                     left: 'reimbursable',
@@ -2873,7 +2876,7 @@ describe('actions/IOU', () => {
                     originalTransactionID: transaction.transactionID,
                 },
             };
-            saveSplitTransactions(transaction.transactionID, draftTransaction, 1, undefined, undefined, [], {} as OnyxEntry<Report>, {} as OnyxEntry<Report>, iouAction);
+            saveSplitTransactions(transaction.transactionID, draftTransaction, 1, undefined, undefined, [], {} as OnyxEntry<Report>, {} as OnyxEntry<Report>, iouAction, undefined);
 
             await waitForBatchedUpdates();
 
@@ -2932,7 +2935,7 @@ describe('actions/IOU', () => {
 
             // When splitting the expense
             const hash = 1;
-            saveSplitTransactions(transaction.transactionID, draftTransaction, hash, undefined, undefined, [], {} as OnyxEntry<Report>, {} as OnyxEntry<Report>, undefined);
+            saveSplitTransactions(transaction.transactionID, draftTransaction, hash, undefined, undefined, [], {} as OnyxEntry<Report>, {} as OnyxEntry<Report>, undefined, undefined);
 
             await waitForBatchedUpdates();
 
@@ -3006,7 +3009,7 @@ describe('actions/IOU', () => {
 
             // When splitting the expense
             const hash = 1;
-            saveSplitTransactions(transaction.transactionID, draftTransaction, hash, undefined, undefined, [], {} as OnyxEntry<Report>, {} as OnyxEntry<Report>, undefined);
+            saveSplitTransactions(transaction.transactionID, draftTransaction, hash, undefined, undefined, [], {} as OnyxEntry<Report>, {} as OnyxEntry<Report>, undefined, undefined);
 
             await waitForBatchedUpdates();
 
@@ -3833,7 +3836,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When the expense is deleted
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, true);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined, true);
             }
             await waitForBatchedUpdates();
 
@@ -3912,7 +3915,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When the IOU expense is deleted
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, true);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined, true);
             }
             await waitForBatchedUpdates();
 
@@ -3974,7 +3977,7 @@ describe('actions/IOU', () => {
             // When we attempt to delete an expense from the IOU report
             mockFetch?.pause?.();
             if (transaction && createIOUAction) {
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
             }
             await waitForBatchedUpdates();
 
@@ -4069,7 +4072,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When Deleting an expense
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
             }
             await waitForBatchedUpdates();
 
@@ -4194,7 +4197,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When Deleting an expense
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
             }
             await waitForBatchedUpdates();
 
@@ -4268,7 +4271,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When deleting expense
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
             }
             await waitForBatchedUpdates();
 
@@ -4419,7 +4422,7 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
             if (transaction && createIOUAction) {
                 // When we delete the expense
-                deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport);
+                deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
             }
             await waitForBatchedUpdates();
 
@@ -4511,7 +4514,7 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
             jest.advanceTimersByTime(10);
             if (transaction && createIOUAction) {
-                deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport);
+                deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
             }
             await waitForBatchedUpdates();
 
@@ -4587,7 +4590,7 @@ describe('actions/IOU', () => {
 
             let navigateToAfterDelete;
             if (transaction && createIOUAction) {
-                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport, true);
+                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined, true);
             }
 
             let allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
@@ -4635,7 +4638,7 @@ describe('actions/IOU', () => {
             let navigateToAfterDelete;
             if (transaction && createIOUAction) {
                 // When we delete the expense and we should delete the IOU report
-                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport);
+                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
             }
             // Then we expect to navigate to the chat report
             expect(chatReport?.reportID).not.toBeUndefined();
@@ -4699,8 +4702,19 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
             const selectedTransactionIDs = [transaction1.transactionID, transaction2.transactionID];
-            deleteMoneyRequest(transaction1.transactionID, moneyRequestAction1, {}, {}, expenseReport, expenseReport, undefined, [], selectedTransactionIDs);
-            deleteMoneyRequest(transaction2.transactionID, moneyRequestAction2, {}, {}, expenseReport, expenseReport, undefined, [transaction1.transactionID], selectedTransactionIDs);
+            deleteMoneyRequest(transaction1.transactionID, moneyRequestAction1, {}, {}, expenseReport, expenseReport, undefined, undefined, [], selectedTransactionIDs);
+            deleteMoneyRequest(
+                transaction2.transactionID,
+                moneyRequestAction2,
+                {},
+                {},
+                expenseReport,
+                expenseReport,
+                undefined,
+                undefined,
+                [transaction1.transactionID],
+                selectedTransactionIDs,
+            );
 
             await waitForBatchedUpdates();
 
@@ -7377,7 +7391,18 @@ describe('actions/IOU', () => {
                     },
                 };
 
-                saveSplitTransactions(originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransaction, -2, undefined, undefined, [], expenseReport, chatReport, undefined);
+                saveSplitTransactions(
+                    originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                    draftTransaction,
+                    -2,
+                    undefined,
+                    undefined,
+                    [],
+                    expenseReport,
+                    chatReport,
+                    undefined,
+                    undefined,
+                );
                 await waitForBatchedUpdates();
 
                 const split1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}235`);
@@ -7477,7 +7502,18 @@ describe('actions/IOU', () => {
                     },
                 };
 
-                saveSplitTransactions(originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransaction, -2, undefined, undefined, [], expenseReport, chatReport, undefined);
+                saveSplitTransactions(
+                    originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                    draftTransaction,
+                    -2,
+                    undefined,
+                    undefined,
+                    [],
+                    expenseReport,
+                    chatReport,
+                    undefined,
+                    undefined,
+                );
                 await waitForBatchedUpdates();
 
                 const split1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}235`);

@@ -24,7 +24,6 @@ import type {
     AddEmployeeParams,
     AddOrDeletePolicyCustomUnitRateParams,
     AddressLineParams,
-    AdminCanceledRequestParams,
     AirlineParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
@@ -638,7 +637,6 @@ const translations = {
         downloadAsPDF: 'PDFとしてダウンロード',
         downloadAsCSV: 'CSVとしてダウンロード',
         help: '助けて',
-        expenseReport: '経費報告書',
         expenseReports: '経費報告書',
         rateOutOfPolicy: 'ポリシー外のレート',
         reimbursable: '払い戻し可能',
@@ -1280,7 +1278,7 @@ const translations = {
         forwarded: `承認済み`,
         rejectedThisReport: 'このレポートを拒否しました',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `支払いを開始しましたが、${submitterDisplayName}が銀行口座を追加するのを待っています。`,
-        adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}が支払いをキャンセルしました`,
+        adminCanceledRequest: '支払いをキャンセルしました',
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `${submitterDisplayName}が30日以内にExpensifyウォレットを有効にしなかったため、${amount}の支払いをキャンセルしました。`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -6217,6 +6215,7 @@ ${date} - ${merchant}に${amount}`,
             reimbursable: '払い戻し可能',
             purchaseCurrency: '購入通貨',
             groupBy: {
+                [CONST.SEARCH.GROUP_BY.REPORTS]: '報告',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'から',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
