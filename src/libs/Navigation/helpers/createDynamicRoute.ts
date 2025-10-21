@@ -1,10 +1,10 @@
 import Navigation from '@libs/Navigation/Navigation';
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import isDynamicSuffix from './isDynamicSuffix';
 
 /** Adds dynamic route name to the current URL and returns it */
 const createDynamicRoute = (dynamicRouteSuffix: DynamicRouteSuffix): Route => {
-    if (!Object.values(DYNAMIC_ROUTES).includes(dynamicRouteSuffix)) {
+    if (!isDynamicSuffix(dynamicRouteSuffix)) {
         throw new Error(`The route name ${dynamicRouteSuffix} is not supported in createDynamicRoute`);
     }
     const activeRoute = Navigation.getActiveRoute();

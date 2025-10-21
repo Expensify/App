@@ -10,12 +10,14 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicRouteSuffix, Route as RoutePath} from '@src/ROUTES';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
+import getLastSuffixFromPath from './getLastSuffixFromPath';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
 import getStateFromPath from './getStateFromPath';
+import isDynamicSuffix from './isDynamicSuffix';
 import {isFullScreenName} from './isNavigatorName';
 import replacePathInNestedState from './replacePathInNestedState';
 
@@ -70,8 +72,8 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         return getMatchingFullScreenRoute(focusedStateForBackToRoute);
     }
 
-    const lastSuffix = route.path?.split('?').at(0)?.split('/').pop() ?? '';
-    if (Object.values(DYNAMIC_ROUTES).includes(lastSuffix as DynamicRouteSuffix)) {
+    const lastSuffix = getLastSuffixFromPath(route.path);
+    if (isDynamicSuffix(lastSuffix as DynamicRouteSuffix)) {
         const pathWithoutDynamicSuffix = route.path?.replace(`/${lastSuffix}`, '');
         const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix as RoutePath);
         const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
