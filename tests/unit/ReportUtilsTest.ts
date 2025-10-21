@@ -2206,6 +2206,30 @@ describe('ReportUtils', () => {
 
             expect(requiresAttentionFromCurrentUser(reportWithDifferentManager)).toBe(false);
         });
+
+        it('returns false when expense report is awaiting user submission, delayed submission on > daily', async () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                hasOutstandingChildRequest: false,
+                policyID: '1',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
+
+            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+        });
+
+        it('returns false when expense report is awaiting user submission, delayed submission on > manually', async () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                hasOutstandingChildRequest: true,
+                policyID: '1',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
+
+            expect(requiresAttentionFromCurrentUser(report)).toBe(true);
+        });
     });
 
     describe('getChatRoomSubtitle', () => {
