@@ -35,6 +35,7 @@ import {
     canHoldUnholdReportAction,
     canJoinChat,
     canLeaveChat,
+    canRejectReportAction,
     canSeeDefaultRoom,
     canUserPerformWriteAction,
     excludeParticipantsForDisplay,
@@ -8215,6 +8216,26 @@ describe('ReportUtils', () => {
             };
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toEqual(123);
+        });
+    });
+
+    describe('canRejectReportAction', () => {
+        it('should return false if the user is not the report manager', async () => {
+            const approver = 'approver@gmail.com';
+            const expenseReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: 1,
+            };
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                approver,
+            };
+            await Onyx.merge(ONYXKEYS.SESSION, {
+                accountID: 2,
+            });
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.NEWDOT_REJECT]);
+            expect(canRejectReportAction(approver, expenseReport, policy)).toBe(false);
         });
     });
 });
