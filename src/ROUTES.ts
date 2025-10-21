@@ -311,6 +311,7 @@ const ROUTES = {
     },
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:cardID/activate',
+        // eslint-disable-next-line no-restricted-syntax
         getRoute: (cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${cardID}/activate` as const, backTo),
     },
     SETTINGS_LEGAL_NAME: 'settings/profile/legal-name',
