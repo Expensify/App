@@ -319,7 +319,10 @@ class GithubUtils {
     ): Promise<void | StagingDeployCashBody> {
         return Promise.all([
             this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr))),
-            this.fetchAllPullRequests(PRListMobileExpensify.map((pr) => this.getPullRequestNumberFromURL(pr)), CONST.MOBILE_EXPENSIFY_REPO),
+            this.fetchAllPullRequests(
+                PRListMobileExpensify.map((pr) => this.getPullRequestNumberFromURL(pr)),
+                CONST.MOBILE_EXPENSIFY_REPO,
+            ),
         ])
             .then(([appPRData, mobilePRData]) => {
                 const internalQAPRs = Array.isArray(appPRData) ? appPRData.filter((pr) => !isEmptyObject(pr.labels.find((item) => item.name === CONST.LABELS.INTERNAL_QA))) : [];
@@ -335,6 +338,7 @@ class GithubUtils {
                     }, {});
                     console.log('Found the following Internal QA PRs:', internalQAPRMap);
 
+                    // Detect and check off verified and NO QA PRs
                     const noQAPRs = Array.isArray(appPRData) ? appPRData.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
                     console.log('Found the following NO QA PRs:', noQAPRs);
                     const noQAMobileExpensifyPRs = Array.isArray(mobilePRData) ? mobilePRData.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
