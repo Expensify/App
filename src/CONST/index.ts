@@ -7213,6 +7213,7 @@ const CONST = {
         DEFAULT_DOMAIN: 'domain',
         PROVISIONING: {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
+            ERROR_ADDITIONAL_VERIFICATION_REQUIRED: 'additionalVerificationRequired',
         },
         UPDATE_OPERATION_TYPE: {
             BOOKING_TICKETED: 'BOOKING_TICKETED',
