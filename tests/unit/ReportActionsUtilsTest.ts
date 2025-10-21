@@ -1,9 +1,9 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import {translateLocal} from '@libs/Localize';
 import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
-import {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
@@ -16,10 +16,6 @@ import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
-
-function translateMock<TPath extends TranslationPaths>(path: TPath, ...phraseParameters: TranslationParameters<TPath>): string {
-    return path;
-}
 
 describe('ReportActionsUtils', () => {
     beforeAll(() =>
@@ -1416,7 +1412,7 @@ describe('ReportActionsUtils', () => {
             };
 
             const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(action);
-            const expected = translateMock('report.actions.type.updatedCustomField1', {email: formatPhoneNumber(email), newValue, previousValue});
+            const expected = translateLocal('report.actions.type.updatedCustomField1', {email: formatPhoneNumber(email), newValue, previousValue});
             expect(actual).toBe(expected);
         });
     });
@@ -1437,7 +1433,7 @@ describe('ReportActionsUtils', () => {
             };
 
             const actual = ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(action);
-            const expected = translateMock('report.actions.type.removeMember', {email: formatPhoneNumber(email), role: translateMock('workspace.common.roleName', {role}).toLowerCase()});
+            const expected = translateLocal('report.actions.type.removeMember', {email: formatPhoneNumber(email), role: translateLocal('workspace.common.roleName', {role}).toLowerCase()});
             expect(actual).toBe(expected);
         });
     });
