@@ -551,50 +551,47 @@ function WorkspacesListPage() {
         }
     }, [duplicateWorkspace, isFocused, filteredWorkspaces]);
 
-    const getListHeaderComponent = useCallback(
-        () => (
-            <>
-                {isLessThanMediumScreen && <View style={styles.mt3} />}
-                {workspaces.length > CONST.SEARCH_ITEM_LIMIT && (
-                    <SearchBar
-                        label={translate('workspace.common.findWorkspace')}
-                        inputValue={inputValue}
-                        onChangeText={setInputValue}
-                        shouldShowEmptyState={filteredWorkspaces.length === 0 && inputValue.length > 0}
-                    />
-                )}
-                {!isLessThanMediumScreen && filteredWorkspaces.length > 0 && (
-                    <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.pr5, styles.pl10, styles.appBG]}>
-                        <View style={[styles.flexRow, styles.flex2]}>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.flexGrow1, styles.textLabelSupporting]}
-                            >
-                                {translate('workspace.common.workspaceName')}
-                            </Text>
-                        </View>
-                        <View style={[styles.flexRow, styles.flex1, styles.workspaceOwnerSectionTitle, styles.workspaceOwnerSectionMinWidth]}>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.flexGrow1, styles.textLabelSupporting]}
-                            >
-                                {translate('workspace.common.workspaceOwner')}
-                            </Text>
-                        </View>
-                        <View style={[styles.flexRow, styles.flex1, styles.workspaceTypeSectionTitle]}>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.flexGrow1, styles.textLabelSupporting]}
-                            >
-                                {translate('workspace.common.workspaceType')}
-                            </Text>
-                        </View>
-                        <View style={[styles.workspaceRightColumn, styles.mr7]} />
+    const listHeaderComponent = (
+        <>
+            {isLessThanMediumScreen && <View style={styles.mt3} />}
+            {workspaces.length > CONST.SEARCH_ITEM_LIMIT && (
+                <SearchBar
+                    label={translate('workspace.common.findWorkspace')}
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={filteredWorkspaces.length === 0 && inputValue.length > 0}
+                />
+            )}
+            {!isLessThanMediumScreen && filteredWorkspaces.length > 0 && (
+                <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.pr5, styles.pl10, styles.appBG]}>
+                    <View style={[styles.flexRow, styles.flex2]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.flexGrow1, styles.textLabelSupporting]}
+                        >
+                            {translate('workspace.common.workspaceName')}
+                        </Text>
                     </View>
-                )}
-            </>
-        ),
-        [filteredWorkspaces.length, inputValue, isLessThanMediumScreen, setInputValue, styles, translate, workspaces.length],
+                    <View style={[styles.flexRow, styles.flex1, styles.workspaceOwnerSectionTitle, styles.workspaceOwnerSectionMinWidth]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.flexGrow1, styles.textLabelSupporting]}
+                        >
+                            {translate('workspace.common.workspaceOwner')}
+                        </Text>
+                    </View>
+                    <View style={[styles.flexRow, styles.flex1, styles.workspaceTypeSectionTitle]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.flexGrow1, styles.textLabelSupporting]}
+                        >
+                            {translate('workspace.common.workspaceType')}
+                        </Text>
+                    </View>
+                    <View style={[styles.workspaceRightColumn, styles.mr7]} />
+                </View>
+            )}
+        </>
     );
 
     const getHeaderButton = () =>
@@ -719,9 +716,9 @@ function WorkspacesListPage() {
                 <FlashList
                     ref={listRef}
                     data={data}
-                    ListHeaderComponent={getListHeaderComponent()}
                     renderItem={renderItem}
                     getItemType={getItemType}
+                    ListHeaderComponent={listHeaderComponent}
                     contentContainerStyle={styles.pb20}
                     removeClippedSubviews
                     drawDistance={1000}
