@@ -12,6 +12,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import KYCWall from '@components/KYCWall';
+import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import LottieAnimations from '@components/LottieAnimations';
@@ -23,6 +24,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -75,7 +77,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const kycWallRef = useContext(KYCWallContext);
     const {isBetaEnabled} = usePermissions();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -475,6 +479,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     )}
 
                                     <KYCWall
+                                        ref={kycWallRef}
                                         onSuccessfulKYC={(_iouPaymentType?: PaymentMethodType, source?: Source) => navigateToWalletOrTransferBalancePage(source)}
                                         onSelectPaymentMethod={(selectedPaymentMethod: string) => {
                                             if (hasActivatedWallet || selectedPaymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
@@ -681,7 +686,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         />
                     )}
                     <MenuItem
-                        icon={Expensicons.MoneySearch}
+                        icon={expensifyIcons.MoneySearch}
                         title={translate('workspace.common.viewTransactions')}
                         onPress={() => {
                             hideCardMenu();
