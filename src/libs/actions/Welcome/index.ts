@@ -67,7 +67,6 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: Ha
                     }
 
                     startOnboardingFlow({onboardingInitialPath: ROUTES.TEST_DRIVE_MODAL_ROOT.route} as GetOnboardingInitialPathParamsType);
-                    // Reset the flag allow navigation to complete
                 });
             });
 
