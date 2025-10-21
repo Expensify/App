@@ -601,11 +601,6 @@ type SubmittedToVacationDelegateParams = {submittedToName: string; vacationDeleg
 
 type RoleNamesParams = {role: string};
 
-type AssignCardParams = {
-    assignee: string;
-    feed: string;
-};
-
 type ChooseCardForParams = {
     assignee: string;
     letUsKnowLink: string;
@@ -1163,7 +1158,6 @@ export type {
     DisconnectTitleParams,
     CharacterLengthLimitParams,
     OptionalParam,
-    AssignCardParams,
     ImportedTypesParams,
     WorkspaceYouMayJoin,
     WorkspaceMemberList,
