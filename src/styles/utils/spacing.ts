@@ -439,6 +439,10 @@ export default {
         padding: 12,
     },
 
+    p3Half: {
+        padding: 14,
+    },
+
     p4: {
         padding: 16,
     },
@@ -597,6 +601,10 @@ export default {
 
     pr10: {
         paddingRight: 40,
+    },
+
+    pr11: {
+        paddingRight: 44,
     },
 
     pr15: {

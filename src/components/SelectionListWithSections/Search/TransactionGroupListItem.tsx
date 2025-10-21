@@ -213,7 +213,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     isIndeterminate={isIndeterminate}
                     onDownArrowClick={onExpandIconPress}
                     isExpanded={isExpanded}
-
                 />
             ),
             [CONST.SEARCH.GROUP_BY.FROM]: (

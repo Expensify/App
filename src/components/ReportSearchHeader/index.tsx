@@ -1,11 +1,13 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type ReportSearchHeaderProps from './types';
 
 function ReportSearchHeader({report, style, transactions, avatarBorderColor}: ReportSearchHeaderProps) {
     const styles = useThemeStyles();
+    const {isLargeScreenWidth} = useResponsiveLayout();
 
     const middleContent = useMemo(() => {
         return (
@@ -18,11 +20,11 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
                 shouldEnableAvatarNavigation={false}
                 avatarBorderColor={avatarBorderColor}
                 customDisplayNameStyle={styles.fontWeightNormal}
-                parentNavigationSubtitleTextStyles={[styles.textLineHeightNormal, styles.minHeight4, styles.mt1]}
+                parentNavigationSubtitleTextStyles={[styles.textLineHeightNormal, styles.minHeight4, styles.mt1, !isLargeScreenWidth && styles.textMicro]}
                 parentNavigationStatusContainerStyles={styles.mt1}
             />
         );
-    }, [report, transactions, avatarBorderColor, styles.fontWeightNormal, styles.textLineHeightNormal, styles.minHeight4, styles.mt1]);
+    }, [report, transactions, avatarBorderColor, styles.fontWeightNormal, styles.textLineHeightNormal, styles.minHeight4, styles.mt1, isLargeScreenWidth, styles.textMicro]);
 
     return (
         <View

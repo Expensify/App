@@ -59,6 +59,13 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         return transactions;
     }, [transactions, transactionsVisibleLimit, isGroupByReports]);
 
+    const isLastTransaction = useCallback(
+        (index: number) => {
+            return index === visibleTransactions.length - 1;
+        },
+        [visibleTransactions],
+    );
+
     const currentColumns = useMemo(() => {
         if (isGroupByReports) {
             return columns ?? [];
@@ -160,7 +167,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         styles.groupSearchListTableContainerStyle,
                         styles.bgTransparent,
                         styles.pl9,
-                        isGroupByReports && isLargeScreenWidth ? styles.pr10 : styles.pr3,
+                        isGroupByReports && isLargeScreenWidth ? styles.pr11 : styles.pr3,
                     ]}
                 >
                     <SearchTableHeader
@@ -179,7 +186,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                     />
                 </View>
             )}
-            {visibleTransactions.map((transaction) => (
+            {visibleTransactions.map((transaction, index) => (
                 <OfflineWithFeedback
                     pendingAction={transaction.pendingAction}
                     key={transaction.transactionID}
@@ -200,11 +207,16 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         onButtonPress={() => {
                             openReportInRHP(transaction);
                         }}
-                        style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half], isGroupByReports && isLargeScreenWidth && styles.pr10]}
+                        style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half], isGroupByReports && isLargeScreenWidth && styles.pr11]}
                         isReportItemChild
                         isInSingleTransactionReport={isInSingleTransactionReport}
                         areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     />
+                    {!isLastTransaction(index) && !isLargeScreenWidth && (
+                        <View style={[styles.ph3, styles.pb2]}>
+                            <View style={[styles.borderBottom]} />
+                        </View>
+                    )}
                 </OfflineWithFeedback>
             ))}
             {shouldDisplayShowMoreButton && !shouldDisplayLoadingIndicator && (
