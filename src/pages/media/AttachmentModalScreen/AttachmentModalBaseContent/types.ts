@@ -5,13 +5,12 @@ import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {AvatarSource} from '@libs/UserUtils';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type AttachmentModalOnCloseOptions = {
     shouldCallDirectly?: boolean;
-    onAfterClose?: () => void;
 };
 
 type AttachmentModalContentData = {

@@ -8,13 +8,13 @@ import {isSelfDM} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {initMoneyRequest, replaceReceipt, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type AttachmentUploadValidationProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -126,14 +126,14 @@ function useAttachmentUploadValidation({
 
             let extractedFiles: FileObject[] = [];
 
-            if (!files) {
+            if (files) {
+                extractedFiles = Array.isArray(files) ? files : [files];
+            } else {
                 if (!dragEvent) {
                     return;
                 }
 
                 extractedFiles = getFilesFromClipboardEvent(dragEvent);
-            } else {
-                extractedFiles = Array.isArray(files) ? files : [files];
             }
 
             const dataTransferItems = Array.from(dragEvent?.dataTransfer?.items ?? []);
