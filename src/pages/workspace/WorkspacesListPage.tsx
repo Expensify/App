@@ -92,16 +92,11 @@ type WorkspaceItem = {listItemType: 'workspace'} & ListItem &
         policyID?: string;
         isJoinRequestPending?: boolean;
     };
-
-// eslint-disable-next-line react/no-unused-prop-types
-type GetWorkspaceMenuItem = {item: WorkspaceItem; index: number};
-
 type DomainItem = {listItemType: 'domain'; title: string; action: () => void; disabled: boolean} & Pick<OfflineWithFeedbackProps, 'pendingAction'>;
-
-// eslint-disable-next-line react/no-unused-prop-types
-type GetDomainMenuItem = {item: DomainItem; index: number};
-
 type WorkspaceOrDomainListItem = WorkspaceItem | DomainItem | {listItemType: 'domains-header' | 'workspaces-empty-state'};
+
+type GetWorkspaceMenuItem = {item: WorkspaceItem; index: number};
+type GetDomainMenuItem = {item: DomainItem; index: number};
 
 const getItemType = (item: WorkspaceOrDomainListItem) => item.listItemType;
 
