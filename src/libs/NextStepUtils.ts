@@ -172,10 +172,6 @@ function getReportNextStep(currentNextStep: ReportNextStep | undefined, moneyReq
         return buildOptimisticFixIssueNextStep();
     }
 
-    if (isProcessingReport(moneyRequestReport) && transactions.length > 0 && transactions.every((transaction) => isPendingCardOrScanningTransaction(transaction))) {
-        return buildOptimisticFixIssueNextStep();
-    }
-
     const isSubmitterSameAsNextApprover = isReportOwner(moneyRequestReport) && nextApproverAccountID === moneyRequestReport?.ownerAccountID;
 
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step

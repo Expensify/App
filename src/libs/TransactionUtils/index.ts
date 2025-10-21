@@ -263,6 +263,12 @@ function isManualRequest(transaction: Transaction): boolean {
 }
 
 function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    const merchant = getMerchant(transaction);
+
+    if (!merchant || isPartialMerchant(merchant)) {
+        return true;
+    }
+
     if (isAmountMissing(transaction) && isScanRequest(transaction)) {
         return true;
     }

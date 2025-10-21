@@ -327,7 +327,7 @@ describe('getViolationsOnyxData', () => {
                 amount: 0,
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 category: undefined,
-                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING, source: 'test'},
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
             };
             const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).not.toContainEqual(missingCategoryViolation);
@@ -425,7 +425,7 @@ describe('getViolationsOnyxData', () => {
                 amount: 0,
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 tag: undefined,
-                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING, source: 'test'},
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
             };
             const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).not.toContainEqual(missingTagViolation);
