@@ -181,7 +181,6 @@ import type {
     QBDSetupErrorBodyParams,
     RailTicketParams,
     ReceiptPartnersUberSubtitleParams,
-    ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
     RemoveMemberPromptParams,
@@ -209,6 +208,7 @@ import type {
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
     SettlementAccountInfoParams,
+    SettlementAccountReconciliationParams,
     SettlementDateParams,
     ShareParams,
     SignerInfoMessageParams,
@@ -4607,7 +4607,7 @@ ${amount} para ${merchant} - ${date}`,
             addShippingDetails: 'Adicionar detalhes de envio',
             issuedCard: ({assignee}: AssigneeParams) => `emitiu um Cartão Expensify para ${assignee}! O cartão chegará em 2-3 dias úteis.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
-                `emitiu um Cartão Expensify para ${assignee}! O cartão será enviado assim que os detalhes de envio forem adicionados.`,
+                `Foi emitido para ${assignee} um Expensify Card! O cartão será enviado assim que os detalhes de envio forem confirmados.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `emitiu ${assignee} um ${link} virtual! O cartão pode ser usado imediatamente.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} adicionou os detalhes de envio. O Cartão Expensify chegará em 2-3 dias úteis.`,
             verifyingHeader: 'Verificando',
@@ -5376,9 +5376,9 @@ ${amount} para ${merchant} - ${date}`,
                 `<muted-text-label>Para ativar a reconciliação contínua, habilite a <a href="${accountingAdvancedSettingsLink}">sincronização automática</a> para o ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Escolha a conta bancária na qual os pagamentos do seu Expensify Card serão reconciliados.',
-                accountMatches: 'Certifique-se de que esta conta corresponde à sua',
-                settlementAccount: 'Conta de liquidação do Cartão Expensify',
-                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `(terminando em ${lastFourPAN}) para que a Reconciliação Contínua funcione corretamente.`,
+
+                settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
+                    `Certifique-se de que esta conta corresponde à sua <a href="${settlementAccountUrl}">Conta de liquidação do Cartão Expensify</a> (terminando em ${lastFourPAN}) para que a Reconciliação Contínua funcione corretamente.`,
             },
         },
         export: {

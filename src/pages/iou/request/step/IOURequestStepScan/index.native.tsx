@@ -58,7 +58,6 @@ import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {
     getMoneyRequestParticipantsFromReport,
     replaceReceipt,
@@ -79,6 +78,7 @@ import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import CameraPermission from './CameraPermission';
 import {cropImageToAspectRatio} from './cropImageToAspectRatio';
@@ -237,11 +237,7 @@ function IOURequestStepScan({
                     .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
             };
 
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                // Check initial camera permission status
-                refreshCameraPermissionStatus();
-            });
+            refreshCameraPermissionStatus();
 
             // Refresh permission status when app gain focus
             const subscription = AppState.addEventListener('change', (appState) => {
@@ -546,7 +542,7 @@ function IOURequestStepScan({
      */
     const setTestReceiptAndNavigate = useCallback(() => {
         setTestReceipt(TestReceipt, 'png', (source, file, filename) => {
-            if (!file.uri) {
+            if (!file?.uri) {
                 return;
             }
 
