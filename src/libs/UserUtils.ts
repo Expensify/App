@@ -251,7 +251,7 @@ function getSmallSizeAvatar(avatarSource?: AvatarSource, accountID?: number): Av
  */
 function getSecondaryPhoneLogin(loginList: OnyxEntry<Login>): string | undefined {
     const parsedLoginList = Object.keys(loginList ?? {}).map((login) => Str.removeSMSDomain(login));
-    return parsedLoginList.find((login) => Str.isValigetCustomAvatarIDsdE164Phone(login));
+    return parsedLoginList.find((login) => Str.isValidE164Phone(login));
 }
 
 /**
