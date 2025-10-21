@@ -11,6 +11,7 @@ import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWit
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -30,7 +31,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {canEditFieldOfMoneyRequest, selectArchivedReportsIdSet, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -204,6 +205,7 @@ function prepareTransactionsList(
 function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch, isMobileSelectionModeEnabled, onSortPressedCallback}: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
     const {isOffline} = useNetwork();
+    const prevIsOffline = usePrevious(isOffline);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for enabling the selection mode on small screens only
@@ -271,10 +273,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         return filtered;
     }, [violations, searchResults]);
 
-    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
-        canBeMissing: true,
-        selector: selectArchivedReportsIdSet,
-    });
+    const archivedReportsIdSet = useArchivedReportsIdSet();
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
@@ -401,7 +400,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
 
-        if ((!isFocused && !isMigratedModalDisplayed) || isOffline) {
+        const comingBackOnlineWithNoResults = prevIsOffline && !isOffline && searchResults === undefined;
+        if (!comingBackOnlineWithNoResults && ((!isFocused && !isMigratedModalDisplayed) || isOffline)) {
             return;
         }
 

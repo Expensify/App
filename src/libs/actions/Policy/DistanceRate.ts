@@ -118,7 +118,8 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean, customUni
 
     const parameters: EnablePolicyDistanceRatesParams = {policyID, enabled};
 
-    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
+    // We can't use writeWithNoDuplicatesEnableFeatureConflicts because the distance rates data is also changed when disabling/enabling this feature
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature(policyID);
