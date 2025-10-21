@@ -26,7 +26,7 @@ function TestImageManipulationPage() {
 
     // Use bundled receipt images
     const image1 = require('@assets/images/fake-receipt.png');
-    const image2 = require('@assets/images/fake-test-drive-employee-receipt.jpg');
+    const image2 = require('@assets/images/workspace-profile.png');
 
     // Web-specific Canvas merge
     const mergeImagesWeb = async (uri1: string, uri2: string): Promise<{uri: string; width: number; height: number}> => {
