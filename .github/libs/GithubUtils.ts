@@ -342,9 +342,9 @@ class GithubUtils {
                     console.log('Found the following Internal QA PRs:', internalQAPRMap);
 
                     // Detect and check off verified and NO QA PRs
-                    const noQAPRs = Array.isArray(appPRData) ? appPRData.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
+                    const noQAPRs = Array.isArray(appPRData) ? appPRData.filter((PR) => CONST.NO_QA_REGEX.test(PR.title)).map((item) => item.html_url) : [];
                     console.log('Found the following NO QA PRs:', noQAPRs);
-                    const noQAMobileExpensifyPRs = Array.isArray(mobilePRData) ? mobilePRData.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
+                    const noQAMobileExpensifyPRs = Array.isArray(mobilePRData) ? mobilePRData.filter((PR) => CONST.NO_QA_REGEX.test(PR.title)).map((item) => item.html_url) : [];
                     console.log('Found the following NO QA Mobile-Expensify PRs:', noQAMobileExpensifyPRs);
                     const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs, ...noQAMobileExpensifyPRs])];
 
