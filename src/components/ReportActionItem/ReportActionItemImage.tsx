@@ -80,7 +80,7 @@ type ReportActionItemImageProps = {
     onLoad?: (event?: {nativeEvent: {width: number; height: number}}) => void;
 
     /** Callback to be called when the image fails to load */
-    onLoadingFailure?: () => void;
+    onLoadFailure?: () => void;
 };
 
 /**
@@ -109,7 +109,7 @@ function ReportActionItemImage({
     report: reportProp,
     shouldUseThumbnailImage,
     onLoad,
-    onLoadingFailure,
+    onLoadFailure,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -199,7 +199,7 @@ function ReportActionItemImage({
                             {...propsObj}
                             onLoad={onLoad}
                             shouldUseFullHeight={shouldUseFullHeight}
-                            onLoadingFailure={onLoadingFailure}
+                            onLoadFailure={onLoadFailure}
                         />
                     </PressableWithoutFocus>
                 )}
@@ -213,7 +213,7 @@ function ReportActionItemImage({
             shouldUseFullHeight={shouldUseFullHeight}
             thumbnailContainerStyles={styles.thumbnailImageContainerHover}
             onLoad={onLoad}
-            onLoadingFailure={onLoadingFailure}
+            onLoadFailure={onLoadFailure}
         />
     );
 }

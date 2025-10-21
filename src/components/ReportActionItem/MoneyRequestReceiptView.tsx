@@ -319,7 +319,7 @@ function MoneyRequestReceiptView({
                                 mergeTransactionID={mergeTransactionID}
                                 report={report}
                                 onLoad={() => setIsLoading(false)}
-                                onLoadingFailure={() => setIsLoading(false)}
+                                onLoadFailure={() => setIsLoading(false)}
                             />
                         </View>
                     )}

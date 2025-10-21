@@ -75,9 +75,6 @@ type ThumbnailImageProps = {
 
     /** Callback to be called when the image loads */
     onLoad?: (event: {nativeEvent: {width: number; height: number}}) => void;
-
-    /** Callback to be called when the image fails to load */
-    onLoadingFailure?: () => void;
 };
 
 type UpdateImageSizeParams = {
@@ -104,7 +101,6 @@ function ThumbnailImage({
     onMeasure,
     loadingIndicatorStyles,
     onLoad,
-    onLoadingFailure,
 }: ThumbnailImageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -175,7 +171,6 @@ function ThumbnailImage({
                     onLoadFailure={() => {
                         setFailedToLoad(true);
                         onLoadFailure?.();
-                        onLoadingFailure?.();
                     }}
                     isAuthTokenRequired={isAuthTokenRequired}
                     objectPosition={objectPosition}

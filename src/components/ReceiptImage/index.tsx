@@ -117,7 +117,7 @@ type ReceiptImageProps = (
     onLoad?: (event?: {nativeEvent: {width: number; height: number}}) => void;
 
     /** Callback to be called when the image fails to load */
-    onLoadingFailure?: () => void;
+    onLoadFailure?: () => void;
 };
 
 function ReceiptImage({
@@ -145,7 +145,7 @@ function ReceiptImage({
     loadingIndicatorStyles,
     thumbnailContainerStyles,
     onLoad,
-    onLoadingFailure,
+    onLoadFailure,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
     const [receiptImageWidth, setReceiptImageWidth] = useState<number | undefined>(undefined);
@@ -213,7 +213,7 @@ function ReceiptImage({
                 fallbackIconBackground={fallbackIconBackground}
                 objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
                 onLoad={onLoad}
-                onLoadingFailure={onLoadingFailure}
+                onLoadFailure={onLoadFailure}
             />
         );
     }
