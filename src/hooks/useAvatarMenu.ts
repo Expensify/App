@@ -1,9 +1,9 @@
 import {useCallback} from 'react';
-import type {FileObject} from '@components/AttachmentModal';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
+import type {FileObject} from '@src/types/utils/Attachment';
 import useLocalize from './useLocalize';
 
 type OpenPicker = (options: {onPicked: (files: FileObject[]) => void}) => void;
@@ -46,25 +46,22 @@ function useAvatarMenu({isUsingDefaultAvatar, isAvatarSelected, accountID, onIma
                     value: null,
                 },
             ];
-            // If current avatar is a default avatar and for no avatar is selected in the form, only show upload option
-            if (isUsingDefaultAvatar && !isAvatarSelected) {
+            // If current avatar is a default avatar and for avatar is selected in the form, only show upload option
+            if (isUsingDefaultAvatar || isAvatarSelected) {
                 return menuItems;
             }
-            menuItems.push({
-                icon: Expensicons.Trashcan,
-                text: translate('avatarWithImagePicker.removePhoto'),
-                value: null,
-                onSelected: () => {
-                    clearError();
-                    onImageRemoved();
-                },
-            });
-            // If an avatar is selected in the form do NOT show view photo
-            if (isAvatarSelected) {
-                return menuItems;
-            }
+
             return [
                 ...menuItems,
+                {
+                    icon: Expensicons.Trashcan,
+                    text: translate('avatarWithImagePicker.removePhoto'),
+                    value: null,
+                    onSelected: () => {
+                        clearError();
+                        onImageRemoved();
+                    },
+                },
                 {
                     value: null,
                     icon: Expensicons.Eye,
