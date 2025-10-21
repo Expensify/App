@@ -73,7 +73,7 @@ function MultiFactorAuthenticationFallbackPage() {
         if (!hasSuccessfullyEnabledBiometrics) {
             return;
         }
-        Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.getRoute('authentication-successful'));
+        Navigation.navigate(ROUTES.MULTIFACTORAUTHENTICATION_NOTIFICATION.getRoute('transaction-denied'));
     }, [hasSuccessfullyEnabledBiometrics]);
 
     // Derived state
