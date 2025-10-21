@@ -13,6 +13,7 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import {openOldDotLink} from '@libs/actions/Link';
 import {AddWorkEmail} from '@libs/actions/Session';
 import HttpUtils from '@libs/HttpUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -252,13 +253,16 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('onboarding.workEmail.title'))).toBeOnTheScreen();
         });
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('onboarding.workEmail.addWorkEmail'))).toBeOnTheScreen();
         });
 
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('common.skip'))).toBeOnTheScreen();
         });
 
@@ -422,6 +426,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('onboarding.workEmailValidation.magicCodeSent', {workEmail}))).toBeOnTheScreen();
         });
 
@@ -451,6 +456,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('onboarding.mergeBlockScreen.subtitle', {workEmail}))).toBeOnTheScreen();
         });
 
@@ -474,7 +480,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
 
         await waitForBatchedUpdatesWithAct();
-
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const skipButton = screen.getByText(translateLocal('common.skip'));
 
         const mockEvent = {
@@ -630,6 +636,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('onboarding.mergeBlockScreen.subtitle', {workEmail}))).toBeOnTheScreen();
         });
 
