@@ -673,6 +673,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     }}
                     shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     index={index}
+                    sectionIndex={section?.indexOffset}
                     isFocused={isItemFocused}
                     isDisabled={isDisabled}
                     showTooltip={shouldShowTooltips}
@@ -741,7 +742,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         if (typeof textInputRef === 'function') {
                             textInputRef(element as RNTextInput);
                         } else {
-                            // eslint-disable-next-line no-param-reassign
+                            // eslint-disable-next-line no-param-reassign, react-compiler/react-compiler
                             textInputRef.current = element as RNTextInput;
                         }
                     }}
@@ -761,7 +762,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     spellCheck={false}
                     iconLeft={textInputIconLeft}
                     onSubmitEditing={selectFocusedOption}
-                    blurOnSubmit={!!flattenedSections.allOptions.length}
+                    submitBehavior={flattenedSections.allOptions.length ? 'blurAndSubmit' : 'submit'}
                     isLoading={isLoadingNewOptions}
                     testID="selection-list-text-input"
                     shouldInterceptSwipe={shouldTextInputInterceptSwipe}

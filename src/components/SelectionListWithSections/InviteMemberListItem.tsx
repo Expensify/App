@@ -33,6 +33,8 @@ function InviteMemberListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     canShowProductTrainingTooltip = true,
+    index = 0,
+    sectionIndex = 0,
     shouldUseDefaultRightHandSideCheckmark = false,
     accessibilityState,
 }: InviteMemberListItemProps<TItem>) {
@@ -108,6 +110,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                     shiftHorizontal={variables.inviteMemberListItemTooltipShiftHorizontal}
                     shouldHideOnNavigate
                     wrapperStyle={styles.productTrainingTooltipWrapper}
+                    uniqueID={`${sectionIndex}-${index}`}
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                         {(!!item.reportID || !!accountID || !!item.text || !!item.alternateText) && (
