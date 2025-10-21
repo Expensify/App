@@ -105,9 +105,9 @@ function ShareTab({ref}: ShareTabProps) {
     const [sections, header] = useMemo(() => {
         const newSections = [];
         newSections.push({title: textInputValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
-        const headerMessage = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), false);
+        const headerMessage = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), false, countryCode);
         return [newSections, headerMessage];
-    }, [textInputValue, styledRecentReports, translate]);
+    }, [textInputValue, styledRecentReports, translate, countryCode]);
 
     const onSelectRow = (item: OptionData) => {
         let reportID = item?.reportID ?? CONST.DEFAULT_NUMBER_ID;
