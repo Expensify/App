@@ -410,8 +410,8 @@ function ReportActionsList({
     }, []);
 
     const isReportUnread = useMemo(
-        () => isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction)),
-        [report, transactionThreadReport, lastAction],
+        () => isUnread(report, transactionThreadReport, isReportArchived) || (lastAction && isCurrentActionUnread(report, lastAction)),
+        [report, transactionThreadReport, isReportArchived, lastAction],
     );
 
     // Mark the report as read when the user initially opens the report and there are unread messages
