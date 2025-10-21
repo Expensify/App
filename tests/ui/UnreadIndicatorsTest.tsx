@@ -219,9 +219,8 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
         Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails),
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report),
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, reportActions),
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${REPORT_ID}`, CONST.NOT_FOUND_ID),
     ]);
-
-    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${REPORT_ID}`, CONST.NOT_FOUND_ID);
 
     // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
     setSidebarLoaded();
