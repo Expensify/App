@@ -3554,6 +3554,7 @@ function openReportFromDeepLink(
                             const currentFocusedRoute = findFocusedRoute(state);
 
                             if (isOnboardingFlowName(currentFocusedRoute?.name)) {
+                                // eslint-disable-next-line @typescript-eslint/no-deprecated
                                 setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
                                 return;
                             }
@@ -4566,6 +4567,8 @@ function resolveActionableMentionWhisper(
         if (actionOriginalMessage && policyID) {
             const currentUserDetails = allPersonalDetails?.[getCurrentUserAccountID()];
             const welcomeNoteSubject = `# ${currentUserDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`;
+
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const welcomeNote = Localize.translateLocal('workspace.common.welcomeNote');
             const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
 

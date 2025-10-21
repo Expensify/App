@@ -1,9 +1,10 @@
 import type {NavigationState} from '@react-navigation/native';
 import {navigationRef} from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, SearchFullscreenNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
-import ROUTES, {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {PlatformStackRouteProp} from '../PlatformStackNavigation/types';
 
 const ReportScreens = {
     [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
@@ -28,15 +29,16 @@ type ReportRoute =
  * @returns The most recent report route in this stack, or null.
  */
 function findDeepestReportInSplitNavigator(stackState: ReportNavigationState): ReportRoute | null {
-    if (!stackState || !stackState.routes || stackState.routes.length === 0) {
+    if (!stackState?.routes || stackState.routes.length === 0) {
         return null;
     }
 
     // Use the history array for chronological order, falling back to current routes if history is absent
-    const keysToSearch = stackState.history || stackState.routes.map((r) => r.key);
+    const keysToSearch = stackState.history ?? stackState.routes.map((r) => r.key);
 
     const routeMap: Record<string, ReportRoute> = stackState.routes.reduce(
         (map, route) => {
+            // eslint-disable-next-line no-param-reassign
             map[route.key] = route;
             return map;
         },
@@ -45,7 +47,7 @@ function findDeepestReportInSplitNavigator(stackState: ReportNavigationState): R
 
     // Iterate the history/keys from the most recent (last element) backward (LIFO)
     for (let i = keysToSearch.length - 1; i >= 0; i--) {
-        const routeKey = keysToSearch[i];
+        const routeKey = keysToSearch.at(i);
         const route = routeMap[routeKey as string];
 
         if (!route) {
@@ -68,7 +70,7 @@ function findDeepestReportInSplitNavigator(stackState: ReportNavigationState): R
  * @returns The route object of the most recent report screen found, or null.
  */
 function findFirstReportScreenOnBack(navigationState = navigationRef.getRootState()): ReportRoute | null {
-    if (!navigationState || !navigationState.routes || navigationState.routes.length === 0) {
+    if (!navigationState?.routes || navigationState.routes.length === 0) {
         return null;
     }
 
@@ -77,7 +79,11 @@ function findFirstReportScreenOnBack(navigationState = navigationRef.getRootStat
     // Iterate over the current routes array in REVERSE (LIFO) order.
     // This prioritizes the most active navigator (e.g., RightModalNavigator, then SearchFullscreenNavigator, then ReportsSplitNavigator).
     for (let i = routes.length - 1; i >= 0; i--) {
-        const route = routes[i];
+        const route = routes.at(i);
+
+        if (!route) {
+            continue;
+        }
 
         // 1. Handle primary navigators (like ReportsSplitNavigator)
         if (route.name === 'ReportsSplitNavigator' && route.state) {
@@ -109,15 +115,15 @@ function getFirstReportRouteOnBack(): Route | undefined {
         return;
     }
     switch (route.name) {
-        case SCREENS.REPORT:
+        case SCREENS.REPORT: {
             const {reportID, reportActionID, referrer, backTo} = route.params;
             return ReportScreens[SCREENS.REPORT].getRoute(reportID, reportActionID, referrer, backTo);
+        }
         case SCREENS.SEARCH.REPORT_RHP:
             return ReportScreens[SCREENS.SEARCH.REPORT_RHP].getRoute(route.params);
         case SCREENS.SEARCH.MONEY_REQUEST_REPORT:
             return ReportScreens[SCREENS.SEARCH.MONEY_REQUEST_REPORT].getRoute(route.params);
         default:
-            return;
     }
 }
 
