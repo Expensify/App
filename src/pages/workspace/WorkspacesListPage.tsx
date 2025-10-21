@@ -668,7 +668,7 @@ function WorkspacesListPage() {
                 case 'domains-header': {
                     return (
                         <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, styles.ph5, styles.pv3, styles.mt0, styles.mb0]}>
-                            <Text style={[styles.ph5, styles.textLabelSupporting]}>Domain</Text>
+                            <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.domains')}</Text>
                         </View>
                     );
                 }
@@ -681,7 +681,7 @@ function WorkspacesListPage() {
                     return null;
             }
         },
-        [getDomainMenuItem, getWorkspaceMenuItem, styles, getWorkspacesEmptyStateComponent],
+        [getDomainMenuItem, getWorkspaceMenuItem, getWorkspacesEmptyStateComponent, styles, translate],
     );
 
     if (workspaces.length === 0 && domains.length === 0) {
