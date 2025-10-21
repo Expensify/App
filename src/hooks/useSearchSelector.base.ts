@@ -198,6 +198,7 @@ function useSearchSelectorBase({
                     searchQuery: computedSearchTerm,
                     maxResults,
                     includeUserToInvite,
+                    countryCode,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
                 return getValidOptions(optionsWithContacts, draftComments, {
@@ -256,6 +257,7 @@ function useSearchSelectorBase({
         computedSearchTerm,
         maxResults,
         includeUserToInvite,
+        countryCode,
         excludeLogins,
         includeRecentReports,
         includeCurrentUser,

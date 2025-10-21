@@ -56,7 +56,6 @@ function useOptions() {
         searchTerm,
         setSearchTerm,
         debouncedSearchTerm,
-        // searchOptions: options,
         toggleSelection,
         availableOptions,
     } = useSearchSelector({

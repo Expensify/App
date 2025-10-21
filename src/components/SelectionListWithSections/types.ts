@@ -1,4 +1,4 @@
-import type {ForwardedRef, JSXElementConstructor, MutableRefObject, ReactElement, ReactNode} from 'react';
+import type {ForwardedRef, JSXElementConstructor, ReactElement, ReactNode, RefObject} from 'react';
 import type {
     GestureResponderEvent,
     InputModeOptions,
@@ -487,6 +487,8 @@ type TransactionSelectionListItem<TItem extends ListItem> = ListItemProps<TItem>
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
+    index?: number;
+    sectionIndex?: number;
 };
 
 type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
@@ -824,8 +826,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     alternateTextNumberOfLines?: number;
 
     /** Ref for textInput */
-    // eslint-disable-next-line deprecation/deprecation
-    textInputRef?: MutableRefObject<TextInput | null> | ((ref: TextInput | null) => void);
+    textInputRef?: RefObject<TextInput | null> | ((ref: TextInput | null) => void);
 
     /** Styles for the section title */
     sectionTitleStyles?: StyleProp<ViewStyle>;
