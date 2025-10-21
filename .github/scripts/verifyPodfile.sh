@@ -2,6 +2,18 @@
 
 set -e
 
+if [ -n "$1" ]; then
+  IOS_PATH="Mobile-Expensify/iOS"
+  PROVISIONING_PROFILE_SPECIFIER="\"(OldApp) AppStore\""
+  PBXPROJ_PATH=$IOS_PATH/Expensify.xcodeproj/project.pbxproj
+  PATH_TO_ROOT_DIR="../.."
+else
+  IOS_PATH="ios"
+  PROVISIONING_PROFILE_SPECIFIER="\"(NewApp) AppStore\""
+  PBXPROJ_PATH=$IOS_PATH/NewExpensify.xcodeproj/project.pbxproj
+  PATH_TO_ROOT_DIR=".."
+fi
+
 START_DIR=$(pwd)
 ROOT_DIR=$(dirname "$(dirname "$(dirname "${BASH_SOURCE[0]}")")")
 cd "$ROOT_DIR" || exit 1
@@ -19,15 +31,15 @@ function cleanupAndExit {
 
 # Check Provisioning Style. If automatic signing is enabled, iOS builds will fail, so ensure we always have the proper profile specified
 info "Verifying that automatic signing is not enabled"
-if grep -q 'PROVISIONING_PROFILE_SPECIFIER = "(NewApp) AppStore"' ios/NewExpensify.xcodeproj/project.pbxproj; then
+if grep -q "PROVISIONING_PROFILE_SPECIFIER = $PROVISIONING_PROFILE_SPECIFIER" "$PBXPROJ_PATH"; then
   success "Automatic signing not enabled"
 else
   error "Error: Automatic provisioning style is not allowed!"
   cleanupAndExit 1
 fi
 
-PODFILE_SHA=$(openssl sha1 ios/Podfile | awk '{print $2}')
-PODFILE_LOCK_SHA=$(awk '/PODFILE CHECKSUM: /{print $3}' ios/Podfile.lock)
+PODFILE_SHA=$(openssl sha1 "$IOS_PATH"/Podfile | awk '{print $2}')
+PODFILE_LOCK_SHA=$(awk '/PODFILE CHECKSUM: /{print $3}' "$IOS_PATH"/Podfile.lock)
 
 echo "Podfile: $PODFILE_SHA"
 echo "Podfile.lock: $PODFILE_LOCK_SHA"
@@ -45,7 +57,7 @@ POD_VERSION_REGEX='([[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+)?';
 POD_VERSION_FROM_GEMFILE="$(sed -nr "s/gem \"cocoapods\", \"= $POD_VERSION_REGEX\"/\1/p" Gemfile)"
 info "Pod version from Gemfile: $POD_VERSION_FROM_GEMFILE"
 
-POD_VERSION_FROM_PODFILE_LOCK="$(sed -nr "s/COCOAPODS: $POD_VERSION_REGEX/\1/p" ios/Podfile.lock)"
+POD_VERSION_FROM_PODFILE_LOCK="$(sed -nr "s/COCOAPODS: $POD_VERSION_REGEX/\1/p" "$IOS_PATH"/Podfile.lock)"
 info "Pod version from Podfile.lock: $POD_VERSION_FROM_PODFILE_LOCK"
 
 if [[ "$POD_VERSION_FROM_GEMFILE" == "$POD_VERSION_FROM_PODFILE_LOCK" ]]; then
@@ -58,7 +70,7 @@ fi
 info "Comparing Podfile.lock with node packages..."
 
 # Retrieve a list of podspec directories as listed in the Podfile.lock
-if ! SPEC_DIRS=$(yq '.["EXTERNAL SOURCES"].[].":path" | select( . == "*node_modules*")' < ios/Podfile.lock); then
+if ! SPEC_DIRS=$(yq '.["EXTERNAL SOURCES"].[].":path" | select( . == "*node_modules*")' < "$IOS_PATH"/Podfile.lock); then
   error "Error: Could not parse podspec directories from Podfile.lock"
   cleanupAndExit 1
 fi
@@ -81,16 +93,17 @@ fi
 
 # Check for uncommitted package removals
 # If they are listed in Podfile.lock but the directories don't exist they have been removed
+
 while read -r DIR; do
-  if [[ ! -d "${DIR#../}" ]]; then
-    error "Directory \`${DIR#../node_modules/}\` not found in node_modules. Did you forget to run \`npx pod-install\` after removing the package?"
+  if [[ ! -d "${DIR#"$PATH_TO_ROOT_DIR"/}" ]]; then
+    error "Directory \`${DIR#"$PATH_TO_ROOT_DIR"/node_modules/}\` not found in node_modules. Did you forget to run \`npx pod-install\` after removing the package?"
     cleanupAndExit 1
   fi
 done <<< "$SPEC_DIRS"
 
 # Check for uncommitted package additions/updates
 while read -r POD; do
-  if ! grep -q "$POD" ./ios/Podfile.lock; then
+  if ! grep -q "$POD" ./"$IOS_PATH"/Podfile.lock; then
     error "$POD not found in Podfile.lock. Did you forget to run \`npx pod-install\`?"
     cleanupAndExit 1
   fi
