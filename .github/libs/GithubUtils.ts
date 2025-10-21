@@ -317,8 +317,11 @@ class GithubUtils {
         isFirebaseChecked = false,
         isGHStatusChecked = false,
     ): Promise<void | StagingDeployCashBody> {
-        return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
-            .then((data) => {
+        return Promise.all([
+            this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr))),
+            this.fetchAllPullRequests(PRListMobileExpensify.map((pr) => this.getPullRequestNumberFromURL(pr)), CONST.MOBILE_EXPENSIFY_REPO),
+        ])
+            .then(([data, mobileExpensifyData]) => {
                 const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !isEmptyObject(pr.labels.find((item) => item.name === CONST.LABELS.INTERNAL_QA))) : [];
                 return Promise.all(internalQAPRs.map((pr) => this.getPullRequestMergerLogin(pr.number).then((mergerLogin) => ({url: pr.html_url, mergerLogin})))).then((results) => {
                     // The format of this map is following:
@@ -334,7 +337,9 @@ class GithubUtils {
 
                     const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
                     console.log('Found the following NO QA PRs:', noQAPRs);
-                    const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs])];
+                    const noQAMobileExpensifyPRs = Array.isArray(mobileExpensifyData) ? mobileExpensifyData.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
+                    console.log('Found the following NO QA Mobile-Expensify PRs:', noQAMobileExpensifyPRs);
+                    const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs, ...noQAMobileExpensifyPRs])];
 
                     const sortedPRList = [...new Set(arrayDifference(PRList, Object.keys(internalQAPRMap)))].sort(
                         (a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b),
