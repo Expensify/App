@@ -1,5 +1,5 @@
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -65,6 +65,7 @@ function IOURequestStepCategory({
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyIdDraft}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const report = reportReal ?? reportDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
@@ -88,13 +89,11 @@ function IOURequestStepCategory({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
-    const fetchData = () => {
-        if ((!!policy && !!policyCategories) || !report?.policyID) {
-            return;
-        }
+    const fetchData = useCallback(() => {
+        const policyIDToFetchCategories = report?.policyID === CONST.POLICY.ID_FAKE ? activePolicyID : report?.policyID;
+        getPolicyCategories(policyIDToFetchCategories ?? CONST.POLICY.ID_FAKE);
+    }, [activePolicyID, report?.policyID]);
 
-        getPolicyCategories(report?.policyID);
-    };
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isLoading = !isOffline && policyCategories === undefined;
     const shouldShowEmptyState = policyCategories !== undefined && !shouldShowCategory;
@@ -102,8 +101,7 @@ function IOURequestStepCategory({
 
     useEffect(() => {
         fetchData();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    }, [fetchData]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
