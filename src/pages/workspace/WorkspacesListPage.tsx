@@ -644,16 +644,15 @@ function WorkspacesListPage() {
 
     useHandleBackButton(onBackButtonPress);
 
-    const data = useMemo(
-        () =>
-            [
-                !workspaces.length ? [{listItemType: 'workspaces-empty-state' as const}] : [],
-                filteredWorkspaces,
-                domains.length ? [{listItemType: 'domains-header' as const}] : [],
-                domains,
-            ].flat(),
-        [domains, filteredWorkspaces, workspaces.length],
-    );
+    const data = useMemo(() => {
+        const shouldShowDomainsSection = !inputValue.trim().length && domains.length;
+
+        return [
+            !workspaces.length ? [{listItemType: 'workspaces-empty-state' as const}] : [],
+            filteredWorkspaces,
+            shouldShowDomainsSection ? [{listItemType: 'domains-header' as const}, ...domains] : [],
+        ].flat();
+    }, [domains, filteredWorkspaces, workspaces.length, inputValue]);
 
     const renderItem = useCallback(
         // eslint-disable-next-line react/no-unused-prop-types
