@@ -11,7 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {changePolicyUberBillingAccount, clearErrors} from '@libs/actions/Policy/Policy';
+import {changePolicyUberBillingAccount} from '@libs/actions/Policy/Policy';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
@@ -119,7 +119,6 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
             if (!centralBillingAccountEmail) {
                 return;
             }
-            clearErrors(policyID);
             setSelectedOption(option.login);
 
             changePolicyUberBillingAccount(policyID, option.login, centralBillingAccountEmail);

@@ -2993,7 +2993,7 @@ function togglePolicyUberAutoInvite(policyID: string | undefined, enabled: boole
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
-            value: {receiptPartners: {uber: {pendingFields: null}}},
+            value: {receiptPartners: {uber: {pendingFields: {autoInvite: null}}}},
         },
     ];
     const failureData: OnyxUpdate[] = [
@@ -3028,7 +3028,7 @@ function changePolicyUberBillingAccount(policyID: string | undefined, email: str
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
-            value: {receiptPartners: {uber: {pendingFields: null}}},
+            value: {receiptPartners: {uber: {pendingFields: {centralBillingAccountEmail: null}}}},
         },
     ];
     const failureData: OnyxUpdate[] = [
@@ -3063,7 +3063,7 @@ function togglePolicyUberAutoRemove(policyID: string | undefined, enabled: boole
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
-            value: {receiptPartners: {uber: {pendingFields: null}}},
+            value: {receiptPartners: {uber: {pendingFields: {autoRemove: null}}}},
         },
     ];
     const failureData: OnyxUpdate[] = [
