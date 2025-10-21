@@ -3639,8 +3639,62 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
+        });
+
+        it('should return true for empty submitted report if it is the current focused report', async () => {
+            const report: Report = {...LHNTestUtils.getFakeReport(), total: 0, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED};
+            const currentReportId = report.reportID;
+
+            const isInFocusMode = true;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            const createdReportAction: ReportAction = {...LHNTestUtils.getFakeReportAction(), actionName: CONST.REPORT.ACTIONS.TYPE.CREATED};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[createdReportAction.reportActionID]: createdReportAction});
+
+            expect(
+                shouldReportBeInOptionList({
+                    report,
+                    chatReport: mockedChatReport,
+                    currentReportId,
+                    isInFocusMode,
+                    betas,
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: false,
+                    draftComment: '',
+                    isReportArchived: undefined,
+                }),
+            ).toBeTruthy();
+        });
+
+        it('should return false for empty submitted report if it is not the current focused report', async () => {
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                total: 0,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            };
+            const currentReportId = `${report.reportID}1`;
+
+            const isInFocusMode = true;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            const createdReportAction: ReportAction = {...LHNTestUtils.getFakeReportAction(), actionName: CONST.REPORT.ACTIONS.TYPE.CREATED};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[createdReportAction.reportActionID]: createdReportAction});
+
+            expect(
+                shouldReportBeInOptionList({
+                    report,
+                    chatReport: mockedChatReport,
+                    currentReportId,
+                    isInFocusMode,
+                    betas,
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: false,
+                    draftComment: '',
+                    isReportArchived: undefined,
+                }),
+            ).toBeFalsy();
         });
 
         it('should return true when the report has outstanding violations', async () => {
@@ -3691,6 +3745,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: true,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3713,6 +3768,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3735,6 +3791,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: 'fake draft',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3757,6 +3814,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3792,6 +3850,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3878,6 +3937,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     includeSelfDM,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -3904,6 +3964,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -3923,6 +3984,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -3945,6 +4007,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -3987,6 +4050,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4006,6 +4070,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4027,6 +4092,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     includeDomainEmail: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4072,6 +4138,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4091,6 +4158,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -4124,6 +4192,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
                     draftComment: '',
+                    isReportArchived: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -5665,6 +5734,28 @@ describe('ReportUtils', () => {
 
             // There should be some kind of a reason (any reason is fine)
             expect(result).toHaveProperty('reason');
+        });
+
+        it('should return HAS_UNRESOLVED_CARD_FRAUD_ALERT when report has unresolved fraud alert', async () => {
+            const report: OptionData = {
+                ...createRandomReport(40000),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                isUnreadWithMention: true,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(40000),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [reportAction.reportActionID]: reportAction,
+            });
+
+            // When the reason is retrieved
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived.current);
+
+            expect(result).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_UNRESOLVED_CARD_FRAUD_ALERT);
         });
 
         it('should return null for an archived report', async () => {

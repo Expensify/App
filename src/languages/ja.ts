@@ -24,7 +24,6 @@ import type {
     AddEmployeeParams,
     AddOrDeletePolicyCustomUnitRateParams,
     AddressLineParams,
-    AdminCanceledRequestParams,
     AirlineParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
@@ -181,7 +180,6 @@ import type {
     QBDSetupErrorBodyParams,
     RailTicketParams,
     ReceiptPartnersUberSubtitleParams,
-    ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
     RemoveMemberPromptParams,
@@ -209,6 +207,7 @@ import type {
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
     SettlementAccountInfoParams,
+    SettlementAccountReconciliationParams,
     SettlementDateParams,
     ShareParams,
     SignerInfoMessageParams,
@@ -971,6 +970,7 @@ const translations = {
         buttonMySettings: '私の設定',
         fabNewChat: 'チャットを開始',
         fabNewChatExplained: 'チャットを開始 (フローティングアクション)',
+        fabScanReceiptExplained: 'レシートをスキャン（フローティングアクション）',
         chatPinned: 'チャットがピン留めされました',
         draftedMessage: '下書きメッセージ',
         listOfChatMessages: 'チャットメッセージのリスト',
@@ -1277,7 +1277,7 @@ const translations = {
         forwarded: `承認済み`,
         rejectedThisReport: 'このレポートを拒否しました',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `支払いを開始しましたが、${submitterDisplayName}が銀行口座を追加するのを待っています。`,
-        adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}が支払いをキャンセルしました`,
+        adminCanceledRequest: '支払いをキャンセルしました',
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `${submitterDisplayName}が30日以内にExpensifyウォレットを有効にしなかったため、${amount}の支払いをキャンセルしました。`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -1474,6 +1474,7 @@ const translations = {
                 subtitle: '承認ワークフローの残りの部分を経由する前に、このレポートの追加の承認者を選択してください。',
             },
         },
+        chooseWorkspace: 'ワークスペースを選択',
     },
     transactionMerge: {
         listPage: {
@@ -2008,12 +2009,32 @@ const translations = {
         cardDetailsLoadingFailure: 'カードの詳細を読み込む際にエラーが発生しました。インターネット接続を確認して、もう一度お試しください。',
         validateCardTitle: 'あなたであることを確認しましょう',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `カードの詳細を表示するには、${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
+        cardFraudAlert: {
+            confirmButtonText: 'はい、そうです。',
+            reportFraudButtonText: 'いいえ、それは私ではありませんでした。',
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) => `不審な活動をクリアし、カードx${cardLastFour}を再有効化しました。経費精算を続ける準備が整いました！`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `${cardLastFour}で終わるカードを無効にしました。`,
+            alertMessage: ({
+                cardLastFour,
+                amount,
+                merchant,
+                date,
+            }: {
+                cardLastFour: string;
+                amount: string;
+                merchant: string;
+                date: string;
+            }) => `カードの末尾が${cardLastFour}のカードで不審な活動が確認されました。この請求を認識していますか？
+
+${date} - ${merchant}に${amount}`,
+        },
     },
     workflowsPage: {
         workflowTitle: '支出',
         workflowDescription: '支出が発生した瞬間から、承認および支払いを含むワークフローを設定します。',
         submissionFrequency: '提出頻度',
         submissionFrequencyDescription: '経費を提出する頻度を選択します。',
+        disableApprovalPromptDescription: '承認を無効にすると、既存の承認ワークフローがすべて削除されます。',
         submissionFrequencyDateOfMonth: '月の日付',
         addApprovalsTitle: '承認を追加',
         addApprovalButton: '承認ワークフローを追加',
@@ -2595,7 +2616,7 @@ const translations = {
                 descriptionTwo: '経費を分類してタグ付けする',
                 descriptionThree: 'レポートを作成して共有する',
             },
-            price: '30日間無料でお試しいただけます。その後、<strong>$5/月</strong>でアップグレードしてください。',
+            price: '30日間無料でお試しいただけます。その後、<strong>$5/ユーザー/月</strong>でアップグレードしてください。',
             createWorkspace: 'ワークスペースを作成',
         },
         confirmWorkspace: {
@@ -3262,7 +3283,7 @@ const translations = {
     },
     signerInfoStep: {
         signerInfo: '署名者情報',
-        areYouDirector: ({companyName}: CompanyNameParams) => `あなたは${companyName}の取締役または上級役員ですか？`,
+        areYouDirector: ({companyName}: CompanyNameParams) => `あなたは${companyName}の取締役ですか？`,
         regulationRequiresUs: '規制により、署名者がビジネスを代表してこの行動を取る権限があるかどうかを確認する必要があります。',
         whatsYourName: 'あなたの法的な名前は何ですか',
         fullName: '法的なフルネーム',
@@ -3274,13 +3295,13 @@ const translations = {
         letsDoubleCheck: 'すべてが正しいかどうかをもう一度確認しましょう。',
         legalName: '法的氏名',
         proofOf: '個人住所の証明書',
-        enterOneEmail: ({companyName}: CompanyNameParams) => `${companyName}のディレクターまたは上級役員のメールアドレスを入力してください。`,
-        regulationRequiresOneMoreDirector: '規制により、署名者として少なくとももう一人の取締役または上級役員が必要です。',
+        enterOneEmail: ({companyName}: CompanyNameParams) => `${companyName}の取締役のメールアドレスを入力してください。`,
+        regulationRequiresOneMoreDirector: '規制により、署名者として少なくとももう一人の取締役が必要です。',
         hangTight: 'お待ちください…',
-        enterTwoEmails: ({companyName}: CompanyNameParams) => `${companyName}の取締役または上級役員のメールアドレスを2件入力してください。`,
+        enterTwoEmails: ({companyName}: CompanyNameParams) => `${companyName}の取締役のメールアドレスを2件入力してください。`,
         sendReminder: 'リマインダーを送信',
         chooseFile: 'ファイルを選択',
-        weAreWaiting: '私たちは、他の人がビジネスの取締役または上級役員としての身元を確認するのを待っています。',
+        weAreWaiting: '私たちは、他の人がビジネスの取締役としての身元を確認するのを待っています。',
         id: 'IDのコピー',
         proofOfDirectors: '取締役の証明書',
         proofOfDirectorsDescription: '例: Oncorp Corporate Profile または Business Registration.',
@@ -3289,11 +3310,11 @@ const translations = {
         PDSandFSG: 'PDS + FSG開示書類',
         PDSandFSGDescription:
             '私たちのCorpayとの提携は、API接続を利用して、彼らの広範な国際銀行パートナーのネットワークを活用し、Expensifyでのグローバル払い戻しを実現します。オーストラリアの規制に従い、Corpayの金融サービスガイド（FSG）と製品開示声明（PDS）を提供しています。\n\nFSGとPDSの文書には、Corpayが提供する製品とサービスに関する詳細情報と重要な情報が含まれているため、注意深くお読みください。これらの文書は、将来の参考のために保管してください。',
-        pleaseUpload: '事業体の取締役または上級役員としての身元を確認するために、追加の書類を以下にアップロードしてください。',
+        pleaseUpload: '事業体の取締役としての身元を確認するために、追加の書類を以下にアップロードしてください。',
         enterSignerInfo: '署名者情報を入力してください',
         thisStep: 'このステップは完了しました',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
-            `${currency}のビジネス銀行口座（下4桁：${bankAccountLastFour}）をExpensifyに接続して、従業員に${currency}で支払います。次のステップでは、取締役または上級役員の署名者情報が必要です。`,
+            `${currency}のビジネス銀行口座（下4桁：${bankAccountLastFour}）をExpensifyに接続して、従業員に${currency}で支払います。次のステップでは、取締役の署名者情報が必要です。`,
         error: {
             emailsMustBeDifferent: 'メールアドレスは異なる必要があります',
         },
@@ -3452,6 +3473,8 @@ const translations = {
         verifyCompany: {
             title: '今日から旅行を始めましょう！',
             message: `旅行のデモを取得し、御社向けに有効化するには、アカウントマネージャーまたはsalesteam@expensify.comにご連絡ください。`,
+            confirmText: '了解しました。',
+            conciergeMessage: ({domain}: {domain: string}) => `ドメイン: ${domain} のトラベル有効化に失敗しました。このドメインのトラベルを確認して有効にしてください。`,
         },
         updates: {
             bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
@@ -4559,7 +4582,7 @@ const translations = {
                 `このカードの限度額タイプを月次に変更すると、${limit} の月次限度額にすでに達しているため、新しい取引は拒否されます。`,
             addShippingDetails: '配送詳細を追加',
             issuedCard: ({assignee}: AssigneeParams) => `${assignee}にExpensifyカードを発行しました！カードは2～3営業日で到着します。`,
-            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `${assignee}にExpensifyカードを発行しました！カードは発送情報が追加され次第、発送されます。`,
+            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `${assignee} に Expensify Card を発行しました！配送情報が確認され次第、カードは発送されます。`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `${assignee}にバーチャル${link}を発行しました！カードはすぐに使用できます。`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee}が配送情報を追加しました。Expensify Cardは2～3営業日で到着します。`,
             verifyingHeader: '確認中',
@@ -5324,9 +5347,9 @@ const translations = {
                 `<muted-text-label>継続的な照合を有効にするため、${connectionName}の<a href="${accountingAdvancedSettingsLink}">自動同期</a>を有効にしてください。</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Expensifyカードの支払いを照合する銀行口座を選択してください。',
-                accountMatches: 'このアカウントがあなたのものと一致していることを確認してください',
-                settlementAccount: 'Expensifyカード決済口座',
-                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `（${lastFourPAN}で終わる）ため、継続的な調整が正しく機能します。`,
+
+                settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
+                    `このアカウントがあなたの<a href="${settlementAccountUrl}">Expensifyカード決済口座</a>（${lastFourPAN}で終わる）と一致していることを確認してください。`,
             },
         },
         export: {
@@ -6332,8 +6355,8 @@ const translations = {
         noActivityYet: 'まだ活動がありません',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `${fieldName}を${oldValue}から${newValue}に変更しました`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `${fieldName}を${newValue}に変更しました`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `${fieldName}を"${newValue}"に変更しました（以前は"${oldValue}"でした）`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `${fieldName}を"${newValue}"に設定しました`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `ワークスペースを変更しました${fromPolicyName ? `（以前は ${fromPolicyName}）` : ''}`;
@@ -7125,6 +7148,7 @@ const translations = {
             isWaitingForAssigneeToCompleteAction: '担当者がアクションを完了するのを待っています',
             hasChildReportAwaitingAction: '子レポートがアクション待ちです。',
             hasMissingInvoiceBankAccount: '請求書の銀行口座がありません',
+            hasUnresolvedCardFraudAlert: '未解決のカード詐欺警告があります',
         },
         reasonRBR: {
             hasErrors: 'レポートまたはレポートアクションデータにエラーがあります',
@@ -7237,7 +7261,13 @@ const translations = {
         exportInProgress: 'エクスポート中',
         conciergeWillSend: 'コンシェルジュがまもなくファイルを送信します。',
     },
-    avatarPage: {title: 'プロフィール写真を編集', uploadPhoto: '写真をアップロード'},
+    avatarPage: {
+        title: 'プロフィール写真を編集',
+        upload: 'アップロード',
+        uploadPhoto: '写真をアップロード',
+        selectAvatar: 'アバターを選択',
+        chooseCustomAvatar: 'またはカスタムアバターを選択',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

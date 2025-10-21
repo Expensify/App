@@ -24,7 +24,6 @@ import type {
     AddEmployeeParams,
     AddOrDeletePolicyCustomUnitRateParams,
     AddressLineParams,
-    AdminCanceledRequestParams,
     AirlineParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
@@ -181,7 +180,6 @@ import type {
     QBDSetupErrorBodyParams,
     RailTicketParams,
     ReceiptPartnersUberSubtitleParams,
-    ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
     RemoveMemberPromptParams,
@@ -209,6 +207,7 @@ import type {
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
     SettlementAccountInfoParams,
+    SettlementAccountReconciliationParams,
     SettlementDateParams,
     ShareParams,
     SignerInfoMessageParams,
@@ -969,6 +968,7 @@ const translations = {
         buttonMySettings: 'Le mie impostazioni',
         fabNewChat: 'Inizia chat',
         fabNewChatExplained: 'Avvia chat (Azione flottante)',
+        fabScanReceiptExplained: 'Scansiona ricevuta (Azione flottante)',
         chatPinned: 'Chat fissata',
         draftedMessage: 'Messaggio redatto',
         listOfChatMessages: 'Elenco dei messaggi di chat',
@@ -1274,7 +1274,7 @@ const translations = {
         forwarded: `approvato`,
         rejectedThisReport: 'ha respinto questo rapporto',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `ha avviato il pagamento, ma è in attesa che ${submitterDisplayName} aggiunga un conto bancario.`,
-        adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''} ha annullato il pagamento`,
+        adminCanceledRequest: 'ha annullato il pagamento',
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `annullato il pagamento di ${amount}, perché ${submitterDisplayName} non ha attivato il loro Expensify Wallet entro 30 giorni`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -1472,6 +1472,7 @@ const translations = {
                 subtitle: 'Scegli un approvatore aggiuntivo per questo report prima di instradarlo attraverso il resto del flusso di lavoro di approvazione.',
             },
         },
+        chooseWorkspace: "Scegli un'area di lavoro",
     },
     transactionMerge: {
         listPage: {
@@ -2014,6 +2015,26 @@ const translations = {
         validateCardTitle: 'Verifichiamo che sei tu',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Inserisci il codice magico inviato a ${contactMethod} per visualizzare i dettagli della tua carta. Dovrebbe arrivare entro un minuto o due.`,
+        cardFraudAlert: {
+            confirmButtonText: 'Sì, lo faccio',
+            reportFraudButtonText: 'No, non ero io',
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) =>
+                `abbiamo eliminato l'attività sospetta e riattivato la carta x${cardLastFour}. Tutto pronto per continuare a registrare le spese!`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `disattivato la carta che termina con ${cardLastFour}`,
+            alertMessage: ({
+                cardLastFour,
+                amount,
+                merchant,
+                date,
+            }: {
+                cardLastFour: string;
+                amount: string;
+                merchant: string;
+                date: string;
+            }) => `attività sospetta identificata sulla carta che termina con ${cardLastFour}. Riconosci questo addebito?
+
+${amount} per ${merchant} - ${date}`,
+        },
     },
     workflowsPage: {
         workflowTitle: 'Spendere',
@@ -2022,6 +2043,7 @@ const translations = {
         delaySubmissionDescription: "Scegli un programma personalizzato per l'invio delle spese, oppure lascialo disattivato per aggiornamenti in tempo reale sulle spese.",
         submissionFrequency: 'Frequenza di invio',
         submissionFrequencyDescription: 'Scegli una frequenza per inviare le spese.',
+        disableApprovalPromptDescription: 'Disabilitare le approvazioni eliminerà tutti i flussi di lavoro di approvazione esistenti.',
         submissionFrequencyDateOfMonth: 'Data del mese',
         addApprovalsTitle: 'Aggiungi approvazioni',
         addApprovalButton: 'Aggiungi flusso di lavoro di approvazione',
@@ -2605,7 +2627,7 @@ const translations = {
                 descriptionTwo: 'Categorizza e tagga le spese',
                 descriptionThree: 'Crea e condividi rapporti',
             },
-            price: 'Provalo gratis per 30 giorni, poi passa al piano superiore per soli <strong>$5/mese</strong>.',
+            price: 'Provalo gratis per 30 giorni, poi passa al piano superiore per soli <strong>$5/utente/mese</strong>.',
             createWorkspace: 'Crea workspace',
         },
         confirmWorkspace: {
@@ -3279,7 +3301,7 @@ const translations = {
     },
     signerInfoStep: {
         signerInfo: 'Informazioni sul firmatario',
-        areYouDirector: ({companyName}: CompanyNameParams) => `Sei un direttore o un dirigente senior presso ${companyName}?`,
+        areYouDirector: ({companyName}: CompanyNameParams) => `Sei un direttore presso ${companyName}?`,
         regulationRequiresUs: "La normativa ci impone di verificare se il firmatario ha l'autorità di intraprendere questa azione per conto dell'azienda.",
         whatsYourName: 'Qual è il tuo nome legale?',
         fullName: 'Nome completo legale',
@@ -3291,13 +3313,13 @@ const translations = {
         letsDoubleCheck: 'Verifichiamo che tutto sia corretto.',
         legalName: 'Nome legale',
         proofOf: 'Prova di indirizzo personale',
-        enterOneEmail: ({companyName}: CompanyNameParams) => `Inserisci l'email del direttore o dirigente senior presso ${companyName}`,
-        regulationRequiresOneMoreDirector: 'La normativa richiede almeno un altro direttore o dirigente senior come firmatario.',
+        enterOneEmail: ({companyName}: CompanyNameParams) => `Inserisci l'email del direttore presso ${companyName}`,
+        regulationRequiresOneMoreDirector: 'La normativa richiede almeno un altro direttore come firmatario.',
         hangTight: 'Attendi un attimo...',
-        enterTwoEmails: ({companyName}: CompanyNameParams) => `Inserisci le email di due direttori o dirigenti senior presso ${companyName}`,
+        enterTwoEmails: ({companyName}: CompanyNameParams) => `Inserisci le email di due direttori presso ${companyName}`,
         sendReminder: 'Invia un promemoria',
         chooseFile: 'Scegli file',
-        weAreWaiting: "Stiamo aspettando che altri verifichino la loro identità come direttori o dirigenti senior dell'azienda.",
+        weAreWaiting: "Stiamo aspettando che altri verifichino la loro identità come direttori dell'azienda.",
         id: "Copia del documento d'identità",
         proofOfDirectors: 'Prova del/i direttore/i',
         proofOfDirectorsDescription: 'Esempi: Profilo aziendale Oncorp o registrazione aziendale.',
@@ -3306,11 +3328,11 @@ const translations = {
         PDSandFSG: 'Documentazione di divulgazione PDS + FSG',
         PDSandFSGDescription:
             'La nostra partnership con Corpay utilizza una connessione API per sfruttare la loro vasta rete di partner bancari internazionali per alimentare i Rimborsi Globali in Expensify. Secondo la normativa australiana, ti forniamo la Guida ai Servizi Finanziari (FSG) e la Dichiarazione di Divulgazione del Prodotto (PDS) di Corpay.\n\nSi prega di leggere attentamente i documenti FSG e PDS poiché contengono dettagli completi e informazioni importanti sui prodotti e servizi offerti da Corpay. Conserva questi documenti per riferimento futuro.',
-        pleaseUpload: "Si prega di caricare ulteriore documentazione qui sotto per aiutarci a verificare la tua identità come direttore o dirigente senior dell'entità aziendale.",
+        pleaseUpload: "Si prega di caricare ulteriore documentazione qui sotto per aiutarci a verificare la tua identità come direttore dell'entità aziendale.",
         enterSignerInfo: 'Inserisci le informazioni del firmatario',
         thisStep: 'Questo passaggio è stato completato',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
-            `sta collegando un conto bancario aziendale in ${currency} terminante con ${bankAccountLastFour} a Expensify per pagare i dipendenti in ${currency}. Il prossimo passaggio richiede le informazioni di un firmatario, come un direttore o un dirigente.`,
+            `sta collegando un conto bancario aziendale in ${currency} terminante con ${bankAccountLastFour} a Expensify per pagare i dipendenti in ${currency}. Il prossimo passaggio richiede le informazioni di un firmatario, come un direttore.`,
         error: {
             emailsMustBeDifferent: 'Le email devono essere diverse',
         },
@@ -3470,6 +3492,8 @@ const translations = {
         verifyCompany: {
             title: 'Inizia a viaggiare oggi stesso!',
             message: `Si prega di contattare il proprio Account Manager o salesteam@expensify.com per ottenere una demo di viaggio e attivarla per la vostra azienda.`,
+            confirmText: 'Got it',
+            conciergeMessage: ({domain}: {domain: string}) => `Abilitazione del viaggio fallita per il dominio: ${domain}. Si prega di rivedere e abilitare il viaggio per questo dominio.`,
         },
         updates: {
             bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
@@ -4598,7 +4622,8 @@ const translations = {
                 `Se cambi il tipo di limite di questa carta a Mensile, le nuove transazioni verranno rifiutate perché il limite mensile di ${limit} è già stato raggiunto.`,
             addShippingDetails: 'Aggiungi dettagli di spedizione',
             issuedCard: ({assignee}: AssigneeParams) => `ha emesso a ${assignee} una Expensify Card! La carta arriverà in 2-3 giorni lavorativi.`,
-            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `ha emesso una Expensify Card per ${assignee}! La carta verrà spedita una volta aggiunti i dettagli di spedizione.`,
+            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
+                `È stata emessa una Expensify Card per ${assignee}! La carta verrà spedita una volta confermati i dettagli di spedizione.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `ha emesso ${assignee} una ${link} virtuale! La carta può essere utilizzata immediatamente.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} ha aggiunto i dettagli di spedizione. La carta Expensify arriverà in 2-3 giorni lavorativi.`,
             verifyingHeader: 'Verifica in corso',
@@ -5368,9 +5393,9 @@ const translations = {
                 `<muted-text-label>Per abilitare la riconciliazione continua, abilita la <a href="${accountingAdvancedSettingsLink}">sincronizzazione automatica</a> per ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Scegli il conto bancario su cui verranno riconciliati i pagamenti della tua carta Expensify.',
-                accountMatches: 'Assicurati che questo account corrisponda al tuo',
-                settlementAccount: 'Conto di regolamento della carta Expensify',
-                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `(termine con ${lastFourPAN}) affinché la Riconciliazione Continua funzioni correttamente.`,
+
+                settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
+                    `Assicurati che questo account corrisponda al tuo <a href="${settlementAccountUrl}">Conto di regolamento della carta Expensify</a> (terminante con ${lastFourPAN}) affinché la Riconciliazione Continua funzioni correttamente.`,
             },
         },
         export: {
@@ -6395,8 +6420,8 @@ const translations = {
         noActivityYet: 'Nessuna attività ancora',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `modificato ${fieldName} da ${oldValue} a ${newValue}`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `modificato ${fieldName} in ${newValue}`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `ha modificato ${fieldName} in "${newValue}" (precedentemente "${oldValue}")`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `ha impostato ${fieldName} su "${newValue}"`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `Spazio di lavoro modificato${fromPolicyName ? ` (precedentemente ${fromPolicyName})` : ''}`;
@@ -7196,6 +7221,7 @@ const translations = {
             isWaitingForAssigneeToCompleteAction: "In attesa che l'assegnatario completi l'azione",
             hasChildReportAwaitingAction: 'Ha un rapporto figlio in attesa di azione',
             hasMissingInvoiceBankAccount: 'Manca il conto bancario della fattura',
+            hasUnresolvedCardFraudAlert: 'Ha una alerta di fraude di carta non risolta',
         },
         reasonRBR: {
             hasErrors: 'Ha errori nei dati del report o delle azioni del report',
@@ -7309,7 +7335,13 @@ const translations = {
         exportInProgress: 'Esportazione in corso',
         conciergeWillSend: 'Concierge ti invierà il file a breve.',
     },
-    avatarPage: {title: 'Modifica immagine del profilo', uploadPhoto: 'Carica foto'},
+    avatarPage: {
+        title: 'Modifica immagine del profilo',
+        upload: 'Carica',
+        uploadPhoto: 'Carica foto',
+        selectAvatar: 'Seleziona un avatar',
+        chooseCustomAvatar: 'Oppure scegli un avatar personalizzato',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

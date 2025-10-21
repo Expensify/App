@@ -58,7 +58,6 @@ import {getDefaultTaxCode, hasReceipt} from '@libs/TransactionUtils';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {GpsPoint} from '@userActions/IOU';
 import {
     checkIfScanFileCanBeRead,
@@ -81,6 +80,7 @@ import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {cropImageToAspectRatio} from './cropImageToAspectRatio';
 import type {ImageObject} from './cropImageToAspectRatio';
@@ -242,6 +242,7 @@ function IOURequestStepScan({
         let isAllScanFilesCanBeRead = true;
 
         Promise.all(
+            // eslint-disable-next-line @typescript-eslint/await-thenable
             transactions.map((item) => {
                 const itemReceiptPath = item.receipt?.source;
                 const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
@@ -823,7 +824,7 @@ function IOURequestStepScan({
     );
 
     const dismissMultiScanEducationalPopup = () => {
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL);
             setShouldShowMultiScanEducationalPopup(false);

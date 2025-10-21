@@ -24,7 +24,6 @@ import type {
     AddEmployeeParams,
     AddOrDeletePolicyCustomUnitRateParams,
     AddressLineParams,
-    AdminCanceledRequestParams,
     AirlineParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
@@ -181,7 +180,6 @@ import type {
     QBDSetupErrorBodyParams,
     RailTicketParams,
     ReceiptPartnersUberSubtitleParams,
-    ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
     RemoveMemberPromptParams,
@@ -209,6 +207,7 @@ import type {
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
     SettlementAccountInfoParams,
+    SettlementAccountReconciliationParams,
     SettlementDateParams,
     ShareParams,
     SignerInfoMessageParams,
@@ -613,7 +612,7 @@ const translations = {
         disabled: '禁用',
         import: '导入',
         offlinePrompt: '您现在无法执行此操作。',
-        outstanding: '未完成的',
+        outstanding: '未完成',
         chats: '聊天',
         tasks: '任务',
         unread: '未读',
@@ -966,6 +965,7 @@ const translations = {
         buttonMySettings: '我的设置',
         fabNewChat: '开始聊天',
         fabNewChatExplained: '开始聊天（浮动操作）',
+        fabScanReceiptExplained: '扫描收据（浮动操作）',
         chatPinned: '聊天已置顶',
         draftedMessage: '草稿消息',
         listOfChatMessages: '聊天消息列表',
@@ -1264,7 +1264,7 @@ const translations = {
         forwarded: `批准`,
         rejectedThisReport: '拒绝了此报告',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `已开始付款，但正在等待${submitterDisplayName}添加银行账户。`,
-        adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}取消了付款`,
+        adminCanceledRequest: '取消了付款',
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) => `取消了${amount}付款，因为${submitterDisplayName}在30天内未启用他们的Expensify Wallet。`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) => `${submitterDisplayName} 添加了一个银行账户。${amount} 付款已完成。`,
         paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}已标记为已支付`,
@@ -1457,6 +1457,7 @@ const translations = {
                 subtitle: '在我们将此报告路由到其余审批工作流之前，为此报告选择一个额外的审批人。',
             },
         },
+        chooseWorkspace: '选择一个工作区',
     },
     transactionMerge: {
         listPage: {
@@ -1988,6 +1989,25 @@ const translations = {
         cardDetailsLoadingFailure: '加载卡片详情时发生错误。请检查您的互联网连接并重试。',
         validateCardTitle: '让我们确认一下身份',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `请输入发送到${contactMethod}的验证码以查看您的卡详细信息。验证码应在一两分钟内到达。`,
+        cardFraudAlert: {
+            confirmButtonText: '是的，我愿意。',
+            reportFraudButtonText: '不，不是我',
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) => `已清除可疑活动并重新激活卡片 x${cardLastFour}。一切准备就绪，可以继续报销了！`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `已停用以${cardLastFour}结尾的卡片`,
+            alertMessage: ({
+                cardLastFour,
+                amount,
+                merchant,
+                date,
+            }: {
+                cardLastFour: string;
+                amount: string;
+                merchant: string;
+                date: string;
+            }) => `在卡号以${cardLastFour}结尾的卡上发现可疑活动。您是否认可此笔费用？
+
+${merchant}的${amount} - ${date}`,
+        },
     },
     workflowsPage: {
         workflowTitle: '花费',
@@ -1998,6 +2018,7 @@ const translations = {
         submissionFrequencyDescription: '选择提交费用的频率。',
         submissionFrequencyDateOfMonth: '月份日期',
         addApprovalsTitle: '添加审批',
+        disableApprovalPromptDescription: '禁用审批将删除所有现有的审批工作流程。',
         addApprovalButton: '添加审批工作流程',
         addApprovalTip: '此默认工作流程适用于所有成员，除非存在更具体的工作流程。',
         approver: '审批人',
@@ -2572,7 +2593,7 @@ const translations = {
                 descriptionTwo: '分类和标记费用',
                 descriptionThree: '创建和分享报告',
             },
-            price: '免费试用30天，然后只需<strong>$5/月</strong>升级。',
+            price: '免费试用30天，然后只需<strong>$5/用户/月</strong>升级。',
             createWorkspace: '创建工作区',
         },
         confirmWorkspace: {
@@ -3232,7 +3253,7 @@ const translations = {
     },
     signerInfoStep: {
         signerInfo: '签署人信息',
-        areYouDirector: ({companyName}: CompanyNameParams) => `您是${companyName}的董事或高级管理人员吗？`,
+        areYouDirector: ({companyName}: CompanyNameParams) => `您是${companyName}的董事吗？`,
         regulationRequiresUs: '法规要求我们核实签署人是否有权代表企业采取此行动。',
         whatsYourName: '您的法定姓名是什么',
         fullName: '法定全名',
@@ -3244,13 +3265,13 @@ const translations = {
         letsDoubleCheck: '让我们仔细检查一下，确保一切正常。',
         legalName: '法定名称',
         proofOf: '个人地址证明',
-        enterOneEmail: ({companyName}: CompanyNameParams) => `输入${companyName}的董事或高级职员的电子邮件地址`,
-        regulationRequiresOneMoreDirector: '法规要求至少有一位以上的董事或高级管理人员作为签署人。',
+        enterOneEmail: ({companyName}: CompanyNameParams) => `请输入${companyName}董事的电子邮件地址`,
+        regulationRequiresOneMoreDirector: '法规要求至少再有一位董事作为签署人。',
         hangTight: '请稍等...',
-        enterTwoEmails: ({companyName}: CompanyNameParams) => `输入${companyName}的两位董事或高级管理人员的电子邮件地址`,
+        enterTwoEmails: ({companyName}: CompanyNameParams) => `请输入${companyName}的两位董事的电子邮件地址`,
         sendReminder: '发送提醒',
         chooseFile: '选择文件',
-        weAreWaiting: '我们正在等待其他人验证他们作为公司董事或高级管理人员的身份。',
+        weAreWaiting: '我们正在等待其他人验证其作为公司董事的身份。',
         id: '身份证复印件',
         proofOfDirectors: '董事证明',
         proofOfDirectorsDescription: '示例：Oncorp公司简介或商业注册。',
@@ -3259,11 +3280,11 @@ const translations = {
         PDSandFSG: 'PDS + FSG 披露文件',
         PDSandFSGDescription:
             '我们与 Corpay 的合作利用了 API 连接，以利用其庞大的国际银行合作伙伴网络来支持 Expensify 的全球报销。根据澳大利亚法规，我们向您提供 Corpay 的金融服务指南 (FSG) 和产品披露声明 (PDS)。\n\n请仔细阅读 FSG 和 PDS 文件，因为它们包含 Corpay 提供的产品和服务的完整详细信息和重要信息。请保留这些文件以备将来参考。',
-        pleaseUpload: '请在下方上传其他文件，以帮助我们验证您作为企业实体的董事或高级管理人员的身份。',
+        pleaseUpload: '请在下方上传其他文件，以帮助我们验证您作为企业实体董事的身份。',
         enterSignerInfo: '输入签署人信息',
         thisStep: '此步骤已完成',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
-            `正在将以 ${bankAccountLastFour} 结尾的 ${currency} 公司银行账户连接到 Expensify，以便用 ${currency} 向员工付款。下一步需要董事或高级管理人员的签署人信息。`,
+            `正在将以 ${bankAccountLastFour} 结尾的 ${currency} 公司银行账户连接到 Expensify，以便用 ${currency} 向员工付款。下一步需要董事的签署人信息。`,
         error: {
             emailsMustBeDifferent: '电子邮件地址必须不同',
         },
@@ -3417,6 +3438,8 @@ const translations = {
         verifyCompany: {
             title: '立即开始旅行吧！',
             message: `请联系您的客户经理或发送电子邮件至 salesteam@expensify.com 以获取旅行演示并为您的公司启用该功能。`,
+            confirmText: '明白了',
+            conciergeMessage: ({domain}: {domain: string}) => `域名 ${domain} 的旅行启用失败。请检查并为此域名启用旅行功能。`,
         },
         updates: {
             bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
@@ -4503,7 +4526,7 @@ const translations = {
             changeCardMonthlyLimitTypeWarning: ({limit}: CharacterLimitParams) => `如果您将此卡的限额类型更改为每月，由于已达到${limit}的每月限额，新交易将被拒绝。`,
             addShippingDetails: '添加运输详情',
             issuedCard: ({assignee}: AssigneeParams) => `已为${assignee}发放了一张Expensify卡！该卡将在2-3个工作日内送达。`,
-            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `已为${assignee}发放了一张Expensify卡！一旦添加了运送详情，卡片将被寄出。`,
+            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `已向${assignee}发放一张 Expensify Card！确认运送信息后将寄出该卡。`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `已向${assignee}发放了一张虚拟${link}！该卡可以立即使用。`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} 添加了送货详情。Expensify Card 将在2-3个工作日内送达。`,
             verifyingHeader: '验证中',
@@ -5263,9 +5286,9 @@ const translations = {
                 `<muted-text-label>要启用持续对账，请启用 ${connectionName} 的<a href="${accountingAdvancedSettingsLink}">自动同步</a>功能。</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: '选择用于对账您的 Expensify Card 支付的银行账户。',
-                accountMatches: '确保此账户与您的账户匹配',
-                settlementAccount: 'Expensify Card 结算账户',
-                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `（以 ${lastFourPAN} 结尾）以便持续对账正常工作。`,
+
+                settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
+                    `确保此账户与您的<a href="${settlementAccountUrl}">Expensify Card 结算账户</a>（以 ${lastFourPAN} 结尾）匹配，以便持续对账正常工作。`,
             },
         },
         export: {
@@ -6252,8 +6275,8 @@ const translations = {
         noActivityYet: '暂无活动',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `将${fieldName}从${oldValue}更改为${newValue}`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `将${fieldName}更改为${newValue}`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `已将${fieldName}更改为"${newValue}"（之前为"${oldValue}"`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `已将${fieldName}设置为"${newValue}"`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `已更改工作区${fromPolicyName ? `（之前为 ${fromPolicyName}）` : ''}`;
@@ -7030,6 +7053,7 @@ const translations = {
             isWaitingForAssigneeToCompleteAction: '正在等待受让人完成操作',
             hasChildReportAwaitingAction: '有子报告等待处理',
             hasMissingInvoiceBankAccount: '缺少发票银行账户',
+            hasUnresolvedCardFraudAlert: '有未解决的卡片欺诈警告',
         },
         reasonRBR: {
             hasErrors: '报告或报告操作数据中有错误',
@@ -7142,7 +7166,7 @@ const translations = {
         exportInProgress: '正在导出',
         conciergeWillSend: 'Concierge 很快会将文件发送给您。',
     },
-    avatarPage: {title: '编辑个人资料图片', uploadPhoto: '上传照片'},
+    avatarPage: {title: '编辑个人资料图片', upload: '上传', uploadPhoto: '上传照片', selectAvatar: '选择头像', chooseCustomAvatar: '或选择自定义头像'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

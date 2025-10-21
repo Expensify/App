@@ -24,7 +24,6 @@ import type {
     AddEmployeeParams,
     AddOrDeletePolicyCustomUnitRateParams,
     AddressLineParams,
-    AdminCanceledRequestParams,
     AirlineParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
@@ -181,7 +180,6 @@ import type {
     QBDSetupErrorBodyParams,
     RailTicketParams,
     ReceiptPartnersUberSubtitleParams,
-    ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
     RemoveMemberPromptParams,
@@ -209,6 +207,7 @@ import type {
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
     SettlementAccountInfoParams,
+    SettlementAccountReconciliationParams,
     SettlementDateParams,
     ShareParams,
     SignerInfoMessageParams,
@@ -613,7 +612,7 @@ const translations = {
         disabled: 'Uitgeschakeld',
         import: 'Importeren',
         offlinePrompt: 'Je kunt deze actie nu niet uitvoeren.',
-        outstanding: 'Uitstaand',
+        outstanding: 'Openstaand',
         chats: 'Chats',
         tasks: 'Taken',
         unread: 'Ongelezen',
@@ -968,6 +967,7 @@ const translations = {
         buttonMySettings: 'Mijn instellingen',
         fabNewChat: 'Chat starten',
         fabNewChatExplained: 'Start chat (Zwevende actie)',
+        fabScanReceiptExplained: 'Bon scannen (Zwevende actie)',
         chatPinned: 'Chat vastgezet',
         draftedMessage: 'Opgesteld bericht',
         listOfChatMessages: 'Lijst van chatberichten',
@@ -1275,7 +1275,7 @@ const translations = {
         forwarded: `goedgekeurd`,
         rejectedThisReport: 'heeft dit rapport afgewezen',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `is met de betaling begonnen, maar wacht op ${submitterDisplayName} om een bankrekening toe te voegen.`,
-        adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}heeft de betaling geannuleerd`,
+        adminCanceledRequest: 'heeft de betaling geannuleerd',
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `heeft de betaling van ${amount} geannuleerd, omdat ${submitterDisplayName} hun Expensify Wallet niet binnen 30 dagen heeft geactiveerd.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -1474,6 +1474,7 @@ const translations = {
                 subtitle: 'Kies een extra goedkeurder voor dit rapport voordat we het via de rest van de goedkeuringsworkflow sturen.',
             },
         },
+        chooseWorkspace: 'Kies een werkruimte',
     },
     transactionMerge: {
         listPage: {
@@ -2014,6 +2015,26 @@ const translations = {
         validateCardTitle: 'Laten we ervoor zorgen dat jij het bent',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Voer de magische code in die naar ${contactMethod} is gestuurd om uw kaartgegevens te bekijken. Het zou binnen een minuut of twee moeten aankomen.`,
+        cardFraudAlert: {
+            confirmButtonText: 'Ja, dat doe ik.',
+            reportFraudButtonText: 'Nee, dat was ik niet.',
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) =>
+                `verdachte activiteit verwijderd en kaart x${cardLastFour} opnieuw geactiveerd. Alles klaar om door te gaan met declareren!`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `deactiveerde de kaart eindigend op ${cardLastFour}`,
+            alertMessage: ({
+                cardLastFour,
+                amount,
+                merchant,
+                date,
+            }: {
+                cardLastFour: string;
+                amount: string;
+                merchant: string;
+                date: string;
+            }) => `verdachte activiteit geïdentificeerd op kaart eindigend op ${cardLastFour}. Herken je deze transactie?
+
+${amount} voor ${merchant} - ${date}`,
+        },
     },
     workflowsPage: {
         workflowTitle: 'Uitgaven',
@@ -2023,6 +2044,7 @@ const translations = {
         submissionFrequency: 'Indieningsfrequentie',
         submissionFrequencyDescription: 'Kies een frequentie voor het indienen van onkosten.',
         submissionFrequencyDateOfMonth: 'Datum van de maand',
+        disableApprovalPromptDescription: 'Goedkeuringen uitschakelen verwijdert alle bestaande goedkeuringsworkflows.',
         addApprovalsTitle: 'Goedkeuringen toevoegen',
         addApprovalButton: 'Goedkeuringsworkflow toevoegen',
         addApprovalTip: 'Deze standaard workflow is van toepassing op alle leden, tenzij er een specifiekere workflow bestaat.',
@@ -2606,7 +2628,7 @@ const translations = {
                 descriptionTwo: 'Categoriseer en label uitgaven',
                 descriptionThree: 'Rapporten maken en delen',
             },
-            price: 'Probeer het 30 dagen gratis, upgrade daarna voor slechts <strong>$5/maand</strong>.',
+            price: 'Probeer het 30 dagen gratis, upgrade daarna voor slechts <strong>$5/gebruiker/maand</strong>.',
             createWorkspace: 'Werkruimte maken',
         },
         confirmWorkspace: {
@@ -3279,7 +3301,7 @@ const translations = {
     },
     signerInfoStep: {
         signerInfo: 'Ondertekenaar informatie',
-        areYouDirector: ({companyName}: CompanyNameParams) => `Bent u een directeur of senior functionaris bij ${companyName}?`,
+        areYouDirector: ({companyName}: CompanyNameParams) => `Bent u een directeur bij ${companyName}?`,
         regulationRequiresUs: 'Regelgeving vereist dat we verifiëren of de ondertekenaar de bevoegdheid heeft om deze actie namens het bedrijf te ondernemen.',
         whatsYourName: 'Wat is uw wettelijke naam?',
         fullName: 'Volledige wettelijke naam',
@@ -3291,13 +3313,13 @@ const translations = {
         letsDoubleCheck: 'Laten we dubbel controleren of alles er goed uitziet.',
         legalName: 'Wettelijke naam',
         proofOf: 'Bewijs van persoonlijk adres',
-        enterOneEmail: ({companyName}: CompanyNameParams) => `Voer het e-mailadres in van de directeur of senior functionaris bij ${companyName}`,
-        regulationRequiresOneMoreDirector: 'Regelgeving vereist ten minste nog een directeur of senior functionaris als ondertekenaar.',
+        enterOneEmail: ({companyName}: CompanyNameParams) => `Voer het e-mailadres in van de directeur bij ${companyName}`,
+        regulationRequiresOneMoreDirector: 'Regelgeving vereist ten minste nog een directeur als ondertekenaar.',
         hangTight: 'Even geduld...',
-        enterTwoEmails: ({companyName}: CompanyNameParams) => `Voer de e-mails in van twee directeuren of senior functionarissen bij ${companyName}`,
+        enterTwoEmails: ({companyName}: CompanyNameParams) => `Voer de e-mailadressen in van twee directeuren bij ${companyName}`,
         sendReminder: 'Stuur een herinnering',
         chooseFile: 'Bestand kiezen',
-        weAreWaiting: 'We wachten op anderen om hun identiteit te verifiëren als directeuren of senior functionarissen van het bedrijf.',
+        weAreWaiting: 'We wachten op anderen om hun identiteit te verifiëren als directeuren van het bedrijf.',
         id: 'Kopie van ID',
         proofOfDirectors: 'Bewijs van directeur(s)',
         proofOfDirectorsDescription: 'Voorbeelden: Oncorp bedrijfsprofiel of bedrijfsregistratie.',
@@ -3306,11 +3328,11 @@ const translations = {
         PDSandFSG: 'PDS + FSG openbaarmakingsdocumenten',
         PDSandFSGDescription:
             'Onze samenwerking met Corpay maakt gebruik van een API-verbinding om te profiteren van hun uitgebreide netwerk van internationale bankpartners om wereldwijde terugbetalingen in Expensify mogelijk te maken. Conform de Australische regelgeving verstrekken wij u de Financial Services Guide (FSG) en Product Disclosure Statement (PDS) van Corpay.\n\nLees de FSG- en PDS-documenten zorgvuldig door, aangezien ze volledige details en belangrijke informatie bevatten over de producten en diensten die Corpay aanbiedt. Bewaar deze documenten voor toekomstige referentie.',
-        pleaseUpload: 'Gelieve hieronder aanvullende documentatie te uploaden om ons te helpen uw identiteit als directeur of senior functionaris van de zakelijke entiteit te verifiëren.',
+        pleaseUpload: 'Gelieve hieronder aanvullende documentatie te uploaden om ons te helpen uw identiteit als directeur van de zakelijke entiteit te verifiëren.',
         enterSignerInfo: 'Voer ondertekenaargegevens in',
         thisStep: 'Deze stap is voltooid',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
-            `verbindt een zakelijke bankrekening in ${currency} eindigend op ${bankAccountLastFour} met Expensify om werknemers in ${currency} te betalen. De volgende stap vereist ondertekenaarinformatie van een directeur of senior functionaris.`,
+            `verbindt een zakelijke bankrekening in ${currency} eindigend op ${bankAccountLastFour} met Expensify om werknemers in ${currency} te betalen. De volgende stap vereist ondertekenaarinformatie van een directeur.`,
         error: {
             emailsMustBeDifferent: 'E-mailadressen moeten verschillend zijn',
         },
@@ -3470,6 +3492,8 @@ const translations = {
         verifyCompany: {
             title: 'Begin vandaag nog met reizen!',
             message: `Neem contact op met uw accountmanager of salesteam@expensify.com om een demo van reizen te krijgen en het voor uw bedrijf in te schakelen.`,
+            confirmText: 'Begrepen',
+            conciergeMessage: ({domain}: {domain: string}) => `Reismogelijkheid mislukt voor domein: ${domain}. Controleer en schakel reizen in voor dit domein.`,
         },
         updates: {
             bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
@@ -4596,8 +4620,7 @@ const translations = {
                 `Als je het limiettype van deze kaart wijzigt naar Maandelijks, worden nieuwe transacties geweigerd omdat de maandelijkse limiet van ${limit} al is bereikt.`,
             addShippingDetails: 'Verzendgegevens toevoegen',
             issuedCard: ({assignee}: AssigneeParams) => `heeft ${assignee} een Expensify Card uitgegeven! De kaart zal binnen 2-3 werkdagen arriveren.`,
-            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
-                `heeft ${assignee} een Expensify Card uitgegeven! De kaart wordt verzonden zodra de verzendgegevens zijn toegevoegd.`,
+            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `heeft ${assignee} een Expensify Card uitgegeven! De kaart wordt verzonden zodra de verzendgegevens zijn bevestigd.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `heeft ${assignee} een virtuele ${link} uitgegeven! De kaart kan direct worden gebruikt.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} heeft verzendgegevens toegevoegd. Expensify Card zal binnen 2-3 werkdagen arriveren.`,
             verifyingHeader: 'Verifiëren',
@@ -5363,9 +5386,9 @@ const translations = {
                 `<muted-text-label>Om continue afstemming mogelijk te maken, moet u <a href="${accountingAdvancedSettingsLink}">automatische synchronisatie</a> voor ${connectionName} inschakelen.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Kies de bankrekening waarmee uw Expensify Card-betalingen worden verrekend.',
-                accountMatches: 'Zorg ervoor dat dit account overeenkomt met uw',
-                settlementAccount: 'Expensify Card afwikkelingsrekening',
-                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `(eindigend op ${lastFourPAN}) zodat Continue Reconciliation goed werkt.`,
+
+                settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
+                    `Zorg ervoor dat dit account overeenkomt met uw <a href="${settlementAccountUrl}">Expensify Card afwikkelingsrekening</a> (eindigend op ${lastFourPAN}) zodat Continue Reconciliation goed werkt.`,
             },
         },
         export: {
@@ -6381,8 +6404,8 @@ const translations = {
         noActivityYet: 'Nog geen activiteit',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `veranderde ${fieldName} van ${oldValue} naar ${newValue}`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `veranderd ${fieldName} naar ${newValue}`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `heeft ${fieldName} gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `heeft ${fieldName} ingesteld op "${newValue}"`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `Werkruimte gewijzigd${fromPolicyName ? ` (voorheen ${fromPolicyName})` : ''}`;
@@ -7179,6 +7202,7 @@ const translations = {
             isWaitingForAssigneeToCompleteAction: 'Wacht op de verantwoordelijke om de actie te voltooien',
             hasChildReportAwaitingAction: 'Heeft kindrapport wachtend op actie',
             hasMissingInvoiceBankAccount: 'Heeft een ontbrekende factuur bankrekening',
+            hasUnresolvedCardFraudAlert: 'Heeft een onopgeloste kaartfraude waarschuwing',
         },
         reasonRBR: {
             hasErrors: 'Heeft fouten in rapport of rapportacties gegevens',
@@ -7292,7 +7316,7 @@ const translations = {
         exportInProgress: 'Bezig met exporteren',
         conciergeWillSend: 'Concierge stuurt je het bestand binnenkort.',
     },
-    avatarPage: {title: 'Profielfoto bewerken', uploadPhoto: 'Foto uploaden'},
+    avatarPage: {title: 'Profielfoto bewerken', upload: 'Uploaden', uploadPhoto: 'Foto uploaden', selectAvatar: 'Selecteer avatar', chooseCustomAvatar: 'Of kies een aangepaste avatar'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

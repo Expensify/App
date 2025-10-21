@@ -14,11 +14,18 @@ import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {translateLocal} from './Localize';
-import {getLastActorDisplayName, getLastMessageTextForReport, getPersonalDetailsForAccountIDs, shouldShowLastActorDisplayName} from './OptionsListUtils';
+import {
+    getLastActorDisplayName,
+    getLastActorDisplayNameFromLastVisibleActions,
+    getLastMessageTextForReport,
+    getPersonalDetailsForAccountIDs,
+    shouldShowLastActorDisplayName,
+} from './OptionsListUtils';
 import Parser from './Parser';
 import Performance from './Performance';
 import {getCleanedTagName, getPolicy} from './PolicyUtils';
 import {
+    getActionableCardFraudAlertResolutionMessage,
     getAddedApprovalRuleMessage,
     getAddedConnectionMessage,
     getCardIssuedMessage,
@@ -613,7 +620,7 @@ function getOptionData({
     card,
     lastAction,
     localeCompare,
-    isReportArchived = false,
+    isReportArchived,
     lastActionReport,
     movedFromReport,
     movedToReport,
@@ -630,7 +637,7 @@ function getOptionData({
     card: Card | undefined;
     lastAction: ReportAction | undefined;
     localeCompare: LocaleContextProps['localeCompare'];
-    isReportArchived?: boolean;
+    isReportArchived: boolean | undefined;
     lastActionReport: OnyxEntry<Report> | undefined;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
@@ -812,6 +819,8 @@ function getOptionData({
             }
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME)) {
             result.alternateText = getWorkspaceNameUpdatedMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT) && getOriginalMessage(lastAction)?.resolution) {
+            result.alternateText = getActionableCardFraudAlertResolutionMessage(lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION)) {
             result.alternateText = getWorkspaceDescriptionUpdatedMessage(lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY)) {
@@ -866,7 +875,8 @@ function getOptionData({
         } else if (isCardIssuedAction(lastAction)) {
             result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card});
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
-            result.alternateText = formatReportLastMessageText(`${lastActorDisplayName}: ${lastMessageText}`);
+            const displayName = (lastMessageTextFromReport.length > 0 && getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails)) || lastActorDisplayName;
+            result.alternateText = formatReportLastMessageText(`${displayName}: ${lastMessageText}`);
         } else if (lastAction && isOldDotReportAction(lastAction)) {
             result.alternateText = getMessageOfOldDotReportAction(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
@@ -924,7 +934,8 @@ function getOptionData({
             );
         }
         if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction) && !isReportArchived) {
-            result.alternateText = `${lastActorDisplayName}: ${formatReportLastMessageText(lastMessageText)}`;
+            const displayName = (lastMessageTextFromReport.length > 0 && getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails)) || lastActorDisplayName;
+            result.alternateText = `${displayName}: ${formatReportLastMessageText(lastMessageText)}`;
         } else {
             result.alternateText = formatReportLastMessageText(lastMessageText);
         }
@@ -1058,7 +1069,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = fal
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
                 ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID})
                 : // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-                  // eslint-disable-next-line deprecation/deprecation
+                  // eslint-disable-next-line @typescript-eslint/no-deprecated
                   getPolicy(report?.invoiceReceiver?.policyID)?.name;
         const receiver = getPolicyName({report});
         welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoom', {
