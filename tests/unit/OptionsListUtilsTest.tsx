@@ -831,11 +831,21 @@ describe('OptionsListUtils', () => {
         it('should include Manager McTest in results by default', () => {
             // Given a set of reports and personalDetails that includes Manager McTest
             // When we call getValidOptions()
-            const result = getValidOptions({reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails}, {}, nvpDismissedProductTraining, {
-                includeP2P: true,
-                canShowManagerMcTest: true,
-                betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
-            });
+            const result = getValidOptions(
+                {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
+                {},
+                {
+                    // @ts-expect-error Mocked for testing
+                    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH]: {
+                        timestamp: DateUtils.getDBTime(new Date().valueOf()),
+                    },
+                },
+                {
+                    includeP2P: true,
+                    canShowManagerMcTest: true,
+                    betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
+                },
+            );
 
             // Then the result should include all personalDetails except the currently logged in user
             expect(result.personalDetails.length).toBe(Object.values(OPTIONS_WITH_MANAGER_MCTEST.personalDetails).length - 1);
