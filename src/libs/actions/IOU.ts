@@ -237,6 +237,7 @@ import {
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -1464,7 +1465,10 @@ type BuildOnyxDataForTestDriveIOUParams = {
     testDriveCommentReportActionID?: string;
 };
 
-function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDriveIOUParams): OnyxData {
+function buildOnyxDataForTestDriveIOU(
+    testDriveIOUParams: BuildOnyxDataForTestDriveIOUParams,
+    translate?: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string,
+): OnyxData {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -1481,7 +1485,7 @@ function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDr
         reportActionID: testDriveIOUParams.iouOptimisticParams.action.reportActionID,
     });
 
-    const text = Localize.translateLocal('testDrive.employeeInviteMessage', {name: personalDetailsList?.[userAccountID]?.firstName ?? ''});
+    const text = translate?.('testDrive.employeeInviteMessage', {name: personalDetailsList?.[userAccountID]?.firstName ?? ''}) ?? 'testDrive.employeeInviteMessage';
     const textComment = buildOptimisticAddCommentReportAction(text, undefined, userAccountID, undefined, undefined, undefined, testDriveIOUParams.testDriveCommentReportActionID);
     textComment.reportAction.created = DateUtils.subtractMillisecondsFromDateTime(testDriveIOUParams.iouOptimisticParams.createdAction.created, 1);
 
@@ -4220,7 +4224,10 @@ type GetUpdateMoneyRequestParamsType = {
     shouldBuildOptimisticModifiedExpenseReportAction?: boolean;
 };
 
-function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): UpdateMoneyRequestData {
+function getUpdateMoneyRequestParams(
+    params: GetUpdateMoneyRequestParamsType,
+    translate?: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string,
+): UpdateMoneyRequestData {
     const {
         transactionID,
         transactionThreadReportID,
@@ -4242,7 +4249,9 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     // Step 1: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
     const pendingFields: OnyxTypes.Transaction['pendingFields'] = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
     const clearedPendingFields = getClearedPendingFields(transactionChanges);
-    const errorFields = Object.fromEntries(Object.keys(pendingFields).map((key) => [key, {[DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage')}]));
+    const errorFields = Object.fromEntries(
+        Object.keys(pendingFields).map((key) => [key, {[DateUtils.getMicroseconds()]: translate?.('iou.error.genericEditFailureMessage') ?? 'iou.error.genericEditFailureMessage'}]),
+    );
 
     // Step 2: Get all the collections being updated
     const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
@@ -4696,6 +4705,7 @@ function getUpdateTrackExpenseParams(
     transactionChanges: TransactionChanges,
     policy: OnyxEntry<OnyxTypes.Policy>,
     shouldBuildOptimisticModifiedExpenseReportAction = true,
+    translate?: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string,
 ): UpdateMoneyRequestData {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -4704,7 +4714,9 @@ function getUpdateTrackExpenseParams(
     // Step 1: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
     const pendingFields = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
     const clearedPendingFields = getClearedPendingFields(transactionChanges);
-    const errorFields = Object.fromEntries(Object.keys(pendingFields).map((key) => [key, {[DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage')}]));
+    const errorFields = Object.fromEntries(
+        Object.keys(pendingFields).map((key) => [key, {[DateUtils.getMicroseconds()]: translate?.('iou.error.genericEditFailureMessage') ?? 'iou.error.genericEditFailureMessage'}]),
+    );
 
     // Step 2: Get all the collections being updated
     const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
@@ -6609,7 +6621,8 @@ function createSplitsAndOnyxData({
         attendees,
     },
     policyRecentlyUsedCategories,
-}: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
+    translate,
+}: CreateSplitsAndOnyxDataParams & {translate?: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string}): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
 
@@ -6629,7 +6642,7 @@ function createSplitsAndOnyxData({
             reportID: CONST.REPORT.SPLIT_REPORT_ID,
             comment,
             created,
-            merchant: merchant || Localize.translateLocal('iou.expense'),
+            merchant: merchant || (translate?.('iou.expense') ?? 'iou.expense'),
             receipt,
             category,
             tag,
@@ -6913,7 +6926,7 @@ function createSplitsAndOnyxData({
                 reportID: oneOnOneIOUReport.reportID,
                 comment,
                 created,
-                merchant: merchant || Localize.translateLocal('iou.expense'),
+                merchant: merchant || (translate?.('iou.expense') ?? 'iou.expense'),
                 category,
                 tag,
                 taxCode,
@@ -8307,10 +8320,8 @@ function prepareToCleanUpMoneyRequest(
     }
 
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsReportUtils(iouReport?.reportID);
-    const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
-        payer: getPersonalDetailsForAccountID(updatedIOUReport?.managerID ?? CONST.DEFAULT_NUMBER_ID).login ?? '',
-        amount: convertToDisplayString(updatedIOUReport?.total, updatedIOUReport?.currency),
-    });
+    const messageKey = hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount';
+    const messageText = messageKey; // TODO: Add translate parameter when calling this function
 
     if (getReportActionMessage(updatedReportPreviewAction)) {
         if (Array.isArray(updatedReportPreviewAction?.message)) {
@@ -8598,6 +8609,7 @@ function deleteMoneyRequest(
     isSingleTransactionView = false,
     transactionIDsPendingDeletion?: string[],
     selectedTransactionIDs?: string[],
+    translate?: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string,
 ) {
     if (!transactionID) {
         return;
@@ -8818,7 +8830,7 @@ function deleteMoneyRequest(
                     ...reportAction,
                     pendingAction: null,
                     errors: {
-                        [errorKey]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
+                        [errorKey]: translate?.('iou.error.genericDeleteFailureMessage') ?? 'iou.error.genericDeleteFailureMessage',
                     },
                 },
             },
@@ -8845,7 +8857,7 @@ function deleteMoneyRequest(
                     ...reportPreviewAction,
                     pendingAction: null,
                     errors: {
-                        [errorKey]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
+                        [errorKey]: translate?.('iou.error.genericDeleteFailureMessage') ?? 'iou.error.genericDeleteFailureMessage',
                     },
                 },
             },
