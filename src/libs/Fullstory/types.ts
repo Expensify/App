@@ -153,11 +153,10 @@ type ForwardedFSClassProps = {
  * }
  * ```
  */
-type MultipleFSClassProps<T extends `${string}FSClass`> = {
+type MultipleFSClassProps<T extends `${string}FSClass`> =
     /**
      * Used to pass down multiple `fsClass` props to inner components that will need them for Fullstory masking.
      */
-    [key in T]?: FSClass;
-};
+    Partial<Record<T, FSClass>>;
 
 export type {FSPageLike, FSPageLikeConstructor, Fullstory, GetChatFSClass, PropertiesWithoutPageName, ForwardedFSClassProps, MultipleFSClassProps};

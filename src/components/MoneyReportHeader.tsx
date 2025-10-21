@@ -7,6 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
+import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
@@ -46,8 +47,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, SearchFullscreenNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
-import {isSecondaryActionAPaymentOption, selectPaymentType} from '@libs/PaymentUtils';
+import {selectPaymentType} from '@libs/PaymentUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
+import Permissions from '@libs/Permissions';
 import {getConnectedIntegration, getValidConnectedIntegration} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
@@ -62,6 +64,7 @@ import {
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasUpdatedTotal,
+    hasViolations as hasViolationsReportUtils,
     isAllowedToApproveExpenseReport,
     isExported as isExportedUtils,
     isInvoiceReport as isInvoiceReportUtil,
@@ -129,10 +132,11 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import KYCWall from './KYCWall';
+import {KYCWallContext} from './KYCWall/KYCWallContext';
 import type {PaymentMethod} from './KYCWall/types';
 import LoadingBar from './LoadingBar';
 import Modal from './Modal';
+import MoneyReportHeaderKYCDropdown from './MoneyReportHeaderKYCDropdown';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkeleton';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
@@ -188,7 +192,7 @@ function MoneyReportHeader({
         | PlatformStackRouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>
         | PlatformStackRouteProp<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>
     >();
-    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, accountID, email} = useCurrentUserPersonalDetails();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
@@ -211,6 +215,8 @@ function MoneyReportHeader({
         }
         return reportActions.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport.parentReportActionID);
     }, [reportActions, transactionThreadReport?.parentReportActionID]);
+
+    const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
 
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 
@@ -252,6 +258,10 @@ function MoneyReportHeader({
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations);
 
     const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
 
@@ -394,6 +404,7 @@ function MoneyReportHeader({
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const shouldShowLoadingBar = useLoadingBarVisibility();
+    const kycWallRef = useContext(KYCWallContext);
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
@@ -411,7 +422,7 @@ function MoneyReportHeader({
                 showDelegateNoAccessModal();
             } else if (isAnyTransactionOnHold) {
                 if (getPlatform() === CONST.PLATFORM.IOS) {
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
                 } else {
                     setIsHoldMenuVisible(true);
@@ -577,10 +588,12 @@ function MoneyReportHeader({
             isChatReportArchived,
             invoiceReceiverPolicy,
             isPaidAnimationRunning,
+            isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
         });
     }, [
         isPaidAnimationRunning,
+        isApprovedAnimationRunning,
         isSubmittingAnimationRunning,
         moneyRequestReport,
         chatReport,
@@ -748,7 +761,7 @@ function MoneyReportHeader({
                         return;
                     }
                     startSubmittingAnimation();
-                    submitReport(moneyRequestReport);
+                    submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
                     if (currentSearchQueryJSON) {
                         search({
                             searchKey: currentSearchKey,
@@ -939,7 +952,7 @@ function MoneyReportHeader({
                 if (!moneyRequestReport) {
                     return;
                 }
-                submitReport(moneyRequestReport);
+                submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
@@ -1160,7 +1173,7 @@ function MoneyReportHeader({
         };
     }, []);
 
-    if (isMobileSelectionModeEnabled) {
+    if (isMobileSelectionModeEnabled && shouldUseNarrowLayout) {
         // If mobile selection mode is enabled but only one or no transactions remain, turn it off
         const visibleTransactions = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
         if (visibleTransactions.length <= 1) {
@@ -1187,42 +1200,6 @@ function MoneyReportHeader({
     const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) =>
         selectPaymentType(event, iouPaymentType, triggerKYCFlow, policy, confirmPayment, isUserValidated, confirmApproval, moneyRequestReport);
 
-    const KYCMoreDropdown = (
-        <KYCWall
-            onSuccessfulKYC={(payment) => confirmPayment(payment)}
-            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-            isDisabled={isOffline}
-            source={CONST.KYC_WALL_SOURCE.REPORT}
-            chatReportID={chatReport?.reportID}
-            iouReport={moneyRequestReport}
-            anchorAlignment={{
-                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, // button is at left, so horizontal anchor is at LEFT
-                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
-            }}
-        >
-            {(triggerKYCFlow, buttonRef) => (
-                <ButtonWithDropdownMenu
-                    success={false}
-                    onPress={() => {}}
-                    onSubItemSelected={(item, index, event) => {
-                        if (!isSecondaryActionAPaymentOption(item)) {
-                            return;
-                        }
-                        onPaymentSelect(event, item.value, triggerKYCFlow);
-                    }}
-                    buttonRef={buttonRef}
-                    shouldAlwaysShowDropdownMenu
-                    shouldPopoverUseScrollView={shouldDisplayNarrowVersion && applicableSecondaryActions.length >= 5}
-                    customText={translate('common.more')}
-                    options={applicableSecondaryActions}
-                    isSplitButton={false}
-                    wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && styles.flex1]}
-                    shouldUseModalPaddingStyle
-                />
-            )}
-        </KYCWall>
-    );
-
     const showNextStepBar = shouldShowNextStep && !!optimisticNextStep?.message?.length;
     const showNextStepSkeleton = shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
     const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || !!statusBarProps || isReportInSearch;
@@ -1243,7 +1220,17 @@ function MoneyReportHeader({
                 {shouldDisplayNarrowMoreButton && (
                     <View style={[styles.flexRow, styles.gap2]}>
                         {!!primaryAction && !shouldShowSelectedTransactionsButton && primaryActionsImplementation[primaryAction]}
-                        {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && KYCMoreDropdown}
+                        {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && (
+                            <MoneyReportHeaderKYCDropdown
+                                chatReportID={chatReport?.reportID}
+                                iouReport={moneyRequestReport}
+                                onPaymentSelect={onPaymentSelect}
+                                onSuccessfulKYC={(payment) => confirmPayment(payment)}
+                                primaryAction={primaryAction}
+                                applicableSecondaryActions={applicableSecondaryActions}
+                                ref={kycWallRef}
+                            />
+                        )}
                         {shouldShowSelectedTransactionsButton && (
                             <View>
                                 <ButtonWithDropdownMenu
@@ -1260,7 +1247,7 @@ function MoneyReportHeader({
             </HeaderWithBackButton>
             {!shouldDisplayNarrowMoreButton &&
                 (shouldShowSelectedTransactionsButton ? (
-                    <View style={[styles.dFlex, styles.w100, styles.ph5]}>
+                    <View style={[styles.dFlex, styles.w100, styles.ph5, styles.pb3]}>
                         <ButtonWithDropdownMenu
                             onPress={() => null}
                             options={selectedTransactionsOptions}
@@ -1273,7 +1260,17 @@ function MoneyReportHeader({
                 ) : (
                     <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
                         {!!primaryAction && <View style={[styles.flex1]}>{primaryActionsImplementation[primaryAction]}</View>}
-                        {!!applicableSecondaryActions.length && KYCMoreDropdown}
+                        {!!applicableSecondaryActions.length && (
+                            <MoneyReportHeaderKYCDropdown
+                                chatReportID={chatReport?.reportID}
+                                iouReport={moneyRequestReport}
+                                onPaymentSelect={onPaymentSelect}
+                                onSuccessfulKYC={(payment) => confirmPayment(payment)}
+                                primaryAction={primaryAction}
+                                applicableSecondaryActions={applicableSecondaryActions}
+                                ref={kycWallRef}
+                            />
+                        )}
                     </View>
                 ))}
 
@@ -1335,7 +1332,7 @@ function MoneyReportHeader({
                     if (!chatReport) {
                         return;
                     }
-                    cancelPayment(moneyRequestReport, chatReport);
+                    cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations);
                     setIsCancelPaymentModalVisible(false);
                 }}
                 onCancel={() => setIsCancelPaymentModalVisible(false)}
@@ -1357,12 +1354,20 @@ function MoneyReportHeader({
                         }
                         // it's deleting transaction but not the report which leads to bug (that is actually also on staging)
                         // Money request should be deleted when interactions are done, to not show the not found page before navigating to goBackRoute
-                        // eslint-disable-next-line deprecation/deprecation
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
-                            deleteMoneyRequest(transaction?.transactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations);
+                            deleteMoneyRequest(
+                                transaction?.transactionID,
+                                requestParentReportAction,
+                                duplicateTransactions,
+                                duplicateTransactionViolations,
+                                iouReport,
+                                chatIOUReport,
+                                isChatIOUReportArchived,
+                            );
                             removeTransaction(transaction.transactionID);
                         });
-                        goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, false);
+                        goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, iouReport, chatIOUReport, isChatIOUReportArchived, false);
                     }
 
                     if (goBackRoute) {
@@ -1399,7 +1404,7 @@ function MoneyReportHeader({
                     setIsDeleteReportModalVisible(false);
 
                     Navigation.goBack();
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         deleteAppReport(moneyRequestReport?.reportID);
                     });
