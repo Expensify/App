@@ -62,7 +62,7 @@ import {
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
-import StringUtils from '@libs/StringUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -284,10 +284,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     }, [isMultiLevelTags, policyTagLists, hasDependentTags, translate, policy, policyTags, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
-        const tagText = StringUtils.normalize(tag.text?.toLowerCase() ?? '');
-        const tagValue = StringUtils.normalize(tag.value?.toLowerCase() ?? '');
-        const normalizeSearchInput = StringUtils.normalize(searchInput.toLowerCase());
-        return tagText.includes(normalizeSearchInput) || tagValue.includes(normalizeSearchInput);
+        const results = tokenizedSearch([tag], searchInput, (option) => [option.text ?? '', option.value ?? '']);
+        return results.length > 0;
     }, []);
     const sortTags = useCallback(
         (tags: TagListItem[]) => {
@@ -373,7 +371,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         deletePolicyTags(policyID, selectedTags, policyTags);
         setIsDeleteTagsConfirmModalVisible(false);
 
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedTags([]);
             if (isMobileSelectionModeEnabled && selectedTags.length === Object.keys(policyTagLists.at(0)?.tags ?? {}).length) {
