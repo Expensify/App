@@ -7,7 +7,6 @@ import ImageSize from 'react-native-image-size';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import saveLastRoute from '@libs/saveLastRoute';
@@ -24,16 +23,12 @@ import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
  */
 function showSuccessAlert(successMessage?: string) {
     Alert.alert(
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         translateLocal('fileDownload.success.title'),
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         // successMessage can be an empty string and we want to default to `Localize.translateLocal('fileDownload.success.message')`
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         successMessage || translateLocal('fileDownload.success.message'),
         [
             {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 text: translateLocal('common.ok'),
                 style: 'cancel',
             },
@@ -46,10 +41,8 @@ function showSuccessAlert(successMessage?: string) {
  * Show alert on attachment download error
  */
 function showGeneralErrorAlert() {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     Alert.alert(translateLocal('fileDownload.generalError.title'), translateLocal('fileDownload.generalError.message'), [
         {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             text: translateLocal('common.cancel'),
             style: 'cancel',
         },
@@ -60,15 +53,12 @@ function showGeneralErrorAlert() {
  * Show alert on attachment download permissions error
  */
 function showPermissionErrorAlert() {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     Alert.alert(translateLocal('fileDownload.permissionError.title'), translateLocal('fileDownload.permissionError.message'), [
         {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             text: translateLocal('common.cancel'),
             style: 'cancel',
         },
         {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             text: translateLocal('common.settings'),
             onPress: () => {
                 Linking.openSettings();
@@ -82,18 +72,14 @@ function showPermissionErrorAlert() {
  */
 function showCameraPermissionsAlert() {
     Alert.alert(
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         translateLocal('attachmentPicker.cameraPermissionRequired'),
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         translateLocal('attachmentPicker.expensifyDoesNotHaveAccessToCamera'),
         [
             {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 text: translateLocal('common.cancel'),
                 style: 'cancel',
             },
             {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 text: translateLocal('common.settings'),
                 onPress: () => {
                     Linking.openSettings();
@@ -611,79 +597,58 @@ const getFileValidationErrorText = (
     switch (validationError) {
         case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
             return {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 title: translateLocal('attachmentPicker.wrongFileType'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 reason: translateLocal('attachmentPicker.notAllowedExtension'),
             };
         case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE:
             return {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 title: translateLocal('attachmentPicker.someFilesCantBeUploaded'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 reason: translateLocal('attachmentPicker.unsupportedFileType', {fileType: additionalData.fileType ?? ''}),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
             return {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 title: translateLocal('attachmentPicker.attachmentTooLarge'),
                 reason: isValidatingReceipt
-                    ? // eslint-disable-next-line @typescript-eslint/no-deprecated
-                      translateLocal('attachmentPicker.sizeExceededWithLimit', {
+                    ? translateLocal('attachmentPicker.sizeExceededWithLimit', {
                           maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / 1024 / 1024,
                       })
-                    : // eslint-disable-next-line @typescript-eslint/no-deprecated
-                      translateLocal('attachmentPicker.sizeExceeded'),
+                    : translateLocal('attachmentPicker.sizeExceeded'),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE:
             return {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 title: translateLocal('attachmentPicker.someFilesCantBeUploaded'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 reason: translateLocal('attachmentPicker.sizeLimitExceeded', {
                     maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? maxSize / 1024 / 1024,
                 }),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL:
             return {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 title: translateLocal('attachmentPicker.attachmentTooSmall'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 reason: translateLocal('attachmentPicker.sizeNotMet'),
             };
         case CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED:
             return {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 title: translateLocal('attachmentPicker.attachmentError'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 reason: translateLocal('attachmentPicker.folderNotAllowedMessage'),
             };
         case CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED:
             return {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 title: translateLocal('attachmentPicker.someFilesCantBeUploaded'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 reason: translateLocal('attachmentPicker.maxFileLimitExceeded'),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED:
             return {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 title: translateLocal('attachmentPicker.attachmentError'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 reason: translateLocal('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
             };
         case CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE:
             return {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 title: translateLocal('attachmentPicker.attachmentError'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 reason: translateLocal('attachmentPicker.protectedPDFNotSupported'),
             };
         default:
             return {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 title: translateLocal('attachmentPicker.attachmentError'),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 reason: translateLocal('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
             };
     }
@@ -694,10 +659,8 @@ const getConfirmModalPrompt = (attachmentInvalidReason: TranslationPaths | undef
         return '';
     }
     if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
     }
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal(attachmentInvalidReason);
 };
 

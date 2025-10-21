@@ -938,8 +938,7 @@ function getOptionData({
     } else {
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                // eslint-disable-next-line @typescript-eslint/no-deprecated, @typescript-eslint/prefer-nullish-coalescing
                 getWelcomeMessage(report, policy, participantPersonalDetailListExcludeCurrentUser, localeCompare, isReportArchived).messageText || translateLocal('report.noActivityYet'),
             );
         }
