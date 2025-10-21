@@ -220,8 +220,10 @@ function SearchList({
     const route = useRoute();
     const {getScrollOffset} = useContext(ScrollOffsetContext);
 
+    const [longPressedItemTransactions, setLongPressedItemTransactions] = useState<TransactionListItemType[]>();
+
     const handleLongPressRow = useCallback(
-        (item: SearchListItem) => {
+        (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
             const currentRoute = navigationRef.current?.getCurrentRoute();
             if (currentRoute && route.key !== currentRoute.key) {
                 return;
@@ -236,10 +238,11 @@ function SearchList({
                 return;
             }
             if (isMobileSelectionModeEnabled) {
-                onCheckboxPress(item);
+                onCheckboxPress(item, itemTransactions);
                 return;
             }
             setLongPressedItem(item);
+            setLongPressedItemTransactions(itemTransactions);
             setIsModalVisible(true);
         },
         [groupBy, route.key, shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled, onCheckboxPress],
@@ -250,9 +253,9 @@ function SearchList({
         setIsModalVisible(false);
 
         if (onCheckboxPress && longPressedItem) {
-            onCheckboxPress?.(longPressedItem);
+            onCheckboxPress?.(longPressedItem, longPressedItemTransactions);
         }
-    }, [longPressedItem, onCheckboxPress]);
+    }, [longPressedItem, onCheckboxPress, longPressedItemTransactions]);
 
     /**
      * Scrolls to the desired item index in the section list

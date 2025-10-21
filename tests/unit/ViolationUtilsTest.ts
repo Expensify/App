@@ -1,6 +1,7 @@
 import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -658,22 +659,23 @@ const brokenCardConnection530Violation: TransactionViolation = {
 
 describe('getViolationTranslation', () => {
     it('should return the correct message for broken card connection violation', () => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const brokenCardConnectionViolationExpected = translateLocal('violations.rter', {
             brokenBankConnection: true,
             isAdmin: true,
             rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION,
             isTransactionOlderThan7Days: false,
         });
-
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(ViolationsUtils.getViolationTranslation(brokenCardConnectionViolation, translateLocal)).toBe(brokenCardConnectionViolationExpected);
-
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const brokenCardConnection530ViolationExpected = translateLocal('violations.rter', {
             brokenBankConnection: true,
             isAdmin: false,
             rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
             isTransactionOlderThan7Days: false,
         });
-
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(ViolationsUtils.getViolationTranslation(brokenCardConnection530Violation, translateLocal)).toBe(brokenCardConnection530ViolationExpected);
     });
 });
@@ -701,16 +703,18 @@ describe('getRBRMessages', () => {
 
     it('should return all violations and missing field error', () => {
         const missingFieldError = 'Missing required field';
-
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const result = ViolationsUtils.getRBRMessages(mockTransaction, mockViolations, translateLocal, missingFieldError, []);
-
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const expectedResult = `Missing required field. ${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
 
         expect(result).toBe(expectedResult);
     });
 
     it('should filter out empty strings', () => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const result = ViolationsUtils.getRBRMessages(mockTransaction, mockViolations, translateLocal, undefined, []);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const expectedResult = `${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
 
         expect(result).toBe(expectedResult);

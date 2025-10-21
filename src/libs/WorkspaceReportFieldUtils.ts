@@ -5,6 +5,7 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import type {InputID} from '@src/types/form/WorkspaceReportFieldForm';
 import type {PolicyReportField, PolicyReportFieldType} from '@src/types/onyx/Policy';
 import {addErrorMessage} from './ErrorUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {isRequiredFulfilled} from './ValidationUtils';
 
@@ -46,11 +47,14 @@ function validateReportFieldListValueName(
     const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
 
     if (!isRequiredFulfilled(valueName)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         errors[inputID] = translateLocal('workspace.reportFields.listValueRequiredError');
     } else if (priorValueName !== valueName && listValues.some((currentValueName) => currentValueName === valueName)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         errors[inputID] = translateLocal('workspace.reportFields.existingListValueError');
     } else if ([...valueName].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
         // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         addErrorMessage(errors, inputID, translateLocal('common.error.characterLimitExceedCounter', {length: [...valueName].length, limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}));
     }
 
@@ -76,6 +80,7 @@ function getReportFieldInitialValue(reportField: PolicyReportField | null): stri
     }
 
     if (reportField.type === CONST.REPORT_FIELD_TYPES.DATE) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.currentDate');
     }
 
