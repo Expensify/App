@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -12,10 +12,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Participant} from '@src/types/onyx/IOU';
 
 function AddDelegatePage() {
     const {translate} = useLocalize();
@@ -32,21 +32,25 @@ function AddDelegatePage() {
                     return prev;
                 },
                 {} as Record<string, boolean>,
-            ),
+            ) ?? {},
         [account?.delegatedAccess?.delegates],
     );
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, toggleSelection} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         includeUserToInvite: true,
         excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
         includeRecentReports: true,
+        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        onSingleSelect: (option) => {
+            Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(option.login ?? ''));
+        },
     });
 
     const headerMessage = useMemo(() => {
-        return getHeaderMessage((availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0, !!availableOptions.userToInvite, searchTerm);
-    }, [availableOptions, searchTerm]);
+        return getHeaderMessage((availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0, !!availableOptions.userToInvite, debouncedSearchTerm);
+    }, [availableOptions, debouncedSearchTerm]);
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -85,10 +89,6 @@ function AddDelegatePage() {
         }));
     }, [availableOptions, translate]);
 
-    const onSelectRow = useCallback((option: Participant) => {
-        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(option?.login ?? ''));
-    }, []);
-
     useEffect(() => {
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
@@ -107,7 +107,7 @@ function AddDelegatePage() {
                     <SelectionList
                         sections={areOptionsInitialized ? sections : []}
                         ListItem={UserListItem}
-                        onSelectRow={onSelectRow}
+                        onSelectRow={toggleSelection}
                         shouldSingleExecuteRowSelect
                         onChangeText={setSearchTerm}
                         textInputValue={searchTerm}

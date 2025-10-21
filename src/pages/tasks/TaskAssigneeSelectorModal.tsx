@@ -42,6 +42,7 @@ function TaskAssigneeSelectorModal() {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: false});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({
@@ -49,19 +50,33 @@ function TaskAssigneeSelectorModal() {
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         includeUserToInvite: true,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        includeRecentReports: true,
+        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         getValidOptionsConfig: {
             includeCurrentUser: true,
         },
     });
 
+    const optionsWithoutCurrentUser = useMemo(() => {
+        if (!session?.accountID) {
+            return availableOptions;
+        }
+
+        return {
+            ...availableOptions,
+            personalDetails: availableOptions.personalDetails.filter((detail) => detail.accountID !== session.accountID),
+            recentReports: availableOptions.recentReports.filter((report) => report.accountID !== session.accountID),
+        };
+    }, [availableOptions, session?.accountID]);
+
     const headerMessage = useMemo(() => {
         return getHeaderMessage(
-            (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0 || !!availableOptions.currentUserOption,
-            !!availableOptions.userToInvite,
-            searchTerm,
+            (optionsWithoutCurrentUser.recentReports?.length || 0) + (optionsWithoutCurrentUser.personalDetails?.length || 0) !== 0 || !!optionsWithoutCurrentUser.currentUserOption,
+            !!optionsWithoutCurrentUser.userToInvite,
+            debouncedSearchTerm,
+            false,
+            countryCode,
         );
-    }, [availableOptions, searchTerm]);
+    }, [optionsWithoutCurrentUser, debouncedSearchTerm, countryCode]);
 
     const report: OnyxEntry<Report> = useMemo(() => {
         if (!route.params?.reportID) {
@@ -79,30 +94,30 @@ function TaskAssigneeSelectorModal() {
     const sections = useMemo(() => {
         const sectionsList = [];
 
-        if (availableOptions.currentUserOption) {
+        if (optionsWithoutCurrentUser.currentUserOption) {
             sectionsList.push({
                 title: translate('newTaskPage.assignMe'),
-                data: [availableOptions.currentUserOption],
+                data: [optionsWithoutCurrentUser.currentUserOption],
                 shouldShow: true,
             });
         }
 
         sectionsList.push({
             title: translate('common.recents'),
-            data: availableOptions.recentReports,
-            shouldShow: availableOptions.recentReports?.length > 0,
+            data: optionsWithoutCurrentUser.recentReports,
+            shouldShow: optionsWithoutCurrentUser.recentReports?.length > 0,
         });
 
         sectionsList.push({
             title: translate('common.contacts'),
-            data: availableOptions.personalDetails,
-            shouldShow: availableOptions.personalDetails?.length > 0,
+            data: optionsWithoutCurrentUser.personalDetails,
+            shouldShow: optionsWithoutCurrentUser.personalDetails?.length > 0,
         });
 
-        if (availableOptions.userToInvite) {
+        if (optionsWithoutCurrentUser.userToInvite) {
             sectionsList.push({
                 title: '',
-                data: [availableOptions.userToInvite],
+                data: [optionsWithoutCurrentUser.userToInvite],
                 shouldShow: true,
             });
         }
@@ -119,7 +134,7 @@ function TaskAssigneeSelectorModal() {
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
             })),
         }));
-    }, [availableOptions, translate]);
+    }, [optionsWithoutCurrentUser, translate]);
 
     const selectReport = useCallback(
         (option: ListItem) => {
