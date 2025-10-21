@@ -188,7 +188,7 @@ function IOURequestStepDistanceManual({
 
     const submitAndNavigateToNextPage = useCallback(() => {
         const value = numberFormRef.current?.getNumber() ?? '';
-        if (!value.length || parseFloat(value) < 0) {
+        if (!value.length || parseFloat(value) < 0.01) {
             setFormError(translate('iou.error.invalidDistance'));
             return;
         }

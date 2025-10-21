@@ -51,12 +51,12 @@ import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {handleMoneyRequestStepScanParticipants, replaceReceipt, setMoneyRequestReceipt, updateLastLocationPermissionPrompt} from '@userActions/IOU';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import CameraPermission from './CameraPermission';
 import {cropImageToAspectRatio} from './cropImageToAspectRatio';
@@ -108,7 +108,6 @@ function IOURequestStepScan({
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
     const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
-    const [cameraKey, setCameraKey] = useState(0);
     const {shouldStartLocationPermissionFlow} = useIOUUtils();
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS) || !account?.shouldBlockTransactionThreadReportCreation;
 
@@ -214,11 +213,7 @@ function IOURequestStepScan({
                     .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
             };
 
-            // eslint-disable-next-line deprecation/deprecation
-            InteractionManager.runAfterInteractions(() => {
-                // Check initial camera permission status
-                refreshCameraPermissionStatus();
-            });
+            refreshCameraPermissionStatus();
 
             // Refresh permission status when app gain focus
             const subscription = AppState.addEventListener('change', (appState) => {
@@ -226,7 +221,6 @@ function IOURequestStepScan({
                     return;
                 }
 
-                setCameraKey((prev) => prev + 1);
                 refreshCameraPermissionStatus();
             });
 
@@ -320,7 +314,7 @@ function IOURequestStepScan({
      */
     const setTestReceiptAndNavigate = useCallback(() => {
         setTestReceipt(TestReceipt, 'png', (source, file, filename) => {
-            if (!file.uri) {
+            if (!file?.uri) {
                 return;
             }
 
@@ -330,7 +324,7 @@ function IOURequestStepScan({
     }, [initialTransactionID, isEditing, navigateToConfirmationStep]);
 
     const dismissMultiScanEducationalPopup = () => {
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL);
             setShouldShowMultiScanEducationalPopup(false);
@@ -592,7 +586,6 @@ function IOURequestStepScan({
                             <GestureDetector gesture={tapGesture}>
                                 <View style={styles.flex1}>
                                     <NavigationAwareCamera
-                                        key={cameraKey}
                                         ref={camera}
                                         device={device}
                                         style={styles.flex1}

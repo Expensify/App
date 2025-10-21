@@ -79,6 +79,7 @@ function ProfilePage() {
             title: formatPhoneNumber(currentUserPersonalDetails?.login ?? ''),
             pageRoute: ROUTES.SETTINGS_CONTACT_METHODS.route,
             brickRoadIndicator: contactMethodBrickRoadIndicator,
+            testID: 'contact-method-menu-item',
         },
         {
             description: translate('statusPage.status'),
@@ -244,6 +245,7 @@ function ProfilePage() {
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={() => Navigation.navigate(detail.pageRoute)}
                                     brickRoadIndicator={detail.brickRoadIndicator}
+                                    pressableTestID={detail?.testID}
                                 />
                             ))}
                             <Button
