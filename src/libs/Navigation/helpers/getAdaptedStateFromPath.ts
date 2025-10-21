@@ -9,7 +9,7 @@ import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigat
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {DynamicRoute, Route as RoutePath} from '@src/ROUTES';
+import type {DynamicRouteSuffix, Route as RoutePath} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
@@ -71,7 +71,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     }
 
     const lastSuffix = route.path?.split('?').at(0)?.split('/').pop() ?? '';
-    if (Object.values(DYNAMIC_ROUTES).includes(lastSuffix as DynamicRoute)) {
+    if (Object.values(DYNAMIC_ROUTES).includes(lastSuffix as DynamicRouteSuffix)) {
         const pathWithoutDynamicSuffix = route.path?.replace(`/${lastSuffix}`, '');
         const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix as RoutePath);
         const lastRoute = stateUnderDynamicRoute?.routes.at(-1);

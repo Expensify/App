@@ -2,7 +2,7 @@ import type {NavigationState, PartialState} from '@react-navigation/native';
 import {findFocusedRoute, getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import SCREEN_ACCESS_MAP from '@libs/Navigation/SCREEN_ACCESS_MAP';
-import type {DynamicRoute, Route} from '@src/ROUTES';
+import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import getMatchingNewRoute from './getMatchingNewRoute';
@@ -17,7 +17,7 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
     const normalizedPathAfterRedirection = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 
     const lastSuffix = path.split('?').at(0)?.split('/').pop() ?? '';
-    if (Object.values(DYNAMIC_ROUTES).includes(lastSuffix as DynamicRoute)) {
+    if (Object.values(DYNAMIC_ROUTES).includes(lastSuffix as DynamicRouteSuffix)) {
         const pathWithoutDynamicSuffix = path.replace(`/${lastSuffix}`, '');
 
         const DYNAMIC_ROUTE = (Object.keys(DYNAMIC_ROUTES) as Array<keyof typeof DYNAMIC_ROUTES>).find((key) => DYNAMIC_ROUTES[key] === lastSuffix) ?? 'VERIFY_ACCOUNT';

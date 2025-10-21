@@ -1,6 +1,6 @@
 import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {DynamicRoute} from '@src/ROUTES';
+import type {DynamicRouteSuffix} from '@src/ROUTES';
 
 type LeafRoute = {
     name: string;
@@ -17,7 +17,7 @@ type NestedRoute = {
 
 type RouteNode = LeafRoute | NestedRoute;
 
-function parseNavigationHierarchy(dynamicRouteName: DynamicRoute): string[] | null {
+function parseNavigationHierarchy(dynamicRouteName: DynamicRouteSuffix): string[] | null {
     // Search through normalized configs to find matching path
     for (const [, config] of Object.entries(normalizedConfigs)) {
         if (config.path === dynamicRouteName) {

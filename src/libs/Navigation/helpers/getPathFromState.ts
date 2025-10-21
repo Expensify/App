@@ -2,7 +2,7 @@ import {findFocusedRoute, getPathFromState as RNGetPathFromState} from '@react-n
 import type {NavigationState, PartialState} from '@react-navigation/routers';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
-import type {DynamicRoute} from '@src/ROUTES';
+import type {DynamicRouteSuffix} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 
@@ -97,11 +97,11 @@ function appendDynamicRoutesToPath(basePath: string, dynamicRouteScreens: Screen
         return basePath;
     }
 
-    const dynamicSuffixes: DynamicRoute[] = [];
+    const dynamicSuffixes: DynamicRouteSuffix[] = [];
     for (const screen of dynamicRouteScreens) {
         const path = normalizedConfigs[screen]?.path;
         if (path) {
-            dynamicSuffixes.push(path as DynamicRoute);
+            dynamicSuffixes.push(path as DynamicRouteSuffix);
         } else {
             throw new Error(`Linking config path not found for dynamic route screen: ${screen}`);
         }

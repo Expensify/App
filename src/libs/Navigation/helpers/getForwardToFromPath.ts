@@ -1,5 +1,5 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import type {DynamicRoute, Route} from '@src/ROUTES';
+import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import getStateFromPath from './getStateFromPath';
 
@@ -11,7 +11,7 @@ function getForwardToFromPath(path: string): Route {
     }
 
     const lastSuffix = path.split('?').at(0)?.split('/').pop() ?? '';
-    const dynamicRouteKey = Object.keys(DYNAMIC_ROUTES).find((key) => DYNAMIC_ROUTES[key as keyof typeof DYNAMIC_ROUTES] === lastSuffix) as DynamicRoute | undefined;
+    const dynamicRouteKey = Object.keys(DYNAMIC_ROUTES).find((key) => DYNAMIC_ROUTES[key as keyof typeof DYNAMIC_ROUTES] === lastSuffix) as DynamicRouteSuffix | undefined;
 
     if (!dynamicRouteKey) {
         throw new Error("Provided path doesn't contain dynamic route");

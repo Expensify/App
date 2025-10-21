@@ -3358,7 +3358,7 @@ type Route = {
     [K in keyof typeof ROUTES]: ExtractRouteName<(typeof ROUTES)[K]>;
 }[keyof typeof ROUTES];
 
-type DynamicRoute = {
+type DynamicRouteSuffix = {
     [K in keyof typeof DYNAMIC_ROUTES]: ExtractRouteName<(typeof DYNAMIC_ROUTES)[K]>;
 }[keyof typeof DYNAMIC_ROUTES];
 
@@ -3373,4 +3373,4 @@ type RoutesValidationError = 'Error: One or more routes defined within `ROUTES` 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type RouteIsPlainString = AssertTypesNotEqual<string, Route, RoutesValidationError>;
 
-export type {Route, DynamicRoute};
+export type {Route, DynamicRouteSuffix};
