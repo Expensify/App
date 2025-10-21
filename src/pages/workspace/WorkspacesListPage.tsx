@@ -677,7 +677,7 @@ function WorkspacesListPage() {
         [getDomainMenuItem, getWorkspaceMenuItem, getWorkspacesEmptyStateComponent, styles, translate],
     );
 
-    if (workspaces.length === 0 && domains.length === 0) {
+    if (!workspaces.length && !domains.length) {
         return (
             <ScreenWrapper
                 shouldEnablePickerAvoiding={false}
