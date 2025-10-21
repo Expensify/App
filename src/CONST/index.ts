@@ -7154,13 +7154,13 @@ const CONST = {
         SPECIAL_LIST_REGION_KEYS: ['bankRegion', 'accountHolderRegion'] as string[],
         SPECIAL_LIST_ADDRESS_KEYS: ['bankAddressLine1', 'accountHolderAddress1'] as string[],
         STEPS_NAME: {
-            COUNTRY_SELECTOR: 'CountrySelector',
-            BANK_ACCOUNT_DETAILS: 'BankAccountDetails',
-            ACCOUNT_TYPE: 'AccountType',
-            BANK_INFORMATION: 'BankInformation',
-            ACCOUNT_HOLDER_INFORMATION: 'AccountHolderInformation',
-            CONFIRMATION: 'Confirmation',
-            SUCCESS: 'Success',
+            COUNTRY_SELECTOR: 'country-selector',
+            BANK_ACCOUNT_DETAILS: 'bank-account-details',
+            ACCOUNT_TYPE: 'account-type',
+            BANK_INFORMATION: 'bank-information',
+            ACCOUNT_HOLDER_INFORMATION: 'account-holder-information',
+            CONFIRMATION: 'confirmation',
+            SUCCESS: 'success',
         },
         INDEXES: {
             MAPPING: {

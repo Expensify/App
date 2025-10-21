@@ -286,10 +286,10 @@ const ROUTES = {
     },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: {
-        route: 'settings/wallet/add-bank-account',
+        route: 'settings/wallet/add-bank-account/:substep',
 
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (subStep: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/add-bank-account?subStep=${subStep}`, backTo),
+        // eslint-disable-next-line no-restricted-syntax
+        getRoute: (subStep: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/add-bank-account/${subStep}`, backTo),
     },
     SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: `settings/wallet/add-bank-account/${VERIFY_ACCOUNT}`,
     SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',
