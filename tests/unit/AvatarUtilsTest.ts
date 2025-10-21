@@ -1,8 +1,8 @@
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import {isValidExtension, isValidResolution, isValidSize, validateAvatarImage} from '@src/libs/AvatarUtils';
 import * as FileUtils from '@src/libs/fileDownload/FileUtils';
 import * as getImageResolution from '@src/libs/fileDownload/getImageResolution';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 jest.mock('@src/libs/fileDownload/FileUtils');
 jest.mock('@src/libs/fileDownload/getImageResolution');
