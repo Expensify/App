@@ -40,7 +40,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import Permissions from '@libs/Permissions';
 import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {
@@ -90,7 +89,6 @@ import {
     isThread as isThreadUtil,
     isTrackExpenseReport as isTrackExpenseReportUtil,
     isUserCreatedPolicyRoom as isUserCreatedPolicyRoomUtil,
-    isWorkspaceMemberLeavingWorkspaceRoom as isWorkspaceMemberLeavingWorkspaceRoomUtil,
     navigateBackOnDeleteTransaction,
     navigateToPrivateNotes,
     shouldDisableRename as shouldDisableRenameUtil,
@@ -312,10 +310,10 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 leaveGroupChat(report.reportID);
                 return;
             }
-            const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
+            const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
             leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
         });
-    }, [isPolicyEmployee, isRootGroupChat, report, isPolicyAdmin]);
+    }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
@@ -426,7 +424,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     );
                 },
             });
-            if (Permissions.canUseTrackFlows()) {
+            if (isBetaEnabled(CONST.BETAS.TRACK_FLOWS)) {
                 items.push({
                     key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.CATEGORIZE,
                     translationKey: 'actionableMentionTrackExpense.categorize',

@@ -6,7 +6,7 @@ function NewBankAccountVerifyAccountPage() {
     return (
         <VerifyAccountPageBase
             navigateBackTo={ROUTES.SETTINGS_WALLET}
-            navigateForwardTo={ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route}
+            navigateForwardTo={ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE}
         />
     );
 }
