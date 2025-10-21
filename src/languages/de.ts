@@ -2124,6 +2124,7 @@ ${amount} für ${merchant} - ${date}`,
     workflowsExpensesFromPage: {
         title: 'Ausgaben von',
         header: 'Wenn die folgenden Mitglieder Ausgaben einreichen:',
+        notAllowedError: 'Workflows mit denselben Einreichern wie der Standard-Workflow müssen denselben Genehmiger haben. Bitte aktualisieren Sie den Genehmiger, um ihn abzugleichen.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Der Genehmiger konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',

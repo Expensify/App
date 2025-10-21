@@ -2109,6 +2109,7 @@ ${amount} dla ${merchant} - ${date}`,
     workflowsExpensesFromPage: {
         title: 'Wydatki od',
         header: 'Gdy następujący członkowie złożą wydatki:',
+        notAllowedError: 'Przepływy pracy z tymi samymi zgłaszającymi co domyślny przepływ pracy muszą mieć tego samego zatwierdzającego. Zaktualizuj zatwierdzającego, aby pasował.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Nie można było zmienić zatwierdzającego. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
