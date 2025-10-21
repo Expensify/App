@@ -19,6 +19,7 @@ import {confirmReadyToOpenApp, openApp} from './App';
 import {getCurrentUserAccountID} from './Report';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
+import { clearPreservedSearchNavigatorStates } from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 
 const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
@@ -187,6 +188,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                 Onyx.update(failureData);
                 return;
             }
+            clearPreservedSearchNavigatorStates();
             const restrictedToken = response.restrictedToken;
             const policyID = activePolicyID;
 
@@ -271,6 +273,8 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                 restoreDelegateSession(stashedSession ?? {});
                 return;
             }
+
+            clearPreservedSearchNavigatorStates();
 
             const requesterEmail = response.requesterEmail;
             const authToken = response.authToken;
