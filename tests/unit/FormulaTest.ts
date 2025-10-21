@@ -528,19 +528,19 @@ describe('CustomFormula', () => {
 
             setupMockDate(morningDate);
             expect(compute('{report:startdate:HH}', mockContextWithDate)).toBe('09');
-            expect(compute('{report:startdate:H}', mockContextWithDate)).toBe('9');
-            expect(compute('{report:startdate:G}', mockContextWithDate)).toBe('9');
+            expect(compute('{report:startdate:H}', mockContextWithDate)).toBe('09'); // H has leading zeros per spec
+            expect(compute('{report:startdate:G}', mockContextWithDate)).toBe('9'); // G has NO leading zeros
 
-            // 12-hour format: 3:30 PM (afternoon) and 9:05 AM (morning with leading zero)
+            // 12-hour format: 3:30 PM (afternoon) and 9:05 AM (morning)
             setupMockDate(testDate);
             expect(compute('{report:startdate:hh}', mockContextWithDate)).toBe('03');
-            expect(compute('{report:startdate:h}', mockContextWithDate)).toBe('3');
-            expect(compute('{report:startdate:g}', mockContextWithDate)).toBe('3');
+            expect(compute('{report:startdate:h}', mockContextWithDate)).toBe('03'); // h has leading zeros per spec
+            expect(compute('{report:startdate:g}', mockContextWithDate)).toBe('3'); // g has NO leading zeros
 
             setupMockDate(morningDate);
             expect(compute('{report:startdate:hh}', mockContextWithDate)).toBe('09');
-            expect(compute('{report:startdate:h}', mockContextWithDate)).toBe('9');
-            expect(compute('{report:startdate:g}', mockContextWithDate)).toBe('9');
+            expect(compute('{report:startdate:h}', mockContextWithDate)).toBe('09'); // h has leading zeros per spec
+            expect(compute('{report:startdate:g}', mockContextWithDate)).toBe('9'); // g has NO leading zeros
         });
 
         test('time formats - minutes and seconds', () => {

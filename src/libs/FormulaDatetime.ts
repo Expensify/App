@@ -165,10 +165,10 @@ function createDateTokens(date: Date): Array<{token: string; value: string}> {
         {token: 'HH', value: hours.toString().padStart(2, '0')},
         {token: 'mm', value: minutes.toString().padStart(2, '0')},
         {token: 'ss', value: seconds.toString().padStart(2, '0')},
-        {token: 'H', value: hours.toString()},
-        {token: 'h', value: hours12.toString()},
-        {token: 'G', value: hours.toString()},
-        {token: 'g', value: hours12.toString()},
+        {token: 'H', value: hours.toString().padStart(2, '0')}, // WITH leading zeros (00-23)
+        {token: 'h', value: hours12.toString().padStart(2, '0')}, // WITH leading zeros (01-12)
+        {token: 'G', value: hours.toString()}, // WITHOUT leading zeros (0-23)
+        {token: 'g', value: hours12.toString()}, // WITHOUT leading zeros (1-12)
         {token: 'i', value: minutes.toString().padStart(2, '0')},
         {token: 't', value: daysInMonth.toString()},
         {token: 's', value: seconds.toString().padStart(2, '0')},
