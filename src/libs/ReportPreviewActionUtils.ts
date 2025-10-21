@@ -225,7 +225,7 @@ function getReportPreviewAction(
     isPaidAnimationRunning?: boolean,
     isApprovedAnimationRunning?: boolean,
     isSubmittingAnimationRunning?: boolean,
-    isStrictPolicyRulesEnabled?: boolean,
+    areStrictPolicyRulesEnabled?: boolean,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
@@ -245,7 +245,7 @@ function getReportPreviewAction(
     }
 
     // When strict policy rules are enabled and there are violations, show REVIEW button instead of SUBMIT
-    const shouldBlockSubmit = shouldBlockSubmitDueToStrictPolicyRules(report.reportID, violations, isStrictPolicyRulesEnabled ?? false, transactions);
+    const shouldBlockSubmit = shouldBlockSubmitDueToStrictPolicyRules(report.reportID, violations, areStrictPolicyRulesEnabled ?? false, transactions);
     if (shouldBlockSubmit && canReview(report, violations, isReportArchived, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
     }

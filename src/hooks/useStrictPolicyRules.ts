@@ -4,7 +4,7 @@ import useOnyx from './useOnyx';
 
 type UseStrictPolicyRulesResult = {
     /** Whether the user's domain has strict policy rules enabled (strictly enforce workspace rules) */
-    isStrictPolicyRulesEnabled: boolean;
+    areStrictPolicyRulesEnabled: boolean;
 };
 
 /**
@@ -27,10 +27,10 @@ function useStrictPolicyRules(): UseStrictPolicyRulesResult {
     const securityGroup = securityGroupID ? securityGroups?.[securityGroupKey] : null;
 
     // Check if strict policy rules are enabled
-    const isStrictPolicyRulesEnabled = securityGroup?.enableStrictPolicyRules === true;
+    const areStrictPolicyRulesEnabled = securityGroup?.enableStrictPolicyRules === true;
 
     return {
-        isStrictPolicyRulesEnabled,
+        areStrictPolicyRulesEnabled,
     };
 }
 

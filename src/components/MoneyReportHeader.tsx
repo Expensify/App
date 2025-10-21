@@ -209,7 +209,7 @@ function MoneyReportHeader({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Buildings'] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const exportTemplates = useMemo(() => getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, policy), [integrationsExportTemplates, csvExportLayouts, policy]);
-    const {isStrictPolicyRulesEnabled} = useStrictPolicyRules();
+    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
 
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
@@ -225,8 +225,8 @@ function MoneyReportHeader({
     }, [reportTransactions]);
 
     const shouldBlockSubmit = useMemo(() => {
-        return shouldBlockSubmitDueToStrictPolicyRules(moneyRequestReport?.reportID, violations, isStrictPolicyRulesEnabled, transactions);
-    }, [moneyRequestReport?.reportID, violations, isStrictPolicyRulesEnabled, transactions]);
+        return shouldBlockSubmitDueToStrictPolicyRules(moneyRequestReport?.reportID, violations, areStrictPolicyRulesEnabled, transactions);
+    }, [moneyRequestReport?.reportID, violations, areStrictPolicyRulesEnabled, transactions]);
 
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`, {

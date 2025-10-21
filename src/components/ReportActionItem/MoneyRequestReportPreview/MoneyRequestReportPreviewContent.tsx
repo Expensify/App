@@ -137,7 +137,7 @@ function MoneyRequestReportPreviewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isStrictPolicyRulesEnabled} = useStrictPolicyRules();
+    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -483,7 +483,7 @@ function MoneyRequestReportPreviewContent({
             isPaidAnimationRunning,
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
-            isStrictPolicyRulesEnabled,
+            areStrictPolicyRulesEnabled,
         );
     }, [
         isPaidAnimationRunning,
@@ -496,7 +496,7 @@ function MoneyRequestReportPreviewContent({
         isIouReportArchived,
         invoiceReceiverPolicy,
         isChatReportArchived,
-        isStrictPolicyRulesEnabled,
+        areStrictPolicyRulesEnabled,
     ]);
 
     const addExpenseDropdownOptions = useMemo(

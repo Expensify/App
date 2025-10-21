@@ -8537,10 +8537,10 @@ function hasReportViolations(reportID: string | undefined) {
 function shouldBlockSubmitDueToStrictPolicyRules(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
-    isStrictPolicyRulesEnabled: boolean,
+    areStrictPolicyRulesEnabled: boolean,
     reportTransactions?: Transaction[] | SearchTransaction[],
 ) {
-    if (!isStrictPolicyRulesEnabled) {
+    if (!areStrictPolicyRulesEnabled) {
         return false;
     }
     return hasAnyViolations(reportID, transactionViolations, reportTransactions as SearchTransaction[]);
