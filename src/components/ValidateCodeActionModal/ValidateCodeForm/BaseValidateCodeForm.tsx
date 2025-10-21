@@ -177,7 +177,14 @@ function BaseValidateCodeForm({
         if (!validateCodeSent) {
             return;
         }
-        inputValidateCodeRef.current?.clear();
+        // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
+        if (!isMobileSafari()) {
+            focusTimeoutRef.current = setTimeout(() => {
+                inputValidateCodeRef.current?.clear();
+            }, CONST.ANIMATED_TRANSITION);
+        } else {
+            inputValidateCodeRef.current?.clear();
+        }
     }, [validateCodeSent]);
 
     useEffect(() => {
