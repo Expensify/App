@@ -12020,7 +12020,7 @@ class GithubUtils {
      */
     static generateStagingDeployCashBodyAndAssignees(tag, PRList, PRListMobileExpensify, verifiedPRList = [], verifiedPRListMobileExpensify = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isFirebaseChecked = false, isGHStatusChecked = false) {
         return Promise.all([
-            this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr))),
+            this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)), CONST_1.default.APP_REPO),
             this.fetchAllPullRequests(PRListMobileExpensify.map((pr) => this.getPullRequestNumberFromURL(pr)), CONST_1.default.MOBILE_EXPENSIFY_REPO),
         ])
             .then(([appPRData, mobilePRData]) => {
@@ -12036,6 +12036,7 @@ class GithubUtils {
                     return acc;
                 }, {});
                 console.log('Found the following Internal QA PRs:', internalQAPRMap);
+                // Detect and check off verified and NO QA PRs
                 const noQAPRs = Array.isArray(appPRData) ? appPRData.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
                 console.log('Found the following NO QA PRs:', noQAPRs);
                 const noQAMobileExpensifyPRs = Array.isArray(mobilePRData) ? mobilePRData.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
