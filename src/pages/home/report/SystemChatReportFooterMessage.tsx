@@ -41,7 +41,7 @@ function SystemChatReportFooterMessage() {
                     <RenderHTML
                         html={translate('systemChatFooterMessage.newDotManageTeam', {
                             adminReportName: adminChatReport?.reportName ?? CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
-                            href: `${environmentURL}${ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID)}`,
+                            href: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID)}`,
                         })}
                     />
                 );
