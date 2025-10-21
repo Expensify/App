@@ -29,7 +29,7 @@ function useTransactionsAndViolationsForReport(reportID?: string) {
         );
 
         return {transactions, violations: filteredViolations};
-    }, [transactions, violations, currentUserDetails.email]);
+    }, [transactions, violations, currentUserDetails?.email]);
 
     return transactionsAndViolations;
 }
