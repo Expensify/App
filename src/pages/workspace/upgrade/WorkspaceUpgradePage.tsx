@@ -69,6 +69,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
         switch (feature?.id) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id:
                 Navigation.goBack();
                 if (route.params.backTo) {
                     Navigation.navigate(route.params.backTo);
@@ -86,12 +87,6 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         return;
                     }
                 }
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id:
-                Navigation.goBack();
-                if (route.params.backTo) {
-                    Navigation.navigate(route.params.backTo);
-                }
-                return;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)));
                 return;
