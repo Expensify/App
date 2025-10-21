@@ -2,7 +2,6 @@ import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigatio
 import {findFocusedRoute, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import useLocalize from '@hooks/useLocalize';
 import {isFullScreenName, isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import * as Welcome from '@userActions/Welcome';
@@ -83,8 +82,6 @@ function isNavigatingToModalFromModal(state: StackNavigationState<ParamListBase>
 function RootStackRouter(options: RootStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
 
-    const {translate} = useLocalize();
-
     return {
         ...stackRouter,
         getStateForAction(state: StackNavigationState<ParamListBase>, action: RootStackNavigatorAction, configOptions: RouterConfigOptions) {
@@ -116,7 +113,7 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
             }
 
             // Don't let the user navigate back to a non-onboarding screen if they are currently on an onboarding screen and it's not finished.
-            if (shouldPreventReset(state, action, translate)) {
+            if (shouldPreventReset(state, action, options.translate)) {
                 syncBrowserHistory(state);
                 return state;
             }
