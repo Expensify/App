@@ -10720,6 +10720,7 @@ function submitReport(
         currentUserEmailParam: emailParam,
         hasViolations: hasViolationsParam,
         isASAPSubmitBetaEnabled,
+        isUnapprove: true,
     });
     const approvalChain = getApprovalChain(policy, expenseReport);
     const managerID = getAccountIDsByLogins(approvalChain).at(0);
