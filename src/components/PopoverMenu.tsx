@@ -497,15 +497,13 @@ function BasePopoverMenu({
         }
 
         const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer)];
-        const isTopAnchored = anchorAlignment?.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP;
-        const top = anchorPosition?.vertical;
 
-        if (isTopAnchored && typeof top === 'number' && shouldUseScrollView && shouldEnableMaxHeight) {
+        if (shouldUseScrollView && shouldEnableMaxHeight) {
             stylesArray.push({maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT});
         }
 
         return stylesArray;
-    }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer, anchorAlignment, anchorPosition, shouldUseScrollView]);
+    }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer, shouldUseScrollView]);
 
     const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
     const {paddingVertical: menuContainerPaddingVertical, ...restMenuContainerStyle} = StyleSheet.flatten(menuContainerStyle) ?? {};
