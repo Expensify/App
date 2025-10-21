@@ -168,6 +168,11 @@ function deleteReportFieldsListValue({valueIndexes, listValues, disabledListValu
  * Creates a new report field.
  */
 function createReportField({name, type, initialValue, listValues, disabledListValues, policyExpenseReportIDs, policy}: CreateReportFieldParams) {
+    if (!policy) {
+        Log.warn('Policy data is not present');
+        return;
+    }
+
     const previousFieldList = policy?.fieldList ?? {};
     const fieldID = WorkspaceReportFieldUtils.generateFieldID(name);
     const fieldKey = ReportUtils.getReportFieldKey(fieldID);
@@ -258,6 +263,11 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
 }
 
 function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsParams) {
+    if (!policy) {
+        Log.warn('Policy data is not present');
+        return;
+    }
+
     const allReportFields = policy?.fieldList ?? {};
 
     const updatedReportFields = Object.fromEntries(Object.entries(allReportFields).filter(([key]) => !reportFieldsToUpdate.includes(key)));
@@ -322,6 +332,11 @@ function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsPa
  * Updates the initial value of a report field.
  */
 function updateReportFieldInitialValue({policy, reportFieldID, newInitialValue}: UpdateReportFieldInitialValueParams) {
+    if (!policy) {
+        Log.warn('Policy data is not present');
+        return;
+    }
+
     const previousFieldList = policy?.fieldList ?? {};
     const fieldKey = ReportUtils.getReportFieldKey(reportFieldID);
     const updatedReportField: PolicyReportField = {
@@ -377,6 +392,11 @@ function updateReportFieldInitialValue({policy, reportFieldID, newInitialValue}:
 }
 
 function updateReportFieldListValueEnabled({policy, reportFieldID, valueIndexes, enabled}: UpdateReportFieldListValueEnabledParams) {
+    if (!policy) {
+        Log.warn('Policy data is not present');
+        return;
+    }
+
     const previousFieldList = policy?.fieldList ?? {};
     const fieldKey = ReportUtils.getReportFieldKey(reportFieldID);
     const reportField = previousFieldList[fieldKey];
@@ -419,6 +439,11 @@ function updateReportFieldListValueEnabled({policy, reportFieldID, valueIndexes,
  * Adds a new option to the list type report field on a workspace.
  */
 function addReportFieldListValue({policy, reportFieldID, valueName}: AddReportFieldListValueParams) {
+    if (!policy) {
+        Log.warn('Policy data is not present');
+        return;
+    }
+
     const previousFieldList = policy?.fieldList ?? {};
     const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
     const reportField = previousFieldList[reportFieldKey];
@@ -454,6 +479,11 @@ function addReportFieldListValue({policy, reportFieldID, valueName}: AddReportFi
  * Removes a list value from the workspace report fields.
  */
 function removeReportFieldListValue({policy, reportFieldID, valueIndexes}: RemoveReportFieldListValueParams) {
+    if (!policy) {
+        Log.warn('Policy data is not present');
+        return;
+    }
+
     const previousFieldList = policy?.fieldList ?? {};
     const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
     const reportField = previousFieldList[reportFieldKey];
