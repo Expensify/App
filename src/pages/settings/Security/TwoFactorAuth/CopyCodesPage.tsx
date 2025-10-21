@@ -77,7 +77,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                         <View style={styles.mv3}>
                             <Text>{translate('twoFactorAuth.codesLoseAccess')}</Text>
                         </View>
-                        <View style={styles.twoFactorAuthCodesBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
+                        <View style={[styles.twoFactorAuthCodesBox, styles.twoFactorAuthCodesBoxPadding({isExtraSmallScreenWidth, isSmallScreenWidth})]}>
                             {account?.isLoading ? (
                                 <View style={styles.twoFactorLoadingContainer}>
                                     <ActivityIndicator />

@@ -11803,10 +11803,12 @@ function convertToNumber(value) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
+const DEFAULT_REPO_IDENTIFIER = 'Expensify/App';
 const GIT_CONST = {
     GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER ?? 'Expensify',
-    APP_REPO: (process.env.GITHUB_REPOSITORY ?? 'Expensify/App').split('/').at(1) ?? '',
+    APP_REPO: (process.env.GITHUB_REPOSITORY ?? DEFAULT_REPO_IDENTIFIER).split('/').at(1) ?? '',
     MOBILE_EXPENSIFY_REPO: 'Mobile-Expensify',
+    DEFAULT_BASE_REF: 'main',
 };
 const CONST = {
     ...GIT_CONST,
@@ -12390,7 +12392,7 @@ class GithubUtils {
     /**
      * Get the contents of a file from the API at a given ref as a string.
      */
-    static async getFileContents(path, ref = 'main') {
+    static async getFileContents(path, ref = CONST_1.default.DEFAULT_BASE_REF) {
         const { data } = await this.octokit.repos.getContent({
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
@@ -12528,14 +12530,38 @@ function isEmptyObject(obj) {
 /***/ }),
 
 /***/ 7037:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const github_1 = __nccwpck_require__(5438);
 const child_process_1 = __nccwpck_require__(2081);
 const util_1 = __nccwpck_require__(3837);
-const exec = (0, util_1.promisify)(child_process_1.exec);
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const Logger_1 = __nccwpck_require__(8891);
+function exec(command, options) {
+    const optionsWithEncoding = {
+        encoding: 'utf8',
+        cwd: process.cwd(),
+        ...options,
+    };
+    return (0, util_1.promisify)(child_process_1.exec)(command, optionsWithEncoding);
+}
+function execSync(command, options) {
+    const optionsWithEncoding = {
+        ...options,
+        encoding: 'utf8',
+        cwd: process.cwd(),
+    };
+    return (0, child_process_1.execSync)(command, optionsWithEncoding);
+}
+const IS_CI = process.env.CI === 'true';
+const GITHUB_BASE_REF = process.env.GITHUB_BASE_REF;
 /**
  * Utility class for git operations.
  */
@@ -12548,9 +12574,7 @@ class Git {
      */
     static isValidRef(ref) {
         try {
-            (0, child_process_1.execSync)(`git rev-parse --verify "${ref}"`, {
-                encoding: 'utf8',
-                cwd: process.cwd(),
+            execSync(`git rev-parse --verify "${ref}^{object}"`, {
                 stdio: 'pipe', // Suppress output
             });
             return true;
@@ -12580,10 +12604,7 @@ class Git {
             command += ` -- ${quotedPaths}`;
         }
         // Execute git diff with unified format - let errors bubble up
-        const diffOutput = (0, child_process_1.execSync)(command, {
-            encoding: 'utf8',
-            cwd: process.cwd(),
-        });
+        const diffOutput = execSync(command);
         return Git.parseDiff(diffOutput);
     }
     /**
@@ -12673,6 +12694,10 @@ class Git {
                         content,
                     });
                 }
+                else if (firstChar === ' ') {
+                    // Context line - skip it (we only care about added/removed lines)
+                    continue;
+                }
                 else {
                     throw new Error(`Unknown line type! First character of line is ${firstChar}`);
                 }
@@ -12742,7 +12767,7 @@ class Git {
      */
     static show(ref, filePath) {
         try {
-            return (0, child_process_1.execSync)(`git show ${ref}:${filePath}`, { encoding: 'utf8' });
+            return execSync(`git show ${ref}:${filePath}`);
         }
         catch (error) {
             throw new Error(`Failed to get file content from git: ${error instanceof Error ? error.message : String(error)}`);
@@ -12760,22 +12785,159 @@ class Git {
             return; // Reference is already available locally
         }
         try {
-            console.log(`🔄 Fetching missing ref: ${ref}`);
-            await exec(`git fetch --no-tags --depth=1 ${remote} ${ref}`, {
-                encoding: 'utf8',
-                cwd: process.cwd(),
-            });
+            (0, Logger_1.log)(`🔄 Fetching missing ref: ${ref}`);
+            await exec(`git fetch ${remote} ${ref} --no-tags --depth=1 --quiet`);
             // Verify the ref is now available
             if (!this.isValidRef(ref)) {
-                throw new Error(`Reference ${ref} is still not valid after fetching`);
+                throw new Error(`Reference ${ref} is still not valid after fetching from remote ${remote}`);
             }
         }
         catch (error) {
             throw new Error(`Failed to fetch git reference ${ref}: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
+    static async getMainBranchCommitHash(remote) {
+        const baseRefName = GITHUB_BASE_REF ?? CONST_1.default.DEFAULT_BASE_REF;
+        // Fetch the main branch from the specified remote (or locally) to ensure it's available
+        if (IS_CI || remote) {
+            await exec(`git fetch ${remote ?? 'origin'} ${baseRefName} --no-tags --depth=1`);
+        }
+        // In CI, use a simpler approach - just use the remote main branch directly
+        // This avoids issues with shallow clones and merge-base calculations
+        if (IS_CI) {
+            const mainBaseRef = remote ? `${remote}/${baseRefName}` : `origin/${baseRefName}`;
+            try {
+                const { stdout: revParseOutput } = await exec(`git rev-parse ${mainBaseRef}`);
+                const mergeBaseHash = revParseOutput.trim();
+                // Validate the output is a proper SHA hash
+                if (!mergeBaseHash || !/^[a-fA-F0-9]{40}$/.test(mergeBaseHash)) {
+                    throw new Error(`git rev-parse returned unexpected output: ${mergeBaseHash}`);
+                }
+                return mergeBaseHash;
+            }
+            catch (error) {
+                (0, Logger_1.error)(`Failed to get commit hash for ${mainBaseRef}:`, error);
+                throw new Error(`Could not get commit hash for ${mainBaseRef}`);
+            }
+        }
+        const mainBaseRef = remote ? `${remote}/${baseRefName}` : baseRefName;
+        // For local development, try to find the actual merge base
+        let mergeBaseHash;
+        try {
+            const { stdout: mergeBaseOutput } = await exec(`git merge-base ${mainBaseRef} HEAD`);
+            mergeBaseHash = mergeBaseOutput.trim();
+        }
+        catch {
+            (0, Logger_1.warn)(`Warning: Could not find merge base between ${mainBaseRef} and HEAD.`);
+            // If merge-base fails locally, fall back to using the remote main branch
+            try {
+                const { stdout: revParseOutput } = await exec(`git rev-parse ${mainBaseRef}`);
+                mergeBaseHash = revParseOutput.trim();
+            }
+            catch (fallbackError) {
+                (0, Logger_1.error)(`Failed to find merge base with ${mainBaseRef}:`, fallbackError);
+                throw new Error(`Could not determine merge base with ${mainBaseRef}`);
+            }
+        }
+        // Validate the output is a proper SHA hash
+        if (!mergeBaseHash || !/^[a-fA-F0-9]{40}$/.test(mergeBaseHash)) {
+            throw new Error(`git merge-base returned unexpected output: ${mergeBaseHash}`);
+        }
+        return mergeBaseHash;
+    }
+    /**
+     * Check if there are any uncommitted changes (both staged and unstaged).
+     *
+     * @returns true if there are uncommitted changes, false otherwise
+     */
+    static async hasUncommittedChanges() {
+        try {
+            const { stdout } = await exec('git status --porcelain');
+            const status = stdout.trim();
+            return status.length > 0;
+        }
+        catch (error) {
+            return false;
+        }
+    }
+    static async getChangedFileNames(fromRef, toRef = 'HEAD') {
+        if (IS_CI) {
+            const { data: changedFiles } = await GithubUtils_1.default.octokit.pulls.listFiles({
+                owner: CONST_1.default.GITHUB_OWNER,
+                repo: CONST_1.default.APP_REPO,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                pull_number: github_1.context.payload.pull_request?.number ?? 0,
+            });
+            return changedFiles.map((file) => file.filename);
+        }
+        // Get the diff output and check status
+        const diffResult = this.diff(fromRef, toRef);
+        const files = diffResult.files.map((file) => file.filePath);
+        return files;
+    }
 }
 exports["default"] = Git;
+
+
+/***/ }),
+
+/***/ 8891:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.bold = exports.formatLink = exports.success = exports.error = exports.note = exports.warn = exports.info = exports.log = void 0;
+const COLOR_DIM = '\x1b[2m';
+const COLOR_RESET = '\x1b[0m';
+const COLOR_YELLOW = '\x1b[33m';
+const COLOR_RED = '\x1b[31m';
+const COLOR_GREEN = '\x1b[32m';
+const COLOR_BOLD = '\x1b[1m';
+const EMOJIS = {
+    // One column emojis need to be rendered with an extra space after to align with two column emojis
+    INFO: '▶️ ',
+    WARN: '⚠️ ',
+    // Two column emojis can be rendered as-is
+    SUCCESS: '✅',
+    ERROR: '🔴',
+};
+const log = (...args) => {
+    console.debug(...args);
+};
+exports.log = log;
+const info = (...args) => {
+    const lines = [EMOJIS.INFO, ...args];
+    log(...lines);
+};
+exports.info = info;
+const bold = (...args) => {
+    const lines = [COLOR_BOLD, ...args, COLOR_RESET];
+    log(...lines);
+};
+exports.bold = bold;
+const success = (...args) => {
+    const lines = [`${EMOJIS.SUCCESS}${COLOR_GREEN}`, ...args, COLOR_RESET];
+    log(...lines);
+};
+exports.success = success;
+const warn = (...args) => {
+    const lines = [`${EMOJIS.WARN}${COLOR_YELLOW}`, ...args, COLOR_RESET];
+    log(...lines);
+};
+exports.warn = warn;
+const note = (...args) => {
+    const lines = [COLOR_DIM, ...args, COLOR_RESET];
+    log(...lines);
+};
+exports.note = note;
+const error = (...args) => {
+    const lines = [`${EMOJIS.ERROR}${COLOR_RED}`, ...args, COLOR_RESET];
+    log(...lines);
+};
+exports.error = error;
+const formatLink = (name, url) => `\x1b]8;;${url}\x1b\\${name}\x1b]8;;\x1b\\`;
+exports.formatLink = formatLink;
 
 
 /***/ }),

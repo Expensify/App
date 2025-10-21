@@ -216,31 +216,43 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                 onClose={() => setIsDownloadFailureModalVisible(false)}
             />
             <ConfirmModal
-                isVisible={isSwitchSingleToMultipleLevelTagWarningModalVisible || isOverridingMultiTag}
+                isVisible={isSwitchSingleToMultipleLevelTagWarningModalVisible}
                 onConfirm={() => {
-                    if (isOverridingMultiTag) {
-                        setIsOverridingMultiTag(false);
-                    } else {
-                        cleanPolicyTags(policyID);
-                        setIsSwitchSingleToMultipleLevelTagWarningModalVisible(false);
-                    }
+                    cleanPolicyTags(policyID);
+                    setIsSwitchSingleToMultipleLevelTagWarningModalVisible(false);
                     Navigation.navigate(
                         isQuickSettingsFlow
                             ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
                             : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
                     );
                 }}
-                title={isOverridingMultiTag ? translate('workspace.tags.overrideMultiTagWarning.title') : translate('workspace.tags.switchSingleToMultiLevelTagWarning.title')}
-                prompt={isOverridingMultiTag ? overrideMultiTagPrompt : switchSingleToMultiLevelTagPrompt}
-                confirmText={isOverridingMultiTag ? translate('workspace.tags.overrideMultiTagWarning.title') : translate('workspace.tags.switchSingleToMultiLevelTagWarning.title')}
+                title={translate('workspace.tags.switchSingleToMultiLevelTagWarning.title')}
+                prompt={switchSingleToMultiLevelTagPrompt}
+                confirmText={translate('workspace.tags.switchSingleToMultiLevelTagWarning.title')}
                 danger
                 cancelText={translate('common.cancel')}
                 onCancel={() => {
-                    if (isOverridingMultiTag) {
-                        setIsOverridingMultiTag(false);
-                    } else {
-                        setIsSwitchSingleToMultipleLevelTagWarningModalVisible(false);
-                    }
+                    setIsSwitchSingleToMultipleLevelTagWarningModalVisible(false);
+                    setImportedSpreadsheetIsImportingMultiLevelTags(false);
+                }}
+            />
+            <ConfirmModal
+                isVisible={isOverridingMultiTag}
+                onConfirm={() => {
+                    setIsOverridingMultiTag(false);
+                    Navigation.navigate(
+                        isQuickSettingsFlow
+                            ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                            : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+                    );
+                }}
+                title={translate('workspace.tags.overrideMultiTagWarning.title')}
+                prompt={overrideMultiTagPrompt}
+                confirmText={translate('workspace.tags.overrideMultiTagWarning.title')}
+                danger
+                cancelText={translate('common.cancel')}
+                onCancel={() => {
+                    setIsOverridingMultiTag(false);
                     setImportedSpreadsheetIsImportingMultiLevelTags(false);
                 }}
             />
