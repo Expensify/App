@@ -75,7 +75,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: "/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ steps.pr-data.outputs.PR_NUMBER || github.event.pull_request.number }}"
           claude_args: |
-            --allowedTools "Read,Glob,Grep,mcp__github_inline_comment__create_inline_comment,Bash(gh pr *),Bash(gh api *),Bash(gh issue *)"
+            --allowedTools "Read,Glob,Grep,mcp__github_inline_comment__create_inline_comment,Bash(gh pr *),Bash(gh issue *)"
 
       - name: Run Claude Code (docs)
         if: steps.filter.outputs.docs == 'true'
@@ -85,4 +85,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: "/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ steps.pr-data.outputs.PR_NUMBER || github.event.pull_request.number }}"
           claude_args: |
-            --allowedTools "Read,Glob,Grep,mcp__github_inline_comment__create_inline_comment,Bash(gh pr *),Bash(gh api *),Bash(gh issue *)"
+            --allowedTools "Read,Glob,Grep,mcp__github_inline_comment__create_inline_comment,Bash(gh pr *),Bash(gh issue *)"

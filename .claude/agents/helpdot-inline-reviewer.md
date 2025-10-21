@@ -59,14 +59,31 @@ keywords: [feature name, related terms, navigation path, etc.]
    - `line`: Line number where the issue occurs
    - `body`: Concise description of the violation and fix
 
+## Tool Usage Best Practices
+
+**Getting PR Information:**
+- Use `gh pr view <PR_NUMBER> --json files,comments,reviews` instead of `gh api`
+- Use `gh pr diff <PR_NUMBER>` to get file changes
+- DO NOT use `gh api repos/...` commands
+
+**Searching Files:**
+- Use the built-in `Grep` tool with `pattern`, `path`, and `output_mode` parameters
+- Use the `Glob` tool for finding files by pattern
+- DO NOT use shell `grep -c` or `find -exec grep` commands
+
+**Other:**
+- DO NOT use `git fetch` or other git commands (repository is already checked out)
+
 ## Tool Usage Example
-For each violation, call the tool like this:
+To create inline comment for each violation, call `mcp__github_inline_comment__create_inline_comment` like this:
 ```
 mcp__github_inline_comment__create_inline_comment:
   path: "docs/articles/new-expensify/chat/Create-a-New-Chat.md"
   line: 9
   body: "**Terminology violation**: Use 'workspace' instead of 'policy' to match Expensify standards."
 ```
+
+**CRITICAL:** DO NOT use `Bash` or `gh api ... --method POST` to create inline comments.
 
 ## Comment Format
 Keep inline comments concise and actionable:
