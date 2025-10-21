@@ -9,6 +9,7 @@ type AddPersonalBankAccountParams = {
     plaidAccessToken: string;
     policyID?: string;
     source?: string;
+    isWalletFlow?: boolean;
 };
 
 export default AddPersonalBankAccountParams;
