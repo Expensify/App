@@ -22,10 +22,10 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 import Navigation from '@libs/Navigation/Navigation';
 import {isDefaultAvatar} from '@libs/UserUtils';
 import DiscardChangesConfirmation from '@pages/iou/request/step/DiscardChangesConfirmation';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {FileObject} from '@src/types/utils/Attachment';
 import AvatarCapture from './AvatarCapture';
 import type {AvatarCaptureHandle} from './AvatarCapture/types';
 
