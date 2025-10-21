@@ -116,6 +116,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
 
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+
     const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Accounting', 'CompanyCard', 'Workflows', 'InvoiceBlue', 'Rules', 'Tag', 'PerDiem', 'HandCard', 'Coins'] as const);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
@@ -197,7 +199,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                 return;
             }
-            enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID, true);
+            enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID, true, quickAction);
         },
     });
 
