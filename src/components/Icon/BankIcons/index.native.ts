@@ -16,7 +16,7 @@ export default function getBankIcon({styles, bankName, isCard = false}: BankIcon
     if (bankName) {
         const bankNameKey = getBankNameKey(bankName.toLowerCase());
 
-        if (bankNameKey && (bankNameKey in CONST.BANK_NAMES)) {
+        if (bankNameKey && bankNameKey in CONST.BANK_NAMES) {
             bankIcon.icon = getBankIconAsset(bankNameKey, isCard);
         }
     }
