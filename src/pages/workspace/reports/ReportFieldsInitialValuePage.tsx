@@ -86,7 +86,7 @@ function ReportFieldsInitialValuePage({
         return <NotFoundPage />;
     }
 
-    const isTextFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.TEXT;
+    const isEditable = reportField.type === CONST.REPORT_FIELD_TYPES.TEXT || reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA;
     const isListFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.LIST;
 
     return (
@@ -111,7 +111,7 @@ function ReportFieldsInitialValuePage({
                     </View>
                 )}
 
-                {isTextFieldType && (
+                {isEditable && (
                     <FormProvider
                         addBottomSafeAreaPadding
                         formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
@@ -120,7 +120,7 @@ function ReportFieldsInitialValuePage({
                         validate={validateForm}
                         style={styles.flex1}
                         enabledWhenOffline
-                        isSubmitButtonVisible={isTextFieldType}
+                        isSubmitButtonVisible
                         submitButtonStyles={styles.mh5}
                         shouldHideFixErrorsAlert
                     >

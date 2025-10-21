@@ -4845,6 +4845,7 @@ const translations = {
             textType: 'Text',
             dateType: 'Date',
             dropdownType: 'List',
+            formulaType: 'Formula',
             textAlternateText: 'Add a field for free text input.',
             dateAlternateText: 'Add a calendar for date selection.',
             dropdownAlternateText: 'Add a list of options to choose from.',

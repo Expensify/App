@@ -31,13 +31,21 @@ type ReportFieldTypePickerProps = {
 function ReportFieldTypePicker({defaultValue, onOptionSelected}: ReportFieldTypePickerProps) {
     const {translate} = useLocalize();
 
-    const typeOptions = Object.values(CONST.REPORT_FIELD_TYPES).map((reportFieldType) => ({
-        keyForList: reportFieldType,
-        value: reportFieldType,
-        isSelected: defaultValue === reportFieldType,
-        text: translate(getReportFieldTypeTranslationKey(reportFieldType)),
-        alternateText: translate(getReportFieldAlternativeTextTranslationKey(reportFieldType)),
-    }));
+    const typeOptions = Object.values(CONST.REPORT_FIELD_TYPES)
+        .map((reportFieldType) => {
+            // Formula type is not selectable when adding report fields
+            if (reportFieldType === CONST.REPORT_FIELD_TYPES.FORMULA) {
+                return null;
+            }
+            return {
+                keyForList: reportFieldType,
+                value: reportFieldType,
+                isSelected: defaultValue === reportFieldType,
+                text: translate(getReportFieldTypeTranslationKey(reportFieldType)),
+                alternateText: translate(getReportFieldAlternativeTextTranslationKey(reportFieldType)),
+            };
+        })
+        .filter(Boolean) as ReportFieldItemType[];
     const selectedOption = typeOptions.find((reportField) => reportField.isSelected)?.keyForList;
 
     return (
