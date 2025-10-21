@@ -1,4 +1,5 @@
-import {useEffect, useMemo, useRef} from 'react';
+import {useCallback, useEffect, useMemo, useRef} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type SettlementButtonProps from '@components/SettlementButton/types';
@@ -16,7 +17,7 @@ import Navigation from '@navigation/Navigation';
 import {isCurrencySupportedForDirectReimbursement} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, FundList} from '@src/types/onyx';
+import type {BankAccountList, FundList, LastPaymentMethod} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -69,9 +70,8 @@ function usePaymentOptions({
     const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, accountID);
     const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID) : false;
     const policyIDKey = reportBelongsToWorkspace ? policyID : CONST.POLICY.ID_FAKE;
-    const [lastPaymentMethod, lastPaymentMethodResult] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
-        canBeMissing: true,
-        selector: (paymentMethod) => {
+    const lastPaymentMethodSelector = useCallback(
+        (paymentMethod: OnyxEntry<LastPaymentMethod>) => {
             const paymentMethodType = paymentMethod?.[policyIDKey];
             if (typeof paymentMethodType === 'string') {
                 return paymentMethodType;
@@ -81,7 +81,16 @@ function usePaymentOptions({
             }
             return paymentMethodType?.lastUsed.name;
         },
-    });
+        [policyIDKey],
+    );
+    const [lastPaymentMethod, lastPaymentMethodResult] = useOnyx(
+        ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+        {
+            canBeMissing: true,
+            selector: lastPaymentMethodSelector,
+        },
+        [lastPaymentMethodSelector],
+    );
 
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
     const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});

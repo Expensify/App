@@ -46,10 +46,7 @@ function CreateDistanceRatePage({
 
     const FullPageBlockingView = !customUnitID ? FullPageOfflineBlockingView : View;
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateRateValue(values, customUnit?.rates ?? {}, toLocaleDigit),
-        [toLocaleDigit, customUnit?.rates],
-    );
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateRateValue(values, toLocaleDigit), [toLocaleDigit]);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
         // A blocking view is shown when customUnitID is undefined, so this function should never be called
@@ -68,7 +65,7 @@ function CreateDistanceRatePage({
         createPolicyDistanceRate(policyID, customUnitID, newRate);
         if (isDistanceRateUpgrade) {
             setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy, true);
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID), {compareParams: false});
             return;
         }
         Navigation.goBack();

@@ -4,8 +4,6 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
-import {getSortedReportActions, shouldReportActionBeVisibleAsLastAction} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
@@ -40,28 +38,14 @@ function OptionRowLHNData({
     lastMessageTextFromReport,
     localeCompare,
     isReportArchived = false,
+    lastAction,
+    lastActionReport,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
     const currentReportIDValue = useCurrentReportID();
     const isReportFocused = isOptionFocused && currentReportIDValue?.currentReportID === reportID;
-
     const optionItemRef = useRef<OptionData | undefined>(undefined);
-
-    const lastAction = useMemo(() => {
-        if (!reportActions || !fullReport) {
-            return undefined;
-        }
-
-        const canUserPerformWriteAction = canUserPerformWriteActionUtil(fullReport, isReportArchived);
-        const actionsArray = getSortedReportActions(Object.values(reportActions));
-
-        const reportActionsForDisplay = actionsArray.filter(
-            (reportAction) => shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
-        );
-
-        return reportActionsForDisplay.at(-1);
-    }, [reportActions, fullReport, isReportArchived]);
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`, {canBeMissing: true});
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`, {canBeMissing: true});
@@ -70,6 +54,7 @@ function OptionRowLHNData({
     const areReportErrorsEqual = useMemo(() => deepEqual(prevReportErrors, reportAttributes?.reportErrors), [prevReportErrors, reportAttributes?.reportErrors]);
 
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
+
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData({
@@ -86,6 +71,7 @@ function OptionRowLHNData({
             lastAction,
             localeCompare,
             isReportArchived,
+            lastActionReport,
             movedFromReport,
             movedToReport,
         });

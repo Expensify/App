@@ -26,11 +26,19 @@ function getExportMenuItem(
 ): ExportIntegration | undefined {
     const currentConnectionName = getCurrentConnectionName(policy);
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
+    const defaultVendor = translate('workspace.accounting.defaultVendor');
 
     const defaultMenuItem: Account & {value?: string} = {
         name: defaultCard,
         value: defaultCard,
         id: defaultCard,
+        currency: '',
+    };
+
+    const defaultVendorMenuItem: Account & {value?: string} = {
+        name: defaultVendor,
+        value: defaultVendor,
+        id: defaultVendor,
         currency: '',
     };
 
@@ -232,20 +240,19 @@ function getExportMenuItem(
                 case CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL: {
                     const defaultAccount = isNonReimbursable ? getSageIntacctNonReimbursableActiveDefaultVendor(policy) : exportConfig?.reimbursableExpenseReportDefaultVendor;
                     isDefaultTitle = !!(
-                        companyCard?.nameValuePairs?.intacct_export_vendor === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE ||
-                        (defaultAccount && !companyCard?.nameValuePairs?.intacct_export_vendor)
+                        companyCard?.nameValuePairs?.intacct_export_vendor === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE || !companyCard?.nameValuePairs?.intacct_export_vendor
                     );
                     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
                     const selectedVendorID = companyCard?.nameValuePairs?.intacct_export_vendor ?? defaultAccount;
                     const selectedVendor = (vendors ?? []).find(({id}) => id === selectedVendorID);
-                    title = isDefaultTitle ? defaultCard : selectedVendor?.value;
-                    const resultData = (vendors ?? []).length > 0 ? [defaultMenuItem, ...(vendors ?? [])] : vendors;
+                    title = isDefaultTitle ? defaultVendor : selectedVendor?.value;
+                    const resultData = (vendors ?? []).length > 0 ? [defaultVendorMenuItem, ...(vendors ?? [])] : vendors;
                     data = (resultData ?? []).map(({id, value}) => {
                         return {
                             value: id,
                             text: value,
                             keyForList: id,
-                            isSelected: isDefaultTitle ? value === defaultCard : selectedVendor?.id === id,
+                            isSelected: isDefaultTitle ? value === defaultVendor : selectedVendor?.id === id,
                         };
                     });
                     exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_INTACCT_EXPORT_VENDOR;
@@ -259,8 +266,7 @@ function getExportMenuItem(
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     const defaultAccount = exportConfig?.nonReimbursableAccount || defaultVendorAccount;
                     isDefaultTitle = !!(
-                        companyCard?.nameValuePairs?.intacct_export_charge_card === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE ||
-                        (defaultAccount && !companyCard?.nameValuePairs?.intacct_export_charge_card)
+                        companyCard?.nameValuePairs?.intacct_export_charge_card === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE || !companyCard?.nameValuePairs?.intacct_export_charge_card
                     );
                     const selectedVendorID = companyCard?.nameValuePairs?.intacct_export_charge_card ?? defaultAccount;
                     const selectedCard = (intacctCreditCards ?? []).find(({id}) => id === selectedVendorID);

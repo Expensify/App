@@ -2,7 +2,7 @@ import type {ImageContentFit} from 'expo-image';
 import type {ReactElement, ReactNode, Ref} from 'react';
 import React, {useContext, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -24,6 +24,7 @@ import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import ActivityIndicator from './ActivityIndicator';
 import Avatar from './Avatar';
 import Badge from './Badge';
 import CopyTextToClipboard from './CopyTextToClipboard';
@@ -517,7 +518,7 @@ function MenuItem({
     const deviceHasHoverSupport = hasHoverSupport();
 
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
-    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
+    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
 
     const combinedTitleTextStyle = StyleUtils.combineStyles(
@@ -530,7 +531,7 @@ function MenuItem({
             numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
             interactive && disabled ? {...styles.userSelectNone} : {},
             styles.ltr,
-            isDeleted ? styles.offlineFeedback.deleted : {},
+            isDeleted ? styles.offlineFeedbackDeleted : {},
             shouldBreakWord ? styles.breakWord : {},
             styles.mw100,
         ],
@@ -543,7 +544,7 @@ function MenuItem({
         title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
         title ? styles.textLineHeightNormal : StyleUtils.getLineHeightStyle(variables.fontSizeNormalHeight),
         (descriptionTextStyle as TextStyle) || styles.breakWord,
-        isDeleted ? styles.offlineFeedback.deleted : {},
+        isDeleted ? styles.offlineFeedbackDeleted : {},
     ]);
 
     const html = useMemo(() => {
@@ -594,6 +595,7 @@ function MenuItem({
         if (title && titleWithTooltips && Array.isArray(titleWithTooltips) && titleWithTooltips.length > 0) {
             return (
                 <DisplayNames
+                    shouldParseFullTitle={!shouldRenderAsHTML}
                     fullTitle={title}
                     displayNamesWithTooltips={titleWithTooltips}
                     tooltipEnabled
@@ -777,10 +779,7 @@ function MenuItem({
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
                                                                 ) : (
-                                                                    <ActivityIndicator
-                                                                        size="small"
-                                                                        color={theme.textSupporting}
-                                                                    />
+                                                                    <ActivityIndicator color={theme.textSupporting} />
                                                                 ))}
                                                             {!!icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
                                                                 <Avatar

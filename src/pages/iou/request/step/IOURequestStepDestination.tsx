@@ -1,21 +1,23 @@
-import React, {useImperativeHandle, useRef} from 'react';
-import type {ForwardedRef} from 'react';
-import {ActivityIndicator, InteractionManager, View} from 'react-native';
+import React, {useEffect} from 'react';
+import {InteractionManager, View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import DestinationPicker from '@components/DestinationPicker';
 import FixedFooter from '@components/FixedFooter';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
+import {setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
@@ -41,14 +43,10 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepDestinationRef = {
-    focus?: () => void;
-};
 type IOURequestStepDestinationProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION | typeof SCREENS.MONEY_REQUEST.CREATE> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         openedFromStartPage?: boolean;
         explicitPolicyID?: string;
-        ref: ForwardedRef<IOURequestStepDestinationRef>;
     };
 
 function IOURequestStepDestination({
@@ -59,9 +57,9 @@ function IOURequestStepDestination({
     transaction,
     openedFromStartPage = false,
     explicitPolicyID,
-    ref,
 }: IOURequestStepDestinationProps) {
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
+    const personalPolicy = usePersonalPolicy();
     const {accountID} = useCurrentUserPersonalDetails();
     const policyExpenseReport = policy?.id ? getPolicyExpenseChat(accountID, policy.id) : undefined;
     const {top} = useSafeAreaInsets();
@@ -69,14 +67,7 @@ function IOURequestStepDestination({
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
 
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
-
-    const destinationSelectionListRef = useRef<SelectionListHandle | null>(null);
-
-    useImperativeHandle(ref, () => ({
-        focus: destinationSelectionListRef.current?.focusTextInput,
-    }));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = isEmptyObject(policy);
@@ -96,6 +87,10 @@ function IOURequestStepDestination({
         }
         if (selectedDestination !== destination.keyForList) {
             if (openedFromStartPage) {
+                // If we are not coming from the global create menu then this is always reported
+                const shouldAutoReport = !!policy?.autoReporting || !!personalPolicy?.autoReporting || action !== CONST.IOU.ACTION.CREATE || !transaction?.isFromGlobalCreate;
+                const transactionReportID = shouldAutoReport ? policyExpenseReport?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
+                setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport);
                 setCustomUnitID(transactionID, customUnit.customUnitID);
                 setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '');
@@ -126,10 +121,32 @@ function IOURequestStepDestination({
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
 
+    useEffect(() => {
+        if (!isEmptyObject(customUnit?.rates) || isOffline) {
+            return;
+        }
+        fetchPerDiemRates(policy?.id);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isOffline]);
+
+    useEffect(() => {
+        // When the rates are not available for the policy, the transaction does not have valid customUnitID and moneyRequestCategory
+        // So, we set these in the transaction when the rates are fetched in fetchPerDiemRates
+        const perDiemUnit = getPerDiemCustomUnit(policy);
+        if (!perDiemUnit || transaction?.comment?.customUnit?.customUnitID === perDiemUnit.customUnitID || !!transaction?.category) {
+            return;
+        }
+        setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
+        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '');
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [transactionID, policy?.customUnits]);
+
+    const keyboardVerticalOffset = openedFromStartPage ? variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;
+
     return (
         <ScreenWrapper
             includePaddingTop={false}
-            keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
+            keyboardVerticalOffset={keyboardVerticalOffset}
             testID={`${IOURequestStepDestination.displayName}-container`}
         >
             <StepScreenWrapper
@@ -143,7 +160,6 @@ function IOURequestStepDestination({
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        color={theme.spinner}
                     />
                 )}
                 {shouldShowOfflineView && <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>}
@@ -163,6 +179,7 @@ function IOURequestStepDestination({
                                     success
                                     style={[styles.w100]}
                                     onPress={() => {
+                                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                                         InteractionManager.runAfterInteractions(() => {
                                             Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, Navigation.getActiveRoute()));
                                         });
@@ -176,7 +193,6 @@ function IOURequestStepDestination({
                 )}
                 {!shouldShowEmptyState && !isLoading && !shouldShowOfflineView && !!policy?.id && (
                     <DestinationPicker
-                        ref={destinationSelectionListRef}
                         selectedDestination={selectedDestination}
                         policyID={policy.id}
                         onSubmit={updateDestination}

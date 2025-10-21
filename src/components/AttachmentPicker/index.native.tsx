@@ -19,9 +19,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanFileName, resizeImageIfNeeded, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
-import type {FileObject, ImagePickerResponse as FileResponse} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {FileObject, ImagePickerResponse as FileResponse} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
 import launchCamera from './launchCamera/launchCamera';
 import type AttachmentPickerProps from './types';
@@ -222,7 +222,6 @@ function AttachmentPicker({
     /**
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
      */
-    // eslint-disable-next-line @lwc/lwc/no-async-await
     const showDocumentPicker = useCallback(async (): Promise<LocalCopy[]> => {
         const pickedFiles = await pick({
             type: [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles],
