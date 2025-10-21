@@ -104,6 +104,7 @@ import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {formatPhoneNumber} from './LocalePhoneNumber';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
@@ -3194,7 +3195,6 @@ function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit
             .slice(0, CONST.REPORT_NAME_LIMIT)
             .concat(shouldAddEllipsis ? '...' : '');
     }
-
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant({accountID: participantAccountIDs.at(0)})});
 }
@@ -3606,10 +3606,12 @@ function getUserDetailTooltipText(accountID: number, fallbackUserDisplayName = '
  */
 function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<ReportAction>): string {
     // By default, let us display [Deleted message]
-    let deletedMessageText = translateLocal('parentReportAction.deletedMessage'); // eslint-disable-line @typescript-eslint/no-deprecated
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    let deletedMessageText = translateLocal('parentReportAction.deletedMessage');
     if (isCreatedTaskReportAction(reportAction)) {
         // For canceled task report, let us display [Deleted task]
-        deletedMessageText = translateLocal('parentReportAction.deletedTask'); // eslint-disable-line @typescript-eslint/no-deprecated
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        deletedMessageText = translateLocal('parentReportAction.deletedTask');
     }
     return deletedMessageText;
 }
@@ -3639,8 +3641,8 @@ function getReimbursementQueuedActionMessage({
     } else {
         messageKey = 'iou.waitingOnBankAccount';
     }
-
-    return translateLocal(messageKey, {submitterDisplayName}); // eslint-disable-line @typescript-eslint/no-deprecated
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal(messageKey, {submitterDisplayName});
 }
 
 /**
@@ -4150,7 +4152,6 @@ function getMoneyRequestReportName({
     } else {
         payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID}) ?? '';
     }
-
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const payerPaidAmountMessage = translateLocal('iou.payerPaidAmount', {
         payer: payerOrApproverName,
@@ -4793,7 +4794,6 @@ function getTransactionReportName({
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.receiptMissingDetails');
     }
-
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (isFetchingWaypointsFromServer(transaction) && getMerchant(transaction) === translateLocal('iou.fieldPending')) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -4808,7 +4808,6 @@ function getTransactionReportName({
     const amount = getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
     const formattedAmount = convertToDisplayString(amount, getCurrency(transaction)) ?? '';
     const comment = getMerchantOrDescription(transaction);
-
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('iou.threadExpenseReportName', {formattedAmount, comment: Parser.htmlToText(comment)});
 }
@@ -4956,7 +4955,6 @@ function getReportPreviewMessage(
 
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
-
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal(translatePhraseKey, {
             amount: '',
@@ -5004,7 +5002,6 @@ function getReportPreviewMessage(
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.payerSpentAmount', {payer: getDisplayNameForParticipant({accountID: report.ownerAccountID}) ?? '', amount: formattedAmount});
     }
-
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount, comment});
 }
@@ -5164,7 +5161,6 @@ function getAdminRoomInvitedParticipants(parentReportAction: OnyxEntry<ReportAct
 
     const verbKey = isInviteAction ? 'workspace.invite.invited' : 'workspace.invite.removed';
     const prepositionKey = isInviteAction ? 'workspace.invite.to' : 'workspace.invite.from';
-
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const verb = translateLocal(verbKey);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -5800,7 +5796,6 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>, isPolicyNamePreferred = 
         if (!subtitle || !isPolicyNamePreferred) {
             return getPolicyName({report});
         }
-
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return `${getReportSubtitlePrefix(report)}${translateLocal('iou.submitsTo', {name: subtitle ?? ''})}`;
     }
@@ -8714,7 +8709,8 @@ function hasReportErrorsOtherThanFailedReceipt(
     return (
         doesTransactionThreadReportHasViolations ||
         doesReportHaveViolations ||
-        Object.values(allReportErrors).some((error) => error?.[0] !== translateLocal('iou.error.genericSmartscanFailureMessage')) // eslint-disable-line @typescript-eslint/no-deprecated
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        Object.values(allReportErrors).some((error) => error?.[0] !== translateLocal('iou.error.genericSmartscanFailureMessage'))
     );
 }
 
@@ -9779,7 +9775,6 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
                 translationKey = 'iou.payerPaidAmount';
                 break;
         }
-
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal(translationKey, {amount: '', payer: '', last4Digits});
     }
@@ -10849,7 +10844,8 @@ function prepareOnboardingOnyxData(
 
     // Sign-off welcome message
     const welcomeSignOffText =
-        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? translateLocal('onboarding.welcomeSignOffTitleManageTeam') : translateLocal('onboarding.welcomeSignOffTitle'); // eslint-disable-line @typescript-eslint/no-deprecated
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? translateLocal('onboarding.welcomeSignOffTitleManageTeam') : translateLocal('onboarding.welcomeSignOffTitle');
     const welcomeSignOffComment = buildOptimisticAddCommentReportAction(welcomeSignOffText, undefined, actorAccountID, tasksData.length + 3);
     const welcomeSignOffCommentAction: OptimisticAddCommentReportAction = welcomeSignOffComment.reportAction;
     const welcomeSignOffMessage = {

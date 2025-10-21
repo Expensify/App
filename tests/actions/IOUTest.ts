@@ -35,6 +35,7 @@ import {
     replaceReceipt,
     requestMoney,
     resolveDuplicates,
+    retractReport,
     saveSplitTransactions,
     sendInvoice,
     setDraftSplitTransaction,
@@ -58,6 +59,7 @@ import {subscribeToUserEvents} from '@libs/actions/User';
 import type {ApiCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
@@ -1641,6 +1643,7 @@ describe('actions/IOU', () => {
                                         Onyx.disconnect(connection);
                                         expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                         expect(transaction?.errors).toBeTruthy();
+                                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                                         expect(Object.values(transaction?.errors ?? {}).at(0)).toEqual(translateLocal('iou.error.genericCreateFailureMessage'));
                                         resolve();
                                     },
@@ -1943,6 +1946,7 @@ describe('actions/IOU', () => {
             const accountantEmployee = policyData?.employeeList?.[accountant.email];
             expect(accountantEmployee).toBeTruthy();
             expect(accountantEmployee?.errors).toBeTruthy();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(Object.values(accountantEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
 
             // Cleanup
@@ -3459,6 +3463,7 @@ describe('actions/IOU', () => {
                                 callback: (allActions) => {
                                     Onyx.disconnect(connection);
                                     const erroredAction = Object.values(allActions ?? {}).find((action) => !isEmptyObject(action?.errors));
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                                     expect(Object.values(erroredAction?.errors ?? {}).at(0)).toEqual(translateLocal('iou.error.other'));
                                     resolve();
                                 },
@@ -8942,6 +8947,38 @@ describe('actions/IOU', () => {
                     }),
                 ]),
             );
+        });
+    });
+
+    describe('retractReport', () => {
+        it('should restore the chat report iouReportID', async () => {
+            // Given a chat report with no iouReportID
+            const chatReport: Report = {
+                ...createRandomReport(0),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                iouReportID: undefined,
+            };
+
+            const expenseReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatType: undefined,
+            };
+
+            // When retracting the submitted expense report
+            retractReport(expenseReport, chatReport);
+
+            // Then the chat report iouReportID should be set back to the retracted expense report
+            const iouReportID = await new Promise<string | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report?.iouReportID);
+                    },
+                });
+            });
+            expect(iouReportID).toBe(expenseReport.reportID);
         });
     });
 });
