@@ -127,7 +127,7 @@ function WorkspacesListPage() {
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: true});
-    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
@@ -264,7 +264,7 @@ function WorkspacesListPage() {
             ];
 
             const defaultApprover = getDefaultApprover(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]);
-            if (!(isAdmin || isOwner) && defaultApprover !== session?.email) {
+            if (!(isAdmin || isOwner) && defaultApprover !== session?.email && item.policyID !== preferredPolicyID) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
