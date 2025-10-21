@@ -13,7 +13,7 @@ type SearchTypeMenuNarrowProps = {
 
 function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     const styles = useThemeStyles();
-    const {isPopoverVisible, delayPopoverMenuFirstRender, openMenu, closeMenu, allMenuItems, DeleteConfirmModal, windowHeight} = useSearchTypeMenu(queryJSON);
+    const {isPopoverVisible, delayPopoverMenuFirstRender, openMenu, closeMenu, allMenuItems, DeleteConfirmModal, windowHeight, activeMenuKey} = useSearchTypeMenu(queryJSON);
 
     const buttonRef = useRef<HTMLDivElement>(null);
     const {unmodifiedPaddings} = useSafeAreaPaddings();
@@ -26,6 +26,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
             />
             {!delayPopoverMenuFirstRender && (
                 <PopoverMenu
+                    key={`searchMenu-${activeMenuKey}`}
                     menuItems={allMenuItems}
                     isVisible={isPopoverVisible}
                     anchorPosition={styles.createMenuPositionSearchBar(windowHeight)}

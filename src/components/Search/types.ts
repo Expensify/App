@@ -107,6 +107,7 @@ type SearchContextData = {
     isOnSearch: boolean;
     shouldTurnOffSelectionMode: boolean;
     shouldResetSearchQuery: boolean;
+    shouldDefaultToTodo: boolean;
 };
 
 type SearchContextProps = SearchContextData & {
@@ -127,6 +128,7 @@ type SearchContextProps = SearchContextData & {
     setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
     lastSearchType: string | undefined;
+    setShouldDefaultToTodo: (shouldDefault: boolean) => void;
     showSelectAllMatchingItems: boolean;
     shouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     areAllMatchingItemsSelected: boolean;
