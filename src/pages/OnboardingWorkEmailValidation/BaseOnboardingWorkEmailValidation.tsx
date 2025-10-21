@@ -77,9 +77,9 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     const validateAccountAndMerge = useCallback(
         (validateCode: string) => {
             setOnboardingErrorMessage('');
-            MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID);
+            MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID, translate);
         },
-        [workEmail, session?.accountID],
+        [workEmail, session?.accountID, translate],
     );
 
     return (
