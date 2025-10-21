@@ -71,7 +71,7 @@ function PhoneNumberPage() {
 
             return errors;
         },
-        [translate, validateLoginError],
+        [translate, validateLoginError, countryCode],
     );
 
     return (
