@@ -189,6 +189,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             shouldShowOfflineIndicator
             testID="workspaceUpgradePage"
             offlineIndicatorStyle={styles.mtAuto}
+            shouldShowOfflineIndicatorInWideScreen={!isUpgraded}
         >
             <HeaderWithBackButton
                 title={translate('common.upgrade')}
@@ -203,7 +204,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!policy && isUpgraded && (
                     <UpgradeConfirmation
-                        onConfirmUpgrade={goBack}
+                        afterUpgradeAcknowledged={goBack}
                         policyName={policy.name}
                     />
                 )}

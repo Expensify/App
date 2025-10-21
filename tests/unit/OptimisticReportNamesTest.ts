@@ -1,16 +1,17 @@
 import Onyx from 'react-native-onyx';
 import type {UpdateContext} from '@libs/OptimisticReportNames';
-import {computeReportNameIfNeeded, shouldComputeReportName, updateOptimisticReportNamesFromUpdates} from '@libs/OptimisticReportNames';
+import {computeReportNameIfNeeded, getReportByTransactionID, shouldComputeReportName, updateOptimisticReportNamesFromUpdates} from '@libs/OptimisticReportNames';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
-import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
+import type {Policy, Report, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 
 // Mock dependencies
 jest.mock('@libs/ReportUtils', () => ({
     ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
     isExpenseReport: jest.fn(),
-    getTitleReportField: jest.fn(),
+    getReportTransactions: jest.fn(),
 }));
 
 jest.mock('@libs/CurrencyUtils', () => ({
@@ -23,8 +24,8 @@ describe('OptimisticReportNames', () => {
     const mockPolicy = {
         id: 'policy1',
         fieldList: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            text_title: {
+            [CONST.REPORT_FIELD_TITLE_FIELD_ID]: {
+                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
                 defaultValue: '{report:type} - {report:total}',
             },
         },
@@ -41,7 +42,8 @@ describe('OptimisticReportNames', () => {
     } as Report;
 
     const mockContext: UpdateContext = {
-        betas: ['authAutoReportTitle'],
+        betas: [CONST.BETAS.CUSTOM_REPORT_NAMES],
+        betaConfiguration: {},
         allReports: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             report_123: mockReport,
@@ -54,20 +56,40 @@ describe('OptimisticReportNames', () => {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             reportNameValuePairs_123: {
                 private_isArchived: '',
-            },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                expensify_text_title: {
+                    defaultValue: '{report:type} - {report:total}',
+                },
+            } as unknown as ReportNameValuePairs,
         },
+        allTransactions: {},
     };
 
     beforeEach(() => {
         jest.clearAllMocks();
         mockReportUtils.isExpenseReport.mockReturnValue(true);
-        mockReportUtils.getTitleReportField.mockReturnValue(mockPolicy.fieldList?.text_title);
     });
 
     describe('shouldComputeReportName()', () => {
-        test('should return true for expense report with title field formula', () => {
-            const result = shouldComputeReportName(mockReport, mockPolicy);
+        test('should return true for report with title field formula', () => {
+            const result = shouldComputeReportName(mockReport, mockContext);
             expect(result).toBe(true);
+        });
+
+        test('should return false when no title field', () => {
+            const context = {
+                ...mockContext,
+                allReportNameValuePairs: {
+                    ...mockContext.allReportNameValuePairs,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    reportNameValuePairs_123: {
+                        private_isArchived: '',
+                    },
+                },
+                allPolicies: {},
+            };
+            const result = shouldComputeReportName(mockReport, context);
+            expect(result).toBe(false);
         });
 
         test('should return false for reports with unsupported type', () => {
@@ -78,33 +100,9 @@ describe('OptimisticReportNames', () => {
                     ...mockReport,
                     type: 'iou',
                 } as Report,
-                mockPolicy,
+                mockContext,
             );
             expect(result).toBe(false);
-        });
-
-        test('should return false when no policy', () => {
-            const result = shouldComputeReportName(mockReport, undefined);
-            expect(result).toBe(false);
-        });
-
-        test('should return false when no title field', () => {
-            mockReportUtils.getTitleReportField.mockReturnValue(undefined);
-            const result = shouldComputeReportName(mockReport, mockPolicy);
-            expect(result).toBe(false);
-        });
-
-        test('should return true when title field has no formula', () => {
-            const policyWithoutFormula = {
-                ...mockPolicy,
-                fieldList: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    text_title: {defaultValue: 'Static Title'},
-                },
-            } as unknown as Policy;
-            mockReportUtils.getTitleReportField.mockReturnValue(policyWithoutFormula.fieldList?.text_title);
-            const result = shouldComputeReportName(mockReport, policyWithoutFormula);
-            expect(result).toBe(true);
         });
     });
 
@@ -189,16 +187,27 @@ describe('OptimisticReportNames', () => {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     report_789: {...mockReport, reportID: '789'},
                 },
+                allPolicies: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    policy_policy1: {
+                        id: 'policy1',
+                        fieldList: {
+                            [CONST.REPORT_FIELD_TITLE_FIELD_ID]: {
+                                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                                defaultValue: 'Policy: {report:policyname}',
+                            },
+                        },
+                    } as unknown as Policy,
+                },
                 allReportNameValuePairs: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    reportNameValuePairs_123: {private_isArchived: ''},
+                    reportNameValuePairs_123: {private_isArchived: '', expensify_text_title: {defaultValue: 'Policy: {report:policyname}'}} as unknown as ReportNameValuePairs,
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    reportNameValuePairs_456: {private_isArchived: ''},
+                    reportNameValuePairs_456: {private_isArchived: '', expensify_text_title: {defaultValue: 'Policy: {report:policyname}'}} as unknown as ReportNameValuePairs,
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    reportNameValuePairs_789: {private_isArchived: ''},
+                    reportNameValuePairs_789: {private_isArchived: '', expensify_text_title: {defaultValue: 'Policy: {report:policyname}'}} as unknown as ReportNameValuePairs,
                 },
             };
-            mockReportUtils.getTitleReportField.mockReturnValue({defaultValue: 'Policy: {report:policyname}'} as unknown as PolicyReportField);
 
             const updates = [
                 {
@@ -263,6 +272,186 @@ describe('OptimisticReportNames', () => {
 
             const result = computeReportNameIfNeeded(undefined, update, mockContext);
             expect(result).toBeNull();
+        });
+    });
+
+    describe('Transaction Updates', () => {
+        test('should process transaction updates and trigger report name updates', () => {
+            const contextWithTransaction = {
+                ...mockContext,
+                allTransactions: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    transactions_txn123: {
+                        transactionID: 'txn123',
+                        reportID: '123',
+                        created: '2024-01-01',
+                        amount: -5000,
+                        currency: 'USD',
+                        merchant: 'Original Merchant',
+                    },
+                },
+            };
+
+            const update = {
+                key: 'transactions_txn123' as OnyxKey,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    created: '2024-02-15', // Updated date
+                    reportID: '123',
+                },
+            };
+
+            const result = updateOptimisticReportNamesFromUpdates([update], contextWithTransaction);
+
+            // Should include original update + new report name update
+            expect(result).toHaveLength(2);
+            expect(result.at(0)).toEqual(update); // Original transaction update
+            expect(result.at(1)?.key).toBe('report_123'); // New report update
+        });
+
+        test('getReportByTransactionID should find report from transaction', () => {
+            const contextWithTransaction = {
+                ...mockContext,
+                allTransactions: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    transactions_abc123: {
+                        transactionID: 'abc123',
+                        reportID: '123',
+                        amount: -7500,
+                        created: '2024-01-15',
+                        currency: 'USD',
+                        merchant: 'Test Store',
+                    },
+                },
+            };
+
+            const result = getReportByTransactionID('abc123', contextWithTransaction);
+
+            expect(result).toEqual(mockReport);
+            expect(result?.reportID).toBe('123');
+        });
+
+        test('getReportByTransactionID should return undefined for missing transaction', () => {
+            const result = getReportByTransactionID('nonexistent', mockContext);
+            expect(result).toBeUndefined();
+        });
+
+        test('getReportByTransactionID should return undefined for transaction without reportID', () => {
+            const contextWithIncompleteTransaction = {
+                ...mockContext,
+                allTransactions: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    transactions_incomplete: {
+                        transactionID: 'incomplete' as OnyxKey,
+                        amount: -1000,
+                        currency: 'USD',
+                        merchant: 'Store',
+                        // Missing reportID
+                    } as unknown as Transaction,
+                },
+            };
+
+            const result = getReportByTransactionID('incomplete', contextWithIncompleteTransaction);
+            expect(result).toBeUndefined();
+        });
+
+        test('should handle transaction updates that rely on context lookup', () => {
+            const contextWithTransaction = {
+                ...mockContext,
+                allTransactions: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    transactions_xyz789: {
+                        transactionID: 'xyz789',
+                        reportID: '123',
+                        created: '2024-01-01',
+                        amount: -3000,
+                        currency: 'EUR',
+                        merchant: 'Context Store',
+                    },
+                },
+            };
+
+            // Transaction update without reportID in the value
+            const update = {
+                key: 'transactions_xyz789' as OnyxKey,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    amount: -4000, // Updated amount
+                    // No reportID provided in update
+                },
+            };
+
+            const result = updateOptimisticReportNamesFromUpdates([update], contextWithTransaction);
+
+            // Should still find the report through context lookup and generate update
+            expect(result).toHaveLength(2);
+            expect(result.at(1)?.key).toBe('report_123');
+        });
+
+        test('should use optimistic transaction data in formula computation', () => {
+            const contextWithTransaction = {
+                ...mockContext,
+                allReportNameValuePairs: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    reportNameValuePairs_123: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        expensify_text_title: {
+                            defaultValue: 'Report from {report:startdate}',
+                        },
+                    } as unknown as ReportNameValuePairs,
+                },
+                allPolicies: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    policy_policy1: {
+                        id: 'policy1',
+                        fieldList: {
+                            [CONST.REPORT_FIELD_TITLE_FIELD_ID]: {
+                                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                                defaultValue: 'Report from {report:startdate}',
+                            },
+                        },
+                    } as unknown as Policy,
+                },
+                allTransactions: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    transactions_formula123: {
+                        transactionID: 'formula123',
+                        reportID: '123',
+                        created: '2024-01-01', // Original date
+                        amount: -5000,
+                        currency: 'USD',
+                        merchant: 'Original Store',
+                    },
+                },
+            };
+
+            // Mock getReportTransactions to return the original transaction
+            // eslint-disable-next-line @typescript-eslint/dot-notation
+            mockReportUtils.getReportTransactions.mockReturnValue([contextWithTransaction.allTransactions['transactions_formula123']]);
+
+            const update = {
+                key: 'transactions_formula123' as OnyxKey,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    transactionID: 'formula123',
+                    created: '2024-03-15', // Updated date that should be used in formula
+                    modifiedCreated: '2024-03-15',
+                },
+            };
+
+            const result = updateOptimisticReportNamesFromUpdates([update], contextWithTransaction);
+
+            expect(result).toHaveLength(2);
+
+            // The key test: verify exact report name with optimistic date
+            const reportUpdate = result.at(1);
+            expect(reportUpdate).toEqual({
+                key: 'report_123',
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    reportName: 'Report from 2024-03-15', // Exact expected result with updated date
+                },
+            });
         });
     });
 });

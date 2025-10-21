@@ -4,7 +4,6 @@ description: Learn how actions such as Approve, Pay, Export, and Hold behave in 
 keywords: [New Expensify, report actions, approver actions, submitter actions]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Expense and report actions vary depending on the member role (submitter, approver, payer, admin) and the report's status (draft, outstanding, approved, done, paid). This guide outlines what to expect when reviewing, approving, paying, exporting, or managing expenses and reports based on varying workspace settings and report status.
 
@@ -41,6 +40,7 @@ Report actions guide the submitter, approver, and payer regarding the report's s
 |------------|---------------------|---------------------|------------------|
 | **Hold** | On draft, submitted, or approved reports | Submitter, Approver, Admin | Marks individual expenses that aren’t yet ready for approval or payment |
 | **Change workspace** | Before report is exported | Submitter, Approver, Admin | Moves the report to a different workspace |
+| **Change approver** | On submitted reports, before the report is final-approved | Admin | "Add Approver" allows an extra approver to be inserted into the approval workflow at the current point. "Bypass Approver" allows an admin to take control of the report approval and final approve |
 | **Delete** | Only on draft/unsubmitted reports | Submitter | Permanently removes the report |
 | **Unapprove** | After approval, before payment | Approver | Reverts the approval if the report hasn’t been re-approved or paid |
 | **Mark as exported** | On approved/paid reports when integrated to an accounting system| Admin, Exporter | Marks the report as manually exported for tracking purposes |
@@ -73,4 +73,7 @@ The **Cancel payment** option is only available for in-app payments and only bef
 
 This option won't be available if the payment was made manually outside of Expensify. In that case, use **Unapprove** instead.
 
-</div>
+## Why can’t I see “Bypass approvers”?
+
+Only workspace admins can bypass the prescribed approval workflow. If “Prevent Self-Approval” is enabled, an admin cannot bypass approvals to approve their own report. 
+

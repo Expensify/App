@@ -4,7 +4,6 @@ description: Learn how travel admins can configure email notification rules and 
 keywords: [travel notifications, email rules, approval emails, travel alerts, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Travel admins can configure custom email notification rules to keep key stakeholders informed of travel activity, including approvals and itinerary changes.
 
@@ -74,4 +73,3 @@ Absolutely. Each rule can have different triggers and filters. You can create as
 ## Do approvers still receive notifications if their settings are turned off?
 No. If the toggle for approval notifications is disabled, those approvers won’t receive email alerts unless included in a separate notification rule.
 
-</div>

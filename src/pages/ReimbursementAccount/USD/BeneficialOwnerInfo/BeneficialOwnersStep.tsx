@@ -215,12 +215,13 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
             shouldEnableMaxHeight
             headerTitle={translate('beneficialOwnerInfoStep.companyOwner')}
             handleBackButtonPress={handleBackButtonPress}
+            shouldShowOfflineIndicatorInWideScreen={currentUBOSubStep === SUBSTEP.UBOS_LIST}
             startStepIndex={5}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             {currentUBOSubStep === SUBSTEP.IS_USER_UBO && (
                 <YesNoStep
-                    title={`${translate('beneficialOwnerInfoStep.doYouOwn25percent')} ${companyName}?`}
+                    title={translate('beneficialOwnerInfoStep.doYouOwn25percent', {companyName})}
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
                     submitButtonStyles={[styles.mb0]}
                     defaultValue={isUserUBO}
@@ -230,7 +231,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
 
             {currentUBOSubStep === SUBSTEP.IS_ANYONE_ELSE_UBO && (
                 <YesNoStep
-                    title={`${translate('beneficialOwnerInfoStep.doAnyIndividualOwn25percent')} ${companyName}?`}
+                    title={translate('beneficialOwnerInfoStep.doAnyIndividualOwn25percent', {companyName})}
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
                     submitButtonStyles={[styles.mb0]}
                     defaultValue={isAnyoneElseUBO}
@@ -250,7 +251,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
 
             {currentUBOSubStep === SUBSTEP.ARE_THERE_MORE_UBOS && (
                 <YesNoStep
-                    title={`${translate('beneficialOwnerInfoStep.areThereMoreIndividualsWhoOwn25percent')} ${companyName}?`}
+                    title={translate('beneficialOwnerInfoStep.areThereMoreIndividualsWhoOwn25percent', {companyName})}
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
                     submitButtonStyles={[styles.mb0]}
                     onSelectedValue={handleNextUBOSubstep}

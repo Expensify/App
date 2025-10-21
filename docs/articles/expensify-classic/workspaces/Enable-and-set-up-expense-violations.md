@@ -3,7 +3,6 @@ title: Enable and set up Expense Violations
 description: Set up rules for expenses and enable violations
 keywords: [Expensify Classic, violations, expense violations]
 ---
-<div id="expensify-classic" markdown="1">
 
    Expensify automatically detects expense errors or discrepancies as violations that must be corrected. You can also set rules for a workspace that will trigger a violation if the rule is not met. These rules can be set for categories, tags, and even for specific domain groups.
 
@@ -100,4 +99,3 @@ GL account numbers are only visible to **Workspace Admins** when part of a Contr
 - An expense is categorized under a category that is not included in the workspace settings.
 - If workspace categories are imported from an accounting system and updated there but not in Expensify, old categories may still be assigned, leading to violations. Re-select the correct category to resolve the issue.
 
-</div>

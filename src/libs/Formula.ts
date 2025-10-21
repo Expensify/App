@@ -1,8 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type Policy from '@src/types/onyx/Policy';
-import type Report from '@src/types/onyx/Report';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 import {getCurrencySymbol} from './CurrencyUtils';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getReportTransactions} from './ReportUtils';
@@ -25,6 +24,7 @@ type FormulaPart = {
 type FormulaContext = {
     report: Report;
     policy: OnyxEntry<Policy>;
+    transaction?: Transaction;
 };
 
 const FORMULA_PART_TYPES = {
@@ -38,7 +38,7 @@ const FORMULA_PART_TYPES = {
  * Extract formula parts from a formula string, handling nested braces and escapes
  * Based on OldDot Formula.extract method
  */
-function extract(formula: string, opener = '{', closer = '}'): string[] {
+function extract(formula?: string, opener = '{', closer = '}'): string[] {
     if (!formula || typeof formula !== 'string') {
         return [];
     }
@@ -79,7 +79,7 @@ function extract(formula: string, opener = '{', closer = '}'): string[] {
  * Parse a formula string into an array of formula parts
  * Based on OldDot Formula.parse method
  */
-function parse(formula: string): FormulaPart[] {
+function parse(formula?: string): FormulaPart[] {
     if (!formula || typeof formula !== 'string') {
         return [];
     }
@@ -191,8 +191,11 @@ function parsePart(definition: string): FormulaPart {
 /**
  * Compute the value of a formula given a context
  */
-function compute(formula: string, context: FormulaContext): string {
+function compute(formula?: string, context?: FormulaContext): string {
     if (!formula || typeof formula !== 'string') {
+        return '';
+    }
+    if (!context) {
         return '';
     }
 
@@ -244,7 +247,9 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'type':
             return formatType(report.type);
         case 'startdate':
-            return formatDate(getOldestTransactionDate(report.reportID), format);
+            return formatDate(getOldestTransactionDate(report.reportID, context), format);
+        case 'enddate':
+            return formatDate(getNewestTransactionDate(report.reportID, context), format);
         case 'total':
             return formatAmount(report.total, getCurrencySymbol(report.currency ?? '') ?? report.currency);
         case 'currency':
@@ -466,14 +471,34 @@ function formatType(type: string | undefined): string {
 }
 
 /**
+ * Get all transactions for a report, including any context transaction.
+ * Updates an existing transaction if it matches the context or adds it if new.
+ */
+function getAllReportTransactionsWithContext(reportID: string, context?: FormulaContext): Transaction[] {
+    const transactions = [...getReportTransactions(reportID)];
+    const contextTransaction = context?.transaction;
+
+    if (contextTransaction?.transactionID && contextTransaction.reportID === reportID) {
+        const transactionIndex = transactions.findIndex((transaction) => transaction?.transactionID === contextTransaction.transactionID);
+        if (transactionIndex >= 0) {
+            transactions[transactionIndex] = contextTransaction;
+        } else {
+            transactions.push(contextTransaction);
+        }
+    }
+
+    return transactions;
+}
+
+/**
  * Get the date of the oldest transaction for a given report
  */
-function getOldestTransactionDate(reportID: string): string | undefined {
+function getOldestTransactionDate(reportID: string, context?: FormulaContext): string | undefined {
     if (!reportID) {
         return undefined;
     }
 
-    const transactions = getReportTransactions(reportID);
+    const transactions = getAllReportTransactionsWithContext(reportID, context);
     if (!transactions || transactions.length === 0) {
         return new Date().toISOString();
     }
@@ -483,6 +508,10 @@ function getOldestTransactionDate(reportID: string): string | undefined {
     transactions.forEach((transaction) => {
         const created = getCreated(transaction);
         if (!created) {
+            return;
+        }
+        // Skip transactions with pending deletion (offline deletes) to calculate dates properly.
+        if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
         if (oldestDate && created >= oldestDate) {
@@ -495,6 +524,42 @@ function getOldestTransactionDate(reportID: string): string | undefined {
     });
 
     return oldestDate;
+}
+
+/**
+ * Get the date of the newest transaction for a given report
+ */
+function getNewestTransactionDate(reportID: string, context?: FormulaContext): string | undefined {
+    if (!reportID) {
+        return undefined;
+    }
+
+    const transactions = getAllReportTransactionsWithContext(reportID, context);
+    if (!transactions || transactions.length === 0) {
+        return new Date().toISOString();
+    }
+
+    let newestDate: string | undefined;
+
+    transactions.forEach((transaction) => {
+        const created = getCreated(transaction);
+        if (!created) {
+            return;
+        }
+        // Skip transactions with pending deletion (offline deletes) to calculate dates properly.
+        if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return;
+        }
+        if (newestDate && created <= newestDate) {
+            return;
+        }
+        if (isPartialTransaction(transaction)) {
+            return;
+        }
+        newestDate = created;
+    });
+
+    return newestDate;
 }
 
 export {FORMULA_PART_TYPES, compute, extract, parse};

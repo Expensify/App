@@ -3,8 +3,18 @@ import {useEffect} from 'react';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanel from '@hooks/useSidePanel';
+import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
+
+function toggleSidePanelWithHistory(isVisible: boolean) {
+    Navigation.isNavigationReady().then(() => {
+        navigationRef.dispatch({
+            type: CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY,
+            payload: {isVisible},
+        });
+    });
+}
 
 export default function useSyncSidePanelWithHistory() {
     const {closeSidePanel, openSidePanel, shouldHideSidePanel} = useSidePanel();
@@ -16,18 +26,12 @@ export default function useSyncSidePanelWithHistory() {
         // If the window width has been expanded and the modal is displayed, remove its history entry.
         // The side panel is only synced with the history when it's displayed as RHP.
         if (!shouldHideSidePanel && isExtraLargeScreenWidth) {
-            navigationRef.dispatch({
-                type: CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY,
-                payload: {isVisible: false},
-            });
+            toggleSidePanelWithHistory(false);
             return;
         }
 
         // When shouldHideSidePanel changes, synchronize the side panel with the browser history.
-        navigationRef.dispatch({
-            type: CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY,
-            payload: {isVisible: !shouldHideSidePanel},
-        });
+        toggleSidePanelWithHistory(!shouldHideSidePanel);
     }, [shouldHideSidePanel, isExtraLargeScreenWidth]);
 
     useEffect(() => {

@@ -4,10 +4,12 @@ import HapticFeedback from '@libs/HapticFeedback';
 function usePaymentAnimations() {
     const [isPaidAnimationRunning, setIsPaidAnimationRunning] = useState(false);
     const [isApprovedAnimationRunning, setIsApprovedAnimationRunning] = useState(false);
+    const [isSubmittingAnimationRunning, setIsSubmittingAnimationRunning] = useState(false);
 
     const stopAnimation = useCallback(() => {
         setIsPaidAnimationRunning(false);
         setIsApprovedAnimationRunning(false);
+        setIsSubmittingAnimationRunning(false);
     }, []);
 
     const startAnimation = useCallback(() => {
@@ -20,12 +22,19 @@ function usePaymentAnimations() {
         HapticFeedback.longPress();
     }, []);
 
+    const startSubmittingAnimation = useCallback(() => {
+        setIsSubmittingAnimationRunning(true);
+        HapticFeedback.longPress();
+    }, []);
+
     return {
         isPaidAnimationRunning,
         isApprovedAnimationRunning,
+        isSubmittingAnimationRunning,
         stopAnimation,
         startAnimation,
         startApprovedAnimation,
+        startSubmittingAnimation,
     };
 }
 

@@ -4,8 +4,6 @@ description: Learn how to review, approve, or deny travel requests in Expensify 
 keywords: [approve travel, deny travel request, soft approval, hard approval, travel policy approval, manager approval, designated approver, secondary approver, travel workflows]
 ---
 
-<div id="new-expensify" markdown="1">
-
 Approving travel is easy and flexible, giving approvers full control over how and when travel requests get reviewed. With customizable approval flows, mobile-friendly access, and even email-based actions, approving travel happens wherever you are.
 
 ---
@@ -94,5 +92,3 @@ Only the designated approver, the employee's manager, a default approver, or a s
 Approvers receive email notifications and can view pending approvals under **Trips** > **Approvals** in the Travel dashboard. You can configure your notification settings in your profile under **User icon** > **My profile** > **Notifications**. 
 
 Optionally, admins can manage approver notifications and create custom notifications for travel requests and approvals by heading to **Program** > **Company** > **Configuration** > **Email notifications**. 
-
-</div>

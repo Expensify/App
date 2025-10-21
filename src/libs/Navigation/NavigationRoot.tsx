@@ -173,10 +173,17 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             ...defaultNavigationTheme,
             colors: {
                 ...defaultNavigationTheme.colors,
-                background: theme.appBG,
+                /**
+                 * We want to have a stack with variable size of screens in RHP (wide layout).
+                 * The stack is the size of the biggest screen in RHP. Screens that should be smaller will reduce its size with margin.
+                 * The stack has to be this size because it has a container with overflow: hidden.
+                 * On wide layout, background: 'transparent' is used to make the bottom of the card stack transparent.
+                 * On narrow layout, we use theme.appBG to match the standard app background.
+                 */
+                background: shouldUseNarrowLayout ? theme.appBG : 'transparent',
             },
         };
-    }, [theme.appBG, themePreference]);
+    }, [shouldUseNarrowLayout, theme.appBG, themePreference]);
 
     useEffect(() => {
         if (firstRenderRef.current) {

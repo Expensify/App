@@ -35,7 +35,6 @@ function ConnectToQuickbooksOnlineFlow({policyID}: ConnectToQuickbooksOnlineFlow
             fullscreen
             isVisible={isWebViewOpen}
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
-            shouldUseReanimatedModal
         >
             <HeaderWithBackButton
                 title={translate('workspace.accounting.title')}

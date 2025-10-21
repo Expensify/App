@@ -53,6 +53,7 @@ function EnablePaymentsPage() {
             shouldShowOfflineIndicator={userWallet?.currentStep !== CONST.WALLET.STEP.ONFIDO}
             includeSafeAreaPaddingBottom
             testID={EnablePaymentsPage.displayName}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         >
             {() => {
                 if (userWallet?.errorCode === CONST.WALLET.ERROR.KYC) {

@@ -4,7 +4,6 @@ description: Learn how to join your company's workspace, set up your profile, ad
 keywords: [New Expensify, join workspace, setup profile, add expense, enable two-factor authentication, SmartScan, Concierge]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Welcome to Expensify! If you've received an invite to join your company's workspace, this guide walks you through setting up your account and getting started.
 
@@ -83,4 +82,3 @@ Add an extra layer of security to protect your account.
 
 ⚠️ **Important:** Keep your backup codes in a safe place! Without them, you could lose access to your account if you can't use your authenticator app.
 
-</div>
