@@ -35,8 +35,6 @@ Onyx.connect({
     },
 });
 
-const hiddenTranslation = translateLocal('common.hidden');
-const youTranslation = translateLocal('common.you').toLowerCase();
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
 
 function getDisplayNameOrDefault(
@@ -44,7 +42,7 @@ function getDisplayNameOrDefault(
     defaultValue = '',
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
-    youAfterTranslation = youTranslation,
+    youAfterTranslation = translateLocal('common.you').toLowerCase(),
 ): string {
     let displayName = passedPersonalDetails?.displayName ?? '';
 
@@ -85,7 +83,7 @@ function getDisplayNameOrDefault(
         return login;
     }
 
-    return shouldFallbackToHidden ? hiddenTranslation : '';
+    return shouldFallbackToHidden ? translateLocal('common.hidden') : '';
 }
 
 /**
