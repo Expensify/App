@@ -334,16 +334,16 @@ function MoneyRequestConfirmationList({
 
     useEffect(() => {
         // Set the default tax code when conditions change
-        if (
-            !shouldShowTax ||
-            !transaction ||
-            !transactionID ||
-            transaction.taxCode // Skip if tax code is already set
-        ) {
+        if (!shouldShowTax || !transaction || !transactionID) {
             return;
         }
         const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-        setMoneyRequestTaxRate(transactionID, defaultTaxCode ?? '');
+        const currentTaxCode = transaction.taxCode ?? '';
+
+        // Update tax code if it's different from what should be the default
+        if (defaultTaxCode !== currentTaxCode) {
+            setMoneyRequestTaxRate(transactionID, defaultTaxCode ?? '');
+        }
     }, [customUnitRateID, policy, shouldShowTax, transaction, transactionID]);
 
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
