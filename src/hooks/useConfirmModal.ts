@@ -1,6 +1,6 @@
-import ConfirmModalWrapper from './ConfirmModalWrapper';
-import {useModal} from './ModalContext';
-import type {ModalProps} from './ModalContext';
+import ConfirmModalWrapper from '@components/Modal/Global/ConfirmModalWrapper';
+import type {ModalProps} from '@components/Modal/Global/ModalContext';
+import {useModal} from '@components/Modal/Global/ModalContext';
 
 type ConfirmModalOptions = Omit<React.ComponentProps<typeof ConfirmModalWrapper>, keyof ModalProps>;
 
@@ -19,5 +19,4 @@ const useConfirmModal = () => {
         showConfirmModal,
     };
 };
-
 export default useConfirmModal;

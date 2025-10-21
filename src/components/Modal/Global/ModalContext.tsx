@@ -38,7 +38,7 @@ type ModalInfo = {
     isCloseable: boolean;
 };
 
-function PromiseModalProvider({children}: {children: React.ReactNode}) {
+function ModalProvider({children}: {children: React.ReactNode}) {
     const [modalStack, setModalStack] = useState<{modals: ModalInfo[]}>({modals: []});
 
     const showModal = useCallback<ModalContextType['showModal']>(({component, props, id, isCloseable = true}) => {
@@ -104,4 +104,4 @@ function PromiseModalProvider({children}: {children: React.ReactNode}) {
 }
 
 export type {ModalProps};
-export {PromiseModalProvider, useModal, ModalActions};
+export {ModalProvider, useModal, ModalActions};

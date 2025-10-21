@@ -5,6 +5,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useState} from 'reac
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
@@ -136,7 +137,6 @@ import type {PaymentMethod} from './KYCWall/types';
 import LoadingBar from './LoadingBar';
 import Modal from './Modal';
 import {ModalActions} from './Modal/Global/ModalContext';
-import useConfirmModal from './Modal/Global/useModalHook';
 import MoneyReportHeaderKYCDropdown from './MoneyReportHeaderKYCDropdown';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkeleton';
@@ -985,25 +985,25 @@ function MoneyReportHeader({
             text: translate('iou.unapprove'),
             icon: Expensicons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE,
-            onSelected: () => {
+            onSelected: async () => {
                 if (isDelegateAccessRestricted) {
                     showDelegateNoAccessModal();
                     return;
                 }
 
                 if (isExported) {
-                    showConfirmModal({
+                    const result = await showConfirmModal({
                         title: translate('iou.unapproveReport'),
                         prompt: unapproveWarningText,
                         confirmText: translate('iou.unapproveReport'),
                         cancelText: translate('common.cancel'),
                         danger: true,
-                    }).then((result) => {
-                        if (result.action !== ModalActions.CONFIRM) {
-                            return;
-                        }
-                        unapproveExpenseReport(moneyRequestReport);
                     });
+
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                    unapproveExpenseReport(moneyRequestReport);
                     return;
                 }
 
@@ -1014,19 +1014,19 @@ function MoneyReportHeader({
             text: translate('iou.cancelPayment'),
             icon: Expensicons.Clear,
             value: CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT,
-            onSelected: () => {
-                showConfirmModal({
+            onSelected: async () => {
+                const result = await showConfirmModal({
                     title: translate('iou.cancelPayment'),
                     prompt: translate('iou.cancelPaymentConfirmation'),
                     confirmText: translate('iou.cancelPayment'),
                     cancelText: translate('common.dismiss'),
                     danger: true,
-                }).then((result) => {
-                    if (result.action !== ModalActions.CONFIRM || !chatReport) {
-                        return;
-                    }
-                    cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations);
                 });
+
+                if (result.action !== ModalActions.CONFIRM || !chatReport) {
+                    return;
+                }
+                cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.HOLD]: {
@@ -1112,69 +1112,64 @@ function MoneyReportHeader({
             text: translate('common.delete'),
             icon: Expensicons.Trashcan,
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
-            onSelected: () => {
+            onSelected: async () => {
                 const transactionCount = Object.keys(transactions).length;
 
                 if (transactionCount === 1) {
-                    showConfirmModal({
+                    const result = await showConfirmModal({
                         title: translate('iou.deleteExpense', {count: 1}),
                         prompt: translate('iou.deleteConfirmation', {count: 1}),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
                         danger: true,
-                    }).then((result) => {
-                        if (result.action !== ModalActions.CONFIRM) {
-                            return;
+                    });
+
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                    let goBackRoute: Route | undefined;
+                    if (transactionThreadReportID) {
+                        if (!requestParentReportAction || !transaction?.transactionID) {
+                            throw new Error('Missing data!');
                         }
-                        let goBackRoute: Route | undefined;
-                        if (transactionThreadReportID) {
-                            if (!requestParentReportAction || !transaction?.transactionID) {
-                                throw new Error('Missing data!');
-                            }
-                            InteractionManager.runAfterInteractions(() => {
-                                deleteMoneyRequest(
-                                    transaction?.transactionID,
-                                    requestParentReportAction,
-                                    duplicateTransactions,
-                                    duplicateTransactionViolations,
-                                    iouReport,
-                                    chatIOUReport,
-                                    isChatIOUReportArchived,
-                                );
-                                removeTransaction(transaction.transactionID);
-                            });
-                            goBackRoute = getNavigationUrlOnMoneyRequestDelete(
-                                transaction.transactionID,
+                        // it's deleting transaction but not the report which leads to bug (that is actually also on staging)
+                        // Money request should be deleted when interactions are done, to not show the not found page before navigating to goBackRoute
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
+                        InteractionManager.runAfterInteractions(() => {
+                            deleteMoneyRequest(
+                                transaction?.transactionID,
                                 requestParentReportAction,
+                                duplicateTransactions,
+                                duplicateTransactionViolations,
                                 iouReport,
                                 chatIOUReport,
                                 isChatIOUReportArchived,
-                                false,
                             );
-                        }
+                            removeTransaction(transaction.transactionID);
+                        });
+                        goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, iouReport, chatIOUReport, isChatIOUReportArchived, false);
+                    }
 
-                        if (goBackRoute) {
-                            Navigation.setNavigationActionToMicrotaskQueue(() => navigateOnDeleteExpense(goBackRoute));
-                        }
-                    });
+                    if (goBackRoute) {
+                        Navigation.setNavigationActionToMicrotaskQueue(() => navigateOnDeleteExpense(goBackRoute));
+                    }
                     return;
                 }
 
-                showConfirmModal({
+                const result = await showConfirmModal({
                     title: translate('iou.deleteReport'),
                     prompt: translate('iou.deleteReportConfirmation'),
                     confirmText: translate('common.delete'),
                     cancelText: translate('common.cancel'),
                     danger: true,
-                }).then((result) => {
-                    if (result.action !== ModalActions.CONFIRM) {
-                        return;
-                    }
-                    const reportID = moneyRequestReport?.reportID;
-                    if (reportID) {
-                        deleteAppReport(reportID);
-                    }
                 });
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                const reportID = moneyRequestReport?.reportID;
+                if (reportID) {
+                    deleteAppReport(reportID);
+                }
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
@@ -1189,20 +1184,20 @@ function MoneyReportHeader({
             text: translate('iou.retract'),
             icon: Expensicons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.REOPEN,
-            onSelected: () => {
+            onSelected: async () => {
                 if (!isExported) {
-                    showConfirmModal({
+                    const result = await showConfirmModal({
                         title: translate('iou.reopenReport'),
                         prompt: reopenExportedReportWarningText,
                         confirmText: translate('iou.reopenReport'),
                         cancelText: translate('common.cancel'),
                         danger: true,
-                    }).then((result) => {
-                        if (result.action !== ModalActions.CONFIRM) {
-                            return;
-                        }
-                        reopenReport(moneyRequestReport);
                     });
+
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                    reopenReport(moneyRequestReport);
                     return;
                 }
                 reopenReport(moneyRequestReport);
