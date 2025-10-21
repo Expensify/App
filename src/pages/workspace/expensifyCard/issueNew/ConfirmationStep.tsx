@@ -106,6 +106,7 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
             startStepIndex={startStepIndex}
             stepNames={stepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldShowOfflineIndicatorInWideScreen
         >
             <ScrollView
                 style={styles.pt0}

@@ -254,9 +254,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const pendingAction =
-        (item.pendingAction ?? (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)))
+        item.pendingAction ??
+        (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-            : undefined;
+            : undefined);
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
