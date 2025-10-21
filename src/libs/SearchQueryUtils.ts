@@ -652,13 +652,12 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID) {
             filtersForm[key as typeof filterKey] = filterValues.join(',');
         }
-        if (
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION
-        ) {
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
             filtersForm[key as typeof filterKey] = filterValues.at(0);
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION) {
+            const validActionTypes = new Set(Object.values(CONST.SEARCH.ACTION_FILTERS));
+            filtersForm[key as typeof filterKey] = filterValues.filter((actionType) => validActionTypes.has(actionType as ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>)).at(0);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
             const validExpenseTypes = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
