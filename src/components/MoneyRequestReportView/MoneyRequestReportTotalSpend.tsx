@@ -21,7 +21,7 @@ type MoneyRequestReportTotalSpendProps = {
     /** Whether the report has any pending actions */
     hasPendingAction: boolean;
 
-    /** Style for the text container */
+    /** Style for the text container of the total spend */
     textContainerStyle?: StyleProp<ViewStyle>;
 };
 
