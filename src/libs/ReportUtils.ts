@@ -235,7 +235,6 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
-import {getSession} from './SessionUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
     getAttendees,
@@ -11671,18 +11670,19 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
 }
 
 function canRejectReportAction(currentUserLogin: string, report: Report, policy?: Policy): boolean {
-    if (!Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_REJECT, allBetas)) {
-        return false;
-    }
+    // if (!Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_REJECT, allBetas)) {
+    //     console.log('cannot reject')
+    //     return false;
+    // }
 
     const isReportApprover = isApproverUtils(policy, currentUserLogin);
     const isReportBeingProcessed = isProcessingReport(report);
-    const isReportPayer = isPayer(getSession(), report, false, policy);
     const isIOU = isIOUReport(report);
     const isInvoice = isInvoiceReport(report);
     const isCurrentUserManager = report?.managerID === currentUserAccountID;
 
-    const userCanReject = (isReportApprover && isCurrentUserManager) || isReportPayer;
+    const userCanReject = isReportApprover && isCurrentUserManager;
+    console.log('can reject?', policy, currentUserLogin, report, currentUserAccountID)
 
     if (!userCanReject) {
         return false; // must be approver or payer
