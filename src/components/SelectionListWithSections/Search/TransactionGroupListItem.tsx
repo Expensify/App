@@ -179,8 +179,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
         if (isEmpty) {
             return;
         }
-        onLongPressRow?.(item, isGroupByReports ? undefined : transactions);
-    }, [isEmpty, isGroupByReports, item, onLongPressRow, transactions]);
+        onLongPressRow?.(item, isExpenseReportType ? undefined : transactions);
+    }, [isEmpty, isExpenseReportType, item, onLongPressRow, transactions]);
 
     const onCheckboxPress = useCallback(
         (val: TItem) => {
