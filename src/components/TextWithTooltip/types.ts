@@ -13,6 +13,9 @@ type TextWithTooltipProps = ForwardedFSClassProps & {
 
     /** Custom number of lines for text wrapping */
     numberOfLines?: number;
+
+    /** TestID of the Text component */
+    testID?: string;
 };
 
 export default TextWithTooltipProps;
