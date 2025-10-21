@@ -17,6 +17,7 @@ import Icon from '@components/Icon';
 import {Eye} from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
+import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
@@ -61,6 +62,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName, getPersonalPolicy, isPolicyAdmin, isPolicyOwner} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
+    getActionableCardFraudAlertMessage,
     getActionableMentionWhisperMessage,
     getAddedApprovalRuleMessage,
     getAddedConnectionMessage,
@@ -105,6 +107,7 @@ import {
     getWorkspaceTagUpdateMessage,
     getWorkspaceUpdateFieldMessage,
     isActionableAddPaymentCard,
+    isActionableCardFraudAlert,
     isActionableJoinRequest,
     isActionableMentionInviteToSubmitExpenseConfirmWhisper,
     isActionableMentionWhisper,
@@ -164,9 +167,10 @@ import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
+import {resolveFraudAlert} from '@userActions/Card';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
-import {expandURLPreview, resolveActionableMentionConfirmWhisper, resolveConciergeCategoryOptions} from '@userActions/Report';
+import {createTransactionThreadReport, expandURLPreview, resolveActionableMentionConfirmWhisper, resolveConciergeCategoryOptions} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
@@ -338,8 +342,8 @@ type PureReportActionItemProps = {
         reportAction: OnyxEntry<OnyxTypes.ReportAction>,
         resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
         formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+        isReportArchived: boolean | undefined,
         policy: OnyxEntry<OnyxTypes.Policy>,
-        isReportArchived: boolean,
     ) => void;
 
     /** Whether the provided report is a closed expense report with no expenses */
@@ -449,10 +453,9 @@ function PureReportActionItem({
     shouldHighlight = false,
     isTryNewDotNVPDismissed = false,
     currentUserAccountID,
-    reportActions,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
-    const {translate, formatPhoneNumber, localeCompare, formatTravelDate} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime} = useLocalize();
     const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
@@ -469,6 +472,7 @@ function PureReportActionItem({
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const reactionListRef = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(AttachmentModalContext);
+    const kycWallRef = useContext(KYCWallContext);
     const composerTextInputRef = useRef<TextInput | HTMLTextAreaElement>(null);
     const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
@@ -765,7 +769,7 @@ function PureReportActionItem({
             }));
         }
 
-        if (!isActionableWhisper && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
+        if (!isActionableWhisper && !isActionableCardFraudAlert(action) && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
             return [];
         }
 
@@ -788,7 +792,7 @@ function PureReportActionItem({
                 },
             ];
 
-            if (isBetaEnabled(CONST.BETAS.TRACK_FLOWS)) {
+            if (Permissions.canUseTrackFlows()) {
                 options.push(
                     {
                         text: 'actionableMentionTrackExpense.categorize',
@@ -814,6 +818,31 @@ function PureReportActionItem({
                 },
             });
             return options;
+        }
+
+        if (isActionableCardFraudAlert(action)) {
+            if (getOriginalMessage(action)?.resolution) {
+                return [];
+            }
+
+            const cardID = getOriginalMessage(action)?.cardID;
+            return [
+                {
+                    text: translate('cardPage.cardFraudAlert.confirmButtonText'),
+                    key: `${action.reportActionID}-cardFraudAlert-confirm`,
+                    onPress: () => {
+                        resolveFraudAlert(cardID, false, reportID, action?.reportActionID);
+                    },
+                    isPrimary: true,
+                },
+                {
+                    text: translate('cardPage.cardFraudAlert.reportFraudButtonText'),
+                    key: `${action.reportActionID}-cardFraudAlert-reportFraud`,
+                    onPress: () => {
+                        resolveFraudAlert(cardID, true, reportID, action?.reportActionID);
+                    },
+                },
+            ];
         }
 
         if (isActionableJoinRequest(action)) {
@@ -879,8 +908,8 @@ function PureReportActionItem({
                         action,
                         CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE,
                         formatPhoneNumber,
-                        policy,
                         isOriginalReportArchived,
+                        policy,
                     ),
                 isMediumSized: true,
             });
@@ -896,8 +925,8 @@ function PureReportActionItem({
                         action,
                         CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
                         formatPhoneNumber,
-                        policy,
                         isOriginalReportArchived,
+                        policy,
                     ),
                 isMediumSized: true,
             },
@@ -910,8 +939,8 @@ function PureReportActionItem({
                         action,
                         CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
                         formatPhoneNumber,
-                        policy,
                         isOriginalReportArchived,
+                        policy,
                     ),
                 isMediumSized: true,
             },
@@ -920,23 +949,24 @@ function PureReportActionItem({
     }, [
         action,
         userBillingFundID,
+        originalReportID,
+        reportID,
         isActionableWhisper,
         report?.policyID,
         policy,
         currentUserAccountID,
-        reportID,
-        originalReportID,
         personalDetail.timezone,
         isBetaEnabled,
         createDraftTransactionAndNavigateToParticipantSelector,
-        dismissTrackExpenseActionableWhisper,
-        resolveActionableReportMentionWhisper,
-        formatPhoneNumber,
-        resolveActionableMentionWhisper,
-        isReportArchived,
-        isOriginalReportArchived,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
+        dismissTrackExpenseActionableWhisper,
+        translate,
+        resolveActionableReportMentionWhisper,
+        isReportArchived,
+        formatPhoneNumber,
+        isOriginalReportArchived,
+        resolveActionableMentionWhisper,
     ]);
 
     /**
@@ -998,7 +1028,13 @@ function PureReportActionItem({
                                         return;
                                     }
 
+                                    // If no childReportID exists, create transaction thread on-demand
                                     if (!action.childReportID) {
+                                        const createdTransactionThreadReport = createTransactionThreadReport(iouReport, action);
+                                        if (createdTransactionThreadReport?.reportID) {
+                                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(createdTransactionThreadReport.reportID, undefined, undefined, Navigation.getActiveRoute()));
+                                            return;
+                                        }
                                         return;
                                     }
 
@@ -1088,6 +1124,7 @@ function PureReportActionItem({
                         )}
                         {missingPaymentMethod === 'wallet' && (
                             <KYCWall
+                                ref={kycWallRef}
                                 onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL}
@@ -1138,12 +1175,6 @@ function PureReportActionItem({
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
             }
-        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-            if (!reportActions.some((reportAction) => isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU))) {
-                children = <ReportActionItemBasicMessage message={translate('iou.paidElsewhere')} />;
-            } else {
-                children = emptyHTML;
-            }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             const wasAutoPaid = getOriginalMessage(action)?.automaticAction ?? false;
             const paymentType = getOriginalMessage(action)?.paymentType;
@@ -1162,7 +1193,7 @@ function PureReportActionItem({
                         </ReportActionItemBasicMessage>
                     );
                 } else {
-                    children = <ReportActionItemBasicMessage message={translate('iou.businessBankAccount', {amount: '', last4Digits})?.toLowerCase()} />;
+                    children = <ReportActionItemBasicMessage message={translate('iou.businessBankAccount', {amount: '', last4Digits})} />;
                 }
             } else if (wasAutoPaid) {
                 children = (
@@ -1173,6 +1204,10 @@ function PureReportActionItem({
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.paidWithExpensify')} />;
             }
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+            const isFromNewDot = getOriginalMessage(action)?.isNewDot ?? false;
+
+            children = isFromNewDot ? emptyHTML : <ReportActionItemBasicMessage message={translate('iou.paidElsewhere')} />;
         } else if (isUnapprovedAction(action)) {
             children = <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
@@ -1307,6 +1342,23 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getUpdatedApprovalRuleMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
             children = <ReportActionItemBasicMessage message={getRemovedFromApprovalChainMessage(action)} />;
+        } else if (isActionableCardFraudAlert(action)) {
+            const message = getActionableCardFraudAlertMessage(action, getLocalDateFromDatetime);
+
+            children = (
+                <View
+                    accessibilityRole={CONST.ROLE.ALERT}
+                    accessibilityLabel={translate('reportFraudConfirmationPage.title')}
+                >
+                    <ReportActionItemBasicMessage message={message} />
+                    {actionableItemButtons.length > 0 && (
+                        <ActionableItemButtons
+                            items={actionableItemButtons}
+                            layout="horizontal"
+                        />
+                    )}
+                </View>
+            );
         } else if (isActionableJoinRequest(action)) {
             children = (
                 <View>
@@ -1459,7 +1511,7 @@ function PureReportActionItem({
                                 if (isAnonymousUser()) {
                                     hideContextMenu(false);
 
-                                    // eslint-disable-next-line deprecation/deprecation
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                                     InteractionManager.runAfterInteractions(() => {
                                         signOutAndRedirectToSignIn();
                                     });
