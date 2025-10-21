@@ -4,7 +4,7 @@ import CarIce100 from '@assets/images/avatars/user/custom-avatars/season-f1/car-
 import CarPink100 from '@assets/images/avatars/user/custom-avatars/season-f1/car-pink100.svg';
 import CarTangerine100 from '@assets/images/avatars/user/custom-avatars/season-f1/car-tangerine100.svg';
 import CarYellow100 from '@assets/images/avatars/user/custom-avatars/season-f1/car-yellow100.svg';
-import ChampagneGreen400 from '@assets/images/avatars/user/custom-avatars/season-f1/champagne-green400.svg';
+import ChampagneGreen600 from '@assets/images/avatars/user/custom-avatars/season-f1/champagne-green600.svg';
 import ConeTangerine700 from '@assets/images/avatars/user/custom-avatars/season-f1/cone-tangerine700.svg';
 import FlagBlue600 from '@assets/images/avatars/user/custom-avatars/season-f1/flag-blue600.svg';
 import GasolineTangerine400 from '@assets/images/avatars/user/custom-avatars/season-f1/gasoline-tangerine400.svg';
@@ -30,7 +30,7 @@ export {
     CarPink100,
     CarTangerine100,
     CarYellow100,
-    ChampagneGreen400,
+    ChampagneGreen600,
     ConeTangerine700,
     FlagBlue600,
     GasolineTangerine400,

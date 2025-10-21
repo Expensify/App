@@ -33,7 +33,7 @@ type SeasonF1AvatarIDs =
     | 'car-pink100'
     | 'car-tangerine100'
     | 'car-yellow100'
-    | 'champagne-green400'
+    | 'champagne-green600'
     | 'cone-tangerine700'
     | 'flag-blue600'
     | 'gasoline-tangerine400'

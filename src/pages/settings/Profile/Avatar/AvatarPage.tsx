@@ -17,7 +17,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLetterAvatars from '@hooks/useLetterAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAvatarURL, isCustomAvatarID} from '@libs/Avatars/CustomAvatarCatalog';
+import {getAvatarLocal, getAvatarURL, isCustomAvatarID} from '@libs/Avatars/CustomAvatarCatalog';
 import {validateAvatarImage} from '@libs/AvatarUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -68,7 +68,7 @@ function ProfileAvatar() {
     // eslint-disable-next-line no-nested-ternary
     let avatarURL: AvatarSource = '';
     if (selected && isCustomAvatarID(selected)) {
-        avatarURL = getAvatarURL(selected);
+        avatarURL = getAvatarLocal(selected);
     } else if (selected) {
         avatarURL = avatars[selected];
     } else if (imageData.uri) {
