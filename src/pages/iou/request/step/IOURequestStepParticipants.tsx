@@ -298,7 +298,7 @@ function IOURequestStepParticipants({
         const transactionReportID = shouldAutoReport.current ? newReportID : CONST.REPORT.UNREPORTED_REPORT_ID;
         transactions.forEach((transaction) => {
             setMoneyRequestTag(transaction.transactionID, '');
-            const category = action === CONST.IOU.ACTION.SUBMIT && !!selfDMReportID && transaction?.category ? transaction?.category : '';
+            const category = isMovingTransactionFromTrackExpense && transaction?.category ? transaction?.category : '';
             setMoneyRequestCategory(transaction.transactionID, category);
             setMoneyRequestCategory(transaction.transactionID, '');
             if (shouldUpdateTransactionReportID) {
