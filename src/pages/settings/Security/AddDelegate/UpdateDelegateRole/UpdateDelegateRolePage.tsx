@@ -17,11 +17,30 @@ import type SCREENS from '@src/SCREENS';
 
 type UpdateDelegateRolePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE>;
 
+function UpdateDelegateRoleSelectionListHeader() {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    return (
+        <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
+            <>
+                {translate('delegate.accessLevelDescription')}{' '}
+                <TextLink
+                    style={[styles.link]}
+                    href={CONST.COPILOT_HELP_URL}
+                >
+                    {translate('common.learnMore')}
+                </TextLink>
+                .
+            </>
+        </Text>
+    );
+}
+
 function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     const {translate} = useLocalize();
     const {currentRole, login} = route.params;
 
-    const styles = useThemeStyles();
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
         value: role,
         text: translate('delegate.role', {role}),
@@ -44,20 +63,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                     alternateNumberOfSupportedLines={4}
                     initiallyFocusedItemKey={currentRole}
                     shouldUpdateFocusedIndex
-                    customListHeader={
-                        <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
-                            <>
-                                {translate('delegate.accessLevelDescription')}{' '}
-                                <TextLink
-                                    style={[styles.link]}
-                                    href={CONST.COPILOT_HELP_URL}
-                                >
-                                    {translate('common.learnMore')}
-                                </TextLink>
-                                .
-                            </>
-                        </Text>
-                    }
+                    customListHeader={<UpdateDelegateRoleSelectionListHeader />}
                     onSelectRow={(option) => {
                         if (!option.value || option.isSelected) {
                             Navigation.dismissModal();
