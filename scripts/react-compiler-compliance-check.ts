@@ -48,7 +48,7 @@ type CompilerFailure = {
 
 type DiffFilteringCommits = {
     from: string;
-    to?: string;
+    to: string;
 };
 
 type PrintResultsOptions = {
@@ -87,7 +87,7 @@ async function check({
 
     if (shouldFilterByDiff) {
         const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
-        const diffFilteringCommits: DiffFilteringCommits = {from: mainBaseCommitHash};
+        const diffFilteringCommits: DiffFilteringCommits = {from: mainBaseCommitHash, to: 'HEAD'};
 
         results = await filterResultsByDiff(results, diffFilteringCommits, {shouldPrintSuccesses, shouldPrintSuppressedErrors});
     }
@@ -279,7 +279,12 @@ async function filterResultsByDiff(
     diffFilteringCommits: DiffFilteringCommits,
     {shouldPrintSuccesses, shouldPrintSuppressedErrors}: PrintResultsOptions,
 ): Promise<CompilerResults> {
-    logInfo(`Filtering results by diff between ${diffFilteringCommits.from} and ${diffFilteringCommits.to ?? 'the working tree'}...`);
+    // Check for uncommitted changes and warn if any exist
+    if (await Git.hasUncommittedChanges()) {
+        logWarn('Warning: You have uncommitted changes. The diff results may not accurately reflect your current working directory.');
+    }
+
+    logInfo(`Filtering results by diff between ${diffFilteringCommits.from} and ${diffFilteringCommits.to}...`);
 
     // Get the diff between the two commits
     const diffResult = Git.diff(diffFilteringCommits.from, diffFilteringCommits.to);
