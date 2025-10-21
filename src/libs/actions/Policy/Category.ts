@@ -1,5 +1,4 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
-import lodashUnion from 'lodash/union';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
@@ -33,17 +32,10 @@ import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory, PolicyTagLists, RecentlyUsedCategories, Report, TransactionViolations} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, PolicyTagLists, Report, TransactionViolations} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
-
-let allRecentlyUsedCategories: OnyxCollection<RecentlyUsedCategories> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES,
-    waitForCollectionCallback: true,
-    callback: (val) => (allRecentlyUsedCategories = val),
-});
 
 function appendSetupCategoriesOnboardingData(
     onyxData: OnyxData,
@@ -312,20 +304,6 @@ function getPolicyCategories(policyID: string) {
     };
 
     API.read(READ_COMMANDS.GET_POLICY_CATEGORIES, params);
-}
-
-/**
- * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * All usages of this function should be replaced with useOnyx hook in React components.
- */
-function buildOptimisticPolicyRecentlyUsedCategories(policyID?: string, category?: string) {
-    if (!policyID || !category) {
-        return [];
-    }
-
-    const policyRecentlyUsedCategories = allRecentlyUsedCategories?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`] ?? [];
-
-    return lodashUnion([category], policyRecentlyUsedCategories);
 }
 
 function setWorkspaceCategoryEnabled(
@@ -1491,9 +1469,6 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
 export {
     buildOptimisticPolicyCategories,
     buildOptimisticMccGroup,
-    // TODO: Replace buildOptimisticPolicyRecentlyUsedCategories with useOnyx hook (https://github.com/Expensify/App/issues/66557)
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    buildOptimisticPolicyRecentlyUsedCategories,
     clearCategoryErrors,
     createPolicyCategory,
     deleteWorkspaceCategories,
