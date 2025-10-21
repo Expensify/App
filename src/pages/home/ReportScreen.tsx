@@ -47,7 +47,6 @@ import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitFo
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
-import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
