@@ -12,7 +12,6 @@ import TextLink from '@components/TextLink';
 import {isAuthenticationError} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import getPlatform from '@libs/getPlatform';
-import {translateLocal} from '@libs/Localize';
 import {canUseTaxNetSuite} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {ThemeStyles} from '@styles/index';
@@ -340,7 +339,7 @@ function getSynchronizationErrorMessage(
         );
     }
 
-    const syncError = translateLocal('workspace.accounting.syncError', {connectionName});
+    const syncError = translate('workspace.accounting.syncError', {connectionName});
 
     const connection = policy?.connections?.[connectionName];
     if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful !== false || !connection?.lastSync?.errorDate) {
