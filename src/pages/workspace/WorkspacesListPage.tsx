@@ -103,6 +103,8 @@ type GetDomainMenuItem = {item: DomainItem; index: number};
 
 type WorkspaceOrDomainListItem = WorkspaceItem | DomainItem | {listItemType: 'domains-header' | 'workspaces-empty-state'};
 
+const getItemType = (item: WorkspaceOrDomainListItem) => item.listItemType;
+
 /**
  * Dismisses the errors on one item
  */
@@ -725,7 +727,10 @@ function WorkspacesListPage() {
                     data={data}
                     ListHeaderComponent={getListHeaderComponent()}
                     renderItem={renderItem}
+                    getItemType={getItemType}
                     contentContainerStyle={styles.pb14}
+                    removeClippedSubviews
+                    drawDistance={1000}
                 />
             </View>
             <ConfirmModal
