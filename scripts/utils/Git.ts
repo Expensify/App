@@ -403,7 +403,7 @@ class Git {
         }
     }
 
-    static async getChangedFileNames(fromRef: string, toRef = 'HEAD'): Promise<string[]> {
+    static async getChangedFileNames(fromRef: string, toRef?: string): Promise<string[]> {
         if (IS_CI) {
             const {data: changedFiles} = await GitHubUtils.octokit.pulls.listFiles({
                 owner: CONST.GITHUB_OWNER,
