@@ -57,7 +57,7 @@ type ReceiptImageProps = (
           transactionID?: string;
           isEReceipt?: boolean;
           isThumbnail?: boolean;
-          source: string | ImageSourcePropType;
+          source: ReceiptSource;
           isPDFThumbnail?: string;
       }
 ) & {
