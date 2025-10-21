@@ -22,7 +22,7 @@ type StackItem = {
  * Checks if a screen name is a dynamic route screen
  */
 function isDynamicRouteScreen(screenName: Screen): boolean {
-    for (const path of Object.values(DYNAMIC_ROUTES)) {
+    for (const {path} of Object.values(DYNAMIC_ROUTES)) {
         if (!normalizedConfigs[screenName]?.path) {
             continue;
         }

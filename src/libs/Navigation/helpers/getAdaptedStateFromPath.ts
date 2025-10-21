@@ -17,7 +17,7 @@ import getLastSuffixFromPath from './getLastSuffixFromPath';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
 import getStateFromPath from './getStateFromPath';
-import isDynamicSuffix from './isDynamicSuffix';
+import isDynamicRouteSuffix from './isDynamicRouteSuffix';
 import {isFullScreenName} from './isNavigatorName';
 import replacePathInNestedState from './replacePathInNestedState';
 
@@ -72,9 +72,9 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         return getMatchingFullScreenRoute(focusedStateForBackToRoute);
     }
 
-    const lastSuffix = getLastSuffixFromPath(route.path);
-    if (isDynamicSuffix(lastSuffix as DynamicRouteSuffix)) {
-        const pathWithoutDynamicSuffix = route.path?.replace(`/${lastSuffix}`, '');
+    const dynamicRouteSuffix = getLastSuffixFromPath(route.path);
+    if (isDynamicRouteSuffix(dynamicRouteSuffix as DynamicRouteSuffix)) {
+        const pathWithoutDynamicSuffix = route.path?.replace(`/${dynamicRouteSuffix}`, '');
         const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix as RoutePath);
         const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
 

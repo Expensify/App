@@ -1,14 +1,13 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import {findFocusedRoute, getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
-import SCREEN_ACCESS_MAP from '@libs/Navigation/SCREEN_ACCESS_MAP';
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import getLastSuffixFromPath from './getLastSuffixFromPath';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getStateForDynamicRoute from './getStateForDynamicRoute';
-import isDynamicSuffix from './isDynamicSuffix';
+import isDynamicRouteSuffix from './isDynamicRouteSuffix';
 
 /**
  * @param path - The path to parse
@@ -18,14 +17,14 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
     const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
     const normalizedPathAfterRedirection = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 
-    const lastSuffix = getLastSuffixFromPath(path);
-    if (isDynamicSuffix(lastSuffix as DynamicRouteSuffix)) {
-        const pathWithoutDynamicSuffix = path.replace(`/${lastSuffix}`, '');
+    const dynamicRouteSuffix = getLastSuffixFromPath(path);
+    if (isDynamicRouteSuffix(dynamicRouteSuffix as DynamicRouteSuffix)) {
+        const pathWithoutDynamicSuffix = path.replace(`/${dynamicRouteSuffix}`, '');
 
-        const DYNAMIC_ROUTE = (Object.keys(DYNAMIC_ROUTES) as Array<keyof typeof DYNAMIC_ROUTES>).find((key) => DYNAMIC_ROUTES[key] === lastSuffix) ?? 'VERIFY_ACCOUNT';
+        const DYNAMIC_ROUTE = (Object.keys(DYNAMIC_ROUTES) as Array<keyof typeof DYNAMIC_ROUTES>).find((key) => DYNAMIC_ROUTES[key].path === dynamicRouteSuffix) ?? 'VERIFY_ACCOUNT';
 
         const focusedRoute = findFocusedRoute(getStateFromPath(pathWithoutDynamicSuffix as Route) ?? {});
-        if (focusedRoute?.name && SCREEN_ACCESS_MAP[DYNAMIC_ROUTE].includes(focusedRoute.name as Screen)) {
+        if (focusedRoute?.name && DYNAMIC_ROUTES[DYNAMIC_ROUTE].entryScreens.includes(focusedRoute.name as Screen)) {
             const verifyAccountState = getStateForDynamicRoute(normalizedPath, DYNAMIC_ROUTE);
             return verifyAccountState;
         }

@@ -12,7 +12,7 @@ function getForwardToFromPath(path: string): Route {
     }
 
     const lastSuffix = getLastSuffixFromPath(path);
-    const dynamicRouteKey = Object.keys(DYNAMIC_ROUTES).find((key) => DYNAMIC_ROUTES[key as keyof typeof DYNAMIC_ROUTES] === lastSuffix) as DynamicRouteSuffix | undefined;
+    const dynamicRouteKey = Object.keys(DYNAMIC_ROUTES).find((key) => DYNAMIC_ROUTES[key as keyof typeof DYNAMIC_ROUTES].path === lastSuffix) as DynamicRouteSuffix | undefined;
 
     if (!dynamicRouteKey) {
         throw new Error("Provided path doesn't contain dynamic route");

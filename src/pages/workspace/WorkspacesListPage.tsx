@@ -537,7 +537,7 @@ function WorkspacesListPage() {
             text={translate('workspace.new.newWorkspace')}
             onPress={() =>
                 interceptAnonymousUser(() => {
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONFIRM_WORKSPACE));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONFIRM_WORKSPACE.path));
                 })
             }
             icon={Expensicons.Plus}

@@ -46,9 +46,22 @@ const PUBLIC_SCREENS_ROUTES = {
 // Exported for identifying a url as a verify-account route, associated with a page extending the VerifyAccountPageBase component
 const VERIFY_ACCOUNT = 'verify-account';
 
-const DYNAMIC_ROUTES = {
-    VERIFY_ACCOUNT: 'verify-account',
-    CONFIRM_WORKSPACE: 'confirm-workspace',
+type DynamicRouteConfig = {
+    path: string;
+    entryScreens: Screen[];
+};
+
+type DynamicRoutes = Record<string, DynamicRouteConfig>;
+
+const DYNAMIC_ROUTES: DynamicRoutes = {
+    VERIFY_ACCOUNT: {
+        path: 'verify-account',
+        entryScreens: [SCREENS.REPORT, SCREENS.SEARCH.REPORT_RHP, SCREENS.SEARCH.MONEY_REQUEST_REPORT],
+    },
+    CONFIRM_WORKSPACE: {
+        path: 'confirm-workspace',
+        entryScreens: [SCREENS.WORKSPACES_LIST],
+    },
 } as const;
 
 const ROUTES = {
@@ -3358,9 +3371,7 @@ type Route = {
     [K in keyof typeof ROUTES]: ExtractRouteName<(typeof ROUTES)[K]>;
 }[keyof typeof ROUTES];
 
-type DynamicRouteSuffix = {
-    [K in keyof typeof DYNAMIC_ROUTES]: ExtractRouteName<(typeof DYNAMIC_ROUTES)[K]>;
-}[keyof typeof DYNAMIC_ROUTES];
+type DynamicRouteSuffix = (typeof DYNAMIC_ROUTES)[keyof typeof DYNAMIC_ROUTES]['path'];
 
 type RoutesValidationError = 'Error: One or more routes defined within `ROUTES` have not correctly used `as const` in their `getRoute` function return value.';
 

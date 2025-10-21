@@ -29,7 +29,7 @@ function parseNavigationHierarchy(dynamicRouteName: DynamicRouteSuffix): string[
 }
 
 function getStateForDynamicRoute(path: string, dynamicRouteName: keyof typeof DYNAMIC_ROUTES) {
-    const routeConfig = parseNavigationHierarchy(DYNAMIC_ROUTES[dynamicRouteName]);
+    const routeConfig = parseNavigationHierarchy(DYNAMIC_ROUTES[dynamicRouteName].path);
 
     if (!routeConfig) {
         throw new Error(`No route configuration found for dynamic route '${dynamicRouteName}'`);
