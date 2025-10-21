@@ -3,19 +3,15 @@ import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
-import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
-import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
@@ -30,7 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {BankName} from '@src/types/onyx/Bank';
-import type {ConnectionName} from '@src/types/onyx/Policy';
+import WorkspaceSettlementAccountSelectionListHeader from './WorkspaceSettlementAccountSelectionListHeader';
 
 type BankAccountListItem = ListItem & {value: number | undefined};
 
@@ -39,7 +35,6 @@ type WorkspaceSettlementAccountPageProps = PlatformStackScreenProps<SettingsNavi
 function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {environmentURL} = useEnvironment();
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
 
@@ -49,13 +44,10 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const [isUsingContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${defaultFundID}`, {canBeMissing: true});
     const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${defaultFundID}`, {canBeMissing: true});
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
-    const connectionName = reconciliationConnection ?? '';
-    const connectionParam = getRouteParamForConnection(connectionName as ConnectionName);
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
     const paymentBankAccountNumberFromCardSettings = cardSettings?.paymentBankAccountNumber;
     const paymentBankAccountAddressName = cardSettings?.paymentBankAccountAddressName;
-    const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumberFromCardSettings ?? '';
 
     const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForUkEuCard(bankAccountsList, policy?.outputCurrency) : getEligibleBankAccountsForCard(bankAccountsList);
 
@@ -161,21 +153,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                     onSelectRow={({value}) => updateSettlementAccount(value ?? 0)}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={paymentBankAccountID?.toString()}
-                    customListHeaderContent={
-                        <>
-                            <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
-                            {!!isUsingContinuousReconciliation && !!connectionParam && hasActiveAccountingConnection && (
-                                <View style={[styles.renderHTML, styles.mh5, styles.mb6]}>
-                                    <RenderHTML
-                                        html={translate('workspace.expensifyCard.settlementAccountInfo', {
-                                            reconciliationAccountSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connectionParam, Navigation.getActiveRoute())}`,
-                                            accountNumber: `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}`,
-                                        })}
-                                    />
-                                </View>
-                            )}
-                        </>
-                    }
+                    customListHeaderContent={<WorkspaceSettlementAccountSelectionListHeader policyID={policyID} />}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
