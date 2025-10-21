@@ -59,7 +59,7 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
                 fallbackIconBackground={isSelected ? theme.buttonHoveredBG : undefined}
                 iconSize="x-small"
                 loadingIconSize="small"
-                loadingIndicatorStyles={styles.bgTransparent}
+                loadingIndicatorStyles={styles.receiptCellLoadingContainer}
                 transactionItem={transactionItem}
                 shouldUseInitialObjectPosition
             />

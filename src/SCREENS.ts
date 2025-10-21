@@ -7,7 +7,8 @@ import type DeepValueOf from './types/utils/DeepValueOf';
 const PROTECTED_SCREENS = {
     HOME: 'Home',
     CONCIERGE: 'Concierge',
-    ATTACHMENTS: 'Attachments',
+    REPORT_ATTACHMENTS: 'ReportAttachments',
+    REPORT_ADD_ATTACHMENT: 'ReportAddAttachment',
     TRACK_EXPENSE: 'TrackExpense',
     SUBMIT_EXPENSE: 'SubmitExpense',
 } as const;
@@ -99,6 +100,7 @@ const SCREENS = {
         ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: 'Settings_Add_Bank_Account_Verify_Account',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         ADD_US_BANK_ACCOUNT: 'Settings_Add_US_Bank_Account',
+        ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: 'Settings_Add_Bank_Account_Select_Country_Verify_Account',
         CLOSE: 'Settings_Close',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         TROUBLESHOOT: 'Settings_Troubleshoot',
@@ -111,6 +113,7 @@ const SCREENS = {
             CONTACT_METHODS: 'Settings_ContactMethods',
             CONTACT_METHOD_DETAILS: 'Settings_ContactMethodDetails',
             NEW_CONTACT_METHOD: 'Settings_NewContactMethod',
+            NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: 'Settings_NewContactMethod_ConfirmMagicCode',
             CONTACT_METHOD_VERIFY_ACCOUNT: 'Settings_ContactMethod_Verify_Account',
             STATUS_CLEAR_AFTER: 'Settings_Status_Clear_After',
             STATUS_CLEAR_AFTER_DATE: 'Settings_Status_Clear_After_Date',
@@ -124,6 +127,7 @@ const SCREENS = {
             DATE_OF_BIRTH: 'Settings_DateOfBirth',
             PHONE_NUMBER: 'Settings_PhoneNumber',
             ADDRESS: 'Settings_Address',
+            AVATAR: 'Settings_Avatar',
             ADDRESS_COUNTRY: 'Settings_Address_Country',
             ADDRESS_STATE: 'Settings_Address_State',
         },
@@ -279,7 +283,6 @@ const SCREENS = {
         STEP_TAX_AMOUNT: 'Money_Request_Step_Tax_Amount',
         STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
         RECEIPT_VIEW: 'Money_Request_Receipt_View',
-        STEP_SPLIT_PAYER: 'Money_Request_Step_Split_Payer',
         STEP_SEND_FROM: 'Money_Request_Step_Send_From',
         STEP_COMPANY_INFO: 'Money_Request_Step_Company_Info',
         CURRENCY: 'Money_Request_Currency',
@@ -445,6 +448,8 @@ const SCREENS = {
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense',
             QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Non_Reimbursable_Default_Vendor_Select',
             QUICKBOOKS_DESKTOP_ADVANCED: 'Policy_Accounting_Quickbooks_Desktop_Advanced',
+            QUICKBOOKS_DESKTOP_AUTO_SYNC: 'Policy_Accounting_Quickbooks_Desktop_Auto_Sync',
+            QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD: 'Policy_Accounting_Quickbooks_Desktop_Accounting_Method',
             QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Date_Select',
             QUICKBOOKS_DESKTOP_EXPORT_PREFERRED_EXPORTER: 'Workspace_Accounting_Quickbooks_Desktop_Export_Preferred_Exporter',
             QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES: 'Workspace_Accounting_Quickbooks_Desktop_Export_Out_Of_Pocket_Expenses',
@@ -719,6 +724,10 @@ const SCREENS = {
         WORKSPACE_CONFIRMATION: 'Onboarding_Workspace_Confirmation',
         WORKSPACE_CURRENCY: 'Onboarding_Workspace_Currency',
         WORKSPACE_INVITE: 'Onboarding_Workspace_Invite',
+    },
+
+    CURRENCY: {
+        SELECTION: 'Currency_Selection',
     },
 
     EXPLANATION_MODAL: {

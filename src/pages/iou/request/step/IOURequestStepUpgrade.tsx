@@ -86,6 +86,9 @@ function IOURequestStepUpgrade({
                 Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID, transactionID, expenseReportID));
                 break;
             }
+            case CONST.UPGRADE_PATHS.REPORTS:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                break;
             case CONST.UPGRADE_PATHS.CATEGORIES:
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, ROUTES.REPORT_WITH_ID.getRoute(reportID)));
                 break;
@@ -143,6 +146,7 @@ function IOURequestStepUpgrade({
             shouldShowOfflineIndicator
             testID="workspaceUpgradePage"
             offlineIndicatorStyle={styles.mtAuto}
+            shouldShowOfflineIndicatorInWideScreen={!isUpgraded && !showConfirmationForm}
         >
             {(!!isUpgraded || !showConfirmationForm) && (
                 <HeaderWithBackButton
@@ -168,6 +172,7 @@ function IOURequestStepUpgrade({
                             buttonDisabled={isOffline}
                             loading={false}
                             isCategorizing={isCategorizing}
+                            isReporting={isReporting}
                             isDistanceRateUpgrade={isDistanceRateUpgrade}
                         />
                     )}
