@@ -1515,7 +1515,10 @@ const translations = {
     },
     avatarPage: {
         title: 'Edit profile picture',
+        upload: 'Upload',
         uploadPhoto: 'Upload photo',
+        selectAvatar: 'Select avatar',
+        chooseCustomAvatar: 'Or choose a custom avatar',
     },
     modal: {
         backdropLabel: 'Modal Backdrop',
@@ -3641,6 +3644,8 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'Pending',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Suspended',
                 },
+                centralBillingAccount: 'Central billing account',
+                centralBillingDescription: 'Choose where to import all Uber receipts.',
                 invitationFailure: 'Failed to invite member to Uber for Business',
                 autoInvite: 'Invite new workspace members to Uber for Business',
                 autoRemove: 'Deactivate removed workspace members from Uber for Business',
