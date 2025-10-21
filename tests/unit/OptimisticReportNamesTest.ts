@@ -1,11 +1,13 @@
 import Onyx from 'react-native-onyx';
 import type {UpdateContext} from '@libs/OptimisticReportNames';
-import {computeReportNameIfNeeded, getReportByTransactionID, shouldComputeReportName, updateOptimisticReportNamesFromUpdates} from '@libs/OptimisticReportNames';
+import {computeReportNameIfNeeded, shouldComputeReportName, updateOptimisticReportNamesFromUpdates} from '@libs/OptimisticReportNames';
+import type {WorkingUpdates} from '@libs/OptimisticReportNamesCache';
+import {applyUpdateToCache} from '@libs/OptimisticReportNamesCache';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
-import type {Policy, Report, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
 
 // Mock dependencies
 jest.mock('@libs/ReportUtils', () => ({
@@ -66,7 +68,7 @@ describe('OptimisticReportNames', () => {
 
     describe('shouldComputeReportName()', () => {
         test('should return true for report with title field formula', () => {
-            const result = shouldComputeReportName(mockReport, mockContext);
+            const result = shouldComputeReportName(mockReport, mockContext, {});
             expect(result).toBe(true);
         });
 
@@ -81,7 +83,7 @@ describe('OptimisticReportNames', () => {
                     },
                 },
             };
-            const result = shouldComputeReportName(mockReport, context);
+            const result = shouldComputeReportName(mockReport, context, {});
             expect(result).toBe(false);
         });
 
@@ -94,6 +96,7 @@ describe('OptimisticReportNames', () => {
                     type: 'iou',
                 } as Report,
                 mockContext,
+                {},
             );
             expect(result).toBe(false);
         });
@@ -107,7 +110,9 @@ describe('OptimisticReportNames', () => {
                 value: {total: -20000},
             };
 
-            const result = computeReportNameIfNeeded(mockReport, update, mockContext);
+            const workingUpdates = applyUpdateToCache({}, update, mockContext);
+
+            const result = computeReportNameIfNeeded('123', mockContext, update, workingUpdates);
             expect(result).toEqual('Expense Report - $200.00');
         });
 
@@ -118,21 +123,33 @@ describe('OptimisticReportNames', () => {
                 value: {description: 'Updated description'},
             };
 
-            const result = computeReportNameIfNeeded(
-                {
-                    ...mockReport,
-                    reportName: 'Expense Report - $100.00',
+            const context = {
+                ...mockContext,
+                allReports: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    report_123: {...mockReport, reportName: 'Expense Report - $100.00'},
                 },
-                update,
-                mockContext,
-            );
+            };
+            const workingUpdates = applyUpdateToCache({}, update, context);
+
+            const result = computeReportNameIfNeeded('456', context, update, workingUpdates);
             expect(result).toBeNull();
         });
     });
 
     describe('updateOptimisticReportNamesFromUpdates()', () => {
-        test.skip('should detect new report creation and add name update', () => {
+        test('should detect new report creation and add name update', () => {
             const updates = [
+                {
+                    key: 'reportNameValuePairs_456' as OnyxKey,
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    value: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        expensify_text_title: {
+                            defaultValue: 'Expense Report - {report:total}',
+                        },
+                    },
+                },
                 {
                     key: 'report_456' as OnyxKey,
                     onyxMethod: Onyx.METHOD.SET,
@@ -147,8 +164,8 @@ describe('OptimisticReportNames', () => {
             ];
 
             const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
-            expect(result).toHaveLength(2); // Original + name update
-            expect(result.at(1)).toEqual({
+            expect(result).toHaveLength(3); // Original updates + name update
+            expect(result.at(2)).toEqual({
                 key: 'report_456',
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {reportName: 'Expense Report - $150.00'},
@@ -251,7 +268,7 @@ describe('OptimisticReportNames', () => {
                 value: {total: -10000},
             };
 
-            const result = computeReportNameIfNeeded(undefined, update, mockContext);
+            const result = computeReportNameIfNeeded('NO_EXIST', mockContext, update, {} as WorkingUpdates);
             expect(result).toBeNull();
         });
     });
@@ -288,52 +305,6 @@ describe('OptimisticReportNames', () => {
             expect(result).toHaveLength(2);
             expect(result.at(0)).toEqual(update); // Original transaction update
             expect(result.at(1)?.key).toBe('report_123'); // New report update
-        });
-
-        test('getReportByTransactionID should find report from transaction', () => {
-            const contextWithTransaction = {
-                ...mockContext,
-                allTransactions: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    transactions_abc123: {
-                        transactionID: 'abc123',
-                        reportID: '123',
-                        amount: -7500,
-                        created: '2024-01-15',
-                        currency: 'USD',
-                        merchant: 'Test Store',
-                    },
-                },
-            };
-
-            const result = getReportByTransactionID('abc123', contextWithTransaction);
-
-            expect(result).toEqual(mockReport);
-            expect(result?.reportID).toBe('123');
-        });
-
-        test('getReportByTransactionID should return undefined for missing transaction', () => {
-            const result = getReportByTransactionID('nonexistent', mockContext);
-            expect(result).toBeUndefined();
-        });
-
-        test('getReportByTransactionID should return undefined for transaction without reportID', () => {
-            const contextWithIncompleteTransaction = {
-                ...mockContext,
-                allTransactions: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    transactions_incomplete: {
-                        transactionID: 'incomplete' as OnyxKey,
-                        amount: -1000,
-                        currency: 'USD',
-                        merchant: 'Store',
-                        // Missing reportID
-                    } as unknown as Transaction,
-                },
-            };
-
-            const result = getReportByTransactionID('incomplete', contextWithIncompleteTransaction);
-            expect(result).toBeUndefined();
         });
 
         test('should handle transaction updates that rely on context lookup', () => {
