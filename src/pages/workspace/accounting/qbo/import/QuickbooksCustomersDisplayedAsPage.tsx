@@ -1,11 +1,11 @@
 import React, {useCallback, useMemo} from 'react';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateQuickbooksOnlineSyncCustomers} from '@libs/actions/connections/QuickbooksOnline';
-import {getLatestErrorField} from '@libs/ErrorUtils';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -21,7 +21,7 @@ type CardListItem = ListItem & {
 function QuickbooksCustomersDisplayedAsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id;
+    const policyID = policy?.id ?? '-1';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
 
     const data: CardListItem[] = useMemo(
@@ -51,7 +51,7 @@ function QuickbooksCustomersDisplayedAsPage({policy}: WithPolicyProps) {
                     );
                     return;
                 }
-                updateQuickbooksOnlineSyncCustomers(policyID, row.value, qboConfig?.syncCustomers);
+                QuickbooksOnline.updateQuickbooksOnlineSyncCustomers(policyID, row.value, qboConfig?.syncCustomers);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS.getRoute(policyID));
         },
@@ -65,7 +65,7 @@ function QuickbooksCustomersDisplayedAsPage({policy}: WithPolicyProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={QuickbooksCustomersDisplayedAsPage.displayName}
             sections={data.length ? [{data}] : []}
-            listItem={SingleSelectListItem}
+            listItem={RadioListItem}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS.getRoute(policyID))}
             onSelectRow={(selection) => selectDisplayedAs(selection as CardListItem)}
             shouldSingleExecuteRowSelect
@@ -73,7 +73,7 @@ function QuickbooksCustomersDisplayedAsPage({policy}: WithPolicyProps) {
             title="workspace.common.displayedAs"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS], qboConfig?.pendingFields)}
-            errors={getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS)}
+            errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS)}
         />

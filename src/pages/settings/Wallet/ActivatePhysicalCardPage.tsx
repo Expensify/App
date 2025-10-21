@@ -42,7 +42,7 @@ function ActivatePhysicalCardPage({
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [cardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [cardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
 
     const [formError, setFormError] = useState('');
     const [lastFourDigits, setLastFourDigits] = useState('');
@@ -128,6 +128,7 @@ function ActivatePhysicalCardPage({
             scrollViewContainerStyles={[styles.mnh100]}
             childrenContainerStyles={[styles.flex1]}
             testID={ActivatePhysicalCardPage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
         >
             <Text style={[styles.mh5, styles.textHeadline]}>{translate('activateCardPage.pleaseEnterLastFour')}</Text>
             <View style={[styles.mh5, {minHeight: MAGIC_INPUT_MIN_HEIGHT}]}>

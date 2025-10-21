@@ -13,6 +13,11 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {Connections, NetSuiteCustomFormID, NetSuiteCustomList, NetSuiteCustomSegment, NetSuiteMappingValues} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
+type SubsidiaryParam = {
+    subsidiaryID: string;
+    subsidiary: string;
+};
+
 function connectPolicyToNetSuite(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -230,20 +235,7 @@ function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connection
     return {optimisticData, failureData, successData};
 }
 
-function updateNetSuiteSubsidiary(
-    policyID: string | undefined,
-    newSubsidiary: {
-        subsidiaryID: string;
-        subsidiary: string;
-    },
-    oldSubsidiary: {
-        subsidiaryID: string | undefined;
-        subsidiary: string;
-    },
-) {
-    if (!policyID || !oldSubsidiary.subsidiaryID) {
-        return;
-    }
+function updateNetSuiteSubsidiary(policyID: string, newSubsidiary: SubsidiaryParam, oldSubsidiary: SubsidiaryParam) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -327,14 +319,11 @@ function updateNetSuiteSubsidiary(
 }
 
 function updateNetSuiteImportMapping<TMappingName extends keyof Connections['netsuite']['options']['config']['syncOptions']['mapping']>(
-    policyID: string | undefined,
+    policyID: string,
     mappingName: TMappingName,
     mappingValue: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>,
     oldMappingValue?: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES> | null,
 ) {
-    if (!policyID) {
-        return;
-    }
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -449,7 +438,7 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
 }
 
 function updateNetSuiteCustomersJobsMapping(
-    policyID: string | undefined,
+    policyID: string,
     mappingValue: {
         customersMapping: NetSuiteMappingValues;
         jobsMapping: NetSuiteMappingValues;
@@ -459,9 +448,6 @@ function updateNetSuiteCustomersJobsMapping(
         jobsMapping?: NetSuiteMappingValues;
     },
 ) {
-    if (!policyID) {
-        return;
-    }
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -573,10 +559,7 @@ function updateNetSuiteSyncTaxConfiguration(policyID: string, isSyncTaxEnabled: 
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_TAX_CONFIGURATION, params, onyxData);
 }
 
-function updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID: string | undefined, isCrossSubsidiaryCustomersEnabled: boolean) {
-    if (!policyID) {
-        return;
-    }
+function updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID: string, isCrossSubsidiaryCustomersEnabled: boolean) {
     const onyxData = updateNetSuiteSyncOptionsOnyxData(
         policyID,
         CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS,

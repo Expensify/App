@@ -1,7 +1,7 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -47,7 +47,7 @@ function IOURequestStepDistanceRate({
     const policy: OnyxEntry<OnyxTypes.Policy> = policyReal ?? policyDraft;
 
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isPolicyExpenseChat = isReportInGroupPolicy(report);
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
@@ -57,19 +57,22 @@ function IOURequestStepDistanceRate({
     const transactionCurrency = getCurrency(transaction);
 
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
+    const sortedRates = useMemo(() => Object.values(rates).sort((a, b) => localeCompare(a.name ?? '', b.name ?? '')), [rates, localeCompare]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
 
-    const sections = Object.values(rates).map((rate) => {
+    const options = sortedRates.map((rate) => {
         const unit = transaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(transaction, rate) : rate.unit;
-        const isSelected = currentRateID ? currentRateID === rate.customUnitRateID : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
+        const isSelected = currentRateID
+            ? currentRateID === rate.customUnitRateID
+            : DistanceRequestUtils.getDefaultMileageRate(policy, localeCompare)?.customUnitRateID === rate.customUnitRateID;
         const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit);
         return {
             text: rate.name ?? rateForDisplay,
             alternateText: rate.name ? rateForDisplay : '',
-            keyForList: rate.customUnitRateID,
+            keyForList: rate.customUnitRateID ?? rateForDisplay,
             value: rate.customUnitRateID,
             isDisabled: !rate.enabled,
             isSelected,
@@ -78,7 +81,7 @@ function IOURequestStepDistanceRate({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
-    const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
+    const initiallyFocusedOption = options.find((item) => item.isSelected)?.keyForList;
 
     function selectDistanceRate(customUnitRateID: string) {
         let taxAmount;
@@ -116,11 +119,11 @@ function IOURequestStepDistanceRate({
             <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate')}</Text>
 
             <SelectionList
-                sections={[{data: sections}]}
-                ListItem={SingleSelectListItem}
+                data={options}
+                ListItem={RadioListItem}
                 onSelectRow={({value}) => selectDistanceRate(value ?? '')}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedOptionKey={initiallyFocusedOption}
+                initiallyFocusedItemKey={initiallyFocusedOption}
             />
         </StepScreenWrapper>
     );

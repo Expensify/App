@@ -151,7 +151,6 @@ type GetValidReportsConfig = {
     isPerDiemRequest?: boolean;
     showRBR?: boolean;
     shouldShowGBR?: boolean;
-    includeSelectedOptions?: boolean;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<
@@ -183,11 +182,13 @@ type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
     includeCurrentUser?: boolean;
     includeRecentReports?: boolean;
+    includeSelectedOptions?: boolean;
     recentAttendees?: Option[];
     excludeHiddenThreads?: boolean;
     canShowManagerMcTest?: boolean;
     searchString?: string;
     maxElements?: number;
+    maxRecentReportElements?: number;
     includeUserToInvite?: boolean;
 } & GetValidReportsConfig;
 
@@ -202,6 +203,7 @@ type GetUserToInviteConfig = {
     avatar?: AvatarSource;
     shouldAcceptName?: boolean;
     optionsToExclude?: GetOptionsConfig['selectedOptions'];
+    countryCode?: number;
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {

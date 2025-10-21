@@ -159,6 +159,7 @@ function ReportCardLostPage({
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             testID={ReportCardLostPage.displayName}
+            shouldShowOfflineIndicatorInWideScreen={!!isValidateCodeActionModalVisible}
         >
             <HeaderWithBackButton
                 title={newCardID ? translate('common.success') : translate('reportCardLostOrDamaged.screenTitle')}

@@ -4,8 +4,8 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateGroupChatMemberRoles} from '@libs/actions/Report';
@@ -30,7 +30,7 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
     const styles = useThemeStyles();
 
     const accountID = Number(route?.params?.accountID) ?? -1;
-    const backTo = ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report?.reportID, accountID, route.params.backTo);
+    const backTo = ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report.reportID, accountID, route.params.backTo);
     const member = report.participants?.[accountID];
 
     if (!member) {
@@ -65,11 +65,11 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
             />
             <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                 <SelectionList
-                    sections={[{data: items}]}
-                    ListItem={SingleSelectListItem}
+                    data={items}
+                    ListItem={RadioListItem}
                     onSelectRow={changeRole}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedOptionKey={items.find((item) => item.isSelected)?.keyForList}
+                    initiallyFocusedItemKey={items.find((item) => item.isSelected)?.keyForList}
                 />
             </View>
         </ScreenWrapper>

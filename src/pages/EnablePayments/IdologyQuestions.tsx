@@ -4,7 +4,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
-import {QuestionMark} from '@components/Icon/Expensicons';
+import * as Expensicons from '@components/Icon/Expensicons';
 import type {Choice} from '@components/RadioButtons';
 import SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import Text from '@components/Text';
@@ -12,7 +12,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {answerQuestionsForWallet} from '@userActions/BankAccounts';
+import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletAdditionalQuestionDetails} from '@src/types/onyx';
@@ -87,7 +87,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                 }
             }
 
-            answerQuestionsForWallet(tempAnswers, idNumber);
+            BankAccounts.answerQuestionsForWallet(tempAnswers, idNumber);
             setUserAnswers(tempAnswers);
         } else {
             // Else, show next question
@@ -115,9 +115,8 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                 key={currentQuestionIndex}
                 validate={validate}
                 scrollContextEnabled
-                style={[styles.flexGrow1]}
+                style={[styles.flexGrow1, styles.ph5]}
                 submitButtonText={translate('common.saveAndContinue')}
-                submitButtonStyles={[styles.ph5]}
                 shouldHideFixErrorsAlert
             >
                 <>
@@ -132,9 +131,9 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                         }}
                         onInputChange={() => {}}
                     />
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6, styles.ph5]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6]}>
                         <Icon
-                            src={QuestionMark}
+                            src={Expensicons.QuestionMark}
                             width={12}
                             height={12}
                             fill={theme.icon}

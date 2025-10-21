@@ -4,8 +4,8 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import searchOptions from '@libs/searchOptions';
@@ -102,7 +102,7 @@ function StateSelectionPage() {
                 onChangeText={setSearchValue}
                 initiallyFocusedOptionKey={currentState}
                 shouldUseDynamicMaxToRenderPerBatch
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 addBottomSafeAreaPadding
             />
         </ScreenWrapper>

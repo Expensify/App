@@ -1,5 +1,9 @@
 import {Keyboard} from 'react-native';
 
+type SimplifiedKeyboardEvent = {
+    height?: number;
+};
+
 let isVisible = false;
 
 Keyboard.addListener('keyboardDidHide', () => {
@@ -19,7 +23,7 @@ const dismiss = (): Promise<void> => {
         }
 
         const subscription = Keyboard.addListener('keyboardDidHide', () => {
-            resolve(undefined);
+            resolve();
             subscription.remove();
         });
 
@@ -27,6 +31,15 @@ const dismiss = (): Promise<void> => {
     });
 };
 
-const utils = {dismiss};
+const dismissKeyboardAndExecute = (cb: () => void): Promise<void> => {
+    return new Promise((resolve) => {
+        // For iOS and other platforms, execute callback immediately
+        cb();
+        resolve();
+    });
+};
 
+const utils = {dismiss, dismissKeyboardAndExecute};
+
+export type {SimplifiedKeyboardEvent};
 export default utils;

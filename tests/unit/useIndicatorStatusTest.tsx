@@ -1,4 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {IndicatorStatus} from '@hooks/useIndicatorStatus';
@@ -270,31 +270,45 @@ describe('useIndicatorStatusTest', () => {
         });
     });
     describe.each(TEST_CASES)('$name', (testCase) => {
-        beforeAll(() => {
-            return Onyx.multiSet(getMockForStatus(testCase.status)).then(waitForBatchedUpdates);
+        beforeAll(async () => {
+            await Onyx.multiSet(getMockForStatus(testCase.status));
+            await waitForBatchedUpdates();
         });
-        it('returns correct indicatorColor', () => {
+        it('returns correct indicatorColor', async () => {
             const {result} = renderHook(() => useIndicatorStatus());
+            await act(async () => {
+                await waitForBatchedUpdates();
+            });
             const {indicatorColor} = result.current;
             expect(indicatorColor).toBe(testCase.indicatorColor);
         });
-        it('returns correct status', () => {
+        it('returns correct status', async () => {
             const {result} = renderHook(() => useIndicatorStatus());
+            await act(async () => {
+                await waitForBatchedUpdates();
+            });
             const {status} = result.current;
             expect(status).toBe(testCase.status);
         });
-        it('returns correct policyIDWithErrors', () => {
+        it('returns correct policyIDWithErrors', async () => {
             const {result} = renderHook(() => useIndicatorStatus());
+            await act(async () => {
+                await waitForBatchedUpdates();
+            });
             const {policyIDWithErrors} = result.current;
             expect(policyIDWithErrors).toBe(testCase.policyIDWithErrors);
         });
     });
     describe.each(TEST_CASES_NON_ADMIN)('$name', (testCase) => {
-        beforeAll(() => {
-            return Onyx.multiSet(getMockForStatus(testCase.status, false)).then(waitForBatchedUpdates);
+        beforeAll(async () => {
+            await Onyx.multiSet(getMockForStatus(testCase.status, false));
+            await waitForBatchedUpdates();
         });
-        it('returns correct indicatorColor', () => {
+        it('returns correct indicatorColor', async () => {
             const {result} = renderHook(() => useIndicatorStatus());
+            await act(async () => {
+                await waitForBatchedUpdates();
+            });
             const {indicatorColor} = result.current;
             expect(indicatorColor).toBe(testCase.indicatorColor);
         });

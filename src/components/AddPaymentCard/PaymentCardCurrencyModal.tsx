@@ -3,8 +3,8 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -76,7 +76,7 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
                     showScrollIndicator
                     shouldStopPropagation
                     shouldUseDynamicMaxToRenderPerBatch
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                 />
             </ScreenWrapper>
         </Modal>

@@ -1,5 +1,4 @@
 import React, {useMemo} from 'react';
-import type {ForwardedRef} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -10,18 +9,17 @@ import type {Destination} from '@libs/PerDiemRequestUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SelectionList from './SelectionList';
-import SingleSelectListItem from './SelectionList/SingleSelectListItem';
-import type {ListItem, SelectionListHandle} from './SelectionList/types';
+import SelectionList from './SelectionListWithSections';
+import RadioListItem from './SelectionListWithSections/RadioListItem';
+import type {ListItem} from './SelectionListWithSections/types';
 
 type DestinationPickerProps = {
     policyID: string;
     selectedDestination?: string;
     onSubmit: (item: ListItem & {currency: string}) => void;
-    ref?: ForwardedRef<SelectionListHandle>;
 };
 
-function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: DestinationPickerProps) {
+function DestinationPicker({selectedDestination, policyID, onSubmit}: DestinationPickerProps) {
     const policy = usePolicy(policyID);
     const customUnit = getPerDiemCustomUnit(policy);
     const [policyRecentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`, {canBeMissing: true});
@@ -74,18 +72,16 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: Desti
 
     return (
         <SelectionList
-            ref={ref}
             sections={sections}
             headerMessage={headerMessage}
             textInputValue={searchValue}
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
-            ListItem={SingleSelectListItem}
+            ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
             shouldHideKeyboardOnScroll={false}
-            textInputAutoFocus={false}
         />
     );
 }
