@@ -33,6 +33,7 @@ function ValidateCodeActionModal({
             shouldUseModalPaddingStyle={false}
             animationInTiming={disableAnimation ? 1 : undefined}
             onModalHide={onModalHide}
+            animationOutTiming={disableAnimation ? 1 : undefined}
         >
             <ValidateCodeActionContent
                 title={title}

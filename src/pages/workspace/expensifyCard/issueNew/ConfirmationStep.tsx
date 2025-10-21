@@ -176,6 +176,7 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
                     title={translate('cardPage.validateCardTitle')}
                     descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
                     onModalHide={onRedirect}
+                    disableAnimation
                 />
             )}
         </InteractiveStepWrapper>
