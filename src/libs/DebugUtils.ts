@@ -1332,8 +1332,8 @@ function getReasonForShowingRowInLHN({
     report,
     chatReport,
     doesReportHaveViolations,
+    isReportArchived,
     hasRBR = false,
-    isReportArchived = false,
     isInFocusMode = false,
     betas = undefined,
     draftComment,
@@ -1341,8 +1341,8 @@ function getReasonForShowingRowInLHN({
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
     doesReportHaveViolations: boolean;
+    isReportArchived: boolean | undefined;
     hasRBR?: boolean;
-    isReportArchived?: boolean;
     isInFocusMode?: boolean;
     betas?: OnyxEntry<Beta[]>;
     draftComment: string | undefined;
