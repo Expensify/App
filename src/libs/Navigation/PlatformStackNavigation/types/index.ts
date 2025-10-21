@@ -106,6 +106,9 @@ export type {
     PlatformStackNavigatorProps,
 };
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-exports
 export * from './NavigationBuilder';
+// eslint-disable-next-line @typescript-eslint/consistent-type-exports
 export * from './NavigationOptions';
+// eslint-disable-next-line @typescript-eslint/consistent-type-exports
 export * from './NavigatorComponent';
