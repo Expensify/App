@@ -10,7 +10,7 @@ import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import getBase62ReportID from '@libs/getBase62ReportID';
-import {translateLocal} from '@libs/Localize';
+import {translate} from '@libs/Localize';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
@@ -376,7 +376,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {[reportAction.reportActionID]: reportAction});
 
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
-            const paidSystemMessage = translateLocal('iou.businessBankAccount', {amount: '', last4Digits});
+            const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', {amount: '', last4Digits});
 
             expect(getIOUReportActionDisplayMessage(reportAction, undefined, iouReport)).toBe(paidSystemMessage);
         });
@@ -486,7 +486,7 @@ describe('ReportUtils', () => {
             } as unknown as OnyxEntry<Report>;
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
-            expect(name).toBe(translateLocal('workspace.common.policyExpenseChatName', {displayName: 'Ragnar Lothbrok'}));
+            expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', {displayName: 'Ragnar Lothbrok'}));
         });
 
         it('falls back to owner login when display name not present', () => {
@@ -496,7 +496,7 @@ describe('ReportUtils', () => {
             } as unknown as OnyxEntry<Report>;
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
-            expect(name).toBe(translateLocal('workspace.common.policyExpenseChatName', {displayName: 'floki'}));
+            expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', {displayName: 'floki'}));
         });
 
         it('returns report name when no personal details or owner', () => {
@@ -877,7 +877,7 @@ describe('ReportUtils', () => {
 
             it('Should return deleted task translations when task is is deleted', () => {
                 const report: Report = {...createRandomReport(1), type: 'task', isDeletedParentAction: true};
-                expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual(translateLocal('parentReportAction.deletedTask'));
+                expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual(translate(CONST.LOCALES.EN, 'parentReportAction.deletedTask'));
             });
         });
 
@@ -6985,31 +6985,31 @@ describe('ReportUtils', () => {
 
     describe('getReportStatusTranslation', () => {
         it('should return "Draft" for state 0, status 0', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN)).toBe(translateLocal('common.draft'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN)).toBe(translate(CONST.LOCALES.EN, 'common.draft'));
         });
 
         it('should return "Outstanding" for state 1, status 1', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED)).toBe(translateLocal('common.outstanding'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED)).toBe(translate(CONST.LOCALES.EN, 'common.outstanding'));
         });
 
         it('should return "Done" for state 2, status 2', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED)).toBe(translateLocal('common.done'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED)).toBe(translate(CONST.LOCALES.EN, 'common.done'));
         });
 
         it('should return "Approved" for state 2, status 3', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED)).toBe(translateLocal('iou.approved'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED)).toBe(translate(CONST.LOCALES.EN, 'iou.approved'));
         });
 
         it('should return "Paid" for state 2, status 4', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translateLocal('iou.settledExpensify'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translate(CONST.LOCALES.EN, 'iou.settledExpensify'));
         });
 
         it('should return "Paid" for state 3, status 4', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.BILLING, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translateLocal('iou.settledExpensify'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.BILLING, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translate(CONST.LOCALES.EN, 'iou.settledExpensify'));
         });
 
         it('should return "Paid" for state 6, status 4', () => {
-            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.AUTOREIMBURSED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translateLocal('iou.settledExpensify'));
+            expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.AUTOREIMBURSED, CONST.REPORT.STATUS_NUM.REIMBURSED)).toBe(translate(CONST.LOCALES.EN, 'iou.settledExpensify'));
         });
 
         it('should return an empty string when stateNum or statusNum is undefined', () => {
