@@ -42,6 +42,7 @@ function getDisplayNameOrDefault(
     defaultValue = '',
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     youAfterTranslation = translateLocal('common.you').toLowerCase(),
 ): string {
     let displayName = passedPersonalDetails?.displayName ?? '';
@@ -82,7 +83,7 @@ function getDisplayNameOrDefault(
     if (login) {
         return login;
     }
-
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return shouldFallbackToHidden ? translateLocal('common.hidden') : '';
 }
 
@@ -112,6 +113,7 @@ function getPersonalDetailsByIDs({
             if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID) {
                 return {
                     ...detail,
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     displayName: translateLocal('common.you'),
                 };
             }
