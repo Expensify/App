@@ -90,6 +90,7 @@ jest.mock('react-native-reanimated', () => ({
     useScrollViewOffset: jest.fn(() => 0),
     useAnimatedRef: jest.fn(() => jest.fn()),
     LayoutAnimationConfig: jest.fn,
+    makeShareableCloneRecursive: jest.fn,
 }));
 
 jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardController>('react-native-keyboard-controller/jest'));
