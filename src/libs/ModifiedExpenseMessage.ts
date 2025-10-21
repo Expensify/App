@@ -256,10 +256,19 @@ function getForReportAction({
 
     const hasModifiedCategory = isReportActionOriginalMessageAnObject && 'oldCategory' in reportActionOriginalMessage && 'category' in reportActionOriginalMessage;
     if (hasModifiedCategory) {
+        let categoryLabel = translateLocal('common.category');
+
+        // Add attribution suffix based on source
+        if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.AI) {
+            categoryLabel += ` ${translateLocal('iou.basedOnAI')}`;
+        } else if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.MCC) {
+            categoryLabel += ` ${translateLocal('iou.basedOnMCC')}`;
+        }
+
         buildMessageFragmentForValue(
             reportActionOriginalMessage?.category ?? '',
             reportActionOriginalMessage?.oldCategory ?? '',
-            translateLocal('common.category'),
+            categoryLabel,
             true,
             setFragments,
             removalFragments,

@@ -617,5 +617,124 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
         });
+
+        describe('when the category is changed with AI attribution', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    category: 'Travel',
+                    oldCategory: 'Food',
+                    source: 'agentZero',
+                },
+            };
+
+            it('returns the correct text message with AI attribution', () => {
+                const expectedResult = `changed the category based on past activity to "Travel" (previously "Food")`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the category is changed with MCC attribution', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    category: 'Travel',
+                    oldCategory: 'Food',
+                    source: 'mccMapping',
+                },
+            };
+
+            it('returns the correct text message with MCC attribution', () => {
+                const expectedResult = `changed the category based on workspace rule to "Travel" (previously "Food")`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the category is set with AI attribution', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    category: 'Travel',
+                    oldCategory: '',
+                    source: 'agentZero',
+                },
+            };
+
+            it('returns the correct text message with AI attribution', () => {
+                const expectedResult = `set the category based on past activity to "Travel"`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the category is removed with AI attribution', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    category: '',
+                    oldCategory: 'Travel',
+                    source: 'agentZero',
+                },
+            };
+
+            it('returns the correct text message with AI attribution', () => {
+                const expectedResult = `removed the category based on past activity (previously "Travel")`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the category is changed without source (backward compatibility)', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    category: 'Travel',
+                    oldCategory: 'Food',
+                },
+            };
+
+            it('returns the correct text message without attribution', () => {
+                const expectedResult = `changed the category to "Travel" (previously "Food")`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the category is changed with manual source', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    category: 'Travel',
+                    oldCategory: 'Food',
+                    source: 'manual',
+                },
+            };
+
+            it('returns the correct text message without attribution', () => {
+                const expectedResult = `changed the category to "Travel" (previously "Food")`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
     });
 });
