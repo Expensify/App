@@ -233,7 +233,6 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const theme = useTheme();
     const {shouldHideToolTip} = useSidePanel();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
 
     if (!context) {
         throw new Error('useProductTourContext must be used within a ProductTourProvider');
@@ -252,13 +251,8 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     }, [tooltipName, registerTooltip, unregisterTooltip, shouldShow]);
 
     const shouldShowProductTrainingTooltip = useMemo(() => {
-        const platform = getPlatform();
-        const isNonNativePlatform = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP || platform === CONST.PLATFORM.MOBILE_WEB;
-        if (isNonNativePlatform && isOffline && tooltipName === CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP) {
-            return false;
-        }
         return shouldShow && shouldRenderTooltip(tooltipName) && !shouldHideToolTip;
-    }, [shouldRenderTooltip, tooltipName, shouldShow, shouldHideToolTip, isOffline]);
+    }, [shouldRenderTooltip, tooltipName, shouldShow, shouldHideToolTip]);
 
     const hideTooltip = useCallback(
         (isDismissedUsingCloseButton = false) => {
