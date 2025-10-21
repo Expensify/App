@@ -4,7 +4,6 @@ import {deleteMoneyRequest, getIOUActionForTransactions, getIOURequestPolicyID, 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isArchivedReport} from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
