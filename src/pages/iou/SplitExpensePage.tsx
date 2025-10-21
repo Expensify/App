@@ -179,6 +179,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             chatReport,
             firstIOU: iouActions.at(0),
             isChatReportArchived: isChatIOUReportArchived,
+            isNewDotRevertSplitsEnabled: isBetaEnabled(CONST.BETAS.NEWDOT_REVERT_SPLITS),
         });
     }, [
         splitExpenses,

@@ -10,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 
 type UseDeleteTransactionsParams = {
     /** Report object (optional, can be used for context) */
@@ -31,6 +32,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [allPolicyRecentlyUsedCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES, {canBeMissing: true});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const archivedReportsIdSet = useArchivedReportsIdSet();
+    const {isBetaEnabled} = usePermissions();
 
     /**
      * Delete transactions by IDs
@@ -126,6 +128,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     chatReport,
                     firstIOU: originalTransactionIouActions.at(0),
                     isChatReportArchived: isChatIOUReportArchived,
+                    isNewDotRevertSplitsEnabled: isBetaEnabled(CONST.BETAS.NEWDOT_REVERT_SPLITS),
                 });
             });
 
