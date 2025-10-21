@@ -171,14 +171,14 @@ function SearchList({
 
     const {hash, groupBy, type} = queryJSON;
     const flattenedItems = useMemo(() => {
-        if (groupBy) {
+        if (groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             if (!isTransactionGroupListItemArray(data)) {
                 return data;
             }
             return data.flatMap((item) => item.transactions);
         }
         return data;
-    }, [data, groupBy]);
+    }, [data, groupBy, type]);
     const flattenedItemsWithoutPendingDelete = useMemo(() => flattenedItems.filter((t) => t?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [flattenedItems]);
 
     const selectedItemsLength = useMemo(
