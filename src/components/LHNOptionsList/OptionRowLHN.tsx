@@ -257,6 +257,7 @@ function OptionRowLHN({
                                         <View style={contentContainerStyles}>
                                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                                 <DisplayNames
+                                                    shouldParseFullTitle={false}
                                                     accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
                                                     fullTitle={optionItem.text ?? ''}
                                                     displayNamesWithTooltips={optionItem.displayNamesWithTooltips ?? []}
