@@ -32,8 +32,23 @@ type BankAccountListItem = ListItem & {value: number | undefined};
 
 type WorkspaceSettlementAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT>;
 
-function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageProps) {
+function BankAccountListItemLeftElement({bankName}: {bankName: BankName}) {
     const styles = useThemeStyles();
+    const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
+
+    return (
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr3]}>
+            <Icon
+                src={icon}
+                width={iconSize}
+                height={iconSize}
+                additionalStyles={iconStyles}
+            />
+        </View>
+    );
+}
+
+function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageProps) {
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
@@ -69,56 +84,34 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
         fetchPolicyAccountingData();
     }, [cardSettings, hasActiveAccountingConnection, isUsingContinuousReconciliation, reconciliationConnection, fetchPolicyAccountingData]);
 
-    const data: BankAccountListItem[] = useMemo(() => {
-        const options = eligibleBankAccounts.map((bankAccount) => {
-            const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
-            const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
-            const bankAccountID = bankAccount.accountData?.bankAccountID ?? bankAccount.methodID;
+    const eligibleBankAccountsOptions: BankAccountListItem[] = eligibleBankAccounts.map((bankAccount) => {
+        const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
+        const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
+        const bankAccountID = bankAccount.accountData?.bankAccountID ?? bankAccount.methodID;
 
-            const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
+        return {
+            value: bankAccountID,
+            text: bankAccount.title,
+            leftElement: <BankAccountListItemLeftElement bankName={bankName} />,
+            alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
+            keyForList: bankAccountID?.toString() ?? '',
+            isSelected: bankAccountID === paymentBankAccountID,
+        };
+    });
 
-            return {
-                value: bankAccountID,
-                text: bankAccount.title,
-                leftElement: !!icon && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr3]}>
-                        <Icon
-                            src={icon}
-                            width={iconSize}
-                            height={iconSize}
-                            additionalStyles={iconStyles}
-                        />
-                    </View>
-                ),
-                alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
-                keyForList: bankAccountID?.toString() ?? '',
-                isSelected: bankAccountID === paymentBankAccountID,
-            };
-        });
-        if (options.length === 0) {
-            const bankName = (paymentBankAccountAddressName ?? '') as BankName;
-            const bankAccountNumber = paymentBankAccountNumberFromCardSettings ?? '';
-            const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
-            options.push({
-                value: paymentBankAccountID,
-                text: paymentBankAccountAddressName,
-                leftElement: (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr3]}>
-                        <Icon
-                            src={icon}
-                            width={iconSize}
-                            height={iconSize}
-                            additionalStyles={iconStyles}
-                        />
-                    </View>
-                ),
-                alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
-                keyForList: paymentBankAccountID?.toString() ?? '',
-                isSelected: true,
-            });
-        }
-        return options;
-    }, [eligibleBankAccounts, paymentBankAccountAddressName, paymentBankAccountID, paymentBankAccountNumberFromCardSettings, styles, translate]);
+    const listOptions: BankAccountListItem[] =
+        eligibleBankAccountsOptions.length > 0
+            ? eligibleBankAccountsOptions
+            : [
+                  {
+                      value: paymentBankAccountID,
+                      text: paymentBankAccountAddressName,
+                      leftElement: <BankAccountListItemLeftElement bankName={(paymentBankAccountAddressName ?? '') as BankName} />,
+                      alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(paymentBankAccountNumberFromCardSettings ?? '')}`,
+                      keyForList: paymentBankAccountID?.toString() ?? '',
+                      isSelected: true,
+                  },
+              ];
 
     const updateSettlementAccount = (value: number) => {
         updateSettlementAccountCard(domainName, defaultFundID, policyID, value, paymentBankAccountID);
@@ -148,7 +141,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                 />
                 <SelectionList
                     addBottomSafeAreaPadding
-                    data={data}
+                    data={listOptions}
                     ListItem={RadioListItem}
                     onSelectRow={({value}) => updateSettlementAccount(value ?? 0)}
                     shouldSingleExecuteRowSelect
