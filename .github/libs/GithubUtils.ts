@@ -318,7 +318,10 @@ class GithubUtils {
         isGHStatusChecked = false,
     ): Promise<void | StagingDeployCashBody> {
         return Promise.all([
-            this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)), CONST.APP_REPO),
+            this.fetchAllPullRequests(
+                PRList.map((pr) => this.getPullRequestNumberFromURL(pr)),
+                CONST.APP_REPO,
+            ),
             this.fetchAllPullRequests(
                 PRListMobileExpensify.map((pr) => this.getPullRequestNumberFromURL(pr)),
                 CONST.MOBILE_EXPENSIFY_REPO,
