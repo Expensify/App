@@ -54,6 +54,7 @@ function ProfileAvatar() {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [cropImageData, setCropImageData] = useState<ImageData>({...EMPTY_FILE});
     const [imageData, setImageData] = useState<ImageData>({...EMPTY_FILE});
 
     const isDirty = imageData.uri !== '' || !!selected;
@@ -97,7 +98,7 @@ function ProfileAvatar() {
 
                 setIsAvatarCropModalOpen(true);
                 setError(null, {});
-                setImageData({
+                setCropImageData({
                     uri: image.uri ?? '',
                     name: image.name ?? '',
                     type: image.type ?? '',
@@ -297,24 +298,18 @@ function ProfileAvatar() {
                 />
             </FixedFooter>
             <AvatarCropModal
-                onBackButtonPress={() => {
-                    if (!isAvatarCropModalOpen) {
-                        return;
-                    }
-                    setImageData({...EMPTY_FILE});
-                    setIsAvatarCropModalOpen(false);
-                }}
                 onClose={() => {
                     if (!isAvatarCropModalOpen) {
                         return;
                     }
+                    setCropImageData({...EMPTY_FILE});
                     setIsAvatarCropModalOpen(false);
                 }}
                 isVisible={isAvatarCropModalOpen}
                 onSave={onImageSelected}
-                imageUri={imageData.uri}
-                imageName={imageData.name}
-                imageType={imageData.type}
+                imageUri={cropImageData.uri}
+                imageName={cropImageData.name}
+                imageType={cropImageData.type}
                 buttonLabel={translate('avatarPage.upload')}
             />
             <DiscardChangesConfirmation getHasUnsavedChanges={() => isDirty} />
