@@ -19,6 +19,7 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
     const lastSuffix = path.split('?').at(0)?.split('/').pop() ?? '';
     if (Object.values(DYNAMIC_ROUTES).includes(lastSuffix as DynamicRoute)) {
         const pathWithoutDynamicSuffix = path.replace(`/${lastSuffix}`, '');
+
         const DYNAMIC_ROUTE = (Object.keys(DYNAMIC_ROUTES) as Array<keyof typeof DYNAMIC_ROUTES>).find((key) => DYNAMIC_ROUTES[key] === lastSuffix) ?? 'VERIFY_ACCOUNT';
 
         const focusedRoute = findFocusedRoute(getStateFromPath(pathWithoutDynamicSuffix as Route) ?? {});
