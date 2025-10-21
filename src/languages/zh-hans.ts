@@ -5287,15 +5287,9 @@ ${merchant}的${amount} - ${date}`,
                 `<muted-text-label>要启用持续对账，请启用 ${connectionName} 的<a href="${accountingAdvancedSettingsLink}">自动同步</a>功能。</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: '选择用于对账您的 Expensify Card 支付的银行账户。',
-<<<<<<< HEAD
-                accountMatches: '请确保此账户与您的',
-                settlementAccount: 'Expensify Card 结算账户',
-                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `（以${lastFourPAN}结尾），以便持续对账功能正常运行。`,
-=======
 
                 settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
                     `确保此账户与您的<a href="${settlementAccountUrl}">Expensify Card 结算账户</a>（以 ${lastFourPAN} 结尾）匹配，以便持续对账正常工作。`,
->>>>>>> main
             },
         },
         export: {

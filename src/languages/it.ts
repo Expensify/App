@@ -5394,15 +5394,9 @@ ${amount} per ${merchant} - ${date}`,
                 `<muted-text-label>Per abilitare la riconciliazione continua, abilita la <a href="${accountingAdvancedSettingsLink}">sincronizzazione automatica</a> per ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Scegli il conto bancario su cui verranno riconciliati i pagamenti della tua carta Expensify.',
-<<<<<<< HEAD
-                accountMatches: 'Assicurati che questo account corrisponda al tuo',
-                settlementAccount: 'Conto di regolamento della Expensify Card',
-                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `(che termina con ${lastFourPAN}) in modo che la Riconciliazione Continua funzioni correttamente.`,
-=======
 
                 settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
                     `Assicurati che questo account corrisponda al tuo <a href="${settlementAccountUrl}">Conto di regolamento della carta Expensify</a> (terminante con ${lastFourPAN}) affinché la Riconciliazione Continua funzioni correttamente.`,
->>>>>>> main
             },
         },
         export: {
