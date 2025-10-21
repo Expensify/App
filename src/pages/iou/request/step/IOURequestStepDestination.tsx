@@ -87,7 +87,8 @@ function IOURequestStepDestination({
         }
         if (selectedDestination !== destination.keyForList) {
             if (openedFromStartPage) {
-                const shouldAutoReport = !!policy?.autoReporting || !!personalPolicy?.autoReporting || action !== CONST.IOU.ACTION.CREATE;
+                // If we are not coming from the global create menu then this is always reported
+                const shouldAutoReport = !!policy?.autoReporting || !!personalPolicy?.autoReporting || action !== CONST.IOU.ACTION.CREATE || !transaction?.isFromGlobalCreate;
                 const transactionReportID = shouldAutoReport ? policyExpenseReport?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport);
@@ -140,10 +141,12 @@ function IOURequestStepDestination({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [transactionID, policy?.customUnits]);
 
+    const keyboardVerticalOffset = openedFromStartPage ? variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;
+
     return (
         <ScreenWrapper
             includePaddingTop={false}
-            keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
+            keyboardVerticalOffset={keyboardVerticalOffset}
             testID={`${IOURequestStepDestination.displayName}-container`}
         >
             <StepScreenWrapper
@@ -176,7 +179,7 @@ function IOURequestStepDestination({
                                     success
                                     style={[styles.w100]}
                                     onPress={() => {
-                                        // eslint-disable-next-line deprecation/deprecation
+                                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                                         InteractionManager.runAfterInteractions(() => {
                                             Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, Navigation.getActiveRoute()));
                                         });
