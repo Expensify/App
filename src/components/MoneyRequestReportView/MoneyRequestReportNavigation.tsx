@@ -34,7 +34,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
 
     const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
     let results: Array<string | undefined> = [];
-    if (!!type && !!groupBy && !!currentSearchResults?.data && !!currentSearchResults?.search) {
+    if (!!type && !!currentSearchResults?.data && !!currentSearchResults?.search) {
         const searchData = getSections(type, currentSearchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, lastSearchQuery?.searchKey, archivedReportsIdSet);
         results = getSortedSections(type, status ?? '', searchData, localeCompare, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
