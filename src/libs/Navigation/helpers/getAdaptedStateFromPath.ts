@@ -9,7 +9,7 @@ import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigat
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {DynamicRouteSuffix, Route as RoutePath} from '@src/ROUTES';
+import type {Route as RoutePath} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
@@ -72,9 +72,13 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         return getMatchingFullScreenRoute(focusedStateForBackToRoute);
     }
 
+    // Handle dynamic routes: find the appropriate full screen route
     const dynamicRouteSuffix = getLastSuffixFromPath(route.path);
-    if (isDynamicRouteSuffix(dynamicRouteSuffix as DynamicRouteSuffix)) {
+    if (isDynamicRouteSuffix(dynamicRouteSuffix)) {
+        // Remove dynamic suffix to get the base path
         const pathWithoutDynamicSuffix = route.path?.replace(`/${dynamicRouteSuffix}`, '');
+
+        // Get navigation state for the base path without dynamic suffix
         const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix as RoutePath);
         const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
 
@@ -94,6 +98,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             return undefined;
         }
 
+        // Recursively find the matching full screen route for the focused dynamic route
         return getMatchingFullScreenRoute(focusedStateForDynamicRoute);
     }
 

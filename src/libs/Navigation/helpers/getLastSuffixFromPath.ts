@@ -1,3 +1,9 @@
+/**
+ * Extracts the last segment from a URL path, removing query parameters and trailing slashes.
+ *
+ * @param path - The URL path to extract the suffix from (can be undefined)
+ * @returns The last segment of the path as a string
+ */
 function getLastSuffixFromPath(path: string | undefined): string {
     const pathWithoutParams = path?.split('?').at(0);
 

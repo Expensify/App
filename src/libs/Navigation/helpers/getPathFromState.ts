@@ -8,9 +8,9 @@ import type {Screen} from '@src/SCREENS';
 
 type State = NavigationState | Omit<PartialState<NavigationState>, 'stale'>;
 
-type RemoveDynamicRoutesResult = {
+type RemoveDynamicRouteResult = {
     cleanedState: State;
-    dynamicRouteScreens: Screen[];
+    dynamicRouteScreen: Screen;
 };
 
 type StackItem = {
@@ -33,91 +33,98 @@ function isDynamicRouteScreen(screenName: Screen): boolean {
     return false;
 }
 
-function removeDynamicRoutesFromState(state: State): RemoveDynamicRoutesResult {
-    let currentState: State = state;
-    const dynamicRouteScreens: Screen[] = [];
+/**
+ * Removes only one dynamic route from navigation state and identifies it.
+ * This function traverses the navigation state tree, finds dynamic route,
+ * removes it from the state structure, and returns both the cleaned state and
+ * removed dynamic screen name.
+ */
+function removeDynamicRouteFromState(state: State): RemoveDynamicRouteResult {
+    const stack: StackItem[] = [];
 
-    while (currentState.routes.length > 0) {
-        const stack: StackItem[] = [];
+    let current: State = state;
 
-        let current: State = currentState;
+    // Traverse down to the deepest focused route in the navigation tree
+    while (true) {
+        const routeIndex = current.index ?? 0;
+        const route = current.routes[routeIndex];
 
-        while (true) {
-            const routeIndex = current.index ?? 0;
-            const route = current.routes[routeIndex];
-            if (!route?.state) {
-                break;
-            }
-            stack.push({parent: current, routeIndex});
-            current = route.state;
+        // If route has no nested state, we've reached the bottom
+        if (!route?.state) {
+            break;
         }
+        // Save current level info for later reconstruction
+        stack.push({parent: current, routeIndex});
 
-        const focusedRouteIndex = current.index ?? 0;
-        const focusedRoute = current.routes[focusedRouteIndex];
-        dynamicRouteScreens.push(focusedRoute.name as Screen);
-
-        let cleanedState = {
-            ...current,
-            routes: current.routes.filter((_, i) => i !== focusedRouteIndex) as typeof current.routes,
-            index: Math.max(0, focusedRouteIndex - 1),
-        } as State;
-
-        for (let i = stack.length - 1; i >= 0; i--) {
-            const stackItem = stack.at(i);
-            if (!stackItem) {
-                continue;
-            }
-            const {parent, routeIndex} = stackItem;
-            const parentRoutes = parent.routes;
-            const updatedChild = {...parentRoutes[routeIndex], state: cleanedState};
-            if (cleanedState.routes.length === 0) {
-                cleanedState = {
-                    ...parent,
-                    routes: parentRoutes.filter((r, j) => j !== routeIndex) as typeof parent.routes,
-                    index: Math.max(0, routeIndex - 1),
-                } as State;
-                continue;
-            }
-            cleanedState = {
-                ...parent,
-                routes: parentRoutes.map((r, j) => (j === routeIndex ? updatedChild : r)) as typeof parent.routes,
-            } as State;
-        }
-        currentState = cleanedState;
+        // Move to the next level down
+        current = route.state;
     }
 
-    return {cleanedState: currentState, dynamicRouteScreens};
+    // Get the focused route at the deepest level
+    const focusedRouteIndex = current.index ?? 0;
+    const focusedRoute = current.routes[focusedRouteIndex];
+
+    // Save the dynamic route screen name
+    const dynamicRouteScreen = focusedRoute.name as Screen;
+
+    // Remove the focused route from current level and update indices
+    let cleanedState = {
+        ...current,
+        routes: current.routes.filter((_, i) => i !== focusedRouteIndex) as typeof current.routes,
+        index: Math.max(0, focusedRouteIndex - 1),
+    } as State;
+
+    // Reconstruct the navigation state from bottom to top
+    for (let i = stack.length - 1; i >= 0; i--) {
+        const stackItem = stack.at(i);
+        if (!stackItem) {
+            continue;
+        }
+        const {parent, routeIndex} = stackItem;
+        const parentRoutes = parent.routes;
+
+        // Create updated child route with the cleaned state
+        const updatedChild = {...parentRoutes[routeIndex], state: cleanedState};
+
+        // If cleaned state has no routes left, remove the entire branch
+        if (cleanedState.routes.length === 0) {
+            cleanedState = {
+                ...parent,
+                routes: parentRoutes.filter((r, j) => j !== routeIndex) as typeof parent.routes,
+                index: Math.max(0, routeIndex - 1),
+            } as State;
+            continue;
+        }
+
+        // Update parent with the modified child
+        cleanedState = {
+            ...parent,
+            routes: parentRoutes.map((r, j) => (j === routeIndex ? updatedChild : r)) as typeof parent.routes,
+        } as State;
+    }
+
+    return {cleanedState, dynamicRouteScreen};
 }
 
 /**
  * Appends dynamic route suffixes to a path
  */
-function appendDynamicRoutesToPath(basePath: string, dynamicRouteScreens: Screen[]): string {
-    if (dynamicRouteScreens.length === 0) {
+function appendDynamicRouteToPath(basePath: string, dynamicRouteScreen: Screen): string {
+    if (!dynamicRouteScreen) {
         return basePath;
     }
 
-    const dynamicSuffixes: DynamicRouteSuffix[] = [];
-    for (const screen of dynamicRouteScreens) {
-        const path = normalizedConfigs[screen]?.path;
-        if (path) {
-            dynamicSuffixes.push(path as DynamicRouteSuffix);
-        } else {
-            throw new Error(`Linking config path not found for dynamic route screen: ${screen}`);
-        }
-    }
-
-    if (dynamicSuffixes.length === 0) {
-        return basePath;
+    const dynamicSuffix: DynamicRouteSuffix = normalizedConfigs[dynamicRouteScreen]?.path;
+    if (!dynamicSuffix) {
+        throw new Error(`Linking config path not found for dynamic route screen: ${dynamicRouteScreen}`);
     }
 
     // Split path and query parameters
     const [pathPart, queryPart] = basePath.split('?');
-    const suffix = dynamicSuffixes.join('/');
     const separator = pathPart.endsWith('/') ? '' : '/';
 
     // Construct final path with dynamic suffix and query parameters
-    const pathWithSuffix = `${pathPart}${separator}${suffix}`;
+    const pathWithSuffix = `${pathPart}${separator}${dynamicSuffix}`;
 
     return queryPart ? `${pathWithSuffix}?${queryPart}` : pathWithSuffix;
 }
@@ -126,22 +133,25 @@ const getPathFromState = (state: State): string => {
     const focusedRoute = findFocusedRoute(state);
     const screenName = focusedRoute?.name ?? '';
 
+    // Handle dynamic route screens that need special path processing
     if (isDynamicRouteScreen(screenName as Screen)) {
+        // Use direct path if already available on the route
         if (focusedRoute?.path) {
             return focusedRoute.path;
         }
 
-        // Remove dynamic routes from state and collect them
-        const {cleanedState, dynamicRouteScreens} = removeDynamicRoutesFromState(state);
+        // Remove dynamic route from state and collect it
+        const {cleanedState, dynamicRouteScreen} = removeDynamicRouteFromState(state);
 
         // Get path from cleaned state using original function
         const path = RNGetPathFromState(cleanedState, linkingConfig.config);
 
-        // Append dynamic routes to the path
-        const finalPath = appendDynamicRoutesToPath(path ?? '', dynamicRouteScreens);
+        // Append dynamic route to the path
+        const finalPath = appendDynamicRouteToPath(path ?? '', dynamicRouteScreen);
         return finalPath;
     }
 
+    // For regular routes, use React Navigation's default path generation
     const path = RNGetPathFromState(state, linkingConfig.config);
 
     return path;

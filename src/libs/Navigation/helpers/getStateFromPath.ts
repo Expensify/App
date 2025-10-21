@@ -1,7 +1,7 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import {findFocusedRoute, getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
-import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import getLastSuffixFromPath from './getLastSuffixFromPath';
@@ -18,13 +18,18 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
     const normalizedPathAfterRedirection = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 
     const dynamicRouteSuffix = getLastSuffixFromPath(path);
-    if (isDynamicRouteSuffix(dynamicRouteSuffix as DynamicRouteSuffix)) {
+    if (isDynamicRouteSuffix(dynamicRouteSuffix)) {
         const pathWithoutDynamicSuffix = path.replace(`/${dynamicRouteSuffix}`, '');
 
-        const DYNAMIC_ROUTE = (Object.keys(DYNAMIC_ROUTES) as Array<keyof typeof DYNAMIC_ROUTES>).find((key) => DYNAMIC_ROUTES[key].path === dynamicRouteSuffix) ?? 'VERIFY_ACCOUNT';
+        // Find the dynamic route key that matches the extracted suffix
+        const DYNAMIC_ROUTE = Object.keys(DYNAMIC_ROUTES).find((key) => DYNAMIC_ROUTES[key].path === dynamicRouteSuffix) ?? '';
 
+        // Get the currently focused route from the base path to check permissions
         const focusedRoute = findFocusedRoute(getStateFromPath(pathWithoutDynamicSuffix as Route) ?? {});
+
+        // Check if the focused route is allowed to access this dynamic route
         if (focusedRoute?.name && DYNAMIC_ROUTES[DYNAMIC_ROUTE].entryScreens.includes(focusedRoute.name as Screen)) {
+            // Generate navigation state for the dynamic route
             const verifyAccountState = getStateForDynamicRoute(normalizedPath, DYNAMIC_ROUTE);
             return verifyAccountState;
         }
