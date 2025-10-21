@@ -47,6 +47,7 @@ import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitFo
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
+import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
@@ -173,6 +174,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<OnyxTypes.Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: false});
 
     const parentReportAction = useParentReportAction(reportOnyx);
 
@@ -506,6 +509,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         createTransactionThreadReport(report, iouAction);
     }, [report, reportID]);
 
+    const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
+    const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
+
     const fetchReport = useCallback(() => {
         if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
             return;
@@ -521,6 +527,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
+        if (isLoadingApp && introSelected && !isOnboardingCompleted && !isInviteOnboardingComplete) {
+            const {choice, inviteType} = introSelected;
+            const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
+            const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
+            console.log({choice, inviteType, isInviteIOUorInvoice, isInviteChoiceCorrect});
+            if (isInviteChoiceCorrect && !isInviteIOUorInvoice) {
+                return;
+            }
+        }
+
         openReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [
         reportMetadata.isOptimisticReport,
@@ -531,6 +547,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         reportIDFromRoute,
         reportActionIDFromRoute,
         createOneTransactionThreadReport,
+        isLoadingApp,
+        introSelected,
+        isOnboardingCompleted,
+        isInviteOnboardingComplete,
     ]);
 
     useEffect(() => {
