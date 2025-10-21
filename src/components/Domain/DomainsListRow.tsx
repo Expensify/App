@@ -12,9 +12,12 @@ type DomainsListRowProps = {
 
     /** Whether the row is hovered, so we can modify its style */
     isHovered: boolean;
+
+    /** Whether the icon at the end of the row should be displayed */
+    shouldShowRightIcon: boolean;
 };
 
-function DomainsListRow({title, isHovered}: DomainsListRowProps) {
+function DomainsListRow({title, isHovered, shouldShowRightIcon}: DomainsListRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -33,15 +36,15 @@ function DomainsListRow({title, isHovered}: DomainsListRowProps) {
                 />
             </View>
 
-            <View style={styles.touchableButtonImage}>
-                <Icon
-                    src={Expensicons.NewWindow}
-                    fill={theme.icon}
-                    additionalStyles={[!isHovered && styles.opacitySemiTransparent]}
-                    isButtonIcon
-                    medium
-                />
-            </View>
+            {shouldShowRightIcon && (
+                <View style={styles.touchableButtonImage}>
+                    <Icon
+                        src={Expensicons.NewWindow}
+                        fill={theme.icon}
+                        isButtonIcon
+                    />
+                </View>
+            )}
         </View>
     );
 }

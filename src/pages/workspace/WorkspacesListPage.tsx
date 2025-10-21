@@ -429,6 +429,7 @@ function WorkspacesListPage() {
                         <DomainsListRow
                             title={item.title}
                             isHovered={hovered}
+                            shouldShowRightIcon={!item.disabled}
                         />
                     )}
                 </PressableWithoutFeedback>
@@ -699,8 +700,10 @@ function WorkspacesListPage() {
                 <SelectionList
                     ref={listRef}
                     sections={sections}
-                    sectionTitleStyles={[styles.ph5, styles.pb5, styles.mt0, styles.mb0, styles.pt3]}
+                    sectionTitleStyles={[styles.ph5, styles.pv3, styles.mt0, styles.mb0]}
                     ListItem={RadioListItem}
+                    addBottomSafeAreaPadding
+                    contentContainerStyle={styles.pb14}
                 />
             </View>
             <ConfirmModal
