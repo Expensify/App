@@ -13,10 +13,10 @@ class RenderTaskQueue {
 
     private timeout: NodeJS.Timeout | null = null;
 
-    private notifyRenderingStateChange?: (isRendering: boolean) => void;
+    private onIsRenderingChange?: (isRendering: boolean) => void;
 
-    constructor(notifyRenderingStateChange?: (isRendering: boolean) => void) {
-        this.notifyRenderingStateChange = notifyRenderingStateChange;
+    constructor(onIsRenderingChange?: (isRendering: boolean) => void) {
+        this.onIsRenderingChange = onIsRenderingChange;
     }
 
     add(info: RenderInfo) {
@@ -36,18 +36,18 @@ class RenderTaskQueue {
             return;
         }
         clearTimeout(this.timeout);
-        this.notifyRenderingStateChange?.(false);
+        this.onIsRenderingChange?.(false);
     }
 
     private render() {
         const info = this.renderInfos.shift();
         if (!info) {
             this.isRendering = false;
-            this.notifyRenderingStateChange?.(false);
+            this.onIsRenderingChange?.(false);
             return;
         }
         this.isRendering = true;
-        this.notifyRenderingStateChange?.(true);
+        this.onIsRenderingChange?.(true);
 
         this.handler(info);
 

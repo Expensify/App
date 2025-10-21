@@ -13,29 +13,39 @@ describe('RenderTaskQueue', () => {
     });
 
     describe('notifyRenderingStateChange callback', () => {
-        it('should call notifyRenderingStateChange callback 2 times durning render process', () => {
-            const mockStateChangeCallback = jest.fn();
-            const queue = new RenderTaskQueue(mockStateChangeCallback);
+        it('should notify rendering state changes when a task completes naturally to track the rendering lifecycle', () => {
+            // Given a RenderTaskQueue with an isRendering change callback
+            const mockOnIsRenderingChange = jest.fn();
+            const queue = new RenderTaskQueue(mockOnIsRenderingChange);
 
+            // When a task is added and allowed to complete
             queue.add({distanceFromStart: 100});
 
-            expect(mockStateChangeCallback).toHaveBeenCalledWith(true);
+            // Then the callback is invoked with true when rendering starts
+            expect(mockOnIsRenderingChange).toHaveBeenCalledWith(true);
             jest.advanceTimersByTime(500);
-            expect(mockStateChangeCallback).toHaveBeenCalledTimes(2);
-            expect(mockStateChangeCallback).toHaveBeenCalledWith(false);
+
+            // Then the callback is invoked with false when rendering completes
+            expect(mockOnIsRenderingChange).toHaveBeenCalledTimes(2);
+            expect(mockOnIsRenderingChange).toHaveBeenCalledWith(false);
         });
 
-        it('should call notifyRenderingStateChange callback 2 times when canceling render', () => {
-            const mockCallback = jest.fn();
-            const queue = new RenderTaskQueue(mockCallback);
+        it('should notify rendering state changes when a task is canceled to ensure proper cleanup', () => {
+            // Given a RenderTaskQueue with an isRendering change callback
+            const mockOnIsRenderingChange = jest.fn();
+            const queue = new RenderTaskQueue(mockOnIsRenderingChange);
 
+            // When a task is added but canceled before completion
             queue.add({distanceFromStart: 100});
-
-            expect(mockCallback).toHaveBeenCalledWith(true);
             queue.cancel();
+
+            // Then the callback is invoked with true when rendering starts
+            expect(mockOnIsRenderingChange).toHaveBeenCalledWith(true);
             jest.advanceTimersByTime(500);
-            expect(mockCallback).toHaveBeenCalledTimes(2);
-            expect(mockCallback).toHaveBeenCalledWith(false);
+
+            // Then the callback is invoked with false even after canceling to ensure proper cleanup
+            expect(mockOnIsRenderingChange).toHaveBeenCalledTimes(2);
+            expect(mockOnIsRenderingChange).toHaveBeenCalledWith(false);
         });
     });
 });
