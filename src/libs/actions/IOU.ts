@@ -559,6 +559,7 @@ type DistanceRequestTransactionParams = BaseTransactionParams & {
     validWaypoints?: WaypointCollection;
     splitShares?: SplitShares;
     distance?: number;
+    receipt?: Receipt;
 };
 
 type CreateDistanceRequestInformation = {
@@ -7930,6 +7931,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         customUnitRateID = '',
         splitShares = {},
         attendees,
+        receipt,
     } = transactionParams;
 
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
@@ -8033,7 +8035,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 comment,
                 created,
                 merchant,
-                receipt: !isManualDistanceRequest ? optimisticReceipt : undefined,
+                receipt: receipt ?? optimisticReceipt,
                 category,
                 tag,
                 taxCode,
@@ -8065,6 +8067,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
             waypoints: JSON.stringify(sanitizedWaypoints),
             distance,
+            receipt,
             created,
             category,
             tag,
