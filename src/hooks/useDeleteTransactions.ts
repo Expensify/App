@@ -9,6 +9,7 @@ import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/T
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useOnyx from './useOnyx';
 
 type UseDeleteTransactionsParams = {
@@ -30,23 +31,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
     const [allPolicyRecentlyUsedCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES, {canBeMissing: true});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
-
-    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
-        canBeMissing: true,
-        selector: (all): ArchivedReportsIDSet => {
-            const ids = new Set<string>();
-            if (!all) {
-                return ids;
-            }
-
-            for (const [key, value] of Object.entries(all)) {
-                if (isArchivedReport(value)) {
-                    ids.add(key);
-                }
-            }
-            return ids;
-        },
-    });
+    const archivedReportsIdSet = useArchivedReportsIdSet();
 
     /**
      * Delete transactions by IDs
@@ -161,10 +146,10 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     duplicateTransactionViolations,
                     iouReport,
                     chatReport,
+                    isChatIOUReportArchived,
                     isSingleTransactionView,
                     deletedTransactionIDs,
                     transactionIDs,
-                    isChatIOUReportArchived,
                 );
                 deletedTransactionIDs.push(transactionID);
                 if (action.childReportID) {
