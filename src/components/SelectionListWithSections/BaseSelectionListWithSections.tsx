@@ -726,7 +726,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         if (typeof textInputRef === 'function') {
                             textInputRef(element as RNTextInput);
                         } else {
-                            // eslint-disable-next-line no-param-reassign, react-compiler/react-compiler
+                            // eslint-disable-next-line no-param-reassign
                             textInputRef.current = element as RNTextInput;
                         }
                     }}
@@ -746,7 +746,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     spellCheck={false}
                     iconLeft={textInputIconLeft}
                     onSubmitEditing={selectFocusedOption}
-                    submitBehavior={flattenedSections.allOptions.length ? 'blurAndSubmit' : 'submit'}
+                    blurOnSubmit={!!flattenedSections.allOptions.length}
                     isLoading={isLoadingNewOptions}
                     testID="selection-list-text-input"
                     shouldInterceptSwipe={shouldTextInputInterceptSwipe}
