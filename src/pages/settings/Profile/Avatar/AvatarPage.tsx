@@ -27,9 +27,9 @@ import DiscardChangesConfirmation from '@pages/iou/request/step/DiscardChangesCo
 import {deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {FileObject} from '@src/types/utils/Attachment';
 import AvatarCapture from './AvatarCapture';
 import type {AvatarCaptureHandle} from './AvatarCapture/types';
-import type {FileObject} from '@src/types/utils/Attachment';
 
 type ImageData = {
     uri: string;
