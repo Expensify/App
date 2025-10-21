@@ -110,7 +110,7 @@ const mockReport: TransactionReportGroupListItemType = {
         displayName: 'Main Applause QA',
     },
     transactions: [],
-    groupedBy: 'expense-report',
+    groupedBy: 'reports',
     keyForList: '515146912679679',
 };
 
@@ -153,7 +153,7 @@ describe('TransactionGroupListItem', () => {
         item: report,
         showTooltip: false,
         onSelectRow: mockOnSelectRow,
-        searchType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
         canSelectMultiple: true,
     };
 
