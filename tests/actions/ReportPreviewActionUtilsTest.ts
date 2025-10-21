@@ -6,10 +6,10 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getReportPreviewAction} from '@libs/ReportPreviewActionUtils';
 // eslint-disable-next-line no-restricted-syntax
-import * as ReportUtils from '@libs/ReportUtils';
+import type * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportViolations, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Connections, NetSuiteConnection} from '@src/types/onyx/Policy';
 import * as InvoiceData from '../data/Invoice';
 import type {InvoiceTestData} from '../data/Invoice';
@@ -31,7 +31,6 @@ const PERSONAL_DETAILS = {
 };
 
 const REPORT_ID = 1;
-const TRANSACTION_ID = 1;
 const VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
 jest.mock('@libs/ReportUtils', () => ({
