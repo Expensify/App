@@ -58,9 +58,10 @@ function useOptions() {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
             },
+            countryCode,
         );
 
-        const headerMessage = getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || !!currentUserOption, !!userToInvite, '');
+        const headerMessage = getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || !!currentUserOption, !!userToInvite, '', false, countryCode);
 
         if (isLoading) {
             // eslint-disable-next-line react-compiler/react-compiler
@@ -74,7 +75,7 @@ function useOptions() {
             currentUserOption,
             headerMessage,
         };
-    }, [optionsList.reports, optionsList.personalDetails, draftComments, betas, isLoading]);
+    }, [optionsList.reports, optionsList.personalDetails, draftComments, betas, isLoading, countryCode]);
 
     const optionsWithoutCurrentUser = useMemo(() => {
         if (!session?.accountID) {
@@ -97,6 +98,8 @@ function useOptions() {
             (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0 || !!filteredOptions.currentUserOption,
             !!filteredOptions.userToInvite,
             debouncedSearchValue,
+            false,
+            countryCode,
         );
 
         return {
