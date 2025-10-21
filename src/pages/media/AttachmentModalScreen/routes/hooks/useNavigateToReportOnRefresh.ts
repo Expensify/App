@@ -1,8 +1,8 @@
 import {useEffect} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AvatarSource} from '@libs/UserUtils';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import ROUTES from '@src/ROUTES';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type UseReportNavigationFallbackProps = {
     source?: AvatarSource;
