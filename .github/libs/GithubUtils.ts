@@ -427,13 +427,13 @@ class GithubUtils {
     /**
      * Fetch all pull requests given a list of PR numbers.
      */
-    static fetchAllPullRequests(pullRequestNumbers: number[]): Promise<OctokitPR[] | void> {
+    static fetchAllPullRequests(pullRequestNumbers: number[], repo: string = CONST.APP_REPO): Promise<OctokitPR[] | void> {
         const oldestPR = pullRequestNumbers.sort((a, b) => a - b).at(0);
         return this.paginate(
             this.octokit.pulls.list,
             {
                 owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
+                repo,
                 state: 'all',
                 sort: 'created',
                 direction: 'desc',
