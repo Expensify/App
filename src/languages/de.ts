@@ -24,7 +24,6 @@ import type {
     AddEmployeeParams,
     AddOrDeletePolicyCustomUnitRateParams,
     AddressLineParams,
-    AdminCanceledRequestParams,
     AirlineParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
@@ -181,7 +180,6 @@ import type {
     QBDSetupErrorBodyParams,
     RailTicketParams,
     ReceiptPartnersUberSubtitleParams,
-    ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
     RemoveMemberPromptParams,
@@ -209,6 +207,7 @@ import type {
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
     SettlementAccountInfoParams,
+    SettlementAccountReconciliationParams,
     SettlementDateParams,
     ShareParams,
     SignerInfoMessageParams,
@@ -659,8 +658,8 @@ const translations = {
         reschedule: 'Verschieben',
         general: 'Allgemein',
         workspacesTabTitle: 'Arbeitsbereiche',
-        getTheApp: 'Hole dir die App',
-        scanReceiptsOnTheGo: 'Scannen Sie Belege von Ihrem Telefon aus',
+        getTheApp: 'App herunterladen',
+        scanReceiptsOnTheGo: 'Scannen Sie Belege mit Ihrem Telefon',
         headsUp: 'Achtung!',
         submitTo: 'Einreichen an',
         forwardTo: 'Weiterleiten an',
@@ -669,9 +668,11 @@ const translations = {
         unstableInternetConnection: 'Instabile Internetverbindung. Bitte überprüfe dein Netzwerk und versuche es erneut.',
         enableGlobalReimbursements: 'Globale Rückerstattungen aktivieren',
         purchaseAmount: 'Kaufbetrag',
+        frequency: 'Frequenz',
         link: 'Link',
         pinned: 'Angeheftet',
         read: 'Gelesen',
+        copyToClipboard: 'In die Zwischenablage kopieren',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -859,7 +860,7 @@ const translations = {
         expand: 'Erweitern',
     },
     reportActionContextMenu: {
-        copyToClipboard: 'In die Zwischenablage kopieren',
+        copyMessage: 'Nachricht kopieren',
         copied: 'Kopiert!',
         copyLink: 'Link kopieren',
         copyURLToClipboard: 'URL in die Zwischenablage kopieren',
@@ -973,6 +974,7 @@ const translations = {
         buttonMySettings: 'Meine Einstellungen',
         fabNewChat: 'Chat starten',
         fabNewChatExplained: 'Chat starten (Floating action)',
+        fabScanReceiptExplained: 'Kassenbon scannen (Floating Action)',
         chatPinned: 'Chat angeheftet',
         draftedMessage: 'Entwurfene Nachricht',
         listOfChatMessages: 'Liste der Chatnachrichten',
@@ -1047,11 +1049,19 @@ const translations = {
         upload: 'Beleg hochladen',
         uploadMultiple: 'Belege hochladen',
         dragReceiptBeforeEmail: 'Ziehen Sie eine Quittung auf diese Seite oder leiten Sie eine Quittung weiter an',
-        dragReceiptsBeforeEmail: 'Ziehen Sie Quittungen auf diese Seite oder leiten Sie Quittungen weiter an',
-        dragReceiptAfterEmail: 'oder wählen Sie unten eine Datei zum Hochladen aus.',
-        dragReceiptsAfterEmail: 'oder wählen Sie unten Dateien zum Hochladen aus.',
+        dragReceiptsBeforeEmail: 'Ziehen Sie Belege auf diese Seite oder leiten Sie Belege weiter an',
+        dragReceiptAfterEmail: 'oder wählen Sie eine Datei zum Hochladen aus.',
+        dragReceiptsAfterEmail: 'oder wählen Sie Dateien zum Hochladen unten aus.',
+        desktopSubtitleSingle: `oder hierher ziehen und ablegen`,
+        desktopSubtitleMultiple: `oder hierher ziehen und ablegen`,
         chooseReceipt: 'Wählen Sie eine Quittung zum Hochladen aus oder leiten Sie eine Quittung weiter an',
         chooseReceipts: 'Wählen Sie Quittungen zum Hochladen aus oder leiten Sie Quittungen weiter an ',
+        alternativeMethodsTitle: 'Andere Möglichkeiten, Belege hinzuzufügen:',
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a href="${downloadUrl}">App herunterladen</a>, um mit Ihrem Telefon zu scannen</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Leiten Sie Belege an <a href="mailto:${email}">${email}</a> weiter</label-text>`,
+        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: {phoneNumber: string; contactMethodsUrl: string}) =>
+            `<label-text><a href="${contactMethodsUrl}">Fügen Sie Ihre Nummer hinzu</a>, um Belege an ${phoneNumber} zu senden</label-text>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: {phoneNumber: string}) => `<label-text>Senden Sie Belege per SMS an ${phoneNumber} (nur US-Nummern)</label-text>`,
         takePhoto: 'Ein Foto machen',
         cameraAccess: 'Der Kamerazugriff ist erforderlich, um Fotos von Belegen zu machen.',
         deniedCameraAccess: 'Kamerazugriff wurde noch nicht gewährt, bitte folgen Sie',
@@ -1106,11 +1116,15 @@ const translations = {
         splitExpense: 'Ausgabe aufteilen',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} von ${merchant}`,
         addSplit: 'Split hinzufügen',
+        editSplits: 'Splits bearbeiten',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Der Gesamtbetrag ist ${amount} höher als die ursprüngliche Ausgabe.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Der Gesamtbetrag ist ${amount} weniger als die ursprüngliche Ausgabe.`,
         splitExpenseZeroAmount: 'Bitte geben Sie einen gültigen Betrag ein, bevor Sie fortfahren.',
         splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `Bearbeiten Sie ${amount} für ${merchant}`,
+        splitExpenseOneMoreSplit: 'Keine Aufteilungen hinzugefügt. Fügen Sie mindestens eine hinzu, um zu speichern.',
         removeSplit: 'Aufteilung entfernen',
+        splitExpenseCannotBeEditedModalTitle: 'Diese Ausgabe kann nicht bearbeitet werden',
+        splitExpenseCannotBeEditedModalDescription: 'Genehmigte oder bezahlte Ausgaben können nicht bearbeitet werden',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Zahlen Sie ${name ?? 'jemand'}`,
         expense: 'Ausgabe',
         categorize: 'Kategorisieren',
@@ -1134,6 +1148,7 @@ const translations = {
         canceled: 'Abgebrochen',
         posted: 'Gepostet',
         deleteReceipt: 'Beleg löschen',
+        findExpense: 'Ausgabe finden',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `hat eine Ausgabe gelöscht (${amount} für ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `verschob eine Ausgabe${reportName ? `von ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `verschob diese Ausgabe${reportName ? `to <a href="${reportUrl}">${reportName}</a>` : ''}`,
@@ -1239,8 +1254,8 @@ const translations = {
         invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Geschäftskonto • ${lastFour}`,
         nextStep: 'Nächste Schritte',
         finished: 'Fertiggestellt',
+        flip: 'Umkehren',
         sendInvoice: ({amount}: RequestAmountParams) => `Sende ${amount} Rechnung`,
-        submitAmount: ({amount}: RequestAmountParams) => `Einreichen ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `für ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `eingereicht${memo ? `, sagte ${memo}` : ''}`,
         automaticallySubmitted: `über <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">verzögerte Einreichungen</a> eingereicht`,
@@ -1266,7 +1281,7 @@ const translations = {
         forwarded: `genehmigt`,
         rejectedThisReport: 'diesen Bericht abgelehnt',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `hat die Zahlung gestartet, wartet aber darauf, dass ${submitterDisplayName} ein Bankkonto hinzufügt.`,
-        adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''} hat die Zahlung storniert`,
+        adminCanceledRequest: 'hat die Zahlung storniert',
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `hat die Zahlung von ${amount} storniert, weil ${submitterDisplayName} ihre Expensify Wallet nicht innerhalb von 30 Tagen aktiviert hat`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -1466,6 +1481,7 @@ const translations = {
                 subtitle: 'Wählen Sie einen zusätzlichen Genehmiger für diesen Bericht, bevor wir ihn durch den Rest des Genehmigungs-Workflows leiten.',
             },
         },
+        chooseWorkspace: 'Wählen Sie einen Arbeitsbereich aus',
     },
     transactionMerge: {
         listPage: {
@@ -1484,6 +1500,7 @@ const translations = {
             pageTitle: 'Wähle die Details, die du behalten möchtest:',
             noDifferences: 'Keine Unterschiede zwischen den Transaktionen gefunden',
             pleaseSelectError: ({field}: {field: string}) => `Bitte wähle ein(e) ${field}`,
+            pleaseSelectAttendees: 'Bitte wähle teilnehmer',
             selectAllDetailsError: 'Wähle alle Details, bevor du fortfährst.',
         },
         confirmationPage: {
@@ -1553,10 +1570,7 @@ const translations = {
         subtitle: 'Aktivieren Sie die Zwei-Faktor-Authentifizierung, um Ihr Konto zu schützen.',
         goToSecurity: 'Zurück zur Sicherheitsseite',
     },
-    shareCodePage: {
-        title: 'Ihr Code',
-        subtitle: 'Laden Sie Mitglieder zu Expensify ein, indem Sie Ihren persönlichen QR-Code oder Empfehlungslink teilen.',
-    },
+    shareCodePage: {title: 'Ihr Code', subtitle: 'Laden Sie Mitglieder zu Expensify ein, indem Sie Ihren persönlichen QR-Code oder Empfehlungslink teilen.'},
     pronounsPage: {
         pronouns: 'Pronomen',
         isShownOnProfile: 'Ihre Pronomen werden in Ihrem Profil angezeigt.',
@@ -1567,8 +1581,8 @@ const translations = {
         contactMethods: 'Kontaktmethoden',
         featureRequiresValidate: 'Diese Funktion erfordert, dass Sie Ihr Konto verifizieren.',
         validateAccount: 'Bestätigen Sie Ihr Konto',
-        helpTextBeforeEmail: 'Fügen Sie weitere Möglichkeiten hinzu, damit Leute Sie finden können, und leiten Sie Belege weiter an',
-        helpTextAfterEmail: 'von mehreren E-Mail-Adressen.',
+        helpTextBeforeEmail: 'Fügen Sie weitere Möglichkeiten hinzu, Belege zu senden. Leiten Sie sie weiter an',
+        helpTextAfterEmail: 'oder senden Sie ihnen eine SMS an 47777 (nur US-Nummern).',
         pleaseVerify: 'Bitte überprüfen Sie diese Kontaktmethode',
         getInTouch: 'Wann immer wir mit Ihnen in Kontakt treten müssen, werden wir diese Kontaktmethode verwenden.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
@@ -1843,6 +1857,7 @@ const translations = {
             'Ihre Xero-Buchhaltungsverbindung erfordert die Verwendung der Zwei-Faktor-Authentifizierung. Um Expensify weiterhin zu nutzen, aktivieren Sie diese bitte.',
         twoFactorAuthCannotDisable: '2FA kann nicht deaktiviert werden.',
         twoFactorAuthRequired: 'Die Zwei-Faktor-Authentifizierung (2FA) ist für Ihre Xero-Verbindung erforderlich und kann nicht deaktiviert werden.',
+        explainProcessToRemoveWithRecovery: 'Um die Zwei-Faktor-Authentifizierung (2FA) zu deaktivieren, geben Sie bitte einen gültigen Wiederherstellungscode ein.',
     },
     recoveryCodeForm: {
         error: {
@@ -2011,17 +2026,39 @@ const translations = {
         validateCardTitle: 'Lassen Sie uns sicherstellen, dass Sie es sind',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Bitte geben Sie den magischen Code ein, der an ${contactMethod} gesendet wurde, um Ihre Kartendetails anzuzeigen. Er sollte in ein bis zwei Minuten ankommen.`,
+        cardFraudAlert: {
+            confirmButtonText: 'Ja, das tue ich.',
+            reportFraudButtonText: 'Nein, das war ich nicht.',
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) =>
+                `die verdächtige Aktivität geklärt und die Karte x${cardLastFour} reaktiviert. Alles bereit, um weiter Ausgaben zu erfassen!`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `hat die Karte mit den Endziffern ${cardLastFour} deaktiviert`,
+            alertMessage: ({
+                cardLastFour,
+                amount,
+                merchant,
+                date,
+            }: {
+                cardLastFour: string;
+                amount: string;
+                merchant: string;
+                date: string;
+            }) => `verdächtige Aktivitäten auf der Karte mit der Endung ${cardLastFour} festgestellt. Erkennen Sie diese Abbuchung?
+
+${amount} für ${merchant} - ${date}`,
+        },
     },
     workflowsPage: {
         workflowTitle: 'Ausgaben',
         workflowDescription: 'Konfigurieren Sie einen Workflow ab dem Moment, in dem Ausgaben anfallen, einschließlich Genehmigung und Zahlung.',
         delaySubmissionTitle: 'Einreichungen verzögern',
-        delaySubmissionDescription: 'Wählen Sie einen benutzerdefinierten Zeitplan für die Einreichung von Ausgaben oder lassen Sie dies für Echtzeit-Updates zu Ausgaben aus.',
+        delaySubmissionDescription: 'Wählen Sie einen benutzerdefinierten Zeitplan für die Einreichung von Ausgaben oder lassen Sie dies aus, um Echtzeit-Updates über Ausgaben zu erhalten.',
         submissionFrequency: 'Einreichungshäufigkeit',
+        submissionFrequencyDescription: 'Wählen Sie eine Häufigkeit für die Übermittlung von Ausgaben.',
         submissionFrequencyDateOfMonth: 'Datum des Monats',
         addApprovalsTitle: 'Genehmigungen hinzufügen',
         addApprovalButton: 'Genehmigungsworkflow hinzufügen',
         addApprovalTip: 'Dieser Standard-Workflow gilt für alle Mitglieder, es sei denn, es existiert ein spezifischerer Workflow.',
+        disableApprovalPromptDescription: 'Durch das Deaktivieren von Genehmigungen werden alle vorhandenen Genehmigungsworkflows gelöscht.',
         approver: 'Genehmiger',
         addApprovalsDescription: 'Zusätzliche Genehmigung erforderlich, bevor eine Zahlung autorisiert wird.',
         makeOrTrackPaymentsTitle: 'Zahlungen vornehmen oder verfolgen',
@@ -2069,7 +2106,7 @@ const translations = {
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: 'Verspätete Einreichung konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
+        autoReportingErrorMessage: 'Die verspätete Einreichung konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
         autoReportingFrequencyErrorMessage: 'Die Einreichungshäufigkeit konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
         monthlyOffsetErrorMessage: 'Die monatliche Frequenz konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
     },
@@ -2323,8 +2360,8 @@ const translations = {
         },
         interestedFeatures: {
             title: 'Für welche Funktionen interessieren Sie sich?',
-            featuresAlreadyEnabled: 'Ihr Arbeitsbereich hat bereits Folgendes aktiviert:',
-            featureYouMayBeInterestedIn: 'Aktivieren Sie zusätzliche Funktionen, die Sie interessieren könnten:',
+            featuresAlreadyEnabled: 'Hier sind unsere beliebtesten Funktionen:',
+            featureYouMayBeInterestedIn: 'Aktivieren Sie zusätzliche Funktionen:',
         },
         error: {
             requiredFirstName: 'Bitte geben Sie Ihren Vornamen ein, um fortzufahren.',
@@ -2361,6 +2398,23 @@ const translations = {
             testDriveEmployeeTask: {
                 title: ({testDriveURL}) => `Mache eine [Probefahrt](${testDriveURL})`,
                 description: ({testDriveURL}) => `Probiere uns in einer [Probefahrt](${testDriveURL}) aus und sichere deinem Team *3 Monate Expensify gratis!*`,
+            },
+            addExpenseApprovalsTask: {
+                title: 'Ausgabengenehmigungen hinzufügen',
+                description: ({workspaceMoreFeaturesLink}) =>
+                    `*Füge Ausgabengenehmigungen hinzu*, um die Ausgaben deines Teams zu überprüfen und unter Kontrolle zu halten.\n` +
+                    '\n' +
+                    `So geht’s:\n` +
+                    '\n' +
+                    '1. Gehe zu *Arbeitsbereiche*.\n' +
+                    '2. Wähle deinen Arbeitsbereich aus.\n' +
+                    '3. Klicke auf *Weitere Funktionen*.\n' +
+                    '4. Aktiviere *Workflows*.\n' +
+                    '5. Navigiere im Arbeitsbereich-Editor zu *Workflows*.\n' +
+                    '6. Aktiviere *Genehmigungen hinzufügen*.\n' +
+                    `7. Du wirst als Ausgabengenehmiger festgelegt. Du kannst dies nach dem Einladen deines Teams auf einen beliebigen Administrator ändern.\n` +
+                    '\n' +
+                    `[Zu weiteren Funktionen](${workspaceMoreFeaturesLink}).`,
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Erstelle](${workspaceConfirmationLink}) einen Workspace`,
@@ -2562,7 +2616,7 @@ const translations = {
                 descriptionTwo: 'Kategorisieren und taggen Sie Ausgaben',
                 descriptionThree: 'Berichte erstellen und teilen',
             },
-            price: 'Testen Sie es 30 Tage lang kostenlos, dann upgraden Sie für nur <strong>$5/Monat</strong>.',
+            price: 'Testen Sie es 30 Tage lang kostenlos, dann upgraden Sie für nur <strong>$5/Benutzer/Monat</strong>.',
             createWorkspace: 'Arbeitsbereich erstellen',
         },
         confirmWorkspace: {
@@ -3237,7 +3291,7 @@ const translations = {
     },
     signerInfoStep: {
         signerInfo: 'Unterzeichnerinformationen',
-        areYouDirector: ({companyName}: CompanyNameParams) => `Sind Sie ein Direktor oder leitender Angestellter bei ${companyName}?`,
+        areYouDirector: ({companyName}: CompanyNameParams) => `Sind Sie Direktor bei ${companyName}?`,
         regulationRequiresUs: 'Die Vorschrift erfordert, dass wir überprüfen, ob der Unterzeichner die Befugnis hat, diese Handlung im Namen des Unternehmens durchzuführen.',
         whatsYourName: 'Wie lautet Ihr gesetzlicher Name?',
         fullName: 'Vollständiger rechtlicher Name',
@@ -3249,13 +3303,13 @@ const translations = {
         letsDoubleCheck: 'Lassen Sie uns noch einmal überprüfen, ob alles richtig aussieht.',
         legalName: 'Rechtlicher Name',
         proofOf: 'Nachweis der persönlichen Adresse',
-        enterOneEmail: ({companyName}: CompanyNameParams) => `Geben Sie die E-Mail-Adresse des Direktors oder leitenden Angestellten bei ${companyName} ein.`,
-        regulationRequiresOneMoreDirector: 'Die Vorschrift erfordert mindestens einen weiteren Direktor oder leitenden Angestellten als Unterzeichner.',
+        enterOneEmail: ({companyName}: CompanyNameParams) => `Geben Sie die E-Mail-Adresse des Direktors bei ${companyName} ein.`,
+        regulationRequiresOneMoreDirector: 'Die Vorschrift erfordert mindestens einen weiteren Direktor als Unterzeichner.',
         hangTight: 'Bitte warten...',
-        enterTwoEmails: ({companyName}: CompanyNameParams) => `Geben Sie die E-Mails von zwei Direktoren oder leitenden Angestellten bei ${companyName} ein.`,
+        enterTwoEmails: ({companyName}: CompanyNameParams) => `Geben Sie die E-Mails von zwei Direktoren bei ${companyName} ein.`,
         sendReminder: 'Erinnere senden',
         chooseFile: 'Datei auswählen',
-        weAreWaiting: 'Wir warten darauf, dass andere ihre Identität als Direktoren oder leitende Angestellte des Unternehmens verifizieren.',
+        weAreWaiting: 'Wir warten darauf, dass andere ihre Identität als Direktoren des Unternehmens verifizieren.',
         id: 'Kopie des Ausweises',
         proofOfDirectors: 'Nachweis des/der Direktors/Direktoren',
         proofOfDirectorsDescription: 'Beispiele: Unternehmensprofil von Oncorp oder Geschäftsregistrierung.',
@@ -3264,11 +3318,11 @@ const translations = {
         PDSandFSG: 'PDS + FSG Offenlegungsunterlagen',
         PDSandFSGDescription:
             'Unsere Partnerschaft mit Corpay nutzt eine API-Verbindung, um das umfangreiche Netzwerk internationaler Bankpartner zu nutzen und globale Rückerstattungen in Expensify zu ermöglichen. Gemäß der australischen Vorschriften stellen wir Ihnen den Financial Services Guide (FSG) und die Product Disclosure Statement (PDS) von Corpay zur Verfügung.\n\nBitte lesen Sie die FSG- und PDS-Dokumente sorgfältig durch, da sie vollständige Details und wichtige Informationen zu den von Corpay angebotenen Produkten und Dienstleistungen enthalten. Bewahren Sie diese Dokumente für zukünftige Referenz auf.',
-        pleaseUpload: 'Bitte laden Sie zusätzliche Unterlagen hoch, um uns bei der Überprüfung Ihrer Identität als Direktor oder leitender Angestellter des Unternehmens zu unterstützen.',
+        pleaseUpload: 'Bitte laden Sie zusätzliche Unterlagen hoch, um uns bei der Überprüfung Ihrer Identität als Direktor des Unternehmens zu unterstützen.',
         enterSignerInfo: 'Unterschriftsberechtigte Person eingeben',
         thisStep: 'Dieser Schritt wurde abgeschlossen',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
-            `verbindet ein Geschäftskonto in ${currency} mit der Endung ${bankAccountLastFour} mit Expensify, um Mitarbeitende in ${currency} zu bezahlen. Der nächste Schritt erfordert Informationen einer unterschriftsberechtigten Person wie einem Geschäftsführer oder einer Führungskraft.`,
+            `verbindet ein Geschäftskonto in ${currency} mit der Endung ${bankAccountLastFour} mit Expensify, um Mitarbeitende in ${currency} zu bezahlen. Der nächste Schritt erfordert Informationen eines unterschriftsberechtigten Direktors.`,
         error: {
             emailsMustBeDifferent: 'E-Mail-Adressen müssen unterschiedlich sein',
         },
@@ -3428,6 +3482,8 @@ const translations = {
         verifyCompany: {
             title: 'Beginnen Sie noch heute mit dem Reisen!',
             message: `Bitte kontaktieren Sie Ihren Account Manager oder salesteam@expensify.com, um eine Demo von Travel zu erhalten und es für Ihr Unternehmen zu aktivieren.`,
+            confirmText: 'Verstanden',
+            conciergeMessage: ({domain}: {domain: string}) => `Reiseaktivierung für die Domain: ${domain} fehlgeschlagen. Bitte überprüfen und aktivieren Sie Reisen für diese Domain.`,
         },
         updates: {
             bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
@@ -3609,6 +3665,8 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'Ausstehend',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Gesperrt',
                 },
+                centralBillingAccount: 'Zentrales Abrechnungskonto',
+                centralBillingDescription: 'Wählen Sie, wohin alle Uber-Belege importiert werden sollen.',
                 invitationFailure: 'Der Teilnehmer konnte nicht zu Uber for Business eingeladen werden.',
                 autoInvite: 'Neue Workspace-Mitglieder zu Uber for Business einladen',
                 autoRemove: 'Entfernte Workspace-Mitglieder von Uber for Business deaktivieren',
@@ -3739,6 +3797,18 @@ const translations = {
                 createEntitiesDescription: 'Expensify wird automatisch Lieferanten in QuickBooks Desktop erstellen, wenn sie noch nicht existieren.',
             },
             itemsDescription: 'Wählen Sie, wie QuickBooks Desktop-Elemente in Expensify behandelt werden sollen.',
+            accountingMethods: {
+                label: 'Wann exportieren',
+                description: 'Wählen Sie, wann die Ausgaben exportiert werden sollen:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Bargeld',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Auslagen werden exportiert, wenn sie endgültig genehmigt sind.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagen werden exportiert, wenn sie bezahlt sind.',
+                },
+            },
         },
         qbo: {
             connectedTo: 'Verbunden mit',
@@ -4543,7 +4613,7 @@ const translations = {
             addShippingDetails: 'Versanddetails hinzufügen',
             issuedCard: ({assignee}: AssigneeParams) => `hat ${assignee} eine Expensify-Karte ausgestellt! Die Karte wird in 2-3 Werktagen ankommen.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
-                `hat ${assignee} eine Expensify-Karte ausgestellt! Die Karte wird versendet, sobald die Versanddetails hinzugefügt wurden.`,
+                `Für ${assignee} wurde eine Expensify Card ausgestellt! Die Karte wird versendet, sobald die Versanddetails bestätigt wurden.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `hat ${assignee} eine virtuelle ${link} ausgestellt! Die Karte kann sofort verwendet werden.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} hat Versanddetails hinzugefügt. Die Expensify Card wird in 2-3 Werktagen ankommen.`,
             verifyingHeader: 'Überprüfen',
@@ -4659,6 +4729,10 @@ const translations = {
                         automaticImport: 'Automatischer Transaktionsimport',
                     },
                 },
+                bankConnectionError: 'Problem mit der Bankverbindung',
+                connectWithPlaid: 'Verbindung über Plaid herstellen',
+                connectWithExpensifyCard: 'Expensify-Karte testen',
+                bankConnectionDescription: 'Bitte versuchen Sie, Ihre Karten erneut hinzuzufügen. Andernfalls können Sie',
                 disableCardTitle: 'Unternehmens-Karten deaktivieren',
                 disableCardPrompt: 'Sie können Firmenkarten nicht deaktivieren, da diese Funktion in Gebrauch ist. Wenden Sie sich an den Concierge für die nächsten Schritte.',
                 disableCardButton: 'Chatten Sie mit Concierge',
@@ -5311,9 +5385,8 @@ const translations = {
                 `<muted-text-label>Um den kontinuierlichen Abgleich zu aktivieren, aktivieren Sie bitte die <a href="${accountingAdvancedSettingsLink}">automatische Synchronisierung</a> für ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Wählen Sie das Bankkonto, gegen das Ihre Expensify Card-Zahlungen abgeglichen werden sollen.',
-                accountMatches: 'Stellen Sie sicher, dass dieses Konto mit Ihrem übereinstimmt',
-                settlementAccount: 'Expensify-Kartenabrechnungskonto',
-                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `(endend mit ${lastFourPAN}), damit die kontinuierliche Abstimmung ordnungsgemäß funktioniert.`,
+                settlementAccountReconciliation: ({settlementAccountUrl, lastFourPAN}: SettlementAccountReconciliationParams) =>
+                    `Stellen Sie sicher, dass dieses Konto mit Ihrem übereinstimmt <a href="${settlementAccountUrl}">Expensify Card-Kartenabrechnungskonto</a> (endend mit ${lastFourPAN}), damit die kontinuierliche Abstimmung ordnungsgemäß funktioniert.`,
             },
         },
         export: {
@@ -5555,6 +5628,11 @@ const translations = {
                 description:
                     'Expensify Travel ist eine neue Plattform für die Buchung und Verwaltung von Geschäftsreisen, die es Mitgliedern ermöglicht, Unterkünfte, Flüge, Transportmittel und mehr zu buchen.',
                 onlyAvailableOnPlan: 'Reisen ist im Collect-Plan verfügbar, beginnend bei',
+            },
+            reports: {
+                title: 'Berichte',
+                description: 'Berichte ermöglichen es Ihnen, Ausgaben für eine einfachere Verfolgung und Organisation zu gruppieren.',
+                onlyAvailableOnPlan: 'Berichte sind im Collect-Plan verfügbar, beginnend bei ',
             },
             multiLevelTags: {
                 title: 'Mehrstufige Tags',
@@ -6207,8 +6285,6 @@ const translations = {
         groupBy: 'Gruppe nach',
         moneyRequestReport: {
             emptyStateTitle: 'Dieser Bericht enthält keine Ausgaben.',
-            emptyStateSubtitle:
-                'Sie können diesem Bericht Ausgaben hinzufügen,\n indem Sie auf die Schaltfläche unten klicken oder die Option „Ausgabe hinzufügen“ im Menü „Mehr“ oben verwenden.',
         },
         noCategory: 'Keine Kategorie',
         noTag: 'Kein Tag',
@@ -6333,8 +6409,8 @@ const translations = {
         noActivityYet: 'Noch keine Aktivität',
         actions: {
             type: {
-                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `geändert ${fieldName} von ${oldValue} zu ${newValue}`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `${fieldName} in ${newValue} geändert`,
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `hat ${fieldName} in "${newValue}" geändert (zuvor "${oldValue}")`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `hat ${fieldName} auf "${newValue}" gesetzt`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `Arbeitsbereich geändert${fromPolicyName ? ` (zuvor ${fromPolicyName})` : ''}`;
@@ -7138,6 +7214,7 @@ const translations = {
             isWaitingForAssigneeToCompleteAction: 'Wartet darauf, dass der Zuständige die Aktion abschließt.',
             hasChildReportAwaitingAction: 'Hat einen untergeordneten Bericht, der auf eine Aktion wartet',
             hasMissingInvoiceBankAccount: 'Fehlendes Rechnungsbankkonto',
+            hasUnresolvedCardFraudAlert: 'Hat eine ungelöste Karten-Fraud-Warnung',
         },
         reasonRBR: {
             hasErrors: 'Hat Fehler in den Berichtsdaten oder Berichtsaktionen',
@@ -7200,7 +7277,7 @@ const translations = {
         book: {
             title: 'Anruf planen',
             description: 'Finden Sie eine Zeit, die für Sie passt.',
-            slots: 'Verfügbare Zeiten für',
+            slots: ({date}: {date: string}) => `<muted-text>Verfügbare Zeiten für <strong>${date}</strong></muted-text>`,
         },
         confirmation: {
             title: 'Anruf bestätigen',
@@ -7251,6 +7328,13 @@ const translations = {
         expenseLevelExport: 'Alle Daten - Ausgabenebene',
         exportInProgress: 'Export läuft',
         conciergeWillSend: 'Concierge sendet dir die Datei in Kürze.',
+    },
+    avatarPage: {
+        title: 'Profilbild bearbeiten',
+        upload: 'Hochladen',
+        uploadPhoto: 'Foto hochladen',
+        selectAvatar: 'Avatar auswählen',
+        chooseCustomAvatar: 'Oder wählen Sie einen eigenen Avatar',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

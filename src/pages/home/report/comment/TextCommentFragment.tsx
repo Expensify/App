@@ -120,7 +120,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                     style={[
                         styles.ltr,
                         style,
-                        styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
+                        styleAsDeleted ? styles.offlineFeedbackDeleted : undefined,
                         styleAsMuted ? styles.colorMuted : undefined,
                         !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
                     ]}
@@ -131,7 +131,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                         containsOnlyEmojis ? styles.onlyEmojisText : undefined,
                         styles.ltr,
                         style,
-                        styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
+                        styleAsDeleted ? styles.offlineFeedbackDeleted : undefined,
                         styleAsMuted ? styles.colorMuted : undefined,
                         !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
                         containsOnlyCustomEmoji && styles.customEmojiFont,
@@ -146,7 +146,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                     <Text
                         fontSize={variables.fontSizeSmall}
                         color={theme.textSupporting}
-                        style={[styles.editedLabelStyles, styleAsDeleted && styles.offlineFeedback.deleted, style]}
+                        style={[styles.editedLabelStyles, styleAsDeleted && styles.offlineFeedbackDeleted, style]}
                     >
                         {translate('reportActionCompose.edited')}
                     </Text>

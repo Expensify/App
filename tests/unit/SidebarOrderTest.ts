@@ -3,6 +3,7 @@ import {screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {addComment} from '@libs/actions/Report';
 import DateUtils from '@libs/DateUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
@@ -40,6 +41,19 @@ function assertSidebarOptionsAlphabetical() {
     expect(thirdElement).toHaveTextContent('Email Three');
     expect(fourthElement).toHaveTextContent('Email Two');
 }
+// Mock components to prevent act() warnings from state updates during render
+jest.mock('@src/components/ReportActionAvatars', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const React = require('react');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        return React.createElement(View, {
+            testID: 'MockedReportActionAvatars',
+        });
+    };
+});
 
 describe('Sidebar', () => {
     beforeAll(() => {
@@ -71,6 +85,7 @@ describe('Sidebar', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Then it should render with the empty state message and not show the reports list
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(screen.getByText(translateLocal('common.emptyLHN.title'))).toBeOnTheScreen();
             expect(screen.queryByTestId('lhn-options-list')).not.toBeOnTheScreen();
         });
@@ -156,6 +171,7 @@ describe('Sidebar', () => {
 
                     // Then the component should be rendered with the mostly recently updated report first
                     .then(() => {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
@@ -209,7 +225,7 @@ describe('Sidebar', () => {
                     .then(() => {
                         const pencilIcon = screen.queryAllByTestId('Pencil Icon');
                         expect(pencilIcon).toHaveLength(1);
-
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
@@ -316,6 +332,7 @@ describe('Sidebar', () => {
 
                     // Then the order of the reports should be 4 > 3 > 2 > 1
                     .then(() => {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
@@ -390,6 +407,7 @@ describe('Sidebar', () => {
 
                     // Then the order of the reports should be 4 > 3 > 2 > 1
                     .then(() => {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
@@ -470,6 +488,7 @@ describe('Sidebar', () => {
 
                     // Then the order of the reports should be 4 > 3 > 2 > 1
                     .then(() => {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
@@ -530,6 +549,7 @@ describe('Sidebar', () => {
                     // Then the order of the reports should be 2 > 3 > 1
                     //                                         ^--- (2 goes to the front and pushes 3 down)
                     .then(() => {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
@@ -696,6 +716,7 @@ describe('Sidebar', () => {
                     // there is a pencil icon
                     // there is a pinned icon
                     .then(() => {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
@@ -751,6 +772,7 @@ describe('Sidebar', () => {
 
                     // Then the reports are in alphabetical order
                     .then(() => {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
@@ -814,6 +836,7 @@ describe('Sidebar', () => {
 
                     // Then the reports are in alphabetical order
                     .then(() => {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
@@ -886,6 +909,7 @@ describe('Sidebar', () => {
 
                     // Then the first report is in last position
                     .then(() => {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
@@ -929,6 +953,7 @@ describe('Sidebar', () => {
 
                     // Then the reports are ordered alphabetically since their lastVisibleActionCreated are the same
                     .then(() => {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
@@ -969,6 +994,7 @@ describe('Sidebar', () => {
 
                     // Then the reports are in alphabetical order
                     .then(() => {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
@@ -1033,6 +1059,7 @@ describe('Sidebar', () => {
 
                     // Then the first report is in last position
                     .then(() => {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
