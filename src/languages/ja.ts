@@ -3473,6 +3473,8 @@ ${date} - ${merchant}に${amount}`,
         verifyCompany: {
             title: '今日から旅行を始めましょう！',
             message: `旅行のデモを取得し、御社向けに有効化するには、アカウントマネージャーまたはsalesteam@expensify.comにご連絡ください。`,
+            confirmText: '了解しました。',
+            conciergeMessage: ({domain}: {domain: string}) => `ドメイン: ${domain} のトラベル有効化に失敗しました。このドメインのトラベルを確認して有効にしてください。`,
         },
         updates: {
             bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
