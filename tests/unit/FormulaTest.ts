@@ -180,6 +180,11 @@ describe('CustomFormula', () => {
             expect(result).toBe('2025-01-08'); // Should use oldest transaction date (2025-01-08)
         });
 
+        test('should compute enddate formula using transactions', () => {
+            const result = compute('{report:enddate}', mockContext);
+            expect(result).toBe('2025-01-14'); // Should use newest transaction date (2025-01-14)
+        });
+
         test('should compute created formula using report actions', () => {
             const result = compute('{report:created}', mockContext);
             expect(result).toBe('2025-01-10'); // Should use oldest report action date (2025-01-10)
@@ -190,6 +195,11 @@ describe('CustomFormula', () => {
             expect(result).toBe('01/08/2025'); // Should use oldest transaction date with yyyy-MM-dd format
         });
 
+        test('should compute enddate with custom format', () => {
+            const result = compute('{report:enddate:MM/dd/yyyy}', mockContext);
+            expect(result).toBe('01/14/2025'); // Should use newest transaction date with MM/dd/yyyy format
+        });
+
         test('should compute created with custom format', () => {
             const result = compute('{report:created:MMMM dd, yyyy}', mockContext);
             expect(result).toBe('January 10, 2025'); // Should use oldest report action date with MMMM dd, yyyy format
@@ -198,6 +208,11 @@ describe('CustomFormula', () => {
         test('should compute startdate with short month format', () => {
             const result = compute('{report:startdate:dd MMM yyyy}', mockContext);
             expect(result).toBe('08 Jan 2025'); // Should use oldest transaction date with dd MMM yyyy format
+        });
+
+        test('should compute enddate with short month format', () => {
+            const result = compute('{report:enddate:dd MMM yyyy}', mockContext);
+            expect(result).toBe('14 Jan 2025'); // Should use newest transaction date with dd MMM yyyy format
         });
 
         test('should compute policy name', () => {
@@ -231,6 +246,100 @@ describe('CustomFormula', () => {
         test('should preserve exact spacing around formula parts', () => {
             const result = compute('Report with type after 4 spaces   {report:type}-and no space after computed part', mockContext);
             expect(result).toBe('Report with type after 4 spaces   Expense Report-and no space after computed part');
+        });
+    });
+
+    describe('Function Modifiers', () => {
+        const mockContext: FormulaContext = {
+            report: {
+                reportID: 'report123456789',
+                reportName: '',
+                type: 'expense',
+                total: -10000, // -$100.00
+                currency: 'USD',
+                lastVisibleActionCreated: '2025-01-15T10:30:00Z',
+                policyID: 'policy1',
+            } as Report,
+            policy: {
+                name: 'Engineering Department Rules',
+            } as Policy,
+        };
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        describe('frontpart modifier', () => {
+            test('should extract front part of email', () => {
+                const result = compute('{report:submit:from:email|frontpart}', mockContext);
+                // Submit part extraction not implemented yet; for now, it returns the definition
+                // Once implemented, this should return 'frontpart' of the email
+                expect(result).toBe('{report:submit:from:email|frontpart}');
+            });
+
+            test('should extract first word from non-email text', () => {
+                const result = compute('{report:policyname|frontpart}', mockContext);
+                expect(result).toBe('Engineering'); // First word of "Engineering Department Rules"
+            });
+
+            test('should handle empty strings', () => {
+                const contextWithEmpty: FormulaContext = {
+                    report: {} as Report,
+                    policy: {name: ''} as Policy,
+                };
+                const result = compute('{report:policyname|frontpart}', contextWithEmpty);
+                expect(result).toBe('{report:policyname|frontpart}'); // Falls back to formula definition
+            });
+        });
+
+        describe('domain modifier', () => {
+            test('should extract domain from email', () => {
+                const result = compute('{report:submit:from:email|domain}', mockContext);
+                // Submit part extraction not implemented yet; for now, it returns the definition
+                // Once implemented, this should return 'domain' of the email
+                expect(result).toBe('');
+            });
+
+            test('should return empty for non-email text', () => {
+                const result = compute('{report:policyname|domain}', mockContext);
+                expect(result).toBe(''); // "Engineering Department Rules" has no @ symbol
+            });
+
+            test('should handle empty strings', () => {
+                const contextWithEmpty: FormulaContext = {
+                    report: {} as Report,
+                    policy: {name: ''} as Policy,
+                };
+                const result = compute('{report:policyname|domain}', contextWithEmpty);
+                expect(result).toBe(''); // Empty policy name
+            });
+        });
+
+        describe('substr modifier', () => {
+            test('should extract substring with start and length', () => {
+                const result = compute('{report:policyname|substr:0:11}', mockContext);
+                expect(result).toBe('Engineering'); // First 11 characters of "Engineering Department Rules"
+            });
+
+            test('should extract substring with only start position', () => {
+                const result = compute('{report:policyname|substr:12}', mockContext);
+                expect(result).toBe('Department Rules'); // From position 12 to end
+            });
+
+            test('should handle start position beyond string length', () => {
+                const result = compute('{report:policyname|substr:50:10}', mockContext);
+                expect(result).toBe(''); // Start position 50 is beyond string length
+            });
+
+            test('should handle length larger than remaining string', () => {
+                const result = compute('{report:policyname|substr:23:50}', mockContext);
+                expect(result).toBe('Rules'); // Only remaining characters
+            });
+
+            test('should handle invalid length parameter', () => {
+                const result = compute('{report:policyname|substr:0:abc}', mockContext);
+                expect(result).toBe(''); // Invalid length, returns empty
+            });
         });
     });
 
@@ -272,6 +381,18 @@ describe('CustomFormula', () => {
             expect(result).toBe(expected);
         });
 
+        test('should handle missing transactions for enddate', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+            const context: FormulaContext = {
+                report: {reportID: '123'} as Report,
+                policy: null as unknown as Policy,
+            };
+            const today = new Date();
+            const expected = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            const result = compute('{report:enddate}', context);
+            expect(result).toBe(expected);
+        });
+
         test('should call getReportTransactions with correct reportID for startdate', () => {
             const context: FormulaContext = {
                 report: {reportID: 'test-report-123'} as Report,
@@ -290,6 +411,41 @@ describe('CustomFormula', () => {
 
             compute('{report:created}', context);
             expect(mockReportActionsUtils.getAllReportActions).toHaveBeenCalledWith('test-report-456');
+        });
+
+        test('should skip partial transactions (empty merchant)', () => {
+            const mockTransactions = [
+                {
+                    transactionID: 'trans1',
+                    created: '2025-01-15T12:00:00Z',
+                    amount: 5000,
+                    merchant: 'ACME Ltd.',
+                },
+                {
+                    transactionID: 'trans2',
+                    created: '2025-01-08T16:45:00Z', // Older but partial
+                    amount: 3000,
+                    merchant: '', // Empty merchant = partial
+                },
+                {
+                    transactionID: 'trans3',
+                    created: '2025-01-12T09:15:00Z', // Should be oldest valid
+                    amount: 2000,
+                    merchant: 'Gamma Inc.',
+                },
+            ] as Transaction[];
+
+            mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
+            const context: FormulaContext = {
+                report: {reportID: 'test-report-123'} as Report,
+                policy: null as unknown as Policy,
+            };
+
+            const result = compute('{report:startdate}', context);
+            expect(result).toBe('2025-01-12');
+
+            const endResult = compute('{report:enddate}', context);
+            expect(endResult).toBe('2025-01-15');
         });
 
         test('should skip partial transactions (zero amount)', () => {
@@ -323,6 +479,9 @@ describe('CustomFormula', () => {
 
             const result = compute('{report:startdate}', context);
             expect(result).toBe('2025-01-12');
+
+            const endResult = compute('{report:enddate}', context);
+            expect(endResult).toBe('2025-01-15');
         });
     });
 });

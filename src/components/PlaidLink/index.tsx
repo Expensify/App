@@ -1,11 +1,12 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link';
 import {usePlaidLink} from 'react-plaid-link';
-import useTheme from '@hooks/useTheme';
+import ActivityIndicator from '@components/ActivityIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari, isSafari} from '@libs/Browser';
 import Log from '@libs/Log';
+import CONST from '@src/CONST';
 import type PlaidLinkProps from './types';
 
 // Helper to remove the state added by Plaid on Safari after the Plaid flow ends.
@@ -20,7 +21,6 @@ function clearSafariHistoryState() {
 
 function PlaidLink({token, onSuccess = () => {}, onError = () => {}, onExit = () => {}, onEvent, receivedRedirectURI}: PlaidLinkProps) {
     const [isPlaidLoaded, setIsPlaidLoaded] = useState(false);
-    const theme = useTheme();
     const styles = useThemeStyles();
     const successCallback = useCallback(
         (publicToken: string, metadata: PlaidLinkOnSuccessMetadata) => {
@@ -62,16 +62,13 @@ function PlaidLink({token, onSuccess = () => {}, onError = () => {}, onExit = ()
         if (!isPlaidLoaded) {
             return;
         }
-
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         open();
     }, [ready, error, isPlaidLoaded, open, onError]);
 
     return (
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-            <ActivityIndicator
-                color={theme.spinner}
-                size="large"
-            />
+            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
         </View>
     );
 }

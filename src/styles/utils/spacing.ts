@@ -147,8 +147,20 @@ export default {
         marginRight: 20,
     },
 
+    mr6: {
+        marginRight: 24,
+    },
+
+    mr7: {
+        marginRight: 28,
+    },
+
     mr8: {
         marginRight: 32,
+    },
+
+    mr10: {
+        marginRight: 40,
     },
 
     mrn2: {
@@ -783,10 +795,6 @@ export default {
         minHeight: 20,
     },
 
-    minHeight7: {
-        minHeight: 28,
-    },
-
     minHeight22: {
         minHeight: 88,
     },
@@ -795,7 +803,14 @@ export default {
         minHeight: 260,
     },
 
+    minWidth18: {
+        minWidth: 72,
+    },
+
     maxHeight5: {
         maxHeight: 20,
+    },
+    maxHeight100Percentage: {
+        maxHeight: '100%',
     },
 } satisfies Record<string, ViewStyle>;

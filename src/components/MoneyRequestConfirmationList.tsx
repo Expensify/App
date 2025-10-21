@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
@@ -47,7 +48,6 @@ import {
     getTaxValue,
     hasMissingSmartscanFields,
     hasRoute as hasRouteUtil,
-    isCustomUnitRateIDForP2P as isCustomUnitRateIDForP2PUtil,
     isMerchantMissing,
     isScanRequest as isScanRequestUtil,
 } from '@libs/TransactionUtils';
@@ -70,9 +70,9 @@ import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
-import SelectionList from './SelectionList';
-import type {SectionListDataType} from './SelectionList/types';
-import UserListItem from './SelectionList/UserListItem';
+import SelectionList from './SelectionListWithSections';
+import type {SectionListDataType} from './SelectionListWithSections/types';
+import UserListItem from './SelectionListWithSections/UserListItem';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
@@ -198,6 +198,8 @@ type MoneyRequestConfirmationListProps = {
 
 type MoneyRequestConfirmationListItem = Participant | OptionData;
 
+const mileageRateSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getDefaultMileageRate(policy);
+
 function MoneyRequestConfirmationList({
     transaction,
     onSendMoney,
@@ -244,11 +246,11 @@ function MoneyRequestConfirmationList({
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {canBeMissing: true});
     const [defaultMileageRateDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {
-        selector: (selectedPolicy) => DistanceRequestUtils.getDefaultMileageRate(selectedPolicy),
+        selector: mileageRateSelector,
         canBeMissing: true,
     });
     const [defaultMileageRateReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        selector: (selectedPolicy) => DistanceRequestUtils.getDefaultMileageRate(selectedPolicy),
+        selector: mileageRateSelector,
         canBeMissing: true,
     });
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`, {canBeMissing: true});
@@ -281,6 +283,7 @@ function MoneyRequestConfirmationList({
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -289,7 +292,6 @@ function MoneyRequestConfirmationList({
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = useMemo(() => isScanRequestUtil(transaction), [transaction]);
     const isCreateExpenseFlow = !!transaction?.isFromGlobalCreate && !isPerDiemRequest;
-    const isCustomUnitRateIDForP2P = isCustomUnitRateIDForP2PUtil(transaction);
 
     const transactionID = transaction?.transactionID;
     const customUnitRateID = getRateID(transaction);
@@ -324,7 +326,7 @@ function MoneyRequestConfirmationList({
     // A flag for showing the categories field
     const shouldShowCategories = (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
-    const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest && !isTypeSend && !isPerDiemRequest;
+    const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest;
 
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
@@ -448,26 +450,9 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        if (isCustomUnitRateIDForP2P && DistanceRequestUtils.getDefaultMileageRate(policy)) {
-            const defaultMileageRatePolicy = DistanceRequestUtils.getDefaultMileageRate(policy);
-            setCustomUnitRateID(transactionID, defaultMileageRatePolicy?.customUnitRateID);
-            return;
-        }
-
         // If none of the above conditions are met, display the rate error
         setFormError(errorKey);
-    }, [
-        isDistanceRequest,
-        isPolicyExpenseChat,
-        transactionID,
-        mileageRate,
-        customUnitRateID,
-        policy,
-        isMovingTransactionFromTrackExpense,
-        setFormError,
-        clearFormErrors,
-        isCustomUnitRateIDForP2P,
-    ]);
+    }, [isDistanceRequest, isPolicyExpenseChat, transactionID, mileageRate, customUnitRateID, policy, isMovingTransactionFromTrackExpense, setFormError, clearFormErrors]);
 
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
     const isFirstUpdatedDistanceAmount = useRef(false);
@@ -619,7 +604,7 @@ function MoneyRequestConfirmationList({
     );
 
     useEffect(() => {
-        if (!isTypeSplit || !transaction?.splitShares) {
+        if (!isTypeSplit || !transaction?.splitShares || !isFocused) {
             return;
         }
 
@@ -716,7 +701,7 @@ function MoneyRequestConfirmationList({
                     onFormatAmount={convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID, Number(value))}
                     maxLength={formattedTotalAmount.length + 1}
-                    contentWidth={(formattedTotalAmount.length + 1) * 8}
+                    contentWidth={(formattedTotalAmount.length + 1) * CONST.CHARACTER_WIDTH}
                     shouldApplyPaddingToContainer
                     shouldUseDefaultLineHeightForPrefix={false}
                     shouldWrapInputInContainer={false}
@@ -809,8 +794,8 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isInteractive: isCreateExpenseFlow && !isTestReceipt,
-                shouldShowRightIcon: isCreateExpenseFlow && !isTestReceipt,
+                isInteractive: isCreateExpenseFlow && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+                shouldShowRightIcon: isCreateExpenseFlow && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
             }));
             options.push({
                 title: translate('common.to'),
@@ -820,7 +805,18 @@ function MoneyRequestConfirmationList({
         }
 
         return options;
-    }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants, isCreateExpenseFlow, isTestReceipt]);
+    }, [
+        isTypeSplit,
+        translate,
+        payeePersonalDetails,
+        getSplitSectionHeader,
+        splitParticipants,
+        selectedParticipants,
+        isCreateExpenseFlow,
+        isTestReceipt,
+        isRestrictedToPreferredPolicy,
+        isTypeInvoice,
+    ]);
 
     useEffect(() => {
         if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat) || !transactionID || isReadOnly) {
@@ -1005,6 +1001,7 @@ function MoneyRequestConfirmationList({
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     blurActiveElement();
                 });
@@ -1034,7 +1031,7 @@ function MoneyRequestConfirmationList({
             <SettlementButton
                 pressOnEnter
                 onPress={confirm}
-                enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                 chatReportID={reportID}
                 shouldShowPersonalBankAccountOption
                 currency={iouCurrencyCode}
@@ -1063,16 +1060,30 @@ function MoneyRequestConfirmationList({
                         style={styles.mb3}
                     />
                 )}
-                <ButtonWithDropdownMenu
-                    pressOnEnter
-                    onPress={(event, value) => confirm(value as PaymentMethodType)}
-                    options={splitOrRequestOptions}
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                    enterKeyEventListenerPriority={1}
-                    useKeyboardShortcuts
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    isLoading={isConfirmed || isConfirming}
-                />
+                <EducationalTooltip
+                    shouldRender={shouldShowProductTrainingTooltip}
+                    renderTooltipContent={renderProductTrainingTooltip}
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    }}
+                    wrapperStyle={styles.productTrainingTooltipWrapper}
+                    shouldHideOnNavigate
+                    shiftVertical={-10}
+                >
+                    <View>
+                        <ButtonWithDropdownMenu
+                            pressOnEnter
+                            onPress={(event, value) => confirm(value as PaymentMethodType)}
+                            options={splitOrRequestOptions}
+                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                            enterKeyEventListenerPriority={1}
+                            useKeyboardShortcuts
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            isLoading={isConfirmed || isConfirming}
+                        />
+                    </View>
+                </EducationalTooltip>
             </>
         );
 
@@ -1085,20 +1096,7 @@ function MoneyRequestConfirmationList({
                         message={errorMessage}
                     />
                 )}
-
-                <EducationalTooltip
-                    shouldRender={shouldShowProductTrainingTooltip}
-                    renderTooltipContent={renderProductTrainingTooltip}
-                    anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                    }}
-                    wrapperStyle={styles.productTrainingTooltipWrapper}
-                    shouldHideOnNavigate
-                    shiftVertical={-10}
-                >
-                    <View>{button}</View>
-                </EducationalTooltip>
+                <View>{button}</View>
             </>
         );
     }, [
@@ -1129,7 +1127,6 @@ function MoneyRequestConfirmationList({
             currency={currency}
             didConfirm={!!didConfirm}
             distance={distance}
-            rawAmount={amountToBeUsed}
             formattedAmount={formattedAmount}
             formattedAmountPerAttendee={formattedAmountPerAttendee}
             formError={formError}

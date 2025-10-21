@@ -15,9 +15,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {FallbackAvatar} from './Icon/Expensicons';
 import {usePersonalDetails} from './OnyxListItemProvider';
-import SelectionList from './SelectionList';
-import InviteMemberListItem from './SelectionList/InviteMemberListItem';
-import type {Section} from './SelectionList/types';
+import SelectionList from './SelectionListWithSections';
+import InviteMemberListItem from './SelectionListWithSections/InviteMemberListItem';
+import type {Section} from './SelectionListWithSections/types';
 
 type SelectionListApprover = {
     text: string;

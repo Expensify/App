@@ -15,14 +15,6 @@ import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-let currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
-Onyx.connect({
-    key: ONYXKEYS.APPROVAL_WORKFLOW,
-    callback: (approvalWorkflow) => {
-        currentApprovalWorkflow = approvalWorkflow;
-    },
-});
-
 let allPolicies: OnyxCollection<Policy>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -45,6 +37,18 @@ Onyx.connect({
         personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
     },
 });
+
+type SetApprovalWorkflowApproverParams = {
+    approver: Approver;
+    approverIndex: number;
+    policyID: string;
+    currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
+};
+
+type ClearApprovalWorkflowApproverParams = {
+    approverIndex: number;
+    currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
+};
 
 function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
@@ -94,7 +98,7 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                employeeList: Object.fromEntries(Object.keys(updatedEmployees).map((key) => [key, {pendingAction: null}])),
+                employeeList: Object.fromEntries(Object.keys(updatedEmployees).map((key) => [key, {pendingAction: null, pendingFields: null}])),
             },
         },
     ];
@@ -119,6 +123,7 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         type: CONST.APPROVAL_WORKFLOW.TYPE.UPDATE,
         membersToRemove,
         approversToRemove,
+        defaultApprover: newDefaultApprover ?? previousDefaultApprover ?? '',
     });
 
     // If there are no changes to the employees list, we can exit early
@@ -240,7 +245,7 @@ function setApprovalWorkflowMembers(members: Member[]) {
  * @param approverIndex - The index of the approver to set
  * @param policyID - The ID of the policy
  */
-function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, policyID: string) {
+function setApprovalWorkflowApprover({approver, approverIndex, policyID, currentApprovalWorkflow}: SetApprovalWorkflowApproverParams) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
     if (!currentApprovalWorkflow || !policy?.employeeList) {
@@ -282,7 +287,7 @@ function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, 
 }
 
 /** Clear one approver at the specified index in the approval workflow that is currently edited */
-function clearApprovalWorkflowApprover(approverIndex: number) {
+function clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow}: ClearApprovalWorkflowApproverParams) {
     if (!currentApprovalWorkflow) {
         return;
     }
