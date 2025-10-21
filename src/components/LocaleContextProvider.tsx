@@ -7,7 +7,6 @@ import DateUtils from '@libs/DateUtils';
 import {buildEmojisTrie} from '@libs/EmojiTrie';
 import {fromLocaleDigit as fromLocaleDigitLocaleDigitUtils, toLocaleDigit as toLocaleDigitLocaleDigitUtils, toLocaleOrdinal as toLocaleOrdinalLocaleDigitUtils} from '@libs/LocaleDigitUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {getDevicePreferredLocale, translate as translateLocalize} from '@libs/Localize';
 import localeEventCallback from '@libs/Localize/localeEventCallback';
 import {format} from '@libs/NumberFormatUtils';
@@ -137,7 +136,6 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const translate = useMemo<LocaleContextProps['translate']>(
         () =>
             (path, ...parameters) =>
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocalize(currentLocale, path, ...parameters),
         [currentLocale],
     );
@@ -182,7 +180,6 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
             const date = new Date(datetime);
             const formattedDate = formatDate(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
             const formattedHour = formatDate(date, CONST.DATE.LOCAL_TIME_FORMAT);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const at = translateLocalize(currentLocale, 'common.conjunctionAt');
             return `${formattedDate} ${at} ${formattedHour}`;
         },
