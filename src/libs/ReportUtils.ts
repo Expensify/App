@@ -11670,10 +11670,9 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
 }
 
 function canRejectReportAction(currentUserLogin: string, report: Report, policy?: Policy): boolean {
-    // if (!Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_REJECT, allBetas)) {
-    //     console.log('cannot reject')
-    //     return false;
-    // }
+    if (!Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_REJECT, allBetas)) {
+        return false;
+    }
 
     const isReportApprover = isApproverUtils(policy, currentUserLogin);
     const isReportBeingProcessed = isProcessingReport(report);
@@ -11682,7 +11681,6 @@ function canRejectReportAction(currentUserLogin: string, report: Report, policy?
     const isCurrentUserManager = report?.managerID === currentUserAccountID;
 
     const userCanReject = isReportApprover && isCurrentUserManager;
-    console.log('can reject?', policy, currentUserLogin, report, currentUserAccountID)
 
     if (!userCanReject) {
         return false; // must be approver or payer
