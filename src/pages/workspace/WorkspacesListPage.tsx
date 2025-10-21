@@ -127,7 +127,7 @@ function WorkspacesListPage() {
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: true});
-    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+    const {isRestrictedToPreferredPolicy, isRestrictedPolicyCreation} = usePreferredPolicy();
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
@@ -531,7 +531,7 @@ function WorkspacesListPage() {
     );
 
     const getHeaderButton = () => {
-        if (isRestrictedToPreferredPolicy) {
+        if (isRestrictedPolicyCreation) {
             return null;
         }
         return (
