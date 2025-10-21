@@ -673,6 +673,7 @@ const translations = {
         pinned: 'Épinglé',
         read: 'Lu',
         copyToClipboard: 'Copier dans le presse-papiers',
+        thisIsTakingLongerThanExpected: 'Cela prend plus de temps que prévu...',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -5393,8 +5394,8 @@ ${amount} pour ${merchant} - ${date}`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Choisissez le compte bancaire sur lequel les paiements de votre carte Expensify seront rapprochés.',
                 accountMatches: 'Assurez-vous que ce compte correspond à votre',
-                settlementAccount: 'Compte de règlement de la carte Expensify',
-                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `(terminant par ${lastFourPAN}) afin que la Réconciliation Continue fonctionne correctement.`,
+                settlementAccount: 'Compte de règlement pour Expensify Card',
+                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `(se terminant par ${lastFourPAN}) afin que le rapprochement continu fonctionne correctement.`, //_/\__/_/  \_,_/\__/\__/\_,_/
             },
         },
         export: {

@@ -673,6 +673,7 @@ const translations = {
         pinned: '固定済み',
         read: '既読',
         copyToClipboard: 'クリップボードにコピー',
+        thisIsTakingLongerThanExpected: '予想より時間がかかっています...',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -5347,9 +5348,9 @@ ${date} - ${merchant}に${amount}`,
                 `<muted-text-label>継続的な照合を有効にするため、${connectionName}の<a href="${accountingAdvancedSettingsLink}">自動同期</a>を有効にしてください。</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Expensifyカードの支払いを照合する銀行口座を選択してください。',
-                accountMatches: 'このアカウントがあなたのものと一致していることを確認してください',
-                settlementAccount: 'Expensifyカード決済口座',
-                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `（${lastFourPAN}で終わる）ため、継続的な調整が正しく機能します。`,
+                accountMatches: 'Make sure this account matches your',
+                settlementAccount: 'Expensify Card の決済口座',
+                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `（末尾が${lastFourPAN}）で、Continuous Reconciliation が正しく機能します。`,
             },
         },
         export: {

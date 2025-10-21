@@ -674,6 +674,7 @@ const translations = {
         pinned: '已固定',
         read: '已读',
         copyToClipboard: '复制到剪贴板',
+        thisIsTakingLongerThanExpected: '这花的时间比预期更长...',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -5286,9 +5287,9 @@ ${merchant}的${amount} - ${date}`,
                 `<muted-text-label>要启用持续对账，请启用 ${connectionName} 的<a href="${accountingAdvancedSettingsLink}">自动同步</a>功能。</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: '选择用于对账您的 Expensify Card 支付的银行账户。',
-                accountMatches: '确保此账户与您的账户匹配',
+                accountMatches: '请确保此账户与您的',
                 settlementAccount: 'Expensify Card 结算账户',
-                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `（以 ${lastFourPAN} 结尾）以便持续对账正常工作。`,
+                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `（以${lastFourPAN}结尾），以便持续对账功能正常运行。`,
             },
         },
         export: {

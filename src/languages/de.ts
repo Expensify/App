@@ -675,6 +675,7 @@ const translations = {
         pinned: 'Angeheftet',
         read: 'Gelesen',
         copyToClipboard: 'In die Zwischenablage kopieren',
+        thisIsTakingLongerThanExpected: 'Das dauert länger als erwartet...',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -5384,8 +5385,8 @@ ${amount} für ${merchant} - ${date}`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Wählen Sie das Bankkonto, gegen das Ihre Expensify Card-Zahlungen abgeglichen werden sollen.',
                 accountMatches: 'Stellen Sie sicher, dass dieses Konto mit Ihrem übereinstimmt',
-                settlementAccount: 'Expensify-Kartenabrechnungskonto',
-                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `(endend mit ${lastFourPAN}), damit die kontinuierliche Abstimmung ordnungsgemäß funktioniert.`,
+                settlementAccount: 'Expensify Card-Abrechnungskonto',
+                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `(endet auf ${lastFourPAN}), damit Continuous Reconciliation ordnungsgemäß funktioniert.`,
             },
         },
         export: {
