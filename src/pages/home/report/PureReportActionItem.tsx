@@ -342,8 +342,8 @@ type PureReportActionItemProps = {
         reportAction: OnyxEntry<OnyxTypes.ReportAction>,
         resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
         formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+        isReportArchived: boolean | undefined,
         policy: OnyxEntry<OnyxTypes.Policy>,
-        isReportArchived: boolean,
     ) => void;
 
     /** Whether the provided report is a closed expense report with no expenses */
@@ -908,8 +908,8 @@ function PureReportActionItem({
                         action,
                         CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE,
                         formatPhoneNumber,
-                        policy,
                         isOriginalReportArchived,
+                        policy,
                     ),
                 isMediumSized: true,
             });
@@ -925,8 +925,8 @@ function PureReportActionItem({
                         action,
                         CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
                         formatPhoneNumber,
-                        policy,
                         isOriginalReportArchived,
+                        policy,
                     ),
                 isMediumSized: true,
             },
@@ -939,8 +939,8 @@ function PureReportActionItem({
                         action,
                         CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
                         formatPhoneNumber,
-                        policy,
                         isOriginalReportArchived,
+                        policy,
                     ),
                 isMediumSized: true,
             },
