@@ -1,5 +1,4 @@
 import {format as dateFnsFormat} from 'date-fns';
-import DateUtils from './DateUtils';
 
 /**
  * Get ordinal suffix for a day (st, nd, rd, th)
