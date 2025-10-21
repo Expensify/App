@@ -2,8 +2,8 @@ import React from 'react';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -41,11 +41,10 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
                     onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.SETTINGS_ADD_DELEGATE)}
                 />
                 <SelectionList
-                    isAlternateTextMultilineSupported
-                    alternateTextNumberOfLines={4}
-                    initiallyFocusedOptionKey={roleOptions.find((role) => role.isSelected)?.keyForList}
+                    alternateNumberOfSupportedLines={4}
+                    initiallyFocusedItemKey={roleOptions.find((role) => role.isSelected)?.keyForList}
                     shouldUpdateFocusedIndex
-                    headerContent={
+                    customListHeader={
                         <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
                             <>
                                 {translate('delegate.accessLevelDescription')}{' '}
@@ -65,7 +64,7 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
                         });
                         Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, option.value));
                     }}
-                    sections={[{data: roleOptions}]}
+                    data={roleOptions}
                     ListItem={RadioListItem}
                 />
             </DelegateNoAccessWrapper>
