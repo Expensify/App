@@ -44,6 +44,7 @@ type OnboardingTaskLinks = Partial<{
     integrationName: string;
     workspaceSettingsLink: string;
     workspaceCategoriesLink: string;
+    workspaceTagsLink: string;
     workspaceMoreFeaturesLink: string;
     workspaceMembersLink: string;
     workspaceAccountingLink: string;
@@ -110,6 +111,10 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     const isIndividual = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
     const isCurrentOnboardingPurposeManageTeam = currentOnboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
 
+    if (onboardingInitialPath.includes(ROUTES.TEST_DRIVE_MODAL_ROOT.route)) {
+        return `/${ROUTES.TEST_DRIVE_MODAL_ROOT.route}`;
+    }
+
     if (isVsb) {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
         Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, CONST.ONBOARDING_COMPANY_SIZE.MICRO);
@@ -151,7 +156,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     return onboardingInitialPath;
 }
 
-const getOnboardingMessages = (locale?: Locale) => {
+const getOnboardingMessages = (hasIntroSelected = false, locale?: Locale) => {
     const resolvedLocale = locale ?? IntlStore.getCurrentLocale();
     const testDrive = {
         ONBOARDING_TASK_NAME: translate(resolvedLocale, 'onboarding.testDrive.name', {}),
@@ -163,6 +168,13 @@ const getOnboardingMessages = (locale?: Locale) => {
             DESCRIPTION: translate(resolvedLocale, 'onboarding.testDrive.employeeFakeReceipt.description'),
             MERCHANT: "Tommy's Tires",
         },
+    };
+    const addExpenseApprovalsTask: OnboardingTask = {
+        type: CONST.ONBOARDING_TASK_TYPE.ADD_EXPENSE_APPROVALS,
+        autoCompleted: false,
+        title: () => translate(resolvedLocale, 'onboarding.tasks.addExpenseApprovalsTask.title'),
+        description: ({workspaceMoreFeaturesLink}) => translate(resolvedLocale, 'onboarding.tasks.addExpenseApprovalsTask.description', {workspaceMoreFeaturesLink}),
+        mediaAttributes: {},
     };
     const createReportTask: OnboardingTask = {
         type: CONST.ONBOARDING_TASK_TYPE.CREATE_REPORT,
@@ -270,15 +282,14 @@ const getOnboardingMessages = (locale?: Locale) => {
         type: CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS,
         autoCompleted: false,
         mediaAttributes: {},
-        title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) =>
-            translate(resolvedLocale, 'onboarding.tasks.setupCategoriesAndTags.title', {workspaceCategoriesLink, workspaceMoreFeaturesLink}),
+        title: ({workspaceCategoriesLink, workspaceTagsLink}) => translate(resolvedLocale, 'onboarding.tasks.setupCategoriesAndTags.title', {workspaceCategoriesLink, workspaceTagsLink}),
         description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
             translate(resolvedLocale, 'onboarding.tasks.setupCategoriesAndTags.description', {workspaceCategoriesLink, workspaceAccountingLink}),
     };
     const setupTagsTask: OnboardingTask = {
         type: CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS,
         autoCompleted: false,
-        title: ({workspaceMoreFeaturesLink}) => translate(resolvedLocale, 'onboarding.tasks.setupTagsTask.title', {workspaceMoreFeaturesLink}),
+        title: ({workspaceTagsLink}) => translate(resolvedLocale, 'onboarding.tasks.setupTagsTask.title', {workspaceTagsLink}),
         description: ({workspaceMoreFeaturesLink}) => translate(resolvedLocale, 'onboarding.tasks.setupTagsTask.description', {workspaceMoreFeaturesLink}),
         mediaAttributes: {
             [`${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4`]: `data-expensify-thumbnail-url="${CONST.CLOUDFRONT_URL}/images/walkthrough-tags.png" data-expensify-width="1920" data-expensify-height="1080"`,
@@ -336,9 +347,19 @@ const getOnboardingMessages = (locale?: Locale) => {
         tasks: [testDriveEmployeeTask, trackExpenseTask],
     };
 
-    const onboardingMangeTeamMessage: OnboardingMessage = {
-        message: ({onboardingCompanySize}) => translate(resolvedLocale, 'onboarding.messages.onboardingMangeTeamMessage', {onboardingCompanySize}),
-        tasks: [createWorkspaceTask, testDriveAdminTask, addAccountingIntegrationTask, connectCorporateCardTask, inviteTeamTask, setupCategoriesAndTags, setupCategoriesTask, setupTagsTask],
+    const onboardingManageTeamMessage: OnboardingMessage = {
+        message: translate(resolvedLocale, 'onboarding.messages.onboardingManageTeamMessage', {hasIntroSelected}),
+        tasks: [
+            createWorkspaceTask,
+            testDriveAdminTask,
+            addAccountingIntegrationTask,
+            connectCorporateCardTask,
+            inviteTeamTask,
+            setupCategoriesAndTags,
+            setupCategoriesTask,
+            setupTagsTask,
+            addExpenseApprovalsTask,
+        ],
     };
 
     const onboardingTrackWorkspaceMessage: OnboardingMessage = {
@@ -376,7 +397,7 @@ const getOnboardingMessages = (locale?: Locale) => {
         onboardingMessages: {
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: onboardingEmployerOrSubmitMessage,
             [CONST.ONBOARDING_CHOICES.SUBMIT]: onboardingEmployerOrSubmitMessage,
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: onboardingMangeTeamMessage,
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: onboardingManageTeamMessage,
             [CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE]: onboardingTrackWorkspaceMessage,
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: onboardingPersonalSpendMessage,
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: onboardingChatSplitMessage,
@@ -393,5 +414,5 @@ const getOnboardingMessages = (locale?: Locale) => {
     };
 };
 
-export type {OnboardingMessage, OnboardingTask, OnboardingTaskLinks, OnboardingPurpose, OnboardingCompanySize};
+export type {OnboardingMessage, OnboardingTask, OnboardingTaskLinks, OnboardingPurpose, OnboardingCompanySize, GetOnboardingInitialPathParamsType};
 export {getOnboardingInitialPath, startOnboardingFlow, getOnboardingMessages};

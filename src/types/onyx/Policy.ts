@@ -127,45 +127,67 @@ type UberReceiptPartner = {
     /**
      * form data for uber partner
      */
-    connectFormData: {
-        /**
-         * fname for uber partner
-         */
-        fname?: string;
-        /**
-         * hash for uber partner
-         */
-        hash: string;
-        /**
-         * id for uber partner
-         */
-        id: string;
-        /**
-         * lname for uber partner
-         */
-        lname?: string;
-        /**
-         * name for uber partner
-         */
-        name: string;
-        /**
-         * query for uber partner
-         */
-        query: string;
-        /**
-         * requestID for uber partner
-         */
-        requestID?: string;
-    };
+    connectFormData: string;
+    /**
+     * auto invite for uber connection
+     */
+    autoInvite?: boolean;
+    /**
+     * auto remove for uber connection
+     */
+    autoRemove?: boolean;
+    /**
+     * Whether uber is enabled for user
+     */
+    enabled?: boolean;
+    /**
+     * organization id for connected uber
+     */
+    organizationID?: string;
+    /**
+     * name of the organization in uber
+     */
+    organizationName?: string;
+    /**
+     * account to import the receipts to
+     */
+    centralBillingAccountEmail?: string;
+
+    /**
+     * Mapping of workspace member email to Uber employee status
+     */
+    employees?: Record<
+        string,
+        OnyxCommon.OnyxValueWithOfflineFeedback<{
+            /**
+             * status of the employee
+             */
+            status?: string;
+            /** A list of errors keyed by microtime */
+            errors?: OnyxCommon.Errors | null;
+        }>
+    >;
+    /**
+     * Whether credentials are invalid
+     */
+    error?: string;
+    /**
+     * Collection of errors coming from BE
+     */
+    errors?: OnyxCommon.Errors;
+    /**
+     * Collection of form field errors
+     */
+    errorFields?: OnyxCommon.ErrorFields;
 };
 
 /** Policy Receipt partners */
-type ReceiptPartners = {
-    /**
-     * uber partner
-     */
-    [CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER]: UberReceiptPartner;
-};
+type ReceiptPartners = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Whether receipt partners are enabled */
+        enabled?: boolean;
+    } & Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<UberReceiptPartner>>
+>;
 
 /** Policy disabled fields */
 type DisabledFields = {
@@ -616,9 +638,7 @@ type XeroConnectionData = {
 type XeroMappingType = {
     /** TODO: Will be handled in another issue */
     customer: string;
-} & {
-    [key in `trackingCategory_${string}`]: string;
-};
+} & Record<`trackingCategory_${string}`, string>;
 
 /** Xero auto synchronization configs */
 type XeroAutoSyncConfig = {
@@ -1247,6 +1267,9 @@ type SageIntacctExportConfig = {
 
     /** Default vendor of reimbursable bill */
     reimbursableExpenseReportDefaultVendor: string;
+
+    /** Accounting method for Sage Intacct */
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
 /**
@@ -1357,6 +1380,9 @@ type QBDExportConfig = {
 
     /** Default vendor of non reimbursable bill */
     nonReimbursableBillDefaultVendor: string;
+
+    /** Accounting method for QBD */
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
 /**
@@ -1892,9 +1918,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Report Fields feature is enabled */
         areReportFieldsEnabled?: boolean;
 
-        /** Whether the Receipt Partners feature is enabled */
-        areReceiptPartnersEnabled?: boolean;
-
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
 
@@ -1964,6 +1987,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicate whether the Workspace plan can be downgraded */
         canDowngrade?: boolean;
 
+        /** Policy level user created in-app export templates */
+        exportLayouts?: Record<string, OnyxTypes.ExportTemplate>;
+
         /** Whether Attendee Tracking is enabled */
         isAttendeeTrackingEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
@@ -2011,6 +2037,7 @@ export type {
     Connections,
     SageIntacctOfflineStateKeys,
     ConnectionName,
+    ReceiptPartners,
     UberReceiptPartner,
     AllConnectionName,
     Tenant,

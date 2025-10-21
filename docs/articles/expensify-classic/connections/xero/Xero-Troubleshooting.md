@@ -4,7 +4,6 @@ description: Troubleshooting common Xero integration errors in Expensify, includ
 keywords: [Expensify Classic, Xero troubleshooting]
 ---
 
-<div id="expensify-classic" markdown="1">
    
 Synchronizing and exporting data between Expensify and Xero can streamline your financial processes, but occasionally, errors may occur due to discrepancies in settings, missing data, or configuration issues.
 
@@ -142,5 +141,4 @@ Use **Expense Rules** in Expensify to standardize merchant names. Learn more [he
 
 ---
 
-</div>
 

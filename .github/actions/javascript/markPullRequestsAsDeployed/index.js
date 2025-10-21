@@ -12727,13 +12727,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -12814,7 +12824,7 @@ async function commentStagingDeployPRs(prList, repoName, recentTags, getDeployMe
             if (error.status === 404) {
                 console.log(`Unable to comment on ${repoName} PR #${prNumber}. GitHub responded with 404.`);
             }
-            else if (repoName === CONST_1.default.MOBILE_EXPENSIFY_REPO && process.env.GITHUB_REPOSITORY !== CONST_1.default.APP_REPO) {
+            else if (repoName === CONST_1.default.MOBILE_EXPENSIFY_REPO && process.env.GITHUB_REPOSITORY !== `${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.APP_REPO}`) {
                 console.warn(`Unable to comment on ${repoName} PR #${prNumber} from forked repository. This is expected.`);
             }
             else {
@@ -12835,7 +12845,7 @@ async function run() {
     const webResult = getDeployTableMessage(core.getInput('WEB', { required: true }));
     const date = core.getInput('DATE');
     const note = core.getInput('NOTE');
-    function getDeployMessage(deployer, deployVerb, prTitle) {
+    function getDeployMessage(deployer, deployVerb) {
         let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
         message += ` by https://github.com/${deployer} in version: ${version} `;
         if (date) {
@@ -12845,11 +12855,6 @@ async function run() {
         message += `\n\nplatform | result\n---|---\n🖥 desktop 🖥|${desktopResult}`;
         message += `\n🕸 web 🕸|${webResult}`;
         message += `\n🤖 android 🤖|${androidResult}\n🍎 iOS 🍎|${iOSResult}`;
-        if (deployVerb === 'Cherry-picked' && !/no ?qa/gi.test(prTitle ?? '')) {
-            // eslint-disable-next-line max-len
-            message +=
-                '\n\n@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.';
-        }
         if (note) {
             message += `\n\n_Note:_ ${note}`;
         }
@@ -12874,9 +12879,13 @@ async function run() {
         for (const pr of prList) {
             await commentPR(pr, deployMessage);
         }
+        console.log(`✅ Added production deploy comment on ${prList.length} App PRs`);
         // Comment on Mobile-Expensify PRs as well
         for (const pr of mobileExpensifyPRList) {
             await commentPR(pr, deployMessage, CONST_1.default.MOBILE_EXPENSIFY_REPO);
+        }
+        if (mobileExpensifyPRList.length > 0) {
+            console.log(`✅ Added production deploy comment on ${mobileExpensifyPRList.length} Mobile-Expensify PRs`);
         }
         return;
     }
@@ -12897,7 +12906,7 @@ async function run() {
             mobileExpensifyRecentTags = response.data;
         }
         catch (error) {
-            if (process.env.GITHUB_REPOSITORY !== CONST_1.default.APP_REPO) {
+            if (process.env.GITHUB_REPOSITORY !== `${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.APP_REPO}`) {
                 console.warn('Unable to fetch Mobile-Expensify tags from forked repository. This is expected.');
             }
             else {
@@ -12907,7 +12916,11 @@ async function run() {
     }
     // Comment on the PRs
     await commentStagingDeployPRs(prList, CONST_1.default.APP_REPO, appRecentTags, getDeployMessage);
-    await commentStagingDeployPRs(mobileExpensifyPRList, CONST_1.default.MOBILE_EXPENSIFY_REPO, mobileExpensifyRecentTags, getDeployMessage);
+    console.log(`✅ Added staging deploy comment ${prList.length} App PRs`);
+    if (mobileExpensifyPRList.length > 0) {
+        await commentStagingDeployPRs(mobileExpensifyPRList, CONST_1.default.MOBILE_EXPENSIFY_REPO, mobileExpensifyRecentTags, getDeployMessage);
+        console.log(`✅ Completed staging deploy comment on ${mobileExpensifyPRList.length} Mobile-Expensify PRs`);
+    }
 }
 if (require.main === require.cache[eval('__filename')]) {
     run();
@@ -12938,15 +12951,27 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.convertToNumber = exports.getStringInput = exports.getJSONInput = void 0;
+exports.getJSONInput = getJSONInput;
+exports.getStringInput = getStringInput;
+exports.convertToNumber = convertToNumber;
 const core = __importStar(__nccwpck_require__(2186));
 /**
  * Safely parse a JSON input to a GitHub Action.
@@ -12963,7 +12988,6 @@ function getJSONInput(name, options, defaultValue) {
     }
     return defaultValue;
 }
-exports.getJSONInput = getJSONInput;
 /**
  * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
  */
@@ -12974,7 +12998,6 @@ function getStringInput(name, options, defaultValue) {
     }
     return input;
 }
-exports.getStringInput = getStringInput;
 /**
  * Converts a value to a number, returning 0 for non-numeric values.
  */
@@ -12991,7 +13014,6 @@ function convertToNumber(value) {
             return 0;
     }
 }
-exports.convertToNumber = convertToNumber;
 
 
 /***/ }),
@@ -13015,6 +13037,7 @@ const CONST = {
     LABELS: {
         STAGING_DEPLOY: 'StagingDeployCash',
         DEPLOY_BLOCKER: 'DeployBlockerCash',
+        LOCK_DEPLOY: '🔐 LockCashDeploys 🔐',
         INTERNAL_QA: 'InternalQA',
         HELP_WANTED: 'Help Wanted',
         CP_STAGING: 'CP Staging',
@@ -13088,13 +13111,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -13338,12 +13371,9 @@ class GithubUtils {
                     issueBody += `**Mobile-Expensify Changes:** https://github.com/${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.MOBILE_EXPENSIFY_REPO}/compare/production...staging\r\n`;
                 }
                 issueBody += '\r\n';
-                // Warn deployers about potential bugs with the new process
-                issueBody +=
-                    '> 💡 **Deployer FYI:** This checklist was generated using a new process. PR list from original method and detail logging can be found in the most recent [deploy workflow](https://github.com/Expensify/App/actions/workflows/deploy.yml) labeled `staging`, in the `createChecklist` action. Please tag @Julesssss with any issues.\r\n\r\n';
                 // PR list
                 if (sortedPRList.length > 0) {
-                    issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
+                    issueBody += '**This release contains changes from the following pull requests:**\r\n';
                     sortedPRList.forEach((URL) => {
                         issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
                         issueBody += ` ${URL}\r\n`;
@@ -13597,6 +13627,15 @@ class GithubUtils {
         }
         return Buffer.from(data.content, 'base64').toString('utf8');
     }
+    static async getPullRequestChangedSVGFileNames(pullRequestNumber) {
+        const files = this.paginate(this.octokit.pulls.listFiles, {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: pullRequestNumber,
+            per_page: 100,
+        }, (response) => response.data.filter((file) => file.filename.endsWith('.svg') && (file.status === 'added' || file.status === 'modified')).map((file) => file.filename));
+        return files;
+    }
     /**
      * Get commits between two tags via the GitHub API
      */
@@ -13657,6 +13696,21 @@ class GithubUtils {
             throw error;
         }
     }
+    static async getPullRequestDiff(pullRequestNumber) {
+        if (!this.internalOctokit) {
+            this.initOctokit();
+        }
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        const response = await this.internalOctokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: pullRequestNumber,
+            mediaType: {
+                format: 'diff',
+            },
+        });
+        return response.data;
+    }
 }
 exports["default"] = GithubUtils;
 
@@ -13687,11 +13741,10 @@ exports["default"] = arrayDifference;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.isEmptyObject = void 0;
+exports.isEmptyObject = isEmptyObject;
 function isEmptyObject(obj) {
     return Object.keys(obj ?? {}).length === 0;
 }
-exports.isEmptyObject = isEmptyObject;
 
 
 /***/ }),

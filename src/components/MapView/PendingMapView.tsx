@@ -23,7 +23,6 @@ function PendingMapView({title = '', subtitle = '', style, isSmallerIcon = false
                     title={title}
                     subtitle={subtitle}
                     subtitleStyle={styles.textSupporting}
-                    shouldShowLink={false}
                 />
             ) : (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>

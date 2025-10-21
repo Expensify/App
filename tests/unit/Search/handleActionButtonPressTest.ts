@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {TransactionReportGroupListItemType} from '@components/SelectionList/types';
+import type {TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LastPaymentMethod, SearchResults} from '@src/types/onyx';
@@ -13,6 +13,7 @@ const mockReportItemWithHold = {
     shouldAnimateInHighlight: false,
     accountID: 1206,
     action: 'approve',
+    allActions: ['approve'],
     chatReportID: '2108006919825366',
     created: '2024-12-04 23:18:33',
     currency: 'USD',
@@ -69,6 +70,7 @@ const mockReportItemWithHold = {
             },
             accountID: 1206,
             action: 'view',
+            allActions: ['view'],
             amount: -1200,
             canDelete: true,
             canHold: false,
@@ -132,14 +134,13 @@ const mockReportItemWithHold = {
             formattedMerchant: 'Qatar',
             date: '2024-12-04',
             shouldShowMerchant: true,
-            shouldShowCategory: true,
-            shouldShowTag: false,
-            shouldShowTax: false,
-            keyForList: '1049531721038862176',
             shouldShowYear: false,
+            keyForList: '1049531721038862176',
             isAmountColumnWide: false,
             isTaxAmountColumnWide: false,
             shouldAnimateInHighlight: false,
+            convertedAmount: 1200,
+            convertedCurrency: 'USD',
         },
         {
             report: {
@@ -147,6 +148,7 @@ const mockReportItemWithHold = {
             },
             accountID: 1206,
             action: 'view',
+            allActions: ['view'],
             amount: -12300,
             canDelete: true,
             canHold: true,
@@ -190,14 +192,13 @@ const mockReportItemWithHold = {
             formattedMerchant: 'Forbes',
             date: '2024-12-04',
             shouldShowMerchant: true,
-            shouldShowCategory: true,
-            shouldShowTag: false,
-            shouldShowTax: false,
-            keyForList: '5345995386715609966',
             shouldShowYear: false,
+            keyForList: '5345995386715609966',
             isAmountColumnWide: false,
             isTaxAmountColumnWide: false,
             shouldAnimateInHighlight: false,
+            convertedAmount: 1200,
+            convertedCurrency: 'USD',
         },
     ],
     isSelected: false,

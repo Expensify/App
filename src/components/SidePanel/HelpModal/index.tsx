@@ -1,3 +1,4 @@
+import {isRHPVisibleSelector} from '@selectors/Modal';
 import React, {useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
@@ -23,7 +24,7 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingTop, paddingBottom} = useSafeAreaPaddings();
 
-    const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => modal?.type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED, canBeMissing: true});
+    const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: isRHPVisibleSelector, canBeMissing: true});
     const uniqueModalId = useMemo(() => ComposerFocusManager.getId(), []);
 
     const onCloseSidePanelOnSmallScreens = () => {
@@ -47,18 +48,7 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
     // Web back button: push history state and close Side Panel on popstate
     useEffect(() => {
         ComposerFocusManager.resetReadyToFocus(uniqueModalId);
-        window.history.pushState({isSidePanelOpen: true}, '', null);
-        const handlePopState = () => {
-            if (isExtraLargeScreenWidth) {
-                return;
-            }
-
-            closeSidePanel();
-        };
-
-        window.addEventListener('popstate', handlePopState);
         return () => {
-            window.removeEventListener('popstate', handlePopState);
             ComposerFocusManager.setReadyToFocus(uniqueModalId);
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -79,7 +69,9 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
                     <ColorSchemeWrapper>
                         <Animated.View
                             style={[
-                                styles.sidePanelContent(shouldUseNarrowLayout, isExtraLargeScreenWidth),
+                                styles.sidePanelContent,
+                                styles.sidePanelContentWidth(shouldUseNarrowLayout),
+                                styles.sidePanelContentBorderWidth(isExtraLargeScreenWidth),
                                 {transform: [{translateX: sidePanelTranslateX.current}], paddingTop, paddingBottom},
                             ]}
                         >

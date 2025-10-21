@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import SelectionList from '@components/SelectionList';
-import MultiSelectListItem from '@components/SelectionList/MultiSelectListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -94,7 +94,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
 
     const applyChanges = useCallback(() => {
         onSaveSelection(selectedItems.map((item) => item.value).flat());
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [onSaveSelection, selectedItems]);
 
     const footerContent = useMemo(

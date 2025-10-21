@@ -4,7 +4,6 @@ description: Learn how to set up and manage multiple travel policies in Expensif
 keywords: [multi-policy, multiple travel policies, travel policy setup, travel policy management, expensify travel policies]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Set up multiple travel policies to manage different booking rules, traveler types, and approval workflows across your company. Whether for employees or external guests, flexible policy configurations give you precise control over your travel program.
 
@@ -63,4 +62,3 @@ We recommend creating Departments based on roles, regions, or teams. Then assign
 **Can a non-employee book their own travel?**  
 If the non-employee is a member of a workspace and they are added to a travel policy, then yes. However, if the employee does not have an Expensify account, they will not have a travel profile, and a travel arranger or admin must book on their behalf using the guest booking feature.
 
-</div>

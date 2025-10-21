@@ -1,9 +1,10 @@
+import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -17,6 +18,7 @@ import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
 const defaultListOptions = {
     recentReports: [],
@@ -46,33 +48,37 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     });
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [selectedReportIDs, setSelectedReportIDs] = useState<string[]>(initialReportIDs);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const archivedReportsIdSet = useArchivedReportsIdSet();
 
     const selectedOptions = useMemo<OptionData[]>(() => {
         return selectedReportIDs.map((id) => {
             const report = getSelectedOptionData(createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, reportAttributesDerived));
-            const alternateText = getAlternateText(report, {});
+            const isReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
+            const alternateText = getAlternateText(report, {}, isReportArchived, {});
             return {...report, alternateText};
         });
-    }, [personalDetails, reportAttributesDerived, reports, selectedReportIDs]);
+    }, [personalDetails, reportAttributesDerived, reports, selectedReportIDs, archivedReportsIdSet]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, undefined, false);
-    }, [areOptionsInitialized, isScreenTransitionEnd, options]);
+        return getSearchOptions({options, draftComments, betas: undefined, isUsedInChatFinder: false, countryCode});
+    }, [areOptionsInitialized, draftComments, isScreenTransitionEnd, options, countryCode]);
 
     const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
+        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         });
-    }, [defaultOptions, cleanSearchTerm, selectedOptions]);
+    }, [defaultOptions, cleanSearchTerm, selectedOptions, countryCode]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];
@@ -147,17 +153,23 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         [selectedReportIDs],
     );
 
-    const footerContent = (
-        <Button
-            success
-            text={translate('common.save')}
-            pressOnEnter
-            onPress={() => {
-                onFiltersUpdate(selectedReportIDs);
-                Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-            }}
-            large
-        />
+    const applyChanges = useCallback(() => {
+        onFiltersUpdate(selectedReportIDs);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+    }, [onFiltersUpdate, selectedReportIDs]);
+
+    const resetChanges = useCallback(() => {
+        setSelectedReportIDs([]);
+    }, []);
+
+    const footerContent = useMemo(
+        () => (
+            <SearchFilterPageFooterButtons
+                applyChanges={applyChanges}
+                resetChanges={resetChanges}
+            />
+        ),
+        [resetChanges, applyChanges],
     );
 
     const isLoadingNewOptions = !!isSearchingForReports;

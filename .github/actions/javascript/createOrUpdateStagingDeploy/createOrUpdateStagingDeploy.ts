@@ -92,13 +92,12 @@ async function run(): Promise<IssuesCreateResponse | void> {
             }
         } catch (error) {
             // Check if this is a forked repository
-            if (process.env.GITHUB_REPOSITORY !== CONST.APP_REPO) {
+            if (process.env.GITHUB_REPOSITORY !== `${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`) {
                 console.warn(
                     "⚠️ Unable to fetch Mobile-Expensify PRs because this workflow is running on a forked repository and secrets aren't accessble. This is expected for development/testing on forks.",
                 );
             } else {
-                console.error('Failed to fetch Mobile-Expensify PRs from main repository:', error);
-                throw error;
+                console.error('Failed to fetch Mobile-Expensify PRs:', error);
             }
         }
 
@@ -211,7 +210,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
             const {data: newChecklist} = await GithubUtils.octokit.issues.create({
                 ...defaultPayload,
                 title: `Deploy Checklist: New Expensify ${format(new Date(), CONST.DATE_FORMAT_STRING)}`,
-                labels: [CONST.LABELS.STAGING_DEPLOY],
+                labels: [CONST.LABELS.STAGING_DEPLOY, CONST.LABELS.LOCK_DEPLOY],
                 assignees: [CONST.APPLAUSE_BOT as string].concat(checklistAssignees),
             });
             console.log(`Successfully created new StagingDeployCash! 🎉 ${newChecklist.html_url}`);

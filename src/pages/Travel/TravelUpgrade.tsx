@@ -52,6 +52,7 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
             shouldShowOfflineIndicator
             testID={TravelUpgrade.displayName}
             offlineIndicatorStyle={styles.mtAuto}
+            shouldShowOfflineIndicatorInWideScreen={!isUpgraded}
         >
             <HeaderWithBackButton
                 title={translate('common.upgrade')}
@@ -67,7 +68,6 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
                     Navigation.dismissModal();
                 }}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldUseReanimatedModal
             >
                 <ScreenWrapper
                     style={[styles.pb0]}
@@ -85,7 +85,7 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {isUpgraded ? (
                     <UpgradeConfirmation
-                        onConfirmUpgrade={() => Navigation.goBack()}
+                        afterUpgradeAcknowledged={() => Navigation.goBack()}
                         policyName=""
                         isTravelUpgrade
                     />

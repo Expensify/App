@@ -1,5 +1,5 @@
 import type {ViewStyle} from 'react-native';
-import type {ModalProps} from 'react-native-modal';
+import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import {isMobileSafari} from '@libs/Browser';
 import type {ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
@@ -26,9 +26,9 @@ type WindowDimensions = {
 type GetModalStyles = {
     modalStyle: ViewStyle;
     modalContainerStyle: ViewStyle;
-    swipeDirection: ModalProps['swipeDirection'];
-    animationIn: ModalProps['animationIn'];
-    animationOut: ModalProps['animationOut'];
+    swipeDirection: ReanimatedModalProps['swipeDirection'];
+    animationIn: ReanimatedModalProps['animationIn'];
+    animationOut: ReanimatedModalProps['animationOut'];
     hideBackdrop: boolean;
     shouldAddTopSafeAreaMargin: boolean;
     shouldAddBottomSafeAreaMargin: boolean;
@@ -48,7 +48,6 @@ type GetModalStylesStyleUtil = {
             shouldDisableBottomSafeAreaPadding?: boolean;
             modalOverlapsWithTopSafeArea?: boolean;
         },
-        shouldUseReanimatedModal?: boolean,
     ) => GetModalStyles;
 };
 
@@ -61,7 +60,6 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         outerStyle = {},
         shouldUseModalPaddingStyle = true,
         safeAreaOptions = {modalOverlapsWithTopSafeArea: false, shouldDisableBottomSafeAreaPadding: false},
-        shouldUseReanimatedModal = false,
     ): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
@@ -285,27 +283,8 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     overflow: 'hidden',
                 };
 
-                if (shouldUseReanimatedModal) {
-                    animationIn = 'slideInRight';
-                    animationOut = 'slideOutRight';
-                } else {
-                    animationIn = {
-                        from: {
-                            translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
-                        },
-                        to: {
-                            translateX: 0,
-                        },
-                    };
-                    animationOut = {
-                        from: {
-                            translateX: 0,
-                        },
-                        to: {
-                            translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
-                        },
-                    };
-                }
+                animationIn = 'slideInRight';
+                animationOut = 'slideOutRight';
 
                 swipeDirection = undefined;
                 shouldAddBottomSafeAreaPadding = true;

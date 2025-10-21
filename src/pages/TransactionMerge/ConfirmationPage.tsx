@@ -19,6 +19,7 @@ import {buildMergedTransactionData, getSourceTransactionFromMergeTransaction, ge
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
@@ -34,7 +35,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const {transactionID, backTo} = route.params;
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
         canBeMissing: true,
     });
@@ -44,7 +45,10 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
     const targetTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`];
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionThreadReport?.policyID}`, {canBeMissing: true});
+    const policyID = targetTransactionThreadReport?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
 
     // Build the merged transaction data for display
     const mergedTransactionData = useMemo(() => buildMergedTransactionData(targetTransaction, mergeTransaction), [targetTransaction, mergeTransaction]);
@@ -67,11 +71,18 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         if (!targetTransaction || !mergeTransaction || !sourceTransaction) {
             return;
         }
+        const reportID = mergeTransaction.reportID;
 
         setIsMergingExpenses(true);
-        mergeTransactionRequest(transactionID, mergeTransaction, targetTransaction, sourceTransaction);
-        Navigation.dismissModal();
-    }, [targetTransaction, mergeTransaction, sourceTransaction, transactionID]);
+        mergeTransactionRequest({mergeTransactionID: transactionID, mergeTransaction, targetTransaction, sourceTransaction, policy, policyTags, policyCategories});
+
+        const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : targetTransactionThreadReportID;
+        if (reportID !== targetTransaction.reportID && reportIDToDismiss) {
+            Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
+        } else {
+            Navigation.dismissModal();
+        }
+    }, [targetTransaction, mergeTransaction, sourceTransaction, transactionID, targetTransactionThreadReportID, policy, policyTags, policyCategories]);
 
     if (isLoadingOnyxValue(mergeTransactionMetadata) || !targetTransactionThreadReport?.reportID) {
         return <FullScreenLoadingIndicator />;
@@ -97,7 +108,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                     <ShowContextMenuContext.Provider value={contextValue}>
                         <MoneyRequestView
                             allReports={allReports}
-                            policy={policy}
+                            expensePolicy={policy}
                             report={targetTransactionThreadReport}
                             shouldShowAnimatedBackground={false}
                             readonly

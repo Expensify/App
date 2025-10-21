@@ -40,7 +40,6 @@ function TypeSelectorModal({isVisible, currentType, label, subtitle, onTypeSelec
             onClose={onClose}
             onModalHide={onClose}
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={styles.pb0}

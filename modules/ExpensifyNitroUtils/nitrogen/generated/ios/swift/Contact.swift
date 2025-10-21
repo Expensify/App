@@ -68,7 +68,8 @@ public extension Contact {
     @inline(__always)
     get {
       return { () -> String? in
-        if let __unwrapped = self.__firstName.value {
+        if bridge.has_value_std__optional_std__string_(self.__firstName) {
+          let __unwrapped = bridge.get_std__optional_std__string_(self.__firstName)
           return String(__unwrapped)
         } else {
           return nil
@@ -91,7 +92,8 @@ public extension Contact {
     @inline(__always)
     get {
       return { () -> String? in
-        if let __unwrapped = self.__lastName.value {
+        if bridge.has_value_std__optional_std__string_(self.__lastName) {
+          let __unwrapped = bridge.get_std__optional_std__string_(self.__lastName)
           return String(__unwrapped)
         } else {
           return nil
@@ -114,7 +116,8 @@ public extension Contact {
     @inline(__always)
     get {
       return { () -> [StringHolder]? in
-        if let __unwrapped = self.__phoneNumbers.value {
+        if bridge.has_value_std__optional_std__vector_StringHolder__(self.__phoneNumbers) {
+          let __unwrapped = bridge.get_std__optional_std__vector_StringHolder__(self.__phoneNumbers)
           return __unwrapped.map({ __item in __item })
         } else {
           return nil
@@ -143,7 +146,8 @@ public extension Contact {
     @inline(__always)
     get {
       return { () -> [StringHolder]? in
-        if let __unwrapped = self.__emailAddresses.value {
+        if bridge.has_value_std__optional_std__vector_StringHolder__(self.__emailAddresses) {
+          let __unwrapped = bridge.get_std__optional_std__vector_StringHolder__(self.__emailAddresses)
           return __unwrapped.map({ __item in __item })
         } else {
           return nil
@@ -172,7 +176,8 @@ public extension Contact {
     @inline(__always)
     get {
       return { () -> String? in
-        if let __unwrapped = self.__imageData.value {
+        if bridge.has_value_std__optional_std__string_(self.__imageData) {
+          let __unwrapped = bridge.get_std__optional_std__string_(self.__imageData)
           return String(__unwrapped)
         } else {
           return nil

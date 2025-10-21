@@ -11,25 +11,18 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import RadioButtonWithLabel from '@components/RadioButtonWithLabel';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import closeReactNativeApp from '@libs/actions/HybridApp';
-import {openOldDotLink} from '@libs/actions/Link';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID, setOnboardingUserReportedIntegration} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
-import {waitForIdle} from '@libs/Network/SequentialQueue';
-import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
-import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -101,21 +94,14 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-
     const [onboardingUserReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, {canBeMissing: true});
-    const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
 
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(onboardingUserReportedIntegration ?? undefined);
     const [error, setError] = useState('');
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
-    const {isOffline} = useNetwork();
-    const isLoading = onboarding?.isLoading;
-    const prevIsLoading = usePrevious(isLoading);
 
     const isVsb = onboarding?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
@@ -127,20 +113,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         setOnboardingAdminsChatReportID(paidGroupPolicy.chatReportIDAdmins?.toString());
         setOnboardingPolicyID(paidGroupPolicy.id);
     }, [paidGroupPolicy, onboardingPolicyID]);
-
-    useEffect(() => {
-        if (!!isLoading || !prevIsLoading) {
-            return;
-        }
-
-        if (CONFIG.IS_HYBRID_APP) {
-            closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
-            return;
-        }
-        waitForIdle().then(() => {
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-        });
-    }, [isLoading, prevIsLoading]);
 
     const accountingOptions: OnboardingListItem[] = useMemo(() => {
         const createAccountingOption = (integration: Integration): OnboardingListItem => ({
@@ -197,12 +169,10 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         }
 
         setOnboardingUserReportedIntegration(userReportedIntegration);
-        // Navigate to Interested Features if personal details have already been provided.
-        const nextRoute = isPrivateDomainAndHasAccessiblePolicies
-            ? ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(route.params?.backTo)
-            : ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo);
-        Navigation.navigate(nextRoute);
-    }, [translate, userReportedIntegration, route.params?.backTo, isPrivateDomainAndHasAccessiblePolicies]);
+
+        // Navigate to the next onboarding step interested features with the selected integration
+        Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(route.params?.backTo));
+    }, [translate, userReportedIntegration, route.params?.backTo]);
 
     const handleIntegrationSelect = useCallback((integrationKey: OnboardingAccounting | null) => {
         setUserReportedIntegration(integrationKey);
@@ -280,8 +250,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                     large
                     text={translate('common.continue')}
                     onPress={handleContinue}
-                    isLoading={isLoading}
-                    isDisabled={isOffline && shouldOnboardingRedirectToOldDot(onboardingCompanySize, userReportedIntegration)}
                     pressOnEnter
                 />
             </FixedFooter>
