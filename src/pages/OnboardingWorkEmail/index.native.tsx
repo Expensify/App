@@ -1,18 +1,19 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {BackHandler} from 'react-native';
-import {translateLocal} from '@libs/Localize';
+import useLocalize from '@hooks/useLocalize';
 import {setOnboardingErrorMessage} from '@userActions/Welcome';
 import BaseOnboardingWorkEmail from './BaseOnboardingWorkEmail';
 import type {OnboardingWorkEmailProps} from './types';
 
 function OnboardingWorkEmail(props: OnboardingWorkEmailProps) {
+    const {translate} = useLocalize();
     // To block android native back button behavior
     useFocusEffect(
         useCallback(() => {
             // Return true to indicate that the back button press is handled here
             const backAction = () => {
-                setOnboardingErrorMessage(translateLocal('onboarding.purpose.errorBackButton'));
+                setOnboardingErrorMessage(translate('onboarding.purpose.errorBackButton'));
                 return true;
             };
 
