@@ -181,6 +181,7 @@ type BuildPolicyDataOptions = {
     lastUsedPaymentMethod?: LastPaymentMethodType;
     areDistanceRatesEnabled?: boolean;
     adminParticipant?: Participant;
+    hasOutstandingChildRequest?: boolean;
 };
 
 type DuplicatePolicyDataOptions = {
@@ -2041,6 +2042,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         lastUsedPaymentMethod,
         areDistanceRatesEnabled,
         adminParticipant,
+        hasOutstandingChildRequest = true,
     } = options;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -2443,7 +2445,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     }
 
     if (adminParticipant?.login) {
-        const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[adminParticipant.login]: adminParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID}, true);
+        const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[adminParticipant.login]: adminParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID}, hasOutstandingChildRequest);
         params.memberData = JSON.stringify({
             accountID: Number(adminParticipant.accountID),
             email: adminParticipant.login,

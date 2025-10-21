@@ -118,6 +118,7 @@ function IOURequestStepUpgrade({
             currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
             areDistanceRatesEnabled: isDistanceRateUpgrade,
             adminParticipant,
+            hasOutstandingChildRequest: false,
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
