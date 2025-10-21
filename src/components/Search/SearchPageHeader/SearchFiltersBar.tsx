@@ -153,12 +153,12 @@ function SearchFiltersBar({
     }, [flatFilters, allFeeds, allCards]);
 
     const [statusOptions, status] = useMemo(() => {
-        const options = type ? getStatusOptions(type.value) : [];
+        const options = type ? getStatusOptions(type.value, groupBy?.value) : [];
         const value = [
             Array.isArray(unsafeStatus) ? options.filter((option) => unsafeStatus.includes(option.value)) : (options.find((option) => option.value === unsafeStatus) ?? []),
         ].flat();
         return [options, value];
-    }, [unsafeStatus, type]);
+    }, [unsafeStatus, type, groupBy]);
 
     const [hasOptions, has] = useMemo(() => {
         const hasFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS)?.filters?.map((filter) => filter.value);
@@ -457,7 +457,7 @@ function SearchFiltersBar({
     const filters = useMemo<FilterItem[]>(() => {
         const fromValue = filterFormValues.from?.map((currentAccountID) => personalDetails?.[currentAccountID]?.displayName ?? currentAccountID) ?? [];
 
-        const shouldDisplayGroupByFilter = !!groupBy?.value;
+        const shouldDisplayGroupByFilter = !!groupBy?.value && groupBy?.value !== CONST.SEARCH.GROUP_BY.REPORTS;
         const shouldDisplayGroupCurrencyFilter = shouldDisplayGroupByFilter && hasMultipleOutputCurrency;
         const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues.feed;
         const shouldDisplayPostedFilter = !!filterFormValues.feed && (!!filterFormValues.postedOn || !!filterFormValues.postedAfter || !!filterFormValues.postedBefore);
