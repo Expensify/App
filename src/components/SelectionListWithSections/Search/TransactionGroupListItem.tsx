@@ -59,7 +59,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     shouldSyncFocus,
     columns,
     groupBy,
-    searchType,
     accountID,
     isOffline,
     areAllOptionalColumnsHidden,
@@ -95,12 +94,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const selectedTransactionIDsSet = useMemo(() => new Set(selectedTransactionIDs), [selectedTransactionIDs]);
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`, {canBeMissing: true});
 
-    const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const isGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
     const [isExpanded, setIsExpanded] = useState(false);
 
     const transactions = useMemo(() => {
-        if (isExpenseReportType) {
+        if (isGroupByReports) {
             return groupItem.transactions;
         }
         if (!transactionsSnapshot?.data) {
@@ -111,7 +110,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             ...transactionItem,
             isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
         }));
-    }, [isExpenseReportType, transactionsSnapshot?.data, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDsSet]);
+    }, [isGroupByReports, transactionsSnapshot?.data, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDsSet]);
 
     const selectedItemsLength = useMemo(() => {
         return transactions.reduce((acc, transaction) => {
@@ -128,7 +127,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const isEmpty = transactions.length === 0;
     // Currently only the transaction report groups have transactions where the empty view makes sense
-    const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
+    const shouldDisplayEmptyView = isEmpty && isGroupByReports;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
     const searchTransactions = useCallback(
@@ -176,13 +175,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [isExpanded]);
 
     const onPress = useCallback(() => {
-        if (isExpenseReportType || transactions.length === 0) {
+        if (isGroupByReports || transactions.length === 0) {
             onSelectRow(item, transactionPreviewData);
         }
-        if (!isExpenseReportType) {
+        if (!isGroupByReports) {
             handleToggle();
         }
-    }, [isExpenseReportType, transactions.length, onSelectRow, transactionPreviewData, item, handleToggle]);
+    }, [isGroupByReports, transactions.length, onSelectRow, transactionPreviewData, item, handleToggle]);
 
     const onLongPress = useCallback(() => {
         if (isEmpty) {
@@ -193,9 +192,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const onCheckboxPress = useCallback(
         (val: TItem) => {
-            onCheckboxPressRow?.(val, isExpenseReportType ? undefined : transactions);
+            onCheckboxPressRow?.(val, isGroupByReports ? undefined : transactions);
         },
-        [onCheckboxPressRow, transactions, isExpenseReportType],
+        [onCheckboxPressRow, transactions, isGroupByReports],
     );
 
     const onExpandIconPress = useCallback(() => {
@@ -207,69 +206,71 @@ function TransactionGroupListItem<TItem extends ListItem>({
         handleToggle();
     }, [isEmpty, shouldDisplayEmptyView, groupItem.transactionsQueryJSON, isExpanded, handleToggle, onPress, searchTransactions]);
 
-    const getHeader = useMemo(() => {
-        const headers: Record<SearchGroupBy, React.JSX.Element> = {
-            [CONST.SEARCH.GROUP_BY.FROM]: (
-                <MemberListItemHeader
-                    member={groupItem as TransactionMemberGroupListItemType}
-                    onCheckboxPress={onCheckboxPress}
-                    isDisabled={isDisabledOrEmpty}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
-                />
-            ),
-            [CONST.SEARCH.GROUP_BY.CARD]: (
-                <CardListItemHeader
-                    card={groupItem as TransactionCardGroupListItemType}
-                    onCheckboxPress={onCheckboxPress}
-                    isDisabled={isDisabledOrEmpty}
-                    isFocused={isFocused}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
-                />
-            ),
-            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: (
-                <WithdrawalIDListItemHeader
-                    withdrawalID={groupItem as TransactionWithdrawalIDGroupListItemType}
-                    onCheckboxPress={onCheckboxPress}
-                    isDisabled={isDisabledOrEmpty}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
-                />
-            ),
-        };
+    const getHeader = useCallback(
+        (hovered: boolean) => {
+            const headers: Record<SearchGroupBy, React.JSX.Element> = {
+                [CONST.SEARCH.GROUP_BY.REPORTS]: (
+                    <ReportListItemHeader
+                        report={groupItem as TransactionReportGroupListItemType}
+                        onSelectRow={(listItem) => onSelectRow(listItem, transactionPreviewData)}
+                        onCheckboxPress={onCheckboxPress}
+                        isDisabled={isDisabledOrEmpty}
+                        isFocused={isFocused}
+                        canSelectMultiple={canSelectMultiple}
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                        isHovered={hovered}
+                    />
+                ),
+                [CONST.SEARCH.GROUP_BY.FROM]: (
+                    <MemberListItemHeader
+                        member={groupItem as TransactionMemberGroupListItemType}
+                        onCheckboxPress={onCheckboxPress}
+                        isDisabled={isDisabledOrEmpty}
+                        canSelectMultiple={canSelectMultiple}
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                    />
+                ),
+                [CONST.SEARCH.GROUP_BY.CARD]: (
+                    <CardListItemHeader
+                        card={groupItem as TransactionCardGroupListItemType}
+                        onCheckboxPress={onCheckboxPress}
+                        isDisabled={isDisabledOrEmpty}
+                        isFocused={isFocused}
+                        canSelectMultiple={canSelectMultiple}
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                    />
+                ),
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: (
+                    <WithdrawalIDListItemHeader
+                        withdrawalID={groupItem as TransactionWithdrawalIDGroupListItemType}
+                        onCheckboxPress={onCheckboxPress}
+                        isDisabled={isDisabledOrEmpty}
+                        canSelectMultiple={canSelectMultiple}
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                    />
+                ),
+            };
 
-        if (searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-            return (
-                <ReportListItemHeader
-                    report={groupItem as TransactionReportGroupListItemType}
-                    onSelectRow={(listItem) => onSelectRow(listItem, transactionPreviewData)}
-                    onCheckboxPress={onCheckboxPress}
-                    isDisabled={isDisabledOrEmpty}
-                    isFocused={isFocused}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
-                />
-            );
-        }
+            if (!groupBy) {
+                return null;
+            }
 
-        if (!groupBy) {
-            return null;
-        }
-
-        return headers[groupBy];
-    }, [groupItem, onSelectRow, transactionPreviewData, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, groupBy, searchType]);
+            return headers[groupBy];
+        },
+        [groupItem, onSelectRow, transactionPreviewData, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, groupBy],
+    );
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const pendingAction =
-        (item.pendingAction ?? (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)))
+        item.pendingAction ??
+        (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-            : undefined;
+            : undefined);
 
     const hasViolations = transactions.some((transaction) => {
         const transactionViolations = getTransactionViolations(transaction, violations);
@@ -327,37 +328,39 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 onFocus={onFocus}
                 wrapperStyle={[styles.mb2, styles.mh5, animatedHighlightStyle, styles.userSelectNone]}
             >
-                <View style={styles.flex1}>
-                    <AnimatedCollapsible
-                        isExpanded={isExpanded}
-                        header={getHeader}
-                        onPress={onExpandIconPress}
-                        expandButtonStyle={styles.pv4Half}
-                        description={getDescription}
-                    >
-                        <TransactionGroupListExpandedItem
-                            showTooltip={showTooltip}
-                            canSelectMultiple={canSelectMultiple}
-                            onCheckboxPress={onCheckboxPress}
-                            columns={columns}
-                            groupBy={groupBy}
-                            accountID={accountID}
-                            isOffline={isOffline}
-                            areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                            violations={violations}
-                            transactions={transactions}
-                            transactionsVisibleLimit={transactionsVisibleLimit}
-                            setTransactionsVisibleLimit={setTransactionsVisibleLimit}
-                            isEmpty={isEmpty}
-                            shouldDisplayEmptyView={shouldDisplayEmptyView}
-                            isExpenseReportType={isExpenseReportType}
-                            transactionsSnapshot={transactionsSnapshot}
-                            transactionsQueryJSON={groupItem.transactionsQueryJSON}
-                            searchTransactions={searchTransactions}
-                            isInSingleTransactionReport={groupItem.transactions.length === 1}
-                        />
-                    </AnimatedCollapsible>
-                </View>
+                {({hovered}) => (
+                    <View style={styles.flex1}>
+                        <AnimatedCollapsible
+                            isExpanded={isExpanded}
+                            header={getHeader(hovered)}
+                            onPress={onExpandIconPress}
+                            expandButtonStyle={styles.pv4Half}
+                            description={getDescription}
+                        >
+                            <TransactionGroupListExpandedItem
+                                showTooltip={showTooltip}
+                                canSelectMultiple={canSelectMultiple}
+                                onCheckboxPress={onCheckboxPress}
+                                columns={columns}
+                                groupBy={groupBy}
+                                accountID={accountID}
+                                isOffline={isOffline}
+                                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                                violations={violations}
+                                transactions={transactions}
+                                transactionsVisibleLimit={transactionsVisibleLimit}
+                                setTransactionsVisibleLimit={setTransactionsVisibleLimit}
+                                isEmpty={isEmpty}
+                                shouldDisplayEmptyView={shouldDisplayEmptyView}
+                                isGroupByReports={isGroupByReports}
+                                transactionsSnapshot={transactionsSnapshot}
+                                transactionsQueryJSON={groupItem.transactionsQueryJSON}
+                                searchTransactions={searchTransactions}
+                                isInSingleTransactionReport={groupItem.transactions.length === 1}
+                            />
+                        </AnimatedCollapsible>
+                    </View>
+                )}
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );
