@@ -32,7 +32,7 @@ npm run react-compiler-compliance-check check src/path/Component.tsx # Check spe
 npm run react-compiler-compliance-check check "src/**/*.tsx"         # Check glob pattern
 ```
 
-#### Check only changed files against a remote main (default remote is `origin`)
+#### Check only changed files (against main)
 
 ```bash
 npm run react-compiler-compliance-check check-changed
@@ -47,12 +47,42 @@ npm run react-compiler-compliance-check check --report
 npm run react-compiler-compliance-check check-changed --report
 ```
 
-## How can I check what exactly prevents file from successful optimization or whether my fix for passing `react-compiler` actually works?
+#### Additional flags
 
-You can run a dedicated script: `react-compiler-healthcheck-test` and examine the output. This command will list the files that failed to compile with details on what caused the failures. It will then save this output to `./react-compiler-output.txt` file. Read and examine the output to find what specific error the react-compiler throws.
+**Filter by diff changes (`--filterByDiff`)**
+
+Only check files that have been modified in the current diff. This is useful when you want to focus on files that have actual changes:
 
 ```bash
-npm run react-compiler-healthcheck-test
+npm run react-compiler-compliance-check check --filterByDiff
+npm run react-compiler-compliance-check check-changed --filterByDiff
+```
+
+**Print successful compilations (`--printSuccesses`)**
+
+By default, the script only shows compilation failures. Use this flag to also display files that compiled successfully:
+
+```bash
+npm run react-compiler-compliance-check check --printSuccesses
+npm run react-compiler-compliance-check check-changed --printSuccesses
+```
+
+**Custom report filename (`--reportFileName`)**
+
+Specify a custom filename for the generated report instead of the default `react-compiler-report.json`:
+
+```bash
+npm run react-compiler-compliance-check check --report --reportFileName my-custom-report.json
+npm run react-compiler-compliance-check check-changed --report --reportFileName my-custom-report.json
+```
+
+**Custom remote name (`--remote`)**
+
+By default, the script uses `origin` as the base remote. If your GitHub remote is named differently, specify it with this flag:
+
+```bash
+npm run react-compiler-compliance-check check-changed --remote upstream
+npm run react-compiler-compliance-check check --filterByDiff --remote my-remote
 ```
 
 ## How to fix a particular problem?
