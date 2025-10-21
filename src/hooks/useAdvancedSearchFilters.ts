@@ -243,7 +243,7 @@ function useAdvancedSearchFilters() {
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-    if (!Object.keys(typeFiltersKeys).includes(currentType)) {
+    if (!(currentType in typeFiltersKeys)) {
         currentType = CONST.SEARCH.DATA_TYPES.EXPENSE;
     }
 
