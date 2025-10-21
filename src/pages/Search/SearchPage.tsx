@@ -381,9 +381,8 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const shouldShowRejectOption = shouldShowApproveOption;
-
-        if (shouldShowRejectOption) {
+        // Reject visibility matches Approve checks
+        if (shouldShowApproveOption) {
             options.push({
                 icon: Expensicons.ThumbsDown,
                 text: translate('search.bulkActions.reject'),
