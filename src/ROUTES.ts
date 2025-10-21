@@ -413,6 +413,7 @@ const ROUTES = {
         route: 'settings/troubleshoot/console/share-log',
         getRoute: (source: string) => `settings/troubleshoot/console/share-log?source=${encodeURI(source)}` as const,
     },
+    SETTINGS_TEST_IMAGE_MANIPULATION: 'settings/test-image-manipulation',
 
     SETTINGS_EXIT_SURVEY_REASON: {
         route: 'settings/exit-survey/reason',
