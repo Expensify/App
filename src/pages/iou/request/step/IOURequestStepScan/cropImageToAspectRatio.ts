@@ -2,7 +2,7 @@ import ImageSize from 'react-native-image-size';
 import type {Orientation} from 'react-native-vision-camera';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
 import getDeviceOrientationAwareImageSize from '@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type ImageObject = {
     /** File object of the image */
