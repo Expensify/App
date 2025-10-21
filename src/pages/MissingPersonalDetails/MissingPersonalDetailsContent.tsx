@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -7,18 +7,16 @@ import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
-import {updatePersonalDetailsAndShipExpensifyCards} from '@libs/actions/PersonalDetails';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
-import MissingPersonalDetailsMagicCodeModal from './MissingPersonalDetailsMagicCodeModal';
 import Address from './substeps/Address';
 import Confirmation from './substeps/Confirmation';
 import DateOfBirth from './substeps/DateOfBirth';
@@ -37,8 +35,6 @@ const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Confirmation];
 function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
@@ -50,7 +46,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
         if (!values) {
             return;
         }
-        setIsValidateCodeActionModalVisible(true);
+        Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE);
     }, [values]);
 
     const {
@@ -82,13 +78,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
         prevScreen();
     };
 
-    const handleSubmitForm = useCallback(
-        (validateCode: string) => {
-            updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode);
-        },
-        [countryCode, values],
-    );
-
     const handleNextScreen = useCallback(() => {
         if (isEditing) {
             goToTheLastStep();
@@ -112,7 +101,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={MissingPersonalDetailsContent.displayName}
-            shouldShowOfflineIndicatorInWideScreen={!!isValidateCodeActionModalVisible}
         >
             <HeaderWithBackButton
                 title={translate('workspace.expensifyCard.addShippingDetails')}
@@ -133,11 +121,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
                 personalDetailsValues={values}
             />
 
-            <MissingPersonalDetailsMagicCodeModal
-                onClose={() => setIsValidateCodeActionModalVisible(false)}
-                isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
-                handleSubmitForm={handleSubmitForm}
-            />
         </ScreenWrapper>
     );
 }
