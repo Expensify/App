@@ -22,10 +22,9 @@ import {
     isInvoiceReport,
     isOpenExpenseReport,
     isPayer,
-    isProcessingReport,
     isReportOwner,
 } from './ReportUtils';
-import {isPendingCardOrIncompleteTransaction, isPendingCardOrScanningTransaction} from './TransactionUtils';
+import {isPendingCardOrIncompleteTransaction} from './TransactionUtils';
 
 type BuildNextStepNewParams = {
     report: OnyxEntry<Report>;
