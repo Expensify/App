@@ -23,4 +23,7 @@ jobs:
           IS_HYBRID_BUILD: 'true'
 
       - name: Verify podfile
-        run: ./.github/scripts/verifyPodfile.sh verifyMobileExpensify
+        run: |
+          ls .
+          ls ./Mobile-Expensify
+          ./.github/scripts/verifyPodfile.sh verifyMobileExpensify
