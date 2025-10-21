@@ -3269,7 +3269,7 @@ const translations = {
     },
     signerInfoStep: {
         signerInfo: 'Signer info',
-        areYouDirector: ({companyName}: CompanyNameParams) => `Are you a director or senior officer at ${companyName}?`,
+        areYouDirector: ({companyName}: CompanyNameParams) => `Are you a director at ${companyName}?`,
         regulationRequiresUs: 'Regulation requires us to verify if the signer has the authority to take this action on behalf of the business.',
         whatsYourName: "What's your legal name",
         fullName: 'Legal full name',
@@ -3281,13 +3281,13 @@ const translations = {
         letsDoubleCheck: 'Let’s double check that everything looks right.',
         legalName: 'Legal name',
         proofOf: 'Proof of personal address',
-        enterOneEmail: ({companyName}: CompanyNameParams) => `Enter the email of director or senior officer at ${companyName}`,
-        regulationRequiresOneMoreDirector: 'Regulation requires at least one more director or senior officer as a signer.',
+        enterOneEmail: ({companyName}: CompanyNameParams) => `Enter the email of a director at ${companyName}`,
+        regulationRequiresOneMoreDirector: 'Regulation requires at least one more director as a signer.',
         hangTight: 'Hang tight...',
-        enterTwoEmails: ({companyName}: CompanyNameParams) => `Enter the emails of two directors or senior officers at ${companyName}`,
+        enterTwoEmails: ({companyName}: CompanyNameParams) => `Enter the emails of two directors at ${companyName}`,
         sendReminder: 'Send a reminder',
         chooseFile: 'Choose file',
-        weAreWaiting: "We're waiting for others to verify their identities as directors or senior officers of the business.",
+        weAreWaiting: "We're waiting for others to verify their identities as directors of the business.",
         id: 'Copy of ID',
         proofOfDirectors: 'Proof of director(s)',
         proofOfDirectorsDescription: 'Examples: Oncorp Corporate Profile or Business Registration.',
@@ -3296,11 +3296,11 @@ const translations = {
         PDSandFSG: 'PDS + FSG disclosure paperwork',
         PDSandFSGDescription:
             "Our partnership with Corpay utilizes an API connection to take advantage of their vast network of international banking partners to power Global Reimbursements in Expensify. As per Australian regulation we are providing you with Corpay's Financial Services Guide (FSG) and Product Disclosure Statement (PDS).\n\nPlease read the FSG and PDS documents carefully as they contain full details and important information on the products and services Corpay offers. Retain these documents for future reference.",
-        pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a director or senior officer of the business entity.',
+        pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a director of the business.',
         enterSignerInfo: 'Enter signer info',
         thisStep: 'This step has been completed',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
-            `is connecting a ${currency} business bank account ending in ${bankAccountLastFour} to Expensify to pay employees in ${currency}. The next step requires signer info from a director or senior officer.`,
+            `is connecting a ${currency} business bank account ending in ${bankAccountLastFour} to Expensify to pay employees in ${currency}. The next step requires signer info from a director.`,
         error: {
             emailsMustBeDifferent: 'Emails must be different',
         },
@@ -3459,6 +3459,8 @@ const translations = {
         verifyCompany: {
             title: "We're reviewing your request...",
             message: `We're running a few checks on our end to verify your account is ready for Expensify Travel. We'll be in touch shortly!`,
+            confirmText: 'Got it',
+            conciergeMessage: ({domain}: {domain: string}) => `Travel enablement failed for domain: ${domain}. Please review and enable travel for this domain.`,
         },
         updates: {
             bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
