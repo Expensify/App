@@ -3457,6 +3457,8 @@ ${amount} para ${merchant} - ${date}`,
         verifyCompany: {
             title: 'Estamos revisando tu solicitud...',
             message: `Estamos realizando algunas comprobaciones para verificar que tu cuenta esté lista para Expensify Travel. ¡Nos pondremos en contacto contigo en breve!`,
+            confirmText: 'Entendido',
+            conciergeMessage: ({domain}: {domain: string}) => `Hubo un error habilitando viajes para el dominio: ${domain}. Por favor, revisa y habilita los viajes para este dominio.`,
         },
         updates: {
             bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
