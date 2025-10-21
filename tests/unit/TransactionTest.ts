@@ -1,5 +1,8 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
@@ -10,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
+import type {Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '../../src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
@@ -93,7 +96,22 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_SELF_DM_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID, false, CURRENT_USER_ID, 'test@example.com');
+            const allReports = reportCollectionDataSet as OnyxCollection<Report>;
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+            const allTransactionsViolations = await OnyxUtils.get(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                reportID: FAKE_NEW_REPORT_ID,
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                allReportsCollection: allReports,
+                allTransactionsCollection: allTransactions,
+                allTransactionViolationsCollection: allTransactionsViolations,
+            });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
@@ -128,7 +146,22 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID, false, CURRENT_USER_ID, 'test@example.com');
+            const allReports = reportCollectionDataSet as OnyxCollection<Report>;
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+            const allTransactionsViolations = await OnyxUtils.get(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                reportID: FAKE_NEW_REPORT_ID,
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                allReportsCollection: allReports,
+                allTransactionsCollection: allTransactions,
+                allTransactionViolationsCollection: allTransactionsViolations,
+            });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
@@ -176,7 +209,23 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID, false, CURRENT_USER_ID, 'test@example.com', undefined, mockReportNextStep);
+            const allReports = reportCollectionDataSet as OnyxCollection<Report>;
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+            const allTransactionsViolations = await OnyxUtils.get(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                reportID: FAKE_NEW_REPORT_ID,
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                reportNextStep: mockReportNextStep,
+                allReportsCollection: allReports,
+                allTransactionsCollection: allTransactions,
+                allTransactionViolationsCollection: allTransactionsViolations,
+            });
             await waitForBatchedUpdates();
 
             expect(mockAPIWrite).toHaveBeenCalled();
@@ -226,7 +275,23 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID, false, CURRENT_USER_ID, 'test@example.com', undefined, mockReportNextStep);
+            const allReports = reportCollectionDataSet as OnyxCollection<Report>;
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+            const allTransactionsViolations = await OnyxUtils.get(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                reportNextStep: mockReportNextStep,
+                allReportsCollection: allReports,
+                allTransactionsCollection: allTransactions,
+                allTransactionViolationsCollection: allTransactionsViolations,
+            });
             await waitForBatchedUpdates();
 
             expect(mockAPIWrite).toHaveBeenCalled();
@@ -265,7 +330,23 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID, false, CURRENT_USER_ID, 'test@example.com', undefined, undefined);
+            const allReports = reportCollectionDataSet as OnyxCollection<Report>;
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+            const allTransactionsViolations = await OnyxUtils.get(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                reportID: FAKE_NEW_REPORT_ID,
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                reportNextStep: undefined,
+                allReportsCollection: allReports,
+                allTransactionsCollection: allTransactions,
+                allTransactionViolationsCollection: allTransactionsViolations,
+            });
             await waitForBatchedUpdates();
 
             expect(mockAPIWrite).toHaveBeenCalled();
@@ -304,7 +385,22 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID, true, CURRENT_USER_ID, 'test@example.com');
+            const allReports = reportCollectionDataSet as OnyxCollection<Report>;
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+            const allTransactionsViolations = await OnyxUtils.get(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                reportID: FAKE_NEW_REPORT_ID,
+                isASAPSubmitBetaEnabled: true,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                allReportsCollection: allReports,
+                allTransactionsCollection: allTransactions,
+                allTransactionViolationsCollection: allTransactionsViolations,
+            });
             await waitForBatchedUpdates();
 
             expect(mockAPIWrite).toHaveBeenCalled();
@@ -345,7 +441,22 @@ describe('Transaction', () => {
             const customAccountID = 999;
             const customEmail = 'custom@example.com';
 
-            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID, false, customAccountID, customEmail);
+            const allReports = reportCollectionDataSet as OnyxCollection<Report>;
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+            const allTransactionsViolations = await OnyxUtils.get(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                reportID: FAKE_NEW_REPORT_ID,
+                isASAPSubmitBetaEnabled: false,
+                accountID: customAccountID,
+                email: customEmail,
+                allReportsCollection: allReports,
+                allTransactionsCollection: allTransactions,
+                allTransactionViolationsCollection: allTransactionsViolations,
+            });
             await waitForBatchedUpdates();
 
             expect(mockAPIWrite).toHaveBeenCalled();
