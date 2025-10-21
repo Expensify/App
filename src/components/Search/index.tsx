@@ -427,7 +427,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
         const newTransactionList: SelectedTransactions = {};
-        if (validGroupBy) {
+        if (validGroupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             data.forEach((transactionGroup) => {
                 if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
                     return;
