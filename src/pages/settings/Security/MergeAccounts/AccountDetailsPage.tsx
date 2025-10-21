@@ -72,7 +72,6 @@ function AccountDetailsPage() {
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS>>();
     const [email, setEmail] = useState(params?.email ?? '');
     const {inputCallbackRef} = useAutoFocusInput();
-
     const validateCodeSent = getValidateCodeForAccountMerge?.validateCodeSent;
     const latestError = getLatestErrorMessage(getValidateCodeForAccountMerge);
     const errorKey = getValidateCodeErrorKey(latestError);

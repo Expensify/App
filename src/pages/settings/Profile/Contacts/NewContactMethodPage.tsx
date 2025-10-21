@@ -94,6 +94,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
             onEntryTransitionEnd={() => loginInputRef.current?.focus()}
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
+            shouldShowOfflineIndicatorInWideScreen
             testID={NewContactMethodPage.displayName}
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>

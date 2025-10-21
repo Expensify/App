@@ -792,18 +792,19 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
 
         if (isTrackExpense) {
-            deleteTrackExpense(
-                moneyRequestReport,
-                iouTransactionID,
-                requestParentReportAction,
+            deleteTrackExpense({
+                chatReportID: moneyRequestReport?.reportID,
+                chatReport: moneyRequestReport,
+                transactionID: iouTransactionID,
+                reportAction: requestParentReportAction,
                 iouReport,
                 chatIOUReport,
-                duplicateTransactions,
-                duplicateTransactionViolations,
+                transactions: duplicateTransactions,
+                violations: duplicateTransactionViolations,
                 isSingleTransactionView,
-                isMoneyRequestReportArchived,
+                isChatReportArchived: isMoneyRequestReportArchived,
                 isChatIOUReportArchived,
-            );
+            });
         } else {
             deleteMoneyRequest(
                 iouTransactionID,
@@ -812,10 +813,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 duplicateTransactionViolations,
                 iouReport,
                 chatIOUReport,
-                isSingleTransactionView,
-                undefined,
-                undefined,
                 isChatIOUReportArchived,
+                isSingleTransactionView,
             );
             removeTransaction(iouTransactionID);
         }
@@ -865,13 +864,14 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
             if (isTrackExpense) {
                 urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(
+                    moneyRequestReport?.reportID,
                     moneyRequestReport,
                     iouTransactionID,
                     requestParentReportAction,
                     iouReport,
                     chatIOUReport,
-                    isSingleTransactionView,
                     isChatIOUReportArchived,
+                    isSingleTransactionView,
                 );
             } else {
                 urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(

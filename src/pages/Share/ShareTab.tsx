@@ -44,6 +44,7 @@ function ShareTab({ref}: ShareTabProps) {
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     useImperativeHandle(ref, () => ({
@@ -70,8 +71,9 @@ function ShareTab({ref}: ShareTabProps) {
             searchQuery: textInputValue,
             maxResults: 20,
             includeUserToInvite: true,
+            countryCode,
         });
-    }, [areOptionsInitialized, betas, draftComments, options, textInputValue]);
+    }, [areOptionsInitialized, betas, draftComments, options, textInputValue, countryCode]);
 
     const recentReportsOptions = useMemo(() => {
         if (textInputValue.trim() === '') {
@@ -103,9 +105,9 @@ function ShareTab({ref}: ShareTabProps) {
     const [sections, header] = useMemo(() => {
         const newSections = [];
         newSections.push({title: textInputValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
-        const headerMessage = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), false);
+        const headerMessage = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), false, countryCode);
         return [newSections, headerMessage];
-    }, [textInputValue, styledRecentReports, translate]);
+    }, [textInputValue, styledRecentReports, translate, countryCode]);
 
     const onSelectRow = (item: OptionData) => {
         let reportID = item?.reportID ?? CONST.DEFAULT_NUMBER_ID;
