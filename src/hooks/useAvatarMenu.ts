@@ -1,9 +1,9 @@
 import {useCallback} from 'react';
-import type {FileObject} from '@components/AttachmentModal';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
+import type { FileObject } from '@src/types/utils/Attachment';
 import useLocalize from './useLocalize';
 
 type OpenPicker = (options: {onPicked: (files: FileObject[]) => void}) => void;
