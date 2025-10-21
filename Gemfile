@@ -8,7 +8,7 @@ gem 'activesupport', '>= 6.1.7.5', '!= 7.1.0'
 gem 'xcodeproj', '< 1.26.0'
 gem "fastlane", "~> 2", ">= 2.228.0"
 gem "xcpretty", "~> 0"
-gem "openssl"
+gem "openssl", ">= 3.3.1"
 
 
 plugins_path = File.join(File.dirname(__FILE__), 'fastlane', 'Pluginfile')
