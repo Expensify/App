@@ -72,7 +72,6 @@ function AccountDetailsPage() {
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS>>();
     const [email, setEmail] = useState(params?.email ?? '');
     const {inputCallbackRef} = useAutoFocusInput();
-
     const validateCodeSent = getValidateCodeForAccountMerge?.validateCodeSent;
     const latestError = getLatestErrorMessage(getValidateCodeForAccountMerge);
     const errorKey = getValidateCodeErrorKey(latestError);
@@ -83,7 +82,7 @@ function AccountDetailsPage() {
 
     useFocusEffect(
         useCallback(() => {
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const task = InteractionManager.runAfterInteractions(() => {
                 if (!validateCodeSent || !email) {
                     return;
@@ -98,7 +97,7 @@ function AccountDetailsPage() {
 
     useFocusEffect(
         useCallback(() => {
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const task = InteractionManager.runAfterInteractions(() => {
                 if (!errorKey || !email) {
                     return;
@@ -112,7 +111,7 @@ function AccountDetailsPage() {
 
     useFocusEffect(
         useCallback(() => {
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const task = InteractionManager.runAfterInteractions(() => {
                 if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.INVOICING) {
                     return;

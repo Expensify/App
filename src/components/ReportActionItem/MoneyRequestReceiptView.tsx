@@ -8,6 +8,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import useActiveRoute from '@hooks/useActiveRoute';
+import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -17,7 +18,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import {isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {getOriginalMessage, isMoneyRequestAction, isPayAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
@@ -109,6 +110,7 @@ function MoneyRequestReceiptView({
     const [isLoading, setIsLoading] = useState(true);
 
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
+    const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
     const isTrackExpense = isTrackExpenseReport(report);
     const moneyRequestReport = parentReport;
     const linkedTransactionID = useMemo(() => {
@@ -127,7 +129,6 @@ function MoneyRequestReceiptView({
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const isInvoice = isInvoiceReport(moneyRequestReport);
-    const isPaidReport = isPayAction(parentReportAction);
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
 
     // Flags for allowing or disallowing editing an expense
@@ -157,9 +158,9 @@ function MoneyRequestReceiptView({
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 
-    const isReceiptAllowed = !isPaidReport && !isInvoice;
-    const doesTransactionHaveReceipt = !!transaction?.receipt && !isEmptyObject(transaction?.receipt);
-    const shouldShowReceiptEmptyState = isReceiptAllowed && !hasReceipt && !!transaction && !doesTransactionHaveReceipt;
+    const transactionToCheck = updatedTransaction ?? transaction;
+    const doesTransactionHaveReceipt = !!transactionToCheck?.receipt && !isEmptyObject(transactionToCheck?.receipt);
+    const shouldShowReceiptEmptyState = !isInvoice && !hasReceipt && !!transaction && !doesTransactionHaveReceipt;
 
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
         const imageViolations = [];
@@ -186,7 +187,7 @@ function MoneyRequestReceiptView({
     // `!!(receiptViolations.length || didReceiptScanSucceed)` is for not showing `Verified` when `receiptViolations` is empty and `didReceiptScanSucceed` is false.
     const shouldShowAuditMessage =
         !isTransactionScanning && (hasReceipt || !!receiptRequiredViolation || !!customRulesViolation) && !!(receiptViolations.length || didReceiptScanSucceed) && isPaidGroupPolicy(report);
-    const shouldShowReceiptAudit = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt);
+    const shouldShowReceiptAudit = !isInvoice && (shouldShowReceiptEmptyState || hasReceipt);
 
     const errors = {
         ...(transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors),
@@ -207,7 +208,7 @@ function MoneyRequestReceiptView({
                 return;
             }
             if (parentReportAction) {
-                cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, report.reportID, true);
+                cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, report.reportID, iouReport, chatIOUReport, isChatIOUReportArchived, true);
                 return;
             }
         }
@@ -222,7 +223,7 @@ function MoneyRequestReceiptView({
         revert(transaction, getLastModifiedExpense(report?.reportID));
         clearError(transaction.transactionID);
         clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
-    }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID]);
+    }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID, iouReport, chatIOUReport, isChatIOUReportArchived]);
 
     let receiptStyle: StyleProp<ViewStyle>;
 
