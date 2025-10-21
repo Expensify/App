@@ -3988,6 +3988,7 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.splashBG,
             alignItems: 'center',
             justifyContent: 'center',
+            zIndex: 20,
         },
 
         headerEnvBadge: {
