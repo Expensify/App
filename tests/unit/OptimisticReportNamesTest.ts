@@ -20,10 +20,15 @@ jest.mock('@libs/CurrencyUtils', () => ({
 
 const mockReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
 
-// Temporarily skip tests until rNVP check in optimistic report names is stabilized
 describe('OptimisticReportNames', () => {
     const mockPolicy = {
         id: 'policy1',
+        fieldList: {
+            [CONST.REPORT_FIELD_TITLE_FIELD_ID]: {
+                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                defaultValue: '{report:type} - {report:total}',
+            },
+        },
     } as unknown as Policy;
 
     const mockReport = {
@@ -66,7 +71,7 @@ describe('OptimisticReportNames', () => {
     });
 
     describe('shouldComputeReportName()', () => {
-        test.skip('should return true for report with title field formula', () => {
+        test('should return true for report with title field formula', () => {
             const result = shouldComputeReportName(mockReport, mockContext);
             expect(result).toBe(true);
         });
@@ -81,6 +86,7 @@ describe('OptimisticReportNames', () => {
                         private_isArchived: '',
                     },
                 },
+                allPolicies: {},
             };
             const result = shouldComputeReportName(mockReport, context);
             expect(result).toBe(false);
@@ -101,7 +107,7 @@ describe('OptimisticReportNames', () => {
     });
 
     describe('computeReportNameIfNeeded()', () => {
-        test.skip('should compute name when report data changes', () => {
+        test('should compute name when report data changes', () => {
             const update = {
                 key: 'report_123' as OnyxKey,
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -132,7 +138,7 @@ describe('OptimisticReportNames', () => {
     });
 
     describe('updateOptimisticReportNamesFromUpdates()', () => {
-        test.skip('should detect new report creation and add name update', () => {
+        test('should detect new report creation and add name update', () => {
             const updates = [
                 {
                     key: 'report_456' as OnyxKey,
@@ -156,7 +162,7 @@ describe('OptimisticReportNames', () => {
             });
         });
 
-        test.skip('should handle existing report updates', () => {
+        test('should handle existing report updates', () => {
             const updates = [
                 {
                     key: 'report_123' as OnyxKey,
@@ -170,7 +176,7 @@ describe('OptimisticReportNames', () => {
             expect(result.at(1)?.value).toEqual({reportName: 'Expense Report - $250.00'});
         });
 
-        test.skip('should handle policy updates affecting multiple reports', () => {
+        test('should handle policy updates affecting multiple reports', () => {
             const contextWithMultipleReports = {
                 ...mockContext,
                 allReports: {
@@ -180,6 +186,18 @@ describe('OptimisticReportNames', () => {
                     report_456: {...mockReport, reportID: '456'},
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     report_789: {...mockReport, reportID: '789'},
+                },
+                allPolicies: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    policy_policy1: {
+                        id: 'policy1',
+                        fieldList: {
+                            [CONST.REPORT_FIELD_TITLE_FIELD_ID]: {
+                                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                                defaultValue: 'Policy: {report:policyname}',
+                            },
+                        },
+                    } as unknown as Policy,
                 },
                 allReportNameValuePairs: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -258,7 +276,7 @@ describe('OptimisticReportNames', () => {
     });
 
     describe('Transaction Updates', () => {
-        test.skip('should process transaction updates and trigger report name updates', () => {
+        test('should process transaction updates and trigger report name updates', () => {
             const contextWithTransaction = {
                 ...mockContext,
                 allTransactions: {
@@ -337,7 +355,7 @@ describe('OptimisticReportNames', () => {
             expect(result).toBeUndefined();
         });
 
-        test.skip('should handle transaction updates that rely on context lookup', () => {
+        test('should handle transaction updates that rely on context lookup', () => {
             const contextWithTransaction = {
                 ...mockContext,
                 allTransactions: {
@@ -370,7 +388,7 @@ describe('OptimisticReportNames', () => {
             expect(result.at(1)?.key).toBe('report_123');
         });
 
-        test.skip('should use optimistic transaction data in formula computation', () => {
+        test('should use optimistic transaction data in formula computation', () => {
             const contextWithTransaction = {
                 ...mockContext,
                 allReportNameValuePairs: {
@@ -381,6 +399,18 @@ describe('OptimisticReportNames', () => {
                             defaultValue: 'Report from {report:startdate}',
                         },
                     } as unknown as ReportNameValuePairs,
+                },
+                allPolicies: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    policy_policy1: {
+                        id: 'policy1',
+                        fieldList: {
+                            [CONST.REPORT_FIELD_TITLE_FIELD_ID]: {
+                                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                                defaultValue: 'Report from {report:startdate}',
+                            },
+                        },
+                    } as unknown as Policy,
                 },
                 allTransactions: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
