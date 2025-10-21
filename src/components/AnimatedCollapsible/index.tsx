@@ -21,7 +21,7 @@ type AnimatedCollapsibleProps = {
     /** Header content to display above the collapsible content */
     header: ReactNode;
 
-    /** description content to display below the header*/
+    /** Description content to display below the header */
     description?: ReactNode;
 
     /** Duration of expansion animation */
@@ -46,7 +46,19 @@ type AnimatedCollapsibleProps = {
     onPress: () => void;
 };
 
-function AnimatedCollapsible({isExpanded, children, header, description, duration = 300, style, headerStyle, contentStyle, expandButtonStyle, onPress, disabled = false}: AnimatedCollapsibleProps) {
+function AnimatedCollapsible({
+    isExpanded,
+    children,
+    header,
+    description,
+    duration = 300,
+    style,
+    headerStyle,
+    contentStyle,
+    expandButtonStyle,
+    onPress,
+    disabled = false,
+}: AnimatedCollapsibleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const contentHeight = useSharedValue(0);
@@ -75,10 +87,6 @@ function AnimatedCollapsible({isExpanded, children, header, description, duratio
         });
     }, []);
 
-    const animatedDescriptionHeight = useDerivedValue(() => {
-        return withTiming(!hasExpanded.get() ? descriptionHeight.get() : 0, {duration, easing});
-    }, []);
-
     const animatedOpacity = useDerivedValue(() => {
         if (!contentHeight.get()) {
             return 0;
@@ -94,7 +102,6 @@ function AnimatedCollapsible({isExpanded, children, header, description, duratio
     const descriptionAnimatedStyle = useAnimatedStyle(() => {
         return {
             opacity: descriptionOpacity.get(),
-            // height: animatedDescriptionHeight.get(),
         };
     }, []);
 
@@ -125,8 +132,8 @@ function AnimatedCollapsible({isExpanded, children, header, description, duratio
                     )}
                 </PressableWithFeedback>
             </View>
-            {description && (
-                <Animated.View 
+            {!!description && (
+                <Animated.View
                     style={[descriptionAnimatedStyle]}
                     onLayout={(e) => {
                         const height = e.nativeEvent.layout.height;

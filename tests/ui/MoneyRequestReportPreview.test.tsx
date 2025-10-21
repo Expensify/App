@@ -190,5 +190,4 @@ describe('MoneyRequestReportPreview', () => {
 
         expect(screen.getAllByTestId('TransactionPreviewSkeletonView')).toHaveLength(2);
     });
-
 });

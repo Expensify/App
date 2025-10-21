@@ -6,6 +6,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import {getButtonRole} from '@components/Button/utils';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -20,9 +22,12 @@ import type {
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
+import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -30,6 +35,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {getSections} from '@libs/SearchUIUtils';
+import {getTransactionViolations} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,14 +45,6 @@ import MemberListItemHeader from './MemberListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
-import { getTransactionViolations } from '@libs/TransactionUtils';
-import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import FormHelpMessage from '@components/FormHelpMessage';
-import * as Expensicons from '@components/Icon/Expensicons';
-import Text from '@components/Text';
-import Icon from '@components/Icon';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 
 function TransactionGroupListItem<TItem extends ListItem>({
     item,
@@ -71,8 +69,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
     const {selectedTransactions} = useSearchContext();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const isSelectionModeEnabled = useMobileSelectionMode();
 
@@ -290,10 +289,22 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     width={12}
                     height={12}
                 />
-                <Text style={[styles.textMicro, styles.textDanger]}>{'Report contains expenses with violations'}</Text>
+                <Text style={[styles.textMicro, styles.textDanger]}>{translate('reportViolations.reportContainsExpensesWithViolations')}</Text>
             </View>
         );
-    }, [hasViolations, theme]);
+    }, [
+        hasViolations,
+        isSelectionModeEnabled,
+        isSmallScreenWidth,
+        styles.alignItemsCenter,
+        styles.flexRow,
+        styles.ml3,
+        styles.mr1,
+        styles.textDanger,
+        styles.textMicro,
+        theme.danger,
+        translate,
+    ]);
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
