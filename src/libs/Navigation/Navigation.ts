@@ -661,6 +661,12 @@ function isOnboardingFlow() {
     return isOnboardingFlowName(currentFocusedRoute?.name);
 }
 
+function isValidateLoginFlow() {
+    const state = navigationRef.getRootState();
+    const currentFocusedRoute = findFocusedRoute(state);
+    return currentFocusedRoute?.name === SCREENS.VALIDATE_LOGIN;
+}
+
 function clearPreloadedRoutes() {
     const rootStateWithoutPreloadedRoutes = {...navigationRef.getRootState(), preloadedRoutes: []} as NavigationState;
     navigationRef.reset(rootStateWithoutPreloadedRoutes);
@@ -716,6 +722,7 @@ export default {
     clearPreloadedRoutes,
     onModalDismissedOnce,
     fireModalDismissed,
+    isValidateLoginFlow,
 };
 
 export {navigationRef};
