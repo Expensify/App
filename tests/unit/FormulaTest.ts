@@ -514,6 +514,22 @@ describe('CustomFormula', () => {
             expect(compute('{report:startdate:W}', mockContextWithDate)).toBe('02');
         });
 
+        test('ISO week number - first Thursday rule', () => {
+            // January 1, 2021 is a Friday
+            // Week 1 of 2021 contains the first Thursday (Jan 7)
+            // So Jan 1-3 (Fri, Sat, Sun) belong to week 53 of 2020
+            setupMockDate('2021-01-01T12:00:00Z'); // Friday, Jan 1, 2021
+            expect(compute('{report:startdate:W}', mockContextWithDate)).toBe('53');
+
+            // January 4 is Monday, which is in week 1
+            setupMockDate('2021-01-04T12:00:00Z'); // Monday, Jan 4, 2021
+            expect(compute('{report:startdate:W}', mockContextWithDate)).toBe('01');
+
+            // December 31, 2020 is Thursday, should be week 53
+            setupMockDate('2020-12-31T12:00:00Z'); // Thursday, Dec 31, 2020
+            expect(compute('{report:startdate:W}', mockContextWithDate)).toBe('53');
+        });
+
         test('complex date formats', () => {
             expect(compute('{report:startdate:MMMM dd, yyyy}', mockContextWithDate)).toBe('January 08, 2025');
             expect(compute('{report:startdate:dd MMM yyyy}', mockContextWithDate)).toBe('08 Jan 2025');

@@ -22,14 +22,24 @@ function getOrdinalSuffix(day: number): string {
 
 /**
  * Calculate ISO week number for a given date
+ * Uses the "first Thursday" rule: Week 1 is the week containing the year's first Thursday
  */
 function calculateISOWeekNumber(date: Date): number {
-    const year = date.getFullYear();
-    const januaryFirst = new Date(year, 0, 1);
-    const daysSinceJanuary = Math.floor((date.getTime() - januaryFirst.getTime()) / (1000 * 60 * 60 * 24));
-    const januaryFirstDayOfWeek = januaryFirst.getDay();
-    const daysToMonday = januaryFirstDayOfWeek === 0 ? -6 : 1 - januaryFirstDayOfWeek;
-    return Math.ceil((daysSinceJanuary - daysToMonday + 1) / 7);
+    // Create a copy to avoid modifying the original date
+    const target = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+
+    // Set to nearest Thursday: current date + 4 - current day number
+    // Make Sunday's day number 7
+    const dayNum = target.getUTCDay() || 7;
+    target.setUTCDate(target.getUTCDate() + 4 - dayNum);
+
+    // Get first day of year for the Thursday's year (in UTC)
+    const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
+
+    // Calculate full weeks to nearest Thursday
+    const weekNum = Math.ceil(((target.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+
+    return weekNum;
 }
 
 /**
@@ -54,12 +64,13 @@ function getLocalizedNames(date: Date) {
 }
 
 /**
- * Get time components in local timezone with fallback support
+ * Get time components in UTC timezone (to match Classic/OldDot behavior)
  */
-function getLocalTimeComponents(date: Date, timezone: string) {
-    const hours = parseInt(DateUtils.formatInTimeZoneWithFallback(date, timezone, 'H'), 10);
-    const minutes = parseInt(DateUtils.formatInTimeZoneWithFallback(date, timezone, 'm'), 10);
-    const seconds = parseInt(DateUtils.formatInTimeZoneWithFallback(date, timezone, 's'), 10);
+function getUTCTimeComponents(date: Date) {
+    // Use UTC methods to match Classic behavior
+    const hours = date.getUTCHours();
+    const minutes = date.getUTCMinutes();
+    const seconds = date.getUTCSeconds();
 
     let hours12 = hours;
     if (hours === 0) {
@@ -122,9 +133,8 @@ function createDateTokens(date: Date): Array<{token: string; value: string}> {
     // Get localized names
     const {fullMonthName, shortMonthName, fullDayName, shortDayName} = getLocalizedNames(date);
 
-    // Get time components in local timezone
-    const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const {hours, minutes, seconds, hours12, meridiem, meridiemUpperCase} = getLocalTimeComponents(date, localTimezone);
+    // Get time components in UTC timezone (to match Classic/OldDot behavior)
+    const {hours, minutes, seconds, hours12, meridiem, meridiemUpperCase} = getUTCTimeComponents(date);
 
     return [
         // Special combinations first
@@ -242,4 +252,4 @@ function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): stri
     }
 }
 
-export {formatDate, getOrdinalSuffix, calculateISOWeekNumber, calculateDayOfYear, getLocalizedNames, getLocalTimeComponents, createDateTokens, applyTokenReplacement};
+export {formatDate, getOrdinalSuffix, calculateISOWeekNumber, calculateDayOfYear, getLocalizedNames, getUTCTimeComponents, createDateTokens, applyTokenReplacement};
