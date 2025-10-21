@@ -226,12 +226,4 @@ function isCustomAvatarID(value: unknown): value is CustomAvatarID {
     return typeof value === 'string' && value in ALL_CUSTOM_AVATARS;
 }
 
-/**
- * Returns typed array of CustomAvatarID keys from ALL_CUSTOM_AVATARS
- * @returns Array of CustomAvatarID
- */
-function getCustomAvatarIDs(): CustomAvatarID[] {
-    return Object.keys(ALL_CUSTOM_AVATARS) as CustomAvatarID[];
-}
-
-export {ALL_CUSTOM_AVATARS, CUSTOM_AVATAR_CATALOG, LETTER_AVATAR_COLOR_OPTIONS, LETTER_DEFAULTS, getAvatarLocal, getAvatarURL, getLetterAvatar, isCustomAvatarID, getCustomAvatarIDs};
+export {ALL_CUSTOM_AVATARS, CUSTOM_AVATAR_CATALOG, LETTER_AVATAR_COLOR_OPTIONS, LETTER_DEFAULTS, getAvatarLocal, getAvatarURL, getLetterAvatar, isCustomAvatarID};
