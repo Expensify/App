@@ -1,6 +1,5 @@
 import React, {useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
@@ -24,28 +23,27 @@ import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
+import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
+import type { SettingsNavigatorParamList } from '@libs/Navigation/types';
+import type SCREENS from '@src/SCREENS';
 
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
 
-type AssigneeStepProps = {
-    /** The policy that the card will be issued under */
-    policy: OnyxEntry<OnyxTypes.Policy>;
+type AssigneeStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE>;
 
-    /** Selected feed */
-    feed: OnyxTypes.CompanyCardFeed;
-};
-
-function AssigneeStep({policy, feed}: AssigneeStepProps) {
+function AssigneeStep({route}: AssigneeStepProps) {
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [list] = useCardsList(policy?.id, feed);
-    const [cardFeeds] = useCardFeeds(policy?.id);
+    const policyID = route.params?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const feed = route.params?.feed;
+    const [list] = useCardsList(policyID, feed);
+    const [cardFeeds] = useCardFeeds(policyID);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
 
     const isEditing = assignCard?.isEditing;

@@ -1048,6 +1048,34 @@ type SettingsNavigatorParamList = {
         feed: CompanyCardFeed;
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: {
+        policyID: string;
+        feed: CompanyCardFeed;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_SELECT]: {
+        policyID: string;
+        feed: CompanyCardFeed;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP]: {
+        policyID: string;
+        feed: CompanyCardFeed;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_NAME]: {
+        policyID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION]: {
+        policyID: string;
+        feed: CompanyCardFeed;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_PLAID_CONNECTION]: {
+        policyID: string;
+        feed: CompanyCardFeed;
+    };
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME]: {
         policyID: string;
     };
