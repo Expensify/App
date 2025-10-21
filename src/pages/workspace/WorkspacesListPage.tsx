@@ -727,7 +727,7 @@ function WorkspacesListPage() {
                     ListHeaderComponent={getListHeaderComponent()}
                     renderItem={renderItem}
                     getItemType={getItemType}
-                    contentContainerStyle={styles.pb14}
+                    contentContainerStyle={styles.pb20}
                     removeClippedSubviews
                     drawDistance={1000}
                 />
