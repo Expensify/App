@@ -861,7 +861,11 @@ function buildFilterFormValuesFromQuery(
             const dateBeforeKey = `${CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}${suffix}` as ReportFieldDateKey;
             const dateAfterKey = `${CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${CONST.SEARCH.DATE_MODIFIERS.AFTER}${suffix}` as ReportFieldDateKey;
 
-            let dateBeforeFilter, dateAfterFilter, dateOnFilter, negatedFilter, textFilter;
+            let dateBeforeFilter;
+            let dateAfterFilter;
+            let dateOnFilter;
+            let negatedFilter;
+            let textFilter;
 
             for (const filter of filterList) {
                 if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && isValidDate(filter.value.toString())) {
