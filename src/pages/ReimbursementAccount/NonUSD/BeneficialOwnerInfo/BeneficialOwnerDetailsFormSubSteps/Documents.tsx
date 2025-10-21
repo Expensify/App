@@ -16,8 +16,8 @@ import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/For
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import SafeString from '@src/utils/SafeString';
 import type {FileObject} from '@src/types/utils/Attachment';
+import SafeString from '@src/utils/SafeString';
 
 type DocumentsProps = SubStepProps & {ownerBeingModifiedID: string};
 

@@ -2,8 +2,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import type {BeneficialOwnerDataKey, SignerInfoStepProps} from '@src/types/form/ReimbursementAccountForm';
-import SafeString from '@src/utils/SafeString';
 import type {FileObject} from '@src/types/utils/Attachment';
+import SafeString from '@src/utils/SafeString';
 
 const {FULL_NAME, EMAIL, JOB_TITLE, DATE_OF_BIRTH, ADDRESS, STREET, CITY, STATE, ZIP_CODE, PROOF_OF_DIRECTORS, ADDRESS_PROOF, COPY_OF_ID, CODICE_FISCALE, DOWNLOADED_PDS_AND_FSG} =
     CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
