@@ -71,6 +71,7 @@ function useOptions() {
         shouldInitialize: didScreenTransitionEnd,
     });
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     const defaultOptions = useMemo(() => {
         const filteredOptions = memoizedGetValidOptions(
@@ -79,6 +80,7 @@ function useOptions() {
                 personalDetails: (listOptions.personalDetails ?? []).concat(contacts),
             },
             draftComments,
+            nvpDismissedProductTraining,
             {
                 betas: betas ?? [],
                 includeSelfDM: true,
