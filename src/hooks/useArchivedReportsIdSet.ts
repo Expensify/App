@@ -1,6 +1,7 @@
 import {isArchivedReport} from '@libs/ReportUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useDeepCompareRef from './useDeepCompareRef';
 import useOnyx from './useOnyx';
 
 /**
@@ -24,7 +25,7 @@ function useArchivedReportsIdSet(): ArchivedReportsIDSet {
         },
     });
 
-    return archivedReportsIdSet;
+    return useDeepCompareRef(archivedReportsIdSet) ?? new Set<string>();
 }
 
 export default useArchivedReportsIdSet;
