@@ -30,7 +30,7 @@ function calculateISOWeekNumber(date: Date): number {
 
     // Set to nearest Thursday: current date + 4 - current day number
     // Make Sunday's day number 7
-    const dayNum = target.getUTCDay() || 7;
+    const dayNum = target.getUTCDay() ?? 7;
     target.setUTCDate(target.getUTCDate() + 4 - dayNum);
 
     // Get first day of year for the Thursday's year (in UTC)
