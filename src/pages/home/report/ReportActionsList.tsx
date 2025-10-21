@@ -436,7 +436,7 @@ function ReportActionsList({
         }
 
         const isLastActionUnread = lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions);
-        if (!isUnread(report, transactionThreadReport) && !isLastActionUnread) {
+        if (!isUnread(report, transactionThreadReport, isReportArchived) && !isLastActionUnread) {
             return;
         }
 
